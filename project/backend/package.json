@@ -4,16 +4,15 @@
   "description": "Bitcoin Custodial Investment Platform Backend API",
   "main": "dist/main.js",
   "scripts": {
-    "build": "npx @nestjs/cli build",
+    "build": "chmod +x ./node_modules/.bin/nest && nest build",
     "start": "node dist/main.js",
-    "start:dev": "npx @nestjs/cli start --watch",
-    "start:debug": "npx @nestjs/cli start --debug --watch",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "migrate": "ts-node scripts/run-migrations.ts",
     "migrate:create": "node scripts/create-migration.js"
   },
   "dependencies": {
-    "@nestjs/cli": "^11.0.10",
     "@nestjs/common": "^11.1.9",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.9",
@@ -21,6 +20,7 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.9",
     "@nestjs/swagger": "^11.2.3",
+    "@nestjs/cli": "^11.0.10",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
@@ -56,6 +56,5 @@
     "custodial",
     "investment"
   ],
-  "author": "",
   "license": "UNLICENSED"
 }
