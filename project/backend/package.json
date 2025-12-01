@@ -4,7 +4,6 @@
   "description": "Bitcoin Custodial Investment Platform Backend API",
   "main": "dist/main.js",
   "scripts": {
-   
     "build": "npx @nestjs/cli build",
     "start": "node dist/main.js",
     "start:dev": "npx @nestjs/cli start --watch",
@@ -14,6 +13,7 @@
     "migrate:create": "node scripts/create-migration.js"
   },
   "dependencies": {
+    "@nestjs/cli": "^11.0.10",
     "@nestjs/common": "^11.1.9",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.9",
@@ -37,7 +37,6 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.10",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.9",
     "@types/bcrypt": "^5.0.2",
