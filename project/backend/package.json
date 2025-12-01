@@ -4,7 +4,8 @@
   "description": "Bitcoin Custodial Investment Platform Backend API",
   "main": "dist/main.js",
   "scripts": {
-    "build": "npx @nestjs/cli build",
+   
+    "build": "npx nest build",
     "start": "node dist/main.js",
     "start:dev": "npx @nestjs/cli start --watch",
     "start:debug": "npx @nestjs/cli start --debug --watch",
