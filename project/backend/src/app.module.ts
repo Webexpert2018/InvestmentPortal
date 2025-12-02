@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { PortfoliosModule } from './modules/portfolios/portfolios.module';
@@ -16,6 +18,19 @@ import { HealthController } from './health.controller';
       isGlobal: true,
       envFilePath: '.env',
     }),
+
+    // ⬇️ DATABASE CONFIG FOR RAILWAY POSTGRES
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      url: process.env.DATABASE_URL,  // Use Railway DB URL
+      autoLoadEntities: true,
+      synchronize: true, // ❗ Only for development, turn OFF later
+
+      ssl: process.env.NODE_ENV === 'production'
+        ? { rejectUnauthorized: false }
+        : false,
+    }),
+
     AuthModule,
     UsersModule,
     PortfoliosModule,
