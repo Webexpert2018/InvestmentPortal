@@ -20,22 +20,15 @@ import { HealthController } from './health.controller';
       envFilePath: '.env',
     }),
 
-    // TypeORM configuration
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: () => ({
-        type: 'postgres',
-        host: process.env.DB_HOST,        // Railway host
-        port: parseInt(process.env.DB_PORT || '5432', 10),
-        username: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-        autoLoadEntities: true,
-        synchronize: process.env.NODE_ENV !== 'production', // Only true in dev
-        ssl: process.env.NODE_ENV === 'production'
-          ? { rejectUnauthorized: false }
-          : false,
-      }),
+    // TypeORM configuration using DATABASE_URL (recommended for Railway)
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
+      autoLoadEntities: true,
+      synchronize: process.env.NODE_ENV !== 'production', // true only in dev
+      ssl: process.env.NODE_ENV === 'production'
+        ? { rejectUnauthorized: false }
+        : false,
     }),
 
     // Application modules
