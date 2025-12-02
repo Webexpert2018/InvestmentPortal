@@ -20,14 +20,14 @@ import { HealthController } from './health.controller';
       envFilePath: '.env',
     }),
 
-    // TypeORM configuration using DATABASE_URL (recommended for Railway)
+    // TypeORM config using full DATABASE_URL
     TypeOrmModule.forRoot({
       type: 'postgres',
-      url: process.env.DATABASE_URL,
+      url: process.env.DATABASE_URL, // Railway connection string
       autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV !== 'production', // true only in dev
+      synchronize: process.env.NODE_ENV !== 'production', // Only true in dev
       ssl: process.env.NODE_ENV === 'production'
-        ? { rejectUnauthorized: false }
+        ? { rejectUnauthorized: false } // Required for Railway SSL
         : false,
     }),
 
