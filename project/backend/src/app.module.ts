@@ -1,8 +1,7 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { APP_FILTER } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { PortfoliosModule } from './modules/portfolios/portfolios.module';
@@ -15,28 +14,27 @@ import { HealthController } from './health.controller';
 
 @Module({
   imports: [
-    // Load environment variables globally
+    // Make env vars available everywhere
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
 
-    // TypeORM config with Railway DATABASE_URL
+    // PostgreSQL DB config for Railway
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        url: configService.get<string>('DATABASE_URL'),
+        url: config.get('DATABASE_URL'),
         autoLoadEntities: true,
-        synchronize: configService.get<string>('NODE_ENV') !== 'production', // Only in dev
-        ssl: configService.get<string>('NODE_ENV') === 'production'
-          ? { rejectUnauthorized: false }
-          : false,
+        synchronize: config.get('NODE_ENV') !== 'production', // Only in dev
+        ssl: {
+          rejectUnauthorized: false, // Railway requires SSL
+        },
       }),
     }),
 
-    // Application modules
     AuthModule,
     UsersModule,
     PortfoliosModule,
