@@ -9,7 +9,8 @@ async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     console.log('🌐 Environment:', process.env.NODE_ENV);
     const configService = app.get(config_1.ConfigService);
-    const port = configService.get('PORT') || 3000;
+    // Try to get PORT from ConfigService first, then environment, then default
+    const port = parseInt(configService.get('PORT') || process.env.PORT || '3001', 10);
     app.enableCors();
     // Add validation pipe
     app.useGlobalPipes(new common_1.ValidationPipe({
@@ -27,8 +28,8 @@ async function bootstrap() {
     const document = swagger_1.SwaggerModule.createDocument(app, config);
     swagger_1.SwaggerModule.setup('api/docs', app, document);
     console.log(`🚀 Swagger URL: http://localhost:${port}/api/docs`);
-    await app.listen(port);
-    console.log(`🚀 App Running On: http://localhost:${port}`);
+    await app.listen(port, '0.0.0.0'); // Listen on all interfaces for Railway
+    console.log(`🚀 App Running On: http://0.0.0.0:${port}`);
 }
 bootstrap().catch(err => {
     console.error('Failed to start application:', err);

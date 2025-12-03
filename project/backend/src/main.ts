@@ -7,8 +7,13 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   console.log('🌐 Environment:', process.env.NODE_ENV);
+  
   const configService = app.get(ConfigService);
-  const port = configService.get('PORT') || 3000;
+  // Try to get PORT from ConfigService first, then environment, then default
+  const port = parseInt(
+    configService.get('PORT') || process.env.PORT || '3001',
+    10,
+  );
 
   app.enableCors();
 
@@ -34,8 +39,8 @@ async function bootstrap() {
 
   console.log(`🚀 Swagger URL: http://localhost:${port}/api/docs`);
 
-  await app.listen(port);
-  console.log(`🚀 App Running On: http://localhost:${port}`);
+  await app.listen(port, '0.0.0.0'); // Listen on all interfaces for Railway
+  console.log(`🚀 App Running On: http://0.0.0.0:${port}`);
 }
 
 bootstrap().catch(err => {
