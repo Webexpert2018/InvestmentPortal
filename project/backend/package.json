@@ -5,7 +5,8 @@
   "main": "dist/main.js",
   "scripts": {
     "prebuild": "echo Preparing build...",
-    "build": "nest build",
+    "build": "tsc",
+    "build:nest": "nest build",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
     "update-admin-password": "ts-node scripts/update-admin-password.ts"
