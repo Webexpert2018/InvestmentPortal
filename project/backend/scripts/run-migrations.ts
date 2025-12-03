@@ -6,11 +6,10 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5433'),
-  database: process.env.DB_NAME || 'bitcoin_ira',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 async function runMigrations() {
@@ -18,9 +17,8 @@ async function runMigrations() {
 
   try {
     console.log('🔄 Connecting to database...');
-    console.log(`   Host: ${process.env.DB_HOST || 'localhost'}`);
-    console.log(`   Database: ${process.env.DB_NAME || 'bitcoin_ira'}`);
-    console.log(`   User: ${process.env.DB_USER || 'postgres'}`);
+    console.log(`   Connection String: ${process.env.DATABASE_URL?.replace(/:[^@]*@/, ':****@')}`);
+    console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
 
     const migrationsDir = path.join(__dirname, '../migrations');
     const migrationFiles = fs

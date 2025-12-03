@@ -1,6 +1,19 @@
 import { Pool } from 'pg';
+import * as dotenv from 'dotenv';
+
+// Load env vars immediately
+dotenv.config();
 
 const connectionString = process.env.DATABASE_URL;
+
+console.log('📡 Database Configuration:');
+console.log(`   Connection String: ${connectionString?.replace(/:[^@]*@/, ':****@') || 'NOT SET'}`);
+console.log(`   Port: ${connectionString?.includes(':') ? 'Using connection string' : 'ERROR: No connection string'}`);
+
+if (!connectionString) {
+  console.error('❌ ERROR: DATABASE_URL is not set in .env file');
+  throw new Error('DATABASE_URL environment variable is required');
+}
 
 const pool = new Pool({
   connectionString,
@@ -9,7 +22,7 @@ const pool = new Pool({
   },
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 10000, // Increased from 2000 to 10 seconds
 });
 
 // Fix TypeScript error: explicitly type 'err'

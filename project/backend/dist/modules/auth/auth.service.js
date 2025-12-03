@@ -80,35 +80,39 @@ let AuthService = class AuthService {
         };
     }
     async login(email, password) {
-        debugger;
-        const result = await database_1.db.query('SELECT id, email, password_hash, role, first_name, last_name, status FROM users WHERE email = $1', [email]);
-        const user = result.rows[0];
-        if (!user) {
-            throw new common_1.UnauthorizedException('Invalid credentials');
-        }
-        if (user.status !== 'active') {
-            throw new common_1.UnauthorizedException('Account is not active');
-        }
-        //const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-        const isPasswordValid = true;
-        if (!isPasswordValid) {
-            throw new common_1.UnauthorizedException('Invalid credentials');
-        }
-        const token = this.jwtService.sign({
-            userId: user.id,
-            email: user.email,
-            role: user.role
-        });
-        return {
-            user: {
-                id: user.id,
+        try {
+            const result = await database_1.db.query('SELECT id, email, password_hash, role, first_name, last_name, status FROM users WHERE email = $1', [email]);
+            const user = result.rows[0];
+            if (!user) {
+                throw new common_1.UnauthorizedException('Invalid credentials');
+            }
+            if (user.status !== 'active') {
+                throw new common_1.UnauthorizedException('Account is not active');
+            }
+            const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+            if (!isPasswordValid) {
+                throw new common_1.UnauthorizedException('Invalid credentials');
+            }
+            const token = this.jwtService.sign({
+                userId: user.id,
                 email: user.email,
-                role: user.role,
-                firstName: user.first_name,
-                lastName: user.last_name,
-            },
-            token,
-        };
+                role: user.role
+            });
+            return {
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    role: user.role,
+                    firstName: user.first_name,
+                    lastName: user.last_name,
+                },
+                token,
+            };
+        }
+        catch (error) {
+            console.error('Login error:', error);
+            throw error;
+        }
     }
 };
 exports.AuthService = AuthService;

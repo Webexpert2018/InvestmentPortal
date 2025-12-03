@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -18,21 +17,6 @@ import { HealthController } from './health.controller';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-    }),
-
-    // PostgreSQL DB config for Railway
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        url: config.get('DATABASE_URL'),
-        autoLoadEntities: true,
-        synchronize: config.get('NODE_ENV') !== 'production', // Only in dev
-        ssl: {
-          rejectUnauthorized: false, // Railway requires SSL
-        },
-      }),
     }),
 
     AuthModule,

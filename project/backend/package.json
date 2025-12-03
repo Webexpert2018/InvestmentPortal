@@ -4,10 +4,11 @@
   "description": "Bitcoin IRA Backend",
   "main": "dist/main.js",
   "scripts": {
-    "prebuild": "chmod +x ./node_modules/.bin/nest",
+    "prebuild": "echo Preparing build...",
     "build": "nest build",
     "start": "node dist/main.js",
-    "start:dev": "nest start --watch"
+    "start:dev": "nest start --watch",
+    "update-admin-password": "ts-node scripts/update-admin-password.ts"
   },
   "dependencies": {
     "@nestjs/cli": "^11.0.10",

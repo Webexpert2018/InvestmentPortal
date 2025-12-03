@@ -69,15 +69,13 @@ let AuthController = class AuthController {
             !signupDto.password ||
             !signupDto.firstName ||
             !signupDto.lastName) {
-            throw new Error('Missing required signup fields');
+            throw new common_1.BadRequestException('Missing required signup fields');
         }
         return this.authService.signup(signupDto.email, signupDto.password, signupDto.firstName, signupDto.lastName, signupDto.phone);
     }
     async login(loginDto) {
-        debugger;
-        console.log("🔍 Login payload:", loginDto);
         if (!loginDto.email || !loginDto.password) {
-            throw new Error('Missing required login fields');
+            throw new common_1.BadRequestException('Missing required login fields');
         }
         return this.authService.login(loginDto.email, loginDto.password);
     }

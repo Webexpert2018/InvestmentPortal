@@ -1,44 +1,37 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@nestjs/core");
-const common_1 = require("@nestjs/common");
 const app_module_1 = require("./app.module");
+const config_1 = require("@nestjs/config");
 const swagger_1 = require("@nestjs/swagger");
+const common_1 = require("@nestjs/common");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
-    // app.enableCors({
-    //   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    //   credentials: true,
-    // });
-    app.enableCors({
-        origin: 'http://localhost:3000',
-        methods: 'GET,POST,PUT,DELETE,OPTIONS',
-        allowedHeaders: 'Content-Type, Authorization',
-        credentials: true,
-    });
+    console.log('🌐 Environment:', process.env.NODE_ENV);
+    const configService = app.get(config_1.ConfigService);
+    const port = configService.get('PORT') || 3000;
+    app.enableCors();
+    // Add validation pipe
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
-        forbidNonWhitelisted: false,
+        forbidNonWhitelisted: true,
         transform: true,
     }));
-    // ---------------------------------------------------------
-    // ✅ SWAGGER DOCUMENTATION SETUP
-    // ---------------------------------------------------------
+    // Swagger Always Enabled (optional)
     const config = new swagger_1.DocumentBuilder()
-        .setTitle('Bitcoin IRA Platform API')
-        .setDescription('API documentation for Bitcoin IRA backend')
+        .setTitle('Investment Portal API')
+        .setDescription('API Documentation for Investment Portal')
         .setVersion('1.0')
-        .addBearerAuth() // Adds Authorization header
+        .addBearerAuth()
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, config);
     swagger_1.SwaggerModule.setup('api/docs', app, document);
-    console.log('📘 Swagger Docs: http://localhost:3001/api/docs');
-    // ---------------------------------------------------------
-    const PORT = process.env.PORT || 3001;
-    await app.listen(PORT);
-    console.log(`🚀 Bitcoin IRA Platform API (NestJS) running on port ${PORT}`);
-    console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+    console.log(`🚀 Swagger URL: http://localhost:${port}/api/docs`);
+    await app.listen(port);
+    console.log(`🚀 App Running On: http://localhost:${port}`);
 }
-bootstrap();
+bootstrap().catch(err => {
+    console.error('Failed to start application:', err);
+    process.exit(1);
+});
 //# sourceMappingURL=main.js.map

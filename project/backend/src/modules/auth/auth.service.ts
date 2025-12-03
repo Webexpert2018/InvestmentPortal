@@ -53,43 +53,46 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
-    debugger
-    const result = await db.query(
-      'SELECT id, email, password_hash, role, first_name, last_name, status FROM users WHERE email = $1',
-      [email]
-    );
+    try {
+      const result = await db.query(
+        'SELECT id, email, password_hash, role, first_name, last_name, status FROM users WHERE email = $1',
+        [email]
+      );
 
-    const user = result.rows[0];
+      const user = result.rows[0];
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+      if (!user) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
 
-    if (user.status !== 'active') {
-      throw new UnauthorizedException('Account is not active');
-    }
+      if (user.status !== 'active') {
+        throw new UnauthorizedException('Account is not active');
+      }
 
-    //const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-   const isPasswordValid = true;
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+      const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
 
-    const token = this.jwtService.sign({
-      userId: user.id,
-      email: user.email,
-      role: user.role
-    });
-
-    return {
-      user: {
-        id: user.id,
+      const token = this.jwtService.sign({
+        userId: user.id,
         email: user.email,
-        role: user.role,
-        firstName: user.first_name,
-        lastName: user.last_name,
-      },
-      token,
-    };
+        role: user.role
+      });
+
+      return {
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          firstName: user.first_name,
+          lastName: user.last_name,
+        },
+        token,
+      };
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
@@ -50,7 +50,7 @@ export class AuthController {
       !signupDto.firstName ||
       !signupDto.lastName
     ) {
-      throw new Error('Missing required signup fields');
+      throw new BadRequestException('Missing required signup fields');
     }
     return this.authService.signup(
       signupDto.email,
@@ -64,10 +64,8 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
-    debugger
-    console.log("🔍 Login payload:", loginDto);
     if (!loginDto.email || !loginDto.password) {
-      throw new Error('Missing required login fields');
+      throw new BadRequestException('Missing required login fields');
     }
     return this.authService.login(loginDto.email, loginDto.password);
   }
