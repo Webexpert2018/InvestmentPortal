@@ -9,6 +9,12 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      /* 🔥 ADD THIS BLOCK */
+      fontFamily: {
+         sans: ['GoudyOldStyle', 'Georgia', 'serif'], // 👈 global default
+         goudy: ['GoudyOldStyle', 'Georgia', 'serif'],
+         helvetica: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+      },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic':

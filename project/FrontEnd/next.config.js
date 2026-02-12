@@ -3,8 +3,11 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  typescript: {
+ typescript: {
     ignoreBuildErrors: true,
+  },
+  images: {
+    unoptimized: true,
   },
   webpack: (config) => {
     config.resolve.alias = {

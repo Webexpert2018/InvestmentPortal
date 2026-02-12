@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { apiClient } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, FileText, TrendingUp, Shield } from 'lucide-react';
-import { DashboardLayout } from '@/components/DashboardLayout';
+import { DashboardLayout}  from '@/components/DashboardLayout';
 
 export default function AdminPage() {
   const { user, loading: authLoading } = useAuth();

@@ -2,17 +2,16 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
+import Image from 'next/image';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const { login } = useAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,68 +23,105 @@ export default function LoginPage() {
     try {
       await login(email, password);
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
-          <CardDescription className="text-center">
-            Sign in to your Bitcoin IRA account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
+      style={{ backgroundImage: "url('/images/login-bg.jpg')" }}
+    >
+      <div className="w-full max-w-md bg-white rounded-xl shadow-2xl px-8 py-10">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img src="/images/logo.png" alt="Logo" width={140} height={40} />
+        </div>
+
+        {/* Heading */}
+        <h2 className="text-center text-xl font-semibold text-gray-900">
+          Log in
+        </h2>
+        <p className="mt-1 text-center text-sm text-gray-500">
+          Sign in to access assigned investor documents <br />
+          and tax workflows.
+        </p>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          {/* Email */}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Email</label>
+            <input
+              type="email"
+              placeholder="Enter email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+              className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter password"
                 required
-                disabled={loading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
                 disabled={loading}
+                className="w-full rounded-md border px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-400"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
+          </div>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
+          {/* Error */}
+          {error && (
+            <div className="text-sm text-red-600 text-center">
+              {error}
+            </div>
+          )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
-          </form>
+          {/* Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full mt-2 flex justify-center items-center rounded-full bg-yellow-400 py-2.5 text-sm font-medium text-gray-900 hover:bg-yellow-500 transition"
+          >
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading ? 'Logging in...' : 'Log In'}
+          </button>
+        </form>
 
-          <div className="mt-6 text-center text-sm">
+        {/* Forgot */}
+        <div className="mt-4 text-center">
+          <Link
+            href="/auth/forgot-password"
+            className="text-sm text-gray-600 hover:text-gray-900 text-center block"
+          >
+            Forgot Password?
+          </Link>
+        </div>
+        <div className="mt-6 text-center text-sm">
             <span className="text-slate-600">Don't have an account? </span>
-            <Link href="/auth/signup" className="text-blue-600 hover:underline font-medium">
+            <Link href="/auth/signup" className="font-medium text-yellow-600 hover:underline">
               Sign up
             </Link>
           </div>
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }

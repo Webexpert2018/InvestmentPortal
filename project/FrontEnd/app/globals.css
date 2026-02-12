@@ -2,12 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =======================
+   LOCAL FONT (OFFLINE SAFE)
+======================= */
+@font-face {
+  font-family: 'GoudyOldStyle';
+  src: url('/fonts/Goudy Old Style Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HelveticaNeue';
+  src: url('/fonts/HelveticaNeue Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* =======================
+   ROOT VARIABLES
+======================= */
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
 }
 
+/* =======================
+   DARK MODE RGB
+======================= */
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
@@ -16,6 +42,9 @@
   }
 }
 
+/* =======================
+   TAILWIND DESIGN TOKENS
+======================= */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -44,6 +73,7 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -70,13 +100,43 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'GoudyOldStyle', Georgia, serif;
+    font-weight: 400;
+    line-height: 1.6;
+  }
 }
 
+/* =======================
+   GLOBAL BASE STYLES
+======================= */
 @layer base {
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+
+ body {
+  @apply bg-background text-foreground;
+  font-family: GoudyOldStyle, Georgia, serif;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+}
+
+/* =======================
+   CUSTOM UTILITIES
+======================= */
+.bg-yellow-400 {
+  background: linear-gradient(90deg, #FFC63F 0%, #F1DD58 100%);
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  position: absolute;
+  left: 95%;
+  z-index: 999;
+  cursor: pointer;
 }
