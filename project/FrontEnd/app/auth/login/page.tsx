@@ -34,7 +34,7 @@ export default function LoginPage() {
       className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
       style={{ backgroundImage: "url('/images/login-bg.jpg')" }}
     >
-      <div className="w-full max-w-md bg-white rounded-xl shadow-2xl px-8 py-10">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-2xl px-8 py-10">
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <img src="/images/logo.png" alt="Logo" width={140} height={40} />
@@ -42,7 +42,7 @@ export default function LoginPage() {
 
         {/* Heading */}
         <h2 className="text-center text-xl font-semibold text-gray-900">
-          Log in
+          Admin Log in
         </h2>
         <p className="mt-1 text-center text-sm text-gray-500">
           Sign in to access assigned investor documents <br />

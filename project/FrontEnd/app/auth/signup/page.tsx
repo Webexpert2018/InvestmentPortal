@@ -55,7 +55,7 @@ export default function SignupPage() {
       className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
       style={{ backgroundImage: "url('/images/login-bg.jpg')" }}
     >
-      <div className="w-full max-w-md bg-white rounded-xl shadow-2xl px-8 py-10">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-2xl px-8 py-10">
         
         {/* Logo */}
         <div className="flex justify-center mb-6">

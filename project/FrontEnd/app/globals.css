@@ -119,7 +119,7 @@
 
  body {
   @apply bg-background text-foreground;
-  font-family: GoudyOldStyle, Georgia, serif;
+  font-family: GoudyOldStyle, Georgia, serif !important;
   font-weight: 400;
   line-height: 1.6;
 }
