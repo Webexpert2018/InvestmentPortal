@@ -121,7 +121,9 @@
   @apply bg-background text-foreground;
   font-family: GoudyOldStyle, Georgia, serif !important;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.5;
+  color: #8E8E8E!important;
+  
 }
 
 }
@@ -139,4 +141,10 @@
   left: 95%;
   z-index: 999;
   cursor: pointer;
+}
+
+
+.text-md 
+{
+  font-size: 1.049rem;
 }

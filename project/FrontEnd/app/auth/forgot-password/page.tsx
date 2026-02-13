@@ -38,18 +38,18 @@ export default function ForgotPassword() {
       style={{ backgroundImage: "url('/images/login-bg.jpg')" }}
     >
   
-      <div className="w-full max-w-md bg-white rounded-lg shadow-2xl px-8 py-10">
+       <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
         
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          <img src="/images/logo.png" alt="Logo" width={140} height={40} />
+          <img src="/images/logo.png" alt="Logo" className="w-[182px] sm:w-[220px] object-contain" />
         </div>
 
         {/* HEADINGS */}
         {step === 'email' && (
           <>
-            <h2 className="text-center text-2xl font-semibold">Forgot Password?</h2>
-            <p className="mt-1 text-center text-sm text-gray-500">
+            <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">Forgot Password?</h2>
+            <p className="mt-1 text-center text-md sm:text-xl">
               Enter your email to receive a reset code
             </p>
           </>
@@ -57,8 +57,8 @@ export default function ForgotPassword() {
 
         {step === 'otp' && (
           <>
-            <h2 className="text-center text-2xl font-semibold">Check your email</h2>
-            <p className="mt-1 text-center text-sm text-gray-500">
+            <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">Check your email</h2>
+            <p className="mt-1 text-center text-md sm:text-xl">
               We sent a code to {email}
             </p>
           </>
@@ -66,8 +66,8 @@ export default function ForgotPassword() {
 
         {step === 'reset' && (
           <>
-            <h2 className="text-center text-2xl font-semibold">Reset Password</h2>
-            <p className="mt-1 text-center text-sm text-gray-500">
+            <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">Reset Password</h2>
+            <p className="mt-1 text-center text-md sm:text-xl">
               Create a new password
             </p>
           </>
@@ -78,10 +78,10 @@ export default function ForgotPassword() {
             <div className="flex justify-center mt-2">
               <CheckCircle className="h-14 w-14 text-green-500" />
             </div>
-            <h2 className="mt-4 text-center text-2xl font-semibold">
+            <h2 className="mt-4 text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
               Password Reset
             </h2>
-            <p className="mt-1 text-center text-sm text-gray-500">
+            <p className="mt-1 text-center text-md sm:text-xl">
               You can now log in with your new password
             </p>
           </>
@@ -92,14 +92,14 @@ export default function ForgotPassword() {
           {step === 'email' && (
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               <div className="relative">
-                <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                {/* <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" /> */}
                 <input
                   type="email"
                   required
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 py-2 border rounded-md text-sm mb-3"
+                  className="w-full font-helvetica pl-4 py-2 border rounded-md text-sm mb-3"
                 />
               </div>
 

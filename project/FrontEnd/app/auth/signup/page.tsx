@@ -55,29 +55,30 @@ export default function SignupPage() {
       className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
       style={{ backgroundImage: "url('/images/login-bg.jpg')" }}
     >
-      <div className="w-full max-w-md bg-white rounded-lg shadow-2xl px-8 py-10">
+      <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
         
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <img
             src="/images/logo.png"
             alt="Logo"
-            width={140}
-            height={40}
+            className="w-[182px] sm:w-[220px] object-contain"
           />
         </div>
 
-        {/* Title */}
-        <h2 className="text-center text-2xl font-semibold text-gray-900">
+        {/* Heading */}
+        <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
           Create Account
         </h2>
-        <p className="mt-1 text-center text-sm text-gray-500">
+        <p className="mt-1 text-center text-md sm:text-xl">
           Start your Bitcoin IRA investment journey
         </p>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4 sm:space-y-5">
+          
+          {/* Name */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input
               name="firstName"
               placeholder="First name"
@@ -85,7 +86,7 @@ export default function SignupPage() {
               onChange={handleChange}
               required
               disabled={loading}
-              className="w-full rounded-md border px-3 py-2 text-sm"
+              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
             <input
               name="lastName"
@@ -94,7 +95,7 @@ export default function SignupPage() {
               onChange={handleChange}
               required
               disabled={loading}
-              className="w-full rounded-md border px-3 py-2 text-sm"
+              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
           </div>
 
@@ -106,7 +107,7 @@ export default function SignupPage() {
             onChange={handleChange}
             required
             disabled={loading}
-            className="w-full rounded-md border px-3 py-2 text-sm"
+            className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
 
           <input
@@ -116,7 +117,7 @@ export default function SignupPage() {
             value={formData.phone}
             onChange={handleChange}
             disabled={loading}
-            className="w-full rounded-md border px-3 py-2 text-sm"
+            className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
 
           <input
@@ -127,7 +128,7 @@ export default function SignupPage() {
             onChange={handleChange}
             required
             disabled={loading}
-            className="w-full rounded-md border px-3 py-2 text-sm"
+            className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
 
           <input
@@ -138,19 +139,21 @@ export default function SignupPage() {
             onChange={handleChange}
             required
             disabled={loading}
-            className="w-full rounded-md border px-3 py-2 text-sm"
+            className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
 
+          {/* Error */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded text-sm">
+            <div className="text-sm text-red-600 text-center">
               {error}
             </div>
           )}
 
+          {/* Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center rounded-full bg-yellow-400 py-2 text-sm font-medium text-black hover:bg-yellow-500"
+            className="w-full mt-6 flex justify-center items-center rounded-full bg-yellow-400 py-2.5 text-sm font-medium text-gray-900 hover:bg-yellow-500 transition"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {loading ? 'Creating account...' : 'Sign Up'}
@@ -158,12 +161,12 @@ export default function SignupPage() {
         </form>
 
         {/* Footer */}
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Already have an account?{' '}
+        <div className="mt-4 text-center font-goudy text-md sm:text-lg">
+          <span className="mr-1">Already have an account?</span>
           <Link href="/auth/login" className="font-medium text-yellow-600 hover:underline">
             Log in
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );
