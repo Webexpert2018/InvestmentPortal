@@ -215,7 +215,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
         </nav>
       </div>
 
-      {/* ================= FOOTER ================= */}
+      {/* ================= FOOTER changes ================= */}
 <div className="border-t border-gray-200 px-4 py-6 font-helvetica">
 
   {/* Sign Out Button */}
