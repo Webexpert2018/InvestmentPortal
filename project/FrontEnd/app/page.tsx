@@ -7,6 +7,12 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Bitcoin, Shield, TrendingUp, FileText, ArrowRight, Facebook, Instagram, Linkedin, Twitter } from 'lucide-react';
 import Image from 'next/image';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function HomePage() {
   const { isAuthenticated, isAdmin, loading } = useAuth();
@@ -49,14 +55,27 @@ export default function HomePage() {
               />
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/auth/login">
-                <Button 
-                  variant="ghost" 
-                  className="text-gray-700 hover:text-[#1F3B6E] hover:bg-gray-50 font-semibold transition-colors"
-                >
-                  Sign In
-                </Button>
-              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="text-gray-700 hover:text-[#1F3B6E] hover:bg-gray-50 font-semibold transition-colors"
+                  >
+                    Sign In
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem onSelect={() => router.push('/auth/login?flow=admin')}>
+                    Admin login
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => router.push('/auth/login?flow=account')}>
+                    Account
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => router.push('/auth/login?flow=investor')}>
+                    Investor
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Link href="/auth/signup">
                 <Button 
                   className="bg-[#1F3B6E] text-white hover:bg-[#2F4B7E] font-semibold px-8 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all"

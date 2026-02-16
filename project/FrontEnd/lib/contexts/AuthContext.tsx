@@ -20,6 +20,8 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  sessionExpired: boolean;
+  setSessionExpired: (expired: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,6 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -42,7 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const userData = await apiClient.getProfile();
       setUser(userData);
+      setSessionExpired(false);
     } catch (error) {
+      setSessionExpired(true);
       localStorage.removeItem('token');
     } finally {
       setLoading(false);
@@ -53,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { user: userData, token } = await apiClient.login(email, password);
     localStorage.setItem('token', token);
     setUser(userData);
+    setSessionExpired(false);
 
     if (userData.role === 'admin') {
       router.push('/admin');
@@ -65,12 +71,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { user: userData, token } = await apiClient.signup(data);
     localStorage.setItem('token', token);
     setUser(userData);
+    setSessionExpired(false);
     router.push('/dashboard');
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    setSessionExpired(false);
     router.push('/');
   };
 
@@ -82,6 +90,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
+    sessionExpired,
+    setSessionExpired,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

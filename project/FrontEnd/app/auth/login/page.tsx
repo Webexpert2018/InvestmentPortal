@@ -5,15 +5,39 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+
+type LoginFlow = 'admin' | 'account' | 'investor';
+
+const LOGIN_COPY: Record<LoginFlow, { title: string; subtitle: string }> = {
+  admin: {
+    title: 'Admin Log in',
+    subtitle: 'Enter your administrator credentials to access the admin console.',
+  },
+  account: {
+    title: 'Welcome to Ovalia Capital',
+    subtitle: 'Securely access your investment dashboard and manage your Ovalia Capital accounts.',
+  },
+  investor: {
+    title: 'Log in',
+    subtitle: 'Sign in to access assigned investor documents and tax workflows.',
+  },
+};
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const flowParam = (searchParams.get('flow') || '').toLowerCase();
+  const flow: LoginFlow = flowParam === 'admin' || flowParam === 'investor' ? flowParam : 'account';
+  const { title, subtitle } = LOGIN_COPY[flow];
+  const signupHref = flow === 'investor' ? '/auth/investor-signup' : '/auth/signup';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,10 +66,10 @@ export default function LoginPage() {
 
         {/* Heading */}
         <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
-          Admin Log in
+          {title}
         </h2>
         <p className="mt-1 text-center text-md sm:text-xl">
-         Enter your administrator credentials to access the admin console.
+          {subtitle}
         </p>
 
         {/* Form */}
@@ -116,7 +140,7 @@ export default function LoginPage() {
         </div>
         <div className="mt-4 text-center font-goudy text-md sm:text-lg">
             <span className="mr-1">Don't have an account? </span>
-            <Link href="/auth/signup" className="font-medium text-yellow-600 hover:underline">
+            <Link href={signupHref} className="font-medium text-yellow-600 hover:underline">
               Sign up
             </Link>
           </div>

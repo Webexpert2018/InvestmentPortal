@@ -32,6 +32,29 @@ interface MenuItem {
   roles: string[];
 }
 
+type AppRole = 'admin' | 'investor' | 'accountant' | 'compliance';
+
+const normalizeRole = (role?: string | null): AppRole | null => {
+  if (!role) return null;
+
+  const normalized = role.trim().toLowerCase();
+
+  if (normalized === 'accountants') {
+    return 'accountant';
+  }
+
+  if (
+    normalized === 'admin' ||
+    normalized === 'investor' ||
+    normalized === 'accountant' ||
+    normalized === 'compliance'
+  ) {
+    return normalized;
+  }
+
+  return null;
+};
+
 interface SidebarProps {
   isCollapsed: boolean;
   onToggleCollapse?: () => void;
@@ -44,73 +67,109 @@ const menuItems: MenuItem[] = [
     title: 'Dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
-    roles: ['investor', 'admin', 'compliance'],
+    roles: ['investor', 'admin', 'accountant', 'compliance'],
+  },
+  {
+    title: 'Portfolio',
+    href: '/dashboard/portfolio',
+    icon: Wallet,
+    roles: ['investor'],
+  },
+  {
+    title: 'Invest',
+    href: '/dashboard/invest',
+    icon: Wallet,
+    roles: ['investor'],
+  },
+  {
+    title: 'Redeem',
+    href: '/dashboard/redeem',
+    icon: ArrowUpDown,
+    roles: ['investor'],
+  },
+  {
+    title: 'IRA',
+    href: '/dashboard/ira',
+    icon: FileText,
+    roles: ['investor'],
+  },
+  {
+    title: 'Tax Vault',
+    href: '/dashboard/tax-vault',
+    icon: FileText,
+    roles: ['investor'],
+  },
+  {
+    title: 'Document Vault',
+    href: '/dashboard/document-vault',
+    icon: FileText,
+    roles: ['investor'],
   },
   {
     title: 'Pipeline',
     href: '/dashboard/pipeline',
     icon: BarChart3,
-    roles: ['investor', 'admin'],
+    roles: ['admin'],
   },
   {
     title: 'Investor',
     href: '/dashboard/investor',
     icon: Users,
-    roles: ['investor', 'admin'],
+    roles: ['admin'],
   },
   {
     title: 'KYC Console',
     href: '/dashboard/kyc-console',
     icon: Shield,
-    roles: ['investor', 'admin'],
+    roles: ['admin', 'compliance'],
   },
   {
     title: 'Funding Requests',
     href: '/dashboard/funding-requests',
     icon: Wallet,
-    roles: ['investor', 'admin'],
+    roles: ['admin', 'accountant'],
   },
   {
     title: 'Redemption Req.',
     href: '/dashboard/redemption-requests',
     icon: ArrowUpDown,
-    roles: ['investor', 'admin'],
+    roles: ['admin', 'accountant'],
   },
   {
     title: 'Reconciliation',
     href: '/dashboard/reconciliation',
     icon: FileText,
-    roles: ['investor', 'admin'],
+    roles: ['admin', 'accountant'],
   },
   {
     title: 'NAV Management',
     href: '/dashboard/nav-management',
     icon: BarChart3,
-    roles: ['investor', 'admin'],
+    roles: ['admin', 'accountant'],
   },
   {
     title: 'Funds',
     href: '/dashboard/funds',
     icon: Wallet,
-    roles: ['investor', 'admin'],
+    roles: ['admin', 'accountant'],
   },
   {
     title: 'CRM & Bulk Ops',
     href: '/dashboard/crm-bulk-ops',
     icon: Users,
-    roles: ['investor', 'admin'],
+    roles: ['admin'],
   },
   {
     title: 'Staff',
     href: '/dashboard/staff',
     icon: Users,
-    roles: ['investor', 'admin'],
+    roles: ['admin'],
   },
   {
     title: 'Settings',
     href: '/dashboard/settings',
     icon: Settings,
-    roles: ['investor', 'admin', 'compliance'],
+    roles: ['investor', 'admin', 'accountant', 'compliance'],
   },
   // {
   //   title: 'User Management',
@@ -161,9 +220,12 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
     }
   };
 
-  const filteredMenuItems = menuItems.filter((item) =>
-    item.roles.includes(user?.role || 'investor')
-  );
+  const currentRole = normalizeRole(user?.role);
+
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (!currentRole) return false;
+    return item.roles.includes(currentRole);
+  });
 
  const SidebarContent = () => (
   <aside

@@ -33,20 +33,12 @@ export default function FundOverviewPage() {
         <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+            className="mb-1 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
           >
             <ChevronLeft className="h-5 w-5" />
             Strive Enterprise Fund
           </button>
-          <div className="flex items-center justify-between">
-            <p className="text-gray-600">Fund Details</p>
-            <Button
-              onClick={() => router.push(`/dashboard/funds/${params.id}/documents/upload`)}
-              className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-6 py-2 rounded-full font-medium"
-            >
-              Upload Doc
-            </Button>
-          </div>
+          <p className="text-xs text-gray-500">Fund Details</p>
         </div>
 
         {/* Tabs */}
