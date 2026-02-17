@@ -2,154 +2,148 @@
 
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ChevronLeft, Check } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
+
+const STATUS_STEPS = [
+  {
+    title: '1. Request Submitted',
+    date: 'Feb 08, 2025 - 09:05 AM',
+    state: 'done',
+  },
+  {
+    title: '2. In Review',
+    date: 'Feb 15, 2025 - 09:05 AM',
+    state: 'active',
+  },
+  {
+    title: '3. Approved by Admin',
+    date: 'Feb 15, 2025 - 09:05 AM',
+    state: 'pending',
+  },
+  {
+    title: '4. Wire Initiated',
+    date: 'Feb 15, 2025 - 09:05 AM',
+    state: 'pending',
+  },
+  {
+    title: '5. Settled',
+    date: 'Feb 15, 2025 - 09:05 AM',
+    state: 'pending',
+  },
+];
 
 export default function RedemptionRequestDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter();
 
-  // Mock data - in real app, fetch based on params.id
-  const redemptionData = {
-    requestId: 'RED-123456',
-    submittedDate: 'Jan 25, 2026',
-    status: 'Approved',
-    investor: 'Jakob Philips',
-    accountType: 'Roth IRA',
-    email: 'demo@gmail.com',
-    redemptionAmount: '$10,000.00',
-    units: '200 Units',
-    paymentMethod: 'Wire',
-    bankName: 'Metropolitan Commercial Bank',
-    wireReferenceId: 'WR-90231',
-    wireBankName: 'JP Morgan Chase',
-    amountSent: '$10,000.00',
-    transferDate: 'Feb 18, 2025',
-    reviewChecklist: [
-      { item: 'KYC Approved', completed: true },
-      { item: 'Funding History Verified', completed: true },
-      { item: 'Available Units Verified', completed: true },
-      { item: 'Bank Details Verified', completed: true },
-    ],
-  };
+  const requestId = params.id || 'RED-123456';
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 font-sans">
-        {/* Header with Back Button */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
-          </button>
-          <h1 className="text-2xl font-semibold text-[#1F1F1F]">Redemption Request Details</h1>
-        </div>
+      <div className="mx-auto max-w-8xl px-4 py-6 font-helvetica text-[#1F1F1F]">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="mb-4 inline-flex items-center gap-2 text-xs text-[#4B4B4B] hover:text-[#1F1F1F]"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back
+        </button>
 
-        {/* Request ID and Date */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-[#1F1F1F]">{redemptionData.requestId}</h2>
-          <p className="text-sm text-gray-500 mt-1">Submitted Date: {redemptionData.submittedDate}</p>
-        </div>
+        <h1 className="font-goudy text-sm sm:text-xl leading-[28px] text-[#1F1F1F]">
+          Redemption Request Details
+        </h1>
+        <p className="mt-1 text-xs text-[#8E8E93]">Requested On: Jan 25, 2026</p>
 
-        {/* Main Content - Two Columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Req Details */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-[#1F1F1F]">Req Details</h3>
-              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                {redemptionData.status}
-              </span>
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)]">
+          <div className="rounded-2xl bg-white px-8 py-6 shadow-sm">
+            <h2 className="font-goudy text-[16px] text-[#1F1F1F]">Status Tracker</h2>
+            <div className="mt-4 flex">
+              <div className="relative mr-4 flex flex-col items-center">
+                <div className="h-4 w-4 rounded-full border border-[#FBCB4B] bg-white" />
+                <div className="flex-1 w-px bg-[#FBCB4B]" />
+              </div>
+              <div className="flex-1 space-y-4">
+                {STATUS_STEPS.map((step) => {
+                  const isDone = step.state === 'done';
+                  const isActive = step.state === 'active';
+                  return (
+                    <div key={step.title} className="flex items-start gap-4">
+                      <div className="mt-1 flex h-4 w-4 items-center justify-center rounded-full border border-[#FBCB4B] bg-white">
+                        {isDone && <span className="h-2 w-2 rounded-full bg-[#FBCB4B]" />}
+                        {isActive && (
+                          <span className="h-2 w-2 rounded-full border-2 border-[#FBCB4B] bg-white" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-[#1F1F1F]">{step.title}</p>
+                        <p className="mt-1 text-[11px] text-[#8E8E93]">{step.date}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Investor</p>
-                  <p className="text-sm font-medium text-[#1F1F1F]">{redemptionData.investor}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Account Type</p>
-                  <p className="text-sm font-medium text-[#1F1F1F]">{redemptionData.accountType}</p>
-                </div>
-              </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                className="rounded-full bg-[#FFF3D6] px-6 py-2 text-xs font-medium text-[#4B4B4B] hover:bg-[#FFE7AF]"
+              >
+                Download Confirmation
+              </button>
+              <button
+                type="button"
+                className="rounded-full bg-[#FFF3D6] px-6 py-2 text-xs font-medium text-[#4B4B4B] hover:bg-[#FFE7AF]"
+              >
+                Contact Support
+              </button>
+            </div>
+          </div>
 
-              <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <div className="rounded-2xl bg-white px-8 py-6 shadow-sm text-sm text-[#4B4B4B]">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="font-goudy text-[16px] text-[#1F1F1F]">Req Details</h2>
+                <span className="rounded-full bg-[#FFF7E0] px-4 py-1 text-[11px] font-medium text-[#C27A21]">
+                  Pending
+                </span>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Email</p>
-                  <p className="text-sm font-medium text-[#1F1F1F]">{redemptionData.email}</p>
+                  <p className="text-[11px] text-[#8E8E93]">Amount</p>
+                  <p className="text-sm font-semibold text-[#1F1F1F]">$12,000.50</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Redemption Amount / Units</p>
-                  <p className="text-sm font-medium text-[#1F1F1F]">
-                    {redemptionData.redemptionAmount} / {redemptionData.units}
+                  <p className="text-[11px] text-[#8E8E93]">Units Redeemed</p>
+                  <p className="text-sm font-semibold text-[#1F1F1F]">105.35</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-[#8E8E93]">NAV at redemption</p>
+                  <p className="text-sm font-semibold text-[#1F1F1F]">$113.95</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-[#8E8E93]">Bank Name</p>
+                  <p className="text-sm font-semibold text-[#1F1F1F]">
+                    Metropolitan Commercial Bank
                   </p>
                 </div>
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Payment Method</p>
-                  <p className="text-sm font-medium text-[#1F1F1F]">{redemptionData.paymentMethod}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Bank Name</p>
-                  <p className="text-sm font-medium text-[#1F1F1F]">{redemptionData.bankName}</p>
-                </div>
+            <div className="rounded-2xl bg-white px-8 py-6 shadow-sm text-sm text-[#4B4B4B]">
+              <h2 className="font-goudy text-[16px] text-[#1F1F1F]">Documents</h2>
+              <div className="mt-4 space-y-2 text-xs">
+                {['Subscription Agreement', 'W-9 Form', 'Investor Questionnaire'].map((doc) => (
+                  <button
+                    key={doc}
+                    type="button"
+                    className="flex w-full items-center justify-between rounded-sm border border-[#FEE2E2] bg-[#FFF5F5] px-4 py-2 text-left text-[#B91C1C]"
+                  >
+                    <span>{doc}</span>
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
-
-          {/* Review Checklist */}
-          <div className="bg-white rounded-xl shadow-sm">
-            <h3 className="text-lg font-semibold text-[#1F1F1F] border-b p-6">Review Checklist</h3>
-            <div className="space-y-4 p-6">
-              {redemptionData.reviewChecklist.map((item, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                  <span className="text-sm text-gray-700">{item.item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Wire Transfer Confirmation */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-[#1F1F1F] mb-6">Wire Transfer Confirmation</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Wire Reference ID</p>
-              <p className="text-sm font-medium text-[#1F1F1F]">{redemptionData.wireReferenceId}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Bank Name</p>
-              <p className="text-sm font-medium text-[#1F1F1F]">{redemptionData.wireBankName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Amount Sent</p>
-              <p className="text-sm font-medium text-[#1F1F1F]">{redemptionData.amountSent}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Transfer Date</p>
-              <p className="text-sm font-medium text-[#1F1F1F]">{redemptionData.transferDate}</p>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3">
-            <button className="px-5 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-              Upload Proof of Wire
-            </button>
-            <button className="px-5 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-              Send Confirmation to Investor
-            </button>
-            <button className="px-5 py-2.5 bg-[#FCD34D] text-gray-800 text-sm font-medium rounded-lg hover:bg-[#FBD24E] transition-colors">
-              Mark as settled
-            </button>
           </div>
         </div>
       </div>

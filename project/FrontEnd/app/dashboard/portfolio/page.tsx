@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ChevronDown, MoreVertical } from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
 
 const investments = [
   {
@@ -67,6 +67,20 @@ const fundCards = [1, 2, 3, 4];
 
 export default function PortfolioPage() {
   const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo'>('investments');
+  const [openActionMenuId, setOpenActionMenuId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (openActionMenuId === null) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('[data-portfolio-action-menu="true"]')) return;
+      setOpenActionMenuId(null);
+    };
+
+    window.addEventListener('click', handleOutsideClick);
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, [openActionMenuId]);
 
   return (
     <DashboardLayout>
@@ -94,7 +108,7 @@ export default function PortfolioPage() {
             >
               Investments
               {activeTab === 'investments' && (
-                <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#FFC63F]" />
+                <span className="absolute bottom-0 left-1/2 h-[2px] w-[38px] -translate-x-1/2 bg-[#FFC63F]" />
               )}
             </button>
             <button
@@ -106,7 +120,7 @@ export default function PortfolioPage() {
             >
               Fund Info
               {activeTab === 'fundInfo' && (
-                <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#FFC63F]" />
+                <span className="absolute bottom-0 left-1/2 h-[2px] w-[38px] -translate-x-1/2 bg-[#FFC63F]" />
               )}
             </button>
           </div>
@@ -192,12 +206,32 @@ export default function PortfolioPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <Link
-                            href={`/dashboard/portfolio/${row.id}`}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-[#4B4B4B] hover:text-[#1F1F1F]"
-                          >
-                            View Fund Details
-                          </Link>
+                          <div className="relative inline-block text-left" data-portfolio-action-menu="true">
+                            <button
+                              type="button"
+                              aria-label="Open actions"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setOpenActionMenuId((current) =>
+                                  current === row.id ? null : row.id,
+                                );
+                              }}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-gray-100"
+                            >
+                              <MoreVertical className="h-4 w-4 text-[#777777]" />
+                            </button>
+
+                            {openActionMenuId === row.id && (
+                              <div className="absolute right-0 top-full z-20 mt-1 w-[130px] rounded-[6px] border border-[#ECECEC] bg-white py-1 shadow-[0_6px_16px_rgba(0,0,0,0.08)]">
+                                <Link
+                                  href={`/dashboard/portfolio/${row.id}`}
+                                  className="block px-3 py-2 text-left text-[12px] text-[#5F5F5F] hover:bg-[#F8F8F8]"
+                                >
+                                  View Fund Details
+                                </Link>
+                              </div>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}

@@ -2,116 +2,92 @@
 
 import { DashboardLayout } from '@/components/DashboardLayout';
 
-const todayNotifications = [
+type NotificationItem = {
+  id: string;
+  title: string;
+  time: string;
+  description: string;
+};
+
+const todayNotifications: NotificationItem[] = [
   {
-    id: 1,
+    id: 't-1',
     title: 'New Investor Joined',
-    time: '3h ago',
+    time: '2s ago',
     description: 'A new investor has created an account and started the onboarding process. Review their profile.',
   },
   {
-    id: 2,
+    id: 't-2',
     title: 'New Fund Request Submitted',
     time: '2h ago',
     description: 'Emily Zhou requested a $10,000 redemption from XYZ Fund.',
   },
   {
-    id: 3,
+    id: 't-3',
     title: 'Investor Message Received',
     time: '2h ago',
     description: 'Mark Johnson: "Please check my K-1."',
   },
 ];
 
-const yesterdayNotifications = [
+const yesterdayNotifications: NotificationItem[] = [
   {
-    id: 4,
+    id: 'y-1',
     title: 'New Redemption Request',
-    time: '6h ago',
+    time: '15h ago',
     description: 'John Smith has submitted a new redemption request. Review the request and begin the verification process.',
   },
   {
-    id: 5,
+    id: 'y-2',
     title: 'New Fund Request Submitted',
-    time: '6h ago',
+    time: '20h ago',
     description: 'A new fund creation request has been submitted. Review the details and approve or reject the request.',
   },
 ];
 
+function NotificationGroup({
+  title,
+  items,
+}: {
+  title: string;
+  items: NotificationItem[];
+}) {
+  return (
+    <section className="rounded-[8px] bg-white">
+      <div className="border-b border-[#ECEDEF] px-4 py-4">
+        <h2 className="font-goudy text-[18px] leading-6 text-[#1F1F1F]">{title}</h2>
+      </div>
+
+      <div>
+        {items.map((item, index) => (
+          <div key={item.id} className="px-4 py-4">
+            <div className="flex items-center gap-1 text-[#1F1F1F]">
+              <h3 className="text-[18px] leading-6 font-medium">{item.title}</h3>
+              <span className="text-[12px] text-[#8E8E93]">• {item.time}</span>
+            </div>
+            <p className="mt-2 text-[14px] leading-6 text-[#8E8E93]">{item.description}</p>
+            {index < items.length - 1 && <div className="mt-4 border-b border-[#ECEDEF]" />}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function NotificationsPage() {
   return (
     <DashboardLayout>
-      <div className="space-y-0 font-sans">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#1F1F1F]">Notifications</h1>
-          <p className="text-gray-500 mt-2">Stay up to date with investor activity.</p>
+      <div className="mx-auto max-w-8xl px-2 font-helvetica text-[#1F1F1F]">
+        <div>
+          <h1 className="font-goudy text-[20px] leading-7 text-[#1F1F1F]">Notifications</h1>
+          <p className="mt-1 text-[12px] text-[#8E8E93]">
+            Updates on your account activity, documents, and investments.
+          </p>
         </div>
 
-        {/* Notifications Container with White Background */}
-        <div className="bg-white rounded-xl shadow-sm p-8">
-          {/* Today Section */}
-          <div className="mb-8">
-            <h2 className="text-sm font-semibold text-gray-900 mb-6">Today</h2>
-            <div className="space-y-6">
-              {todayNotifications.map((notification, index) => (
-                <div key={notification.id}>
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                      {notification.title}
-                      <span className="text-xs font-normal text-gray-400 ml-1">
-                        • {notification.time}
-                      </span>
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {notification.description}
-                    </p>
-                  </div>
-                  {index < todayNotifications.length - 1 && (
-                    <div className="h-px bg-gray-200 mt-6" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Divider between sections */}
-          <div className="h-px bg-gray-200 mb-8" />
-
-          {/* Yesterday Section */}
-          <div>
-            <h2 className="text-sm font-semibold text-gray-900 mb-6">Yesterday</h2>
-            <div className="space-y-6">
-              {yesterdayNotifications.map((notification, index) => (
-                <div key={notification.id}>
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                      {notification.title}
-                      <span className="text-xs font-normal text-gray-400 ml-1">
-                        • {notification.time}
-                      </span>
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {notification.description}
-                    </p>
-                  </div>
-                  {index < yesterdayNotifications.length - 1 && (
-                    <div className="h-px bg-gray-200 mt-6" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="pt-8 pb-6 text-center">
-          <p className="text-xs text-gray-500">
-            © 2022 All Rights Reserved, by
-          </p>
-          <p className="text-xs text-gray-500">
-            Ovalia Capital.
-          </p>
+        <div className="mt-5 space-y-4">
+          <NotificationGroup title="Today" items={todayNotifications} />
+          <NotificationGroup title="Yesterday" items={yesterdayNotifications} />
         </div>
       </div>
     </DashboardLayout>

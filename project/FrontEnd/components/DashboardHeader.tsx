@@ -1,9 +1,12 @@
 "use client";
 
-import { Menu, Bell, Search } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bell, Search, MessageCircle } from "lucide-react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface DashboardHeaderProps {
   isCollapsed: boolean;
@@ -14,46 +17,135 @@ export function DashboardHeader({
   isCollapsed,
   onToggleSidebar,
 }: DashboardHeaderProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const displayName = `${user?.firstName || "investor"} ${user?.lastName || "User"}`;
+  const accountLabel = "Roth SEP (1009437651)";
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isProfileMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current?.contains(event.target as Node)) return;
+      setIsProfileMenuOpen(false);
+    };
+
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, [isProfileMenuOpen]);
+
+  const handleSignOut = () => {
+    logout();
+    setIsProfileMenuOpen(false);
+    router.push("/auth/login");
+  };
 
   return (
-    <header className="sticky top-0 z-30 flex px-4 sm:px-6 lg:px-8 h-20 items-center justify-between border-b bg-white px-6">
-      {/* LEFT: Sidebar toggle */}
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-30 flex h-[80px] items-center justify-between border-b border-[#E7E7E7] bg-white px-4 sm:px-6 lg:px-10">
+      <div className="flex items-center">
         <button
-        onClick={onToggleSidebar}
-        className="cursor-pointer rounded-md p-2 hover:bg-gray-100 active:scale-95 transition"
-      > 
-          <Menu className="h-5 w-5 text-gray-700" />
+          type="button"
+          onClick={onToggleSidebar}
+          className="cursor-pointer rounded-md p-2 transition hover:bg-gray-100 active:scale-95"
+          aria-label="Toggle sidebar"
+        >
+          <Image src="/images/menu-icon.svg" alt="Open menu" width={20} height={20} className="h-5 w-5" />
         </button>
       </div>
 
-      {/* CENTER: Search */}
-      <div className="hidden md:flex w-full max-w-md items-center rounded-full bg-gray-100 px-4 py-2">
-        <Search className="h-4 w-4 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Find something here..."
-          className="ml-2 w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
-        />
-      </div>
-
-      {/* RIGHT: Notifications + User */}
       <div className="flex items-center gap-5">
-        <Link href="/notifications" className="rounded-full p-2 hover:bg-gray-100">
-          <Bell className="h-5 w-5 text-gray-600" />
+        <div className="hidden h-[50px] w-[340px] items-center rounded-[40px] bg-[#F2F2F2] px-6 lg:w-[390px] md:flex">
+          <Search className="h-[20px] w-[20px] text-[#8D8D8D]" strokeWidth={1.8} />
+          <input
+            type="text"
+            placeholder="Find something here..."
+            className="ml-3 w-full bg-transparent font-helvetica text-[14px] leading-none text-[#2A2A2A] outline-none placeholder:text-[#8D8D8D]"
+          />
+        </div>
+        <Link
+          href="/dashboard/messages"
+          className={cn(
+            "inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] transition hover:bg-[#EBEBEB]",
+            pathname?.startsWith("/dashboard/messages") && "ring-2 ring-[#D9DEE7]",
+          )}
+          aria-label="Messages"
+        >
+          <MessageCircle className="h-[21px] w-[21px] text-[#555555]" strokeWidth={1.8} />
         </Link>
 
-        <div className="flex items-center gap-2">
-          {/* Avatar */}
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1F3B6E] text-sm font-semibold text-white">
-            {user?.firstName?.[0] || "A"}
-          </div>
+        <Link
+          href="/notifications"
+          className={cn(
+            "inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] transition hover:bg-[#EBEBEB]",
+            pathname === "/notifications" && "ring-2 ring-[#D9DEE7]",
+          )}
+          aria-label="Notifications"
+        >
+          <Bell className="h-[21px] w-[21px] text-[#555555]" strokeWidth={1.8} />
+        </Link>
 
-          {/* Name */}
-          <span className="hidden md:block text-sm font-medium text-gray-800">
-            {user?.firstName || "Ovalia"} {user?.lastName || "Admin"}
-          </span>
+        <div className="h-[50px] w-px bg-[#E4E4E4]" />
+
+        <div ref={profileMenuRef} className="relative pr-1">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              setIsProfileMenuOpen((prev) => !prev);
+            }}
+            className="flex items-center gap-3 rounded-lg px-1 py-1"
+            aria-label="Open profile menu"
+          >
+            <div className="relative h-[50px] w-[50px] overflow-hidden rounded-full">
+              <Image
+                src="/images/login_investor.png"
+                alt="Profile"
+                fill
+                className="object-cover"
+                sizes="50px"
+              />
+            </div>
+
+            <div className="hidden text-left md:block">
+              <p className="font-helvetica text-[15px] font-bold leading-[1] text-[#2A2A2A]">{displayName}</p>
+              <p className="mt-1 font-helvetica text-[14px] leading-[1] text-[#7A7A7A]">{accountLabel}</p>
+            </div>
+
+            <svg
+              className={cn(
+                "h-[22px] w-[22px] text-[#B6B6B6] transition-transform",
+                isProfileMenuOpen && "rotate-180",
+              )}
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+
+          {isProfileMenuOpen && (
+            <div className="absolute right-0 top-full z-40 mt-2 w-[190px] rounded-[10px] border border-[#ECECEC] bg-white p-2 shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#FFF9EE] px-4 py-2 font-helvetica text-[14px] font-bold text-[#FFC63F] hover:bg-[#F3EAD7]"
+              >
+                <Image
+                  src="/images/sign_out.svg"
+                  alt="Sign Out"
+                  width={16}
+                  height={16}
+                  className="shrink-0"
+                />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bitcoin, Wallet, TrendingUp } from 'lucide-react';
@@ -9,6 +8,7 @@ import { formatUSD, formatBTC } from '@/lib/utils/bitcoin';
 import  { DashboardLayout }  from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { getInvestorKycStatus, setInvestorKycStatus, type InvestorKycStatus } from '@/lib/mock/kycStatus';
 
 
 import { MoreVertical, ChevronDown, ChevronRight } from 'lucide-react';
@@ -207,9 +207,7 @@ const normalizeDashboardRole = (role?: string | null): DashboardRole => {
 
 
 export default function DashboardPage() {
-  const [portfolio, setPortfolio] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const loading = false;
   const { user } = useAuth();
 
   const [expandedSection, setExpandedSection] = useState<number | null>(1);
@@ -218,8 +216,17 @@ export default function DashboardPage() {
     messages: true,
     accounts: true,
   });
+  const [investorKycStatus, setInvestorKycState] = useState<InvestorKycStatus>('pending');
   const dashboardRole = normalizeDashboardRole(user?.role);
   const welcomeName = user?.firstName ? user.firstName : dashboardRole[0].toUpperCase() + dashboardRole.slice(1);
+
+  useEffect(() => {
+    if (dashboardRole !== 'investor') {
+      return;
+    }
+
+    setInvestorKycState(getInvestorKycStatus());
+  }, [dashboardRole]);
 
   const roleStats = {
     admin: [
@@ -242,25 +249,6 @@ export default function DashboardPage() {
     ],
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      const [portfolioData, transactionsData] = await Promise.all([
-        apiClient.getMyPortfolio(),
-        apiClient.getMyTransactions(10)
-      ]);
-      setPortfolio(portfolioData);
-      setTransactions(transactionsData);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (loading) {
     return (
       <DashboardLayout>
@@ -279,11 +267,76 @@ export default function DashboardPage() {
       <DashboardLayout>
         <div className="space-y-8 font-helvetica text-[#1F1F1F]">
           <div>
-            <h1 className="font-goudy text-3xl">Dashboard</h1>
+            <h1 className="font-goudy text-2xl">Dashboard</h1>
             <p className="mt-2 text-sm text-[#8E8E93]">
               Here&apos;s your latest investment overview and updates from Ovalia Capital.
             </p>
           </div>
+
+          {investorKycStatus === 'pending' && (
+            <div className="rounded-xl bg-[#F6EFE3] px-5 py-4 md:px-6 md:py-5">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="font-goudy text-[28px] leading-none text-[#E7A324]">KYC Verification in Progress</p>
+                  <p className="mt-2 font-helvetica text-sm text-[#8A8A8A]">
+                    Your verification is currently under review. This usually takes 1–2 business days. We&apos;ll notify
+                    you once it&apos;s complete.
+                  </p>
+                </div>
+                <div className="inline-flex items-center justify-center rounded-full bg-white px-6 py-2 font-helvetica text-lg font-medium text-[#E7A324]">
+                  Pending
+                </div>
+              </div>
+            </div>
+          )}
+
+          {investorKycStatus === 'rejected' && (
+            <div className="rounded-xl bg-[#FFF1F1] px-5 py-4 md:px-6 md:py-5">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="font-goudy text-[28px] leading-none text-[#FF4C4C]">KYC Verification Unsuccessful</p>
+                  <p className="mt-2 font-helvetica text-sm text-[#8A8A8A]">
+                    We couldn&apos;t verify your information at this time. Please review your details and retry
+                    verification to continue investing.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                  <Link
+                    href="/dashboard/kyc-verification"
+                    className="rounded-full bg-[#FFF9EE] px-5 py-2 font-goudy text-[20px] leading-none text-[#BFA778]"
+                  >
+                    Upload Documents Manually
+                  </Link>
+                  <Link
+                    href="/dashboard/kyc-verification"
+                    onClick={() => {
+                      setInvestorKycStatus('pending');
+                      setInvestorKycState('pending');
+                    }}
+                    className="rounded-full bg-[#F2C63D] px-5 py-2 font-goudy text-[20px] leading-none text-[#6A4D00]"
+                  >
+                    Retry Verification
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {investorKycStatus === 'verified' && (
+            <div className="rounded-xl bg-[#ECF9F2] px-5 py-4 md:px-6 md:py-5">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="font-goudy text-[28px] leading-none text-[#2FA66A]">KYC Verification Completed</p>
+                  <p className="mt-2 font-helvetica text-sm text-[#6D8A77]">
+                    Your identity has been verified successfully. You can continue investing without restrictions.
+                  </p>
+                </div>
+                <div className="inline-flex items-center justify-center rounded-full bg-white px-6 py-2 font-helvetica text-lg font-medium text-[#2FA66A]">
+                  Verified
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Top summary cards */}
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

@@ -14,27 +14,27 @@ type Step =
 const funds = [
   {
     id: 'physician-btc-a',
-    name: 'PhysicianBTC Fund',
+    name: 'Strive Enterprise Fund',
     image: '/images/strive_funds.jpg',
   },
   {
     id: 'physician-btc-b',
-    name: 'PhysicianBTC Fund',
+    name: 'Strive Enterprise Fund',
     image: '/images/strive_funds.jpg',
   },
   {
     id: 'physician-btc-c',
-    name: 'PhysicianBTC Fund',
+    name: 'Strive Enterprise Fund',
     image: '/images/strive_funds.jpg',
   },
   {
     id: 'physician-btc-d',
-    name: 'PhysicianBTC Fund',
+    name: 'Strive Enterprise Fund',
     image: '/images/strive_funds.jpg',
   },
   {
     id: 'physician-btc-e',
-    name: 'PhysicianBTC Fund',
+    name: 'Strive Enterprise Fund',
     image: '/images/strive_funds.jpg',
   },
 ];
@@ -157,11 +157,12 @@ export default function InvestPage() {
   const renderChooseFund = () => (
     <>
       <div className="mb-6">
-        <h1 className="font-goudy text-[24px] font-bold leading-[32px] text-[#1F1F1F]">
+        <h1 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F]">
           Choose a Fund
         </h1>
         <p className="mt-2 text-sm text-[#8E8E93]">
           Select the fund you would like to invest in.
+          You will complete your investment steps on text next screens.
         </p>
       </div>
 
@@ -174,7 +175,7 @@ export default function InvestPage() {
                 key={fund.id}
                 type="button"
                 onClick={() => setSelectedFundId(fund.id)}
-                className={`flex w-full items-center rounded-2xl bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] ${
+                className={`flex w-full items-center rounded-sm bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] ${
                   selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : ''
                 }`}
               >
@@ -184,7 +185,7 @@ export default function InvestPage() {
                   className="mr-6 h-24 w-40 rounded-lg object-cover"
                 />
                 <div>
-                  <h3 className="font-goudy text-[24px] font-bold leading-[32px] text-[#1F1F1F]">
+                  <h3 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F]">
                     {fund.name}
                   </h3>
                 </div>

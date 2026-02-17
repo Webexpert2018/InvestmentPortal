@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { apiClient } from '@/lib/api/client';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bitcoin, Wallet, TrendingUp, Eye, EyeOff } from 'lucide-react';
@@ -10,29 +9,10 @@ import  { DashboardLayout }  from '@/components/DashboardLayout';
 import Link from 'next/link';
 
 export default function DashboardPage() {
-  const [portfolio, setPortfolio] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [portfolio] = useState<any>(null);
+  const [transactions] = useState<any[]>([]);
+  const loading = false;
   const [showPassword, setShowPassword] = useState(false);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      const [portfolioData, transactionsData] = await Promise.all([
-        apiClient.getMyPortfolio(),
-        apiClient.getMyTransactions(10)
-      ]);
-      setPortfolio(portfolioData);
-      setTransactions(transactionsData);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
