@@ -236,16 +236,16 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
     <div className="flex h-full flex-col border-b bg-white">
 
       {/* ================= LOGO SECTION ================= */}
-      <div className="flex items-center justify-center h-20 border-b border-gray-200 px-3">
+      <div className="flex items-center justify-center border-b border-r border-[#EEEEEE] px-3 dashboard-logo-container">
         <img
           src="/images/dashboard-logo.png"
           alt="Logo"
-          className={`${isCollapsed ? "h-10" : "h-14"} object-contain`}
+          className={`${isCollapsed ? "h-[100px]" : "h-[100px]"} object-contain`}
         />
       </div>
 
       {/* ================= MENU ================= */}
-      <div className="flex-1 overflow-y-auto py-6 px-2">
+      <div className="flex-1 overflow-y-auto py-6 px-2 border-r border-[#EEEEEE]">
         <nav className="space-y-3">
 
           {filteredMenuItems.map((item) => {
@@ -278,7 +278,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
       </div>
 
       {/* ================= FOOTER changes ================= */}
-<div className="border-t border-gray-200 px-4 py-6 font-helvetica">
+  <div className="border-t border-[#EEEEEE] px-4 py-6 font-helvetica">
 
   {/* Sign Out Button */}
   <button

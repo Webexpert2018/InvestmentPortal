@@ -195,11 +195,11 @@ export default function InvestorSignupPage() {
           {!showProfileFlow ? (
               <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
                 {/* Logo */}
-                <div className="flex justify-center mb-6">
+                <div className="flex justify-center mb-3 sm:mb-4">
                     <img
                         src="/images/logo.png"
                         alt="Logo"
-                        className="w-[182px] sm:w-[220px] object-contain"
+                        className="logo-container"
                     />
                 </div>
 

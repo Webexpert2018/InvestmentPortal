@@ -44,7 +44,7 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-[80px] items-center justify-between border-b border-[#E7E7E7] bg-white px-4 sm:px-6 lg:px-10">
+    <header className="sticky top-0 z-30 flex h-[120px] items-center justify-between border-b border-[#EEEEEE] bg-white px-4 sm:px-6 lg:px-10">
       <div className="flex items-center">
         <button
           type="button"
@@ -87,7 +87,7 @@ export function DashboardHeader({
           <Bell className="h-[21px] w-[21px] text-[#555555]" strokeWidth={1.8} />
         </Link>
 
-        <div className="h-[50px] w-px bg-[#E4E4E4]" />
+        <div className="h-[50px] w-px bg-[#EEEEEE]" />
 
         <div ref={profileMenuRef} className="relative pr-1">
           <button

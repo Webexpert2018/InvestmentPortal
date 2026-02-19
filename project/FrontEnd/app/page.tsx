@@ -44,14 +44,14 @@ export default function HomePage() {
       {/* Navigation */}
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-24">
-            <div className="flex items-center">
+          <div className="flex justify-between items-center h-26">
+            <div className="flex justify-center" style={{ width: '160px', height: '120px' }}>
               <Image 
                 src="/images/logo.png" 
                 alt="Ovalia Capital" 
-                width={120} 
-                height={120}
-                className="object-contain"
+                width={80} 
+                height={80}
+                className="object-contain mx-auto"
               />
             </div>
             <div className="flex items-center space-x-4">
