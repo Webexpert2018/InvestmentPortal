@@ -211,7 +211,7 @@ export default function StaffPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Staff</h1>
+            <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-2">Staff</h1>
             <p className="text-gray-600">Manage platform users, assign roles and permissions, and view activity</p>
           </div>
           <Button

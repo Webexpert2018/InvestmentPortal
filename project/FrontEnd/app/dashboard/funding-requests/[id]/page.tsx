@@ -76,7 +76,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
 
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-1">{requestData.requestId}</h1>
+              <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-1">{requestData.requestId}</h1>
               <p className="text-gray-600">Submitted Date: {requestData.submittedDate}</p>
             </div>
             <div className="flex gap-3">

@@ -107,7 +107,7 @@ export default function StaffDetailPage() {
             <span className="font-medium">Back</span>
           </button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Staff Details</h1>
+            <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-2">Staff Details</h1>
             <p className="text-gray-600">View and manage staff member information and permissions</p>
           </div>
         </div>

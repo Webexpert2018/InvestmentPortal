@@ -131,7 +131,7 @@ export default function UserManagementPage() {
     <DashboardLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold">User Management</h1>
+          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F]">User Management</h1>
           <p className="text-gray-600 mt-2">Manage platform users and permissions</p>
         </div>
 

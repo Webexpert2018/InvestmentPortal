@@ -80,7 +80,7 @@ export default function AddStaffPage() {
             <span className="font-medium">Back</span>
           </button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Add Staff</h1>
+            <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-2">Add Staff</h1>
             <p className="text-gray-600">Add a new staff member and assign appropriate permissions</p>
           </div>
         </div>

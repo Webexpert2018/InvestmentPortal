@@ -23,7 +23,7 @@ export default function CompliancePage() {
     <DashboardLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold">Compliance</h1>
+          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F]">Compliance</h1>
           <p className="text-gray-600 mt-2">Monitor and manage compliance requirements</p>
         </div>
 

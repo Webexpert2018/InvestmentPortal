@@ -301,7 +301,7 @@ export default function ReconciliationPage() {
       <div className="p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Reconciliation</h1>
+          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-2">Reconciliation</h1>
           <p className="text-gray-600">Compare custodian events with internal ledger records and resolve mismatches.</p>
         </div>
 

@@ -69,7 +69,7 @@ export default function ReconciliationDetailPage({ params }: ReconciliationDetai
 
         {/* Record ID and Mark as Resolved Button */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{reconciliationData.recordId}</h1>
+          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F]">{reconciliationData.recordId}</h1>
           <Button
             onClick={handleMarkAsResolved}
             className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 rounded-full font-medium"
