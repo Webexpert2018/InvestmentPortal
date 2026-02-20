@@ -1002,10 +1002,10 @@ export function InvestorSettingsScreen() {
   );
 
   return (
-    <div className="mx-auto max-w-8xl px-4 font-helvetica text-[#1F1F1F]">
+    <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F]">
       <div>
-        <h1 className="font-goudy text-[20px] leading-7 text-[#1F1F1F]">Settings</h1>
-        <p className="mt-1 text-[12px] text-[#A2A5AA]">Manage your account preferences and security.</p>
+        <h1 className="font-goudy text-lg md:text-2xl text-[#1F1F1F]">Settings</h1>
+        <p className="font-helvetica text-[#4B4B4B] text-sm sm:text-md mt-2">Manage your account preferences and security.</p>
       </div>
 
       {activeTab !== 'add-account' && (
@@ -1031,7 +1031,7 @@ export function InvestorSettingsScreen() {
         </div>
       )}
 
-      <div className="mt-3">
+      <div className="mt-5">
         {activeTab === 'profile' && renderProfileTab()}
         {activeTab === 'security' && renderSecurityTab()}
         {activeTab === 'notifications' && renderNotificationsTab()}

@@ -92,7 +92,7 @@ export default function PortfolioPage() {
               View your current positions, unit balances, NAV, and performance across all your accounts.
             </p>
           </div>
-          <button className="rounded-full bg-[#FFC63F] px-6 py-2 text-sm font-semibold text-[#1F1F1F] hover:bg-[#F1B92E]">
+          <button className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 py-2 rounded-full text-sm font-medium shadow-md">
             Invest Now
           </button>
         </div>

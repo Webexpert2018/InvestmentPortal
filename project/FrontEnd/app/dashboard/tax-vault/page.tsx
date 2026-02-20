@@ -72,10 +72,10 @@ export default function TaxVaultPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-8xl px-2  font-helvetica text-[#1F1F1F]">
-        <div className="flex items-start justify-between gap-4">
+      <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F]">
+        <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="font-goudy text-[20px] leading-[28px] text-[#1F1F1F]">Tax Vault</h1>
+            <h1 className="font-goudy font-bol text-lg md:text-2xl text-[#1F1F1F]">Tax Vault</h1>
             <p className="mt-1 text-[14px] leading-6 text-[#8E8E93]">
               Securely manage and review investor tax documents.
             </p>
@@ -83,26 +83,26 @@ export default function TaxVaultPage() {
 
           <Link
             href="/dashboard/tax-vault/upload"
-            className="inline-flex h-[44px] min-w-[220px] items-center justify-center rounded-full bg-[#FBCB4B] px-8 text-[16px] font-medium text-[#1F1F1F]"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 py-2 rounded-full text-sm font-medium shadow-md"
           >
             Upload Document
           </Link>
         </div>
 
-        <div className="mt-8 rounded-[10px] bg-white px-6 py-6">
+        <div className="mt-6 rounded-[10px] bg-white px-6 py-6">
           <div className="flex flex-wrap items-center gap-4">
             <label className="relative block w-full max-w-[417px]">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#9FA3A9]" />
               <input
                 type="text"
                 placeholder="Find something here..."
-                className="h-[52px] w-full rounded-[26px] bg-[#F5F5F5] pl-12 pr-4 text-[16px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA]"
+                className="h-[50px] w-full rounded-[26px] bg-[#F5F5F5] pl-12 pr-4 text-[16px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA]"
               />
             </label>
 
             <button
               type="button"
-              className="inline-flex h-[52px] min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[16px] text-[#8E8E93]"
+              className="inline-flex h-[50px] min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[16px] text-[#8E8E93]"
             >
               Document Type
               <ChevronDown className="ml-3 h-5 w-5" />
@@ -110,7 +110,7 @@ export default function TaxVaultPage() {
 
             <button
               type="button"
-              className="inline-flex h-[52px] min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[16px] text-[#8E8E93]"
+              className="inline-flex h-[50px] min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[16px] text-[#8E8E93]"
             >
               Year
               <ChevronDown className="ml-3 h-5 w-5" />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { X, Plus } from 'lucide-react';
 
@@ -176,7 +176,7 @@ export default function PipelinePage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 font-sans">
+      <div className="space-y-6 font-sans overflow-hidden">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -198,10 +198,14 @@ export default function PipelinePage() {
           </div>
         </div>
 
-        {/* Pipeline Board */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+        {/* Pipeline Board: fixed-height container with horizontal + vertical scroll */}
+        <div
+          className="overflow-x-auto overflow-y-auto pb-2 pipeline-scroll"
+          style={{ maxHeight: 'calc(100vh - 160px)', maxWidth: 'calc(-300px + 100vw)' }}
+        >
+          <div className="flex flex-nowrap gap-4 lg:gap-6 py-4 pr-4" style={{ minWidth: 'max-content' }}>
           {stages.map((stage) => (
-            <div key={stage.id} className="w-full">
+            <div key={stage.id} className="flex-none w-[320px]">
               <div
                 className="rounded-xl p-3 sm:p-4 min-h-[400px]"
                 style={{ backgroundColor: stage.color }}
@@ -245,13 +249,10 @@ export default function PipelinePage() {
               </div>
             </div>
           ))}
+          </div>
         </div>
 
-        {/* Footer */}
-        <div className="pt-8 pb-6 text-center">
-          <p className="text-xs text-gray-500">© 2022 All Rights Reserved, by</p>
-          <p className="text-xs text-gray-500">Ovalia Capital.</p>
-        </div>
+    
       </div>
 
       {/* Add Client Modal */}

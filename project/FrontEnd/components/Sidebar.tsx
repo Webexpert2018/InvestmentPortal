@@ -198,11 +198,19 @@ const menuItems: MenuItem[] = [
   
 ];
 
+const accountantMenu: MenuItem[] = [
+  { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['accountant'] },
+  { title: 'Assigned Investors', href: '/dashboard/assigned-investors', icon: Users, roles: ['accountant'] },
+  { title: 'Messages', href: '/dashboard/messages', icon: FileText, roles: ['accountant'] },
+  { title: 'Tax Vault', href: '/dashboard/tax-vault', icon: FileText, roles: ['accountant'] },
+  { title: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['accountant'] },
+];
+
 export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggle }: SidebarProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
 
   // Use external state if provided, otherwise use internal state
   const isSidebarOpen = onToggle ? isOpen : internalIsOpen;
@@ -220,12 +228,20 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
     }
   };
 
+  // Wait for auth to load before deciding which menu to show
+  if (loading) return null;
+
   const currentRole = normalizeRole(user?.role);
 
-  const filteredMenuItems = menuItems.filter((item) => {
-    if (!currentRole) return false;
-    return item.roles.includes(currentRole);
-  });
+  let filteredMenuItems: MenuItem[] = [];
+  if (currentRole === 'accountant') {
+    filteredMenuItems = accountantMenu;
+  } else {
+    filteredMenuItems = menuItems.filter((item) => {
+      if (!currentRole) return false;
+      return item.roles.includes(currentRole);
+    });
+  }
 
  const SidebarContent = () => (
   <aside
@@ -240,13 +256,13 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
         <img
           src="/images/dashboard-logo.png"
           alt="Logo"
-          className={`${isCollapsed ? "h-[100px]" : "h-[100px]"} object-contain`}
+          className={`${isCollapsed ? "h-[70px]" : "h-[70px]"} object-contain`}
         />
       </div>
 
       {/* ================= MENU ================= */}
-      <div className="flex-1 overflow-y-auto py-6 px-2 border-r border-[#EEEEEE]">
-        <nav className="space-y-3">
+      <div className="flex-1 overflow-y-auto py-3 px-3 border-r border-[#EEEEEE]">
+        <nav className="space-y-2">
 
           {filteredMenuItems.map((item) => {
             const Icon = item.icon;
@@ -261,15 +277,22 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
                 href={item.href}
                 onClick={handleMenuItemClick}
                 className={cn(
-                  "flex items-center font-goudy justify-center rounded-full h-[45px] text-[16px] font-medium transition-all duration-200",
-                  isActive
-                    ? "bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] text-gray-900"
-                    : "bg-[#ECECEC] text-[#2F3A4C] hover:bg-gradient-to-r hover:from-[#FFC63F] hover:to-[#F1DD58] hover:text-gray-900",
-                  !isCollapsed && "px-5 justify-start gap-3"
+                  "group relative flex items-center font-goudy justify-center rounded-full h-[40px] text-[15px] font-medium transition-all duration-200 overflow-hidden",
+                  "bg-[#ECECEC]",
+                  !isCollapsed && "px-5 justify-start",
                 )}
               >
-                <Icon className="h-5 w-5 shrink-0" />
-                {!isCollapsed && <span>{item.title}</span>}
+                <span
+                  className={cn(
+                    "absolute inset-0 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] transition-transform duration-300",
+                    isActive ? "translate-x-0" : "-translate-x-full group-hover:translate-x-0"
+                  )}
+                />
+
+                <span className={cn("relative z-10 flex items-center", !isCollapsed && "gap-3", isActive ? "text-gray-900" : "text-[#2F3A4C] group-hover:text-gray-900") }>
+                  <Icon className="h-5 w-5 shrink-0" />
+                  {!isCollapsed && <span>{item.title}</span>}
+                </span>
               </Link>
             );
           })}
@@ -278,13 +301,13 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
       </div>
 
       {/* ================= FOOTER changes ================= */}
-  <div className="border-t border-[#EEEEEE] px-4 py-6 font-helvetica">
+  <div className="border-t border-[#EEEEEE] px-4 py-4 font-helvetica">
 
   {/* Sign Out Button */}
   <button
   onClick={handleLogout}
   className={cn(
-    "w-full rounded-full h-[50px] text-[14px] font-bold mx-auto transition-all duration-200 font-helvetica",
+    "w-full rounded-full h-[40px] text-[14px] font-bold mx-auto transition-all duration-200 font-helvetica",
     "bg-[#FFF9EE] text-[#FFC63F] hover:bg-[#F3EAD7]",
     "flex items-center justify-center gap-2"
   )}
@@ -304,7 +327,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
 
   {/* Footer Text */}
   {!isCollapsed && (
-    <div className="mt-6 text-center font-bold text-[12px] text-gray-400 leading-relaxed font-helvetica">
+    <div className="mt-2 text-center font-bold text-[12px] text-[#4B4B4B] leading-relaxed font-helvetica">
       © 2022 All Rights Reserved, by Ovalia Capital.
     </div>
   )}
@@ -320,11 +343,15 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
     <>
       {/* Mobile hamburger menu */}
       <button
-        onClick={toggleSidebar}
-        className="fixed left-4 top-4 z-50 rounded-lg bg-white p-2 shadow-lg lg:hidden dark:bg-gray-800"
+        onClick={toggleSidebar} style={{top:"15px"}}
+        className="fixed left-4 z-50 rounded-sm bg-white p-2 shadow-sm lg:hidden dark:bg-gray-800"
         aria-label="Toggle menu"
       >
-        {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        <img
+          src="/images/menu-icon.svg"
+          alt="Menu"
+          className="h-6 w-6"
+        />
       </button>
 
       {/* Desktop sidebar */}

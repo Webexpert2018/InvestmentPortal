@@ -55,7 +55,7 @@ export default function ReconciliationDetailPage({ params }: ReconciliationDetai
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="p-0">
         {/* Header with Back Button */}
         <div className="mb-6">
           <button

@@ -69,7 +69,7 @@ export default function AddStaffPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="p-0">
         {/* Header */}
         <div className="mb-8">
           <button

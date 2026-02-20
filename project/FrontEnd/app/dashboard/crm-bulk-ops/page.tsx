@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 export default function CRMBulkOpsPage() {
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="p-0">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-2">CRM & Bulk Ops</h1>

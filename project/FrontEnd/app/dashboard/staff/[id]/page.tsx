@@ -96,7 +96,7 @@ export default function StaffDetailPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="p-0">
         {/* Header */}
         <div className="mb-8">
           <button

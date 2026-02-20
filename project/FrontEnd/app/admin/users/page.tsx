@@ -132,7 +132,7 @@ export default function UserManagementPage() {
       <div className="space-y-8">
         <div>
           <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F]">User Management</h1>
-          <p className="text-gray-600 mt-2">Manage platform users and permissions</p>
+          <p className="font-helvetica text-[#4B4B4B] text-md sm:text-lg mt-2">Manage platform users and permissions</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-4">

@@ -44,12 +44,12 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-[120px] items-center justify-between border-b border-[#EEEEEE] bg-white px-4 sm:px-6 lg:px-10">
+    <header className="sticky top-0 z-30 flex h-[70px] items-center justify-between border-b border-[#EEEEEE] bg-white px-3 sm:px-4 lg:px-5">
       <div className="flex items-center">
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="cursor-pointer rounded-md p-2 transition hover:bg-gray-100 active:scale-95"
+          className="cursor-pointer rounded-md p-2 transition hover:bg-gray-100 active:scale-95 dashboard-toggle-button"
           aria-label="Toggle sidebar"
         >
           <Image src="/images/menu-icon.svg" alt="Open menu" width={20} height={20} className="h-5 w-5" />
@@ -57,7 +57,7 @@ export function DashboardHeader({
       </div>
 
       <div className="flex items-center gap-5">
-        <div className="hidden h-[50px] w-[340px] items-center rounded-[40px] bg-[#F2F2F2] px-6 lg:w-[390px] md:flex">
+        <div className="hidden h-[50px] w-[180px] lg:w-[340px] items-center rounded-[40px] bg-[#F2F2F2] px-6 lg:w-[390px] md:flex">
           <Search className="h-[20px] w-[20px] text-[#8D8D8D]" strokeWidth={1.8} />
           <input
             type="text"
@@ -112,6 +112,7 @@ export function DashboardHeader({
             <div className="hidden text-left md:block">
               <p className="font-helvetica text-[15px] font-bold leading-[1] text-[#2A2A2A]">{displayName}</p>
               <p className="mt-1 font-helvetica text-[14px] leading-[1] text-[#7A7A7A]">{accountLabel}</p>
+              <p className="mt-1 text-xs text-[#A0A0A0]">role: <span className="font-mono text-[12px] text-[#666]">{user?.role ?? 'none'}</span></p>
             </div>
 
             <svg

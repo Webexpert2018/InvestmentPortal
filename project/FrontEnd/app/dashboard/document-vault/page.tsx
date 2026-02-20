@@ -88,7 +88,7 @@ export default function DocumentVaultPage() {
     <DashboardLayout>
       <div className="mx-auto max-w-8xl px-2 font-helvetica text-[#1F1F1F]">
         <div>
-          <h1 className="font-goudy text-[20px] leading-[28px] text-[#1F1F1F]">Document Vault</h1>
+          <h1 className="font-goudy font-bold text-lg md:text-2xl text-[#1F1F1F]">Document Vault</h1>
           <p className="mt-1 text-[14px] leading-6 text-[#8E8E93]">
             Access your K-1 forms, tax documents, statements, and fund reports.
           </p>

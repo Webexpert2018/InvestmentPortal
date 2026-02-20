@@ -35,7 +35,7 @@ const initialThreads: Thread[] = [
     timeAgo: '2s ago',
     unreadCount: 5,
     preview: 'Hello, I need your help for tax document',
-    avatar: 'JM',
+    avatar: '/images/messages-person/Ellipse 12.png',
     messages: [
       {
         id: 'm-1',
@@ -105,7 +105,7 @@ const initialThreads: Thread[] = [
     timeAgo: '2m ago',
     unreadCount: 2,
     preview: 'I added some new documents.',
-    avatar: 'JM',
+    avatar: '/images/messages-person/Ellipse 13.png',
     messages: [],
   },
   {
@@ -115,7 +115,7 @@ const initialThreads: Thread[] = [
     timeAgo: '2h ago',
     unreadCount: 0,
     preview: 'I have invest in new funds.',
-    avatar: 'JM',
+    avatar: '/images/messages-person/Ellipse 14.png',
     messages: [],
   },
   {
@@ -125,7 +125,7 @@ const initialThreads: Thread[] = [
     timeAgo: '5h ago',
     unreadCount: 0,
     preview: 'Hi, I\'m not able to join meeting today.',
-    avatar: 'JM',
+    avatar: '/images/messages-person/Ellipse 15.png',
     messages: [],
   },
   {
@@ -135,7 +135,7 @@ const initialThreads: Thread[] = [
     timeAgo: 'Yesterday',
     unreadCount: 0,
     preview: 'Are you available for the meeting?',
-    avatar: 'JM',
+    avatar: '/images/messages-person/Ellipse 16.png',
     messages: [],
   },
   {
@@ -145,7 +145,7 @@ const initialThreads: Thread[] = [
     timeAgo: 'Yesterday',
     unreadCount: 0,
     preview: 'Good, i will send new document',
-    avatar: 'JM',
+    avatar: '/images/messages-person/Ellipse 17.png',
     messages: [],
   },
   {
@@ -155,7 +155,7 @@ const initialThreads: Thread[] = [
     timeAgo: '1 day ago',
     unreadCount: 0,
     preview: 'I will send document.',
-    avatar: 'JM',
+    avatar: '/images/messages-person/Ellipse 18.png',
     messages: [],
   },
   {
@@ -165,7 +165,7 @@ const initialThreads: Thread[] = [
     timeAgo: '2days ago',
     unreadCount: 0,
     preview: 'Hello',
-    avatar: 'JM',
+    avatar: '/images/messages-person/Ellipse 19.png',
     messages: [],
   },
 ];
@@ -305,7 +305,7 @@ export function AssignedInvestorsMessagesScreen() {
 
   return (
     <div className="mx-auto max-w-8xl px-2 font-helvetica text-[#1F1F1F]">
-      <h1 className="font-goudy text-[26px] leading-8 text-[#1F1F1F]">Messages</h1>
+      <h1 className="font-goudy font-bold text-[26px] leading-8 text-[#1F1F1F]">Messages</h1>
 
       <div className="mt-3 grid gap-3 lg:grid-cols-[320px_minmax(0,1fr)]">
         <section className="rounded-[8px] bg-white p-3">
@@ -333,9 +333,11 @@ export function AssignedInvestorsMessagesScreen() {
                   }}
                   className={`flex w-full items-start gap-3 px-1 py-3 text-left ${selected ? 'bg-[#FAFBFD]' : ''}`}
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D9E5F5] text-[10px] font-semibold text-[#274583]">
-                    {thread.avatar}
-                  </div>
+                  <img
+                    src={thread.avatar}
+                    alt={thread.investorName}
+                    className="h-8 w-8 shrink-0 rounded-full object-cover"
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-[12px] font-semibold text-[#1F1F1F]">{thread.investorName}</p>
@@ -360,9 +362,11 @@ export function AssignedInvestorsMessagesScreen() {
           {activeThread && (
             <>
               <div className="flex items-center gap-3 border-b border-[#ECEDEF] pb-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D9E5F5] text-[10px] font-semibold text-[#274583]">
-                  {activeThread.avatar}
-                </div>
+                <img
+                  src={activeThread.avatar}
+                  alt={activeThread.investorName}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
                 <div>
                   <p className="text-[12px] font-semibold text-[#1F1F1F]">{activeThread.investorName}</p>
                   <p className="text-[10px] text-[#A2A5AA]">{activeThread.role}</p>

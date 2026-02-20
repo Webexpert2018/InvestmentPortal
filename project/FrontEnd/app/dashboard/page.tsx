@@ -146,36 +146,68 @@ const investorPendingActions = [
 ];
 
 const investorUnreadMessages = [
+  { id: 1, name: 'Talan Gouse', preview: "We’ve reviewed your document…", time: '2s ago', count: 5 },
+  { id: 2, name: 'Emerson Torff', preview: 'ABC fund document added', time: '3h ago', count: 3 },
+  { id: 3, name: 'Phillip Donin', preview: 'Your investment request in ABC Fund is under review…', time: '3h ago', count: 2 },
+  { id: 4, name: 'Chance Schleifer', preview: 'Your investment in ABC Fund is confirmed…', time: '3h ago', count: 2 },
+  { id: 5, name: 'Gustavo George', preview: 'Your withdrawal request has been processed…', time: '3h ago', count: 2 },
+];
+
+const notificationsCommon = [
+  { id: 1, title: 'New Document Uploaded', subtitle: 'Dr. Susan Roy uploaded W-9 for review.', time: '2s ago' },
+  { id: 2, title: 'Missing Document Reminder Sent', subtitle: 'Reminder sent to ABC Holdings LLC.', time: '2m ago' },
+  { id: 3, title: 'Investor Message Received', subtitle: 'Mark Johnson: "Please check my K-1."', time: '3h ago' },
+];
+
+const notificationsAccountant = [
   {
-    id: 1,
-    name: 'Talan Gouse',
-    preview: "We’ve reviewed your document…",
-    time: '2h ago',
+    day: 'Today',
+    items: [
+      {
+        id: 1,
+        title: 'New Investor Joined',
+        subtitle:
+          'A new investor has created an account and started the onboarding process. Review their profile.',
+        time: '2s ago',
+      },
+      {
+        id: 2,
+        title: 'New Fund Request Submitted',
+        subtitle: 'Emily Zhou requested a $10,000 redemption from XYZ Fund.',
+        time: '2m ago',
+      },
+      { id: 3, title: 'Investor Message Received', subtitle: 'Mark Johnson: "Please check my K-1."', time: '2h ago' },
+    ],
   },
   {
-    id: 2,
-    name: 'Emerson Torff',
-    preview: 'Your investment in ABC Fund is confirmed…',
-    time: '3h ago',
+    day: 'Yesterday',
+    items: [
+      {
+        id: 4,
+        title: 'New Redemption Request',
+        subtitle:
+          'John Smith has submitted a new redemption request. Review the request and begin the verification process.',
+        time: '15h ago',
+      },
+      {
+        id: 5,
+        title: 'New Fund Request Submitted',
+        subtitle:
+          'A new fund creation request has been submitted. Review the details and approve or reject the request.',
+        time: '20h ago',
+      },
+    ],
   },
-  {
-    id: 3,
-    name: 'Phillip Donin',
-    preview: 'Your investment request in ABC Fund is under review…',
-    time: '3h ago',
-  },
-  {
-    id: 4,
-    name: 'Chance Schleifer',
-    preview: 'There is a new update for your account…',
-    time: '5h ago',
-  },
-  {
-    id: 5,
-    name: 'Gustavo George',
-    preview: 'Your withdrawal request has been processed…',
-    time: '1d ago',
-  },
+];
+
+// User icon assets (placeholders in public/images/user-icon)
+const userIcons = [
+  '/images/user-icon/user_01.png',
+  '/images/user-icon/user_02.png',
+  '/images/user-icon/user_03.png',
+  '/images/user-icon/user_04.png',
+  '/images/user-icon/user_05.png',
+  '/images/user-icon/user_06.png',
 ];
 
 const investorAccounts = [
@@ -216,6 +248,9 @@ export default function DashboardPage() {
     messages: true,
     accounts: true,
   });
+  const [assignedOpen, setAssignedOpen] = useState<boolean>(true);
+  const [messagesOpen, setMessagesOpen] = useState<boolean>(true);
+  const [notificationsOpen, setNotificationsOpen] = useState<boolean>(true);
   const [investorKycStatus, setInvestorKycState] = useState<InvestorKycStatus>('pending');
   const dashboardRole = normalizeDashboardRole(user?.role);
   const welcomeName = user?.firstName ? user.firstName : dashboardRole[0].toUpperCase() + dashboardRole.slice(1);
@@ -242,10 +277,10 @@ export default function DashboardPage() {
       { name: 'Pending Redemption', value: '0' },
     ],
     accountant: [
-      { name: 'Funding Queue', value: '5' },
-      { name: 'Redemption Queue', value: '5' },
-      { name: 'Reconciliation Alerts', value: '5' },
-      { name: 'NAV Pending', value: '3' },
+      { name: 'Total Assigned Investors', value: '3' },
+      { name: 'Investors With Missing Docs', value: '7' },
+      { name: 'Unread Messages', value: '2' },
+      { name: 'Upcoming meetings', value: '3' },
     ],
   };
 
@@ -588,7 +623,12 @@ export default function DashboardPage() {
      <div className="space-y-8 font-sans">
       <div>
         <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F]">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome Back, {welcomeName}</p>
+         {dashboardRole === 'admin' && (
+           <p className="font-helvetica text-sm sm:text-md mt-2">Welcome Back, {welcomeName}</p>
+         )}
+         {dashboardRole === 'accountant' && (
+          <p className="font-helvetica text-sm sm:text-md mt-2">Here’s a summary of your assigned investors and pending actions.</p>
+         )}
       </div>
 
       {/* Stats Grid */}
@@ -598,10 +638,10 @@ export default function DashboardPage() {
             key={item.name}
             className="bg-white overflow-hidden shadow-sm rounded-xl p-6 flex flex-col justify-between h-32"
           >
-            <dt className="text-sm font-medium text-gray-500 truncate">
+            <dt className="text-md sm:text-lg font-helvetica font-medium truncate">
               {item.name}
             </dt>
-            <dd className="text-xl sm:text-3xl font-bold text-[#1F1F1F]">
+            <dd className="text-xl sm:text-3xl font-bold text-[#1F1F1F] font-helvetica">
               {item.value}
             </dd>
           </div>
@@ -682,7 +722,115 @@ export default function DashboardPage() {
       </div>
       )}
 
+      {/* Accountant: Figma-style three panels */}
       {dashboardRole === 'accountant' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {/* Assigned Investors */}
+            <div className="rounded-2xl bg-white shadow-sm border border-[#F3F4F6]">
+              <button
+                type="button"
+                onClick={() => setAssignedOpen((s) => !s)}
+                className="flex w-full items-center justify-between p-6"
+                aria-expanded={assignedOpen}
+                aria-controls="assigned-panel"
+              >
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF9EE] text-lg font-goudy leading-none text-[#E7A324]">4</span>
+                  <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E]">New Assigned Investor</h3>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${assignedOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <div id="assigned-panel" aria-hidden={!assignedOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${assignedOpen ? 'border-t border-[#EEEEEE] max-h-96' : 'max-h-0'}`}>
+                <div className="pt-0">
+                  {recentInvestors.slice(0, 4).map((inv, idx) => (
+                    <div key={inv.id} className="flex items-center gap-4 py-3 border-b border-[#EEEEEE] last:border-0">
+                      <img src={userIcons[idx % userIcons.length]} alt="avatar" className="h-10 w-10 rounded-full object-cover" />
+                      <div>
+                        <p className="text-[16px] font-goudy leading-none text-[#2E2E2E]">{inv.fundName}</p>
+                        <p className="text-sm font-helvetica text-[#8E8E93]">{inv.accountType}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Unread Messages */}
+            <div className="rounded-2xl bg-white shadow-sm border border-[#F3F4F6]">
+              <button
+                type="button"
+                onClick={() => setMessagesOpen((s) => !s)}
+                className="flex w-full items-center justify-between p-6"
+                aria-expanded={messagesOpen}
+                aria-controls="messages-panel"
+              >
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#E4F6F4] text-lg font-goudy leading-none text-[#2BB673]">5</span>
+                  <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E]">Unread Messages</h3>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${messagesOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <div id="messages-panel" aria-hidden={!messagesOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${messagesOpen ? 'border-t border-[#EEEEEE] max-h-96' : 'max-h-0'}`}>
+                <div className="pt-0">
+                  {investorUnreadMessages.map((m, idx) => (
+                    <div key={m.id} className="flex items-start justify-between gap-3 py-4 border-b border-[#EEEEEE] last:border-0">
+                      <div className="flex items-center gap-4">
+                        <img src={userIcons[(idx + 1) % userIcons.length]} alt="avatar" className="h-10 w-10 rounded-full object-cover" />
+                        <div>
+                          <p className="text-[16px] font-goudy leading-none text-[#2E2E2E]">{m.name}</p>
+                          <p className="mt-1 text-sm font-helvetica text-[#8E8E93] max-w-[260px] truncate">{m.preview}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <span className="text-xs text-[#C0C0C0]">{m.time}</span>
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ECFDF3] text-xs font-medium text-[#2BB673]">{m.count}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Notifications */}
+            <div className="rounded-2xl bg-white shadow-sm border border-[#F3F4F6]">
+              <button
+                type="button"
+                onClick={() => setNotificationsOpen((s) => !s)}
+                className="flex w-full items-center justify-between p-6"
+                aria-expanded={notificationsOpen}
+                aria-controls="notifications-panel"
+              >
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#EEF2FF] text-lg font-goudy leading-none text-[#6366F1]">3</span>
+                  <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E]">Notifications</h3>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${notificationsOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <div id="notifications-panel" aria-hidden={!notificationsOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${notificationsOpen ? 'border-t border-[#EEEEEE] max-h-96' : 'max-h-0'}`}>
+                <div className="pt-0">
+                  {notificationsAccountant.map((section) => (
+                    <div key={section.day} className="mb-4">
+                      <p className="text-xs font-semibold text-[#8E8E93] mb-2">{section.day}</p>
+                      {section.items.map((n) => (
+                        <div key={n.id} className="text-sm text-[#4B4B4B] border-b border-[#EEEEEE] py-3 last:border-0">
+                          <p className="font-medium text-[#1F1F1F]">{n.title} <span className="text-xs text-[#C0C0C0]">• {n.time}</span></p>
+                          <p className="mt-1 text-xs font-helvetica text-[#8E8E93]">{n.subtitle}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* {dashboardRole === 'accountant' && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="bg-white shadow-sm rounded-xl p-6">
             <h3 className="text-lg font-bold text-[#1F1F1F] mb-2">Accounting Access</h3>
@@ -693,15 +841,15 @@ export default function DashboardPage() {
             <p className="text-sm text-gray-600">Investor management and admin-only operational sections are hidden for this role.</p>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Bottom Sections */}
-      {(dashboardRole === 'admin' || dashboardRole === 'accountant') && (
+      {dashboardRole === 'admin' && (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Funding Requests */}
         <div className="bg-white shadow-sm rounded-xl overflow-hidden">
           <div 
-            className="p-6 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+            className="p-6 flex items-center justify-between cursor-pointer"
             onClick={() => setExpandedSection(expandedSection === 1 ? null : 1)}
           >
             <div className="flex items-center space-x-4">
@@ -730,7 +878,7 @@ export default function DashboardPage() {
         {/* Redemption Requests */}
         <div className="bg-white shadow-sm rounded-xl overflow-hidden">
           <div 
-            className="p-6 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+            className="p-6 flex items-center justify-between cursor-pointer"
             onClick={() => setExpandedSection(expandedSection === 2 ? null : 2)}
           >
             <div className="flex items-center space-x-4">
@@ -759,7 +907,7 @@ export default function DashboardPage() {
         {/* Reconciliation Alerts */}
         <div className="bg-white shadow-sm rounded-xl overflow-hidden">
           <div 
-            className="p-6 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+            className="p-6 flex items-center justify-between cursor-pointer"
             onClick={() => setExpandedSection(expandedSection === 3 ? null : 3)}
           >
             <div className="flex items-center space-x-4">
@@ -778,15 +926,6 @@ export default function DashboardPage() {
       </div>
       )}
 
-      {/* Footer */}
-      <div className="pt-8 pb-6 text-center">
-        <p className="text-xs text-gray-500">
-          © 2022 All Rights Reserved, by
-        </p>
-        <p className="text-xs text-gray-500">
-          Ovalia Capital.
-        </p>
-      </div>
     </div>
     </DashboardLayout>
   );

@@ -479,11 +479,7 @@ export default function InvestorPage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="pt-8 pb-6 text-center">
-          <p className="text-xs text-gray-500">© 2022 All Rights Reserved, by</p>
-          <p className="text-xs text-gray-500">Ovalia Capital.</p>
-        </div>
+  
       </div>
 
       {/* Invite Investor Modal */}

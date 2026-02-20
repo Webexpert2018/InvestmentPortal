@@ -77,7 +77,7 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-8xl px-2  font-helvetica text-[#1F1F1F]">
+      <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F]">
         <div className="mb-4 flex items-center gap-2">
           <Link href="/dashboard/document-vault" className="text-[#8E8E93]">
             <ChevronLeft className="h-5 w-5" />
