@@ -41,9 +41,9 @@ export default function ForgotPassword() {
   return (
     <div className="bg-white py-8 px-4 shadow-2xl sm:rounded-lg sm:px-10">
       <div className="sm:mx-auto sm:w-full sm:max-w-md mb-6">
-        <div className="flex justify-center">
-          <img src={logo.src} alt="Ovalia Capital" className="h-16 object-contain" />
-        </div>
+        <a href="/" className="flex justify-center">
+          <img src={logo.src} alt="Ovalia Capital" className="h-16 object-contain logo-con" />
+        </a>
         
         {step === 'email' && (
           <>

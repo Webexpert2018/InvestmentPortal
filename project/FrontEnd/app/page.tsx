@@ -45,15 +45,15 @@ export default function HomePage() {
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-26">
-            <div className="flex justify-center" style={{ width: '160px', height: '120px' }}>
+            <a href="/" className="flex justify-center" style={{ width: '160px', height: '120px' }}>
               <Image 
                 src="/images/logo.png" 
                 alt="Ovalia Capital" 
-                width={80} 
-                height={80}
-                className="object-contain mx-auto"
+                width={100} 
+                height={100}
+                className="object-contain mx-auto logo-con"
               />
-            </div>
+            </a>
             <div className="flex items-center space-x-4">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

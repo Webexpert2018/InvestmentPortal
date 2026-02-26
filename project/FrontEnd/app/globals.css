@@ -181,7 +181,9 @@ html {
 }
 
 .logo-container {
-    width: 125px;
+    width:132px;
+    cursor: pointer;
+
 }
 
 @media (max-width:767px){
@@ -199,7 +201,7 @@ html {
 
 .dashboard-logo-container
 {
-    height:70px;
+    height:85px;
 }
 
 /* Pipeline scrollbar: visible and styled for all devices */
@@ -230,3 +232,7 @@ html {
   background: #e5e7eb !important;
 }
 
+.logo-con
+{
+  cursor: pointer;
+}

@@ -35,9 +35,9 @@ export default function KycVerificationPage() {
         <div className="pointer-events-none absolute -bottom-20 left-0 h-48 w-full bg-[#E4E9F2]" />
 
         <div className="relative mx-auto w-full max-w-[1020px] rounded-[10px] border border-[#E9E9E9] bg-white p-4 shadow-[0_16px_32px_rgba(20,26,40,0.12)] sm:p-6 lg:p-7">
-          <div className="flex justify-center">
-            <Image src="/images/logo.png" alt="Ovalia Capital" width={188} height={56} className="h-[56px] w-auto" />
-          </div>
+          <a href="/" className="flex justify-center">
+            <Image src="/images/logo.png" alt="Ovalia Capital" width={188} height={56} className="h-[56px] w-auto logo-con" />
+          </a>
 
           <div className="mt-6 border-t border-[#ECECEC] pt-5">
             <h1 className="font-goudy text-[30px] leading-none text-[#2A2A2A]">KYC Verify</h1>

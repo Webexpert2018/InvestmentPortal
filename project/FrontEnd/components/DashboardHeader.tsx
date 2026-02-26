@@ -44,7 +44,7 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-[70px] items-center justify-between border-b border-[#EEEEEE] bg-white px-3 sm:px-4 lg:px-5">
+    <header className="sticky top-0 z-30 flex h-[85px] items-center justify-between border-b border-[#EEEEEE] bg-white px-3 sm:px-4 lg:px-5">
       <div className="flex items-center">
         <button
           type="button"

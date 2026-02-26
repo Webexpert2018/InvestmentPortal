@@ -58,13 +58,13 @@ export default function SignupPage() {
       <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
         
         {/* Logo */}
-        <div className="flex justify-center mb-3 sm:mb-4">
+        <a href="/" className="flex justify-center mb-3 sm:mb-4">
           <img
             src="/images/logo.png"
             alt="Logo"
             className="logo-container"
           />
-        </div>
+        </a>
 
         {/* Heading */}
         <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">

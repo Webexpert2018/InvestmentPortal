@@ -195,13 +195,13 @@ export default function InvestorSignupPage() {
           {!showProfileFlow ? (
               <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
                 {/* Logo */}
-                <div className="flex justify-center mb-3 sm:mb-4">
+                <a href="/" className="flex justify-center mb-3 sm:mb-4">
                     <img
                         src="/images/logo.png"
                         alt="Logo"
                         className="logo-container"
                     />
-                </div>
+                </a>
 
                 <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
                     Create Your Ovalia Capital
@@ -281,9 +281,9 @@ export default function InvestorSignupPage() {
             <div className="mx-auto flex min-h-[752px] w-full max-w-[1230px] items-center justify-center p-6 md:p-10">
               <div className="w-full rounded-md bg-[#FCFCFC] shadow-xl">
                 <div className="border-b border-[#EBEBEB] px-6 pt-6">
-                  <div className="mb-4 flex justify-center">
-                    <img src="/images/logo.png" alt="Ovalia Capital" className="h-auto w-[170px] object-contain" />
-                  </div>
+                 <a href="/" className="mb-4 flex justify-center">
+                    <img src="/images/logo.png" alt="Ovalia Capital" className="h-auto w-[170px] object-contain logo-con" />
+                  </a>
 
                   <h3 className="text-[24px] text-[#1F1F1F] font-bold">Complete Your Profile</h3>
                   <p className="mb-4 font-helvetica text-lg">Just a few steps to get started</p>
