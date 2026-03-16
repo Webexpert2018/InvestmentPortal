@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    role VARCHAR(20) NOT NULL DEFAULT 'investor' CHECK (role IN ('investor', 'admin', 'compliance')),
+    phone VARCHAR(50),
+    role VARCHAR(20) NOT NULL DEFAULT 'investor' CHECK (role IN ('investor', 'admin', 'accountant')),
     status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'inactive')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

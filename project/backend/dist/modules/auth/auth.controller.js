@@ -42,11 +42,64 @@ __decorate([
     __metadata("design:type", Object)
 ], SignupDto.prototype, "lastName", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ example: '1995-08-15' }),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", Object)
+], SignupDto.prototype, "dob", void 0);
+__decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: '+15553332211' }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], SignupDto.prototype, "phone", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SignupDto.prototype, "role", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SignupDto.prototype, "addressLine1", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SignupDto.prototype, "addressLine2", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SignupDto.prototype, "city", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SignupDto.prototype, "state", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SignupDto.prototype, "zipCode", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SignupDto.prototype, "country", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SignupDto.prototype, "taxId", void 0);
 class LoginDto {
 }
 exports.LoginDto = LoginDto;
@@ -60,6 +113,12 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", Object)
 ], LoginDto.prototype, "password", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'investor' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], LoginDto.prototype, "role", void 0);
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -71,13 +130,24 @@ let AuthController = class AuthController {
             !signupDto.lastName) {
             throw new common_1.BadRequestException('Missing required signup fields');
         }
-        return this.authService.signup(signupDto.email, signupDto.password, signupDto.firstName, signupDto.lastName, signupDto.phone);
+        return this.authService.signup(signupDto.email, signupDto.password, signupDto.firstName, signupDto.lastName, signupDto.phone, signupDto.dob, 'investor', // Force investor role for public signup
+        signupDto.addressLine1, signupDto.addressLine2, signupDto.city, signupDto.state, signupDto.zipCode, signupDto.country, signupDto.taxId);
+    }
+    async investorSignup(signupDto) {
+        if (!signupDto.email ||
+            !signupDto.password ||
+            !signupDto.firstName ||
+            !signupDto.lastName) {
+            throw new common_1.BadRequestException('Missing required signup fields');
+        }
+        return this.authService.signup(signupDto.email, signupDto.password, signupDto.firstName, signupDto.lastName, signupDto.phone, signupDto.dob, 'investor', // Force investor role
+        signupDto.addressLine1, signupDto.addressLine2, signupDto.city, signupDto.state, signupDto.zipCode, signupDto.country, signupDto.taxId);
     }
     async login(loginDto) {
         if (!loginDto.email || !loginDto.password) {
             throw new common_1.BadRequestException('Missing required login fields');
         }
-        return this.authService.login(loginDto.email, loginDto.password);
+        return this.authService.login(loginDto.email, loginDto.password, loginDto.role);
     }
 };
 exports.AuthController = AuthController;
@@ -89,6 +159,14 @@ __decorate([
     __metadata("design:paramtypes", [SignupDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signup", null);
+__decorate([
+    (0, common_1.Post)('investor-signup'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [SignupDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "investorSignup", null);
 __decorate([
     (0, common_1.Post)('login'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),

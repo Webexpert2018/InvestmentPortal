@@ -10,16 +10,28 @@ interface User {
   firstName: string;
   lastName: string;
   role: string;
+  phone?: string;
+  dob?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
+  taxId?: string;
+  createdAt?: string;
+  status?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, role?: string) => Promise<void>;
   signup: (data: any) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isAccountant: boolean;
   sessionExpired: boolean;
   setSessionExpired: (expired: boolean) => void;
 }
@@ -54,14 +66,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string) => {
-    const { user: userData, token } = await apiClient.login(email, password);
+  const login = async (email: string, password: string, role?: string) => {
+    const { user: userData, token } = await apiClient.login(email, password, role);
     localStorage.setItem('token', token);
     setUser(userData);
     setSessionExpired(false);
 
     if (userData.role === 'admin') {
       router.push('/admin');
+    } else if (userData.role === 'accountant') {
+      router.push('/admin/compliance');
     } else {
       router.push('/dashboard');
     }
@@ -72,7 +86,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('token', token);
     setUser(userData);
     setSessionExpired(false);
-    router.push('/dashboard');
+    
+    if (userData.role === 'admin') {
+      router.push('/admin');
+    } else if (userData.role === 'accountant') {
+      router.push('/admin/compliance');
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   const logout = () => {
@@ -90,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
+    isAccountant: user?.role === 'accountant',
     sessionExpired,
     setSessionExpired,
   };

@@ -5,7 +5,7 @@ import { db } from '../../config/database';
 export class UsersService {
   async getProfile(userId: string) {
     const result = await db.query(
-      'SELECT id, email, role, first_name, last_name, phone, status, created_at FROM users WHERE id = $1',
+      'SELECT id, email, role, first_name, last_name, phone, status, created_at, dob, address_line1, address_line2, city, state, zip_code, country, tax_id FROM users WHERE id = $1',
       [userId]
     );
 
@@ -24,6 +24,14 @@ export class UsersService {
       phone: user.phone,
       status: user.status,
       createdAt: user.created_at,
+      dob: user.dob,
+      addressLine1: user.address_line1,
+      addressLine2: user.address_line2,
+      city: user.city,
+      state: user.state,
+      zipCode: user.zip_code,
+      country: user.country,
+      taxId: user.tax_id,
     };
   }
 
@@ -48,7 +56,7 @@ export class UsersService {
     values.push(userId);
 
     const result = await db.query(
-      `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id, email, role, first_name, last_name, phone, status`,
+      `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id, email, role, first_name, last_name, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id`,
       values
     );
 
@@ -66,6 +74,14 @@ export class UsersService {
       lastName: user.last_name,
       phone: user.phone,
       status: user.status,
+      dob: user.dob,
+      addressLine1: user.address_line1,
+      addressLine2: user.address_line2,
+      city: user.city,
+      state: user.state,
+      zipCode: user.zip_code,
+      country: user.country,
+      taxId: user.tax_id,
     };
   }
 

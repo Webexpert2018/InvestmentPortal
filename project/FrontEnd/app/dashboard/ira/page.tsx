@@ -1,54 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast, toast as globalToast } from '@/hooks/use-toast';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Check, ChevronDown, Shield, Smartphone, QrCode, Phone, MapPin, User, FileText, Lock, Plus, X } from 'lucide-react';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { apiClient } from '@/lib/api/client';
+import { Check, ChevronDown, Shield, Smartphone, QrCode, Phone, MapPin, User, FileText, Lock, Plus, X, Loader2 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════
    DUMMY INVESTOR DATA  (all fields from signup steps)
    ═══════════════════════════════════════════════════════ */
-const investorData = {
-  // Step 1 — Set Profile
-  firstName: 'James',
-  lastName: 'Mango',
-  email: 'james.mango@email.com',
-  phoneCountryCode: '+1 (USA)',
-  phoneNumber: '(555) 123-4567',
-  dob: '03/15/1990',
 
-  // Step 2 — Address
-  addressLine1: '1234 Main Street',
-  addressLine2: 'Suite 200',
-  city: 'New York',
-  state: 'New York',
-  zipCode: '10001',
-  country: 'United States',
-
-  // Step 3 — Phone Verified
-  phoneVerified: true,
-  phoneVerifiedAt: 'Jan 20, 2026 — 10:45 AM',
-
-  // Step 4 — Tax Info
-  taxId: '***-**-6789',
-  taxEncrypted: true,
-
-  // Step 5 — Two Factor
-  twoFactorEnabled: true,
-  twoFactorMethod: 'Authenticator App',
-  twoFactorSetupDate: 'Jan 20, 2026',
-
-  // IRA Account Info
-  accountType: 'Roth SEP',
-  accountNumber: '1009437651',
-  accountStatus: 'Active',
-  accountOpenDate: 'Jan 20, 2026',
-  custodian: 'Ovalia Capital Trust',
-  beneficiary: 'Sarah Mango',
-  contributionYTD: '$6,500.00',
-  contributionLimit: '$7,000.00',
-  accountBalance: '$45,230.00',
-};
 
 
 
@@ -90,7 +52,70 @@ function StatusBadge({ verified, label }: { verified: boolean; label: string }) 
    PAGE
    ═══════════════════════════════════════════════════════ */
 export default function IRAPage() {
-  const d = investorData;
+  const { user } = useAuth();
+  const [iraAccount, setIraAccount] = useState<any>(null);
+  const [fetchingIra, setFetchingIra] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const phoneComplete = user?.phone || '';
+  const phoneParts = phoneComplete.match(/^(\+\d+\s*\([^)]+\))\s*(.*)$/); // basic country code grab
+  const phoneCountry = phoneParts ? phoneParts[1] : '';
+  const phoneNumberOnly = phoneParts ? phoneParts[2] : phoneComplete;
+
+  useEffect(() => {
+    fetchIraAccount();
+  }, []);
+
+  const fetchIraAccount = async () => {
+    try {
+      const data = await apiClient.getMyIRAAccount();
+      setIraAccount(data);
+    } catch (error) {
+      console.error('Failed to fetch IRA account:', error);
+    } finally {
+      setFetchingIra(false);
+    }
+  };
+
+  const d = {
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
+    phoneCountryCode: phoneCountry,
+    phoneNumber: phoneNumberOnly,
+    dob: user?.dob ? new Date(user.dob).toLocaleDateString() : '',
+    addressLine1: user?.addressLine1 || '',
+    addressLine2: user?.addressLine2 || '',
+    city: user?.city || '',
+    state: user?.state || '',
+    zipCode: user?.zipCode || '',
+    country: user?.country || '',
+    taxId: user?.taxId || '',
+    
+    // Status placeholders / hardcoded fallbacks that weren't in user model
+    phoneVerified: !!user?.phone,
+    phoneVerifiedAt: user?.phone ? 'Verified' : '-',
+    taxEncrypted: true,
+    twoFactorEnabled: false,
+    twoFactorMethod: 'Pending setup',
+    twoFactorSetupDate: 'Pending',
+    
+    // IRA Info from fetched data
+    accountType: iraAccount?.account_type || '-',
+    accountNumber: iraAccount?.account_number || '-',
+    accountStatus: user?.status ? (user.status.charAt(0).toUpperCase() + user.status.slice(1)) : '-',
+    accountOpenDate: iraAccount?.created_at ? new Date(iraAccount.created_at).toLocaleDateString() : '-',
+    custodian: iraAccount?.custodian_name || '-',
+    beneficiary: iraAccount?.beneficiary || '-',
+    contributionYTD: '$0.00',
+    contributionLimit: '$7,000.00',
+    accountBalance: '$0.00',
+    
+    // Completion Status
+    profileCompleted: !!(user?.firstName && user?.lastName && user?.email && user?.phone && user?.dob),
+    addressCompleted: !!(user?.addressLine1 && user?.city && user?.state && user?.zipCode && user?.country),
+    taxCompleted: !!user?.taxId,
+  };
   const { toast } = useToast();
   const [showAddModal, setShowAddModal] = useState(false);
   const [iraForm, setIraForm] = useState({
@@ -119,26 +144,36 @@ export default function IRAPage() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSaveIRA = () => {
+  const handleSaveIRA = async () => {
     if (!validate()) {
       return;
     }
 
-    // simulate save — in real app call API here
-    // call both the hook toast and the exported global toast to ensure display
+    setLoading(true);
     try {
+      await apiClient.createIRAAccount({
+        accountType: iraForm.accountType,
+        accountNumber: iraForm.accountNumber,
+        custodian: iraForm.custodian,
+        beneficiary: iraForm.beneficiary,
+      });
+
       toast({ title: 'IRA saved', description: 'All IRA account values saved successfully.' });
-    } catch (e) {
-      // ignore
-    }
-    try {
       globalToast({ title: 'IRA saved', description: 'All IRA account values saved successfully.' });
-    } catch (e) {
-      // ignore
+      
+      await fetchIraAccount();
+      setShowAddModal(false);
+      setIraForm({ accountType: '', accountNumber: '', custodian: '', beneficiary: '', accountHolderName: '', ssn: '' });
+      setErrors({});
+    } catch (error: any) {
+      toast({ 
+        title: 'Error', 
+        description: error?.message || 'Failed to save IRA account',
+        variant: 'destructive' 
+      });
+    } finally {
+      setLoading(false);
     }
-    setShowAddModal(false);
-    setIraForm({ accountType: '', accountNumber: '', custodian: '', beneficiary: '', accountHolderName: '', ssn: '' });
-    setErrors({});
   };
 
   return (
@@ -199,7 +234,7 @@ export default function IRAPage() {
                 <User className="h-3.5 w-3.5 text-[#D1A94C]" />
               </div>
               <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Profile Information</h3>
-              <StatusBadge verified={true} label="Completed" />
+              <StatusBadge verified={d.profileCompleted} label={d.profileCompleted ? "Completed" : "Pending"} />
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="First Name" value={d.firstName} />
@@ -229,7 +264,7 @@ export default function IRAPage() {
                 <MapPin className="h-3.5 w-3.5 text-[#D1A94C]" />
               </div>
               <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Address</h3>
-              <StatusBadge verified={true} label="Completed" />
+              <StatusBadge verified={d.addressCompleted} label={d.addressCompleted ? "Completed" : "Pending"} />
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Street Address Line 1" value={d.addressLine1} />
@@ -270,7 +305,7 @@ export default function IRAPage() {
                 <FileText className="h-3.5 w-3.5 text-[#D1A94C]" />
               </div>
               <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">TAX Information</h3>
-              <StatusBadge verified={true} label="Completed" />
+              <StatusBadge verified={d.taxCompleted} label={d.taxCompleted ? "Completed" : "Pending"} />
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <MaskedField label="Social Security Number / Tax ID" value={d.taxId} />
@@ -421,9 +456,11 @@ export default function IRAPage() {
                 </button>
                 <button
                   onClick={handleSaveIRA}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 py-2 rounded-full text-sm font-medium shadow-md"
+                  disabled={loading}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 py-2 rounded-full text-sm font-medium shadow-md disabled:opacity-70"
                 >
-                  Save
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {loading ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </div>

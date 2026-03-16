@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
-type LoginFlow = 'admin' | 'account' | 'accountant' | 'investor';
+type LoginFlow = 'admin' | 'account' | 'investor';
 
 const LOGIN_COPY: Record<LoginFlow, { title: string; subtitle: string }> = {
   admin: {
@@ -15,10 +15,6 @@ const LOGIN_COPY: Record<LoginFlow, { title: string; subtitle: string }> = {
     subtitle: 'Enter your administrator credentials to access the admin console.',
   },
   account: {
-    title: 'Welcome to Ovalia Capital',
-    subtitle: 'Securely access your investment dashboard and manage your Ovalia Capital accounts.',
-  },
-  accountant: {
     title: 'Accountant Log in',
     subtitle: 'Sign in to access accounting workflows: reconciliation, NAV, funding, and redemptions.',
   },
@@ -39,8 +35,8 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   const flowParam = (searchParams.get('flow') || '').toLowerCase();
-  const validFlows = ['admin', 'account', 'accountant', 'investor'];
-  const flow: LoginFlow = validFlows.includes(flowParam) ? (flowParam as LoginFlow) : 'account';
+  const validFlows = ['admin', 'account', 'investor'];
+  const flow: LoginFlow = validFlows.includes(flowParam) ? (flowParam as LoginFlow) : 'investor';
   const { title, subtitle } = LOGIN_COPY[flow];
   const signupHref = flow === 'investor' ? '/auth/investor-signup' : '/auth/signup';
 
@@ -49,8 +45,15 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
+    // Map flow to appropriate backend role for RBAC
+    const roleMap: Record<LoginFlow, string> = {
+      admin: 'admin',
+      account: 'accountant', // 'account' flow maps to accountant role
+      investor: 'investor',
+    };
+
     try {
-      await login(email, password);
+      await login(email, password, roleMap[flow]);
     } catch (err: any) {
       setError(err?.message || 'Login failed');
     } finally {

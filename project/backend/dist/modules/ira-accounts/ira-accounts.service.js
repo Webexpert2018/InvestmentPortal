@@ -8,7 +8,24 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IraAccountsService = void 0;
 const common_1 = require("@nestjs/common");
+const database_1 = require("../../config/database");
 let IraAccountsService = class IraAccountsService {
+    async createIraAccount(userId, data) {
+        try {
+            const result = await database_1.db.query(`INSERT INTO ira_accounts (user_id, account_type, account_number, custodian_name, beneficiary)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING *`, [userId, data.accountType, data.accountNumber, data.custodian, data.beneficiary]);
+            return result.rows[0];
+        }
+        catch (error) {
+            console.error(error);
+            throw new common_1.InternalServerErrorException('Failed to create IRA account');
+        }
+    }
+    async getMyIraAccount(userId) {
+        const result = await database_1.db.query('SELECT * FROM ira_accounts WHERE user_id = $1', [userId]);
+        return result.rows[0];
+    }
 };
 exports.IraAccountsService = IraAccountsService;
 exports.IraAccountsService = IraAccountsService = __decorate([

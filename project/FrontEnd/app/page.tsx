@@ -15,18 +15,20 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export default function HomePage() {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
+  const { isAuthenticated, isAdmin, isAccountant, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
       if (isAdmin) {
         router.push('/admin');
+      } else if (isAccountant) {
+        router.push('/admin/compliance');
       } else {
         router.push('/dashboard');
       }
     }
-  }, [isAuthenticated, isAdmin, loading, router]);
+  }, [isAuthenticated, isAdmin, isAccountant, loading, router]);
 
   if (loading) {
     return (
@@ -69,10 +71,10 @@ export default function HomePage() {
                     Admin login
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => router.push('/auth/login?flow=account')}>
-                    Account
+                    Accountant login
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => router.push('/auth/login?flow=investor')}>
-                    Investor
+                    Investor login
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

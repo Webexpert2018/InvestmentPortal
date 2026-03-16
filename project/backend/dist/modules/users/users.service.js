@@ -11,7 +11,7 @@ const common_1 = require("@nestjs/common");
 const database_1 = require("../../config/database");
 let UsersService = class UsersService {
     async getProfile(userId) {
-        const result = await database_1.db.query('SELECT id, email, role, first_name, last_name, phone, status, created_at FROM users WHERE id = $1', [userId]);
+        const result = await database_1.db.query('SELECT id, email, role, first_name, last_name, phone, status, created_at, dob, address_line1, address_line2, city, state, zip_code, country, tax_id FROM users WHERE id = $1', [userId]);
         const user = result.rows[0];
         if (!user) {
             throw new common_1.NotFoundException('User not found');
@@ -25,6 +25,14 @@ let UsersService = class UsersService {
             phone: user.phone,
             status: user.status,
             createdAt: user.created_at,
+            dob: user.dob,
+            addressLine1: user.address_line1,
+            addressLine2: user.address_line2,
+            city: user.city,
+            state: user.state,
+            zipCode: user.zip_code,
+            country: user.country,
+            taxId: user.tax_id,
         };
     }
     async updateProfile(userId, firstName, lastName, phone) {
@@ -44,7 +52,7 @@ let UsersService = class UsersService {
             values.push(phone);
         }
         values.push(userId);
-        const result = await database_1.db.query(`UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id, email, role, first_name, last_name, phone, status`, values);
+        const result = await database_1.db.query(`UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id, email, role, first_name, last_name, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id`, values);
         const user = result.rows[0];
         if (!user) {
             throw new common_1.NotFoundException('User not found');
@@ -57,6 +65,14 @@ let UsersService = class UsersService {
             lastName: user.last_name,
             phone: user.phone,
             status: user.status,
+            dob: user.dob,
+            addressLine1: user.address_line1,
+            addressLine2: user.address_line2,
+            city: user.city,
+            state: user.state,
+            zipCode: user.zip_code,
+            country: user.country,
+            taxId: user.tax_id,
         };
     }
     async getAllUsers(requestingUserRole) {

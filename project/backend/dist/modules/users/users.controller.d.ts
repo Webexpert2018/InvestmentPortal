@@ -11,6 +11,14 @@ export declare class UsersController {
         phone: any;
         status: any;
         createdAt: any;
+        dob: any;
+        addressLine1: any;
+        addressLine2: any;
+        city: any;
+        state: any;
+        zipCode: any;
+        country: any;
+        taxId: any;
     }>;
     updateProfile(user: any, updateDto: any): Promise<{
         id: any;
@@ -20,6 +28,14 @@ export declare class UsersController {
         lastName: any;
         phone: any;
         status: any;
+        dob: any;
+        addressLine1: any;
+        addressLine2: any;
+        city: any;
+        state: any;
+        zipCode: any;
+        country: any;
+        taxId: any;
     }>;
     getAllUsers(user: any): Promise<{
         id: any;

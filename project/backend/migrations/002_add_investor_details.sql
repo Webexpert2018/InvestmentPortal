@@ -1,0 +1,18 @@
+-- Migration: add investor details to users table
+
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS dob DATE,
+ADD COLUMN IF NOT EXISTS address_line1 VARCHAR(255),
+ADD COLUMN IF NOT EXISTS address_line2 VARCHAR(255),
+ADD COLUMN IF NOT EXISTS city VARCHAR(100),
+ADD COLUMN IF NOT EXISTS state VARCHAR(100),
+ADD COLUMN IF NOT EXISTS zip_code VARCHAR(50),
+ADD COLUMN IF NOT EXISTS country VARCHAR(100),
+ADD COLUMN IF NOT EXISTS tax_id VARCHAR(100);
+
+ALTER TABLE users
+ALTER COLUMN phone TYPE VARCHAR(50);
+
+-- Record this migration
+INSERT INTO migrations (name) VALUES ('002_add_investor_details.sql')
+ON CONFLICT (name) DO NOTHING;

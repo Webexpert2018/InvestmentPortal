@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, Search, MessageCircle } from "lucide-react";
 import { useAuth } from "@/lib/contexts/AuthContext";
+import { apiClient } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,9 +22,18 @@ export function DashboardHeader({
   const router = useRouter();
   const pathname = usePathname();
   const displayName = `${user?.firstName || "investor"} ${user?.lastName || "User"}`;
-  const accountLabel = "Roth SEP (1009437651)";
+  const [iraAccount, setIraAccount] = useState<any>(null);
+  const accountLabel = iraAccount ? `${iraAccount.account_type} (${iraAccount.account_number})` : "No IRA Account";
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (user && user.role === 'investor') {
+      apiClient.getMyIRAAccount().then(data => {
+        setIraAccount(data);
+      }).catch(err => console.error('Failed to fetch IRA account in header:', err));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isProfileMenuOpen) return;

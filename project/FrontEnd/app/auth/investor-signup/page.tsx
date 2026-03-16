@@ -88,7 +88,11 @@ export default function InvestorSignupPage() {
       if (!form.firstName.trim()) nextErrors.firstName = 'First name is required';
       if (!form.lastName.trim()) nextErrors.lastName = 'Last name is required';
       if (!form.email.trim()) nextErrors.email = 'Email is required';
-      if (!form.phoneNumber.trim()) nextErrors.phoneNumber = 'Phone number is required';
+      if (!form.phoneNumber.trim()) {
+        nextErrors.phoneNumber = 'Phone number is required';
+      } else if (form.phoneNumber.length < 10) {
+        nextErrors.phoneNumber = 'Please enter a valid phone number';
+      }
       if (!form.dob) nextErrors.dob = 'Date of birth is required';
     }
 
@@ -101,7 +105,11 @@ export default function InvestorSignupPage() {
     }
 
     if (step === 3) {
-      if (!form.phoneNumber.trim()) nextErrors.phoneNumber = 'Phone number is required';
+      if (!form.phoneNumber.trim()) {
+        nextErrors.phoneNumber = 'Phone number is required';
+      } else if (form.phoneNumber.length < 10) {
+        nextErrors.phoneNumber = 'Please enter a valid phone number';
+      }
       if (otpSent && form.phoneOtp.some((digit) => !digit)) {
         nextErrors.phoneOtp = 'Enter complete 6-digit verification code';
       }
@@ -158,6 +166,8 @@ export default function InvestorSignupPage() {
   };
 
   const handleFinalSubmit = async () => {
+    debugger;
+   // console.log();
     setLoading(true);
     setGlobalError('');
 
@@ -168,6 +178,15 @@ export default function InvestorSignupPage() {
         firstName: form.firstName,
         lastName: form.lastName,
         phone: `${form.phoneCountryCode} ${form.phoneNumber}`,
+        dob:form.dob,
+        role: 'investor',
+        addressLine1: form.addressLine1,
+        addressLine2: form.addressLine2,
+        city: form.city,
+        state: form.state,
+        zipCode: form.zipCode,
+        country: form.country,
+        taxId: form.taxId,
       });
       router.push('/dashboard');
     } catch (err: any) {
@@ -390,7 +409,8 @@ export default function InvestorSignupPage() {
               value={form.email}
               onChange={(e) => setField('email', e.target.value)}
               placeholder="Enter email"
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
+              disabled
+              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
             />
           </FormField>
 
@@ -416,7 +436,7 @@ export default function InvestorSignupPage() {
             </div>
           </FormField>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-1">
             <FormField label="Date of Birth" error={errors.dob}>
               <div className="relative">
                 <input
@@ -525,7 +545,8 @@ export default function InvestorSignupPage() {
               <select
                 value={form.phoneCountryCode}
                 onChange={(e) => setField('phoneCountryCode', e.target.value)}
-                className="h-11 w-[130px] rounded-md border border-[#E6E6E6] px-2 font-helvetica text-sm"
+                disabled
+                className="h-11 w-[130px] rounded-md border border-[#E6E6E6] px-2 font-helvetica text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
               >
                 {countryCodes.map((code) => (
                   <option key={code} value={code}>
@@ -538,7 +559,8 @@ export default function InvestorSignupPage() {
                 value={form.phoneNumber}
                 onChange={(e) => setField('phoneNumber', e.target.value.replace(/\D/g, '').slice(0, 15))}
                 placeholder="Enter phone number"
-                className="h-11 flex-1 rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
+                disabled
+                className="h-11 flex-1 rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
               />
             </div>
           </FormField>

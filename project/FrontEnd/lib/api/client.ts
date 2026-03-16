@@ -45,17 +45,27 @@ class ApiClient {
     firstName: string;
     lastName: string;
     phone?: string;
-  }) {
+    dob?: string;
+    role?: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+    taxId?: string;
+  })
+ {
     return this.request<{ user: any; token: string }>('/auth/signup', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string, role?: string) {
     return this.request<{ user: any; token: string }>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, role }),
     });
   }
 

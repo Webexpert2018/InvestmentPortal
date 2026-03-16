@@ -8,6 +8,14 @@ export declare class UsersService {
         phone: any;
         status: any;
         createdAt: any;
+        dob: any;
+        addressLine1: any;
+        addressLine2: any;
+        city: any;
+        state: any;
+        zipCode: any;
+        country: any;
+        taxId: any;
     }>;
     updateProfile(userId: string, firstName?: string, lastName?: string, phone?: string): Promise<{
         id: any;
@@ -17,6 +25,14 @@ export declare class UsersService {
         lastName: any;
         phone: any;
         status: any;
+        dob: any;
+        addressLine1: any;
+        addressLine2: any;
+        city: any;
+        state: any;
+        zipCode: any;
+        country: any;
+        taxId: any;
     }>;
     getAllUsers(requestingUserRole: string): Promise<{
         id: any;
