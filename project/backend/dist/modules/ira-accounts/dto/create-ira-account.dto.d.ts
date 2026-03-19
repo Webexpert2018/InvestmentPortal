@@ -3,5 +3,29 @@ export declare class CreateIraAccountDto {
     accountNumber: string;
     custodian: string;
     beneficiary: string;
+    middleName?: string;
+    suffix?: string;
+    maritalStatus?: string;
+    mailingAddressSame?: boolean;
+    mailingAddress1?: string;
+    mailingAddress2?: string;
+    mailingCity?: string;
+    mailingState?: string;
+    mailingZipCode?: string;
+    mailingCountry?: string;
+    username?: string;
+    referralSource?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    dob?: string;
+    phone?: string;
+    taxId?: string;
+    physicalAddress1?: string;
+    physicalAddress2?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
 }
 //# sourceMappingURL=create-ira-account.dto.d.ts.map

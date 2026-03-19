@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { Country, State, City } from 'country-state-city';
+import { Combobox } from '@/components/ui/combobox';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -13,9 +15,6 @@ type ValidationErrors = Record<string, string>;
 const STEP_LABELS = ['Set Profile', 'Address', 'Phone Number Verify', 'Tax Info.', 'Two Factor'];
 
 const countryCodes = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
-
-const states = ['California', 'New York', 'Texas', 'Florida'];
-const countries = ['United States', 'United Kingdom', 'India'];
 
 export default function InvestorSignupPage() {
   const router = useRouter();
@@ -57,7 +56,19 @@ export default function InvestorSignupPage() {
   const canGoBack = currentStep > 1;
 
   const setField = (field: string, value: string | string[]) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      
+      // Cascading logic: Reset dependent fields
+      if (field === 'country') {
+        next.state = '';
+        next.city = '';
+      } else if (field === 'state') {
+        next.city = '';
+      }
+      
+      return next;
+    });
     setErrors((prev) => ({ ...prev, [field]: '' }));
     setGlobalError('');
   };
@@ -172,6 +183,10 @@ export default function InvestorSignupPage() {
     setGlobalError('');
 
     try {
+      // Get readable names from ISO codes for submission
+      const countryName = Country.getCountryByCode(form.country)?.name || form.country;
+      const stateName = State.getStateByCodeAndCountry(form.state, form.country)?.name || form.state;
+
       await signup({
         email: form.email,
         password: form.password,
@@ -183,9 +198,9 @@ export default function InvestorSignupPage() {
         addressLine1: form.addressLine1,
         addressLine2: form.addressLine2,
         city: form.city,
-        state: form.state,
+        state: stateName,
         zipCode: form.zipCode,
-        country: form.country,
+        country: countryName,
         taxId: form.taxId,
       });
       router.push('/dashboard');
@@ -463,6 +478,10 @@ export default function InvestorSignupPage() {
     }
 
     if (currentStep === 2) {
+      const allCountries = Country.getAllCountries();
+      const availableStates = form.country ? State.getStatesOfCountry(form.country) : [];
+      const availableCities = (form.country && form.state) ? City.getCitiesOfState(form.country, form.state) : [];
+
       return (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField label="Street Address Line 1" error={errors.addressLine1}>
@@ -483,29 +502,35 @@ export default function InvestorSignupPage() {
             />
           </FormField>
 
-          <FormField label="City" error={errors.city}>
-            <input
-              value={form.city}
-              onChange={(e) => setField('city', e.target.value)}
-              placeholder="Enter city"
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
+          <FormField label="Country" error={errors.country}>
+            <Combobox
+              options={allCountries.map(c => ({ label: c.name, value: c.isoCode }))}
+              value={form.country}
+              onChange={(val) => setField('country', val)}
+              placeholder="Select country"
             />
           </FormField>
 
           <FormField label="State" error={errors.state}>
-            <select
+            <Combobox
+              options={availableStates.map(s => ({ label: s.name, value: s.isoCode }))}
               value={form.state}
-              onChange={(e) => setField('state', e.target.value)}
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
-            >
-              <option value="">Select state</option>
-              {states.map((state) => (
-                <option key={state} value={state}>
-                  {state}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setField('state', val)}
+              placeholder="Select state"
+              disabled={!form.country}
+            />
           </FormField>
+
+          <FormField label="City" error={errors.city}>
+            <Combobox
+              options={availableCities.map(city => ({ label: city.name, value: city.name }))}
+              value={form.city}
+              onChange={(val) => setField('city', val)}
+              placeholder="Select city"
+              disabled={!form.state}
+            />
+          </FormField>
+
 
           <FormField label="ZIP Code" error={errors.zipCode}>
             <input
@@ -514,21 +539,6 @@ export default function InvestorSignupPage() {
               placeholder="Enter zip code"
               className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
             />
-          </FormField>
-
-          <FormField label="Country" error={errors.country}>
-            <select
-              value={form.country}
-              onChange={(e) => setField('country', e.target.value)}
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
-            >
-              <option value="">Select country</option>
-              {countries.map((country) => (
-                <option key={country} value={country}>
-                  {country}
-                </option>
-              ))}
-            </select>
           </FormField>
         </div>
       );
