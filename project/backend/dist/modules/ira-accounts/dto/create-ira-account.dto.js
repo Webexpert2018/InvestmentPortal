@@ -1,157 +1,95 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
+// import { IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateIraAccountDto = void 0;
-const class_validator_1 = require("class-validator");
-class CreateIraAccountDto {
+exports.CreateAccountDto = void 0;
+// export class CreateIraAccountDto {
+//   @IsString()
+//   @IsNotEmpty()
+//   accountType: string;
+//   @IsString()
+//   @IsNotEmpty()
+//   accountNumber: string;
+//   @IsString()
+//   @IsNotEmpty()
+//   custodian: string;
+//   @IsString()
+//   @IsNotEmpty()
+//   beneficiary: string;
+//   @IsString()
+//   @IsOptional()
+//   middleName?: string;
+//   @IsString()
+//   @IsOptional()
+//   suffix?: string;
+//   @IsString()
+//   @IsOptional()
+//   maritalStatus?: string;
+//   @IsBoolean()
+//   @IsOptional()
+//   mailingAddressSame?: boolean;
+//   @IsString()
+//   @IsOptional()
+//   mailingAddress1?: string;
+//   @IsString()
+//   @IsOptional()
+//   mailingAddress2?: string;
+//   @IsString()
+//   @IsOptional()
+//   mailingCity?: string;
+//   @IsString()
+//   @IsOptional()
+//   mailingState?: string;
+//   @IsString()
+//   @IsOptional()
+//   mailingZipCode?: string;
+//   @IsString()
+//   @IsOptional()
+//   mailingCountry?: string;
+//   @IsString()
+//   @IsOptional()
+//   username?: string;
+//   @IsString()
+//   @IsOptional()
+//   referralSource?: string;
+//   // Added user profile fields
+//   @IsString()
+//   @IsOptional()
+//   firstName?: string;
+//   @IsString()
+//   @IsOptional()
+//   lastName?: string;
+//   @IsString()
+//   @IsOptional()
+//   email?: string;
+//   @IsString()
+//   @IsOptional()
+//   dob?: string;
+//   @IsString()
+//   @IsOptional()
+//   phone?: string;
+//   @IsString()
+//   @IsOptional()
+//   taxId?: string;
+//   @IsString()
+//   @IsOptional()
+//   physicalAddress1?: string;
+//   @IsString()
+//   @IsOptional()
+//   physicalAddress2?: string;
+//   @IsString()
+//   @IsOptional()
+//   city?: string;
+//   @IsString()
+//   @IsOptional()
+//   state?: string;
+//   @IsString()
+//   @IsOptional()
+//   zipCode?: string;
+//   @IsString()
+//   @IsOptional()
+//   country?: string;
+// }
+class CreateAccountDto {
 }
-exports.CreateIraAccountDto = CreateIraAccountDto;
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "accountType", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "accountNumber", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "custodian", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "beneficiary", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "middleName", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "suffix", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "maritalStatus", void 0);
-__decorate([
-    (0, class_validator_1.IsBoolean)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Boolean)
-], CreateIraAccountDto.prototype, "mailingAddressSame", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "mailingAddress1", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "mailingAddress2", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "mailingCity", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "mailingState", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "mailingZipCode", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "mailingCountry", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "username", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "referralSource", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "firstName", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "lastName", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "email", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "dob", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "phone", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "taxId", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "physicalAddress1", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "physicalAddress2", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "city", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "state", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "zipCode", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateIraAccountDto.prototype, "country", void 0);
+exports.CreateAccountDto = CreateAccountDto;
 //# sourceMappingURL=create-ira-account.dto.js.map

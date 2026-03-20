@@ -306,7 +306,7 @@ export default function InvestorSignupPage() {
 
                 <p className="mt-5 text-center text-xl text-[#9C9C9C]">
                   Already have an account?{' '}
-                  <Link href="/auth/login" className="font-medium text-[#2C436E] underline">
+                  <Link href="/auth/login?flow=investor" className="font-medium text-yellow-600 hover:underline">
                     Log In
                   </Link>
                 </p>
@@ -343,7 +343,7 @@ export default function InvestorSignupPage() {
 
                 <div className="flex items-center justify-between px-6 pb-6 pt-2">
                   {currentStep === 5 ? (
-                    <button type="button" className="text-sm text-[#888888]" onClick={() => router.push('/auth/login')}>
+                    <button type="button" className="text-sm text-[#888888]" onClick={() => router.push('/auth/login?flow=investor')}>
                       SKIP
                     </button>
                   ) : (

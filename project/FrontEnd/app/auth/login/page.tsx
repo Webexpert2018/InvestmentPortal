@@ -7,14 +7,14 @@ import Image from 'next/image';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
-type LoginFlow = 'admin' | 'account' | 'investor';
+type LoginFlow = 'admin' | 'accountant' | 'investor';
 
 const LOGIN_COPY: Record<LoginFlow, { title: string; subtitle: string }> = {
   admin: {
     title: 'Admin Log in',
     subtitle: 'Enter your administrator credentials to access the admin console.',
   },
-  account: {
+  accountant: {
     title: 'Accountant Log in',
     subtitle: 'Sign in to access accounting workflows: reconciliation, NAV, funding, and redemptions.',
   },
@@ -34,11 +34,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const flowParam = (searchParams.get('flow') || '').toLowerCase();
-  const validFlows = ['admin', 'account', 'investor'];
+  let flowParam = (searchParams.get('flow') || '').toLowerCase();
+  if (flowParam === 'account') flowParam = 'accountant';
+  const validFlows = ['admin', 'accountant', 'investor'];
   const flow: LoginFlow = validFlows.includes(flowParam) ? (flowParam as LoginFlow) : 'investor';
   const { title, subtitle } = LOGIN_COPY[flow];
-  const signupHref = flow === 'investor' ? '/auth/investor-signup' : '/auth/signup';
+  const signupHref =
+    flow === 'investor'
+      ? `/auth/investor-signup?flow=${searchParams.get('flow') || 'investor'}`
+      : `/auth/signup?flow=${searchParams.get('flow') || flow}`;
+  // const signupHref = flow === 'investor' ? '/auth/investor-signup' : '/auth/signup';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,11 +51,11 @@ export default function LoginPage() {
     setError('');
 
     // Map flow to appropriate backend role for RBAC
-    const roleMap: Record<LoginFlow, string> = {
-      admin: 'admin',
-      account: 'accountant', // 'account' flow maps to accountant role
-      investor: 'investor',
-    };
+    const roleMap: Record<string, string> = {
+  admin: 'admin',
+  accountant: 'accountant',
+  investor: 'investor',
+};
 
     try {
       await login(email, password, roleMap[flow]);
@@ -140,7 +145,7 @@ export default function LoginPage() {
         {/* Forgot */}
         <div className="mt-4 text-center">
           <Link
-            href="/auth/forgot-password"
+            href={`/auth/forgot-password?flow=${searchParams.get('flow') || 'investor'}`}
              className="block text-center font-goudy text-md sm:text-lg"
           >
             Forgot Password?

@@ -17,8 +17,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   let [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
+    // If we're not loading and there's no user, we should be redirected.
+    // However, we let the logout function or specific page guards handle this 
+    // to allow for role-based redirection to the correct login flow.
     if (!loading && !user && !sessionExpired) {
-      router.push("/auth/login");
+      const path = window.location.pathname;
+      if (path !== '/' && !path.startsWith('/auth')) {
+        // Only redirect if we're not already on a public or auth page
+        router.push("/");
+      }
     }
   }, [user, loading, sessionExpired, router]);
 
@@ -37,9 +44,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {user && <Sidebar isCollapsed={isCollapsed} />}
 
       <div
-        className={`flex flex-1 flex-col transition-all duration-300 ${
-          user ? (isCollapsed ? "lg:pl-20" : "lg:pl-64") : ""
-        }`}
+        className={`flex flex-1 flex-col transition-all duration-300 ${user ? (isCollapsed ? "lg:pl-20" : "lg:pl-64") : ""
+          }`}
       >
         {user && (
           <DashboardHeader

@@ -1,4 +1,9 @@
 "use strict";
+// import { Module } from '@nestjs/common';
+// import { IraAccountsController } from './ira-accounts.controller';
+// import { IraAccountsService } from './ira-accounts.service';
+// @Module({ controllers: [IraAccountsController], providers: [IraAccountsService] })
+// export class IraAccountsModule {}
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -8,12 +13,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IraAccountsModule = void 0;
 const common_1 = require("@nestjs/common");
-const ira_accounts_controller_1 = require("./ira-accounts.controller");
 const ira_accounts_service_1 = require("./ira-accounts.service");
+const ira_accounts_controller_1 = require("./ira-accounts.controller");
 let IraAccountsModule = class IraAccountsModule {
 };
 exports.IraAccountsModule = IraAccountsModule;
 exports.IraAccountsModule = IraAccountsModule = __decorate([
-    (0, common_1.Module)({ controllers: [ira_accounts_controller_1.IraAccountsController], providers: [ira_accounts_service_1.IraAccountsService] })
+    (0, common_1.Module)({
+        controllers: [ira_accounts_controller_1.AccountsController],
+        providers: [ira_accounts_service_1.AccountsService],
+    })
 ], IraAccountsModule);
 //# sourceMappingURL=ira-accounts.module.js.map

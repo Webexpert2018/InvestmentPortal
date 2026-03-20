@@ -21,9 +21,10 @@ export class SignupDto {
   @IsString()
   lastName: string | undefined;
 
-  @ApiProperty({ example: '1995-08-15' })
+  @ApiPropertyOptional({ example: '1995-08-15' })
+  @IsOptional()
   @IsDateString()
-  dob: string | undefined;
+  dob?: string;
 
   @ApiPropertyOptional({ example: '+15553332211' })
   @IsOptional()
@@ -108,7 +109,7 @@ export class AuthController {
       signupDto.lastName,
       signupDto.phone,
       signupDto.dob,
-      'investor', // Force investor role for public signup
+      signupDto.role || 'investor',
       signupDto.addressLine1,
       signupDto.addressLine2,
       signupDto.city,
@@ -137,7 +138,7 @@ export class AuthController {
       signupDto.lastName,
       signupDto.phone,
       signupDto.dob,
-      'investor', // Force investor role
+      signupDto.role || 'investor', 
       signupDto.addressLine1,
       signupDto.addressLine2,
       signupDto.city,

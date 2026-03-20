@@ -104,7 +104,7 @@ export default function ForgotPassword() {
               </div>
 
               <Link
-                href="/auth/login"
+                href={`/auth/login?flow=${new URLSearchParams(window.location.search).get('flow') || 'investor'}`}
                 className="flex items-center text-sm text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> Back to login
@@ -184,7 +184,7 @@ export default function ForgotPassword() {
 
           {step === 'success' && (
             <Link
-              href="/auth/login"
+              href={`/auth/login?flow=${new URLSearchParams(window.location.search).get('flow') || 'investor'}`}
               className="block text-center w-full rounded-full bg-yellow-400 py-2 text-sm font-medium hover:bg-yellow-500"
             >
               Back to Login

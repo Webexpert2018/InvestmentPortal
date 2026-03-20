@@ -20,13 +20,15 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && user?.role !== 'admin') {
+    const role = user?.role?.toLowerCase();
+    if (!authLoading && role !== 'admin' && role !== 'accountant' && role !== 'account') {
       router.push('/dashboard');
     }
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    if (user?.role === 'admin') {
+    const role = user?.role?.toLowerCase();
+    if (role === 'admin' || role === 'accountant' || role === 'account') {
       loadStats();
     }
   }, [user]);
@@ -59,7 +61,8 @@ export default function AdminPage() {
     );
   }
 
-  if (user?.role !== 'admin') {
+  const role = user?.role?.toLowerCase();
+  if (role !== 'admin' && role !== 'accountant' && role !== 'account') {
     return null;
   }
 

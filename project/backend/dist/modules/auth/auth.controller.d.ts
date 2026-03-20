@@ -4,7 +4,7 @@ export declare class SignupDto {
     password: string | undefined;
     firstName: string | undefined;
     lastName: string | undefined;
-    dob: string | undefined;
+    dob?: string;
     phone?: string;
     role?: string;
     addressLine1?: string;

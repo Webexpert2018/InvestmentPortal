@@ -1,4 +1,9 @@
 "use strict";
+// import { Controller, Post, Get, Body, UseGuards } from '@nestjs/common';
+// import { IraAccountsService } from './ira-accounts.service';
+// import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+// import { CurrentUser } from '../../decorators/current-user.decorator';
+// import { CreateIraAccountDto } from './dto/create-ira-account.dto';
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -12,42 +17,44 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.IraAccountsController = void 0;
+exports.AccountsController = void 0;
+// @Controller('api/ira-accounts')
+// @UseGuards(JwtAuthGuard)
+// export class IraAccountsController {
+//   constructor(private readonly iraAccountsService: IraAccountsService) {}
+//   @Post()
+//   async createIraAccount(@CurrentUser() user: any, @Body() data: CreateIraAccountDto) {
+//     return this.iraAccountsService.createIraAccount(user.userId, data);
+//   }
+//   @Get('my')
+//   async getMyIraAccount(@CurrentUser() user: any) {
+//     return this.iraAccountsService.getMyIraAccount(user.userId);
+//   }
+// }
 const common_1 = require("@nestjs/common");
 const ira_accounts_service_1 = require("./ira-accounts.service");
-const jwt_auth_guard_1 = require("../../guards/jwt-auth.guard");
-const current_user_decorator_1 = require("../../decorators/current-user.decorator");
 const create_ira_account_dto_1 = require("./dto/create-ira-account.dto");
-let IraAccountsController = class IraAccountsController {
-    constructor(iraAccountsService) {
-        this.iraAccountsService = iraAccountsService;
+let AccountsController = class AccountsController {
+    constructor(accountsService) {
+        this.accountsService = accountsService;
     }
-    async createIraAccount(user, data) {
-        return this.iraAccountsService.createIraAccount(user.userId, data);
-    }
-    async getMyIraAccount(user) {
-        return this.iraAccountsService.getMyIraAccount(user.userId);
+    async createAccount(userId, dto, authHeader) {
+        const token = authHeader?.replace('Bearer ', '');
+        return this.accountsService.createAccount(userId, dto, token);
     }
 };
-exports.IraAccountsController = IraAccountsController;
+exports.AccountsController = AccountsController;
 __decorate([
-    (0, common_1.Post)(),
-    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    (0, common_1.Post)(':userId'),
+    __param(0, (0, common_1.Param)('userId')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Headers)('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_ira_account_dto_1.CreateIraAccountDto]),
+    __metadata("design:paramtypes", [Number, create_ira_account_dto_1.CreateAccountDto, String]),
     __metadata("design:returntype", Promise)
-], IraAccountsController.prototype, "createIraAccount", null);
-__decorate([
-    (0, common_1.Get)('my'),
-    __param(0, (0, current_user_decorator_1.CurrentUser)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], IraAccountsController.prototype, "getMyIraAccount", null);
-exports.IraAccountsController = IraAccountsController = __decorate([
-    (0, common_1.Controller)('api/ira-accounts'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __metadata("design:paramtypes", [ira_accounts_service_1.IraAccountsService])
-], IraAccountsController);
+], AccountsController.prototype, "createAccount", null);
+exports.AccountsController = AccountsController = __decorate([
+    (0, common_1.Controller)('accounts'),
+    __metadata("design:paramtypes", [ira_accounts_service_1.AccountsService])
+], AccountsController);
 //# sourceMappingURL=ira-accounts.controller.js.map

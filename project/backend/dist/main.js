@@ -15,7 +15,7 @@ async function bootstrap() {
     // Add validation pipe
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
-        forbidNonWhitelisted: true,
+        forbidNonWhitelisted: false, //changes hereeeeeeeee make it true
         transform: true,
     }));
     // Swagger Always Enabled (optional)

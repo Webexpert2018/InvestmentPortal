@@ -110,14 +110,12 @@ export function AccountantSettingsScreen() {
       role="switch"
       aria-checked={on}
       onClick={toggle}
-      className={`relative inline-flex h-[22px] w-[42px] shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${
-        on ? 'bg-[#2196F3]' : 'bg-[#D1D5DB]'
-      }`}
+      className={`relative inline-flex h-[22px] w-[42px] shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${on ? 'bg-[#2196F3]' : 'bg-[#D1D5DB]'
+        }`}
     >
       <span
-        className={`pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
-          on ? 'translate-x-[22px]' : 'translate-x-[2px]'
-        }`}
+        className={`pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-white shadow-sm transition-transform duration-200 ${on ? 'translate-x-[22px]' : 'translate-x-[2px]'
+          }`}
       />
     </button>
   );
@@ -411,18 +409,18 @@ export function AccountantSettingsScreen() {
             <Toggle on={notifReminder} toggle={() => setNotifReminder(!notifReminder)} />
           </div>
         </div>
-     
 
-      {/* Save button */}
-      <div className="mt-5 flex justify-end">
-        <button
-          type="button"
-          className="h-[40px] min-w-[100px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] shadow-sm hover:shadow-md transition-shadow font-helvetica"
-        >
-          Save
-        </button>
+
+        {/* Save button */}
+        <div className="mt-5 flex justify-end">
+          <button
+            type="button"
+            className="h-[40px] min-w-[100px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] shadow-sm hover:shadow-md transition-shadow font-helvetica"
+          >
+            Save
+          </button>
+        </div>
       </div>
-       </div>
     </div>
   );
 
@@ -461,7 +459,7 @@ export function AccountantSettingsScreen() {
               onClick={() => {
                 setLogoutOpen(false);
                 logout();
-                router.push('/auth/login');
+                router.push('/');
               }}
               className="h-[40px] min-w-[120px] rounded-full px-7 text-[14px] font-semibold text-[#7A5C00] hover:opacity-90 transition-colors font-helvetica"
               style={{ background: 'linear-gradient(135deg, #F5D77A 0%, #E2B93B 100%)' }}
@@ -492,11 +490,10 @@ export function AccountantSettingsScreen() {
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`relative pb-3 text-[14px] font-helvetica transition-colors ${
-              tab === t.id
-                ? 'font-medium text-[#2A4474]'
-                : 'text-[#9CA3AF] hover:text-[#6B7280]'
-            }`}
+            className={`relative pb-3 text-[14px] font-helvetica transition-colors ${tab === t.id
+              ? 'font-medium text-[#2A4474]'
+              : 'text-[#9CA3AF] hover:text-[#6B7280]'
+              }`}
           >
             {t.label}
             {tab === t.id && (

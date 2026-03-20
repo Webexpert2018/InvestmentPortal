@@ -42,9 +42,10 @@ __decorate([
     __metadata("design:type", Object)
 ], SignupDto.prototype, "lastName", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '1995-08-15' }),
+    (0, swagger_1.ApiPropertyOptional)({ example: '1995-08-15' }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),
-    __metadata("design:type", Object)
+    __metadata("design:type", String)
 ], SignupDto.prototype, "dob", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: '+15553332211' }),
@@ -130,8 +131,7 @@ let AuthController = class AuthController {
             !signupDto.lastName) {
             throw new common_1.BadRequestException('Missing required signup fields');
         }
-        return this.authService.signup(signupDto.email, signupDto.password, signupDto.firstName, signupDto.lastName, signupDto.phone, signupDto.dob, 'investor', // Force investor role for public signup
-        signupDto.addressLine1, signupDto.addressLine2, signupDto.city, signupDto.state, signupDto.zipCode, signupDto.country, signupDto.taxId);
+        return this.authService.signup(signupDto.email, signupDto.password, signupDto.firstName, signupDto.lastName, signupDto.phone, signupDto.dob, signupDto.role || 'investor', signupDto.addressLine1, signupDto.addressLine2, signupDto.city, signupDto.state, signupDto.zipCode, signupDto.country, signupDto.taxId);
     }
     async investorSignup(signupDto) {
         if (!signupDto.email ||
@@ -140,8 +140,7 @@ let AuthController = class AuthController {
             !signupDto.lastName) {
             throw new common_1.BadRequestException('Missing required signup fields');
         }
-        return this.authService.signup(signupDto.email, signupDto.password, signupDto.firstName, signupDto.lastName, signupDto.phone, signupDto.dob, 'investor', // Force investor role
-        signupDto.addressLine1, signupDto.addressLine2, signupDto.city, signupDto.state, signupDto.zipCode, signupDto.country, signupDto.taxId);
+        return this.authService.signup(signupDto.email, signupDto.password, signupDto.firstName, signupDto.lastName, signupDto.phone, signupDto.dob, signupDto.role || 'investor', signupDto.addressLine1, signupDto.addressLine2, signupDto.city, signupDto.state, signupDto.zipCode, signupDto.country, signupDto.taxId);
     }
     async login(loginDto) {
         if (!loginDto.email || !loginDto.password) {

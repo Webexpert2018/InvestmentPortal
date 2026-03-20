@@ -195,7 +195,7 @@ const menuItems: MenuItem[] = [
   //   icon: Shield,
   //   roles: ['admin'],
   // },
-  
+
 ];
 
 const accountantMenu: MenuItem[] = [
@@ -218,7 +218,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
 
   const handleLogout = () => {
     logout();
-    router.push('/auth/login');
+    router.push('/');
   };
 
   const handleMenuItemClick = () => {
@@ -243,107 +243,107 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
     });
   }
 
- const SidebarContent = () => (
-  <aside
-    className={`fixed left-0 top-0 h-screen bg-[#F8F8F8] transition-all duration-300
+  const SidebarContent = () => (
+    <aside
+      className={`fixed left-0 top-0 h-screen bg-[#F8F8F8] transition-all duration-300
     ${isCollapsed ? "w-20" : "w-[255px]"}
   `}
-  >
-    <div className="flex h-full flex-col border-b bg-white">
+    >
+      <div className="flex h-full flex-col border-b bg-white">
 
-      {/* ================= LOGO SECTION ================= */}
-      <div className="flex items-center justify-center border-b border-r border-[#EEEEEE] px-3 dashboard-logo-container">
-        <img
-          src="/images/dashboard-logo.png"
-          alt="Logo"
-          className={`${isCollapsed ? "h-[70px]" : "h-[70px]"} object-contain`}
-        />
-      </div>
+        {/* ================= LOGO SECTION ================= */}
+        <div className="flex items-center justify-center border-b border-r border-[#EEEEEE] px-3 dashboard-logo-container">
+          <img
+            src="/images/dashboard-logo.png"
+            alt="Logo"
+            className={`${isCollapsed ? "h-[70px]" : "h-[70px]"} object-contain`}
+          />
+        </div>
 
-      {/* ================= MENU ================= */}
-      <div className="flex-1 overflow-y-auto py-3 px-3 border-r border-[#EEEEEE]">
-        <nav className="space-y-2">
+        {/* ================= MENU ================= */}
+        <div className="flex-1 overflow-y-auto py-3 px-3 border-r border-[#EEEEEE]">
+          <nav className="space-y-2">
 
-          {filteredMenuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              pathname === item.href ||
-              (item.href !== '/dashboard' &&
-                pathname?.startsWith(item.href + '/'));
+            {filteredMenuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                pathname === item.href ||
+                (item.href !== '/dashboard' &&
+                  pathname?.startsWith(item.href + '/'));
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={handleMenuItemClick}
-                className={cn(
-                  "group relative flex items-center font-goudy justify-center rounded-full h-[40px] text-[15px] font-medium transition-all duration-200 overflow-hidden",
-                  "bg-[#ECECEC]",
-                  !isCollapsed && "px-5 justify-start",
-                )}
-              >
-                <span
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={handleMenuItemClick}
                   className={cn(
-                    "absolute inset-0 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] transition-transform duration-300",
-                    isActive ? "translate-x-0" : "-translate-x-full group-hover:translate-x-0"
+                    "group relative flex items-center font-goudy justify-center rounded-full h-[40px] text-[15px] font-medium transition-all duration-200 overflow-hidden",
+                    "bg-[#ECECEC]",
+                    !isCollapsed && "px-5 justify-start",
                   )}
-                />
+                >
+                  <span
+                    className={cn(
+                      "absolute inset-0 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] transition-transform duration-300",
+                      isActive ? "translate-x-0" : "-translate-x-full group-hover:translate-x-0"
+                    )}
+                  />
 
-                <span className={cn("relative z-10 flex items-center", !isCollapsed && "gap-3", isActive ? "text-gray-900" : "text-[#2F3A4C] group-hover:text-gray-900") }>
-                  <Icon className="h-5 w-5 shrink-0" />
-                  {!isCollapsed && <span>{item.title}</span>}
-                </span>
-              </Link>
-            );
-          })}
+                  <span className={cn("relative z-10 flex items-center", !isCollapsed && "gap-3", isActive ? "text-gray-900" : "text-[#2F3A4C] group-hover:text-gray-900")}>
+                    <Icon className="h-5 w-5 shrink-0" />
+                    {!isCollapsed && <span>{item.title}</span>}
+                  </span>
+                </Link>
+              );
+            })}
 
-        </nav>
+          </nav>
+        </div>
+
+        {/* ================= FOOTER changes ================= */}
+        <div className="border-t border-[#EEEEEE] px-4 py-4 font-helvetica">
+
+          {/* Sign Out Button */}
+          <button
+            onClick={handleLogout}
+            className={cn(
+              "w-full rounded-full h-[40px] text-[14px] font-bold mx-auto transition-all duration-200 font-helvetica",
+              "bg-[#FFF9EE] text-[#FFC63F] hover:bg-[#F3EAD7]",
+              "flex items-center justify-center gap-2"
+            )}
+          >
+            {/* Left Icon */}
+            <Image
+              src="/images/sign_out.svg"
+              alt="Sign Out"
+              width={18}
+              height={18}
+              className="shrink-0"
+            />
+
+            {!isCollapsed && <span>Sign Out</span>}
+          </button>
+
+
+          {/* Footer Text */}
+          {!isCollapsed && (
+            <div className="mt-2 text-center font-bold text-[12px] text-[#4B4B4B] leading-relaxed font-helvetica">
+              © 2022 All Rights Reserved, by Ovalia Capital.
+            </div>
+          )}
+        </div>
+
+
       </div>
-
-      {/* ================= FOOTER changes ================= */}
-  <div className="border-t border-[#EEEEEE] px-4 py-4 font-helvetica">
-
-  {/* Sign Out Button */}
-  <button
-  onClick={handleLogout}
-  className={cn(
-    "w-full rounded-full h-[40px] text-[14px] font-bold mx-auto transition-all duration-200 font-helvetica",
-    "bg-[#FFF9EE] text-[#FFC63F] hover:bg-[#F3EAD7]",
-    "flex items-center justify-center gap-2"
-  )}
->
-  {/* Left Icon */}
-  <Image
-    src="/images/sign_out.svg"
-    alt="Sign Out"
-    width={18}
-    height={18}
-    className="shrink-0"
-  />
-
-  {!isCollapsed && <span>Sign Out</span>}
-</button>
-
-
-  {/* Footer Text */}
-  {!isCollapsed && (
-    <div className="mt-2 text-center font-bold text-[12px] text-[#4B4B4B] leading-relaxed font-helvetica">
-      © 2022 All Rights Reserved, by Ovalia Capital.
-    </div>
-  )}
-</div>
-
-
-    </div>
-  </aside>
-);
+    </aside>
+  );
 
 
   return (
     <>
       {/* Mobile hamburger menu */}
       <button
-        onClick={toggleSidebar} style={{top:"15px"}}
+        onClick={toggleSidebar} style={{ top: "15px" }}
         className="fixed left-4 z-50 rounded-sm bg-white p-2 shadow-sm lg:hidden dark:bg-gray-800"
         aria-label="Toggle menu"
       >

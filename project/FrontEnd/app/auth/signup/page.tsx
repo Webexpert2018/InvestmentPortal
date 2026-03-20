@@ -4,9 +4,15 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation'; 
+
 
 export default function SignupPage() {
   const { signup } = useAuth();
+
+const searchParams = useSearchParams(); 
+const flowParam = searchParams.get('flow') || 'investor';
+const flow = flowParam === 'account' ? 'accountant' : flowParam;
 
   const [formData, setFormData] = useState({
     email: '',
@@ -15,6 +21,7 @@ export default function SignupPage() {
     firstName: '',
     lastName: '',
     phone: '',
+    role: flow,
   });
 
   const [loading, setLoading] = useState(false);
@@ -42,6 +49,7 @@ export default function SignupPage() {
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone || undefined,
+        role: flow,
       });
     } catch (err: any) {
       setError(err?.message || 'Signup failed');
@@ -163,7 +171,7 @@ export default function SignupPage() {
         {/* Footer */}
         <div className="mt-4 text-center font-goudy text-md sm:text-lg">
           <span className="mr-1">Already have an account?</span>
-          <Link href="/auth/login" className="font-medium text-yellow-600 hover:underline">
+          <Link href={`/auth/login?flow=${searchParams.get('flow') || 'investor'}`} className="font-medium text-yellow-600 hover:underline">
             Log in
           </Link>
         </div>

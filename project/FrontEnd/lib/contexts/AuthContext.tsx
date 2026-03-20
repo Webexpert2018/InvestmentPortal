@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (userData.role === 'admin') {
       router.push('/admin');
-    } else if (userData.role === 'accountant') {
+    } else if (userData.role === 'accountant' || userData.role === 'account') {
       router.push('/admin/compliance');
     } else {
       router.push('/dashboard');
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     if (userData.role === 'admin') {
       router.push('/admin');
-    } else if (userData.role === 'accountant') {
+    } else if (userData.role === 'accountant' || userData.role === 'account') {
       router.push('/admin/compliance');
     } else {
       router.push('/dashboard');
@@ -97,10 +97,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    const role = user?.role;
     localStorage.removeItem('token');
     setUser(null);
     setSessionExpired(false);
-    router.push('/');
+    
+    if (role === 'admin') {
+      router.push('/auth/login?flow=admin');
+    } else if (role === 'accountant' || role === 'account') {
+      router.push('/auth/login?flow=account');
+    } else {
+      router.push('/auth/login?flow=investor');
+    }
   };
 
   const value = {
@@ -111,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
-    isAccountant: user?.role === 'accountant',
+    isAccountant: user?.role === 'accountant' || user?.role === 'account',
     sessionExpired,
     setSessionExpired,
   };

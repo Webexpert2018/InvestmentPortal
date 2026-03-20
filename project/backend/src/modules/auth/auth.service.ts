@@ -33,11 +33,11 @@ export class AuthService {
 
     const newUser = userResult.rows[0];
 
-    await db.query(
-      `INSERT INTO portfolios (user_id, bitcoin_balance, nav, performance, total_invested, total_withdrawn)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [newUser.id, 0, 0, 0, 0, 0]
-    );
+    // await db.query(
+    //   `INSERT INTO portfolios (user_id, bitcoin_balance, nav, performance, total_invested, total_withdrawn)
+    //    VALUES ($1, $2, $3, $4, $5, $6)`,
+    //   [newUser.id, 0, 0, 0, 0, 0]
+    // );
 
     const token = this.jwtService.sign({
       userId: newUser.id,

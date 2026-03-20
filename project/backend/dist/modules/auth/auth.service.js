@@ -61,8 +61,11 @@ let AuthService = class AuthService {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING id, email, role, first_name, last_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id`, [email, passwordHash, firstName, lastName, phone, dob, role || 'investor', 'active', addressLine1, addressLine2, city, state, zipCode, country, taxId]);
         const newUser = userResult.rows[0];
-        await database_1.db.query(`INSERT INTO portfolios (user_id, bitcoin_balance, nav, performance, total_invested, total_withdrawn)
-       VALUES ($1, $2, $3, $4, $5, $6)`, [newUser.id, 0, 0, 0, 0, 0]);
+        // await db.query(
+        //   `INSERT INTO portfolios (user_id, bitcoin_balance, nav, performance, total_invested, total_withdrawn)
+        //    VALUES ($1, $2, $3, $4, $5, $6)`,
+        //   [newUser.id, 0, 0, 0, 0, 0]
+        // );
         const token = this.jwtService.sign({
             userId: newUser.id,
             email: newUser.email,

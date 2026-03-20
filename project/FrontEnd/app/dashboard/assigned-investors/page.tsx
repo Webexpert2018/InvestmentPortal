@@ -67,7 +67,7 @@ export default function AdminAssignedInvestorsPage() {
   useEffect(() => {
     if (!loading && user && user.role) {
       const role = user.role.trim().toLowerCase()
-      const allowed = role === "admin" || role === "accountant" || role === "accountants"
+      const allowed = role === "admin" || role === "accountant" || role === "accountants" || role === "account"
       if (!allowed) router.push("/dashboard")
     }
   }, [user, loading, router])

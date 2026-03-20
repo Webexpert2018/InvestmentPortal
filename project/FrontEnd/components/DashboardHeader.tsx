@@ -50,7 +50,7 @@ export function DashboardHeader({
   const handleSignOut = () => {
     logout();
     setIsProfileMenuOpen(false);
-    router.push("/auth/login");
+    router.push("/");
   };
 
   return (
