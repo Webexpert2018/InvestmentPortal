@@ -32,7 +32,7 @@ let EmailService = EmailService_1 = class EmailService {
     `;
         await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
     }
-    async sendWelcomeEmail(email, firstName, role) {
+    async sendWelcomeEmail(email, firstName, role, password) {
         const title = 'Welcome to Ovalia Capital';
         const subject = 'Your Journey Begins - Welcome to Bitcoin IRA Platform!';
         const content = `
@@ -40,18 +40,54 @@ let EmailService = EmailService_1 = class EmailService {
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
         We are thrilled to have you join the <strong>Bitcoin IRA Platform</strong> as an ${role.charAt(0).toUpperCase() + role.slice(1)}.
       </p>
-      <p style="margin: 0 0 30px; font-size: 16px; line-height: 1.6; color: #4B5563;">
-        Ovalia Capital provides you with the ultimate security and flexibility for your digital asset investments. Your account is now active and ready for use.
-      </p>
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="http://localhost:3000/auth/login" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 14px 35px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block;">
+      
+      <!-- Account Details Section -->
+      <div style="background-color: #F9FAFB; border-radius: 8px; padding: 20px; margin: 30px 0; border: 1px solid #E5E7EB;">
+        <h3 style="margin: 0 0 15px; font-size: 16px; color: #374151; text-transform: uppercase; letter-spacing: 1px;">Your Account Details</h3>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding: 5px 0; color: #6B7280; font-size: 14px; width: 100px;"><strong>Email:</strong></td>
+            <td style="padding: 5px 0; color: #1F1F1F; font-size: 14px;">${email}</td>
+          </tr>
+          <tr>
+            <td style="padding: 5px 0; color: #6B7280; font-size: 14px;"><strong>Account:</strong></td>
+            <td style="padding: 5px 0; color: #1F1F1F; font-size: 14px;">${role.charAt(0).toUpperCase() + role.slice(1)}</td>
+          </tr>
+          ${password ? `
+          <tr>
+            <td style="padding: 5px 0; color: #6B7280; font-size: 14px;"><strong>Password:</strong></td>
+            <td style="padding: 5px 0; color: #1F1F1F; font-size: 14px;"><code>${password}</code></td>
+          </tr>
+          ` : ''}
+        </table>
+      </div>
+
+      <h3 style="margin: 0 0 15px; font-size: 18px; color: #1F1F1F;">What's Next?</h3>
+      <ul style="padding: 0; margin: 0 0 30px 20px; color: #4B5563; font-size: 15px; line-height: 1.8;">
+        <li><strong>Complete Your Profile:</strong> Head to settings to ensure all your information is up to date.</li>
+        <li><strong>Secure Your Account:</strong> We highly recommend enabling Two-Factor Authentication (2FA) in your security settings.</li>
+        <li><strong>Explore the Dashboard:</strong> View your portfolio, track performance, and manage your digital assets.</li>
+      </ul>
+
+      <div style="background-color: #FFF5F5; border-left: 4px solid #E53E3E; padding: 15px; margin: 25px 0;">
+        <p style="margin: 0; font-size: 13px; color: #9B2C2C; line-height: 1.5;">
+          <strong>SECURITY ALERT:</strong> For your protection, please do not share these details with anyone. We recommend changing your password immediately after your first login and deleting this email.
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="http://localhost:3000/auth/login?flow=${role.toLowerCase()}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
           Go to Dashboard
         </a>
       </div>
+
+      <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 20px;">
+        Need help? Contact our support team at <a href="mailto:support@ovaliacapital.com" style="color: #2A4474; text-decoration: none;">support@ovaliacapital.com</a>
+      </p>
     `;
         await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
     }
-    async sendPasswordChangedEmail(email, firstName) {
+    async sendPasswordChangedEmail(email, firstName, password) {
         const title = 'Security Update';
         const subject = 'Password Successfully Updated - Bitcoin IRA Platform';
         const content = `
@@ -60,9 +96,18 @@ let EmailService = EmailService_1 = class EmailService {
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
         Your password has been successfully updated. This is a security confirmation to ensure you made this change.
       </p>
-      <div style="background-color: #F3F4F6; border-left: 4px solid #FBCB4B; padding: 15px; margin: 25px 0;">
-        <p style="margin: 0; font-size: 14px; color: #374151;">
-          <strong>Security Note:</strong> If you did not authorize this change, please contact our support team immediately to secure your account.
+
+      ${password ? `
+      <!-- New Password Details -->
+      <div style="background-color: #F9FAFB; border-radius: 8px; padding: 20px; margin: 25px 0; border: 1px solid #E5E7EB;">
+        <p style="margin: 0; font-size: 14px; color: #6B7280;"><strong>New Password:</strong></p>
+        <p style="margin: 5px 0 0; font-size: 16px; color: #1F1F1F; font-family: monospace;"><code>${password}</code></p>
+      </div>
+      ` : ''}
+
+      <div style="background-color: #FFF5F5; border-left: 4px solid #E53E3E; padding: 15px; margin: 25px 0;">
+        <p style="margin: 0; font-size: 13px; color: #9B2C2C; line-height: 1.5;">
+          <strong>SECURITY NOTE:</strong> If you did not authorize this password change, please contact our support team immediately to secure your account.
         </p>
       </div>
     `;

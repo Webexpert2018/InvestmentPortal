@@ -52,10 +52,10 @@ export default function LoginPage() {
 
     // Map flow to appropriate backend role for RBAC
     const roleMap: Record<string, string> = {
-  admin: 'admin',
-  accountant: 'accountant',
-  investor: 'investor',
-};
+      admin: 'admin',
+      accountant: 'accountant',
+      investor: 'investor',
+    };
 
     try {
       await login(email, password, roleMap[flow]);
@@ -146,17 +146,17 @@ export default function LoginPage() {
         <div className="mt-4 text-center">
           <Link
             href={`/auth/forgot-password?flow=${searchParams.get('flow') || 'investor'}`}
-             className="block text-center font-goudy text-md sm:text-lg"
+            className="block text-center font-goudy text-md sm:text-lg"
           >
             Forgot Password?
           </Link>
         </div>
         <div className="mt-4 text-center font-goudy text-md sm:text-lg">
-            <span className="mr-1">Don't have an account? </span>
-            <Link href={signupHref} className="font-medium text-yellow-600 hover:underline">
-              Sign up
-            </Link>
-          </div>
+          <span className="mr-1">Don't have an account? </span>
+          <Link href={signupHref} className="font-medium text-yellow-600 hover:underline">
+            Sign up
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -74,7 +74,7 @@ let AuthService = class AuthService {
             role: newUser.role
         });
         // Send welcome email asynchronously
-        this.emailService.sendWelcomeEmail(newUser.email, newUser.first_name, newUser.role || 'investor')
+        this.emailService.sendWelcomeEmail(newUser.email, newUser.first_name, newUser.role || 'investor', password)
             .catch(err => console.error(`Failed to send welcome email to ${newUser.email}:`, err));
         return {
             user: {
@@ -148,13 +148,16 @@ let AuthService = class AuthService {
             throw error;
         }
     }
-    async forgotPassword(email) {
-        const userResult = await database_1.db.query('SELECT id FROM users WHERE email = $1', [email]);
+    async forgotPassword(email, role) {
+        const userResult = await database_1.db.query('SELECT id, role FROM users WHERE email = $1', [email]);
         if (userResult.rows.length === 0) {
-            // For security reasons, don't reveal if user exists
-            return { message: 'If an account with that email exists, a reset code has been sent.' };
+            throw new common_1.BadRequestException('Email not registered');
         }
-        const userId = userResult.rows[0].id;
+        const user = userResult.rows[0];
+        if (role && user.role !== role) {
+            throw new common_1.BadRequestException('Email not registered for this role');
+        }
+        const userId = user.id;
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
         // Store in the new user_otps table
@@ -162,7 +165,7 @@ let AuthService = class AuthService {
         // Also update the users table for backward compatibility (optional but keeping for now)
         await database_1.db.query('UPDATE users SET reset_otp = $1, reset_otp_expires_at = $2 WHERE id = $3', [otp, expiresAt, userId]);
         await this.emailService.sendPasswordResetOtp(email, otp);
-        return { message: 'If an account with that email exists, a reset code has been sent.' };
+        return { message: 'Reset code sent successfully' };
     }
     async verifyOtp(email, otp) {
         const userResult = await database_1.db.query('SELECT id FROM users WHERE email = $1', [email]);
@@ -194,7 +197,7 @@ let AuthService = class AuthService {
         // Mark OTP as used
         await database_1.db.query('UPDATE user_otps SET is_used = true WHERE id = $1', [otpId]);
         // Send password changed notification
-        this.emailService.sendPasswordChangedEmail(email, userResult.rows[0].first_name || 'User')
+        this.emailService.sendPasswordChangedEmail(email, userResult.rows[0].first_name || 'User', password)
             .catch(err => console.error(`Failed to send password changed email to ${email}:`, err));
         return { message: 'Password reset successfully' };
     }

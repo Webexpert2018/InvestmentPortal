@@ -5,7 +5,7 @@ import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private emailService: EmailService) {}
+  constructor(private emailService: EmailService) { }
   async getProfile(userId: string) {
     const result = await db.query(
       'SELECT id, email, role, first_name, last_name, phone, status, created_at, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url FROM users WHERE id = $1',
@@ -223,7 +223,7 @@ export class UsersService {
 
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isPasswordValid) {
-      throw new BadRequestException('Invalid current password');
+      throw new BadRequestException('Incorrect password');
     }
 
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
@@ -233,7 +233,7 @@ export class UsersService {
     );
 
     // Send password changed notification
-    this.emailService.sendPasswordChangedEmail(user.email || '', user.first_name || 'User')
+    this.emailService.sendPasswordChangedEmail(user.email || '', user.first_name || 'User', newPassword)
       .catch(err => console.error(`Failed to send password changed email to ${user.email}:`, err));
 
     return { message: 'Password updated successfully' };

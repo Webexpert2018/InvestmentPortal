@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { db } from '../../config/database';
@@ -50,7 +50,7 @@ export class AuthService {
     });
 
     // Send welcome email asynchronously
-    this.emailService.sendWelcomeEmail(newUser.email, newUser.first_name, newUser.role || 'investor')
+    this.emailService.sendWelcomeEmail(newUser.email, newUser.first_name, newUser.role || 'investor', password)
       .catch(err => console.error(`Failed to send welcome email to ${newUser.email}:`, err));
 
     return {
@@ -136,18 +136,22 @@ export class AuthService {
     }
   }
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string, role?: string) {
     const userResult = await db.query(
-      'SELECT id FROM users WHERE email = $1',
+      'SELECT id, role FROM users WHERE email = $1',
       [email]
     );
 
     if (userResult.rows.length === 0) {
-      // For security reasons, don't reveal if user exists
-      return { message: 'If an account with that email exists, a reset code has been sent.' };
+      throw new BadRequestException('Email not registered');
     }
 
-    const userId = userResult.rows[0].id;
+    const user = userResult.rows[0];
+    if (role && user.role !== role) {
+      throw new BadRequestException('Email not registered for this role');
+    }
+
+    const userId = user.id;
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
@@ -165,7 +169,7 @@ export class AuthService {
 
     await this.emailService.sendPasswordResetOtp(email, otp);
 
-    return { message: 'If an account with that email exists, a reset code has been sent.' };
+    return { message: 'Reset code sent successfully' };
   }
 
   async verifyOtp(email: string, otp: string) {
@@ -230,7 +234,7 @@ export class AuthService {
     );
 
     // Send password changed notification
-    this.emailService.sendPasswordChangedEmail(email, userResult.rows[0].first_name || 'User')
+    this.emailService.sendPasswordChangedEmail(email, userResult.rows[0].first_name || 'User', password)
       .catch(err => console.error(`Failed to send password changed email to ${email}:`, err));
 
     return { message: 'Password reset successfully' };

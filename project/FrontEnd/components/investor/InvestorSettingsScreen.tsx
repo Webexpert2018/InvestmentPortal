@@ -229,7 +229,7 @@ export function InvestorSettingsScreen() {
 
         if (userData) {
           const fullPhone = userData.phone || '';
-          
+
           // Find which prefix matches the start of the phone number
           const matchedCode = COUNTRY_CODES.find(code => {
             const prefix = code.split(' ')[0]; // e.g., "+91"
@@ -237,8 +237,8 @@ export function InvestorSettingsScreen() {
           }) || COUNTRY_CODES[0];
 
           const cleanPrefix = matchedCode.split(' ')[0];
-          const localNumber = fullPhone.startsWith(cleanPrefix) 
-            ? fullPhone.slice(cleanPrefix.length) 
+          const localNumber = fullPhone.startsWith(cleanPrefix)
+            ? fullPhone.slice(cleanPrefix.length)
             : fullPhone;
 
           setProfile({
@@ -296,6 +296,7 @@ export function InvestorSettingsScreen() {
   const [addAccount, setAddAccount] = useState(defaultAddAccount);
   const idUploadRef = useRef<HTMLInputElement | null>(null);
   const [profileErrors, setProfileErrors] = useState<Partial<Record<ProfileErrorFields, string>>>({});
+  const [securityErrors, setSecurityErrors] = useState<Record<string, string>>({});
   const [addAccountErrors, setAddAccountErrors] = useState<Partial<Record<AddAccountErrorFields, string>>>({});
   const [profileSaved, setProfileSaved] = useState(false);
 
@@ -380,7 +381,23 @@ export function InvestorSettingsScreen() {
       return null;
     })();
     if (phoneError) errors.phoneNumber = phoneError;
-    if (!profile.dob.trim()) errors.dob = 'Date of birth is required';
+    if (!profile.dob.trim()) {
+      errors.dob = 'Date of birth is required';
+    } else {
+      const birthDate = new Date(profile.dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      if (age < 18) {
+        errors.dob = 'You must be at least 18 years old';
+      } else if (age > 70) {
+        errors.dob = 'Age cannot exceed 70 years';
+      }
+    }
     if (!profile.addressLine1.trim()) errors.addressLine1 = 'Street address line 1 is required';
     if (!profile.city.trim()) {
       errors.city = 'City is required';
@@ -770,24 +787,39 @@ export function InvestorSettingsScreen() {
               <PasswordInput
                 placeholder="Enter current password"
                 value={password.currentPassword}
-                onChange={(event) => setPassword((prev) => ({ ...prev, currentPassword: (event.target as HTMLInputElement).value }))}
+                onChange={(event) => {
+                  setPassword((prev) => ({ ...prev, currentPassword: (event.target as HTMLInputElement).value }));
+                  setSecurityErrors((prev) => ({ ...prev, currentPassword: '' }));
+                }}
+                className={securityErrors.currentPassword ? '!border-[#E05252]' : ''}
               />
+              {securityErrors.currentPassword && <p className="mt-1 text-[10px] text-[#E05252]">{securityErrors.currentPassword}</p>}
             </div>
             <div>
               <FieldLabel>New Password</FieldLabel>
               <PasswordInput
                 placeholder="Enter new password"
                 value={password.newPassword}
-                onChange={(event) => setPassword((prev) => ({ ...prev, newPassword: (event.target as HTMLInputElement).value }))}
+                onChange={(event) => {
+                  setPassword((prev) => ({ ...prev, newPassword: (event.target as HTMLInputElement).value }));
+                  setSecurityErrors((prev) => ({ ...prev, newPassword: '' }));
+                }}
+                className={securityErrors.newPassword ? '!border-[#E05252]' : ''}
               />
+              {securityErrors.newPassword && <p className="mt-1 text-[10px] text-[#E05252]">{securityErrors.newPassword}</p>}
             </div>
             <div>
               <FieldLabel>Confirm Password</FieldLabel>
               <PasswordInput
                 placeholder="Enter confirm password"
                 value={password.confirmPassword}
-                onChange={(event) => setPassword((prev) => ({ ...prev, confirmPassword: (event.target as HTMLInputElement).value }))}
+                onChange={(event) => {
+                  setPassword((prev) => ({ ...prev, confirmPassword: (event.target as HTMLInputElement).value }));
+                  setSecurityErrors((prev) => ({ ...prev, confirmPassword: '' }));
+                }}
+                className={securityErrors.confirmPassword ? '!border-[#E05252]' : ''}
               />
+              {securityErrors.confirmPassword && <p className="mt-1 text-[10px] text-[#E05252]">{securityErrors.confirmPassword}</p>}
             </div>
           </div>
           <div className="mt-4 flex justify-end">
@@ -795,12 +827,16 @@ export function InvestorSettingsScreen() {
               type="button"
               disabled={saving}
               onClick={async () => {
-                if (!password.currentPassword || !password.newPassword || !password.confirmPassword) {
-                  setError('Please fill in all password fields');
-                  return;
-                }
-                if (password.newPassword !== password.confirmPassword) {
-                  setError('New passwords do not match');
+                const errs: Record<string, string> = {};
+                if (!password.currentPassword) errs.currentPassword = 'Current password is required';
+                if (!password.newPassword) errs.newPassword = 'New password is required';
+                else if (password.newPassword.length < 8) errs.newPassword = 'Password must be at least 8 characters';
+
+                if (!password.confirmPassword) errs.confirmPassword = 'Confirm password is required';
+                else if (password.newPassword !== password.confirmPassword) errs.confirmPassword = 'Passwords do not match';
+
+                if (Object.keys(errs).length > 0) {
+                  setSecurityErrors(errs);
                   return;
                 }
 

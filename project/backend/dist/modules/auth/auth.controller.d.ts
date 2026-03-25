@@ -22,6 +22,7 @@ export declare class LoginDto {
 }
 export declare class ForgotPasswordDto {
     email: string | undefined;
+    role?: string;
 }
 export declare class VerifyOtpDto {
     email: string | undefined;

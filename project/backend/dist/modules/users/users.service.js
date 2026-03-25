@@ -210,12 +210,12 @@ let UsersService = class UsersService {
         }
         const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
         if (!isPasswordValid) {
-            throw new common_1.BadRequestException('Invalid current password');
+            throw new common_1.BadRequestException('Incorrect password');
         }
         const newPasswordHash = await bcrypt.hash(newPassword, 10);
         await database_1.db.query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [newPasswordHash, userId]);
         // Send password changed notification
-        this.emailService.sendPasswordChangedEmail(user.email || '', user.first_name || 'User')
+        this.emailService.sendPasswordChangedEmail(user.email || '', user.first_name || 'User', newPassword)
             .catch(err => console.error(`Failed to send password changed email to ${user.email}:`, err));
         return { message: 'Password updated successfully' };
     }

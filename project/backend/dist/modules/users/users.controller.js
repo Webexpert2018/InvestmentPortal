@@ -66,12 +66,42 @@ let UsersController = class UsersController {
         return this.usersService.getProfile(user.userId);
     }
     async updateProfile(user, updateDto) {
+        if (updateDto.dob) {
+            const birthDate = new Date(updateDto.dob);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            if (age < 18) {
+                throw new common_1.BadRequestException('You must be at least 18 years old');
+            }
+            else if (age > 70) {
+                throw new common_1.BadRequestException('Age cannot exceed 70 years');
+            }
+        }
         return this.usersService.updateProfile(user.userId, updateDto.firstName, updateDto.lastName, updateDto.phone, updateDto.dob, updateDto.addressLine1, updateDto.addressLine2, updateDto.city, updateDto.state, updateDto.zipCode, updateDto.country, updateDto.taxId);
     }
     async getSettings(user) {
         return this.usersService.getProfile(user.userId);
     }
     async updateSettings(user, updateDto) {
+        if (updateDto.dob) {
+            const birthDate = new Date(updateDto.dob);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            if (age < 18) {
+                throw new common_1.BadRequestException('You must be at least 18 years old');
+            }
+            else if (age > 70) {
+                throw new common_1.BadRequestException('Age cannot exceed 70 years');
+            }
+        }
         return this.usersService.updateProfile(user.userId, updateDto.firstName, updateDto.lastName, updateDto.phone, updateDto.dob, updateDto.addressLine1, updateDto.addressLine2, updateDto.city, updateDto.state, updateDto.zipCode, updateDto.country, updateDto.taxId);
     }
     async getAllUsers(user) {

@@ -128,6 +128,12 @@ __decorate([
     (0, class_validator_1.IsEmail)(),
     __metadata("design:type", Object)
 ], ForgotPasswordDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'investor' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ForgotPasswordDto.prototype, "role", void 0);
 class VerifyOtpDto {
 }
 exports.VerifyOtpDto = VerifyOtpDto;
@@ -173,6 +179,21 @@ let AuthController = class AuthController {
             !signupDto.lastName) {
             throw new common_1.BadRequestException('Missing required signup fields');
         }
+        if (signupDto.dob) {
+            const birthDate = new Date(signupDto.dob);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            if (age < 18) {
+                throw new common_1.BadRequestException('You must be at least 18 years old');
+            }
+            else if (age > 70) {
+                throw new common_1.BadRequestException('Age cannot exceed 70 years');
+            }
+        }
         return this.authService.signup(signupDto.email, signupDto.password, signupDto.firstName, signupDto.lastName, signupDto.phone, signupDto.dob, signupDto.role || 'investor', signupDto.addressLine1, signupDto.addressLine2, signupDto.city, signupDto.state, signupDto.zipCode, signupDto.country, signupDto.taxId);
     }
     async investorSignup(signupDto) {
@@ -181,6 +202,21 @@ let AuthController = class AuthController {
             !signupDto.firstName ||
             !signupDto.lastName) {
             throw new common_1.BadRequestException('Missing required signup fields');
+        }
+        if (signupDto.dob) {
+            const birthDate = new Date(signupDto.dob);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            if (age < 18) {
+                throw new common_1.BadRequestException('You must be at least 18 years old');
+            }
+            else if (age > 70) {
+                throw new common_1.BadRequestException('Age cannot exceed 70 years');
+            }
         }
         return this.authService.signup(signupDto.email, signupDto.password, signupDto.firstName, signupDto.lastName, signupDto.phone, signupDto.dob, signupDto.role || 'investor', signupDto.addressLine1, signupDto.addressLine2, signupDto.city, signupDto.state, signupDto.zipCode, signupDto.country, signupDto.taxId);
     }
@@ -194,7 +230,7 @@ let AuthController = class AuthController {
         if (!forgotPasswordDto.email) {
             throw new common_1.BadRequestException('Email is required');
         }
-        return this.authService.forgotPassword(forgotPasswordDto.email);
+        return this.authService.forgotPassword(forgotPasswordDto.email, forgotPasswordDto.role);
     }
     async verifyOtp(verifyOtpDto) {
         if (!verifyOtpDto.email || !verifyOtpDto.otp) {

@@ -34,7 +34,8 @@ class ApiClient {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'An error occurred');
+      const errorMsg = data.message || data.error || 'An error occurred';
+      throw new Error(errorMsg);
     }
 
     return data;
@@ -222,10 +223,10 @@ class ApiClient {
     return this.request<any[]>('/compliance/all');
   }
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string, role?: string) {
     return this.request<any>('/auth/forgot-password', {
       method: 'POST',
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, role }),
     });
   }
 

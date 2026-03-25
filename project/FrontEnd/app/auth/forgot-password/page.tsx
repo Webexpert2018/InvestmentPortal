@@ -31,7 +31,7 @@ export default function ForgotPassword() {
     setError(null);
     setLoading(true);
     try {
-      await apiClient.forgotPassword(email);
+      await apiClient.forgotPassword(email, flow);
       setStep('otp');
     } catch (err: any) {
       setError(err.message || 'Failed to send reset code');
@@ -57,7 +57,7 @@ export default function ForgotPassword() {
   const handleResetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     // Strong password validation
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
@@ -85,9 +85,9 @@ export default function ForgotPassword() {
       className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
       style={{ backgroundImage: "url('/images/login-bg.jpg')" }}
     >
-  
-       <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
-        
+
+      <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
+
         {/* Logo */}
         <a href="/" className="flex justify-center mb-3 sm:mb-4">
           <img src="/images/logo.png" alt="Logo" className="logo-container" />
@@ -164,7 +164,7 @@ export default function ForgotPassword() {
                 <ArrowLeft className="h-4 w-4 mr-1" /> Back to login
               </Link>
 
-              <button 
+              <button
                 disabled={loading}
                 className="w-full rounded-full bg-yellow-400 py-2 text-sm font-medium hover:bg-yellow-500 flex justify-center items-center"
               >
@@ -193,8 +193,8 @@ export default function ForgotPassword() {
                 <button onClick={() => setStep('email')} type="button">
                   ← Back
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="text-yellow-600"
                   onClick={handleEmailSubmit}
                   disabled={loading}
@@ -203,7 +203,7 @@ export default function ForgotPassword() {
                 </button>
               </div>
 
-              <button 
+              <button
                 disabled={loading}
                 className="w-full rounded-full bg-yellow-400 py-2 text-sm font-medium hover:bg-yellow-500 flex justify-center items-center"
               >
@@ -224,7 +224,7 @@ export default function ForgotPassword() {
                   required
                   className="w-full pl-10 pr-10 py-2 border rounded-md text-sm"
                 />
-                 <button
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-2.5 text-gray-400"
@@ -248,7 +248,7 @@ export default function ForgotPassword() {
                 />
               </div>
 
-              <button 
+              <button
                 disabled={loading}
                 className="w-full rounded-full bg-yellow-400 py-2 text-sm font-medium hover:bg-yellow-500 flex justify-center items-center"
               >

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo, useRef, useEffect, ChangeEvent } from 'react';
 import { CalendarDays, ChevronDown, Plus, X, Eye, EyeOff, Loader2, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -118,7 +119,7 @@ export function AccountantSettingsScreen() {
       try {
         setLoading(true);
         const userData = await apiClient.getProfile();
-        
+
         if (userData) {
           setFirstName(userData.firstName || '');
           setLastName(userData.lastName || '');
@@ -220,7 +221,23 @@ export function AccountantSettingsScreen() {
       }
     }
 
-    if (!dob.trim()) errs.dob = 'Date of birth is required';
+    if (!dob.trim()) {
+      errs.dob = 'Date of birth is required';
+    } else {
+      const birthDate = new Date(dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      if (age < 18) {
+        errs.dob = 'You must be at least 18 years old';
+      } else if (age > 70) {
+        errs.dob = 'Age cannot exceed 70 years';
+      }
+    }
 
     if (!addressLine1.trim()) errs.addressLine1 = 'Street address line 1 is required';
 
@@ -288,7 +305,7 @@ export function AccountantSettingsScreen() {
       ) : (
         <>
           {error && <p className="mb-4 text-[10px] text-[#E05252]">{error}</p>}
-          
+
           {/* Avatar upload */}
           <div className="mb-6 flex items-center gap-4">
             <input ref={imgRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
@@ -580,7 +597,7 @@ export function AccountantSettingsScreen() {
                     description: 'Profile updated successfully',
                     variant: 'success',
                   });
-                  
+
                   setTimeout(() => setProfileSaved(false), 3000);
                 } catch (err) {
                   setError('Failed to update profile. Please try again.');
@@ -648,7 +665,7 @@ export function AccountantSettingsScreen() {
               disabled={saving}
               onClick={async () => {
                 if (!validateSecurity()) return;
-                
+
                 setSaving(true);
                 try {
                   await apiClient.changePassword({

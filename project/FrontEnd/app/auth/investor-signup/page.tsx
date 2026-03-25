@@ -151,6 +151,20 @@ export default function InvestorSignupPage() {
       // DOB
       if (!form.dob) {
         nextErrors.dob = 'Date of birth is required';
+      } else {
+        const birthDate = new Date(form.dob);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+
+        if (age < 18) {
+          nextErrors.dob = 'You must be at least 18 years old';
+        } else if (age > 70) {
+          nextErrors.dob = 'Age cannot exceed 70 years';
+        }
       }
     }
 
