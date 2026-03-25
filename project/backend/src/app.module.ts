@@ -9,6 +9,7 @@ import { DocumentsModule } from './modules/documents/documents.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { IraAccountsModule } from './modules/ira-accounts/ira-accounts.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
+import { EmailModule } from './modules/email/email.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -27,6 +28,7 @@ import { HealthController } from './health.controller';
     AuditLogsModule,
     IraAccountsModule,
     ComplianceModule,
+    EmailModule,
   ],
   controllers: [HealthController],
 })

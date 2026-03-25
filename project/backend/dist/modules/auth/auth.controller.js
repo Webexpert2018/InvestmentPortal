@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthController = exports.LoginDto = exports.SignupDto = void 0;
+exports.AuthController = exports.ResetPasswordDto = exports.VerifyOtpDto = exports.ForgotPasswordDto = exports.LoginDto = exports.SignupDto = void 0;
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const swagger_1 = require("@nestjs/swagger");
@@ -120,6 +120,48 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], LoginDto.prototype, "role", void 0);
+class ForgotPasswordDto {
+}
+exports.ForgotPasswordDto = ForgotPasswordDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'test@example.com' }),
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", Object)
+], ForgotPasswordDto.prototype, "email", void 0);
+class VerifyOtpDto {
+}
+exports.VerifyOtpDto = VerifyOtpDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'test@example.com' }),
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", Object)
+], VerifyOtpDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '123456' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(6),
+    __metadata("design:type", Object)
+], VerifyOtpDto.prototype, "otp", void 0);
+class ResetPasswordDto {
+}
+exports.ResetPasswordDto = ResetPasswordDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'test@example.com' }),
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", Object)
+], ResetPasswordDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '123456' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(6),
+    __metadata("design:type", Object)
+], ResetPasswordDto.prototype, "otp", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'NewStrongPassword123!' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(6),
+    __metadata("design:type", Object)
+], ResetPasswordDto.prototype, "password", void 0);
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -148,6 +190,24 @@ let AuthController = class AuthController {
         }
         return this.authService.login(loginDto.email, loginDto.password, loginDto.role);
     }
+    async forgotPassword(forgotPasswordDto) {
+        if (!forgotPasswordDto.email) {
+            throw new common_1.BadRequestException('Email is required');
+        }
+        return this.authService.forgotPassword(forgotPasswordDto.email);
+    }
+    async verifyOtp(verifyOtpDto) {
+        if (!verifyOtpDto.email || !verifyOtpDto.otp) {
+            throw new common_1.BadRequestException('Email and OTP are required');
+        }
+        return this.authService.verifyOtp(verifyOtpDto.email, verifyOtpDto.otp);
+    }
+    async resetPassword(resetPasswordDto) {
+        if (!resetPasswordDto.email || !resetPasswordDto.otp || !resetPasswordDto.password) {
+            throw new common_1.BadRequestException('Email, OTP, and password are required');
+        }
+        return this.authService.resetPassword(resetPasswordDto.email, resetPasswordDto.otp, resetPasswordDto.password);
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -174,6 +234,30 @@ __decorate([
     __metadata("design:paramtypes", [LoginDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('forgot-password'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [ForgotPasswordDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "forgotPassword", null);
+__decorate([
+    (0, common_1.Post)('verify-otp'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [VerifyOtpDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "verifyOtp", null);
+__decorate([
+    (0, common_1.Post)('reset-password'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [ResetPasswordDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "resetPassword", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('api/auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

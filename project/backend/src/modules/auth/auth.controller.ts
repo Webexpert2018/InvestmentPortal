@@ -87,6 +87,39 @@ export class LoginDto {
   role?: string;
 }
 
+export class ForgotPasswordDto {
+  @ApiProperty({ example: 'test@example.com' })
+  @IsEmail()
+  email: string | undefined;
+}
+
+export class VerifyOtpDto {
+  @ApiProperty({ example: 'test@example.com' })
+  @IsEmail()
+  email: string | undefined;
+
+  @ApiProperty({ example: '123456' })
+  @IsString()
+  @MinLength(6)
+  otp: string | undefined;
+}
+
+export class ResetPasswordDto {
+  @ApiProperty({ example: 'test@example.com' })
+  @IsEmail()
+  email: string | undefined;
+
+  @ApiProperty({ example: '123456' })
+  @IsString()
+  @MinLength(6)
+  otp: string | undefined;
+
+  @ApiProperty({ example: 'NewStrongPassword123!' })
+  @IsString()
+  @MinLength(6)
+  password: string | undefined;
+}
+
 @Controller('api/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
@@ -156,5 +189,36 @@ export class AuthController {
       throw new BadRequestException('Missing required login fields');
     }
     return this.authService.login(loginDto.email, loginDto.password, loginDto.role);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    if (!forgotPasswordDto.email) {
+      throw new BadRequestException('Email is required');
+    }
+    return this.authService.forgotPassword(forgotPasswordDto.email);
+  }
+
+  @Post('verify-otp')
+  @HttpCode(HttpStatus.OK)
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    if (!verifyOtpDto.email || !verifyOtpDto.otp) {
+      throw new BadRequestException('Email and OTP are required');
+    }
+    return this.authService.verifyOtp(verifyOtpDto.email, verifyOtpDto.otp);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    if (!resetPasswordDto.email || !resetPasswordDto.otp || !resetPasswordDto.password) {
+      throw new BadRequestException('Email, OTP, and password are required');
+    }
+    return this.authService.resetPassword(
+      resetPasswordDto.email,
+      resetPasswordDto.otp,
+      resetPasswordDto.password,
+    );
   }
 }

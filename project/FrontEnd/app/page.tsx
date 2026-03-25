@@ -66,14 +66,23 @@ export default function HomePage() {
                     Sign In
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
-                  <DropdownMenuItem onSelect={() => router.push('/auth/login?flow=admin')}>
+                <DropdownMenuContent align="end" className="w-44 p-1">
+                  <DropdownMenuItem 
+                    className="cursor-pointer hover:bg-slate-50 focus:bg-slate-50 active:bg-slate-100 transition-colors px-3 py-2"
+                    onSelect={() => router.push('/auth/login?flow=admin')}
+                  >
                     Admin login
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => router.push('/auth/login?flow=account')}>
+                  <DropdownMenuItem 
+                    className="cursor-pointer hover:bg-slate-50 focus:bg-slate-50 active:bg-slate-100 transition-colors px-3 py-2"
+                    onSelect={() => router.push('/auth/login?flow=account')}
+                  >
                     Accountant login
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => router.push('/auth/login?flow=investor')}>
+                  <DropdownMenuItem 
+                    className="cursor-pointer hover:bg-slate-50 focus:bg-slate-50 active:bg-slate-100 transition-colors px-3 py-2"
+                    onSelect={() => router.push('/auth/login?flow=investor')}
+                  >
                     Investor login
                   </DropdownMenuItem>
                 </DropdownMenuContent>

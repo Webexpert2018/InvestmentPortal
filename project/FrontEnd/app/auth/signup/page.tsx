@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ChevronDown } from 'lucide-react';
 import { useSearchParams } from 'next/navigation'; 
+
+const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
 
 
 export default function SignupPage() {
@@ -20,15 +22,24 @@ const flow = flowParam === 'account' ? 'accountant' : flowParam;
     confirmPassword: '',
     firstName: '',
     lastName: '',
+    phoneCountryCode: COUNTRY_CODES[0],
     phone: '',
     role: flow,
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    if (name === 'phone') {
+      const digits = value.replace(/\D/g, '');
+      setFormData({ ...formData, [name]: digits });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,19 +47,54 @@ const flow = flowParam === 'account' ? 'accountant' : flowParam;
     setLoading(true);
     setError('');
 
+    if (!formData.firstName.trim() || !/^[A-Za-z\s\-']+$/.test(formData.firstName.trim())) {
+      setError('First name can only contain letters');
+      setLoading(false);
+      return;
+    }
+    if (!formData.lastName.trim() || !/^[A-Za-z\s\-']+$/.test(formData.lastName.trim())) {
+      setError('Last name can only contain letters');
+      setLoading(false);
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       setLoading(false);
       return;
     }
 
+    if (formData.phone) {
+      const cleanNumber = formData.phone.trim();
+      if (formData.phoneCountryCode === '+1 (USA)') {
+        if (cleanNumber.length !== 10) {
+          setError('USA phone number must be 10 digits');
+          setLoading(false);
+          return;
+        }
+      } else if (formData.phoneCountryCode === '+44 (UK)') {
+        if (cleanNumber.length < 10 || cleanNumber.length > 11) {
+          setError('UK phone number must be 10-11 digits');
+          setLoading(false);
+          return;
+        }
+      } else if (formData.phoneCountryCode === '+91 (IN)') {
+        if (cleanNumber.length !== 10) {
+          setError('India phone number must be 10 digits');
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
     try {
+      const prefix = formData.phoneCountryCode.split(' ')[0];
       await signup({
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        phone: formData.phone || undefined,
+        phone: formData.phone ? `${formData.phoneCountryCode} ${formData.phone}` : undefined,
         role: flow,
       });
     } catch (err: any) {
@@ -118,37 +164,75 @@ const flow = flowParam === 'account' ? 'accountant' : flowParam;
             className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
 
-          <input
-            type="tel"
-            name="phone"
-            placeholder="Phone (optional)"
-            value={formData.phone}
-            onChange={handleChange}
-            disabled={loading}
-            className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          />
+          <div className="flex gap-2">
+            <div className="relative w-[110px] shrink-0">
+              <select
+                name="phoneCountryCode"
+                value={formData.phoneCountryCode}
+                onChange={handleChange}
+                disabled={loading}
+                className="h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-3 pr-7 text-xs sm:text-sm font-helvetica outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-50"
+              >
+                {COUNTRY_CODES.map(code => (
+                  <option key={code} value={code}>{code}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            </div>
+            <input
+              type="tel"
+              name="phone"
+              placeholder="Phone (optional)"
+              value={formData.phone}
+              onChange={handleChange}
+              disabled={loading}
+              className="flex-1 font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-50"
+            />
+          </div>
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            disabled={loading}
-            className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          />
+          {/* Password Field with Eye Icon */}
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              disabled={loading}
+              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              disabled={loading}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition disabled:opacity-50"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
 
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-            disabled={loading}
-            className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          />
+          {/* Confirm Password Field with Eye Icon */}
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              name="confirmPassword"
+              placeholder="Confirm password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              disabled={loading}
+              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              disabled={loading}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition disabled:opacity-50"
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
 
           {/* Error */}
           {error && (

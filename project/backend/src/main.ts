@@ -3,9 +3,12 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import * as fs from 'fs';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   console.log('🌐 Environment:', process.env.NODE_ENV);
   
   const configService = app.get(ConfigService);
@@ -16,6 +19,18 @@ async function bootstrap() {
   );
 
   app.enableCors();
+
+  // Ensure uploads directory exists
+  const uploadDir = join(process.cwd(), 'uploads', 'profile-images');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    console.log('📁 Created uploads directory:', uploadDir);
+  }
+
+  // Serve static files from uploads directory
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/public/uploads',
+  });
 
   // Add validation pipe
   app.useGlobalPipes(

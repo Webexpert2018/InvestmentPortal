@@ -21,6 +21,7 @@ interface User {
   taxId?: string;
   createdAt?: string;
   status?: string;
+  profileImageUrl?: string;
 }
 
 interface AuthContextType {
@@ -34,6 +35,9 @@ interface AuthContextType {
   isAccountant: boolean;
   sessionExpired: boolean;
   setSessionExpired: (expired: boolean) => void;
+  refreshUser: () => Promise<void>;
+  updateUser: (updates: Partial<User>) => void;
+  profileTimestamp: number;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [profileTimestamp, setProfileTimestamp] = useState(Date.now());
   const router = useRouter();
 
   useEffect(() => {
@@ -56,7 +61,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUser = async () => {
     try {
       const userData = await apiClient.getProfile();
+      console.log('[AuthContext] Fetched user data:', userData);
       setUser(userData);
+      setProfileTimestamp(Date.now());
       setSessionExpired(false);
     } catch (error) {
       setSessionExpired(true);
@@ -86,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('token', token);
     setUser(userData);
     setSessionExpired(false);
-    
+
     if (userData.role === 'admin') {
       router.push('/admin');
     } else if (userData.role === 'accountant' || userData.role === 'account') {
@@ -101,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('token');
     setUser(null);
     setSessionExpired(false);
-    
+
     if (role === 'admin') {
       router.push('/auth/login?flow=admin');
     } else if (role === 'accountant' || role === 'account') {
@@ -122,6 +129,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAccountant: user?.role === 'accountant' || user?.role === 'account',
     sessionExpired,
     setSessionExpired,
+    refreshUser: loadUser,
+    updateUser: (updates: Partial<User>) => {
+      setUser(prev => {
+        if (!prev) return null;
+        const newUser = { ...prev, ...updates };
+        console.log('[AuthContext] Manually updating user:', newUser);
+        return newUser;
+      });
+      if (updates.profileImageUrl) {
+        setProfileTimestamp(Date.now());
+      }
+    },
+    profileTimestamp,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

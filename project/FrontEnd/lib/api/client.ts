@@ -23,6 +23,7 @@ class ApiClient {
     const url = `${API_URL}${endpoint}`;
     const config: RequestInit = {
       ...options,
+      cache: 'no-store',
       headers: {
         ...this.getHeaders(),
         ...options.headers,
@@ -75,6 +76,17 @@ class ApiClient {
 
   async updateProfile(data: any) {
     return this.request<any>('/users/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getSettings() {
+    return this.request<any>('/users/settings');
+  }
+
+  async updateSettings(data: any) {
+    return this.request<any>('/users/settings', {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -208,6 +220,59 @@ class ApiClient {
 
   async getAllComplianceReports() {
     return this.request<any[]>('/compliance/all');
+  }
+
+  async forgotPassword(email: string) {
+    return this.request<any>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async verifyOtp(email: string, otp: string) {
+    return this.request<any>('/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp }),
+    });
+  }
+
+  async resetPassword(data: any) {
+    return this.request<any>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async changePassword(data: { oldPassword: string; newPassword: string }) {
+    return this.request<any>('/users/change-password', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async uploadProfileImage(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers: HeadersInit = {};
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${API_URL}/users/profile-image`, {
+      method: 'POST',
+      body: formData,
+      headers: headers,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'An error occurred during upload');
+    }
+    return data;
   }
 }
 

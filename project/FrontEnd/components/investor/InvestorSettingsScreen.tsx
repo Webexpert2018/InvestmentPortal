@@ -1,7 +1,13 @@
 'use client';
 
-import { ChangeEvent, useMemo, useRef, useState } from 'react';
-import { CalendarDays, ChevronDown, ChevronLeft, Plus, Upload } from 'lucide-react';
+import { ChangeEvent, useMemo, useRef, useState, useEffect } from 'react';
+import { CalendarDays, ChevronDown, ChevronLeft, Plus, Upload, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { apiClient } from '@/lib/api/client';
+import { Country, State, City } from 'country-state-city';
+import { Combobox } from '@/components/ui/combobox';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 type SettingsTab =
   | 'profile'
@@ -36,7 +42,8 @@ type ProfileErrorFields =
   | 'city'
   | 'state'
   | 'zipCode'
-  | 'country';
+  | 'country'
+  | 'ssn';
 
 type AddAccountErrorFields = 'newAccountType' | 'passportNumber' | 'idFileName' | 'verified';
 
@@ -48,11 +55,13 @@ const tabs: Array<{ id: Exclude<SettingsTab, 'add-account'>; label: string }> = 
   { id: 'accounts', label: 'Account Switcher' },
 ];
 
+const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
+
 const defaultProfile = {
   firstName: '',
   lastName: '',
   email: '',
-  countryCode: '+1 (USA)',
+  countryCode: COUNTRY_CODES[0],
   phoneNumber: '',
   dob: '',
   addressLine1: '',
@@ -62,6 +71,7 @@ const defaultProfile = {
   zipCode: '',
   country: '',
   ssn: '*** ** ***',
+  profileImageUrl: '',
 };
 
 const defaultPassword = {
@@ -146,27 +156,119 @@ function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`h-[36px] w-full rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] ${props.className ?? ''}`}
+      className={`h-[36px] w-full rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] disabled:bg-[#F9FAFB] disabled:cursor-not-allowed disabled:text-[#A2A5AA] ${props.className ?? ''}`}
     />
   );
 }
 
-function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+function PasswordInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  const [showPassword, setShowPassword] = useState(false);
   return (
-    <textarea
-      {...props}
-      className={`h-[74px] w-full resize-none rounded-[6px] border border-[#E5E5EA] px-3 py-2 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] ${props.className ?? ''}`}
-    />
+    <div className="relative">
+      <input
+        {...props}
+        type={showPassword ? 'text' : 'password'}
+        className={`h-[36px] w-full rounded-[6px] border border-[#E5E5EA] pl-3 pr-10 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] ${props.className ?? ''}`}
+      />
+      <button
+        type="button"
+        onClick={() => setShowPassword(!showPassword)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A2A5AA] hover:text-[#4B4B4B]"
+      >
+        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    </div>
   );
 }
+
+const formatDateForInput = (dateStr: string | null | undefined) => {
+  if (!dateStr) return '';
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0];
+  } catch (e) {
+    return '';
+  }
+};
 
 export function InvestorSettingsScreen() {
+  const { user, refreshUser, updateUser, profileTimestamp } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [profile, setProfile] = useState(defaultProfile);
   const [password, setPassword] = useState(defaultPassword);
   const [sessions, setSessions] = useState<SessionItem[]>(initialSessions);
   const [profileImageName, setProfileImageName] = useState('');
+
+  const countries = useMemo(() => Country.getAllCountries(), []);
+  const states = useMemo(() => {
+    if (!profile.country) return [];
+    const countryObj = countries.find(c => c.name === profile.country);
+    return countryObj ? State.getStatesOfCountry(countryObj.isoCode) : [];
+  }, [profile.country, countries]);
+
+  const cities = useMemo(() => {
+    if (!profile.country || !profile.state) return [];
+    const countryObj = countries.find(c => c.name === profile.country);
+    const stateObj = states.find(s => s.name === profile.state);
+    if (!countryObj || !stateObj) return [];
+    return City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode);
+  }, [profile.country, profile.state, countries, states]);
+
   const profileImageInputRef = useRef<HTMLInputElement | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const dobInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        const userData = await apiClient.getProfile();
+
+        if (userData) {
+          const fullPhone = userData.phone || '';
+          
+          // Find which prefix matches the start of the phone number
+          const matchedCode = COUNTRY_CODES.find(code => {
+            const prefix = code.split(' ')[0]; // e.g., "+91"
+            return fullPhone.startsWith(prefix);
+          }) || COUNTRY_CODES[0];
+
+          const cleanPrefix = matchedCode.split(' ')[0];
+          const localNumber = fullPhone.startsWith(cleanPrefix) 
+            ? fullPhone.slice(cleanPrefix.length) 
+            : fullPhone;
+
+          setProfile({
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            email: userData.email || '',
+            countryCode: matchedCode,
+            phoneNumber: localNumber.replace(/\D/g, ''), // Only digits
+            dob: formatDateForInput(userData.dob),
+            addressLine1: userData.addressLine1 || '',
+            addressLine2: userData.addressLine2 || '',
+            city: userData.city || '',
+            state: userData.state || '',
+            zipCode: userData.zipCode || '',
+            country: userData.country || '',
+            ssn: userData.taxId || '*** ** ***',
+            profileImageUrl: userData.profileImageUrl || '',
+          });
+        }
+        setError(null);
+      } catch (err) {
+        setError('Failed to load profile data');
+        console.error('Error loading profile:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   const [emailNotifications, setEmailNotifications] = useState({
     investmentActivity: true,
@@ -209,9 +311,32 @@ export function InvestorSettingsScreen() {
     [],
   );
 
-  const handleProfileImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleProfileImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    setProfileImageName(file?.name ?? '');
+    if (!file) return;
+
+    setProfileImageName(file.name);
+
+    try {
+      setSaving(true);
+      const result = await apiClient.uploadProfileImage(file);
+      updateUser({ profileImageUrl: result.imageUrl });
+      setProfile((prev) => ({ ...prev, profileImageUrl: result.imageUrl }));
+
+      toast({
+        title: 'Success',
+        description: 'Profile image updated successfully',
+        variant: 'success',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to upload image',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleIdImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -223,20 +348,62 @@ export function InvestorSettingsScreen() {
   const validateProfile = () => {
     const errors: Partial<Record<ProfileErrorFields, string>> = {};
 
-    if (!profile.firstName.trim()) errors.firstName = 'First name is required';
-    if (!profile.lastName.trim()) errors.lastName = 'Last name is required';
+    // First Name
+    if (!profile.firstName.trim()) {
+      errors.firstName = 'First name is required';
+    } else if (!/^[A-Za-z\s\-']+$/.test(profile.firstName.trim())) {
+      errors.firstName = 'First name can only contain letters';
+    }
+
+    // Last Name
+    if (!profile.lastName.trim()) {
+      errors.lastName = 'Last name is required';
+    } else if (!/^[A-Za-z\s\-']+$/.test(profile.lastName.trim())) {
+      errors.lastName = 'Last name can only contain letters';
+    }
     if (!profile.email.trim()) {
       errors.email = 'Email is required';
     } else if (!/^\S+@\S+\.\S+$/.test(profile.email.trim())) {
       errors.email = 'Enter a valid email';
     }
-    if (!profile.phoneNumber.trim()) errors.phoneNumber = 'Phone number is required';
+    const phoneError = (() => {
+      const cleanNumber = profile.phoneNumber.trim();
+      if (!cleanNumber || COUNTRY_CODES.includes(cleanNumber)) return 'Phone number is required';
+
+      if (profile.countryCode === '+1 (USA)') {
+        if (cleanNumber.length !== 10) return 'USA phone number must be 10 digits';
+      } else if (profile.countryCode === '+44 (UK)') {
+        if (cleanNumber.length < 10 || cleanNumber.length > 11) return 'UK phone number must be 10-11 digits';
+      } else if (profile.countryCode === '+91 (IN)') {
+        if (cleanNumber.length !== 10) return 'India phone number must be 10 digits';
+      }
+      return null;
+    })();
+    if (phoneError) errors.phoneNumber = phoneError;
     if (!profile.dob.trim()) errors.dob = 'Date of birth is required';
     if (!profile.addressLine1.trim()) errors.addressLine1 = 'Street address line 1 is required';
-    if (!profile.city.trim()) errors.city = 'City is required';
+    if (!profile.city.trim()) {
+      errors.city = 'City is required';
+    } else if (!/^[A-Za-z\s\-']+$/.test(profile.city.trim())) {
+      errors.city = 'City can only contain letters';
+    }
     if (!profile.state.trim()) errors.state = 'State is required';
-    if (!profile.zipCode.trim()) errors.zipCode = 'ZIP code is required';
+    if (!profile.zipCode.trim()) {
+      errors.zipCode = 'ZIP code is required';
+    } else if (!/^[a-zA-Z0-9\s\-]+$/.test(profile.zipCode.trim())) {
+      errors.zipCode = 'ZIP code can only contain letters, numbers, and hyphens';
+    }
     if (!profile.country.trim()) errors.country = 'Country is required';
+
+    // SSN/Tax ID validation: max 11 chars (XXX-XX-XXXX format)
+    if (profile.ssn && profile.ssn !== '*** ** ***') {
+      const ssnValue = profile.ssn.trim();
+      if (ssnValue.length > 11) {
+        errors.ssn = 'SSN/Tax ID must be 11 characters or less (format: XXX-XX-XXXX)';
+      } else if (!/^[0-9\-]*$/.test(ssnValue)) {
+        errors.ssn = 'SSN/Tax ID can only contain numbers and hyphens';
+      }
+    }
 
     setProfileErrors(errors);
     return Object.keys(errors).length === 0;
@@ -257,232 +424,337 @@ export function InvestorSettingsScreen() {
   const renderProfileTab = () => (
     <SectionCard>
       <div className="p-4 sm:p-5">
-        <div className="mb-4 flex items-center gap-4">
-          <input ref={profileImageInputRef} type="file" className="hidden" onChange={handleProfileImageChange} />
-          <button
-            type="button"
-            onClick={() => profileImageInputRef.current?.click()}
-            className="flex h-[54px] w-[54px] flex-col items-center justify-center rounded-[6px] border border-[#E5E5EA] text-[#A2A5AA]"
-          >
-            <Upload className="h-4 w-4" />
-            <span className="mt-1 text-[9px]">Upload</span>
-          </button>
-          <p className="text-[11px] text-[#A2A5AA]">{profileImageName || 'Upload profile image here'}</p>
-        </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <p className="text-[12px] text-[#A2A5AA]">Loading your profile...</p>
+          </div>
+        ) : (
+          <>
+            {error && <p className="mb-4 text-[10px] text-[#E05252]">{error}</p>}
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <FieldLabel>First Name</FieldLabel>
-            <TextInput
-              className={profileErrors.firstName ? '!border-[#E05252]' : ''}
-              placeholder="Enter first name"
-              value={profile.firstName}
-              onChange={(event) => {
-                setProfile((prev) => ({ ...prev, firstName: event.target.value }));
-                setProfileErrors((prev) => ({ ...prev, firstName: undefined }));
-              }}
-            />
-            {profileErrors.firstName && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.firstName}</p>}
-          </div>
-          <div>
-            <FieldLabel>Last Name</FieldLabel>
-            <TextInput
-              className={profileErrors.lastName ? '!border-[#E05252]' : ''}
-              placeholder="Enter last name"
-              value={profile.lastName}
-              onChange={(event) => {
-                setProfile((prev) => ({ ...prev, lastName: event.target.value }));
-                setProfileErrors((prev) => ({ ...prev, lastName: undefined }));
-              }}
-            />
-            {profileErrors.lastName && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.lastName}</p>}
-          </div>
-          <div>
-            <FieldLabel>Email</FieldLabel>
-            <TextInput
-              className={profileErrors.email ? '!border-[#E05252]' : ''}
-              placeholder="Enter email"
-              value={profile.email}
-              onChange={(event) => {
-                setProfile((prev) => ({ ...prev, email: event.target.value }));
-                setProfileErrors((prev) => ({ ...prev, email: undefined }));
-              }}
-            />
-            {profileErrors.email && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.email}</p>}
-          </div>
-          <div>
-            <FieldLabel>Phone Number</FieldLabel>
-            <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-2">
-              <div className="relative">
-                <select
-                  value={profile.countryCode}
-                  onChange={(event) => setProfile((prev) => ({ ...prev, countryCode: event.target.value }))}
-                  className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none"
-                >
-                  <option>+1 (USA)</option>
-                  <option>+44 (UK)</option>
-                  <option>+91 (India)</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
+            <div className="mb-4 flex items-center gap-4">
+              <input ref={profileImageInputRef} type="file" className="hidden" onChange={handleProfileImageChange} accept="image/*" />
+              <button
+                type="button"
+                onClick={() => profileImageInputRef.current?.click()}
+                disabled={saving}
+                className="group relative flex h-[54px] w-[54px] items-center justify-center overflow-hidden rounded-full border border-[#E5E5EA] transition-all hover:border-[#274583] disabled:opacity-70"
+              >
+                {profile.profileImageUrl ? (
+                  <>
+                    <img
+                      src={(() => {
+                        if (!profile.profileImageUrl) return '';
+                        if (profile.profileImageUrl.startsWith('http')) {
+                          const url = new URL(profile.profileImageUrl);
+                          url.searchParams.set('t', profileTimestamp.toString());
+                          return url.toString();
+                        }
+                        const baseUrl = 'http://localhost:3001';
+                        const separator = profile.profileImageUrl.includes('?') ? '&' : '?';
+                        return `${baseUrl}${profile.profileImageUrl}${separator}t=${profileTimestamp}`;
+                      })()}
+                      alt="Profile"
+                      className="h-full w-full object-cover"
+                    />
+                    {!saving && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                        <Upload className="h-4 w-4 text-white" />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-[#A2A5AA]">
+                    <Upload className="h-4 w-4" />
+                    <span className="mt-1 text-[9px]">Upload</span>
+                  </div>
+                )}
+                {saving && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/70">
+                    <Loader2 className="h-5 w-5 animate-spin text-[#274583]" />
+                  </div>
+                )}
+              </button>
+              <div>
+                <p className="text-[12px] font-medium text-[#1F1F1F]">
+                  {profile.profileImageUrl ? 'Change Profile Picture' : 'Upload Profile Picture'}
+                </p>
+                <p className="text-[11px] text-[#A2A5AA]">
+                  {profileImageName || 'JPG, GIF or PNG. Max size of 5MB.'}
+                </p>
               </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <FieldLabel>First Name</FieldLabel>
+                <TextInput
+                  className={profileErrors.firstName ? '!border-[#E05252]' : ''}
+                  placeholder="Enter first name"
+                  value={profile.firstName}
+                  onChange={(event) => {
+                    setProfile((prev) => ({ ...prev, firstName: event.target.value }));
+                    setProfileErrors((prev) => ({ ...prev, firstName: undefined }));
+                  }}
+                />
+                {profileErrors.firstName && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.firstName}</p>}
+              </div>
+              <div>
+                <FieldLabel>Last Name</FieldLabel>
+                <TextInput
+                  className={profileErrors.lastName ? '!border-[#E05252]' : ''}
+                  placeholder="Enter last name"
+                  value={profile.lastName}
+                  onChange={(event) => {
+                    setProfile((prev) => ({ ...prev, lastName: event.target.value }));
+                    setProfileErrors((prev) => ({ ...prev, lastName: undefined }));
+                  }}
+                />
+                {profileErrors.lastName && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.lastName}</p>}
+              </div>
+              <div>
+                <FieldLabel>Email</FieldLabel>
+                <TextInput
+                  className={profileErrors.email ? '!border-[#E05252]' : ''}
+                  placeholder="Enter email"
+                  value={profile.email}
+                  disabled
+                  title="Email cannot be changed"
+                />
+                <p className="mt-1 text-[10px] text-[#A2A5AA]">Email cannot be changed for security reasons</p>
+              </div>
+              <div>
+                <FieldLabel>Phone Number</FieldLabel>
+                <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-2">
+                  <div className="relative">
+                    <select
+                      value={profile.countryCode}
+                      onChange={(event) => {
+                        setProfile((prev) => ({ ...prev, countryCode: event.target.value }));
+                        setProfileErrors((prev) => ({ ...prev, phoneNumber: undefined }));
+                      }}
+                      className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none"
+                    >
+                      {COUNTRY_CODES.map(code => (
+                        <option key={code} value={code}>{code}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
+                  </div>
+                  <TextInput
+                    className={profileErrors.phoneNumber ? '!border-[#E05252]' : ''}
+                    placeholder="Enter phone number"
+                    value={profile.phoneNumber}
+                    onChange={(event) => {
+                      const val = event.target.value.replace(/\D/g, ''); // Only digits
+                      setProfile((prev) => ({
+                        ...prev,
+                        phoneNumber: val,
+                      }));
+                      setProfileErrors((prev) => ({ ...prev, phoneNumber: undefined }));
+                    }}
+                  />
+                </div>
+                {profileErrors.phoneNumber && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.phoneNumber}</p>}
+              </div>
+              <div>
+                <FieldLabel>Date of Birth</FieldLabel>
+                <div className="relative">
+                  <input
+                    type="date"
+                    ref={dobInputRef}
+                    className={`h-[36px] w-full rounded-[6px] border px-3 text-[12px] text-[#1F1F1F] outline-none focus:border-[#274583] [&::-webkit-calendar-picker-indicator]:hidden ${profileErrors.dob ? 'border-[#E05252]' : 'border-[#E5E5EA]'
+                      }`}
+                    value={profile.dob}
+                    onChange={(event) => {
+                      setProfile((prev) => ({ ...prev, dob: event.target.value }));
+                      setProfileErrors((prev) => ({ ...prev, dob: undefined }));
+                    }}
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => dobInputRef.current?.showPicker()}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A2A5AA] hover:text-[#4B4B4B]"
+                  >
+                    <CalendarDays className="h-4 w-4" />
+                  </button>
+                </div>
+                {profileErrors.dob && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.dob}</p>}
+              </div>
+              <div />
+              <div>
+                <FieldLabel>Street Address Line 1</FieldLabel>
+                <TextInput
+                  className={profileErrors.addressLine1 ? '!border-[#E05252]' : ''}
+                  placeholder="Enter street address line 1"
+                  value={profile.addressLine1}
+                  onChange={(event) => {
+                    setProfile((prev) => ({ ...prev, addressLine1: event.target.value }));
+                    setProfileErrors((prev) => ({ ...prev, addressLine1: undefined }));
+                  }}
+                />
+                {profileErrors.addressLine1 && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.addressLine1}</p>}
+              </div>
+              <div>
+                <FieldLabel>Street Address Line 2</FieldLabel>
+                <TextInput
+                  placeholder="Enter street address line 2"
+                  value={profile.addressLine2}
+                  onChange={(event) => setProfile((prev) => ({ ...prev, addressLine2: event.target.value }))}
+                />
+              </div>
+              <div>
+                <FieldLabel>City</FieldLabel>
+                <Combobox
+                  options={cities.map((c) => ({ label: c.name, value: c.name }))}
+                  value={profile.city}
+                  onChange={(val) => {
+                    setProfile((prev) => ({ ...prev, city: val }));
+                    setProfileErrors((prev) => ({ ...prev, city: undefined }));
+                  }}
+                  placeholder="Select city"
+                  className={cn(
+                    "text-[12px] h-[36px]",
+                    profileErrors.city ? 'border-[#E05252]' : ''
+                  )}
+                />
+                {profileErrors.city && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.city}</p>}
+              </div>
+              <div>
+                <FieldLabel>State</FieldLabel>
+                <Combobox
+                  options={states.map((s) => ({ label: s.name, value: s.name }))}
+                  value={profile.state}
+                  onChange={(val) => {
+                    setProfile((prev) => ({ ...prev, state: val, city: '' }));
+                    setProfileErrors((prev) => ({ ...prev, state: undefined }));
+                  }}
+                  placeholder="Select state"
+                  className={cn(
+                    "text-[12px] h-[36px]",
+                    profileErrors.state ? 'border-[#E05252]' : ''
+                  )}
+                />
+                {profileErrors.state && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.state}</p>}
+              </div>
+              <div>
+                <FieldLabel>ZIP Code</FieldLabel>
+                <TextInput
+                  className={profileErrors.zipCode ? '!border-[#E05252]' : ''}
+                  placeholder="Enter zip code"
+                  value={profile.zipCode}
+                  onChange={(event) => {
+                    setProfile((prev) => ({ ...prev, zipCode: event.target.value }));
+                    setProfileErrors((prev) => ({ ...prev, zipCode: undefined }));
+                  }}
+                />
+                {profileErrors.zipCode && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.zipCode}</p>}
+              </div>
+              <div>
+                <FieldLabel>Country</FieldLabel>
+                <Combobox
+                  options={countries.map((c) => ({ label: c.name, value: c.name }))}
+                  value={profile.country}
+                  onChange={(val) => {
+                    setProfile((prev) => ({ ...prev, country: val, state: '', city: '' }));
+                    setProfileErrors((prev) => ({ ...prev, country: undefined }));
+                  }}
+                  placeholder="Select country"
+                  className={cn(
+                    "text-[12px] h-[36px]",
+                    profileErrors.country ? 'border-[#E05252]' : ''
+                  )}
+                />
+                {profileErrors.country && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.country}</p>}
+              </div>
+            </div>
+
+
+            <div className="mt-4 max-w-[360px]">
+              <p className="text-[12px] font-medium text-[#4B4B4B]">TAX Information</p>
+              <p className="mt-1 text-[10px] text-[#A2A5AA]">Social Security Number / Tax ID</p>
               <TextInput
-                className={profileErrors.phoneNumber ? '!border-[#E05252]' : ''}
-                placeholder="Enter phone number"
-                value={profile.phoneNumber}
+                className={`mt-1 ${profileErrors.ssn ? '!border-[#E05252]' : ''}`}
+                placeholder="Format: XXX-XX-XXXX"
+                value={profile.ssn}
+                maxLength={11}
                 onChange={(event) => {
-                  setProfile((prev) => ({ ...prev, phoneNumber: event.target.value }));
-                  setProfileErrors((prev) => ({ ...prev, phoneNumber: undefined }));
+                  setProfile((prev) => ({ ...prev, ssn: event.target.value }));
+                  setProfileErrors((prev) => ({ ...prev, ssn: undefined }));
                 }}
               />
+              {profileErrors.ssn && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.ssn}</p>}
+              <p className="mt-1 text-[10px] text-[#C0C3C8]">Your information is encrypted and secure</p>
             </div>
-            {profileErrors.phoneNumber && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.phoneNumber}</p>}
-          </div>
-          <div>
-            <FieldLabel>Date of Birth</FieldLabel>
-            <div className="relative">
-              <TextInput
-                className={profileErrors.dob ? '!border-[#E05252]' : ''}
-                placeholder="Select date of birth"
-                value={profile.dob}
-                onChange={(event) => {
-                  setProfile((prev) => ({ ...prev, dob: event.target.value }));
-                  setProfileErrors((prev) => ({ ...prev, dob: undefined }));
+
+            {profileSaved && <p className="mt-3 text-[12px] text-[#16A66A]">Profile updated successfully.</p>}
+
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setProfile(defaultProfile);
+                  setProfileErrors({});
+                  setProfileSaved(false);
                 }}
-              />
-              <CalendarDays className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
-            </div>
-            {profileErrors.dob && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.dob}</p>}
-          </div>
-          <div />
-          <div>
-            <FieldLabel>Street Address Line 1</FieldLabel>
-            <TextInput
-              className={profileErrors.addressLine1 ? '!border-[#E05252]' : ''}
-              placeholder="Enter street address line 1"
-              value={profile.addressLine1}
-              onChange={(event) => {
-                setProfile((prev) => ({ ...prev, addressLine1: event.target.value }));
-                setProfileErrors((prev) => ({ ...prev, addressLine1: undefined }));
-              }}
-            />
-            {profileErrors.addressLine1 && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.addressLine1}</p>}
-          </div>
-          <div>
-            <FieldLabel>Street Address Line 2</FieldLabel>
-            <TextInput
-              placeholder="Enter street address line 2"
-              value={profile.addressLine2}
-              onChange={(event) => setProfile((prev) => ({ ...prev, addressLine2: event.target.value }))}
-            />
-          </div>
-          <div>
-            <FieldLabel>City</FieldLabel>
-            <TextInput
-              className={profileErrors.city ? '!border-[#E05252]' : ''}
-              placeholder="Enter city"
-              value={profile.city}
-              onChange={(event) => {
-                setProfile((prev) => ({ ...prev, city: event.target.value }));
-                setProfileErrors((prev) => ({ ...prev, city: undefined }));
-              }}
-            />
-            {profileErrors.city && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.city}</p>}
-          </div>
-          <div>
-            <FieldLabel>State</FieldLabel>
-            <div className="relative">
-              <select
-                value={profile.state}
-                onChange={(event) => {
-                  setProfile((prev) => ({ ...prev, state: event.target.value }));
-                  setProfileErrors((prev) => ({ ...prev, state: undefined }));
-                }}
-                className={`h-[36px] w-full appearance-none rounded-[6px] border px-3 text-[12px] text-[#4B4B4B] outline-none ${
-                  profileErrors.state ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                }`}
+                className="h-[32px] min-w-[90px] rounded-full bg-[#FFF3D6] px-5 text-[12px] text-[#6A6A6A]"
               >
-                <option value="">Select state</option>
-                <option>California</option>
-                <option>Texas</option>
-                <option>Florida</option>
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
-            </div>
-            {profileErrors.state && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.state}</p>}
-          </div>
-          <div>
-            <FieldLabel>ZIP Code</FieldLabel>
-            <TextInput
-              className={profileErrors.zipCode ? '!border-[#E05252]' : ''}
-              placeholder="Enter zip code"
-              value={profile.zipCode}
-              onChange={(event) => {
-                setProfile((prev) => ({ ...prev, zipCode: event.target.value }));
-                setProfileErrors((prev) => ({ ...prev, zipCode: undefined }));
-              }}
-            />
-            {profileErrors.zipCode && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.zipCode}</p>}
-          </div>
-          <div>
-            <FieldLabel>Country</FieldLabel>
-            <div className="relative">
-              <select
-                value={profile.country}
-                onChange={(event) => {
-                  setProfile((prev) => ({ ...prev, country: event.target.value }));
-                  setProfileErrors((prev) => ({ ...prev, country: undefined }));
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={async () => {
+                  const isValid = validateProfile();
+                  if (!isValid) return;
+
+                  setSaving(true);
+                  try {
+                    const updateData = {
+                      firstName: profile.firstName,
+                      lastName: profile.lastName,
+                      email: profile.email,
+                      phone: `${profile.countryCode} ${profile.phoneNumber}`,
+                      dob: profile.dob,
+                      addressLine1: profile.addressLine1,
+                      addressLine2: profile.addressLine2,
+                      city: profile.city,
+                      state: profile.state,
+                      zipCode: profile.zipCode,
+                      country: profile.country,
+                      taxId: profile.ssn,
+                    };
+
+                    const updatedUser = await apiClient.updateProfile(updateData);
+                    if (updatedUser) {
+                      updateUser(updatedUser);
+                    }
+                    setProfileSaved(true);
+                    setError(null);
+
+                    toast({
+                      title: 'Success',
+                      description: 'Profile updated successfully',
+                      variant: 'success',
+                    });
+
+                    // Hide success message after 3 seconds
+                    setTimeout(() => setProfileSaved(false), 3000);
+                  } catch (err) {
+                    setError('Failed to update profile. Please try again.');
+                    console.error('Error updating profile:', err);
+                  } finally {
+                    setSaving(false);
+                  }
                 }}
-                className={`h-[36px] w-full appearance-none rounded-[6px] border px-3 text-[12px] text-[#4B4B4B] outline-none ${
-                  profileErrors.country ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                }`}
+                className="h-[32px] min-w-[90px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] disabled:opacity-50"
               >
-                <option value="">Select country</option>
-                <option>United States</option>
-                <option>United Kingdom</option>
-                <option>Canada</option>
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
+                {saving ? 'Saving...' : 'Save'}
+              </button>
             </div>
-            {profileErrors.country && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.country}</p>}
-          </div>
-        </div>
-
-        {profileSaved && <p className="mt-3 text-[10px] text-[#16A66A]">Profile updated successfully.</p>}
-
-        <div className="mt-4 max-w-[360px]">
-          <p className="text-[12px] font-medium text-[#4B4B4B]">TAX Information</p>
-          <p className="mt-1 text-[10px] text-[#A2A5AA]">Social Security Number / Tax ID</p>
-          <TextInput
-            className="mt-1"
-            value={profile.ssn}
-            onChange={(event) => setProfile((prev) => ({ ...prev, ssn: event.target.value }))}
-          />
-          <p className="mt-1 text-[10px] text-[#C0C3C8]">Your information is encrypted and secure</p>
-        </div>
-
-        <div className="mt-4 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setProfile(defaultProfile);
-              setProfileErrors({});
-              setProfileSaved(false);
-            }}
-            className="h-[32px] min-w-[90px] rounded-full bg-[#FFF3D6] px-5 text-[12px] text-[#6A6A6A]"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              const isValid = validateProfile();
-              setProfileSaved(isValid);
-            }}
-            className="h-[32px] min-w-[90px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F]"
-          >
-            Save
-          </button>
-        </div>
+          </>
+        )}
       </div>
     </SectionCard>
   );
@@ -495,31 +767,74 @@ export function InvestorSettingsScreen() {
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <FieldLabel>Current Password</FieldLabel>
-              <TextInput
-                type="password"
+              <PasswordInput
                 placeholder="Enter current password"
                 value={password.currentPassword}
-                onChange={(event) => setPassword((prev) => ({ ...prev, currentPassword: event.target.value }))}
+                onChange={(event) => setPassword((prev) => ({ ...prev, currentPassword: (event.target as HTMLInputElement).value }))}
               />
             </div>
             <div>
               <FieldLabel>New Password</FieldLabel>
-              <TextInput
-                type="password"
+              <PasswordInput
                 placeholder="Enter new password"
                 value={password.newPassword}
-                onChange={(event) => setPassword((prev) => ({ ...prev, newPassword: event.target.value }))}
+                onChange={(event) => setPassword((prev) => ({ ...prev, newPassword: (event.target as HTMLInputElement).value }))}
               />
             </div>
             <div>
               <FieldLabel>Confirm Password</FieldLabel>
-              <TextInput
-                type="password"
+              <PasswordInput
                 placeholder="Enter confirm password"
                 value={password.confirmPassword}
-                onChange={(event) => setPassword((prev) => ({ ...prev, confirmPassword: event.target.value }))}
+                onChange={(event) => setPassword((prev) => ({ ...prev, confirmPassword: (event.target as HTMLInputElement).value }))}
               />
             </div>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              disabled={saving}
+              onClick={async () => {
+                if (!password.currentPassword || !password.newPassword || !password.confirmPassword) {
+                  setError('Please fill in all password fields');
+                  return;
+                }
+                if (password.newPassword !== password.confirmPassword) {
+                  setError('New passwords do not match');
+                  return;
+                }
+
+                setSaving(true);
+                try {
+                  await apiClient.changePassword({
+                    oldPassword: password.currentPassword,
+                    newPassword: password.newPassword,
+                  });
+
+                  toast({
+                    title: 'Success',
+                    description: 'Password updated successfully',
+                    variant: 'success',
+                  });
+
+                  setPassword(defaultPassword);
+                  setError(null);
+                } catch (err: any) {
+                  const errorMsg = err.message || 'Failed to update password';
+                  setError(errorMsg);
+                  toast({
+                    title: 'Error',
+                    description: errorMsg,
+                    variant: 'destructive',
+                  });
+                } finally {
+                  setSaving(false);
+                }
+              }}
+              className="h-[32px] min-w-[120px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] disabled:opacity-50"
+            >
+              {saving ? 'Updating...' : 'Update Password'}
+            </button>
           </div>
         </div>
       </SectionCard>
@@ -728,11 +1043,10 @@ export function InvestorSettingsScreen() {
                   key={item}
                   type="button"
                   onClick={() => setDocumentPrefs((prev) => ({ ...prev, format: item }))}
-                  className={`h-[28px] min-w-[46px] rounded-full px-3 text-[10px] ${
-                    documentPrefs.format === item
-                      ? 'border border-[#3B6CC2] bg-[#EEF4FF] text-[#1F4FA5]'
-                      : 'bg-[#EAF0F8] text-[#6A7380]'
-                  }`}
+                  className={`h-[28px] min-w-[46px] rounded-full px-3 text-[10px] ${documentPrefs.format === item
+                    ? 'border border-[#3B6CC2] bg-[#EEF4FF] text-[#1F4FA5]'
+                    : 'bg-[#EAF0F8] text-[#6A7380]'
+                    }`}
                 >
                   {item}
                 </button>
@@ -747,11 +1061,10 @@ export function InvestorSettingsScreen() {
                   key={item}
                   type="button"
                   onClick={() => setDocumentPrefs((prev) => ({ ...prev, frequency: item }))}
-                  className={`h-[28px] min-w-[62px] rounded-full px-3 text-[10px] ${
-                    documentPrefs.frequency === item
-                      ? 'border border-[#3B6CC2] bg-[#EEF4FF] text-[#1F4FA5]'
-                      : 'bg-[#EAF0F8] text-[#6A7380]'
-                  }`}
+                  className={`h-[28px] min-w-[62px] rounded-full px-3 text-[10px] ${documentPrefs.frequency === item
+                    ? 'border border-[#3B6CC2] bg-[#EEF4FF] text-[#1F4FA5]'
+                    : 'bg-[#EAF0F8] text-[#6A7380]'
+                    }`}
                 >
                   {item}
                 </button>
@@ -830,9 +1143,8 @@ export function InvestorSettingsScreen() {
                     setAddAccount((prev) => ({ ...prev, newAccountType: event.target.value }));
                     setAddAccountErrors((prev) => ({ ...prev, newAccountType: undefined }));
                   }}
-                  className={`h-[36px] w-full appearance-none rounded-[6px] border px-3 text-[12px] text-[#4B4B4B] outline-none ${
-                    addAccountErrors.newAccountType ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                  }`}
+                  className={`h-[36px] w-full appearance-none rounded-[6px] border px-3 text-[12px] text-[#4B4B4B] outline-none ${addAccountErrors.newAccountType ? 'border-[#E05252]' : 'border-[#E5E5EA]'
+                    }`}
                 >
                   <option value="">Select funding method</option>
                   <option value="Roth SEP">Roth SEP</option>
@@ -899,9 +1211,8 @@ export function InvestorSettingsScreen() {
               <button
                 type="button"
                 onClick={() => idUploadRef.current?.click()}
-                className={`flex h-[56px] w-full flex-col items-center justify-center rounded-[6px] border border-dashed text-[#A2A5AA] ${
-                  addAccountErrors.idFileName ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                }`}
+                className={`flex h-[56px] w-full flex-col items-center justify-center rounded-[6px] border border-dashed text-[#A2A5AA] ${addAccountErrors.idFileName ? 'border-[#E05252]' : 'border-[#E5E5EA]'
+                  }`}
               >
                 <Plus className="h-4 w-4" />
                 <span className="mt-1 text-[9px]">{addAccount.idFileName || 'Drag & drop files here'}</span>

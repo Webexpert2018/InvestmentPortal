@@ -47,9 +47,11 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = __importStar(require("bcrypt"));
 const database_1 = require("../../config/database");
+const email_service_1 = require("../email/email.service");
 let AuthService = class AuthService {
-    constructor(jwtService) {
+    constructor(jwtService, emailService) {
         this.jwtService = jwtService;
+        this.emailService = emailService;
     }
     async signup(email, password, firstName, lastName, phone, dob, role, addressLine1, addressLine2, city, state, zipCode, country, taxId) {
         const existingUserResult = await database_1.db.query('SELECT id FROM users WHERE email = $1', [email]);
@@ -59,7 +61,7 @@ let AuthService = class AuthService {
         const passwordHash = await bcrypt.hash(password, 10);
         const userResult = await database_1.db.query(`INSERT INTO users (email, password_hash, first_name, last_name, phone, dob, role, status, address_line1, address_line2, city, state, zip_code, country, tax_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-       RETURNING id, email, role, first_name, last_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id`, [email, passwordHash, firstName, lastName, phone, dob, role || 'investor', 'active', addressLine1, addressLine2, city, state, zipCode, country, taxId]);
+       RETURNING id, email, role, first_name, last_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url`, [email, passwordHash, firstName, lastName, phone, dob, role || 'investor', 'active', addressLine1, addressLine2, city, state, zipCode, country, taxId]);
         const newUser = userResult.rows[0];
         // await db.query(
         //   `INSERT INTO portfolios (user_id, bitcoin_balance, nav, performance, total_invested, total_withdrawn)
@@ -71,6 +73,9 @@ let AuthService = class AuthService {
             email: newUser.email,
             role: newUser.role
         });
+        // Send welcome email asynchronously
+        this.emailService.sendWelcomeEmail(newUser.email, newUser.first_name, newUser.role || 'investor')
+            .catch(err => console.error(`Failed to send welcome email to ${newUser.email}:`, err));
         return {
             user: {
                 id: newUser.id,
@@ -88,13 +93,14 @@ let AuthService = class AuthService {
                 zipCode: newUser.zip_code,
                 country: newUser.country,
                 taxId: newUser.tax_id,
+                profileImageUrl: newUser.profile_image_url,
             },
             token,
         };
     }
     async login(email, password, role) {
         try {
-            const result = await database_1.db.query('SELECT id, email, password_hash, role, first_name, last_name, status, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id FROM users WHERE email = $1', [email]);
+            const result = await database_1.db.query('SELECT id, email, password_hash, role, first_name, last_name, status, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url FROM users WHERE email = $1', [email]);
             const user = result.rows[0];
             if (!user) {
                 throw new common_1.UnauthorizedException('Invalid credentials');
@@ -132,6 +138,7 @@ let AuthService = class AuthService {
                     zipCode: user.zip_code,
                     country: user.country,
                     taxId: user.tax_id,
+                    profileImageUrl: user.profile_image_url,
                 },
                 token,
             };
@@ -141,10 +148,61 @@ let AuthService = class AuthService {
             throw error;
         }
     }
+    async forgotPassword(email) {
+        const userResult = await database_1.db.query('SELECT id FROM users WHERE email = $1', [email]);
+        if (userResult.rows.length === 0) {
+            // For security reasons, don't reveal if user exists
+            return { message: 'If an account with that email exists, a reset code has been sent.' };
+        }
+        const userId = userResult.rows[0].id;
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+        // Store in the new user_otps table
+        await database_1.db.query('INSERT INTO user_otps (user_id, otp, type, expires_at) VALUES ($1, $2, $3, $4)', [userId, otp, 'FORGOT_PASSWORD', expiresAt]);
+        // Also update the users table for backward compatibility (optional but keeping for now)
+        await database_1.db.query('UPDATE users SET reset_otp = $1, reset_otp_expires_at = $2 WHERE id = $3', [otp, expiresAt, userId]);
+        await this.emailService.sendPasswordResetOtp(email, otp);
+        return { message: 'If an account with that email exists, a reset code has been sent.' };
+    }
+    async verifyOtp(email, otp) {
+        const userResult = await database_1.db.query('SELECT id FROM users WHERE email = $1', [email]);
+        if (userResult.rows.length === 0) {
+            throw new common_1.UnauthorizedException('Invalid email or reset code');
+        }
+        const userId = userResult.rows[0].id;
+        const otpResult = await database_1.db.query('SELECT id FROM user_otps WHERE user_id = $1 AND otp = $2 AND type = $3 AND expires_at > NOW() AND is_used = false', [userId, otp, 'FORGOT_PASSWORD']);
+        if (otpResult.rows.length === 0) {
+            throw new common_1.UnauthorizedException('Invalid or expired reset code');
+        }
+        return { message: 'Code verified successfully' };
+    }
+    async resetPassword(email, otp, password) {
+        const userResult = await database_1.db.query('SELECT id, first_name FROM users WHERE email = $1', [email]);
+        if (userResult.rows.length === 0) {
+            throw new common_1.UnauthorizedException('Invalid email or reset code');
+        }
+        const userId = userResult.rows[0].id;
+        // Check OTP in user_otps
+        const otpResult = await database_1.db.query('SELECT id FROM user_otps WHERE user_id = $1 AND otp = $2 AND type = $3 AND expires_at > NOW() AND is_used = false', [userId, otp, 'FORGOT_PASSWORD']);
+        if (otpResult.rows.length === 0) {
+            throw new common_1.UnauthorizedException('Invalid or expired reset code');
+        }
+        const otpId = otpResult.rows[0].id;
+        const passwordHash = await bcrypt.hash(password, 10);
+        // Start a transaction would be better, but using simple queries for now
+        await database_1.db.query('UPDATE users SET password_hash = $1, reset_otp = NULL, reset_otp_expires_at = NULL WHERE id = $2', [passwordHash, userId]);
+        // Mark OTP as used
+        await database_1.db.query('UPDATE user_otps SET is_used = true WHERE id = $1', [otpId]);
+        // Send password changed notification
+        this.emailService.sendPasswordChangedEmail(email, userResult.rows[0].first_name || 'User')
+            .catch(err => console.error(`Failed to send password changed email to ${email}:`, err));
+        return { message: 'Password reset successfully' };
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [jwt_1.JwtService])
+    __metadata("design:paramtypes", [jwt_1.JwtService,
+        email_service_1.EmailService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

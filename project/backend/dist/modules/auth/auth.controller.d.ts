@@ -20,6 +20,18 @@ export declare class LoginDto {
     password: string | undefined;
     role?: string;
 }
+export declare class ForgotPasswordDto {
+    email: string | undefined;
+}
+export declare class VerifyOtpDto {
+    email: string | undefined;
+    otp: string | undefined;
+}
+export declare class ResetPasswordDto {
+    email: string | undefined;
+    otp: string | undefined;
+    password: string | undefined;
+}
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -40,6 +52,7 @@ export declare class AuthController {
             zipCode: any;
             country: any;
             taxId: any;
+            profileImageUrl: any;
         };
         token: string;
     }>;
@@ -60,6 +73,7 @@ export declare class AuthController {
             zipCode: any;
             country: any;
             taxId: any;
+            profileImageUrl: any;
         };
         token: string;
     }>;
@@ -80,8 +94,18 @@ export declare class AuthController {
             zipCode: any;
             country: any;
             taxId: any;
+            profileImageUrl: any;
         };
         token: string;
+    }>;
+    forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{
+        message: string;
+    }>;
+    verifyOtp(verifyOtpDto: VerifyOtpDto): Promise<{
+        message: string;
+    }>;
+    resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{
+        message: string;
     }>;
 }
 //# sourceMappingURL=auth.controller.d.ts.map

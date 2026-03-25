@@ -17,6 +17,7 @@ const documents_module_1 = require("./modules/documents/documents.module");
 const audit_logs_module_1 = require("./modules/audit-logs/audit-logs.module");
 const ira_accounts_module_1 = require("./modules/ira-accounts/ira-accounts.module");
 const compliance_module_1 = require("./modules/compliance/compliance.module");
+const email_module_1 = require("./modules/email/email.module");
 const health_controller_1 = require("./health.controller");
 let AppModule = class AppModule {
 };
@@ -37,6 +38,7 @@ exports.AppModule = AppModule = __decorate([
             audit_logs_module_1.AuditLogsModule,
             ira_accounts_module_1.IraAccountsModule,
             compliance_module_1.ComplianceModule,
+            email_module_1.EmailModule,
         ],
         controllers: [health_controller_1.HealthController],
     })

@@ -48,11 +48,13 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className={cn('w-full justify-between h-11 px-3 font-normal font-helvetica text-sm text-left', !value && 'text-muted-foreground', className)}
+          className={cn('w-full flex items-center justify-between h-9 px-3 font-normal font-helvetica text-sm text-left', !value && 'text-muted-foreground', className)}
         >
-          {value
-            ? options.find((option) => option.value === value)?.label
-            : placeholder}
+          <span className="truncate">
+            {value
+              ? options.find((option) => option.value === value)?.label
+              : placeholder}
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

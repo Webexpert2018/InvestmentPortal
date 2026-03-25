@@ -1,4 +1,7 @@
+import { EmailService } from '../email/email.service';
 export declare class UsersService {
+    private emailService;
+    constructor(emailService: EmailService);
     getProfile(userId: string): Promise<{
         id: any;
         email: any;
@@ -16,8 +19,9 @@ export declare class UsersService {
         zipCode: any;
         country: any;
         taxId: any;
+        profileImageUrl: any;
     }>;
-    updateProfile(userId: string, firstName?: string, lastName?: string, phone?: string): Promise<{
+    updateProfile(userId: string, firstName?: string, lastName?: string, phone?: string, dob?: string, addressLine1?: string, addressLine2?: string, city?: string, state?: string, zipCode?: string, country?: string, taxId?: string, profileImageUrl?: string): Promise<{
         id: any;
         email: any;
         role: any;
@@ -33,6 +37,7 @@ export declare class UsersService {
         zipCode: any;
         country: any;
         taxId: any;
+        profileImageUrl: any;
     }>;
     getAllUsers(requestingUserRole: string): Promise<{
         id: any;
@@ -58,6 +63,9 @@ export declare class UsersService {
         id: any;
         email: any;
         status: any;
+    }>;
+    changePassword(userId: string, currentPassword: string, newPassword: string): Promise<{
+        message: string;
     }>;
 }
 //# sourceMappingURL=users.service.d.ts.map

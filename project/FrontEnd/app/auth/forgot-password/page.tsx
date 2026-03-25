@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { Mail, ArrowLeft, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, ArrowLeft, Lock, Eye, EyeOff, CheckCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { apiClient } from '@/lib/api/client';
 
 export default function ForgotPassword() {
   const [step, setStep] = useState<'email' | 'otp' | 'reset' | 'success'>('email');
@@ -11,25 +12,72 @@ export default function ForgotPassword() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [flow, setFlow] = useState('investor');
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const flowParam = params.get('flow');
+      if (flowParam) {
+        setFlow(flowParam);
+      }
+    }
+  }, []);
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) setStep('otp');
+    setError(null);
+    setLoading(true);
+    try {
+      await apiClient.forgotPassword(email);
+      setStep('otp');
+    } catch (err: any) {
+      setError(err.message || 'Failed to send reset code');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleOtpSubmit = (e: React.FormEvent) => {
+  const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp === '123456') setStep('reset');
-    else alert('Invalid code. Try 123456');
+    setError(null);
+    setLoading(true);
+    try {
+      await apiClient.verifyOtp(email, otp);
+      setStep('reset');
+    } catch (err: any) {
+      setError(err.message || 'Invalid or expired code');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleResetSubmit = (e: React.FormEvent) => {
+  const handleResetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      alert('Passwords do not match');
+    setError(null);
+    
+    // Strong password validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setError('Password must be at least 8 characters long and include uppercase, lowercase, number, and special character');
       return;
     }
-    setStep('success');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    setLoading(true);
+    try {
+      await apiClient.resetPassword({ email, otp, password });
+      setStep('success');
+    } catch (err: any) {
+      setError(err.message || 'Failed to reset password');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,12 +135,18 @@ export default function ForgotPassword() {
           </>
         )}
 
+        {/* Error Message */}
+        {error && (
+          <div className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-md text-center">
+            {error}
+          </div>
+        )}
+
         {/* FORMS */}
         <div className="mt-6">
           {step === 'email' && (
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               <div className="relative">
-                {/* <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" /> */}
                 <input
                   type="email"
                   required
@@ -104,14 +158,17 @@ export default function ForgotPassword() {
               </div>
 
               <Link
-                href={`/auth/login?flow=${new URLSearchParams(window.location.search).get('flow') || 'investor'}`}
+                href={`/auth/login?flow=${flow}`}
                 className="flex items-center text-sm text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> Back to login
               </Link>
 
-              <button className="w-full rounded-full bg-yellow-400 py-2 text-sm font-medium hover:bg-yellow-500">
-                Send Code
+              <button 
+                disabled={loading}
+                className="w-full rounded-full bg-yellow-400 py-2 text-sm font-medium hover:bg-yellow-500 flex justify-center items-center"
+              >
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Send Code'}
               </button>
             </form>
           )}
@@ -123,22 +180,34 @@ export default function ForgotPassword() {
                 maxLength={6}
                 required
                 value={otp}
-                onChange={(e) => setOtp(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '');
+                  setOtp(val);
+                }}
                 placeholder="000000"
-                className="w-full text-center tracking-widest text-xl py-2 border rounded-md"
+                className="w-full text-center tracking-widest text-xl py-2 border rounded-md outline-none focus:border-yellow-400"
               />
+              <p className="text-center text-[11px] text-[#A2A5AA]">OTP sent to your email</p>
 
               <div className="flex justify-between text-sm">
                 <button onClick={() => setStep('email')} type="button">
                   ← Back
                 </button>
-                <button type="button" className="text-yellow-600">
+                <button 
+                  type="button" 
+                  className="text-yellow-600"
+                  onClick={handleEmailSubmit}
+                  disabled={loading}
+                >
                   Resend Code
                 </button>
               </div>
 
-              <button className="w-full rounded-full bg-yellow-400 py-2 text-sm font-medium hover:bg-yellow-500">
-                Verify
+              <button 
+                disabled={loading}
+                className="w-full rounded-full bg-yellow-400 py-2 text-sm font-medium hover:bg-yellow-500 flex justify-center items-center"
+              >
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Verify'}
               </button>
             </form>
           )}
@@ -155,7 +224,7 @@ export default function ForgotPassword() {
                   required
                   className="w-full pl-10 pr-10 py-2 border rounded-md text-sm"
                 />
-                <button
+                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-2.5 text-gray-400"
@@ -163,6 +232,9 @@ export default function ForgotPassword() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              <p className="text-[10px] text-gray-500">
+                At least 8 chars, 1 uppercase, 1 number, 1 special char.
+              </p>
 
               <div className="relative">
                 <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
@@ -176,19 +248,25 @@ export default function ForgotPassword() {
                 />
               </div>
 
-              <button className="w-full rounded-full bg-yellow-400 py-2 text-sm font-medium hover:bg-yellow-500">
-                Reset Password
+              <button 
+                disabled={loading}
+                className="w-full rounded-full bg-yellow-400 py-2 text-sm font-medium hover:bg-yellow-500 flex justify-center items-center"
+              >
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Reset Password'}
               </button>
             </form>
           )}
 
           {step === 'success' && (
-            <Link
-              href={`/auth/login?flow=${new URLSearchParams(window.location.search).get('flow') || 'investor'}`}
-              className="block text-center w-full rounded-full bg-yellow-400 py-2 text-sm font-medium hover:bg-yellow-500"
-            >
-              Back to Login
-            </Link>
+            <>
+              <Link
+                href={`/auth/login?flow=${flow}`}
+                className="block text-center w-full rounded-full bg-yellow-400 py-3 text-sm font-medium hover:bg-yellow-500"
+              >
+                Back to Login
+              </Link>
+              <p className="mt-4 text-center text-green-600 font-medium">Password updated successfully</p>
+            </>
           )}
         </div>
       </div>

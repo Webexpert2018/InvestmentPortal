@@ -58,7 +58,7 @@ export default function InvestorSignupPage() {
   const setField = (field: string, value: string | string[]) => {
     setForm((prev) => {
       const next = { ...prev, [field]: value };
-      
+
       // Cascading logic: Reset dependent fields
       if (field === 'country') {
         next.state = '';
@@ -66,7 +66,7 @@ export default function InvestorSignupPage() {
       } else if (field === 'state') {
         next.city = '';
       }
-      
+
       return next;
     });
     setErrors((prev) => ({ ...prev, [field]: '' }));
@@ -95,32 +95,96 @@ export default function InvestorSignupPage() {
   const validateStep = (step: Step) => {
     const nextErrors: ValidationErrors = {};
 
+    // if (step === 1) {
+    //   if (!form.firstName.trim()) nextErrors.firstName = 'First name is required';
+    //   if (!form.lastName.trim()) nextErrors.lastName = 'Last name is required';
+    //   if (!form.email.trim()) nextErrors.email = 'Email is required';
+    //   if (!form.phoneNumber.trim()) {
+    //     nextErrors.phoneNumber = 'Phone number is required';
+    //   } else if (form.phoneNumber.length < 10) {
+    //     nextErrors.phoneNumber = 'Please enter a valid phone number';
+    //   }
+    //   if (!form.dob) nextErrors.dob = 'Date of birth is required';
+    // }
     if (step === 1) {
-      if (!form.firstName.trim()) nextErrors.firstName = 'First name is required';
-      if (!form.lastName.trim()) nextErrors.lastName = 'Last name is required';
-      if (!form.email.trim()) nextErrors.email = 'Email is required';
-      if (!form.phoneNumber.trim()) {
-        nextErrors.phoneNumber = 'Phone number is required';
-      } else if (form.phoneNumber.length < 10) {
-        nextErrors.phoneNumber = 'Please enter a valid phone number';
+      // First Name
+      if (!form.firstName.trim()) {
+        nextErrors.firstName = 'First name is required';
+      } else if (!/^[A-Za-z\s]+$/.test(form.firstName)) {
+        nextErrors.firstName = 'First name should contain only letters';
       }
-      if (!form.dob) nextErrors.dob = 'Date of birth is required';
+
+      // Last Name
+      if (!form.lastName.trim()) {
+        nextErrors.lastName = 'Last name is required';
+      } else if (!/^[A-Za-z\s]+$/.test(form.lastName)) {
+        nextErrors.lastName = 'Last name should contain only letters';
+      }
+
+      // Email
+      if (!form.email.trim()) {
+        nextErrors.email = 'Email is required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+        nextErrors.email = 'Please enter a valid email address';
+      }
+
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+      if (!emailRegex.test(form.email)) {
+        nextErrors.email = 'Invalid email format';
+      }
+
+      // Phone Number
+      const phoneError = (() => {
+        const cleanNumber = form.phoneNumber.trim();
+        if (!cleanNumber) return 'Phone number is required';
+        if (form.phoneCountryCode === '+1 (USA)') {
+          if (cleanNumber.length !== 10) return 'USA phone number must be 10 digits';
+        } else if (form.phoneCountryCode === '+44 (UK)') {
+          if (cleanNumber.length < 10 || cleanNumber.length > 11) return 'UK phone number must be 10-11 digits';
+        } else if (form.phoneCountryCode === '+91 (IN)') {
+          if (cleanNumber.length !== 10) return 'India phone number must be 10 digits';
+        }
+        return null;
+      })();
+      if (phoneError) nextErrors.phoneNumber = phoneError;
+
+      // DOB
+      if (!form.dob) {
+        nextErrors.dob = 'Date of birth is required';
+      }
     }
 
     if (step === 2) {
       if (!form.addressLine1.trim()) nextErrors.addressLine1 = 'Address line 1 is required';
-      if (!form.city.trim()) nextErrors.city = 'City is required';
+      if (!form.city.trim()) {
+        nextErrors.city = 'City is required';
+      } else if (!/^[A-Za-z\s\-']+$/.test(form.city.trim())) {
+        nextErrors.city = 'City can only contain letters';
+      }
       if (!form.state) nextErrors.state = 'State is required';
-      if (!form.zipCode.trim()) nextErrors.zipCode = 'ZIP code is required';
+      if (!form.zipCode.trim()) {
+        nextErrors.zipCode = 'ZIP code is required';
+      } else if (!/^[a-zA-Z0-9\s\-]+$/.test(form.zipCode.trim())) {
+        nextErrors.zipCode = 'ZIP code can only contain letters, numbers, and hyphens';
+      }
       if (!form.country) nextErrors.country = 'Country is required';
     }
 
     if (step === 3) {
-      if (!form.phoneNumber.trim()) {
-        nextErrors.phoneNumber = 'Phone number is required';
-      } else if (form.phoneNumber.length < 10) {
-        nextErrors.phoneNumber = 'Please enter a valid phone number';
-      }
+      // Phone Number
+      const phoneErrorStep3 = (() => {
+        const cleanNumber = form.phoneNumber.trim();
+        if (!cleanNumber) return 'Phone number is required';
+        if (form.phoneCountryCode === '+1 (USA)') {
+          if (cleanNumber.length !== 10) return 'USA phone number must be 10 digits';
+        } else if (form.phoneCountryCode === '+44 (UK)') {
+          if (cleanNumber.length < 10 || cleanNumber.length > 11) return 'UK phone number must be 10-11 digits';
+        } else if (form.phoneCountryCode === '+91 (IN)') {
+          if (cleanNumber.length !== 10) return 'India phone number must be 10 digits';
+        }
+        return null;
+      })();
+      if (phoneErrorStep3) nextErrors.phoneNumber = phoneErrorStep3;
       if (otpSent && form.phoneOtp.some((digit) => !digit)) {
         nextErrors.phoneOtp = 'Enter complete 6-digit verification code';
       }
@@ -153,8 +217,13 @@ export default function InvestorSignupPage() {
   };
 
   const moveBack = () => {
-    if (!canGoBack || loading) return;
-    setCurrentStep((prev) => (prev - 1) as Step);
+    if (loading) return;
+    if (currentStep > 1) {
+      setCurrentStep((prev) => (prev - 1) as Step);
+    } else {
+      setShowProfileFlow(false);
+      setCurrentStep(1);
+    }
   };
 
   const moveNext = async () => {
@@ -178,29 +247,26 @@ export default function InvestorSignupPage() {
 
   const handleFinalSubmit = async () => {
     debugger;
-   // console.log();
+    // console.log();
     setLoading(true);
     setGlobalError('');
 
     try {
       // Get readable names from ISO codes for submission
-      const countryName = Country.getCountryByCode(form.country)?.name || form.country;
-      const stateName = State.getStateByCodeAndCountry(form.state, form.country)?.name || form.state;
-
       await signup({
         email: form.email,
         password: form.password,
         firstName: form.firstName,
         lastName: form.lastName,
         phone: `${form.phoneCountryCode} ${form.phoneNumber}`,
-        dob:form.dob,
+        dob: form.dob,
         role: 'investor',
         addressLine1: form.addressLine1,
         addressLine2: form.addressLine2,
         city: form.city,
-        state: stateName,
+        state: form.state,
         zipCode: form.zipCode,
-        country: countryName,
+        country: form.country,
         taxId: form.taxId,
       });
       router.push('/dashboard');
@@ -225,175 +291,177 @@ export default function InvestorSignupPage() {
       className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
       style={{ backgroundImage: "url('/images/login-bg.jpg')" }}
     >
-       
-          {!showProfileFlow ? (
-              <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
-                {/* Logo */}
-                <a href="/" className="flex justify-center mb-3 sm:mb-4">
-                    <img
-                        src="/images/logo.png"
-                        alt="Logo"
-                        className="logo-container"
-                    />
-                </a>
 
-                <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
-                    Create Your Ovalia Capital
-                </h2>
-                <p className="mt-1 text-center text-md sm:text-xl">
-                  Enter your details to begin your Ovalia Capital onboarding.
-                </p>
+      {!showProfileFlow ? (
+        <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
+          {/* Logo */}
+          <a href="/" className="flex justify-center mb-3 sm:mb-4">
+            <img
+              src="/images/logo.png"
+              alt="Logo"
+              className="logo-container"
+            />
+          </a>
 
-                <div className="space-y-4">
-                  <FormField label="Email" error={errors.email}>
-                    <input
-                      value={form.email}
-                      onChange={(e) => setField('email', e.target.value)}
-                      placeholder="Enter email"
-                      className="h-11 w-full rounded-md border border-[#E5E5E5] px-3 font-helvetica text-sm outline-none focus:border-yellow-400"
-                    />
-                  </FormField>
+          <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
+            Create Your Ovalia Capital
+          </h2>
+          <p className="mt-1 text-center text-md sm:text-xl">
+            Enter your details to begin your Ovalia Capital onboarding.
+          </p>
 
-                  <FormField label="Password" error={errors.password}>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={form.password}
-                        onChange={(e) => setField('password', e.target.value)}
-                        placeholder="Enter password"
-                        className="h-11 w-full rounded-md border border-[#E5E5E5] px-3 pr-10 font-helvetica text-sm outline-none focus:border-yellow-400"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute inset-y-0 right-3 text-[#9A9A9A]"
-                      >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </FormField>
+          <div className="space-y-4">
+            <FormField label="Email" error={errors.email}>
+              <input
+                value={form.email}
+                onChange={(e) => setField('email', e.target.value)}
+                placeholder="Enter email"
+                className="h-11 w-full rounded-md border border-[#E5E5E5] px-3 font-helvetica text-sm outline-none focus:border-yellow-400"
+              />
+            </FormField>
 
-                  <FormField label="Confirm Password" error={errors.confirmPassword}>
-                    <div className="relative">
-                      <input
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        value={form.confirmPassword}
-                        onChange={(e) => setField('confirmPassword', e.target.value)}
-                        placeholder="Enter confirm password"
-                        className="h-11 w-full rounded-md border border-[#E5E5E5] px-3 pr-10 font-helvetica text-sm outline-none focus:border-yellow-400"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword((prev) => !prev)}
-                        className="absolute inset-y-0 right-3 text-[#9A9A9A]"
-                      >
-                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </FormField>
-                </div>
-
-                {globalError && <p className="mt-4 text-center font-helvetica text-sm text-red-600">{globalError}</p>}
-
+            <FormField label="Password" error={errors.password}>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={form.password}
+                  onChange={(e) => setField('password', e.target.value)}
+                  placeholder="Enter password"
+                  className="h-11 w-full rounded-md border border-[#E5E5E5] px-3 pr-10 font-helvetica text-sm outline-none focus:border-yellow-400"
+                />
                 <button
                   type="button"
-                  onClick={handleCreateAccount}
-                  disabled={loading}
-                  className="mt-7 h-11 w-full rounded-full bg-yellow-400 text-lg  text-[#2A4474]"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-3 text-[#9A9A9A]"
                 >
-                  Sign Up
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </FormField>
+
+            <FormField label="Confirm Password" error={errors.confirmPassword}>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={form.confirmPassword}
+                  onChange={(e) => setField('confirmPassword', e.target.value)}
+                  placeholder="Enter confirm password"
+                  className="h-11 w-full rounded-md border border-[#E5E5E5] px-3 pr-10 font-helvetica text-sm outline-none focus:border-yellow-400"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-3 text-[#9A9A9A]"
+                >
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </FormField>
+          </div>
+
+          {globalError && <p className="mt-4 text-center font-helvetica text-sm text-red-600">{globalError}</p>}
+
+          <button
+            type="button"
+            onClick={handleCreateAccount}
+            disabled={loading}
+            className="mt-7 h-11 w-full rounded-full bg-yellow-400 text-lg  text-[#2A4474]"
+          >
+            Sign Up
+          </button>
+
+          <p className="mt-5 text-center text-xl text-[#9C9C9C]">
+            Already have an account?{' '}
+            <Link href="/auth/login?flow=investor" className="font-medium text-yellow-600 hover:underline">
+              Log In
+            </Link>
+          </p>
+        </div>
+      ) : (
+        <div className="mx-auto flex min-h-[752px] w-full max-w-[1230px] items-center justify-center p-6 md:p-10">
+          <div className="w-full rounded-md bg-[#FCFCFC] shadow-xl">
+            <div className="border-b border-[#EBEBEB] px-6 pt-6">
+              <a href="/" className="mb-4 flex justify-center">
+                <img src="/images/logo.png" alt="Ovalia Capital" className="h-auto w-[170px] object-contain logo-con" />
+              </a>
+
+              <h3 className="text-[24px] text-[#1F1F1F] font-bold">Complete Your Profile</h3>
+              <p className="mb-4 font-helvetica text-lg">Just a few steps to get started</p>
+
+              <div className="mb-3 flex items-center gap-2 pb-4">
+                {progress.map((item, index) => (
+                  <div key={item.label} className="flex flex-1 items-center gap-2">
+                    <div
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${item.done || item.active ? 'bg-[#F1CF4A] text-white' : 'bg-[#EFEFEF] text-[#9A9A9A]'
+                        }`}
+                    >
+                      {item.done ? '✓' : item.stepNumber}
+                    </div>
+                    <span className="whitespace-nowrap font-helvetica text-xs text-[#6F6F6F]">{item.label}</span>
+                    {index < progress.length - 1 && <div className="h-px flex-1 bg-[#E3E3E3]" />}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="px-6 py-5">{renderStepContent()}</div>
+
+            <div className="flex items-center justify-between px-6 pb-6 pt-2">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={moveBack}
+                  className="h-10 min-w-[108px] rounded-full bg-[#F8F1D8] px-6 font-medium text-[#8B7F53]"
+                >
+                  Back
                 </button>
 
-                <p className="mt-5 text-center text-xl text-[#9C9C9C]">
-                  Already have an account?{' '}
-                  <Link href="/auth/login?flow=investor" className="font-medium text-yellow-600 hover:underline">
-                    Log In
-                  </Link>
-                </p>
+                {currentStep === 5 && (
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-[#888888] hover:text-[#4B4B4B]"
+                    onClick={() => router.push('/auth/login?flow=investor')}
+                  >
+                    SKIP
+                  </button>
+                )}
               </div>
-          ) : (
-            <div className="mx-auto flex min-h-[752px] w-full max-w-[1230px] items-center justify-center p-6 md:p-10">
-              <div className="w-full rounded-md bg-[#FCFCFC] shadow-xl">
-                <div className="border-b border-[#EBEBEB] px-6 pt-6">
-                 <a href="/" className="mb-4 flex justify-center">
-                    <img src="/images/logo.png" alt="Ovalia Capital" className="h-auto w-[170px] object-contain logo-con" />
-                  </a>
 
-                  <h3 className="text-[24px] text-[#1F1F1F] font-bold">Complete Your Profile</h3>
-                  <p className="mb-4 font-helvetica text-lg">Just a few steps to get started</p>
+              <div className="flex items-center gap-3">
 
-                  <div className="mb-3 flex items-center gap-2 pb-4">
-                    {progress.map((item, index) => (
-                      <div key={item.label} className="flex flex-1 items-center gap-2">
-                        <div
-                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
-                            item.done || item.active ? 'bg-[#F1CF4A] text-white' : 'bg-[#EFEFEF] text-[#9A9A9A]'
-                          }`}
-                        >
-                          {item.done ? '✓' : item.stepNumber}
-                        </div>
-                        <span className="whitespace-nowrap font-helvetica text-xs text-[#6F6F6F]">{item.label}</span>
-                        {index < progress.length - 1 && <div className="h-px flex-1 bg-[#E3E3E3]" />}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="px-6 py-5">{renderStepContent()}</div>
-
-                <div className="flex items-center justify-between px-6 pb-6 pt-2">
-                  {currentStep === 5 ? (
-                    <button type="button" className="text-sm text-[#888888]" onClick={() => router.push('/auth/login?flow=investor')}>
-                      SKIP
-                    </button>
-                  ) : (
-                    <span />
-                  )}
-
-                  <div className="flex items-center gap-3">
-                    {canGoBack && (
-                      <button
-                        type="button"
-                        onClick={moveBack}
-                        className="h-10 min-w-[108px] rounded-full bg-[#F8F1D8] px-6 font-medium text-[#8B7F53]"
-                      >
-                        Cancel
-                      </button>
-                    )}
-
-                    {currentStep === 3 && !otpSent ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!validateStep(3)) return;
-                          setOtpSent(true);
-                        }}
-                        className="h-10 min-w-[108px] rounded-full bg-yellow-400 px-6 font-medium text-[#2A2A2A]"
-                      >
-                        Send Code
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={moveNext}
-                        disabled={loading}
-                        className="h-10 min-w-[108px] rounded-full bg-yellow-400 px-6 font-medium text-[#2A2A2A] disabled:opacity-70"
-                      >
-                        {currentStep === 5 ? (loading ? 'Submitting...' : 'Continue') : 'Continue'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {globalError && (
-                  <div className="px-6 pb-6">
-                    <p className="font-helvetica text-sm text-red-600">{globalError}</p>
-                  </div>
+                {currentStep === 3 && !otpSent ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!validateStep(3)) return;
+                      setOtpSent(true);
+                    }}
+                    className="h-10 min-w-[108px] rounded-full bg-yellow-400 px-6 font-medium text-[#2A2A2A]"
+                  >
+                    Send Code
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={moveNext}
+                    disabled={loading}
+                    className="h-10 min-w-[108px] rounded-full bg-yellow-400 px-6 font-medium text-[#2A2A2A] disabled:opacity-70"
+                  >
+                    {currentStep === 5 ? (loading ? 'Submitting...' : 'Continue') : 'Continue'}
+                  </button>
                 )}
               </div>
             </div>
-          )}
-       
+
+            {globalError && (
+              <div className="px-6 pb-6">
+                <p className="font-helvetica text-sm text-red-600">{globalError}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 
@@ -455,10 +523,10 @@ export default function InvestorSignupPage() {
             <FormField label="Date of Birth" error={errors.dob}>
               <div className="relative">
                 <input
-                    type="date"
-                    value={form.dob}
-                    onChange={(e) => setField('dob', e.target.value)}
-                    className="
+                  type="date"
+                  value={form.dob}
+                  onChange={(e) => setField('dob', e.target.value)}
+                  className="
                     h-11 w-full
                     rounded-md
                     border border-[#E6E6E6]
@@ -470,7 +538,7 @@ export default function InvestorSignupPage() {
                     "
                 />
 
-</div>
+              </div>
             </FormField>
           </div>
         </div>

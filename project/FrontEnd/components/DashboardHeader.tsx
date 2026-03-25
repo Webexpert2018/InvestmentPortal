@@ -18,7 +18,7 @@ export function DashboardHeader({
   isCollapsed,
   onToggleSidebar,
 }: DashboardHeaderProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, profileTimestamp } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const displayName = `${user?.firstName || "investor"} ${user?.lastName || "User"}`;
@@ -109,9 +109,21 @@ export function DashboardHeader({
             className="flex items-center gap-3 rounded-lg px-1 py-1"
             aria-label="Open profile menu"
           >
-            <div className="relative h-[50px] w-[50px] overflow-hidden rounded-full">
+            <div className="relative h-[50px] w-[50px] overflow-hidden rounded-full border border-[#EEEEEE]">
               <Image
-                src="/images/login_investor.png"
+                src={(() => {
+                  if (!user?.profileImageUrl) {
+                    return `https://api.dicebear.com/7.x/initials/svg?seed=${user?.firstName || 'User'}`;
+                  }
+                  if (user.profileImageUrl.startsWith('http')) {
+                    const url = new URL(user.profileImageUrl);
+                    url.searchParams.set('t', profileTimestamp.toString());
+                    return url.toString();
+                  }
+                  const baseUrl = 'http://localhost:3001';
+                  const separator = user.profileImageUrl.includes('?') ? '&' : '?';
+                  return `${baseUrl}${user.profileImageUrl}${separator}t=${profileTimestamp}`;
+                })()}
                 alt="Profile"
                 fill
                 className="object-cover"
