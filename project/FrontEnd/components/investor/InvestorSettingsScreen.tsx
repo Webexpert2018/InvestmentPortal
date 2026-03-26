@@ -203,14 +203,14 @@ export function InvestorSettingsScreen() {
   const countries = useMemo(() => Country.getAllCountries(), []);
   const states = useMemo(() => {
     if (!profile.country) return [];
-    const countryObj = countries.find(c => c.name === profile.country);
+    const countryObj = countries.find(c => c.isoCode === profile.country || c.name === profile.country);
     return countryObj ? State.getStatesOfCountry(countryObj.isoCode) : [];
   }, [profile.country, countries]);
 
   const cities = useMemo(() => {
     if (!profile.country || !profile.state) return [];
-    const countryObj = countries.find(c => c.name === profile.country);
-    const stateObj = states.find(s => s.name === profile.state);
+    const countryObj = countries.find(c => c.isoCode === profile.country || c.name === profile.country);
+    const stateObj = states.find(s => s.isoCode === profile.state || s.name === profile.state);
     if (!countryObj || !stateObj) return [];
     return City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode);
   }, [profile.country, profile.state, countries, states]);
@@ -241,6 +241,16 @@ export function InvestorSettingsScreen() {
             ? fullPhone.slice(cleanPrefix.length)
             : fullPhone;
 
+          const foundCountry = countries.find(c => c.isoCode === userData.country || c.name === userData.country);
+          const countryIso = foundCountry?.isoCode || userData.country || '';
+          
+          let stateIso = userData.state || '';
+          if (foundCountry) {
+            const countryStates = State.getStatesOfCountry(foundCountry.isoCode);
+            const foundState = countryStates.find(s => s.isoCode === userData.state || s.name === userData.state);
+            stateIso = foundState?.isoCode || userData.state || '';
+          }
+
           setProfile({
             firstName: userData.firstName || '',
             lastName: userData.lastName || '',
@@ -251,9 +261,9 @@ export function InvestorSettingsScreen() {
             addressLine1: userData.addressLine1 || '',
             addressLine2: userData.addressLine2 || '',
             city: userData.city || '',
-            state: userData.state || '',
+            state: stateIso,
             zipCode: userData.zipCode || '',
-            country: userData.country || '',
+            country: countryIso,
             ssn: userData.taxId || '*** ** ***',
             profileImageUrl: userData.profileImageUrl || '',
           });
@@ -641,7 +651,7 @@ export function InvestorSettingsScreen() {
               <div>
                 <FieldLabel>State</FieldLabel>
                 <Combobox
-                  options={states.map((s) => ({ label: s.name, value: s.name }))}
+                  options={states.map((s) => ({ label: s.name, value: s.isoCode }))}
                   value={profile.state}
                   onChange={(val) => {
                     setProfile((prev) => ({ ...prev, state: val, city: '' }));
@@ -671,7 +681,7 @@ export function InvestorSettingsScreen() {
               <div>
                 <FieldLabel>Country</FieldLabel>
                 <Combobox
-                  options={countries.map((c) => ({ label: c.name, value: c.name }))}
+                  options={countries.map((c) => ({ label: c.name, value: c.isoCode }))}
                   value={profile.country}
                   onChange={(val) => {
                     setProfile((prev) => ({ ...prev, country: val, state: '', city: '' }));

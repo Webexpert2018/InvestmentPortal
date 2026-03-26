@@ -101,14 +101,14 @@ export function AccountantSettingsScreen() {
   const countries = useMemo(() => Country.getAllCountries(), []);
   const states = useMemo(() => {
     if (!country) return [];
-    const countryObj = countries.find(c => c.name === country);
+    const countryObj = countries.find(c => c.isoCode === country || c.name === country);
     return countryObj ? State.getStatesOfCountry(countryObj.isoCode) : [];
   }, [country, countries]);
 
   const cities = useMemo(() => {
     if (!country || !state) return [];
-    const countryObj = countries.find(c => c.name === country);
-    const stateObj = states.find(s => s.name === state);
+    const countryObj = countries.find(c => c.isoCode === country || c.name === country);
+    const stateObj = states.find(s => s.isoCode === state || s.name === state);
     if (!countryObj || !stateObj) return [];
     return City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode);
   }, [country, state, countries, states]);
@@ -144,10 +144,21 @@ export function AccountantSettingsScreen() {
 
           setAddressLine1(userData.addressLine1 || '');
           setAddressLine2(userData.addressLine2 || '');
-          setCity(userData.city || '');
-          setState(userData.state || '');
           setZipCode(userData.zipCode || '');
-          setCountry(userData.country || '');
+
+          const foundCountry = countries.find(c => c.isoCode === userData.country || c.name === userData.country);
+          const countryIso = foundCountry?.isoCode || userData.country || '';
+          setCountry(countryIso);
+
+          if (foundCountry) {
+            const countryStates = State.getStatesOfCountry(foundCountry.isoCode);
+            const foundState = countryStates.find(s => s.isoCode === userData.state || s.name === userData.state);
+            setState(foundState?.isoCode || userData.state || '');
+          } else {
+            setState(userData.state || '');
+          }
+
+          setCity(userData.city || '');
         }
         setError(null);
       } catch (err) {
@@ -498,7 +509,7 @@ export function AccountantSettingsScreen() {
             <div>
               <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">State</label>
               <Combobox
-                options={states.map((s) => ({ label: s.name, value: s.name }))}
+                options={states.map((s) => ({ label: s.name, value: s.isoCode }))}
                 value={state}
                 onChange={(val) => {
                   setState(val);
@@ -530,7 +541,7 @@ export function AccountantSettingsScreen() {
             <div>
               <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Country</label>
               <Combobox
-                options={countries.map((c) => ({ label: c.name, value: c.name }))}
+                options={countries.map((c) => ({ label: c.name, value: c.isoCode }))}
                 value={country}
                 onChange={(val) => {
                   setCountry(val);
