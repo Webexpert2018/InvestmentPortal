@@ -41,7 +41,7 @@ const pool = new Pool({
 // Fix TypeScript error: explicitly type 'err'
 pool.on('error', (err: Error) => {
   console.error('Unexpected error on idle client', err);
-  process.exit(-1);
+  // Remove process.exit(-1); - In serverless, it's better to let the handler fail than to kill the process
 });
 
 export const db = pool;

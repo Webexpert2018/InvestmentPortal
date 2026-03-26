@@ -40,44 +40,77 @@ const swagger_1 = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const path_1 = require("path");
 const fs = __importStar(require("fs"));
+let cachedApp;
+let isInitializing = false;
+let initializationPromise = null;
 async function bootstrap() {
-    const app = await core_1.NestFactory.create(app_module_1.AppModule);
-    console.log('🌐 Environment:', process.env.NODE_ENV);
-    const configService = app.get(config_1.ConfigService);
-    // Try to get PORT from ConfigService first, then environment, then default
-    const port = parseInt(configService.get('PORT') || process.env.PORT || '3001', 10);
-    app.enableCors();
-    // Ensure uploads directory exists
-    const uploadDir = (0, path_1.join)(process.cwd(), 'uploads', 'profile-images');
-    if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-        console.log('📁 Created uploads directory:', uploadDir);
-    }
-    // Serve static files from uploads directory
-    app.useStaticAssets((0, path_1.join)(process.cwd(), 'uploads'), {
-        prefix: '/public/uploads',
-    });
-    // Add validation pipe
-    app.useGlobalPipes(new common_1.ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: false, //changes hereeeeeeeee make it true
-        transform: true,
-    }));
-    // Swagger Always Enabled (optional)
-    const config = new swagger_1.DocumentBuilder()
-        .setTitle('Investment Portal API')
-        .setDescription('API Documentation for Investment Portal')
-        .setVersion('1.0')
-        .addBearerAuth()
-        .build();
-    const document = swagger_1.SwaggerModule.createDocument(app, config);
-    swagger_1.SwaggerModule.setup('api/docs', app, document);
-    console.log(`🚀 Swagger URL: http://localhost:${port}/api/docs`);
-    await app.listen(port, '0.0.0.0'); // Listen on all interfaces for Railway
-    console.log(`🚀 App Running On: http://0.0.0.0:${port}`);
+    if (cachedApp)
+        return cachedApp;
+    if (initializationPromise)
+        return initializationPromise;
+    initializationPromise = (async () => {
+        try {
+            const app = await core_1.NestFactory.create(app_module_1.AppModule);
+            console.log('🌐 Environment:', process.env.NODE_ENV || 'development');
+            const configService = app.get(config_1.ConfigService);
+            const port = parseInt(configService.get('PORT') || process.env.PORT || '3001', 10);
+            app.enableCors();
+            const isVercel = process.env.VERCEL === '1';
+            const uploadDir = isVercel
+                ? (0, path_1.join)('/tmp', 'uploads', 'profile-images')
+                : (0, path_1.join)(process.cwd(), 'uploads', 'profile-images');
+            if (!fs.existsSync(uploadDir)) {
+                try {
+                    fs.mkdirSync(uploadDir, { recursive: true });
+                    console.log('📁 Created uploads directory:', uploadDir);
+                }
+                catch (err) {
+                    console.error('⚠️ Could not create uploads directory:', err);
+                }
+            }
+            app.useStaticAssets(isVercel ? (0, path_1.join)('/tmp', 'uploads') : (0, path_1.join)(process.cwd(), 'uploads'), {
+                prefix: '/public/uploads',
+            });
+            app.useGlobalPipes(new common_1.ValidationPipe({
+                whitelist: true,
+                transform: true,
+            }));
+            const config = new swagger_1.DocumentBuilder()
+                .setTitle('Investment Portal API')
+                .setDescription('API Documentation for Investment Portal')
+                .setVersion('1.0')
+                .addBearerAuth()
+                .build();
+            const document = swagger_1.SwaggerModule.createDocument(app, config);
+            swagger_1.SwaggerModule.setup('api/docs', app, document);
+            if (!isVercel) {
+                await app.listen(port, '0.0.0.0');
+                console.log(`🚀 App Running On: http://0.0.0.0:${port}`);
+            }
+            else {
+                await app.init();
+            }
+            cachedApp = app;
+            return app;
+        }
+        catch (err) {
+            initializationPromise = null;
+            throw err;
+        }
+    })();
+    return initializationPromise;
 }
-bootstrap().catch(err => {
-    console.error('Failed to start application:', err);
-    process.exit(1);
-});
+// Support for local development
+if (process.env.VERCEL !== '1') {
+    bootstrap().catch(err => {
+        console.error('Failed to start application:', err);
+        process.exit(1);
+    });
+}
+// Support for Vercel Serverless Functions
+exports.default = async (req, res) => {
+    const app = await bootstrap();
+    const server = app.getHttpAdapter().getInstance();
+    return server(req, res);
+};
 //# sourceMappingURL=main.js.map
