@@ -4,15 +4,28 @@ import * as dotenv from 'dotenv';
 // Load env vars immediately
 dotenv.config();
 
-const connectionString = process.env.DATABASE_URL;
+// Construct connection string from individual variables if DATABASE_URL is missing
+const getConnectionString = () => {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+
+  const user = process.env.DB_USER || process.env.PGUSER || 'postgres';
+  const password = process.env.DB_PASSWORD || process.env.PGPASSWORD || 'postgres';
+  const host = process.env.DB_HOST || process.env.PGHOST || 'localhost';
+  const port = process.env.DB_PORT || process.env.PGPORT || '5432';
+  const database = process.env.DB_NAME || process.env.PGDATABASE || 'bitcoin_ira';
+
+  return `postgresql://${user}:${password}@${host}:${port}/${database}`;
+};
+
+const connectionString = getConnectionString();
 
 console.log('📡 Database Configuration:');
-console.log(`   Connection String: ${connectionString?.replace(/:[^@]*@/, ':****@') || 'NOT SET'}`);
-console.log(`   Port: ${connectionString?.includes(':') ? 'Using connection string' : 'ERROR: No connection string'}`);
+console.log(`   Connection String: ${connectionString.replace(/:[^@]*@/, ':****@')}`);
+console.log(`   Method: ${process.env.DATABASE_URL ? 'DATABASE_URL' : 'Individual Variables'}`);
 
 if (!connectionString) {
-  console.error('❌ ERROR: DATABASE_URL is not set in .env file');
-  throw new Error('DATABASE_URL environment variable is required');
+  console.error('❌ ERROR: Database configuration is missing');
+  throw new Error('DATABASE_URL or individual DB_* environment variables are required');
 }
 
 const pool = new Pool({

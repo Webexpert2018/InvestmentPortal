@@ -5,8 +5,23 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+// Construct connection string from individual variables if DATABASE_URL is missing
+const getConnectionString = () => {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+
+  const user = process.env.DB_USER || process.env.PGUSER || 'postgres';
+  const password = process.env.DB_PASSWORD || process.env.PGPASSWORD || 'postgres';
+  const host = process.env.DB_HOST || process.env.PGHOST || 'localhost';
+  const port = process.env.DB_PORT || process.env.PGPORT || '5432';
+  const database = process.env.DB_NAME || process.env.PGDATABASE || 'bitcoin_ira';
+
+  return `postgresql://${user}:${password}@${host}:${port}/${database}`;
+};
+
+const connectionString = getConnectionString();
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
   ssl: {
     rejectUnauthorized: false,
   },
