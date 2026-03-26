@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
@@ -24,7 +23,7 @@ const LOGIN_COPY: Record<LoginFlow, { title: string; subtitle: string }> = {
   },
 };
 
-export default function LoginPage() {
+function LoginForm() {
   const { login } = useAuth();
   const searchParams = useSearchParams();
 
@@ -43,14 +42,12 @@ export default function LoginPage() {
     flow === 'investor'
       ? `/auth/investor-signup?flow=${searchParams.get('flow') || 'investor'}`
       : `/auth/signup?flow=${searchParams.get('flow') || flow}`;
-  // const signupHref = flow === 'investor' ? '/auth/investor-signup' : '/auth/signup';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    // Map flow to appropriate backend role for RBAC
     const roleMap: Record<string, string> = {
       admin: 'admin',
       accountant: 'accountant',
@@ -71,13 +68,11 @@ export default function LoginPage() {
       className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
       style={{ backgroundImage: "url('/images/login-bg.jpg')" }}
     >
-      <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8  sm:py-10">
-        {/* Logo */}
+      <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
         <a href="/" className="flex justify-center mb-3 sm:mb-4">
           <img src="/images/logo.png" alt="Logo" className="logo-container" />
         </a>
 
-        {/* Heading */}
         <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
           {title}
         </h2>
@@ -85,9 +80,7 @@ export default function LoginPage() {
           {subtitle}
         </p>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="mt-6 sm:space-y-5 space-y-4">
-          {/* Email */}
           <div>
             <label className="block font-helvetica font-medium text-sm sm:text-md text-[#4B4B4B] mb-1">Email</label>
             <input
@@ -101,7 +94,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block font-helvetica font-medium text-sm sm:text-md text-[#4B4B4B] mb-1">Password</label>
             <div className="relative">
@@ -124,14 +116,12 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Error */}
           {error && (
             <div className="text-sm text-red-600 text-center">
               {error}
             </div>
           )}
 
-          {/* Button */}
           <button
             type="submit"
             disabled={loading}
@@ -142,7 +132,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Forgot */}
         <div className="mt-4 text-center">
           <Link
             href={`/auth/forgot-password?flow=${searchParams.get('flow') || 'investor'}`}
@@ -159,5 +148,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#F1F1F1] px-4">
+        <Loader2 className="h-8 w-8 animate-spin text-yellow-500" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

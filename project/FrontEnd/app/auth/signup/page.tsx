@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
 import { Loader2, Eye, EyeOff, ChevronDown } from 'lucide-react';
@@ -8,13 +8,11 @@ import { useSearchParams } from 'next/navigation';
 
 const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
 
-
-export default function SignupPage() {
+function SignupForm() {
   const { signup } = useAuth();
-
-const searchParams = useSearchParams(); 
-const flowParam = searchParams.get('flow') || 'investor';
-const flow = flowParam === 'account' ? 'accountant' : flowParam;
+  const searchParams = useSearchParams(); 
+  const flowParam = searchParams.get('flow') || 'investor';
+  const flow = flowParam === 'account' ? 'accountant' : flowParam;
 
   const [formData, setFormData] = useState({
     email: '',
@@ -88,7 +86,6 @@ const flow = flowParam === 'account' ? 'accountant' : flowParam;
     }
 
     try {
-      const prefix = formData.phoneCountryCode.split(' ')[0];
       await signup({
         email: formData.email,
         password: formData.password,
@@ -111,7 +108,6 @@ const flow = flowParam === 'account' ? 'accountant' : flowParam;
     >
       <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
         
-        {/* Logo */}
         <a href="/" className="flex justify-center mb-3 sm:mb-4">
           <img
             src="/images/logo.png"
@@ -120,7 +116,6 @@ const flow = flowParam === 'account' ? 'accountant' : flowParam;
           />
         </a>
 
-        {/* Heading */}
         <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
           Create Account
         </h2>
@@ -128,10 +123,7 @@ const flow = flowParam === 'account' ? 'accountant' : flowParam;
           Start your Bitcoin IRA investment journey
         </p>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="mt-6 space-y-4 sm:space-y-5">
-          
-          {/* Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input
               name="firstName"
@@ -190,7 +182,6 @@ const flow = flowParam === 'account' ? 'accountant' : flowParam;
             />
           </div>
 
-          {/* Password Field with Eye Icon */}
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -212,7 +203,6 @@ const flow = flowParam === 'account' ? 'accountant' : flowParam;
             </button>
           </div>
 
-          {/* Confirm Password Field with Eye Icon */}
           <div className="relative">
             <input
               type={showConfirmPassword ? 'text' : 'password'}
@@ -234,14 +224,12 @@ const flow = flowParam === 'account' ? 'accountant' : flowParam;
             </button>
           </div>
 
-          {/* Error */}
           {error && (
             <div className="text-sm text-red-600 text-center">
               {error}
             </div>
           )}
 
-          {/* Button */}
           <button
             type="submit"
             disabled={loading}
@@ -252,7 +240,6 @@ const flow = flowParam === 'account' ? 'accountant' : flowParam;
           </button>
         </form>
 
-        {/* Footer */}
         <div className="mt-4 text-center font-goudy text-md sm:text-lg">
           <span className="mr-1">Already have an account?</span>
           <Link href={`/auth/login?flow=${searchParams.get('flow') || 'investor'}`} className="font-medium text-yellow-600 hover:underline">
@@ -261,5 +248,17 @@ const flow = flowParam === 'account' ? 'accountant' : flowParam;
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#F1F1F1] px-4">
+        <Loader2 className="h-8 w-8 animate-spin text-yellow-500" />
+      </div>
+    }>
+      <SignupForm />
+    </Suspense>
   );
 }
