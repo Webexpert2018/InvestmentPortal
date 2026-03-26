@@ -28,7 +28,8 @@ exports.AppModule = AppModule = __decorate([
             // Make env vars available everywhere
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
-                envFilePath: '.env',
+                envFilePath: process.env.NODE_ENV === 'production' ? undefined : '.env',
+                ignoreEnvFile: process.env.NODE_ENV === 'production',
             }),
             auth_module_1.AuthModule,
             users_module_1.UsersModule,

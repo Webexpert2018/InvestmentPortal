@@ -17,7 +17,8 @@ import { HealthController } from './health.controller';
     // Make env vars available everywhere
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: process.env.NODE_ENV === 'production' ? undefined : '.env',
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
 
     AuthModule,

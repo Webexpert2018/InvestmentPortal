@@ -7,6 +7,7 @@
     "prebuild": "echo Preparing build...",
     "build": "tsc",
     "build:nest": "nest build",
+    "vercel-build": "npm run build",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
     "migrate": "ts-node scripts/run-migrations.ts",

@@ -37,12 +37,15 @@ exports.db = void 0;
 exports.testConnection = testConnection;
 const pg_1 = require("pg");
 const dotenv = __importStar(require("dotenv"));
-// Load env vars immediately
-dotenv.config();
+// Load env vars only in local development
+if (process.env.NODE_ENV !== 'production' && process.env.VERCEL !== '1') {
+    dotenv.config();
+}
 // Construct connection string from individual variables if DATABASE_URL is missing
 const getConnectionString = () => {
     if (process.env.DATABASE_URL)
         return process.env.DATABASE_URL;
+    // Only use fallbacks if we're NOT on Vercel or if explicitly provided
     const user = process.env.DB_USER || process.env.PGUSER || 'postgres';
     const password = process.env.DB_PASSWORD || process.env.PGPASSWORD || 'postgres';
     const host = process.env.DB_HOST || process.env.PGHOST || 'localhost';
