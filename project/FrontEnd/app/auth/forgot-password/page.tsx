@@ -19,8 +19,9 @@ export default function ForgotPassword() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const flowParam = params.get('flow');
+      let flowParam = params.get('flow');
       if (flowParam) {
+        if (flowParam === 'account') flowParam = 'accountant';
         setFlow(flowParam);
       }
     }
