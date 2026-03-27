@@ -128,12 +128,15 @@ END;
 $$ language 'plpgsql';
 
 -- Add triggers for updated_at
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_portfolios_updated_at ON portfolios;
 CREATE TRIGGER update_portfolios_updated_at BEFORE UPDATE ON portfolios
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_ira_accounts_updated_at ON ira_accounts;
 CREATE TRIGGER update_ira_accounts_updated_at BEFORE UPDATE ON ira_accounts
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -155,6 +158,4 @@ CREATE TABLE IF NOT EXISTS migrations (
     executed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Record this migration
-INSERT INTO migrations (name) VALUES ('001_initial_schema.sql')
-ON CONFLICT (name) DO NOTHING;
+-- Migration tracking is now handled by the run-migrations.ts script

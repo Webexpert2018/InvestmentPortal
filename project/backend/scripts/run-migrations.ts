@@ -43,19 +43,45 @@ async function runMigrations() {
 
     console.log(`\n📂 Found ${migrationFiles.length} migration file(s):\n`);
 
+    // Ensure migrations table exists
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS migrations (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) UNIQUE NOT NULL,
+        executed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Get list of executed migrations
+    const executedResult = await client.query('SELECT name FROM migrations');
+    const executedMigrations = new Set(executedResult.rows.map(row => row.name));
+
     for (const file of migrationFiles) {
+      if (executedMigrations.has(file)) {
+        console.log(`   ⏭️  Skipping: ${file} (already executed)`);
+        continue;
+      }
+
       console.log(`   ⏳ Running migration: ${file}`);
 
       const filePath = path.join(migrationsDir, file);
       const sql = fs.readFileSync(filePath, 'utf-8');
 
-      await client.query(sql);
-
-      console.log(`   ✅ Completed: ${file}`);
+      // Run migration within a transaction
+      await client.query('BEGIN');
+      try {
+        await client.query(sql);
+        await client.query('INSERT INTO migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [file]);
+        await client.query('COMMIT');
+        console.log(`   ✅ Completed: ${file}`);
+      } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(`   ❌ Failed: ${file}`);
+        throw err;
+      }
     }
 
-    console.log('\n✅ All migrations completed successfully!');
-    console.log('\n📊 Database is ready to use.');
+    console.log('\n✅ Database is up to date!');
 
   } catch (error) {
     console.error('\n❌ Migration failed:', error);

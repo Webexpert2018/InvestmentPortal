@@ -1,10 +1,10 @@
 -- Migration: Create user_otps table for reusable OTP support
 -- Created: 2026-03-24
 
--- Using SERIAL for id and INTEGER for user_id to match current database state
+-- Using SERIAL for id and UUID for user_id to match users table
 CREATE TABLE IF NOT EXISTS user_otps (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     otp VARCHAR(6) NOT NULL,
     type VARCHAR(20) NOT NULL CHECK (type IN ('FORGOT_PASSWORD', '2FA')),
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -23,5 +23,4 @@ CREATE TABLE IF NOT EXISTS migrations (
     executed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO migrations (name) VALUES ('009_create_user_otps.sql')
-ON CONFLICT (name) DO NOTHING;
+-- Migration tracking is now handled by the run-migrations.ts script
