@@ -33,12 +33,12 @@ if (!connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl: {
-    rejectUnauthorized: false, // Required for Railway SSL
-  },
+  ssl: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
+    ? { rejectUnauthorized: false }
+    : false,
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000, // Increased from 2000 to 10 seconds
+  connectionTimeoutMillis: 10000,
 });
 
 // Fix TypeScript error: explicitly type 'err'
