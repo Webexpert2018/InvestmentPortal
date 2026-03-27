@@ -12,12 +12,23 @@ let isInitializing = false;
 let initializationPromise: Promise<NestExpressApplication> | null = null;
 
 async function bootstrap() {
-  if (cachedApp) return cachedApp;
-  if (initializationPromise) return initializationPromise;
+  console.log('🏁 Bootstrap started');
+  if (cachedApp) {
+    console.log('♻️ Using cached app');
+    return cachedApp;
+  }
+  if (initializationPromise) {
+    console.log('⏳ Waiting for existing initialization...');
+    return initializationPromise;
+  }
 
+  console.log('🚀 Creating new Nest application instance...');
   initializationPromise = (async () => {
     try {
+      console.log('📦 Before NestFactory.create');
       const app = await NestFactory.create<NestExpressApplication>(AppModule);
+      console.log('✅ NestFactory.create success');
+      
       console.log('🌐 Environment:', process.env.NODE_ENV || 'development');
       
       const configService = app.get(ConfigService);
@@ -26,6 +37,7 @@ async function bootstrap() {
         10,
       );
 
+      console.log('🛠 Configuring middleware...');
       app.enableCors();
 
       const isVercel = process.env.VERCEL === '1';
@@ -33,10 +45,11 @@ async function bootstrap() {
         ? join('/tmp', 'uploads', 'profile-images')
         : join(process.cwd(), 'uploads', 'profile-images');
 
+      console.log('📁 Upload directory path:', uploadDir);
       if (!fs.existsSync(uploadDir)) {
         try {
           fs.mkdirSync(uploadDir, { recursive: true });
-          console.log('📁 Created uploads directory:', uploadDir);
+          console.log('📁 Created uploads directory');
         } catch (err) {
           console.error('⚠️ Could not create uploads directory:', err);
         }
@@ -46,6 +59,7 @@ async function bootstrap() {
         prefix: '/public/uploads',
       });
 
+      console.log('🛡 Setting up global pipes...');
       app.useGlobalPipes(
         new ValidationPipe({
           whitelist: true,
@@ -53,6 +67,7 @@ async function bootstrap() {
         }),
       );
 
+      console.log('📚 Setting up Swagger...');
       const config = new DocumentBuilder()
         .setTitle('Investment Portal API')
         .setDescription('API Documentation for Investment Portal')
@@ -64,15 +79,20 @@ async function bootstrap() {
       SwaggerModule.setup('api/docs', app, document);
 
       if (!isVercel) {
+        console.log(`🔌 Listening on port ${port}...`);
         await app.listen(port, '0.0.0.0');
         console.log(`🚀 App Running On: http://0.0.0.0:${port}`);
       } else {
+        console.log('⚡ Initializing for serverless...');
         await app.init();
+        console.log('✅ app.init() success');
       }
 
       cachedApp = app;
+      console.log('🌟 Bootstrap completed successfully');
       return app;
     } catch (err) {
+      console.error('💥 Bootstrap error:', err);
       initializationPromise = null;
       throw err;
     }
