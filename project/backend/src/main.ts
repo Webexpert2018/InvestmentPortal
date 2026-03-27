@@ -91,7 +91,17 @@ if (process.env.VERCEL !== '1') {
 
 // Support for Vercel Serverless Functions
 export default async (req: any, res: any) => {
-  const app = await bootstrap();
-  const server = app.getHttpAdapter().getInstance();
-  return server(req, res);
+  try {
+    const app = await bootstrap();
+    const server = app.getHttpAdapter().getInstance();
+    return server(req, res);
+  } catch (error: any) {
+    console.error('❌ CRITICAL: Vercel Function Invocation Failed:', error);
+    res.status(500).json({
+      statusCode: 500,
+      message: 'Internal Server Error during initialization',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    });
+  }
 };
