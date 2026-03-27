@@ -33,7 +33,7 @@ if (!connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
+  ssl: connectionString.includes('sslmode=require') || process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
     ? { rejectUnauthorized: false }
     : false,
   max: 20,
