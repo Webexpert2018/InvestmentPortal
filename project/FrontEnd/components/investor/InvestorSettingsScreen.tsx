@@ -3,7 +3,7 @@
 import { ChangeEvent, useMemo, useRef, useState, useEffect } from 'react';
 import { CalendarDays, ChevronDown, ChevronLeft, Plus, Upload, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { apiClient } from '@/lib/api/client';
+import { apiClient, BASE_URL } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
@@ -477,7 +477,7 @@ export function InvestorSettingsScreen() {
                           url.searchParams.set('t', profileTimestamp.toString());
                           return url.toString();
                         }
-                        const baseUrl = 'http://localhost:3001';
+                        const baseUrl = BASE_URL;
                         const separator = profile.profileImageUrl.includes('?') ? '&' : '?';
                         return `${baseUrl}${profile.profileImageUrl}${separator}t=${profileTimestamp}`;
                       })()}

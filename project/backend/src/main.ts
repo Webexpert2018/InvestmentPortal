@@ -23,7 +23,7 @@ async function bootstrap() {
   initializationPromise = (async () => {
     try {
       const app = await NestFactory.create<NestExpressApplication>(AppModule);
-      
+
       const configService = app.get(ConfigService);
       const port = parseInt(
         configService.get('PORT') || process.env.PORT || '3001',
@@ -33,7 +33,7 @@ async function bootstrap() {
       app.enableCors();
 
       const isVercel = process.env.VERCEL === '1';
-      const uploadDir = isVercel 
+      const uploadDir = isVercel
         ? join('/tmp', 'uploads', 'profile-images')
         : join(process.cwd(), 'uploads', 'profile-images');
 

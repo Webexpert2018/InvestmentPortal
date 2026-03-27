@@ -1,4 +1,13 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Production URL (Active)
+const BASE_URL = 'https://investmentportalbackend.vercel.app';
+
+// Local URL (Commented out)
+// const BASE_URL = 'http://localhost:3001';
+
+const API_URL = `${BASE_URL}/api`;
+// const API_URL = process.env.NEXT_PUBLIC_API_URL || `${BASE_URL}/api`;
+
+export { BASE_URL, API_URL };
 
 class ApiClient {
   private getHeaders(): HeadersInit {

@@ -5,7 +5,7 @@ import { CalendarDays, ChevronDown, Plus, X, Eye, EyeOff, Loader2, Upload } from
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { apiClient } from '@/lib/api/client';
+import { apiClient, BASE_URL } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
 import { Combobox } from '@/components/ui/combobox';
 import { cn } from '@/lib/utils';
@@ -342,7 +342,7 @@ export function AccountantSettingsScreen() {
             >
               {profileImageUrl ? (
                 <>
-                  <img src={`http://localhost:3001${profileImageUrl}`} alt="Profile" className="h-full w-full object-cover" />
+                  <img src={`${BASE_URL}${profileImageUrl}`} alt="Profile" className="h-full w-full object-cover" />
                   {!saving && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Upload className="h-4 w-4 text-white" />

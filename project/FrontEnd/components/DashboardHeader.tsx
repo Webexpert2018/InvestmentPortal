@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, Search, MessageCircle } from "lucide-react";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { apiClient } from "@/lib/api/client";
+import { apiClient, BASE_URL } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -120,7 +120,7 @@ export function DashboardHeader({
                     url.searchParams.set('t', profileTimestamp.toString());
                     return url.toString();
                   }
-                  const baseUrl = 'http://localhost:3001';
+                  const baseUrl = BASE_URL;
                   const separator = user.profileImageUrl.includes('?') ? '&' : '?';
                   return `${baseUrl}${user.profileImageUrl}${separator}t=${profileTimestamp}`;
                 })()}
