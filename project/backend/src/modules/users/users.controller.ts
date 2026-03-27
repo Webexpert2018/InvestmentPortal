@@ -127,7 +127,17 @@ export class UsersController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: path.join(process.cwd(), 'uploads', 'profile-images'),
+        destination: (req: any, file: any, cb: any) => {
+          const isVercel = process.env.VERCEL === '1';
+          const uploadDir = isVercel 
+            ? path.join('/tmp', 'uploads', 'profile-images')
+            : path.join(process.cwd(), 'uploads', 'profile-images');
+          
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          cb(null, uploadDir);
+        },
         filename: (req: any, file: any, cb: any) => {
           const userId = req.user?.userId || 'unknown';
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -148,12 +158,6 @@ export class UsersController {
   async uploadProfileImage(@CurrentUser() user: any, @UploadedFile() file: any) {
     if (!file) {
       throw new BadRequestException('File is required');
-    }
-
-    // Ensure directory exists
-    const uploadDir = path.join(process.cwd(), 'uploads', 'profile-images');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
     }
 
     const imageUrl = `/public/uploads/profile-images/${file.filename}`;
