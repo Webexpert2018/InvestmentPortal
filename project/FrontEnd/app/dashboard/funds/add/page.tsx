@@ -5,6 +5,8 @@ import { ChevronLeft, Plus, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useRouter } from 'next/navigation';
+import { apiClient } from '@/lib/api/client';
+import { toast } from 'sonner';
 
 export default function AddFundPage() {
   const router = useRouter();
@@ -13,6 +15,7 @@ export default function AddFundPage() {
   const [description, setDescription] = useState('');
   const [note, setNote] = useState('');
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({
     fundName: '',
     startDate: '',
@@ -63,17 +66,41 @@ export default function AddFundPage() {
     }
   };
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     if (validateForm()) {
-      // Handle save draft logic here
-      router.push('/dashboard/funds');
+      await saveFund('Draft');
     }
   };
 
-  const confirmPublish = () => {
-    // Handle publish logic here
+  const saveFund = async (status: string) => {
+    setIsSubmitting(true);
+    try {
+      const fund = await apiClient.createFund({
+        name: fundName,
+        description,
+        start_date: startDate,
+        note,
+        status,
+        min_investment: 0,
+        unit_price: 1.00,
+      });
+
+      if (fundImage && fund.id) {
+        await apiClient.uploadFundImage(fund.id, fundImage);
+      }
+
+      toast.success(`Fund ${status === 'Draft' ? 'saved as draft' : 'published'} successfully`);
+      router.push('/dashboard/funds');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save fund');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const confirmPublish = async () => {
     setShowPublishModal(false);
-    router.push('/dashboard/funds');
+    await saveFund('Active');
   };
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);

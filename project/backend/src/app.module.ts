@@ -10,6 +10,8 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { IraAccountsModule } from './modules/ira-accounts/ira-accounts.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { EmailModule } from './modules/email/email.module';
+import { FundsModule } from './modules/funds/funds.module';
+import { FundFlowsModule } from './modules/fund-flows/fund-flows.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -30,6 +32,8 @@ import { HealthController } from './health.controller';
     IraAccountsModule,
     ComplianceModule,
     EmailModule,
+    FundsModule,
+    FundFlowsModule,
   ],
   controllers: [HealthController],
 })

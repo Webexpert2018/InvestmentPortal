@@ -47,6 +47,14 @@ async function bootstrap() {
 
       app.useStaticAssets(isVercel ? join('/tmp', 'uploads') : join(process.cwd(), 'uploads'), {
         prefix: '/public/uploads',
+        setHeaders: (res, path) => {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+          res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+          if (path.endsWith('.pdf')) {
+            res.setHeader('Content-Disposition', 'inline');
+          }
+        }
       });
 
       app.useGlobalPipes(

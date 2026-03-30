@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ChevronDown, MoreVertical, Search } from 'lucide-react';
+import { ChevronDown, MoreVertical, Search, Loader2 } from 'lucide-react';
+import { apiClient } from '@/lib/api/client';
 
 type TaxDocStatus = 'Clean' | 'Pending' | 'Flagged';
 
@@ -18,49 +19,6 @@ type TaxVaultRow = {
   uploadedDate: string;
 };
 
-const rows: TaxVaultRow[] = [
-  {
-    id: '1',
-    accountant: 'Abram Gouse',
-    initials: 'AG',
-    fileName: 'k-1_2025.pdf',
-    documentType: 'K-1',
-    taxYear: '2025',
-    status: 'Clean',
-    uploadedDate: 'Dec 26, 2025',
-  },
-  {
-    id: '2',
-    accountant: 'James Workman',
-    initials: 'JW',
-    fileName: 'W-9_update.pdf',
-    documentType: 'W-9',
-    taxYear: '2025',
-    status: 'Pending',
-    uploadedDate: 'Dec 26, 2025',
-  },
-  {
-    id: '3',
-    accountant: 'Kadin Philips',
-    initials: 'KP',
-    fileName: 'Statement_Q3.pdf',
-    documentType: 'Statement',
-    taxYear: '2025',
-    status: 'Flagged',
-    uploadedDate: 'Dec 26, 2025',
-  },
-  {
-    id: '4',
-    accountant: 'Charlie Siphron',
-    initials: 'CS',
-    fileName: 'Statement_Q3.pdf',
-    documentType: 'Statement',
-    taxYear: '2025',
-    status: 'Flagged',
-    uploadedDate: 'Dec 26, 2025',
-  },
-];
-
 const statusClass: Record<TaxDocStatus, string> = {
   Clean: 'bg-[#EAF8EE] text-[#1D9A58]',
   Pending: 'bg-[#FFF4E0] text-[#E59D22]',
@@ -69,6 +27,60 @@ const statusClass: Record<TaxDocStatus, string> = {
 
 export default function TaxVaultPage() {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [documents, setDocuments] = useState<TaxVaultRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
+      const data = await apiClient.getAllDocuments();
+      
+      const mappedRows: TaxVaultRow[] = data.map((doc: any) => ({
+        id: doc.id,
+        accountant: 'System', // Placeholder since real data isn't in table yet
+        initials: 'S',
+        fileName: doc.file_name,
+        documentType: doc.document_type,
+        taxYear: doc.tax_year?.toString() || 'N/A',
+        status: (doc.status as TaxDocStatus) || 'Clean',
+        uploadedDate: new Date(doc.uploaded_at).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        }),
+      }));
+      
+      setDocuments(mappedRows);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error fetching documents:', err);
+      setError('Could not load documents.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this document?')) return;
+    try {
+       await apiClient.deleteDocument(id);
+       setDocuments(prev => prev.filter(d => d.id !== id));
+       setActiveMenuId(null);
+    } catch (err) {
+       alert('Error deleting document.');
+    }
+  };
+
+  const handleDownload = async (id: string) => {
+    const downloadUrl = apiClient.getDocumentDownloadUrl(id);
+    window.open(downloadUrl, '_blank');
+    setActiveMenuId(null);
+  };
 
   return (
     <DashboardLayout>
@@ -83,26 +95,26 @@ export default function TaxVaultPage() {
 
           <Link
             href="/dashboard/tax-vault/upload"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 py-2 rounded-full text-sm font-medium shadow-md"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 py-2 rounded-full text-sm font-medium shadow-md transition-all hover:shadow-lg active:scale-95"
           >
             Upload Document
           </Link>
         </div>
 
-        <div className="mt-6 rounded-[10px] bg-white px-6 py-6">
+        <div className="mt-6 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm">
           <div className="flex flex-wrap items-center gap-4">
             <label className="relative block w-full max-w-[417px]">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#9FA3A9]" />
               <input
                 type="text"
                 placeholder="Find something here..."
-                className="h-[50px] w-full rounded-[26px] bg-[#F5F5F5] pl-12 pr-4 text-[16px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA]"
+                className="h-[50px] w-full rounded-[26px] bg-[#F5F5F5] pl-12 pr-4 text-[16px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] ring-1 ring-transparent focus:ring-amber-200 transition-all"
               />
             </label>
 
             <button
               type="button"
-              className="inline-flex h-[50px] min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[16px] text-[#8E8E93]"
+              className="inline-flex h-[50px] min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[16px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
             >
               Document Type
               <ChevronDown className="ml-3 h-5 w-5" />
@@ -110,7 +122,7 @@ export default function TaxVaultPage() {
 
             <button
               type="button"
-              className="inline-flex h-[50px] min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[16px] text-[#8E8E93]"
+              className="inline-flex h-[50px] min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[16px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
             >
               Year
               <ChevronDown className="ml-3 h-5 w-5" />
@@ -118,110 +130,116 @@ export default function TaxVaultPage() {
           </div>
 
           <div className="mt-6 overflow-x-auto">
-            <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
-              <thead>
-                <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
-                  <th className="rounded-l-[6px] px-4 py-3">Accountant</th>
-                  <th className="px-4 py-3">File Name</th>
-                  <th className="px-4 py-3">Document Type</th>
-                  <th className="px-4 py-3">Tax Year</th>
-                  <th className="px-4 py-3">AV Scan Status</th>
-                  <th className="px-4 py-3">Uploaded Date</th>
-                  <th className="rounded-r-[6px] px-4 py-3 text-center">Action</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id} className="border-b border-[#F1F1F1]">
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#E9EDF4] text-[12px] font-semibold text-[#274583]">
-                          {row.initials}
-                        </div>
-                        <span>{row.accountant}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">{row.fileName}</td>
-                    <td className="px-4 py-4">{row.documentType}</td>
-                    <td className="px-4 py-4">{row.taxYear}</td>
-                    <td className="px-4 py-4">
-                      <span
-                        className={`inline-flex rounded-full px-3 py-1 text-[12px] font-medium ${statusClass[row.status]}`}
-                      >
-                        {row.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">{row.uploadedDate}</td>
-                    <td className="relative px-4 py-4 text-center">
-                      <button
-                        type="button"
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5]"
-                        onClick={() => setActiveMenuId((prev) => (prev === row.id ? null : row.id))}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-
-                      {activeMenuId === row.id && (
-                        <>
-                          <button
-                            type="button"
-                            aria-label="Close menu"
-                            className="fixed inset-0 z-10"
-                            onClick={() => setActiveMenuId(null)}
-                          />
-                          <div className="absolute right-6 top-11 z-20 w-[145px] rounded-[4px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)]">
-                            <Link
-                              href="/dashboard/tax-vault/details"
-                              className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
-                              onClick={() => setActiveMenuId(null)}
-                            >
-                              View Document
-                            </Link>
-                            <button
-                              type="button"
-                              className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
-                              onClick={() => setActiveMenuId(null)}
-                            >
-                              Download
-                            </button>
-                            <button
-                              type="button"
-                              className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
-                              onClick={() => setActiveMenuId(null)}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
-                              onClick={() => setActiveMenuId(null)}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </td>
+            {loading ? (
+              <div className="flex h-32 items-center justify-center">
+                 <Loader2 className="h-8 w-8 animate-spin text-[#274583]" />
+              </div>
+            ) : error ? (
+              <div className="p-8 text-center text-red-500">{error}</div>
+            ) : documents.length === 0 ? (
+              <div className="p-8 text-center text-[#8E8E93]">No documents found in the vault.</div>
+            ) : (
+              <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
+                <thead>
+                  <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
+                    <th className="rounded-l-[6px] px-4 py-3">Accountant</th>
+                    <th className="px-4 py-3">File Name</th>
+                    <th className="px-4 py-3">Document Type</th>
+                    <th className="px-4 py-3">Tax Year</th>
+                    <th className="px-4 py-3">AV Scan Status</th>
+                    <th className="px-4 py-3">Uploaded Date</th>
+                    <th className="rounded-r-[6px] px-4 py-3 text-center">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+
+                <tbody>
+                  {documents.map((row) => (
+                    <tr key={row.id} className="border-b border-[#F1F1F1] hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#E9EDF4] text-[12px] font-semibold text-[#274583]">
+                            {row.initials}
+                          </div>
+                          <span>{row.accountant}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 max-w-[200px] truncate" title={row.fileName}>{row.fileName}</td>
+                      <td className="px-4 py-4">{row.documentType}</td>
+                      <td className="px-4 py-4">{row.taxYear}</td>
+                      <td className="px-4 py-4">
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-[12px] font-medium animate-pulse-subtle ${statusClass[row.status]}`}
+                        >
+                          {row.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">{row.uploadedDate}</td>
+                      <td className="relative px-4 py-4 text-center">
+                        <button
+                          type="button"
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"
+                          onClick={() => setActiveMenuId((prev) => (prev === row.id ? null : row.id))}
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </button>
+
+                        {activeMenuId === row.id && (
+                          <>
+                            <button
+                              type="button"
+                              aria-label="Close menu"
+                              className="fixed inset-0 z-10"
+                              onClick={() => setActiveMenuId(null)}
+                            />
+                            <div className="absolute right-6 top-11 z-20 w-[145px] rounded-[6px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100">
+                              <Link
+                                href={`/dashboard/tax-vault/details/${row.id}`}
+                                className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
+                                onClick={() => setActiveMenuId(null)}
+                              >
+                                View Document
+                              </Link>
+                              <button
+                                type="button"
+                                className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
+                                onClick={() => handleDownload(row.id)}
+                              >
+                                Download
+                              </button>
+                             
+                              <button
+                                type="button"
+                                className="block w-full px-3 py-2 text-[13px] text-[#E05252] hover:bg-red-50 transition-colors"
+                                onClick={() => handleDelete(row.id)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
-          <div className="mt-5 flex items-center justify-end gap-2 text-[16px] text-[#8E8E93]">
-            <button type="button" className="px-1">&lt; Previous</button>
-            <button
-              type="button"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#274583] text-white"
-            >
-              1
-            </button>
-            <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-[8px]">2</button>
-            <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-[8px]">3</button>
-            <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-[8px]">4</button>
-            <button type="button" className="px-1">Next &gt;</button>
-          </div>
+          {!loading && !error && documents.length > 0 && (
+            <div className="mt-5 flex items-center justify-end gap-2 text-[16px] text-[#8E8E93]">
+              <button type="button" className="px-1 hover:text-[#274583] transition-colors">&lt; Previous</button>
+              <button
+                type="button"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#274583] text-white"
+              >
+                1
+              </button>
+              <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] hover:bg-[#E9EDF4] transition-colors">2</button>
+              <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] hover:bg-[#E9EDF4] transition-colors">3</button>
+              <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] hover:bg-[#E9EDF4] transition-colors">4</button>
+              <button type="button" className="px-1 hover:text-[#274583] transition-colors">Next &gt;</button>
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

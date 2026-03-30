@@ -1,11 +1,6 @@
-// Production URL (Active)
-const BASE_URL = 'https://investmentportalbackend.vercel.app';
-
-// Local URL (Commented out)
-// const BASE_URL = 'http://localhost:3001';
-
-const API_URL = `${BASE_URL}/api`;
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || `${BASE_URL}/api`;
+// API Configuration from environment variables
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || `${BASE_URL}/api`;
 
 export { BASE_URL, API_URL };
 
@@ -283,6 +278,162 @@ class ApiClient {
       throw new Error(data.error || 'An error occurred during upload');
     }
     return data;
+  }
+
+  // Funds
+  async getFunds() {
+    return this.request<any[]>('/funds');
+  }
+
+  async getFundById(id: string) {
+    return this.request<any>(`/funds/${id}`);
+  }
+
+  async createFund(data: any) {
+    return this.request<any>('/funds', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async uploadFundImage(fundId: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers: HeadersInit = {};
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${API_URL}/funds/${fundId}/image`, {
+      method: 'POST',
+      body: formData,
+      headers: headers,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'An error occurred during upload');
+    }
+    return data;
+  }
+
+  async updateFund(id: string, data: any) {
+    return this.request<any>(`/funds/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteFund(id: string) {
+    return this.request<any>(`/funds/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Fund Flows
+  async createFundFlow(data: { fundId: string; accountId: string; amount: number; status?: string }) {
+    return this.request<any>('/fund-flows', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getMyFundFlows() {
+    return this.request<any[]>('/fund-flows');
+  }
+
+  // Fund Documents
+  async getFundDocuments(fundId: string) {
+    return this.request<any[]>(`/documents/fund/${fundId}`);
+  }
+
+  async getDocumentById(id: string) {
+    return this.request<any>(`/documents/${id}`);
+  }
+
+  async uploadFundDocument(fundId: string, data: {
+    file: File;
+    document_type: string;
+    tax_year?: number;
+    description?: string;
+    note?: string;
+  }) {
+    const formData = new FormData();
+    formData.append('file', data.file);
+    formData.append('document_type', data.document_type || '');
+    if (data.tax_year) formData.append('tax_year', data.tax_year.toString());
+    if (data.description) formData.append('description', data.description);
+    if (data.note) formData.append('note', data.note);
+
+    const headers: HeadersInit = {};
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${API_URL}/documents/fund/${fundId}/upload`, {
+      method: 'POST',
+      body: formData,
+      headers: headers,
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || result.message || 'An error occurred during upload');
+    }
+    return result;
+  }
+
+  async updateDocument(id: string, data: {
+    document_type?: string;
+    tax_year?: number;
+    description?: string;
+    note?: string;
+  }) {
+    return this.request<any>(`/documents/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateDocumentWithFile(id: string, formData: FormData) {
+    const headers: HeadersInit = {};
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${API_URL}/documents/${id}/with-file`, {
+      method: "PATCH",
+      body: formData,
+      headers: headers,
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(
+        result.error || result.message || "An error occurred during update"
+      );
+    }
+    return result;
+  }
+
+  async deleteDocument(id: string) {
+    return this.request<any>(`/documents/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  getDocumentDownloadUrl(id: string) {
+    return `${API_URL}/documents/${id}/download`;
   }
 }
 

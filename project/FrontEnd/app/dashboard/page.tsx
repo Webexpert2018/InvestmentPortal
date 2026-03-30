@@ -9,6 +9,7 @@ import  { DashboardLayout }  from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { getInvestorKycStatus, setInvestorKycStatus, type InvestorKycStatus } from '@/lib/mock/kycStatus';
+import { apiClient } from '@/lib/api/client';
 
 
 import { MoreVertical, ChevronDown, ChevronRight } from 'lucide-react';
@@ -252,6 +253,8 @@ export default function DashboardPage() {
   const [messagesOpen, setMessagesOpen] = useState<boolean>(true);
   const [notificationsOpen, setNotificationsOpen] = useState<boolean>(true);
   const [investorKycStatus, setInvestorKycState] = useState<InvestorKycStatus>('pending');
+  const [activeFundsCount, setActiveFundsCount] = useState(0);
+
   const dashboardRole = normalizeDashboardRole(user?.role);
   const welcomeName = user?.firstName ? user.firstName : dashboardRole[0].toUpperCase() + dashboardRole.slice(1);
 
@@ -261,6 +264,16 @@ export default function DashboardPage() {
     }
 
     setInvestorKycState(getInvestorKycStatus());
+
+    const fetchStats = async () => {
+      try {
+        const flows = await apiClient.getMyFundFlows();
+        setActiveFundsCount(flows.length);
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      }
+    };
+    fetchStats();
   }, [dashboardRole]);
 
   const roleStats = {
@@ -271,7 +284,7 @@ export default function DashboardPage() {
       { name: 'Pending Redemptions', value: '2' },
     ],
     investor: [
-      { name: 'My Active Funds', value: '3' },
+      { name: 'My Active Funds', value: activeFundsCount.toString() },
       { name: 'Pending KYC', value: '1' },
       { name: 'Pending Funding', value: '1' },
       { name: 'Pending Redemption', value: '0' },

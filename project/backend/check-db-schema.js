@@ -17,7 +17,7 @@ async function checkSchema() {
     `);
     console.log('user_otps schema:');
     console.table(res.rows);
-    
+
     const usersRes = await client.query(`
       SELECT column_name, data_type, is_nullable
       FROM information_schema.columns 

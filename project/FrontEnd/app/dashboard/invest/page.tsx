@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { apiClient } from '@/lib/api/client';
 
 type Step =
   | 'chooseFund'
@@ -11,52 +12,6 @@ type Step =
   | 'fundingInstructions'
   | 'investmentStatus';
 
-const funds = [
-  {
-    id: 'physician-btc-a',
-    name: 'Strive Enterprise Fund',
-    image: '/images/strive_funds.jpg',
-  },
-  {
-    id: 'physician-btc-b',
-    name: 'Strive Enterprise Fund',
-    image: '/images/strive_funds.jpg',
-  },
-  {
-    id: 'physician-btc-c',
-    name: 'Strive Enterprise Fund',
-    image: '/images/strive_funds.jpg',
-  },
-  {
-    id: 'physician-btc-d',
-    name: 'Strive Enterprise Fund',
-    image: '/images/strive_funds.jpg',
-  },
-  {
-    id: 'physician-btc-e',
-    name: 'Strive Enterprise Fund',
-    image: '/images/strive_funds.jpg',
-  },
-];
-
-const accounts = [
-  {
-    id: 'personal',
-    label: 'Personal Account',
-    value: '•••• 1234 · Checking',
-  },
-  {
-    id: 'traditional-ira',
-    label: 'Traditional IRA',
-    value: 'Fidelity · •••• 5678',
-  },
-  {
-    id: 'roth-ira',
-    label: 'Roth IRA',
-    value: 'Charles Schwab · •••• 9012',
-  },
-];
-
 type FooterOptions = {
   primaryLabel?: string;
   showBack?: boolean;
@@ -64,9 +19,52 @@ type FooterOptions = {
 
 export default function InvestPage() {
   const [step, setStep] = useState<Step>('chooseFund');
-  const [selectedFundId, setSelectedFundId] = useState<string | null>(funds[0]?.id ?? null);
+  const [funds, setFunds] = useState<any[]>([]);
+  const [existingFlows, setExistingFlows] = useState<any[]>([]);
+  const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [amount, setAmount] = useState<string>('25000');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const accounts = [
+    {
+      id: 'personal',
+      label: 'Personal Account',
+      value: '•••• 1234 · Checking',
+    },
+    {
+      id: 'traditional-ira',
+      label: 'Traditional IRA',
+      value: 'Fidelity · •••• 5678',
+    },
+    {
+      id: 'roth-ira',
+      label: 'Roth IRA',
+      value: 'Charles Schwab · •••• 9012',
+    },
+  ];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [fundsData, flowsData] = await Promise.all([
+          apiClient.getFunds(),
+          apiClient.getMyFundFlows(),
+        ]);
+        setFunds(fundsData);
+        setExistingFlows(flowsData);
+        if (fundsData.length > 0 && !selectedFundId) {
+          setSelectedFundId(fundsData[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [selectedFundId]);
 
   const { investmentAmount, processingFee, total } = useMemo(() => {
     const numeric = Number.parseFloat(amount.replace(/,/g, '')) || 0;
@@ -97,7 +95,28 @@ export default function InvestPage() {
     });
   };
 
-  const goNext = () => {
+  const saveInvestment = async (finalStatus?: string) => {
+    if (!selectedFundId || !selectedAccountId || investmentAmount <= 0) return;
+    setSaving(true);
+    try {
+      await apiClient.createFundFlow({
+        fundId: selectedFundId,
+        accountId: selectedAccountId,
+        amount: investmentAmount,
+        status: finalStatus,
+      });
+    } catch (error) {
+      console.error('Failed to save investment:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const goNext = async () => {
+    if (step === 'fundingInstructions') {
+      await saveInvestment('Subscription Submitted');
+    }
+
     setStep((current) => {
       switch (current) {
         case 'chooseFund':
@@ -142,12 +161,13 @@ export default function InvestPage() {
             onClick={goNext}
             className="rounded-full bg-[#FBCB4B] px-6 py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60"
             disabled={
+              saving ||
               (step === 'chooseFund' && !selectedFundId) ||
               (step === 'fundingAccount' && !selectedAccountId) ||
               (step === 'investmentAmount' && investmentAmount <= 0)
             }
           >
-            {primaryLabel}
+            {saving ? 'Saving...' : primaryLabel}
           </button>
         </div>
       </div>
@@ -156,6 +176,36 @@ export default function InvestPage() {
 
   const renderChooseFund = () => (
     <>
+      {existingFlows.length > 0 && (
+        <div className="mb-10">
+          <h2 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F]">
+            Your Saved Funds
+          </h2>
+          <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {existingFlows.map((flow) => (
+              <div key={flow.id} className="rounded-xl bg-white p-4 shadow-sm border border-[#E5E5EA]">
+                <div className="flex items-center gap-3">
+                  <img src={flow.fundImage} alt={flow.fundName} className="h-10 w-10 rounded-full object-cover" />
+                  <div>
+                    <p className="text-sm font-bold text-[#1F1F1F]">{flow.fundName}</p>
+                    <p className="text-xs text-[#8E8E93]">{flow.status}</p>
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="text-sm font-semibold">${Number(flow.amount).toLocaleString()}</p>
+                  <button 
+                    onClick={() => setStep('investmentStatus')} // Simplified: just jump to status
+                    className="text-xs font-medium text-[#274583] hover:underline"
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="mb-6">
         <h1 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F]">
           Choose a Fund
