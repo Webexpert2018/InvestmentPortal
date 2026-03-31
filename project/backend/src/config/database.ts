@@ -20,38 +20,47 @@ const getConnectionString = () => {
   return `postgresql://${user}:${password}@${host}:${port}/${database}`;
 };
 
-const connectionString = getConnectionString();
+// Using a lazy pool initialization to prevent crashes during the loading phase of serverless functions
+let pool: Pool;
 
-console.log('📡 Database Configuration:');
-console.log(`   Connection String: ${connectionString.replace(/:[^@]*@/, ':****@')}`);
-console.log(`   Method: ${process.env.DATABASE_URL ? 'DATABASE_URL' : 'Individual Variables'}`);
+const getPool = () => {
+  if (pool) return pool;
 
-if (!connectionString) {
-  console.error('❌ ERROR: Database configuration is missing');
-  throw new Error('DATABASE_URL or individual DB_* environment variables are required');
-}
+  const connectionString = getConnectionString();
 
-const pool = new Pool({
-  connectionString,
-  ssl: connectionString.includes('sslmode=require') || process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
-    ? { rejectUnauthorized: false }
-    : false,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-});
+  if (!connectionString) {
+    console.error('❌ ERROR: Database configuration is missing');
+    // We don't throw here any more; let the first query fail with a better error message
+    // or let the bootstrap check handle it.
+  }
 
-// Fix TypeScript error: explicitly type 'err'
-pool.on('error', (err: Error) => {
-  console.error('Unexpected error on idle client', err);
-  // Remove process.exit(-1); - In serverless, it's better to let the handler fail than to kill the process
-});
+  pool = new Pool({
+    connectionString,
+    ssl: connectionString?.includes('sslmode=require') || process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
+      ? { rejectUnauthorized: false }
+      : false,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+  });
 
-export const db = pool;
+  pool.on('error', (err: Error) => {
+    console.error('Unexpected error on idle client', err);
+  });
+
+  return pool;
+};
+
+export const db = {
+  query: (text: string, params?: any[]) => getPool().query(text, params),
+  connect: () => getPool().connect(),
+  on: (event: any, callback: (...args: any[]) => void) => getPool().on(event, callback),
+  end: () => pool ? pool.end() : Promise.resolve(),
+};
 
 export async function testConnection() {
   try {
-    const client = await pool.connect();
+    const client = await getPool().connect();
     const result = await client.query('SELECT NOW()');
     client.release();
     console.log('✅ Database connected successfully at', result.rows[0].now);

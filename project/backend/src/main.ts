@@ -119,12 +119,12 @@ export default async (req: any, res: any) => {
   if (!process.env.DATABASE_URL) missingVars.push('DATABASE_URL');
   if (!process.env.JWT_SECRET) missingVars.push('JWT_SECRET');
 
-  if (missingVars.length > 0 && process.env.VERCEL === '1') {
+  if (missingVars.length > 0 && (process.env.VERCEL === '1' || process.env.NODE_ENV === 'production')) {
     console.error(`❌ MISSING CONFIGURATION: ${missingVars.join(', ')}`);
     return res.status(500).json({
       statusCode: 500,
       message: 'Backend Configuration Error',
-      error: `The following environment variables are missing on Vercel: ${missingVars.join(', ')}. Please add them in the Vercel Dashboard Settings.`,
+      error: `Missing environment variables: ${missingVars.join(', ')}. Please add them in the Vercel Dashboard -> Settings -> Environment Variables.`,
     });
   }
 
@@ -144,10 +144,12 @@ export default async (req: any, res: any) => {
     return server(req, res);
   } catch (error: any) {
     console.error('❌ CRITICAL: Vercel Function Invocation Failed:', error);
+    // If we're here, it's a real code or connection error, not just a missing env var
     res.status(500).json({
       statusCode: 500,
       message: 'Internal Server Error during initialization',
       error: error.message || 'Unknown error',
+      details: 'Check Vercel logs for the full stack trace.',
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
