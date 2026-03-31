@@ -114,6 +114,20 @@ if (process.env.VERCEL !== '1') {
 
 // Support for Vercel Serverless Functions
 export default async (req: any, res: any) => {
+  // 🔍 Diagnostic Check: Ensure critical env vars are present
+  const missingVars = [];
+  if (!process.env.DATABASE_URL) missingVars.push('DATABASE_URL');
+  if (!process.env.JWT_SECRET) missingVars.push('JWT_SECRET');
+
+  if (missingVars.length > 0 && process.env.VERCEL === '1') {
+    console.error(`❌ MISSING CONFIGURATION: ${missingVars.join(', ')}`);
+    return res.status(500).json({
+      statusCode: 500,
+      message: 'Backend Configuration Error',
+      error: `The following environment variables are missing on Vercel: ${missingVars.join(', ')}. Please add them in the Vercel Dashboard Settings.`,
+    });
+  }
+
   try {
     const app = await bootstrap();
     const server = app.getHttpAdapter().getInstance();
