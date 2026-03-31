@@ -3,6 +3,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
+import * as fs from 'fs';
 import { DocumentsService } from './documents.service';
 
 @Controller('api/documents')
@@ -22,7 +23,21 @@ export class DocumentsController {
   @Post('fund/:fundId/upload')
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploads/documents',
+      destination: (req, file, cb) => {
+        const isVercel = process.env.VERCEL === '1';
+        const uploadDir = isVercel
+          ? join('/tmp', 'uploads', 'documents')
+          : join(process.cwd(), 'uploads', 'documents');
+
+        if (!fs.existsSync(uploadDir)) {
+          try {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          } catch (err) {
+            console.error('⚠️ Could not create documents directory:', err);
+          }
+        }
+        cb(null, uploadDir);
+      },
       filename: (req, file, cb) => {
         const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
         cb(null, `${randomName}${extname(file.originalname)}`);
@@ -99,7 +114,9 @@ export class DocumentsController {
     const doc = await this.documentsService.getDocumentById(id);
     // Extract filename from file_url (e.g., /public/uploads/documents/UUID.pdf -> UUID.pdf)
     const filePathInDB = doc.file_url.split('/').pop();
-    const filePath = join(process.cwd(), 'uploads', 'documents', filePathInDB);
+    const isVercel = process.env.VERCEL === '1';
+    const uploadDir = isVercel ? '/tmp/uploads/documents' : join(process.cwd(), 'uploads', 'documents');
+    const filePath = join(uploadDir, filePathInDB);
     return res.download(filePath, doc.file_name);
   }
 }
