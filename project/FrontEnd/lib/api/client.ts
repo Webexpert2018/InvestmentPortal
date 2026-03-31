@@ -1,6 +1,10 @@
-// API Configuration from environment variables
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || `${BASE_URL}/api`;
+// API Configuration
+// Production: https://investmentportalbackend.vercel.app
+// Local: http://localhost:3001
+const BASE_URL = 'http://localhost:3001'; 
+// const BASE_URL = 'https://investmentportalbackend.vercel.app';
+
+const API_URL = `${BASE_URL}/api`;
 
 export { BASE_URL, API_URL };
 
