@@ -9,12 +9,17 @@ import { useRouter } from 'next/navigation';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 
 export default function FundsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedFund, setSelectedFund] = useState<number | null>(null);
 
@@ -108,7 +113,6 @@ export default function FundsPage() {
   const handleDelete = (fundId: number) => {
     setSelectedFund(fundId);
     setShowDeleteModal(true);
-    setActiveDropdown(null);
   };
 
   const confirmDelete = async () => {
@@ -201,43 +205,37 @@ export default function FundsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right pr-12">
-                        <div className="relative">
-                          <button
-                            onClick={() => setActiveDropdown(activeDropdown === fund.id ? null : fund.id)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <MoreVertical className="h-5 w-5 text-gray-600" />
-                          </button>
-
-                          {activeDropdown === fund.id && (
-                            <>
-                              <div
-                                className="fixed inset-0 z-10"
-                                onClick={() => setActiveDropdown(null)}
-                              />
-                              <div className="absolute right-0 top-full mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20 text-left">
-                                <Link
-                                  href={`/dashboard/funds/${fund.id}`}
-                                  className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                                >
-                                  View
-                                </Link>
-                                <Link
-                                  href={`/dashboard/funds/${fund.id}/edit`}
-                                  className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                                >
-                                  Edit
-                                </Link>
-                                <button
-                                  onClick={() => handleDelete(fund.id)}
-                                  className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                              <MoreVertical className="h-5 w-5 text-gray-600" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-32 bg-white z-50">
+                            <DropdownMenuItem asChild>
+                              <Link
+                                href={`/dashboard/funds/${fund.id}`}
+                                className="w-full px-4 py-2 cursor-pointer"
+                              >
+                                View
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link
+                                href={`/dashboard/funds/${fund.id}/edit`}
+                                className="w-full px-4 py-2 cursor-pointer"
+                              >
+                                Edit
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(fund.id)}
+                              className="w-full px-4 py-2 text-red-600 cursor-pointer focus:text-red-700"
+                            >
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}
