@@ -1,8 +1,8 @@
 // API Configuration
 // Production: https://investmentportalbackend.vercel.app
 // Local: http://localhost:3001
-const BASE_URL = 'http://localhost:3001'; 
-// const BASE_URL = 'https://investmentportalbackend.vercel.app';
+// const BASE_URL = 'http://localhost:3001'; 
+const BASE_URL = 'https://investmentportalbackend.vercel.app';
 
 const API_URL = `${BASE_URL}/api`;
 
