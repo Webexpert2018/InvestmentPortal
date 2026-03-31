@@ -11,7 +11,8 @@ export class AccountsController {
 
   @Get('my')
   async getMyIraAccount(@CurrentUser() user: any) {
-    return this.accountsService.getMyIraAccount(user.userId);
+    const account = await this.accountsService.getMyIraAccount(user.userId);
+    return account || null;
   }
 
   @Get('types')

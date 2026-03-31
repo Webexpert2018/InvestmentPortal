@@ -132,4 +132,5 @@ export class CreateAccountDto {
   previous_payment_election?: string;
   individual_date_of_birth?: string;
   conversion?: boolean;
+  status?: string;
 }

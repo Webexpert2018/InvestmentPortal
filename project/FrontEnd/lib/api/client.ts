@@ -36,10 +36,25 @@ class ApiClient {
     };
 
     const response = await fetch(url, config);
-    const data = await response.json();
+    
+    // Handle empty body responses (e.g. 204 No Content)
+    const text = await response.text();
+    let data: any = null;
+    
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.warn('⚠️ Response is not valid JSON:', text);
+        if (!response.ok) {
+          throw new Error(`Server Error: ${response.status} ${response.statusText}`);
+        }
+        return text as unknown as T;
+      }
+    }
 
     if (!response.ok) {
-      const errorMsg = data.message || data.error || 'An error occurred';
+      const errorMsg = data?.message || data?.error || `Error: ${response.status} ${response.statusText}`;
       throw new Error(errorMsg);
     }
 
@@ -349,6 +364,29 @@ class ApiClient {
 
   async getMyFundFlows() {
     return this.request<any[]>('/fund-flows');
+  }
+
+  // Investments
+  async createInvestment(data: { 
+    fundId: string; 
+    accountId?: string; 
+    accountType: string; 
+    investmentAmount: number; 
+    unitPrice: number;
+    status?: string;
+    documentSigned?: boolean;
+  }) {
+    return this.request<any>('/investments', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateInvestmentStatus(id: string, data: { status: string; documentSigned?: boolean }) {
+    return this.request<any>(`/investments/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   }
 
   // Fund Documents

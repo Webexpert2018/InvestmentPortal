@@ -344,10 +344,10 @@ export default function FundingRequestsPage() {
                         >
                           <MoreVertical className="h-5 w-5 text-gray-600" />
                         </button>
-                        
+
                         {activeDropdown === request.id && (
                           <>
-                            <div 
+                            <div
                               className="fixed inset-0 z-10"
                               onClick={() => setActiveDropdown(null)}
                             />
@@ -377,17 +377,16 @@ export default function FundingRequestsPage() {
             >
               Previous
             </button>
-            
+
             <div className="flex gap-2">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                    currentPage === page
+                  className={`w-10 h-10 rounded-lg font-medium transition-colors ${currentPage === page
                       ? 'bg-[#1F3B6E] text-white'
                       : 'text-gray-600 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   {page}
                 </button>

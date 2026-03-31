@@ -73,7 +73,7 @@ export default function FundsPage() {
   const formatAUM = (amount: any) => {
     const value = typeof amount === 'string' ? parseFloat(amount) : amount;
     if (isNaN(value)) return '$0';
-    
+
     if (value >= 1000000) {
       return `$${(value / 1000000).toFixed(1)}M`;
     } else if (value >= 1000) {
@@ -92,7 +92,7 @@ export default function FundsPage() {
   };
 
   const itemsPerPage = 7;
-  const filteredFunds = fundsData.filter(fund => 
+  const filteredFunds = fundsData.filter(fund =>
     (fund.name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
   const totalPages = Math.ceil(filteredFunds.length / itemsPerPage);
@@ -177,9 +177,9 @@ export default function FundsPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           {fund.image ? (
-                            <img 
-                              src={getFullImageUrl(fund.image) || ''} 
-                              alt={fund.name} 
+                            <img
+                              src={getFullImageUrl(fund.image) || ''}
+                              alt={fund.name}
                               className="w-10 h-10 rounded-full object-cover border border-gray-100"
                             />
                           ) : (
@@ -208,10 +208,10 @@ export default function FundsPage() {
                           >
                             <MoreVertical className="h-5 w-5 text-gray-600" />
                           </button>
-                          
+
                           {activeDropdown === fund.id && (
                             <>
-                              <div 
+                              <div
                                 className="fixed inset-0 z-10"
                                 onClick={() => setActiveDropdown(null)}
                               />
@@ -259,17 +259,16 @@ export default function FundsPage() {
                 <ChevronLeft className="h-4 w-4" />
                 Previous
               </button>
-              
+
               <div className="flex gap-1">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`w-8 h-8 rounded text-sm font-medium transition-colors ${
-                      currentPage === page
+                    className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === page
                         ? 'bg-[#1F3B6E] text-white shadow-sm'
                         : 'text-gray-400 hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     {page}
                   </button>

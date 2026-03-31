@@ -28,12 +28,16 @@ export function DashboardHeader({
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (user && user.role === 'investor') {
+    if (user && user.role === 'investor' && !iraAccount) {
       apiClient.getMyIRAAccount().then(data => {
         setIraAccount(data);
-      }).catch(err => console.error('Failed to fetch IRA account in header:', err));
+      }).catch(err => {
+        console.error('Failed to fetch IRA account in header:', err);
+        // Set to a special value to prevent retry loop
+        setIraAccount({ account_type: 'Unknown', account_number: 'Error' });
+      });
     }
-  }, [user]);
+  }, [user, iraAccount]);
 
   useEffect(() => {
     if (!isProfileMenuOpen) return;

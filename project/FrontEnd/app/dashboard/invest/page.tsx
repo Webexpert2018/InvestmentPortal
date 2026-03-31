@@ -110,7 +110,9 @@ export default function InvestPage() {
   }, [step]);
 
   const { investmentAmount, processingFee, total } = useMemo(() => {
-    const numeric = Number.parseFloat(amount.replace(/,/g, '')) || 0;
+    // Remove $, commas, and other non-numeric chars except decimal
+    const cleanAmount = amount.replace(/[^-0-9.]/g, '');
+    const numeric = Number.parseFloat(cleanAmount) || 0;
     const fee = numeric * 0.005;
     return {
       investmentAmount: numeric,
@@ -142,14 +144,20 @@ export default function InvestPage() {
     if (!selectedFundId || !selectedAccountId || investmentAmount <= 0) return;
     setSaving(true);
     try {
-      await apiClient.createFundFlow({
+      const isIra = selectedAccountId !== 'personal';
+      const result = await apiClient.createInvestment({
         fundId: selectedFundId,
-        accountId: selectedAccountId,
-        amount: investmentAmount,
-        status: finalStatus,
+        accountId: isIra ? selectedAccountId : undefined,
+        accountType: isIra ? 'ira' : 'personal',
+        investmentAmount: investmentAmount,
+        unitPrice: 1.25, // Fixed at 1.25 as seen in the UI
+        status: finalStatus || 'Subscription Submitted',
+        documentSigned: true, // Marked as true since they completed the signing step
       });
+      return result;
     } catch (error) {
       console.error('Failed to save investment:', error);
+      alert(error instanceof Error ? error.message : 'Failed to save investment. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -170,8 +178,17 @@ export default function InvestPage() {
   };
 
   const goNext = async () => {
-    if (step === 'fundingInstructions') {
-      await saveInvestment('Subscription Submitted');
+    if (step === 'investmentStatus') {
+      const result = await saveInvestment('Subscription Submitted');
+      if (result) {
+        alert('✅ Investment saved successfully!');
+        setStep('chooseFund');
+        // Reset states for fresh start
+        setSelectedFundId(null);
+        setAmount('25000');
+        setSelectedAccountId('personal');
+      }
+      return;
     }
 
     setStep((current) => {

@@ -52,9 +52,24 @@ async function bootstrap() {
         }
       }
 
-      console.log(`📂 Serving static assets from: ${uploadsBaseDir}`);
+      // Serve the ephemeral uploads directory (for any new uploads while running)
+      console.log(`📂 Serving ephemeral uploads from: ${uploadsBaseDir}`);
       app.useStaticAssets(uploadsBaseDir, {
         prefix: '/public/uploads/',
+        setHeaders: (res, path) => {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+          res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+          if (path.endsWith('.pdf')) {
+            res.setHeader('Content-Disposition', 'inline');
+          }
+        }
+      });
+
+      // Serve the bundled public directory (for static assets pushed to GitHub)
+      console.log(`📂 Serving bundled public assets from: ${join(process.cwd(), 'public')}`);
+      app.useStaticAssets(join(process.cwd(), 'public'), {
+        prefix: '/public/',
         setHeaders: (res, path) => {
           res.setHeader('Access-Control-Allow-Origin', '*');
           res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
