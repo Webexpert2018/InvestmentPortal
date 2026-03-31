@@ -81,7 +81,21 @@ export class DocumentsController {
   @Patch(':id/with-file')
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploads/documents',
+      destination: (req, file, cb) => {
+        const isVercel = process.env.VERCEL === '1';
+        const uploadDir = isVercel
+          ? join('/tmp', 'uploads', 'documents')
+          : join(process.cwd(), 'uploads', 'documents');
+
+        if (!fs.existsSync(uploadDir)) {
+          try {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          } catch (err) {
+            console.error('⚠️ Could not create documents directory:', err);
+          }
+        }
+        cb(null, uploadDir);
+      },
       filename: (req, file, cb) => {
         const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
         cb(null, `${randomName}${extname(file.originalname)}`);
