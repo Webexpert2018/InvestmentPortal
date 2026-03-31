@@ -118,7 +118,7 @@ export default async (req: any, res: any) => {
     res.status(500).json({
       statusCode: 500,
       message: 'Internal Server Error during initialization',
-      error: error.message,
+      error: error.message || 'Unknown error',
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
