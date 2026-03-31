@@ -286,6 +286,10 @@ class ApiClient {
     return this.request<any[]>('/funds');
   }
 
+  async getIraAccountTypes() {
+    return this.request<any[]>('/ira-accounts/types');
+  }
+
   async getFundById(id: string) {
     return this.request<any>(`/funds/${id}`);
   }
@@ -435,6 +439,14 @@ class ApiClient {
 
   getDocumentDownloadUrl(id: string) {
     return `${API_URL}/documents/${id}/download`;
+  }
+
+  async getSubscriptionDocuments() {
+    return this.request<string[]>('/documents/subscription/list');
+  }
+
+  getSubscriptionDocumentUrl(filename: string) {
+    return `${API_URL}/documents/subscription/preview/${filename}`;
   }
 }
 

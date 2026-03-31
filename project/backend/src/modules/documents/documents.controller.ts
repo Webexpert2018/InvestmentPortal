@@ -8,7 +8,7 @@ import { DocumentsService } from './documents.service';
 
 @Controller('api/documents')
 export class DocumentsController {
-  constructor(private readonly documentsService: DocumentsService) {}
+  constructor(private readonly documentsService: DocumentsService) { }
 
   @Get('all')
   async getAllDocuments() {
@@ -118,5 +118,73 @@ export class DocumentsController {
     const uploadDir = isVercel ? '/tmp/uploads/documents' : join(process.cwd(), 'uploads', 'documents');
     const filePath = join(uploadDir, filePathInDB);
     return res.download(filePath, doc.file_name);
+  }
+
+  @Get('subscription/list')
+  async listSubscriptionDocs() {
+    const isVercel = process.env.VERCEL === '1';
+    const uploadDir = isVercel
+      ? join('/tmp', 'uploads', 'subscription-documents')
+      : join(process.cwd(), 'uploads', 'subscription-documents');
+
+    if (!fs.existsSync(uploadDir)) {
+      return [];
+    }
+
+    const files = fs.readdirSync(uploadDir).filter(file => file.toLowerCase().endsWith('.pdf'));
+
+    return files.map(file => {
+      const filePath = join(uploadDir, file);
+      const stats = fs.statSync(filePath);
+
+      // Calculate page count using regex
+      let pageCount = 1;
+      try {
+        const buffer = fs.readFileSync(filePath);
+        const content = buffer.toString('utf8');
+        const matches = content.match(/\/Type\s*\/Page\b/g);
+        pageCount = matches ? Array.from(new Set(matches)).length : 1;
+        // Fallback: if regex is too simple, we just use the length of matches
+        if (matches && pageCount < matches.length) {
+          pageCount = matches.length;
+        }
+      } catch (e) {
+        console.error('Error reading PDF pages:', e);
+      }
+
+      const sizeFormatted = stats.size > 1024 * 1024
+        ? `${(stats.size / (1024 * 1024)).toFixed(1)} MB`
+        : `${(stats.size / 1024).toFixed(0)} KB`;
+
+      const modifiedDate = stats.mtime.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+
+      return {
+        name: file,
+        size: `File size: ${sizeFormatted}`,
+        lastModified: `Last updated on ${modifiedDate}`,
+        pages: pageCount
+      };
+    });
+  }
+
+  @Get('subscription/preview/:filename')
+  async previewSubscriptionDoc(@Param('filename') filename: string, @Res() res: Response) {
+    const isVercel = process.env.VERCEL === '1';
+    const uploadDir = isVercel
+      ? join('/tmp', 'uploads', 'subscription-documents')
+      : join(process.cwd(), 'uploads', 'subscription-documents');
+
+    const filePath = join(uploadDir, filename);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send('Document not found');
+    }
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename=' + filename);
+    return res.sendFile(filePath);
   }
 }

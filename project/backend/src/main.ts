@@ -38,20 +38,23 @@ async function bootstrap() {
       });
 
       const isVercel = process.env.VERCEL === '1';
-      const uploadDir = isVercel
-        ? join('/tmp', 'uploads', 'profile-images')
-        : join(process.cwd(), 'uploads', 'profile-images');
+      const uploadsBaseDir = isVercel
+        ? join('/tmp', 'uploads')
+        : join(process.cwd(), 'uploads');
+      
+      const profileImagesDir = join(uploadsBaseDir, 'profile-images');
 
-      if (!fs.existsSync(uploadDir)) {
+      if (!fs.existsSync(profileImagesDir)) {
         try {
-          fs.mkdirSync(uploadDir, { recursive: true });
+          fs.mkdirSync(profileImagesDir, { recursive: true });
         } catch (err) {
-          console.error('⚠️ Could not create uploads directory:', err);
+          console.error('⚠️ Could not create profile images directory:', err);
         }
       }
 
-      app.useStaticAssets(isVercel ? join('/tmp', 'uploads') : join(process.cwd(), 'uploads'), {
-        prefix: '/public/uploads',
+      console.log(`📂 Serving static assets from: ${uploadsBaseDir}`);
+      app.useStaticAssets(uploadsBaseDir, {
+        prefix: '/public/uploads/',
         setHeaders: (res, path) => {
           res.setHeader('Access-Control-Allow-Origin', '*');
           res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');

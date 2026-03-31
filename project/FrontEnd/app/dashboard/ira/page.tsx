@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { apiClient } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
 import { Combobox } from '@/components/ui/combobox';
-import { Check, ChevronDown, Shield, Smartphone, QrCode, Phone, MapPin, User, FileText, Lock, Plus, X, Loader2, Info } from 'lucide-react';
+import { Check, ChevronDown, Shield, Smartphone, QrCode, Phone, MapPin, User, FileText, Lock, Plus, X, Loader2, Info, Wallet, Sparkles, Building2, ShieldCheck, History } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════
    DUMMY INVESTOR DATA  (all fields from signup steps)
@@ -57,6 +57,7 @@ export default function IRAPage() {
   const [iraAccount, setIraAccount] = useState<any>(null);
   const [fetchingIra, setFetchingIra] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [accountTypes, setAccountTypes] = useState<any[]>([]);
 
   const phoneComplete = user?.phone || '';
   const phoneParts = phoneComplete.match(/^(\+\d+\s*\([^)]+\))\s*(.*)$/); // basic country code grab
@@ -65,7 +66,17 @@ export default function IRAPage() {
 
   useEffect(() => {
     fetchIraAccount();
+    fetchAccountTypes();
   }, []);
+
+  const fetchAccountTypes = async () => {
+    try {
+      const data = await apiClient.getIraAccountTypes();
+      setAccountTypes(data);
+    } catch (error) {
+      console.error('Failed to fetch account types:', error);
+    }
+  };
 
   const fetchIraAccount = async () => {
     try {
@@ -506,11 +517,11 @@ export default function IRAPage() {
                         className={`w-full h-[40px] rounded-[8px] border px-4 text-[13px] font-helvetica outline-none transition bg-[#FAFAFA] ${errors.accountType ? 'border-red-500' : 'border-[#E5E7EB] focus:border-[#D1A94C]'}`}
                       >
                         <option value="">Select account type</option>
-                        <option value="Traditional">Traditional</option>
-                        <option value="Roth">Roth</option>
-                        <option value="SEP">SEP</option>
-                        <option value="Roth SEP">Roth SEP</option>
-                        <option value="Rollover">Rollover</option>
+                        {accountTypes.map((type) => (
+                          <option key={type.id} value={type.name}>
+                            {type.name}
+                          </option>
+                        ))}
                       </select>
                       {errors.accountType && <p className="mt-1 text-[11px] text-red-600">{errors.accountType}</p>}
                     </div>

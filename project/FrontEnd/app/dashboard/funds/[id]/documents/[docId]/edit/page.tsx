@@ -113,73 +113,63 @@ export default function EditDocumentPage() {
     <DashboardLayout>
       <div className="p-8 max-w-5xl mx-auto">
         {/* Breadcrumb/Back */}
-        <div className="mb-10">
+        <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="mb-6 flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+            className="mb-1 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-5 w-5" />
             Back to Fund
           </button>
-          <h1 className="text-4xl font-bold text-[#1F2937] mb-2 font-serif">Edit Document Details</h1>
-          <p className="text-gray-500 font-medium">
+          <h1 className="text-2xl font-semibold text-gray-900 mt-4 font-serif">Edit Document Details</h1>
+          <p className="text-sm text-gray-500 mt-1">
             Update metadata for this document. File changes are now supported below.
           </p>
         </div>
 
-        <form onSubmit={handleUpdate} className="space-y-8">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-md p-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
+        <form onSubmit={handleUpdate} className="space-y-6">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               {/* Document Type */}
-              <div className="space-y-3">
-                <label className="text-sm font-bold text-gray-700 tracking-wide uppercase">Document Type</label>
-                <div className="relative">
-                  <select
-                    required
-                    value={formData.document_type}
-                    onChange={(e) => setFormData({ ...formData, document_type: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent outline-none transition-all appearance-none font-medium text-gray-700"
-                  >
-                    <option value="">Select document type</option>
-                    {DOCUMENT_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                    <ChevronLeft className="h-4 w-4 rotate-[270deg]" />
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Document Type</label>
+                <select
+                  required
+                  value={formData.document_type}
+                  onChange={(e) => setFormData({ ...formData, document_type: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-[#FCD34D] outline-none transition-all"
+                >
+                  <option value="">Select document type</option>
+                  {DOCUMENT_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Tax Year */}
-              <div className="space-y-3">
-                <label className="text-sm font-bold text-gray-700 tracking-wide uppercase">Tax Year</label>
-                <div className="relative">
-                  <select
-                    value={formData.tax_year}
-                    onChange={(e) => setFormData({ ...formData, tax_year: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent outline-none transition-all appearance-none font-medium text-gray-700"
-                  >
-                    <option value="">Select tax year</option>
-                    {TAX_YEARS.map((year) => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                    <ChevronLeft className="h-4 w-4 rotate-[270deg]" />
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Tax Year</label>
+                <select
+                  value={formData.tax_year}
+                  onChange={(e) => setFormData({ ...formData, tax_year: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-[#FCD34D] outline-none transition-all"
+                >
+                  <option value="">Select tax year</option>
+                  {TAX_YEARS.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               {/* Description */}
-              <div className="space-y-3">
-                <label className="text-sm font-bold text-gray-700 flex justify-between tracking-wide uppercase">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 flex justify-between">
                   Description
                   <span className="text-xs text-gray-400 font-normal">{formData.description.length}/1000</span>
                 </label>
@@ -188,13 +178,13 @@ export default function EditDocumentPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Enter description"
                   maxLength={1000}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent outline-none transition-all h-40 resize-none font-medium text-gray-700"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-[#FCD34D] outline-none transition-all h-32 resize-none"
                 />
               </div>
 
               {/* Note */}
-              <div className="space-y-3">
-                <label className="text-sm font-bold text-gray-700 flex justify-between tracking-wide uppercase">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 flex justify-between">
                   Note
                   <span className="text-xs text-gray-400 font-normal">{formData.note.length}/1000</span>
                 </label>
@@ -203,87 +193,92 @@ export default function EditDocumentPage() {
                   onChange={(e) => setFormData({ ...formData, note: e.target.value })}
                   placeholder="Add a private note visible only to you"
                   maxLength={1000}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent outline-none transition-all h-40 resize-none font-medium text-gray-700"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-[#FCD34D] outline-none transition-all h-32 resize-none"
                 />
               </div>
             </div>
 
             {/* Replace Document Section */}
-            <div className="space-y-4 pt-6 border-t border-gray-100">
-              <label className="text-sm font-bold text-gray-700 tracking-wide uppercase">Replace Document (Optional)</label>
-              <div className="flex flex-col gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Replace Document (Optional)</label>
+              <div
+                onClick={() => document.getElementById("file-replace")?.click()}
+                className={`border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center cursor-pointer transition-all ${
+                  file ? "border-[#FCD34D] bg-[#FFFBEB]" : "border-gray-200 hover:border-[#FCD34D] hover:bg-gray-50"
+                }`}
+              >
+                <input
+                  type="file"
+                  id="file-replace"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setFile(e.target.files[0]);
+                    }
+                  }}
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                />
                 {file ? (
-                  <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-blue-900">{file.name}</p>
-                        <p className="text-xs text-blue-600">{(file.size / (1024 * 1024)).toFixed(2)} MB • Ready to upload</p>
-                      </div>
+                  <div className="flex flex-col items-center text-center font-helvetica">
+                    <div className="w-16 h-16 bg-[#FCD34D] rounded-full flex items-center justify-center mb-4">
+                      <Upload className="h-8 w-8 text-white" />
                     </div>
+                    <p className="font-medium text-gray-900">{file.name}</p>
+                    <p className="text-sm text-gray-500 mt-1">{(file.size / (1024 * 1024)).toFixed(2)} MB • Ready to replace</p>
                     <button
                       type="button"
-                      onClick={() => setFile(null)}
-                      className="p-2 hover:bg-blue-100 rounded-full transition-colors text-blue-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFile(null);
+                      }}
+                      className="mt-4 text-sm text-red-600 hover:text-red-700 flex items-center gap-1 font-medium"
                     >
-                      <X className="h-5 w-5" />
+                      <X className="h-4 w-4" /> Remove
                     </button>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-6">
-                     <div className="flex-1 flex items-center gap-3 p-4 bg-gray-50 border border-dashed border-gray-300 rounded-lg italic text-gray-400">
-                        {existingFileName ? existingFileName : 'No file currently uploaded'}
-                     </div>
-                     <input
-                      type="file"
-                      id="file-upload"
-                      className="hidden"
-                      onChange={(e) => {
-                        const selectedFile = e.target.files?.[0];
-                        if (selectedFile) setFile(selectedFile);
-                      }}
-                      accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-                    />
-                    <label
-                      htmlFor="file-upload"
-                      className="cursor-pointer flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold hover:bg-gray-50 transition-all shadow-sm"
-                    >
-                      <Upload className="h-5 w-5 text-gray-400" />
-                      Select New File
-                    </label>
+                  <div className="flex flex-col items-center text-center font-helvetica">
+                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-[#FFFBEB] transition-colors">
+                      <Upload className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-900 font-medium">
+                      {existingFileName ? (
+                        <>
+                          Current: <span className="font-normal text-gray-500">{existingFileName}</span>
+                          <br />
+                          Drag & drop to replace
+                        </>
+                      ) : "Drag & drop files here"}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">Support for PDF, DOC, JPG, PNG</p>
                   </div>
                 )}
-                <p className="text-xs text-gray-400">Accepted formats: PDF, DOCX, XLSX, Images (Max 10MB)</p>
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end items-center gap-10 mt-10">
-            <button
+          <div className="flex justify-end gap-4 mt-8">
+            <Button
               type="button"
+              variant="outline"
               onClick={() => router.back()}
-              className="text-gray-500 font-bold hover:text-gray-800 transition-colors"
+              className="px-8 py-2.5 border-none bg-gray-50 text-gray-600 hover:bg-gray-100 font-medium transition-all"
             >
               Cancel
-            </button>
+            </Button>
             <Button
               type="submit"
               disabled={isSaving}
-              className="px-12 py-3 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 font-bold rounded-lg shadow-md transition-all disabled:opacity-50 flex items-center gap-2 h-auto"
+              className="px-12 py-2.5 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 font-semibold shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
             >
               {isSaving ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Updating...
+                  Saving...
                 </>
               ) : (
-                <>
-                  <Save className="h-5 w-5" />
-                  Save Changes
-                </>
+                "Save Changes"
               )}
             </Button>
           </div>

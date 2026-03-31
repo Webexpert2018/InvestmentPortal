@@ -23,6 +23,16 @@ export class AccountsService {
     }
   }
 
+  async getAccountTypes() {
+    try {
+      const result = await db.query('SELECT * FROM ira_account_types ORDER BY name ASC');
+      return result.rows;
+    } catch (error: any) {
+      console.error('❌ Error fetching IRA account types:', error.message || error);
+      throw new InternalServerErrorException('Failed to fetch IRA account types');
+    }
+  }
+
   async createAccount(userId: string, dto: CreateAccountDto, token: string) {
     try {
       const response = await axios.post(

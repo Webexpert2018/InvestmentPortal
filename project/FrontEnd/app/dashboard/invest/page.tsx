@@ -2,7 +2,18 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { apiClient } from '@/lib/api/client';
+import { apiClient, BASE_URL } from '@/lib/api/client';
+import {
+  ChevronLeft,
+  Download,
+  FileText,
+  Maximize2,
+  Minus,
+  Plus,
+  Printer,
+  Search,
+  Eye
+} from 'lucide-react';
 
 type Step =
   | 'chooseFund'
@@ -17,43 +28,58 @@ type FooterOptions = {
   showBack?: boolean;
 };
 
+const getFullImageUrl = (imagePath: string | null | undefined): string | undefined => {
+  if (!imagePath) return undefined;
+  if (imagePath.startsWith('http')) return imagePath;
+  return `${BASE_URL}${imagePath}`;
+};
+
 export default function InvestPage() {
   const [step, setStep] = useState<Step>('chooseFund');
   const [funds, setFunds] = useState<any[]>([]);
   const [existingFlows, setExistingFlows] = useState<any[]>([]);
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>('personal');
   const [amount, setAmount] = useState<string>('25000');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [userIraAccount, setUserIraAccount] = useState<any>(null);
+  const [subscriptionDocs, setSubscriptionDocs] = useState<any[]>([]);
+  const [selectedSubDoc, setSelectedSubDoc] = useState<any | null>(null);
+  const [selectedPage, setSelectedPage] = useState<number>(1);
+  const [zoom, setZoom] = useState<number>(100);
 
-  const accounts = [
-    {
-      id: 'personal',
-      label: 'Personal Account',
-      value: '•••• 1234 · Checking',
-    },
-    {
-      id: 'traditional-ira',
-      label: 'Traditional IRA',
-      value: 'Fidelity · •••• 5678',
-    },
-    {
-      id: 'roth-ira',
-      label: 'Roth IRA',
-      value: 'Charles Schwab · •••• 9012',
-    },
-  ];
+  const dynamicAccounts = useMemo(() => {
+    const list = [
+      {
+        id: 'personal',
+        label: 'Personal Account',
+        value: 'Cash / Checking',
+      },
+    ];
+
+    if (userIraAccount) {
+      list.push({
+        id: userIraAccount.id || 'ira',
+        label: `${userIraAccount.account_type || 'IRA'} Account`,
+        value: userIraAccount.custodian_name || 'IRA Custodian',
+      });
+    }
+
+    return list;
+  }, [userIraAccount]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [fundsData, flowsData] = await Promise.all([
+        const [fundsData, flowsData, iraData] = await Promise.all([
           apiClient.getFunds(),
           apiClient.getMyFundFlows(),
+          apiClient.getMyIRAAccount().catch(() => null),
         ]);
         setFunds(fundsData);
         setExistingFlows(flowsData);
+        setUserIraAccount(iraData);
         if (fundsData.length > 0 && !selectedFundId) {
           setSelectedFundId(fundsData[0].id);
         }
@@ -65,6 +91,23 @@ export default function InvestPage() {
     };
     fetchData();
   }, [selectedFundId]);
+
+  useEffect(() => {
+    if (step === 'signDocuments') {
+      const fetchSubscriptionDocs = async () => {
+        try {
+          const docs = await apiClient.getSubscriptionDocuments();
+          setSubscriptionDocs(docs);
+          if (docs.length > 0 && !selectedSubDoc) {
+            setSelectedSubDoc(docs[0]);
+          }
+        } catch (error) {
+          console.error('Failed to fetch subscription docs:', error);
+        }
+      };
+      fetchSubscriptionDocs();
+    }
+  }, [step]);
 
   const { investmentAmount, processingFee, total } = useMemo(() => {
     const numeric = Number.parseFloat(amount.replace(/,/g, '')) || 0;
@@ -79,12 +122,12 @@ export default function InvestPage() {
   const goBack = () => {
     setStep((current) => {
       switch (current) {
-        case 'fundingAccount':
-          return 'chooseFund';
         case 'investmentAmount':
-          return 'fundingAccount';
-        case 'signDocuments':
+          return 'chooseFund';
+        case 'fundingAccount':
           return 'investmentAmount';
+        case 'signDocuments':
+          return 'fundingAccount';
         case 'fundingInstructions':
           return 'signDocuments';
         case 'investmentStatus':
@@ -112,6 +155,20 @@ export default function InvestPage() {
     }
   };
 
+  const handleDownload = () => {
+    if (!selectedSubDoc) return;
+    const link = document.createElement('a');
+    link.href = apiClient.getSubscriptionDocumentUrl(selectedSubDoc.name);
+    link.download = selectedSubDoc.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   const goNext = async () => {
     if (step === 'fundingInstructions') {
       await saveInvestment('Subscription Submitted');
@@ -120,10 +177,10 @@ export default function InvestPage() {
     setStep((current) => {
       switch (current) {
         case 'chooseFund':
-          return 'fundingAccount';
-        case 'fundingAccount':
           return 'investmentAmount';
         case 'investmentAmount':
+          return 'fundingAccount';
+        case 'fundingAccount':
           return 'signDocuments';
         case 'signDocuments':
           return 'fundingInstructions';
@@ -139,19 +196,20 @@ export default function InvestPage() {
     const { primaryLabel = 'Continue', showBack = true } = options;
 
     return (
-      <div className="mt-16 flex items-center justify-between border-t border-[#E5E5EA] pt-6">
+      <div className="mt-16 flex items-center justify-between border-t border-[#E5E5EA] pt-8">
         <button
           type="button"
-          className="rounded-full bg-[#FFF3D6] px-5 py-2 text-sm font-medium text-[#4B4B4B] hover:bg-[#FFE7AF]"
+          onClick={() => setStep('chooseFund')}
+          className="rounded-full bg-[#FFF3D6] px-10 py-3 text-sm font-semibold text-[#4B4B4B] hover:bg-[#FFE7AF] transition-all"
         >
           Cancel
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {showBack && (
             <button
               type="button"
               onClick={goBack}
-              className="rounded-full bg-[#FFF3D6] px-5 py-2 text-sm font-medium text-[#4B4B4B] hover:bg-[#FFE7AF]"
+              className="rounded-full bg-[#FFF3D6] px-10 py-3 text-sm font-semibold text-[#4B4B4B] hover:bg-[#FFE7AF] transition-all"
             >
               Back
             </button>
@@ -159,10 +217,9 @@ export default function InvestPage() {
           <button
             type="button"
             onClick={goNext}
-            className="rounded-full bg-[#FBCB4B] px-6 py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full bg-[#FBCB4B] px-10 py-3 text-sm font-semibold text-[#1F1F1F] hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm transition-all"
             disabled={
               saving ||
-              (step === 'chooseFund' && !selectedFundId) ||
               (step === 'fundingAccount' && !selectedAccountId) ||
               (step === 'investmentAmount' && investmentAmount <= 0)
             }
@@ -176,35 +233,6 @@ export default function InvestPage() {
 
   const renderChooseFund = () => (
     <>
-      {existingFlows.length > 0 && (
-        <div className="mb-10">
-          <h2 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F]">
-            Your Saved Funds
-          </h2>
-          <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {existingFlows.map((flow) => (
-              <div key={flow.id} className="rounded-xl bg-white p-4 shadow-sm border border-[#E5E5EA]">
-                <div className="flex items-center gap-3">
-                  <img src={flow.fundImage} alt={flow.fundName} className="h-10 w-10 rounded-full object-cover" />
-                  <div>
-                    <p className="text-sm font-bold text-[#1F1F1F]">{flow.fundName}</p>
-                    <p className="text-xs text-[#8E8E93]">{flow.status}</p>
-                  </div>
-                </div>
-                <div className="mt-3 flex items-center justify-between">
-                  <p className="text-sm font-semibold">${Number(flow.amount).toLocaleString()}</p>
-                  <button 
-                    onClick={() => setStep('investmentStatus')} // Simplified: just jump to status
-                    className="text-xs font-medium text-[#274583] hover:underline"
-                  >
-                    View Details
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="mb-6">
         <h1 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F]">
@@ -224,20 +252,39 @@ export default function InvestPage() {
               <button
                 key={fund.id}
                 type="button"
-                onClick={() => setSelectedFundId(fund.id)}
-                className={`flex w-full items-center rounded-sm bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] ${
-                  selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : ''
-                }`}
+                onClick={() => {
+                  setSelectedFundId(fund.id);
+                  setStep('investmentAmount');
+                }}
+                className={`flex w-full items-center rounded-sm bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : ''
+                  }`}
               >
                 <img
-                  src={fund.image}
+                  src={getFullImageUrl(fund.image)}
                   alt={fund.name}
                   className="mr-6 h-24 w-40 rounded-lg object-cover"
                 />
-                <div>
-                  <h3 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F]">
+                <div className="flex flex-col">
+                  <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F]">
                     {fund.name}
                   </h3>
+                  <div className="flex items-center gap-3 mt-1.5 mb-2">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${fund.status === 'Closed' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
+                      }`}>
+                      {fund.status || 'Active'}
+                    </span>
+                    <span className="text-[10px] text-[#8E8E93] font-medium lowercase">
+                      Created: {fund.startDate ? new Date(fund.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#4B4B4B] line-clamp-2 max-w-sm">
+                    {fund.description || 'Secure institutional-grade Bitcoin strategies.'}
+                  </p>
+                  {fund.note && (
+                    <p className="mt-1.5 text-[10px] text-gray-400 line-clamp-1 italic italic">
+                      {fund.note}
+                    </p>
+                  )}
                 </div>
               </button>
             );
@@ -276,28 +323,28 @@ export default function InvestPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        {accounts.map((account) => {
+        {dynamicAccounts.map((account: any) => {
           const selected = account.id === selectedAccountId;
           return (
             <button
               key={account.id}
               type="button"
               onClick={() => setSelectedAccountId(account.id)}
-              className={`flex w-full flex-col items-start rounded-2xl bg-white px-6 py-5 text-left shadow-sm transition hover:shadow-md ${
-                selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-[#F4F5F7]' : ''
-              }`}
+              className={`flex w-full flex-col items-start rounded-2xl px-6 py-5 text-left transition ${selected
+                ? 'bg-white shadow-md ring-2 ring-[#274583] ring-offset-2'
+                : 'bg-white shadow-sm hover:shadow-md border border-[#E5E5EA]'
+                }`}
             >
-              <div className="flex w-full items-center justify-between">
-                <p className="text-sm font-semibold text-[#1F1F1F]">{account.label}</p>
-                <span
-                  className={`inline-flex h-4 w-4 items-center justify-center rounded-full border ${
-                    selected ? 'border-[#274583]' : 'border-[#D4D4D4]'
-                  }`}
+              <div className="flex w-full items-center justify-between mb-1">
+                <p className="text-sm font-bold text-[#1F1F1F]">{account.label}</p>
+                <div
+                  className={`flex h-5 w-5 items-center justify-center rounded-full border ${selected ? 'border-[#274583] bg-[#274583]' : 'border-[#D4D4D4]'
+                    }`}
                 >
-                  {selected && <span className="h-2.5 w-2.5 rounded-full bg-[#274583]" />}
-                </span>
+                  {selected && <div className="h-2 w-2 rounded-full bg-white" />}
+                </div>
               </div>
-              <p className="mt-2 text-xs text-[#8E8E93]">{account.value}</p>
+              <p className="text-xs text-[#8E8E93]">{account.value}</p>
             </button>
           );
         })}
@@ -309,79 +356,82 @@ export default function InvestPage() {
 
   const renderInvestmentAmount = () => (
     <>
-      <div className="mb-6">
-        <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+      <div className="mb-8">
+        <h1 className="font-goudy text-xl sm:text-[28px] font-bold leading-[38px] text-[#1F1F1F]">
           Investment Amount
         </h1>
-        <p className="mt-2 text-sm text-[#8E8E93]">Specify how much you&apos;d like to invest.</p>
+        <p className="mt-1 text-sm text-[#8E8E93]">Specify how much you&apos;d like to invest.</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,2.3fr)_minmax(0,1fr)]">
+      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
-          <div className="rounded-2xl bg-white px-6 py-5 shadow-sm">
-            <label className="block text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+          <div className="rounded-2xl bg-white px-8 py-8 shadow-sm border border-gray-100">
+            <label className="block text-xs font-bold uppercase tracking-wide text-[#4B4B4B] mb-4">
               Amount
             </label>
-            <div className="mt-3">
+            <div className="relative">
               <input
                 type="text"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full rounded-lg border border-[#E5E5EA] bg-white px-4 py-2.5 text-sm text-[#1F1F1F] outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583]"
+                placeholder="$0.00"
+                className="w-full rounded-xl border border-[#E5E5EA] bg-white px-6 py-4 text-lg font-medium text-[#1F1F1F] outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] transition-all"
               />
-              <p className="mt-2 text-xs text-[#8E8E93]">Minimum investment: $10,000</p>
+              <p className="mt-3 text-xs text-[#8E8E93]">Minimum investment: $10,000</p>
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white px-6 py-5 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+          <div className="rounded-2xl bg-white px-8 py-8 shadow-sm border border-gray-100">
+            <p className="text-xs font-bold uppercase tracking-wide text-[#4B4B4B] mb-6">
               Estimated Units You Will Receive
             </p>
-            <div className="mt-4 grid gap-8 md:grid-cols-2">
-              <div>
-                <p className="text-sm text-[#8E8E93]">Unit Price</p>
-                <p className="mt-1 text-lg font-semibold text-[#1F1F1F]">$1.25</p>
+            <div className="grid gap-12 md:grid-cols-2">
+              <div className="border-r border-gray-100 pr-8">
+                <p className="text-sm font-medium text-[#8E8E93] mb-1">Unit Price</p>
+                <p className="text-xl font-bold text-[#1F1F1F]">$1.25</p>
               </div>
               <div>
-                <p className="text-sm text-[#8E8E93]">Estimated Units</p>
-                <p className="mt-1 text-lg font-semibold text-[#1F1F1F]">40,000 units</p>
+                <p className="text-sm font-medium text-[#8E8E93] mb-1">Estimated Units</p>
+                <p className="text-xl font-bold text-[#1F1F1F]">40,000 units</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white px-6 py-5 shadow-sm">
-          <h2 className="font-goudy text-base text-[#1F1F1F]">Order Summary</h2>
-          <div className="mt-4 space-y-3 text-sm text-[#4B4B4B]">
-            <div className="flex items-center justify-between">
-              <span>Investment Amount:</span>
-              <span className="font-semibold">
+        <div className="rounded-2xl bg-white px-8 py-8 shadow-sm border border-gray-100 h-fit">
+          <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] mb-6">Order Summary</h2>
+          <div className="space-y-4 text-sm">
+            <div className="flex items-center justify-between text-[#4B4B4B]">
+              <span className="font-medium">Investment Amount:</span>
+              <span className="font-bold text-[#1F1F1F]">
                 $
                 {investmentAmount.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
                 })}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <span>Processing Fee (0.5%):</span>
-              <span className="font-semibold">
+            <div className="flex items-center justify-between text-[#4B4B4B]">
+              <span className="font-medium">Processing Fee (0.5%):</span>
+              <span className="font-bold text-[#1F1F1F]">
                 $
                 {processingFee.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
                 })}
               </span>
             </div>
-            <div className="mt-3 flex items-center justify-between border-t border-dashed border-[#E5E5EA] pt-3">
-              <span>Total</span>
-              <span className="text-base font-semibold text-[#2BB673]">
-                $
-                {total.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
+            <div className="pt-6 mt-6 border-t border-dashed border-[#E5E5EA]">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 font-medium">Total</span>
+                <span className="text-xl font-bold text-[#2BB673]">
+                  $
+                  {total.toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -397,62 +447,150 @@ export default function InvestPage() {
         <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
           Sign Subscription Documents
         </h1>
-        <p className="mt-2 text-sm text-[#8E8E93]">
-          Review the key documents for this investment and sign to continue.
+        <p className="mt-1 text-sm text-[#8E8E93]">
+          Review and e-sign required documents.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-2xl bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between text-xs text-[#8E8E93]">
-            <span>Quarterly Statement Q4 2025</span>
-            <span>1 of 12</span>
-          </div>
-          <div className="flex gap-4">
-            <div className="flex w-24 flex-col gap-3 text-center text-[10px] text-[#8E8E93]">
-              {[1, 2, 3, 4].map((page) => (
-                <div
-                  key={page}
-                  className={`flex h-20 items-center justify-center rounded border border-[#E5E5EA] bg-[#F7F8FA] ${
-                    page === 1 ? 'ring-2 ring-[#274583]' : ''
-                  }`}
+      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+        {/* Left Preview Section */}
+        <div className="rounded-[8px] bg-white p-4 shadow-sm border border-[#E5E5EA]">
+          <div className="flex flex-col min-h-[600px] rounded-[6px] border border-[#E9EBEE] bg-[#F8F9FB] overflow-hidden transition-all">
+            {/* Toolbar */}
+            <div className="flex h-[44px] items-center justify-between border-b border-[#E2E5EA] bg-white px-4">
+              <div className="flex items-center gap-3 text-[12px] text-[#6B7280]">
+                <button
+                  onClick={() => { setSelectedSubDoc(null); setSelectedPage(1); }}
+                  className="inline-flex items-center gap-1 text-[#5E6B7F] hover:text-[#1F1F1F] transition-colors"
                 >
-                  Page {page}
+                  <ChevronLeft className="h-4 w-4" />
+                  Back
+                </button>
+                <div className="border-l border-gray-200 pl-3">
+                  <p className="font-medium text-[#374151] truncate max-w-[200px]">
+                    {selectedSubDoc?.name || 'Select a document'}
+                  </p>
+                  <p className="text-[10px] text-[#9CA3AF]">
+                    Document Vault &gt; Subscription Documents
+                  </p>
                 </div>
-              ))}
+              </div>
+
+              <div className="flex items-center gap-3 text-[#6B7280]">
+                <button type="button" onClick={handleDownload} className="hover:text-[#374151]"><Download className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={handlePrint} className="hover:text-[#374151]"><Printer className="h-3.5 w-3.5" /></button>
+                <button type="button" className="hover:text-[#374151]"><Search className="h-3.5 w-3.5" /></button>
+                <span className="text-[11px] font-medium">{zoom}%</span>
+                <button type="button" onClick={() => setZoom(prev => Math.max(50, prev - 10))} className="hover:text-[#374151]"><Minus className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={() => setZoom(prev => Math.min(200, prev + 10))} className="hover:text-[#374151]"><Plus className="h-3.5 w-3.5" /></button>
+                <button type="button" className="hover:text-[#374151]"><Maximize2 className="h-3.5 w-3.5" /></button>
+              </div>
             </div>
-            <div className="flex-1 rounded border border-[#E5E5EA] bg-[#F9FAFB]" />
+
+            <div className="grid flex-1 grid-cols-[92px_1fr]">
+              {/* Dynamic Thumbnail Sidebar */}
+              <aside className="border-r border-[#E2E5EA] bg-white p-2 flex flex-col gap-2 overflow-y-auto max-h-[520px] custom-scrollbar">
+                {selectedSubDoc && Array.from({ length: selectedSubDoc.pages || 1 }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setSelectedPage(page)}
+                    className={`flex h-[80px] w-full flex-col items-center justify-center rounded-[4px] border text-[10px] transition-all shrink-0 ${page === selectedPage ? 'border-[#5EA0FF] bg-[#EEF4FF] text-[#4B5563]' : 'border-[#E4E7EC] bg-[#F4F6F9] text-[#6B7280] hover:border-gray-300'
+                      }`}
+                  >
+                    <FileText className="h-4 w-4 mb-1" />
+                    <span>Page {page}</span>
+                  </button>
+                ))}
+              </aside>
+
+              {/* Main Content Area */}
+              <div className="relative bg-[#ECEDEF] p-10 flex justify-center items-start overflow-y-auto max-h-[520px] custom-scrollbar selection-none">
+                <div
+                  className="w-full max-w-[500px] h-fit bg-white shadow-lg border border-[#D9DDE3] rounded-sm relative transition-transform origin-top select-none"
+                  style={{ transform: `scale(${zoom / 100})`, minHeight: '800px' }}
+                >
+                  {selectedSubDoc ? (
+                    <iframe
+                      src={`${apiClient.getSubscriptionDocumentUrl(selectedSubDoc.name)}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}`}
+                      key={`${selectedSubDoc.name}-${selectedPage}`}
+                      className="w-full h-full border-none absolute inset-0 pointer-events-auto"
+                      style={{ minHeight: '800px' }}
+                      title="Document Preview"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-[500px] text-[#8E8E93] p-8 text-center italic">
+                      <p>Select a document to begin preview</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Status Bar */}
+            <div className="flex h-[30px] items-center justify-between border-t border-[#E2E5EA] bg-white px-4 text-[10px] text-[#98A1B2]">
+              <p>{selectedSubDoc ? selectedSubDoc.lastModified : 'No selection'}</p>
+              <p>{selectedSubDoc ? selectedSubDoc.size : ''}</p>
+            </div>
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="font-goudy text-base text-[#1F1F1F]">Your Document</h2>
-          <p className="mt-2 text-xs text-[#8E8E93]">
-            Please review and sign the documents below, then click &quot;Start Signing&quot; to begin.
-          </p>
-          <div className="mt-4 space-y-2 text-sm">
-            {['Subscription Agreement', 'W-9 Form', 'Investor Questionnaire'].map((label) => (
+        {/* Right Action Section */}
+        <div className="flex flex-col gap-6">
+          <div className="rounded-2xl bg-white p-8 shadow-sm border border-[#E5E5EA]">
+            <h2 className="font-goudy text-[22px] font-bold text-[#1F1F1F]">Your Document</h2>
+            <p className="mt-4 text-xs text-[#8E8E93] leading-relaxed">
+              Please review and sign the documents below, click &quot;Start Signing&quot; to begin.
+            </p>
+
+            <div className="mt-8 space-y-3">
+              {subscriptionDocs.length > 0 ? (
+                subscriptionDocs.map((doc) => {
+                  const isSelected = selectedSubDoc?.name === doc.name;
+                  return (
+                    <button
+                      key={doc.name}
+                      type="button"
+                      onClick={() => { setSelectedSubDoc(doc); setSelectedPage(1); }}
+                      className={`flex w-full items-center gap-4 rounded-xl border px-5 py-4 text-left transition-all ${isSelected
+                        ? 'border-[#FBCB4B] bg-white shadow-md ring-1 ring-[#FBCB4B]'
+                        : 'border-[#E5E5EA] bg-white hover:border-gray-300 hover:shadow-sm'
+                        }`}
+                    >
+                      <div className="relative flex h-10 w-10 items-center justify-center rounded-lg bg-[#FFF5F5]">
+                        <div className="absolute inset-0 rounded-lg bg-[rgba(255,82,82,0.1)]" />
+                        <FileText className="h-6 w-6 text-[#FF5252]" />
+                      </div>
+                      <span className="flex-1 font-semibold text-[#1F1F1F] text-sm truncate">
+                        {doc.name.replace(/\.[^/.]+$/, "").split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      </span>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="py-12 text-center border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50">
+                  <p className="text-xs text-gray-400 font-medium">No documents found in folder</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-10 space-y-3">
               <button
-                key={label}
                 type="button"
-                className="flex w-full items-center justify-between rounded-lg border border-[#F3F4F6] bg-[#FFF9F0] px-4 py-2 text-left text-[#1F1F1F]"
+                onClick={goNext}
+                className="w-full rounded-full bg-[#FFF3D6] py-3.5 text-sm font-bold text-[#C28C3B] hover:bg-[#FFE7AF] shadow-sm transition-all"
               >
-                <span>{label}</span>
+                Start Signing
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={handleDownload}
+                className="w-full rounded-full bg-white py-3.5 text-sm font-bold text-[#1F1F1F] ring-1 ring-[#E5E5EA] hover:bg-[#F9FAFB] shadow-sm transition-all"
+              >
+                Download Document (PDF)
+              </button>
+            </div>
           </div>
-          <button
-            type="button"
-            className="mt-6 w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#C28C3B] hover:bg-[#FFE7AF]"
-          >
-            Start Signing
-          </button>
-          <button
-            type="button"
-            className="mt-3 w-full rounded-full bg-white py-2 text-sm font-medium text-[#1F1F1F] ring-1 ring-[#E5E5EA] hover:bg-[#F9FAFB]"
-          >
-            Download Document (PDF)
-          </button>
         </div>
       </div>
 

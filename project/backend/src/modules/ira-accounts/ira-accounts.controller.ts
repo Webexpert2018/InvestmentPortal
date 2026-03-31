@@ -14,6 +14,11 @@ export class AccountsController {
     return this.accountsService.getMyIraAccount(user.userId);
   }
 
+  @Get('types')
+  async getAccountTypes() {
+    return this.accountsService.getAccountTypes();
+  }
+
 
   @Post(':userId')
   async createAccount(
