@@ -30,7 +30,12 @@ async function bootstrap() {
         10,
       );
 
-      app.enableCors();
+      app.enableCors({
+        origin: true, // This will reflect the origin of the request
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        credentials: true,
+        allowedHeaders: 'Content-Type, Accept, Authorization, X-Requested-With',
+      });
 
       const isVercel = process.env.VERCEL === '1';
       const uploadDir = isVercel
@@ -112,6 +117,16 @@ export default async (req: any, res: any) => {
   try {
     const app = await bootstrap();
     const server = app.getHttpAdapter().getInstance();
+
+    // Handle Preflight (OPTIONS)
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization, X-Requested-With');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      return res.status(204).end();
+    }
+
     return server(req, res);
   } catch (error: any) {
     console.error('❌ CRITICAL: Vercel Function Invocation Failed:', error);
