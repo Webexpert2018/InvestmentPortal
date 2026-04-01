@@ -5,7 +5,7 @@ async function run() {
     const result = await db.query(`
       SELECT column_name, data_type, character_maximum_length 
       FROM information_schema.columns 
-      WHERE table_name = 'users';
+      WHERE table_name = 'investments';
     `);
     console.table(result.rows);
   } catch (err) {
