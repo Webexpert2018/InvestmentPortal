@@ -137,18 +137,16 @@ export class DocumentsController {
   @Get('subscription/list')
   async listSubscriptionDocs() {
     const isVercel = process.env.VERCEL === '1';
-    const uploadDir = isVercel
-      ? join('/tmp', 'uploads', 'subscription-documents')
-      : join(process.cwd(), 'uploads', 'subscription-documents');
+    const docsDir = join(process.cwd(), 'public', 'subscription-documents');
 
-    if (!fs.existsSync(uploadDir)) {
+    if (!fs.existsSync(docsDir)) {
       return [];
     }
 
-    const files = fs.readdirSync(uploadDir).filter(file => file.toLowerCase().endsWith('.pdf'));
+    const files = fs.readdirSync(docsDir).filter(file => file.toLowerCase().endsWith('.pdf'));
 
     return files.map(file => {
-      const filePath = join(uploadDir, file);
+      const filePath = join(docsDir, file);
       const stats = fs.statSync(filePath);
 
       // Calculate page count using regex
@@ -188,11 +186,8 @@ export class DocumentsController {
   @Get('subscription/preview/:filename')
   async previewSubscriptionDoc(@Param('filename') filename: string, @Res() res: Response) {
     const isVercel = process.env.VERCEL === '1';
-    const uploadDir = isVercel
-      ? join('/tmp', 'uploads', 'subscription-documents')
-      : join(process.cwd(), 'uploads', 'subscription-documents');
-
-    const filePath = join(uploadDir, filename);
+    const docsDir = join(process.cwd(), 'public', 'subscription-documents');
+    const filePath = join(docsDir, filename);
     if (!fs.existsSync(filePath)) {
       return res.status(404).send('Document not found');
     }
