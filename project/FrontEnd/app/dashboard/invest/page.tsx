@@ -126,20 +126,16 @@ export default function InvestPage() {
 
   useEffect(() => {
     if (step === 'signDocuments') {
-      const fetchSubscriptionDocs = async () => {
-        try {
-          const docs = await apiClient.getSubscriptionDocuments();
-          setSubscriptionDocs(docs);
-          if (docs.length > 0 && !selectedSubDoc) {
-            setSelectedSubDoc(docs[0]);
-          }
-        } catch (error) {
-          console.error('Failed to fetch subscription docs:', error);
-        }
-      };
-      fetchSubscriptionDocs();
+      const docs = [
+        { name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB' },
+        { name: 'SA-BWell-Fund.pdf', pages: 12, lastModified: 'Oct 12, 2025', size: '138 KB' }
+      ];
+      setSubscriptionDocs(docs);
+      if (docs.length > 0 && !selectedSubDoc) {
+        setSelectedSubDoc(docs[0]);
+      }
     }
-  }, [step]);
+  }, [step, selectedSubDoc]);
 
   const { investmentAmount, processingFee, total } = useMemo(() => {
     // Remove $, commas, and other non-numeric chars except decimal
@@ -247,7 +243,7 @@ export default function InvestPage() {
   const handleDownload = () => {
     if (!selectedSubDoc) return;
     const link = document.createElement('a');
-    link.href = apiClient.getSubscriptionDocumentUrl(selectedSubDoc.name);
+    link.href = `/documents/subscription/${selectedSubDoc.name}`;
     link.download = selectedSubDoc.name;
     document.body.appendChild(link);
     link.click();
@@ -614,7 +610,7 @@ export default function InvestPage() {
                 >
                   {selectedSubDoc ? (
                     <iframe
-                      src={`${apiClient.getSubscriptionDocumentUrl(selectedSubDoc.name)}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}`}
+                      src={`/documents/subscription/${selectedSubDoc.name}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}`}
                       key={`${selectedSubDoc.name}-${selectedPage}`}
                       className="w-full h-full border-none absolute inset-0 pointer-events-auto"
                       style={{ minHeight: '800px' }}
