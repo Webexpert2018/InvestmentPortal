@@ -64,9 +64,9 @@ export class InvestmentsService {
       }
 
       return investment;
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error creating investment:', error);
-      throw new InternalServerErrorException('Failed to create investment');
+      throw new InternalServerErrorException(error.message || 'Failed to create investment');
     }
   }
 

@@ -259,9 +259,10 @@ export default function InvestPage() {
       } else {
         throw new Error('Failed to get signing URL');
       }
-    } catch (error) {
-      console.error('DocuSign Error:', error);
-      alert('Failed to initiate DocuSign. Please ensure you are authorized.');
+    } catch (error: any) {
+      console.error('DocuSign Flow Error:', error);
+      const msg = error instanceof Error ? error.message : String(error);
+      alert(`Error: ${msg}\n\nPlease check your authorization or connection.`);
     } finally {
       setIsSigning(false);
     }
