@@ -36,11 +36,11 @@ class ApiClient {
     };
 
     const response = await fetch(url, config);
-    
+
     // Handle empty body responses (e.g. 204 No Content)
     const text = await response.text();
     let data: any = null;
-    
+
     if (text) {
       try {
         data = JSON.parse(text);
@@ -61,6 +61,35 @@ class ApiClient {
     return data;
   }
 
+  private async requestBlob(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<Blob> {
+    const url = `${API_URL}${endpoint}`;
+    const config: RequestInit = {
+      ...options,
+      cache: 'no-store',
+      headers: {
+        ...this.getHeaders(),
+        ...options.headers,
+      },
+    };
+
+    const response = await fetch(url, config);
+    if (!response.ok) {
+      const text = await response.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(text);
+      } catch (err) { }
+      const errorMsg =
+        data?.message || data?.error || `Error: ${response.status} ${response.statusText}`;
+      throw new Error(errorMsg);
+    }
+
+    return response.blob();
+  }
+
   async signup(data: {
     email: string;
     password: string;
@@ -76,8 +105,7 @@ class ApiClient {
     zipCode?: string;
     country?: string;
     taxId?: string;
-  })
- {
+  }) {
     return this.request<{ user: any; token: string }>('/auth/signup', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -367,11 +395,11 @@ class ApiClient {
   }
 
   // Investments
-  async createInvestment(data: { 
-    fundId: string; 
-    accountId?: string; 
-    accountType: string; 
-    investmentAmount: number; 
+  async createInvestment(data: {
+    fundId: string;
+    accountId?: string;
+    accountType: string;
+    investmentAmount: number;
     unitPrice: number;
     status?: string;
     documentSigned?: boolean;
@@ -486,6 +514,38 @@ class ApiClient {
   getSubscriptionDocumentUrl(filename: string) {
     return `/documents/subscription/${filename}`;
   }
+
+  // DocuSign
+  async createDocuSignEnvelope(data: {
+    fundId: string;
+    fundName: string;
+    accessToken: string;
+    accountId: string;
+    investmentAmount: number;
+    accountType: string;
+    iraMetadata?: {
+      custodian?: string;
+      type?: string;
+    };
+    returnUrl?: string;
+  }) {
+    return this.request<any>('/docusign/create-signing-url', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getDocuSignToken(code: string) {
+    return this.request<any>('/docusign/token', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    });
+  }
+
+  async getDocuSignDocument(envelopeId: string, accessToken: string, accountId: string) {
+    return this.requestBlob(`/docusign/envelope/${envelopeId}/document?envelopeId=${envelopeId}&accessToken=${accessToken}&accountId=${accountId}`);
+  }
 }
+
 
 export const apiClient = new ApiClient();

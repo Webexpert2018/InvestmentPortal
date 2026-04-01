@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import {
@@ -36,6 +37,8 @@ const getFullImageUrl = (imagePath: string | null | undefined): string | undefin
 };
 
 export default function InvestPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>('chooseFund');
   const [funds, setFunds] = useState<any[]>([]);
   const [existingFlows, setExistingFlows] = useState<any[]>([]);
@@ -44,11 +47,39 @@ export default function InvestPage() {
   const [amount, setAmount] = useState<string>('25000');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isSigning, setIsSigning] = useState(false);
   const [userIraAccount, setUserIraAccount] = useState<any>(null);
   const [subscriptionDocs, setSubscriptionDocs] = useState<any[]>([]);
   const [selectedSubDoc, setSelectedSubDoc] = useState<any | null>(null);
   const [selectedPage, setSelectedPage] = useState<number>(1);
   const [zoom, setZoom] = useState<number>(100);
+  const [lastEnvelopeId, setLastEnvelopeId] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Check for DocuSign completion in URL
+  useEffect(() => {
+    const savedEnvelopeId = localStorage.getItem('last_envelope_id');
+    if (savedEnvelopeId) {
+      setLastEnvelopeId(savedEnvelopeId);
+    }
+  }, []);
+
+  useEffect(() => {
+    const signingStatus = searchParams?.get('signing');
+    if (signingStatus === 'complete') {
+      setStep('fundingInstructions');
+      // Clean up URL
+      const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
+      current.delete('signing');
+      const search = current.toString();
+      const query = search ? `?${search}` : '';
+      router.replace(`/dashboard/invest${query}`);
+    }
+  }, [searchParams, router]);
+
+  const selectedFund = useMemo(() => {
+    return funds.find(f => f.id === selectedFundId);
+  }, [funds, selectedFundId]);
 
   const dynamicAccounts = useMemo(() => {
     const list = [
@@ -141,6 +172,55 @@ export default function InvestPage() {
     });
   };
 
+  const handleStartSigning = async () => {
+    if (!selectedFundId || !selectedFund) return;
+
+    // Check locally if authorized
+    const dsAccessToken = localStorage.getItem('ds_access_token');
+    const dsAccountId = localStorage.getItem('ds_account_id');
+
+    if (!dsAccessToken || !dsAccountId) {
+      const confirmed = window.confirm('DocuSign is not connected. Redirect to authorization?');
+      if (confirmed) {
+        window.location.href = `${BASE_URL}/api/docusign/auth`;
+      }
+      return;
+    }
+
+    setIsSigning(true);
+    try {
+      const isIra = selectedAccountId !== 'personal';
+      const response = await apiClient.createDocuSignEnvelope({
+        fundId: selectedFundId,
+        fundName: selectedFund.name,
+        accessToken: dsAccessToken,
+        accountId: dsAccountId,
+        investmentAmount: investmentAmount,
+        accountType: isIra ? 'ira' : 'personal',
+        iraMetadata: isIra ? {
+          custodian: userIraAccount?.custodian_name,
+          type: userIraAccount?.account_type
+        } : undefined,
+        returnUrl: `${window.location.origin}/dashboard/invest?signing=complete`
+      });
+
+      if (response.signingUrl) {
+        if (response.envelopeId) {
+          localStorage.setItem('last_envelope_id', response.envelopeId);
+          setLastEnvelopeId(response.envelopeId);
+        }
+        window.location.href = response.signingUrl;
+      } else {
+        throw new Error('Failed to get signing URL');
+      }
+    } catch (error) {
+      console.error('DocuSign Error:', error);
+      alert('Failed to initiate DocuSign. Please ensure you are authorized.');
+    } finally {
+      setIsSigning(false);
+    }
+  };
+
   const saveInvestment = async (finalStatus?: string) => {
     if (!selectedFundId || !selectedAccountId || investmentAmount <= 0) return;
     setSaving(true);
@@ -179,13 +259,16 @@ export default function InvestPage() {
   };
 
   const goNext = async () => {
+    if (step === 'signDocuments') {
+      await handleStartSigning();
+      return;
+    }
+
     if (step === 'investmentStatus') {
       const result = await saveInvestment('Subscription Submitted');
       if (result) {
-        alert('✅ Investment saved successfully!');
-        setStep('chooseFund');
-        // Reset states for fresh start
-        setSelectedFundId(null);
+        setShowSuccess(true);
+        // Reset states for fresh start (but keep success view)
         setAmount('25000');
         setSelectedAccountId('personal');
       }
@@ -194,6 +277,7 @@ export default function InvestPage() {
 
     setStep((current) => {
       switch (current) {
+        // ... (the rest of the cases)
         case 'chooseFund':
           return 'investmentAmount';
         case 'investmentAmount':
@@ -596,9 +680,10 @@ export default function InvestPage() {
               <button
                 type="button"
                 onClick={goNext}
-                className="w-full rounded-full bg-[#FFF3D6] py-3.5 text-sm font-bold text-[#C28C3B] hover:bg-[#FFE7AF] shadow-sm transition-all"
+                disabled={isSigning}
+                className="w-full rounded-full bg-[#FFF3D6] py-3.5 text-sm font-bold text-[#C28C3B] hover:bg-[#FFE7AF] shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Start Signing
+                {isSigning ? 'Connecting to DocuSign...' : 'Start Signing'}
               </button>
               <button
                 type="button"
@@ -723,6 +808,32 @@ export default function InvestPage() {
           <div className="pt-4 space-y-3">
             <button
               type="button"
+              onClick={() => {
+                if (!lastEnvelopeId) {
+                  alert('No signed document found. Please complete signing first.');
+                  return;
+                }
+                const dsAccessToken = localStorage.getItem('ds_access_token');
+                const dsAccountId = localStorage.getItem('ds_account_id');
+                if (!dsAccessToken || !dsAccountId) {
+                  alert('DocuSign session expired. Please re-authorize.');
+                  return;
+                }
+
+                (async () => {
+                  try {
+                    const blob = await apiClient.getDocuSignDocument(
+                      lastEnvelopeId,
+                      dsAccessToken,
+                      dsAccountId
+                    );
+                    const url = window.URL.createObjectURL(blob);
+                    window.open(url, '_blank');
+                  } catch (error: any) {
+                    alert('Failed to fetch document: ' + error.message);
+                  }
+                })();
+              }}
               className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF]"
             >
               View Document
@@ -766,9 +877,51 @@ export default function InvestPage() {
       content = renderChooseFund();
   }
 
+  if (showSuccess) {
+    return (
+      <DashboardLayout>
+        <SuccessView onDone={() => router.push('/dashboard')} />
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-4 font-helvetica text-[#1F1F1F]">{content}</div>
     </DashboardLayout>
+  );
+}
+
+function SuccessView({ onDone }: { onDone: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in duration-500">
+      <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-[#E8F8F0]">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#2BB673]">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+      </div>
+      <h2 className="font-goudy text-4xl font-bold text-[#1F1F1F] mb-4">Investment Submitted!</h2>
+      <p className="text-lg text-[#8E8E93] max-w-md mb-12">
+        Your subscription for the fund has been successfully submitted. Our team will review your
+        documents and you will receive an email once the units are issued.
+      </p>
+      <button
+        onClick={onDone}
+        className="rounded-full bg-[#FBCB4B] px-12 py-4 text-base font-bold text-[#1F1F1F] hover:bg-[#F9B800] shadow-md transition-all active:scale-95"
+      >
+        Go to Dashboard
+      </button>
+    </div>
   );
 }

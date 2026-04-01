@@ -47,7 +47,9 @@
   },
   "devDependencies": {
     "@types/axios": "^0.14.4",
+    "@types/docusign-esign": "^5.19.9",
     "@types/passport-jwt": "^4.0.1",
+    "docusign-esign": "^8.7.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.2"
   }
