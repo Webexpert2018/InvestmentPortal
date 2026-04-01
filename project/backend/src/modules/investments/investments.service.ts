@@ -4,7 +4,10 @@ import { db } from '../../config/database';
 @Injectable()
 export class InvestmentsService {
   async createInvestment(userId: string, data: any) {
-    const { fundId, accountId, accountType, investmentAmount, unitPrice, status, documentSigned } = data;
+    const { 
+      fundId, accountId, accountType, investmentAmount, unitPrice, status, 
+      documentSigned, awaitingFunding, fundsReceived, unitsIssued 
+    } = data;
 
     try {
       // Calculate processing fee (0.5% fixed for now)
@@ -16,8 +19,10 @@ export class InvestmentsService {
         INSERT INTO investments (
           user_id, fund_id, account_id, account_type, 
           investment_amount, processing_fee, total_amount, 
-          unit_price, estimated_units, status, document_signed
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          unit_price, estimated_units, status, document_signed,
+          awaiting_funding, funds_received, units_issued,
+          awaiting_funding_at, signed_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
         RETURNING *
       `;
 
@@ -26,7 +31,12 @@ export class InvestmentsService {
         investmentAmount, processingFee, totalAmount, 
         unitPrice, estimatedUnits, 
         status || 'Subscription Submitted',
-        documentSigned || false
+        documentSigned || false,
+        awaitingFunding || false,
+        fundsReceived || false,
+        unitsIssued || false,
+        (awaitingFunding || status === 'Awaiting Funding') ? new Date() : null,
+        (documentSigned) ? new Date() : null
       ];
 
       const result = await db.query(query, values);
@@ -88,13 +98,26 @@ export class InvestmentsService {
       if (status !== undefined) {
         query += `, status = $${paramCount++}`;
         values.push(status);
+        
+        // Auto-update tracking fields based on status
+        if (status === 'Awaiting Funding') {
+          query += `, awaiting_funding = TRUE, awaiting_funding_at = COALESCE(awaiting_funding_at, CURRENT_TIMESTAMP)`;
+        } else if (status === 'Funds Received') {
+          query += `, funds_received = TRUE, funds_received_at = COALESCE(funds_received_at, CURRENT_TIMESTAMP)`;
+        } else if (status === 'Units Issued') {
+          query += `, units_issued = TRUE, units_issued_at = COALESCE(units_issued_at, CURRENT_TIMESTAMP)`;
+        }
       }
 
       if (documentSigned !== undefined) {
         query += `, document_signed = $${paramCount++}`;
         values.push(documentSigned);
         if (documentSigned) {
-          query += `, signed_at = CURRENT_TIMESTAMP`;
+          query += `, signed_at = COALESCE(signed_at, CURRENT_TIMESTAMP)`;
+          // Moving to next step automatically
+          if (status === undefined) {
+             query += `, status = 'Awaiting Funding', awaiting_funding = TRUE, awaiting_funding_at = COALESCE(awaiting_funding_at, CURRENT_TIMESTAMP)`;
+          }
         }
       }
 

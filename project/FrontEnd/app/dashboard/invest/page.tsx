@@ -53,13 +53,14 @@ export default function InvestPage() {
     { name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB' },
     { name: 'SA-BWell-Fund.pdf', pages: 12, lastModified: 'Oct 12, 2025', size: '138 KB' }
   ]);
-  const [selectedSubDoc, setSelectedSubDoc] = useState<any | null>({ 
-    name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB' 
+  const [selectedSubDoc, setSelectedSubDoc] = useState<any | null>({
+    name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB'
   });
   const [selectedPage, setSelectedPage] = useState<number>(1);
   const [zoom, setZoom] = useState<number>(100);
   const [lastEnvelopeId, setLastEnvelopeId] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [currentInvestment, setCurrentInvestment] = useState<any>(null);
 
   // Check for DocuSign completion in URL
   useEffect(() => {
@@ -71,7 +72,24 @@ export default function InvestPage() {
 
   useEffect(() => {
     const signingStatus = searchParams?.get('signing');
-    if (signingStatus === 'complete') {
+    const eventStatus = searchParams?.get('event');
+
+    if (signingStatus === 'complete' || eventStatus === 'signing_complete') {
+      const lastId = localStorage.getItem('last_investment_id');
+      if (lastId) {
+        apiClient.updateInvestmentStatus(lastId, {
+          status: 'Awaiting Funding',
+          documentSigned: true
+        })
+          .then(() => {
+            // Fetch updated record immediately
+            apiClient.getMyTransactions().then(investments => {
+              const updated = investments.find((i: any) => i.id === lastId);
+              if (updated) setCurrentInvestment(updated);
+            });
+          })
+          .catch(err => console.error('Failed to update investment status:', err));
+      }
       setStep('fundingInstructions');
       // Clean up URL
       const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
@@ -132,7 +150,6 @@ export default function InvestPage() {
   // Fixed documents are now initialized directly in state
 
   const { investmentAmount, processingFee, total } = useMemo(() => {
-    // Remove $, commas, and other non-numeric chars except decimal
     const cleanAmount = amount.replace(/[^-0-9.]/g, '');
     const numeric = Number.parseFloat(cleanAmount) || 0;
     const fee = numeric * 0.005;
@@ -142,6 +159,28 @@ export default function InvestPage() {
       total: numeric + fee,
     };
   }, [amount]);
+
+  // Periodic polling for investment status when in the final steps
+  useEffect(() => {
+    if (step === 'fundingInstructions' || step === 'investmentStatus' || step === 'signDocuments') {
+      const fetchStatus = async () => {
+        try {
+          const lastId = localStorage.getItem('last_investment_id');
+          if (lastId) {
+            const investments = await apiClient.getMyTransactions();
+            const inv = investments.find((i: any) => i.id === lastId);
+            if (inv) setCurrentInvestment(inv);
+          }
+        } catch (error) {
+          console.error('Failed to poll status:', error);
+        }
+      };
+
+      fetchStatus();
+      const interval = setInterval(fetchStatus, 30000); // Polling status
+      return () => clearInterval(interval);
+    }
+  }, [step]);
 
   const goBack = () => {
     setStep((current) => {
@@ -169,17 +208,34 @@ export default function InvestPage() {
     const dsAccessToken = localStorage.getItem('ds_access_token');
     const dsAccountId = localStorage.getItem('ds_account_id');
 
-    if (!dsAccessToken || !dsAccountId) {
-      const confirmed = window.confirm('DocuSign is not connected. Redirect to authorization?');
-      if (confirmed) {
-        window.location.href = `${BASE_URL}/api/docusign/auth`;
-      }
-      return;
-    }
-
     setIsSigning(true);
     try {
       const isIra = selectedAccountId !== 'personal';
+
+      // 1. Create investment record first (Status: Pending Signature)
+      const investment = await apiClient.createInvestment({
+        fundId: selectedFundId,
+        accountId: isIra ? selectedAccountId : undefined,
+        accountType: isIra ? 'ira' : 'personal',
+        investmentAmount: investmentAmount,
+        unitPrice: 1.25,
+        status: 'Subscription Submitted',
+        documentSigned: false
+      });
+
+      if (investment && investment.id) {
+        localStorage.setItem('last_investment_id', investment.id);
+      }
+
+      if (!dsAccessToken || !dsAccountId) {
+        const confirmed = window.confirm('DocuSign is not connected. Redirect to authorization?');
+        if (confirmed) {
+          window.location.href = `${BASE_URL}/api/docusign/auth`;
+        }
+        return;
+      }
+
+      // 2. Proceed to DocuSign
       const response = await apiClient.createDocuSignEnvelope({
         fundId: selectedFundId,
         fundName: selectedFund.name,
@@ -746,42 +802,59 @@ export default function InvestPage() {
               {[
                 {
                   title: 'Subscription Submitted',
-                  subtitle: 'Completed on Oct 12, 2025',
+                  subtitle: currentInvestment?.created_at
+                    ? `Completed on ${new Date(currentInvestment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : 'Completed',
                   state: 'done',
                 },
                 {
                   title: 'Document Signed',
-                  subtitle: 'Completed on Oct 14, 2025',
-                  state: 'done',
+                  subtitle: currentInvestment?.document_signed && currentInvestment?.signed_at
+                    ? `Completed on ${new Date(currentInvestment.signed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : (currentInvestment?.document_signed ? 'Completed' : 'Awaiting signature'),
+                  state: currentInvestment?.document_signed ? 'done' : 'active',
                 },
                 {
                   title: 'Awaiting Funding',
-                  subtitle: 'Action required: please upload proof of payment to proceed.',
-                  state: 'active',
+                  subtitle: currentInvestment?.awaiting_funding_at
+                    ? `Completed on ${new Date(currentInvestment.awaiting_funding_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : (currentInvestment?.document_signed ? 'Action required: please provide funding to proceed.' : 'Pending'),
+                  state: currentInvestment?.awaiting_funding ? 'done' : (currentInvestment?.document_signed ? 'active' : 'pending'),
                 },
                 {
                   title: 'Funds Received',
-                  subtitle: 'Pending',
-                  state: 'pending',
+                  subtitle: currentInvestment?.funds_received_at
+                    ? `Completed on ${new Date(currentInvestment.funds_received_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : 'Pending',
+                  state: currentInvestment?.funds_received ? 'done' : (currentInvestment?.awaiting_funding ? 'active' : 'pending'),
                 },
                 {
                   title: 'Units Issued',
-                  subtitle: 'Pending',
-                  state: 'pending',
+                  subtitle: currentInvestment?.units_issued_at
+                    ? `Completed on ${new Date(currentInvestment.units_issued_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : 'Pending',
+                  state: currentInvestment?.units_issued ? 'done' : (currentInvestment?.funds_received ? 'active' : 'pending'),
                 },
               ].map((item) => {
                 const isDone = item.state === 'done';
                 const isActive = item.state === 'active';
                 return (
                   <div key={item.title} className="flex items-start gap-4">
-                    <div className="mt-1 flex h-4 w-4 items-center justify-center rounded-full border border-[#FBCB4B] bg-white">
-                      {isDone && <span className="h-2 w-2 rounded-full bg-[#FBCB4B]" />}
-                      {isActive && (
-                        <span className="h-2 w-2 rounded-full border-2 border-[#FBCB4B] bg-white" />
+                    <div className={`mt-1 flex h-4 w-4 items-center justify-center rounded-full border ${isDone ? 'border-[#2BB673] bg-[#2BB673]' :
+                      isActive ? 'border-[#FBCB4B] bg-[#FFF3D6]' :
+                        'border-[#E5E5EA] bg-white'
+                      }`}>
+                      {isDone && (
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
                       )}
+                      {isActive && <span className="h-2 w-2 rounded-full bg-[#FBCB4B]" />}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-[#1F1F1F]">{item.title}</p>
+                      <p className={`text-sm font-medium ${isDone ? 'text-[#1F1F1F]' : isActive ? 'text-[#1F1F1F]' : 'text-[#8E8E93]'}`}>
+                        {item.title}
+                      </p>
                       <p className="mt-1 text-xs text-[#8E8E93]">{item.subtitle}</p>
                     </div>
                   </div>
