@@ -41,7 +41,7 @@ export class FundsController {
           const isVercel = process.env.VERCEL === '1';
           const uploadDir = isVercel 
             ? path.join('/tmp', 'uploads', 'fund-images')
-            : path.join(process.cwd(), 'uploads', 'fund-images');
+            : path.join(process.cwd(), 'public', 'fund-images'); // Using public folder on local for truly static serving
           
           if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
@@ -50,8 +50,8 @@ export class FundsController {
         },
         filename: (req: any, file: any, cb: any) => {
           const fundId = req.params.id || 'unknown';
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, `fund-${fundId}-${uniqueSuffix}${extname(file.originalname)}`);
+          // Fixed naming: fund-{id}.{ext} - No timestamp/unique suffix to ensure fixed URLs
+          cb(null, `fund-${fundId}${extname(file.originalname)}`);
         },
       }),
       fileFilter: (req: any, file: any, cb: any) => {
@@ -69,8 +69,15 @@ export class FundsController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    const imageUrl = `/public/uploads/fund-images/${file.filename}`;
+    
+    const isVercel = process.env.VERCEL === '1';
+    // Construct simplified URL
+    const imageUrl = isVercel
+      ? `/public/uploads/fund-images/${file.filename}`
+      : `/public/fund-images/${file.filename}`;
+      
     await this.fundsService.updateFund(id, { image_url: imageUrl });
+    console.log(`✅ Fund Image Uploaded: ${id} -> ${imageUrl}`);
     return { message: 'Fund image uploaded successfully', imageUrl };
   }
 
