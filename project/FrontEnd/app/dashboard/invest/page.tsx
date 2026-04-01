@@ -215,7 +215,7 @@ export default function InvestPage() {
       // 1. Create investment record first (Status: Pending Signature)
       const investment = await apiClient.createInvestment({
         fundId: selectedFundId,
-        accountId: isIra ? selectedAccountId : undefined,
+        accountId: isIra ? (selectedAccountId ?? undefined) : undefined,
         accountType: isIra ? 'ira' : 'personal',
         investmentAmount: investmentAmount,
         unitPrice: 1.25,
