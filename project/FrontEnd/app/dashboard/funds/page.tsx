@@ -45,6 +45,7 @@ export default function FundsPage() {
   const getFullImageUrl = (imagePath: string | null | undefined) => {
     if (!imagePath) return null;
     if (imagePath.startsWith('http')) return imagePath;
+    if (imagePath.startsWith('/images/')) return imagePath; // Static assets in Frontend public folder
     return `${BASE_URL}${imagePath}`;
   };
 

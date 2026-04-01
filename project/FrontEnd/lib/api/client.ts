@@ -484,7 +484,7 @@ class ApiClient {
   }
 
   getSubscriptionDocumentUrl(filename: string) {
-    return `${API_URL}/documents/subscription/preview/${filename}`;
+    return `/documents/subscription/${filename}`;
   }
 }
 

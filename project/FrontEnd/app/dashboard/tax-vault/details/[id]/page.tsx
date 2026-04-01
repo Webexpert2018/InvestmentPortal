@@ -70,7 +70,13 @@ export default function TaxVaultDocumentDetailsPage() {
     );
   }
 
-  const fileUrl = `${BASE_URL}${documentData.file_url}`;
+  const getFullFileUrl = (path: string) => {
+    if (path.startsWith('http')) return path;
+    if (path.startsWith('/images/') || path.startsWith('/documents/')) return path;
+    return `${BASE_URL}${path}`;
+  };
+
+  const fileUrl = getFullFileUrl(documentData.file_url);
   const isPdf = documentData.file_url.toLowerCase().endsWith('.pdf');
   const formattedSize = (documentData.file_size / (1024 * 1024)).toFixed(2) + ' MB';
   const formattedDate = new Date(documentData.created_at).toLocaleDateString('en-US', {

@@ -95,9 +95,10 @@ export default function EditFundPage() {
     );
   }
 
-  const getFullImageUrl = (imagePath: string) => {
+  const getFullImageUrl = (imagePath: string | null | undefined) => {
     if (!imagePath) return null;
     if (imagePath.startsWith('http')) return imagePath;
+    if (imagePath.startsWith('/images/') || imagePath.startsWith('/documents/')) return imagePath;
     return `${BASE_URL}${imagePath}`;
   };
 

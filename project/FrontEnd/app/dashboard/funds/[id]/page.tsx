@@ -64,6 +64,7 @@ export default function FundOverviewPage() {
   const getFullImageUrl = (imagePath: string | null | undefined): string | undefined => {
     if (!imagePath) return undefined;
     if (imagePath.startsWith('http')) return imagePath;
+    if (imagePath.startsWith('/images/') || imagePath.startsWith('/documents/')) return imagePath; 
     return `${BASE_URL}${imagePath}`;
   };
 
@@ -392,7 +393,7 @@ export default function FundOverviewPage() {
                                   View
                                 </Link>
                                 <a
-                                  href={`${BASE_URL}${doc.file_url}`}
+                                  href={getFullImageUrl(doc.file_url)}
                                   download={doc.file_name}
                                   className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
                                 >

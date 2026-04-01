@@ -31,6 +31,7 @@ type FooterOptions = {
 const getFullImageUrl = (imagePath: string | null | undefined): string | undefined => {
   if (!imagePath) return undefined;
   if (imagePath.startsWith('http')) return imagePath;
+  if (imagePath.startsWith('/images/')) return imagePath; // Static assets in Frontend public folder
   return `${BASE_URL}${imagePath}`;
 };
 
