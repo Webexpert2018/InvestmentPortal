@@ -49,8 +49,13 @@ export default function InvestPage() {
   const [saving, setSaving] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [userIraAccount, setUserIraAccount] = useState<any>(null);
-  const [subscriptionDocs, setSubscriptionDocs] = useState<any[]>([]);
-  const [selectedSubDoc, setSelectedSubDoc] = useState<any | null>(null);
+  const [subscriptionDocs, setSubscriptionDocs] = useState<any[]>([
+    { name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB' },
+    { name: 'SA-BWell-Fund.pdf', pages: 12, lastModified: 'Oct 12, 2025', size: '138 KB' }
+  ]);
+  const [selectedSubDoc, setSelectedSubDoc] = useState<any | null>({ 
+    name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB' 
+  });
   const [selectedPage, setSelectedPage] = useState<number>(1);
   const [zoom, setZoom] = useState<number>(100);
   const [lastEnvelopeId, setLastEnvelopeId] = useState<string | null>(null);
@@ -124,18 +129,7 @@ export default function InvestPage() {
     fetchData();
   }, [selectedFundId]);
 
-  useEffect(() => {
-    if (step === 'signDocuments') {
-      const docs = [
-        { name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB' },
-        { name: 'SA-BWell-Fund.pdf', pages: 12, lastModified: 'Oct 12, 2025', size: '138 KB' }
-      ];
-      setSubscriptionDocs(docs);
-      if (docs.length > 0 && !selectedSubDoc) {
-        setSelectedSubDoc(docs[0]);
-      }
-    }
-  }, [step, selectedSubDoc]);
+  // Fixed documents are now initialized directly in state
 
   const { investmentAmount, processingFee, total } = useMemo(() => {
     // Remove $, commas, and other non-numeric chars except decimal
