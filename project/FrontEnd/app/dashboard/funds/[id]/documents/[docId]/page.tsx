@@ -6,7 +6,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { ChevronLeft, Loader2, Download, ExternalLink, FileText, Minus, Plus, Search, RotateCw, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiClient, BASE_URL } from "@/lib/api/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 
 // Custom PDF Viewer Component using pdf.js from CDN
 const CustomPdfViewer = ({ url, title }: { url: string; title: string }) => {

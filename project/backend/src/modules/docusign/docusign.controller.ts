@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Body, Res, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Query, Body, Res, UseGuards, BadRequestException, NotFoundException } from '@nestjs/common';
 import { Response } from 'express';
 import { DocusignService } from './docusign.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -76,36 +76,55 @@ export class DocusignController {
       returnUrl?: string;
     }
   ) {
-    const { fundId, fundName, accessToken, accountId, investmentAmount, accountType, iraMetadata, returnUrl } = body;
+    try {
+      const { fundId, fundName, accessToken, accountId, investmentAmount, accountType, iraMetadata, returnUrl } = body;
 
-    if (!accessToken || !accountId || !fundId || !investmentAmount) {
-      throw new BadRequestException('Missing required authentication, fund, or amount details');
+      if (!accessToken || !accountId || !fundId || !investmentAmount) {
+        throw new BadRequestException('Missing required authentication, fund, or amount details');
+      }
+
+      console.log(`[DocusignController] Initiating signing URL for user ${user.userId}, fund ${fundId}`);
+
+      // Fetch full user profile to get accurate name and email
+      const profile = await this.usersService.getProfile(user.userId);
+      const clientName = `${profile.firstName} ${profile.lastName}`;
+      const signerEmail = profile.email;
+
+      // Calculate Investor Name based on account type
+      let investorName = clientName;
+      if (accountType !== 'personal' && iraMetadata) {
+        const custodian = iraMetadata.custodian || 'AET';
+        const type = iraMetadata.type || 'IRA';
+        investorName = `${custodian} FBO ${clientName} ${type}`;
+      }
+
+      const finalReturnUrl = returnUrl || `${process.env.FRONTEND_URL}/dashboard/invest?signing=complete&fundId=${fundId}`;
+
+      const result = await this.docusignService.createEnvelopeForInvestment(
+        accessToken,
+        accountId,
+        signerEmail,
+        investorName,
+        fundName,
+        investmentAmount,
+        finalReturnUrl
+      );
+
+      console.log(`[DocusignController] Successfully created signing URL: ${result.envelopeId}`);
+      return result;
+    } catch (error: any) {
+      console.error('[DocusignController] Error creating signing URL:', error.message);
+      
+      // If it's already a NestJS exception, rethrow it
+      if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
+      
+      // Otherwise, return a descriptive error
+      throw new BadRequestException({
+        message: 'Failed to initiate DocuSign signing process',
+        error: error.message,
+        details: error.response?.body || 'No additional details available'
+      });
     }
-
-    // Fetch full user profile to get accurate name and email
-    const profile = await this.usersService.getProfile(user.userId);
-    const clientName = `${profile.firstName} ${profile.lastName}`;
-    const signerEmail = profile.email;
-
-    // Calculate Investor Name based on account type
-    let investorName = clientName;
-    if (accountType !== 'personal' && iraMetadata) {
-      const custodian = iraMetadata.custodian || 'AET';
-      const type = iraMetadata.type || 'IRA';
-      investorName = `${custodian} FBO ${clientName} ${type}`;
-    }
-
-    const finalReturnUrl = returnUrl || `${process.env.FRONTEND_URL}/dashboard/invest?signing=complete&fundId=${fundId}`;
-
-    return this.docusignService.createEnvelopeForInvestment(
-      accessToken,
-      accountId,
-      signerEmail,
-      investorName,
-      fundName,
-      investmentAmount,
-      finalReturnUrl
-    );
   }
 
   /**
