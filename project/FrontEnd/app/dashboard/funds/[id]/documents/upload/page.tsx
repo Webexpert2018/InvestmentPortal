@@ -6,7 +6,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { ChevronLeft, Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api/client";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 const DOCUMENT_TYPES = [
   "K-1",
@@ -20,6 +20,7 @@ const DOCUMENT_TYPES = [
 const TAX_YEARS = Array.from({ length: 10 }, (_, i) => (new Date().getFullYear() - i).toString());
 
 export default function UploadDocumentPage() {
+  const { toast } = useToast();
   const params = useParams();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -42,11 +43,19 @@ export default function UploadDocumentPage() {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      toast.error("Please select a file to upload");
+      toast({
+        title: "Error",
+        description: "Please select a file to upload",
+        variant: "destructive",
+      });
       return;
     }
     if (!formData.document_type) {
-      toast.error("Please select a document type");
+      toast({
+        title: "Error",
+        description: "Please select a document type",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -59,10 +68,18 @@ export default function UploadDocumentPage() {
         description: formData.description,
         note: formData.note,
       });
-      toast.success("Document uploaded successfully");
+      toast({
+        title: "Success",
+        description: "Document uploaded successfully",
+        variant: "success",
+      });
       router.push(`/dashboard/funds/${params.id}`);
     } catch (error: any) {
-      toast.error(error.message || "Failed to upload document");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload document",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

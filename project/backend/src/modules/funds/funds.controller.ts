@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterc
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { fundImageStorage } from '../../config/cloudinary.config';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FundsService } from './funds.service';
@@ -36,24 +37,7 @@ export class FundsController {
   @Roles('admin')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (req: any, file: any, cb: any) => {
-          const isVercel = process.env.VERCEL === '1';
-          const uploadDir = isVercel 
-            ? path.join('/tmp', 'uploads', 'fund-images')
-            : path.join(process.cwd(), 'public', 'fund-images'); // Using public folder on local for truly static serving
-          
-          if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-          }
-          cb(null, uploadDir);
-        },
-        filename: (req: any, file: any, cb: any) => {
-          const fundId = req.params.id || 'unknown';
-          // Fixed naming: fund-{id}.{ext} - No timestamp/unique suffix to ensure fixed URLs
-          cb(null, `fund-${fundId}${extname(file.originalname)}`);
-        },
-      }),
+      storage: fundImageStorage,
       fileFilter: (req: any, file: any, cb: any) => {
         if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
           return cb(new BadRequestException('Only image files are allowed!'), false);
@@ -70,11 +54,8 @@ export class FundsController {
       throw new BadRequestException('File is required');
     }
     
-    const isVercel = process.env.VERCEL === '1';
     // Construct simplified URL
-    const imageUrl = isVercel
-      ? `/public/uploads/fund-images/${file.filename}`
-      : `/public/fund-images/${file.filename}`;
+    const imageUrl = file.path; // Cloudinary URL is in file.path
       
     await this.fundsService.updateFund(id, { image_url: imageUrl });
     console.log(`✅ Fund Image Uploaded: ${id} -> ${imageUrl}`);

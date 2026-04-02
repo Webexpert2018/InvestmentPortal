@@ -1,10 +1,11 @@
 import { Controller, Get, Post, Patch, Delete, Param, UseInterceptors, UploadedFile, Body, Res } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
-import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import * as fs from 'fs';
+import axios from 'axios';
 import { DocumentsService } from './documents.service';
+import { fundDocumentStorage, cloudinary } from '../../config/cloudinary.config';
 
 @Controller('api/documents')
 export class DocumentsController {
@@ -22,27 +23,7 @@ export class DocumentsController {
 
   @Post('fund/:fundId/upload')
   @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: (req, file, cb) => {
-        const isVercel = process.env.VERCEL === '1';
-        const uploadDir = isVercel
-          ? join('/tmp', 'uploads', 'documents')
-          : join(process.cwd(), 'uploads', 'documents');
-
-        if (!fs.existsSync(uploadDir)) {
-          try {
-            fs.mkdirSync(uploadDir, { recursive: true });
-          } catch (err) {
-            console.error('⚠️ Could not create documents directory:', err);
-          }
-        }
-        cb(null, uploadDir);
-      },
-      filename: (req, file, cb) => {
-        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
-        cb(null, `${randomName}${extname(file.originalname)}`);
-      },
-    }),
+    storage: fundDocumentStorage,
   }))
   async uploadFundDocument(
     @Param('fundId') fundId: string,
@@ -51,7 +32,7 @@ export class DocumentsController {
   ) {
     return this.documentsService.uploadFundDocument(fundId, {
       file_name: file.originalname,
-      file_url: `/public/uploads/documents/${file.filename}`,
+      file_url: file.path, // Cloudinary URL
       document_type: body.document_type,
       tax_year: body.tax_year ? parseInt(body.tax_year) : undefined,
       description: body.description,
@@ -80,27 +61,7 @@ export class DocumentsController {
 
   @Patch(':id/with-file')
   @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: (req, file, cb) => {
-        const isVercel = process.env.VERCEL === '1';
-        const uploadDir = isVercel
-          ? join('/tmp', 'uploads', 'documents')
-          : join(process.cwd(), 'uploads', 'documents');
-
-        if (!fs.existsSync(uploadDir)) {
-          try {
-            fs.mkdirSync(uploadDir, { recursive: true });
-          } catch (err) {
-            console.error('⚠️ Could not create documents directory:', err);
-          }
-        }
-        cb(null, uploadDir);
-      },
-      filename: (req, file, cb) => {
-        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
-        cb(null, `${randomName}${extname(file.originalname)}`);
-      },
-    }),
+    storage: fundDocumentStorage,
   }))
   async updateDocumentWithFile(
     @Param('id') id: string,
@@ -109,7 +70,7 @@ export class DocumentsController {
   ) {
     return this.documentsService.updateDocumentWithFile(id, {
       file_name: file.originalname,
-      file_url: `/public/uploads/documents/${file.filename}`,
+      file_url: file.path, // Cloudinary URL
       document_type: body.document_type,
       tax_year: body.tax_year ? parseInt(body.tax_year.toString()) : undefined,
       description: body.description,
@@ -123,10 +84,93 @@ export class DocumentsController {
     return this.documentsService.deleteDocument(id);
   }
 
+  @Get(':id/view')
+  async viewDocument(@Param('id') id: string, @Res() res: Response) {
+    const doc = await this.documentsService.getDocumentById(id);
+    const isPDF = doc.file_name.toLowerCase().endsWith('.pdf');
+    const contentType = isPDF ? 'application/pdf' : (doc.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? `image/${doc.file_url.split('.').pop()}` : 'application/octet-stream');
+
+    if (doc.file_url.startsWith('http')) {
+      try {
+        const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+        // 1. Try DIRECT fetch first (best for unblocked public assets)
+        try {
+          const response = await axios.get(doc.file_url, {
+            responseType: 'stream',
+            headers: { 'User-Agent': userAgent },
+            timeout: 5000
+          });
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Content-Disposition', `inline; filename="${doc.file_name}"`);
+          return response.data.pipe(res);
+        } catch (directError: any) {
+          if (directError.response?.status !== 401 && directError.response?.status !== 403) {
+            throw directError;
+          }
+          console.log('Direct fetch failed with 401/403, attempting signed URL fallback...');
+        }
+
+        // 2. Fallback: Signed URL (for protected assets)
+        if (doc.file_url.includes('cloudinary.com')) {
+          const urlParts = doc.file_url.split('/upload/');
+          if (urlParts.length > 1) {
+            const pathAfterUpload = urlParts[1];
+            // Public ID should NOT have the extension for the SDK helper, but format should
+            const publicId = pathAfterUpload.replace(/^v\d+\//, '').split('.')[0];
+            const isPDF = doc.file_name.toLowerCase().endsWith('.pdf');
+
+            const signedUrl = cloudinary.url(publicId, {
+              sign_url: true,
+              secure: true,
+              resource_type: 'image',
+              format: isPDF ? 'pdf' : undefined,
+              type: 'upload'
+            });
+
+            const response = await axios.get(signedUrl, {
+              responseType: 'stream',
+              headers: { 'User-Agent': userAgent },
+              timeout: 5000
+            });
+            res.setHeader('Content-Type', contentType);
+            res.setHeader('Content-Disposition', `inline; filename="${doc.file_name}"`);
+            return response.data.pipe(res);
+          }
+        }
+
+        return res.status(500).send('Error fetching document from storage.');
+      } catch (outerError: any) {
+        console.error('Document Proxy Error:', outerError.message, 'Status:', outerError.response?.status);
+        return res.status(500).send('Error fetching document from storage.');
+      }
+    }
+
+    // Local file fallback
+    const filePathInDB = doc.file_url.split('/').pop();
+    const isVercel = process.env.VERCEL === '1';
+    const uploadDir = isVercel ? '/tmp/uploads/documents' : join(process.cwd(), 'uploads', 'documents');
+    const filePath = join(uploadDir, filePathInDB);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send('File not found');
+    }
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `inline; filename="${doc.file_name}"`);
+    return res.sendFile(filePath);
+  }
+
   @Get(':id/download')
   async downloadDocument(@Param('id') id: string, @Res() res: Response) {
     const doc = await this.documentsService.getDocumentById(id);
-    // Extract filename from file_url (e.g., /public/uploads/documents/UUID.pdf -> UUID.pdf)
+
+    // If it's a Cloudinary URL, redirect to it
+    if (doc.file_url.startsWith('http')) {
+      return res.redirect(doc.file_url);
+    }
+
+    // Fallback for legacy local files
     const filePathInDB = doc.file_url.split('/').pop();
     const isVercel = process.env.VERCEL === '1';
     const uploadDir = isVercel ? '/tmp/uploads/documents' : join(process.cwd(), 'uploads', 'documents');

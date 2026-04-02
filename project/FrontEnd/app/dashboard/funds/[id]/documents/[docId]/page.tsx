@@ -6,7 +6,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { ChevronLeft, Loader2, Download, ExternalLink, FileText, Minus, Plus, Search, RotateCw, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiClient, BASE_URL } from "@/lib/api/client";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 // Custom PDF Viewer Component using pdf.js from CDN
 const CustomPdfViewer = ({ url, title }: { url: string; title: string }) => {
@@ -24,7 +24,7 @@ const CustomPdfViewer = ({ url, title }: { url: string; title: string }) => {
     script.onload = () => {
       const pdfjsLib = (window as any)["pdfjs-dist/build/pdf"];
       pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      
+
       // Fetch as ArrayBuffer to avoid IDM interception
       fetch(url)
         .then(response => response.arrayBuffer())
@@ -37,13 +37,21 @@ const CustomPdfViewer = ({ url, title }: { url: string; title: string }) => {
             setIsLoading(false);
           }).catch((error: any) => {
             console.error("Error parsing PDF data:", error);
-            toast.error("Error displaying PDF data");
+            toast({
+              title: "Error",
+              description: "Error displaying PDF data",
+              variant: "destructive",
+            });
             setIsLoading(false);
           });
         })
         .catch((error: any) => {
           console.error("Error fetching PDF file:", error);
-          toast.error("Error fetching PDF file for preview");
+          toast({
+            title: "Error",
+            description: "Error fetching PDF file for preview",
+            variant: "destructive",
+          });
           setIsLoading(false);
         });
     };
@@ -91,9 +99,9 @@ const CustomPdfViewer = ({ url, title }: { url: string; title: string }) => {
       <div className="bg-[#323639] h-12 flex items-center justify-between px-6 text-white border-b border-black/20 shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-black/20 px-3 py-1 rounded">
-            <input 
-              type="text" 
-              value={pageNumber} 
+            <input
+              type="text"
+              value={pageNumber}
               readOnly
               className="w-8 bg-transparent text-center focus:outline-none text-sm"
             />
@@ -110,7 +118,7 @@ const CustomPdfViewer = ({ url, title }: { url: string; title: string }) => {
             <Plus className="h-4 w-4" />
           </button>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="h-6 w-[1px] bg-white/10 mx-2" />
           <button className="hover:bg-white/10 p-1.5 rounded transition-colors text-white/70" title="Fit to page">
@@ -135,24 +143,24 @@ const CustomPdfViewer = ({ url, title }: { url: string; title: string }) => {
           <canvas ref={canvasRef} className="shadow-2xl bg-white max-w-full" />
         )}
       </div>
-      
+
       {/* Page Navigation Buttons Bottom (Optional) */}
       {!isLoading && numPages && numPages > 1 && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 pointer-events-none">
-           <button 
-             onClick={() => changePage(-1)}
-             className="p-3 bg-black/60 text-white rounded-full hover:bg-black/80 transition-all pointer-events-auto backdrop-blur-sm disabled:opacity-30"
-             disabled={pageNumber === 1}
-           >
-             <ChevronLeft className="h-5 w-5" />
-           </button>
-           <button 
-             onClick={() => changePage(1)}
-             className="p-3 bg-black/60 text-white rounded-full hover:bg-black/80 transition-all pointer-events-auto backdrop-blur-sm disabled:opacity-30"
-             disabled={pageNumber === numPages}
-           >
-             <ChevronLeft className="h-5 w-5 rotate-180" />
-           </button>
+          <button
+            onClick={() => changePage(-1)}
+            className="p-3 bg-black/60 text-white rounded-full hover:bg-black/80 transition-all pointer-events-auto backdrop-blur-sm disabled:opacity-30"
+            disabled={pageNumber === 1}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => changePage(1)}
+            className="p-3 bg-black/60 text-white rounded-full hover:bg-black/80 transition-all pointer-events-auto backdrop-blur-sm disabled:opacity-30"
+            disabled={pageNumber === numPages}
+          >
+            <ChevronLeft className="h-5 w-5 rotate-180" />
+          </button>
         </div>
       )}
     </div>
@@ -160,6 +168,7 @@ const CustomPdfViewer = ({ url, title }: { url: string; title: string }) => {
 };
 
 export default function DocumentDetailsPage() {
+  const { toast } = useToast();
   const params = useParams();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
@@ -177,7 +186,11 @@ export default function DocumentDetailsPage() {
       const data = await apiClient.getDocumentById(params.docId as string);
       setDoc(data);
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch document");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to fetch document",
+        variant: "destructive",
+      });
       router.back();
     } finally {
       setIsLoading(false);
@@ -265,7 +278,7 @@ export default function DocumentDetailsPage() {
             {/* Right: Info */}
             <div className="lg:col-span-7 flex flex-col pt-2">
               <h2 className="text-2xl font-bold text-gray-700 mb-8 border-b border-gray-100 pb-4">File Information</h2>
-              
+
               <div className="grid grid-cols-2 gap-y-10 gap-x-8">
                 <div>
                   <label className="text-gray-400 font-medium text-sm mb-2 block tracking-wide">Upload Date</label>
@@ -284,7 +297,7 @@ export default function DocumentDetailsPage() {
                   <span className="text-xl font-bold text-gray-800">{formatFileSize(doc.file_size)}</span>
                 </div>
               </div>
-              
+
               <div className="mt-10 space-y-8">
                 <div>
                   <label className="text-gray-400 font-medium text-sm mb-2 block tracking-wide">Description</label>

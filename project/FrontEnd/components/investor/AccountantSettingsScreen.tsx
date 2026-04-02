@@ -486,23 +486,25 @@ export function AccountantSettingsScreen() {
               />
             </div>
 
-            {/* City */}
+            {/* Country */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">City</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Country</label>
               <Combobox
-                options={cities.map((c) => ({ label: c.name, value: c.name }))}
-                value={city}
+                options={countries.map((c) => ({ label: c.name, value: c.isoCode }))}
+                value={country}
                 onChange={(val) => {
-                  setCity(val);
-                  setProfileErrors((p) => ({ ...p, city: '' }));
+                  setCountry(val);
+                  setState('');
+                  setCity('');
+                  setProfileErrors((p) => ({ ...p, country: '' }));
                 }}
-                placeholder="Select city"
+                placeholder="Select country"
                 className={cn(
                   "h-[42px] rounded-[8px] text-[13px]",
-                  profileErrors.city ? 'border-red-400' : 'border-[#E5E7EB]'
+                  profileErrors.country ? 'border-red-400' : 'border-[#E5E7EB]'
                 )}
               />
-              {profileErrors.city && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.city}</p>}
+              {profileErrors.country && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.country}</p>}
             </div>
 
             {/* State */}
@@ -525,6 +527,25 @@ export function AccountantSettingsScreen() {
               {profileErrors.state && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.state}</p>}
             </div>
 
+            {/* City */}
+            <div>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">City</label>
+              <Combobox
+                options={cities.map((c) => ({ label: c.name, value: c.name }))}
+                value={city}
+                onChange={(val) => {
+                  setCity(val);
+                  setProfileErrors((p) => ({ ...p, city: '' }));
+                }}
+                placeholder="Select city"
+                className={cn(
+                  "h-[42px] rounded-[8px] text-[13px]",
+                  profileErrors.city ? 'border-red-400' : 'border-[#E5E7EB]'
+                )}
+              />
+              {profileErrors.city && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.city}</p>}
+            </div>
+
             {/* ZIP Code */}
             <div>
               <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">ZIP Code</label>
@@ -535,27 +556,6 @@ export function AccountantSettingsScreen() {
                 className={`h-[42px] w-full rounded-[8px] border ${profileErrors.zipCode ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white px-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
               />
               {profileErrors.zipCode && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.zipCode}</p>}
-            </div>
-
-            {/* Country */}
-            <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Country</label>
-              <Combobox
-                options={countries.map((c) => ({ label: c.name, value: c.isoCode }))}
-                value={country}
-                onChange={(val) => {
-                  setCountry(val);
-                  setState('');
-                  setCity('');
-                  setProfileErrors((p) => ({ ...p, country: '' }));
-                }}
-                placeholder="Select country"
-                className={cn(
-                  "h-[42px] rounded-[8px] text-[13px]",
-                  profileErrors.country ? 'border-red-400' : 'border-[#E5E7EB]'
-                )}
-              />
-              {profileErrors.country && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.country}</p>}
             </div>
           </div>
 

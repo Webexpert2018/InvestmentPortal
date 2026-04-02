@@ -18,12 +18,12 @@ export class DocumentsService {
     return result.rows;
   }
 
-  async uploadFundDocument(fundId: string, data: { 
-    file_name: string; 
-    file_url: string; 
-    document_type: string; 
-    tax_year?: number; 
-    description?: string; 
+  async uploadFundDocument(fundId: string, data: {
+    file_name: string;
+    file_url: string;
+    document_type: string;
+    tax_year?: number;
+    description?: string;
     note?: string;
     file_size?: number;
   }) {

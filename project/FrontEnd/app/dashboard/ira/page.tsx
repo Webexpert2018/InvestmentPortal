@@ -384,10 +384,10 @@ export default function IRAPage() {
                 <div className="grid gap-5 sm:grid-cols-2">
                   <Field label="Street Address Line 1" value={d.addressLine1} />
                   <Field label="Street Address Line 2" value={d.addressLine2} />
-                  <Field label="City" value={d.city} />
-                  <Field label="State" value={d.state} />
-                  <Field label="ZIP Code" value={d.zipCode} />
                   <Field label="Country" value={d.country} />
+                  <Field label="State" value={d.state} />
+                  <Field label="City" value={d.city} />
+                  <Field label="ZIP Code" value={d.zipCode} />
                 </div>
               </div>
 
@@ -412,10 +412,10 @@ export default function IRAPage() {
                 <div className="grid gap-5 sm:grid-cols-2">
                   <Field label="Street Address Line 1" value={d.mailingAddress1} />
                   <Field label="Street Address Line 2" value={d.mailingAddress2} />
-                  <Field label="City" value={d.mailingCity} />
-                  <Field label="State" value={d.mailingState} />
-                  <Field label="ZIP Code" value={d.mailingZipCode} />
                   <Field label="Country" value={d.mailingCountry} />
+                  <Field label="State" value={d.mailingState} />
+                  <Field label="City" value={d.mailingCity} />
+                  <Field label="ZIP Code" value={d.mailingZipCode} />
                 </div>
               </div>
             </div>

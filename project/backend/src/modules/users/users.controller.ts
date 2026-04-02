@@ -2,6 +2,7 @@ import { Controller, Get, Put, Patch, Post, Body, Param, UseGuards, UseIntercept
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { profileImageStorage } from '../../config/cloudinary.config';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -126,24 +127,7 @@ export class UsersController {
   @Post('profile-image')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (req: any, file: any, cb: any) => {
-          const isVercel = process.env.VERCEL === '1';
-          const uploadDir = isVercel 
-            ? path.join('/tmp', 'uploads', 'profile-images')
-            : path.join(process.cwd(), 'uploads', 'profile-images');
-          
-          if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-          }
-          cb(null, uploadDir);
-        },
-        filename: (req: any, file: any, cb: any) => {
-          const userId = req.user?.userId || 'unknown';
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, `user-${userId}-${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
+      storage: profileImageStorage,
       fileFilter: (req: any, file: any, cb: any) => {
         if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
           return cb(new BadRequestException('Only image files are allowed!'), false);
@@ -160,7 +144,7 @@ export class UsersController {
       throw new BadRequestException('File is required');
     }
 
-    const imageUrl = `/public/uploads/profile-images/${file.filename}`;
+    const imageUrl = file.path; // Cloudinary URL is in file.path
 
     // Update user's profile image URL in DB
     await this.usersService.updateProfile(user.userId, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, imageUrl);

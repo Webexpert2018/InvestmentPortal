@@ -6,7 +6,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { ChevronLeft, Loader2, Save, Upload, X, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiClient, BASE_URL } from "@/lib/api/client";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 const DOCUMENT_TYPES = [
   "K-1",
@@ -20,6 +20,7 @@ const DOCUMENT_TYPES = [
 const TAX_YEARS = Array.from({ length: 10 }, (_, i) => (new Date().getFullYear() - i).toString());
 
 export default function EditDocumentPage() {
+  const { toast } = useToast();
   const params = useParams();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
@@ -53,7 +54,11 @@ export default function EditDocumentPage() {
       setExistingFileUrl(data.file_url);
       setExistingFileName(data.file_name);
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch document details");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to fetch document details",
+        variant: "destructive",
+      });
       router.back();
     } finally {
       setIsLoading(false);
@@ -63,7 +68,11 @@ export default function EditDocumentPage() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.document_type) {
-      toast.error("Please select a document type");
+      toast({
+        title: "Error",
+        description: "Please select a document type",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -90,10 +99,18 @@ export default function EditDocumentPage() {
           note: formData.note,
         });
       }
-      toast.success("Document updated successfully");
+      toast({
+        title: "Success",
+        description: "Document updated successfully",
+        variant: "success",
+      });
       router.push(`/dashboard/funds/${params.id}?tab=documents`);
     } catch (error: any) {
-      toast.error(error.message || "Failed to update document");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update document",
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }

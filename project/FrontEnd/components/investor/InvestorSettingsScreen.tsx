@@ -632,21 +632,21 @@ export function InvestorSettingsScreen() {
                 />
               </div>
               <div>
-                <FieldLabel>City</FieldLabel>
+                <FieldLabel>Country</FieldLabel>
                 <Combobox
-                  options={cities.map((c) => ({ label: c.name, value: c.name }))}
-                  value={profile.city}
+                  options={countries.map((c) => ({ label: c.name, value: c.isoCode }))}
+                  value={profile.country}
                   onChange={(val) => {
-                    setProfile((prev) => ({ ...prev, city: val }));
-                    setProfileErrors((prev) => ({ ...prev, city: undefined }));
+                    setProfile((prev) => ({ ...prev, country: val, state: '', city: '' }));
+                    setProfileErrors((prev) => ({ ...prev, country: undefined }));
                   }}
-                  placeholder="Select city"
+                  placeholder="Select country"
                   className={cn(
                     "text-[12px] h-[36px]",
-                    profileErrors.city ? 'border-[#E05252]' : ''
+                    profileErrors.country ? 'border-[#E05252]' : ''
                   )}
                 />
-                {profileErrors.city && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.city}</p>}
+                {profileErrors.country && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.country}</p>}
               </div>
               <div>
                 <FieldLabel>State</FieldLabel>
@@ -666,6 +666,23 @@ export function InvestorSettingsScreen() {
                 {profileErrors.state && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.state}</p>}
               </div>
               <div>
+                <FieldLabel>City</FieldLabel>
+                <Combobox
+                  options={cities.map((c) => ({ label: c.name, value: c.name }))}
+                  value={profile.city}
+                  onChange={(val) => {
+                    setProfile((prev) => ({ ...prev, city: val }));
+                    setProfileErrors((prev) => ({ ...prev, city: undefined }));
+                  }}
+                  placeholder="Select city"
+                  className={cn(
+                    "text-[12px] h-[36px]",
+                    profileErrors.city ? 'border-[#E05252]' : ''
+                  )}
+                />
+                {profileErrors.city && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.city}</p>}
+              </div>
+              <div>
                 <FieldLabel>ZIP Code</FieldLabel>
                 <TextInput
                   className={profileErrors.zipCode ? '!border-[#E05252]' : ''}
@@ -677,23 +694,6 @@ export function InvestorSettingsScreen() {
                   }}
                 />
                 {profileErrors.zipCode && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.zipCode}</p>}
-              </div>
-              <div>
-                <FieldLabel>Country</FieldLabel>
-                <Combobox
-                  options={countries.map((c) => ({ label: c.name, value: c.isoCode }))}
-                  value={profile.country}
-                  onChange={(val) => {
-                    setProfile((prev) => ({ ...prev, country: val, state: '', city: '' }));
-                    setProfileErrors((prev) => ({ ...prev, country: undefined }));
-                  }}
-                  placeholder="Select country"
-                  className={cn(
-                    "text-[12px] h-[36px]",
-                    profileErrors.country ? 'border-[#E05252]' : ''
-                  )}
-                />
-                {profileErrors.country && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.country}</p>}
               </div>
             </div>
 
