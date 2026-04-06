@@ -317,7 +317,11 @@ export class DocusignService {
         signingUrl: viewResults.url,
       };
     } catch (error: any) {
-      this.logger.error('Error creating DocuSign envelope:', error.response?.body || error.message);
+      const detailedError = error.response?.body || error.response?.data || error.message;
+      this.logger.error('Error creating DocuSign envelope:', detailedError);
+      if (error.response?.body) {
+        this.logger.error('Full DocuSign Error Body:', JSON.stringify(error.response.body, null, 2));
+      }
       throw error;
     }
   }

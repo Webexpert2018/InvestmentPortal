@@ -58,8 +58,28 @@ class ApiClient {
     }
 
     if (!response.ok) {
-      const errorMsg = data?.message || data?.error || `Error: ${response.status} ${response.statusText}`;
-      throw new Error(errorMsg);
+      let errorMsg = data?.message || data?.error || `Error: ${response.status} ${response.statusText}`;
+      let errorDetails = data?.details;
+
+      // Handle NestJS object-style errors where the payload is wrapped in 'message'
+      if (typeof data?.message === 'object' && data?.message !== null) {
+        errorMsg = data.message.message || errorMsg;
+        errorDetails = data.message.details || errorDetails;
+      }
+      
+      // Log the full error data to the console for easier debugging
+      console.error(`[ApiClient] Request to ${endpoint} failed:`, {
+        status: response.status,
+        statusText: response.statusText,
+        data: data
+      });
+
+      const error: any = new Error(typeof errorMsg === 'string' ? errorMsg : 'API Request Failed');
+      error.status = response.status;
+      if (errorDetails) {
+        error.details = errorDetails;
+      }
+      throw error;
     }
 
     return data;

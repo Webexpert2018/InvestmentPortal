@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Body, Res, UseGuards, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Query, Body, Res, UseGuards, BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Response } from 'express';
 import { DocusignService } from './docusign.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -118,12 +118,21 @@ export class DocusignController {
       // If it's already a NestJS exception, rethrow it
       if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
       
-      // Otherwise, return a descriptive error
-      throw new BadRequestException({
+      const isAuthError = error.message?.includes('401') || 
+                          error.response?.status === 401 || 
+                          error.response?.body?.errorCode === 'USER_AUTHENTICATION_FAILED';
+      
+      const errorResponse = {
         message: 'Failed to initiate DocuSign signing process',
         error: error.message,
-        details: error.response?.body || 'No additional details available'
-      });
+        details: error.response?.body || error.response?.data || 'No additional details available'
+      };
+
+      if (isAuthError) {
+        throw new UnauthorizedException(errorResponse);
+      }
+      
+      throw new BadRequestException(errorResponse);
     }
   }
 

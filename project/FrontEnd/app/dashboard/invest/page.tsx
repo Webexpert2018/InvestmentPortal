@@ -61,6 +61,7 @@ export default function InvestPage() {
   const [lastEnvelopeId, setLastEnvelopeId] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [currentInvestment, setCurrentInvestment] = useState<any>(null);
+  const [justFinishedSigning, setJustFinishedSigning] = useState(false);
 
   // Check for DocuSign completion in URL
   useEffect(() => {
@@ -75,25 +76,43 @@ export default function InvestPage() {
     const eventStatus = searchParams?.get('event');
 
     if (signingStatus === 'complete' || eventStatus === 'signing_complete') {
+      setJustFinishedSigning(true);
       const lastId = localStorage.getItem('last_investment_id');
       if (lastId) {
+        // Optimistic UI update: Mark as signed and awaiting funding immediately
+        const optimisticData = {
+          id: lastId,
+          status: 'Awaiting Funding',
+          document_signed: true,
+          signed_at: new Date().toISOString()
+        };
+
+        setCurrentInvestment((prev: any) => prev ? { ...prev, ...optimisticData } : optimisticData);
+
         apiClient.updateInvestmentStatus(lastId, {
           status: 'Awaiting Funding',
           documentSigned: true
         })
-          .then(() => {
-            // Fetch updated record immediately
+          .then((updatedInvestment) => {
+            // Use the returned updated object from the server
+            if (updatedInvestment) {
+              setCurrentInvestment(updatedInvestment);
+            }
+          })
+          .catch(err => {
+            console.error('Failed to update investment status:', err);
+            // Re-fetch only if update fails to ensure consistency
             apiClient.getMyTransactions().then(investments => {
               const updated = investments.find((i: any) => i.id === lastId);
               if (updated) setCurrentInvestment(updated);
             });
-          })
-          .catch(err => console.error('Failed to update investment status:', err));
+          });
       }
-      setStep('fundingInstructions');
-      // Clean up URL
+      setStep('investmentStatus');
+      // Clean up URL parameters
       const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
       current.delete('signing');
+      current.delete('event');
       const search = current.toString();
       const query = search ? `?${search}` : '';
       router.replace(`/dashboard/invest${query}`);
@@ -183,7 +202,7 @@ export default function InvestPage() {
   }, [step]);
 
   const goBack = () => {
-    setStep((current) => {
+    setStep((current: Step) => {
       switch (current) {
         case 'investmentAmount':
           return 'chooseFund';
@@ -261,8 +280,22 @@ export default function InvestPage() {
       }
     } catch (error: any) {
       console.error('DocuSign Flow Error:', error);
-      const msg = error instanceof Error ? error.message : String(error);
-      alert(`Error: ${msg}\n\nPlease check your authorization or connection.`);
+
+      // Handle authentication failures (e.g. Expired/Invalid Token)
+      if (error.status === 401 || error.message?.includes('401') || (error.details?.errorCode === 'USER_AUTHENTICATION_FAILED')) {
+        const confirmed = window.confirm('Your DocuSign authorization has expired or is invalid. Would you like to reconnect now?');
+        if (confirmed) {
+          window.location.href = `${BASE_URL}/api/docusign/auth`;
+          return;
+        }
+      }
+
+      if (error.details) {
+        console.error('DocuSign Error Details:', error.details);
+      }
+      const msg = error.message || String(error);
+      const details = error.details ? `\n\nDetails: ${JSON.stringify(error.details, null, 2)}` : '';
+      alert(`Error: ${msg}${details}\n\nPlease check your authorization or connection.`);
     } finally {
       setIsSigning(false);
     }
@@ -322,7 +355,7 @@ export default function InvestPage() {
       return;
     }
 
-    setStep((current) => {
+    setStep((current: Step) => {
       switch (current) {
         // ... (the rest of the cases)
         case 'chooseFund':
@@ -630,8 +663,8 @@ export default function InvestPage() {
                 <button type="button" onClick={handlePrint} className="hover:text-[#374151]"><Printer className="h-3.5 w-3.5" /></button>
                 <button type="button" className="hover:text-[#374151]"><Search className="h-3.5 w-3.5" /></button>
                 <span className="text-[11px] font-medium">{zoom}%</span>
-                <button type="button" onClick={() => setZoom(prev => Math.max(50, prev - 10))} className="hover:text-[#374151]"><Minus className="h-3.5 w-3.5" /></button>
-                <button type="button" onClick={() => setZoom(prev => Math.min(200, prev + 10))} className="hover:text-[#374151]"><Plus className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={() => setZoom((prev: number) => Math.max(50, prev - 10))} className="hover:text-[#374151]"><Minus className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={() => setZoom((prev: number) => Math.min(200, prev + 10))} className="hover:text-[#374151]"><Plus className="h-3.5 w-3.5" /></button>
                 <button type="button" className="hover:text-[#374151]"><Maximize2 className="h-3.5 w-3.5" /></button>
               </div>
             </div>
@@ -798,7 +831,7 @@ export default function InvestPage() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="rounded-2xl bg-white px-8 py-6 shadow-sm">
           <div className="relative">
-            <div className="absolute left-3 top-4 bottom-4 w-px bg-[#E5E5EA]" />
+            <div className="absolute left-2 top-4 bottom-4 w-px bg-[#E5E5EA]" />
             <div className="space-y-4">
               {[
                 {
@@ -810,17 +843,17 @@ export default function InvestPage() {
                 },
                 {
                   title: 'Document Signed',
-                  subtitle: currentInvestment?.document_signed && currentInvestment?.signed_at
+                  subtitle: (currentInvestment?.document_signed || justFinishedSigning) && currentInvestment?.signed_at
                     ? `Completed on ${new Date(currentInvestment.signed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : (currentInvestment?.document_signed ? 'Completed' : 'Awaiting signature'),
-                  state: currentInvestment?.document_signed ? 'done' : 'active',
+                    : (currentInvestment?.document_signed || justFinishedSigning ? 'Completed' : 'Awaiting signature'),
+                  state: (currentInvestment?.document_signed || justFinishedSigning) ? 'done' : 'active',
                 },
                 {
                   title: 'Awaiting Funding',
                   subtitle: currentInvestment?.awaiting_funding_at
                     ? `Completed on ${new Date(currentInvestment.awaiting_funding_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : (currentInvestment?.document_signed ? 'Action required: please provide funding to proceed.' : 'Pending'),
-                  state: currentInvestment?.awaiting_funding ? 'done' : (currentInvestment?.document_signed ? 'active' : 'pending'),
+                    : (currentInvestment?.document_signed || justFinishedSigning ? 'Action required: please provide funding to proceed.' : 'Pending'),
+                  state: currentInvestment?.awaiting_funding ? 'done' : ((currentInvestment?.document_signed || justFinishedSigning) ? 'active' : 'pending'),
                 },
                 {
                   title: 'Funds Received',
@@ -841,7 +874,7 @@ export default function InvestPage() {
                 const isActive = item.state === 'active';
                 return (
                   <div key={item.title} className="flex items-start gap-4">
-                    <div className={`mt-1 flex h-4 w-4 items-center justify-center rounded-full border ${isDone ? 'border-[#2BB673] bg-[#2BB673]' :
+                    <div className={`relative z-10 mt-1 flex h-4 w-4 items-center justify-center rounded-full border ${isDone ? 'border-[#2BB673] bg-[#2BB673]' :
                       isActive ? 'border-[#FBCB4B] bg-[#FFF3D6]' :
                         'border-[#E5E5EA] bg-white'
                       }`}>
