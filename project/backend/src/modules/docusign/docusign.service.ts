@@ -134,18 +134,45 @@ export class DocusignService {
     const ds = docusign as any;
     const envelopesApi = new ds.EnvelopesApi(this.dsApiClient);
 
+    const safeFundName = fundName.replace(/[^a-z0-9]/gi, '-');
     const docPaths = [
+      { name: 'Operating Agreement', filename: `OA-${safeFundName}.pdf`, id: '1' },
+      { name: 'Subscription Agreement', filename: `SA-${safeFundName}.pdf`, id: '2' }
+    ];
+
+    // Default fallbacks if fund-specific files are missing
+    const defaultDocPaths = [
       { name: 'Operating Agreement', filename: 'OA-BWell-Fund.pdf', id: '1' },
       { name: 'Subscription Agreement', filename: 'SA-BWell-Fund.pdf', id: '2' }
     ];
 
-    const documents = docPaths.map(docInfo => {
-      const filePath = path.resolve(process.cwd(), 'public/subscription-documents', docInfo.filename);
+    const documents = docPaths.map((docInfo, index) => {
+      // Possible path locations on Vercel and Local
+      const pathsToTry = [
+        path.resolve(process.cwd(), 'public/subscription-documents', docInfo.filename),
+        path.resolve(__dirname, '..', '..', '..', 'public/subscription-documents', docInfo.filename),
+        // Try default fallback if specific fund doc is missing
+        path.resolve(process.cwd(), 'public/subscription-documents', defaultDocPaths[index].filename),
+        path.resolve(__dirname, '..', '..', '..', 'public/subscription-documents', defaultDocPaths[index].filename)
+      ];
+
+      let filePath = pathsToTry[0];
+      let found = false;
+
+      for (const p of pathsToTry) {
+        if (fs.existsSync(p)) {
+          filePath = p;
+          found = true;
+          break;
+        }
+      }
+
       let docBase64: string;
-      if (fs.existsSync(filePath)) {
+      if (found) {
+        this.logger.log(`Using document from ${filePath}`);
         docBase64 = fs.readFileSync(filePath).toString('base64');
       } else {
-        this.logger.warn(`Document not found at ${filePath}, using placeholder.`);
+        this.logger.warn(`Document not found for ${fundName} (searched ${pathsToTry.join(', ')}), using placeholder.`);
         docBase64 = Buffer.from(`${docInfo.name} Content for ${fundName}`).toString('base64');
       }
 
