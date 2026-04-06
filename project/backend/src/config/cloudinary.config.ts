@@ -65,4 +65,17 @@ export const fundDocumentStorage = new CloudinaryStorage({
   } as any,
 });
 
+// Storage for Staff Images
+export const staffImageStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'investment-portal/staff-images',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif'],
+    public_id: (req: any, file: any) => {
+      const randomName = Math.random().toString(36).substring(2, 15);
+      return `staff-${Date.now()}-${randomName}`;
+    },
+  } as any,
+});
+
 export { cloudinary };

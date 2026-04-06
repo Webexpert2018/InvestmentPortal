@@ -35,6 +35,10 @@ class ApiClient {
       },
     };
 
+    if (options.body instanceof FormData && config.headers) {
+      delete (config.headers as any)['Content-Type'];
+    }
+
     const response = await fetch(url, config);
 
     // Handle empty body responses (e.g. 204 No Content)
@@ -544,6 +548,40 @@ class ApiClient {
 
   async getDocuSignDocument(envelopeId: string, accessToken: string, accountId: string) {
     return this.requestBlob(`/docusign/envelope/${envelopeId}/document?envelopeId=${envelopeId}&accessToken=${accessToken}&accountId=${accountId}`);
+  }
+
+  // Staff Module
+  async getStaff(role?: string) {
+    const url = role ? `/staff?role=${role}` : '/staff';
+    return this.request<any[]>(url);
+  }
+
+  async getStaffById(id: string) {
+    return this.request<any>(`/staff/${id}`);
+  }
+
+  async createStaff(data: any) {
+    const isFormData = data instanceof FormData;
+    return this.request<any>('/staff', {
+      method: 'POST',
+      headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+      body: isFormData ? data : JSON.stringify(data),
+    });
+  }
+
+  async updateStaff(id: string, data: any) {
+    const isFormData = data instanceof FormData;
+    return this.request<any>(`/staff/${id}`, {
+      method: 'PATCH',
+      headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+      body: isFormData ? data : JSON.stringify(data),
+    });
+  }
+
+  async deleteStaff(id: string) {
+    return this.request<any>(`/staff/${id}`, {
+      method: 'DELETE',
+    });
   }
 }
 

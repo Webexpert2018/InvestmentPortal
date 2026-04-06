@@ -14,6 +14,7 @@ import { FundsModule } from './modules/funds/funds.module';
 import { FundFlowsModule } from './modules/fund-flows/fund-flows.module';
 import { InvestmentsModule } from './modules/investments/investments.module';
 import { DocusignModule } from './modules/docusign/docusign.module';
+import { StaffModule } from './modules/staff/staff.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -38,6 +39,7 @@ import { HealthController } from './health.controller';
     FundFlowsModule,
     InvestmentsModule,
     DocusignModule,
+    StaffModule,
   ],
   controllers: [HealthController],
 })
