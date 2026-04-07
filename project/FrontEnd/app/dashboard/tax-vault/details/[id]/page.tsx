@@ -11,7 +11,7 @@ import { apiClient, BASE_URL } from '@/lib/api/client';
 export default function TaxVaultDocumentDetailsPage() {
   const params = useParams();
   const id = params.id as string;
-  
+
   const [zoom, setZoom] = useState(100);
   const [documentData, setDocumentData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -87,7 +87,7 @@ export default function TaxVaultDocumentDetailsPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-[1400px] font-helvetica text-[#1F1F1F]">
+      <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F]">
         <div className="mb-6 flex items-center gap-3">
           <Link href="/dashboard/tax-vault" className="flex items-center gap-2 text-[#333333] hover:opacity-70 transition-opacity">
             <ChevronLeft className="h-6 w-6" />
@@ -104,17 +104,17 @@ export default function TaxVaultDocumentDetailsPage() {
                 <div className="flex items-center gap-4">
                   <span className="text-[13px] font-medium opacity-90">1 / 1</span>
                 </div>
-                
+
                 <div className="flex items-center">
-                   <div className="flex items-center border-l border-r border-white/10 px-6 gap-6">
-                      <button onClick={() => setZoom(z => Math.max(50, z - 10))} className="hover:text-amber-200 transition-colors">
-                        <Minus className="h-4 w-4" />
-                      </button>
-                      <span className="min-w-[40px] text-center text-[13px] font-medium">{zoom}%</span>
-                      <button onClick={() => setZoom(z => Math.min(200, z + 10))} className="hover:text-amber-200 transition-colors">
-                        <Plus className="h-4 w-4" />
-                      </button>
-                   </div>
+                  <div className="flex items-center border-l border-r border-white/10 px-6 gap-6">
+                    <button onClick={() => setZoom(z => Math.max(50, z - 10))} className="hover:text-amber-200 transition-colors">
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="min-w-[40px] text-center text-[13px] font-medium">{zoom}%</span>
+                    <button onClick={() => setZoom(z => Math.min(200, z + 10))} className="hover:text-amber-200 transition-colors">
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -126,10 +126,10 @@ export default function TaxVaultDocumentDetailsPage() {
                   </button>
                 </div>
               </div>
-              
+
               {/* Document Content Area */}
               <div className="relative flex-1 bg-[#525659] p-6 flex justify-center overflow-auto min-h-[500px]">
-                <div 
+                <div
                   className="bg-white shadow-2xl transition-transform duration-200 origin-top w-full"
                   style={{ transform: `scale(${zoom / 100})` }}
                 >
@@ -180,9 +180,9 @@ export default function TaxVaultDocumentDetailsPage() {
                   <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">Description</span>
                   <p className="mt-2 text-[16px] font-bold text-[#1F1F1F]">{documentData.description || 'No description provided'}</p>
                   {documentData.description && (
-                     <p className="mt-1 text-[16px] leading-[1.6] text-[#4B4B4B]">
-                        {documentData.description}
-                     </p>
+                    <p className="mt-1 text-[16px] leading-[1.6] text-[#4B4B4B]">
+                      {documentData.description}
+                    </p>
                   )}
                 </div>
 

@@ -30,13 +30,13 @@ const AVATARS = [
 ]
 
 const sampleInvestors: Investor[] = [
-  { id: "1", name: "James Mango",          email: "demo@gmail.com", accountType: "Personal", kyc: "Approved", missingDocs: "-", date: "Jan 25, 2026", avatar: AVATARS[0], hasNewMessage: true },
-  { id: "2", name: "Talan Rhiel Madsen",   email: "demo@gmail.com", accountType: "IRA",      kyc: "Approved", missingDocs: "-", date: "Jan 25, 2026", avatar: AVATARS[1], hasNewMessage: false },
-  { id: "3", name: "Terry George",         email: "demo@gmail.com", accountType: "Roth IRA", kyc: "Pending",  missingDocs: "3 Doc", date: "Jan 25, 2026", avatar: AVATARS[2], hasNewMessage: false },
-  { id: "4", name: "Omar Calzoni",         email: "demo@gmail.com", accountType: "IRA",      kyc: "Approved", missingDocs: "-", date: "Jan 25, 2026", avatar: AVATARS[3], hasNewMessage: false },
-  { id: "5", name: "Martin Gouse",         email: "demo@gmail.com", accountType: "Personal", kyc: "Rejected", missingDocs: "5 Doc", date: "Jan 25, 2026", avatar: AVATARS[4], hasNewMessage: false },
-  { id: "6", name: "Carter George",        email: "demo@gmail.com", accountType: "Roth IRA", kyc: "Approved", missingDocs: "-", date: "Jan 25, 2026", avatar: AVATARS[5], hasNewMessage: false },
-  { id: "7", name: "Wilson Westervelt",    email: "demo@gmail.com", accountType: "Personal", kyc: "Approved", missingDocs: "-", date: "Jan 25, 2026", avatar: AVATARS[6], hasNewMessage: false },
+  { id: "1", name: "James Mango", email: "demo@gmail.com", accountType: "Personal", kyc: "Approved", missingDocs: "-", date: "Jan 25, 2026", avatar: AVATARS[0], hasNewMessage: true },
+  { id: "2", name: "Talan Rhiel Madsen", email: "demo@gmail.com", accountType: "IRA", kyc: "Approved", missingDocs: "-", date: "Jan 25, 2026", avatar: AVATARS[1], hasNewMessage: false },
+  { id: "3", name: "Terry George", email: "demo@gmail.com", accountType: "Roth IRA", kyc: "Pending", missingDocs: "3 Doc", date: "Jan 25, 2026", avatar: AVATARS[2], hasNewMessage: false },
+  { id: "4", name: "Omar Calzoni", email: "demo@gmail.com", accountType: "IRA", kyc: "Approved", missingDocs: "-", date: "Jan 25, 2026", avatar: AVATARS[3], hasNewMessage: false },
+  { id: "5", name: "Martin Gouse", email: "demo@gmail.com", accountType: "Personal", kyc: "Rejected", missingDocs: "5 Doc", date: "Jan 25, 2026", avatar: AVATARS[4], hasNewMessage: false },
+  { id: "6", name: "Carter George", email: "demo@gmail.com", accountType: "Roth IRA", kyc: "Approved", missingDocs: "-", date: "Jan 25, 2026", avatar: AVATARS[5], hasNewMessage: false },
+  { id: "7", name: "Wilson Westervelt", email: "demo@gmail.com", accountType: "Personal", kyc: "Approved", missingDocs: "-", date: "Jan 25, 2026", avatar: AVATARS[6], hasNewMessage: false },
 ]
 
 const ITEMS_PER_PAGE = 7
@@ -157,7 +157,7 @@ export default function AdminAssignedInvestorsPage() {
               <thead>
                 <tr className="border-b border-[#ECEDEF]">
                   {["Investor Name", "Email", "Account Type", "KYC Status", "Missing Doc", "Date", "Action"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-[12px] font-medium text-[#6B7280] font-helvetica whitespace-nowrap">
+                    <th key={h} className="px-4 py-3 text-[12px] font-helvetica font-semibold uppercase tracking-wider text-[#6B7280] whitespace-nowrap">
                       <span className="inline-flex items-center gap-1">
                         {h}
                         {h !== "Action" && <ArrowUpDown className="h-3 w-3 text-[#C4C4C4]" />}
@@ -222,11 +222,10 @@ export default function AdminAssignedInvestorsPage() {
               <button
                 key={p}
                 onClick={() => setCurrentPage(p)}
-                className={`h-[30px] w-[30px] rounded-full text-[13px] font-medium transition-colors font-helvetica ${
-                  currentPage === p
-                    ? "bg-[#2D3748] text-white"
-                    : "text-[#6B7280] hover:bg-[#F3F4F6]"
-                }`}
+                className={`h-[30px] w-[30px] rounded-full text-[13px] font-medium transition-colors font-helvetica ${currentPage === p
+                  ? "bg-[#2D3748] text-white"
+                  : "text-[#6B7280] hover:bg-[#F3F4F6]"
+                  }`}
               >
                 {p}
               </button>

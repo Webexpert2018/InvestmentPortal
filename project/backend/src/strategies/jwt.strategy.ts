@@ -8,19 +8,39 @@ import { db } from '../config/database';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        ExtractJwt.fromUrlQueryParameter('token'),
+      ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET') || 'your-secret-key-change-in-production',
     });
   }
 
   async validate(payload: any) {
-    const result = await db.query(
+    // 1. Try finding in users table first (Admin/Staff)
+    let result = await db.query(
       'SELECT id, email, role, first_name, last_name, status FROM users WHERE id = $1',
       [payload.userId]
     );
 
-    const user = result.rows[0];
+    let user = result.rows[0];
+
+    // 2. If not found in users, try investors table
+    if (!user) {
+      result = await db.query(
+        'SELECT id, email, role, full_name, status FROM investors WHERE id = $1',
+        [payload.userId]
+      );
+      user = result.rows[0];
+      
+      // Map full_name to firstName/lastName for consistency
+      if (user && user.full_name) {
+        const [firstName, ...lastNameParts] = user.full_name.split(' ');
+        user.first_name = firstName;
+        user.last_name = lastNameParts.join(' ');
+      }
+    }
 
     if (!user) {
       throw new UnauthorizedException('User not found');

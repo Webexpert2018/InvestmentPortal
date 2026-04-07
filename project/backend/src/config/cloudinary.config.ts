@@ -65,6 +65,19 @@ export const fundDocumentStorage = new CloudinaryStorage({
   } as any,
 });
 
+// Storage for KYC Documents (PDF, Images)
+export const kycDocumentStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'investment-portal/kyc-docs',
+    resource_type: 'auto', // Important for non-image files like PDF
+    public_id: (req: any, file: any) => {
+      const randomName = Math.random().toString(36).substring(2, 15);
+      return `kyc-${Date.now()}-${randomName}`;
+    },
+  } as any,
+});
+
 // Storage for Staff Images
 export const staffImageStorage = new CloudinaryStorage({
   cloudinary: cloudinary,

@@ -21,6 +21,10 @@ class ApiClient {
     return headers;
   }
 
+  public getApiUrl(): string {
+    return API_URL;
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -166,7 +170,25 @@ class ApiClient {
   }
 
   async getAllUsers() {
-    return this.request<any[]>('/users/all');
+    return this.request<any[]>('/users');
+  }
+
+  async getUserById(id: string) {
+    return this.request<any>(`/users/${id}`);
+  }
+
+  async updateKycStatus(userId: string, kycStatus: string) {
+    return this.request<any>(`/users/${userId}/kyc-status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ kycStatus }),
+    });
+  }
+
+  async updateMyKycStatus(kycStatus: string) {
+    return this.request<any>('/users/profile/kyc-status', {
+      method: 'PATCH',
+      body: JSON.stringify({ kycStatus }),
+    });
   }
 
   async updateUserStatus(userId: string, status: string) {
@@ -232,6 +254,38 @@ class ApiClient {
 
   async getMyDocuments() {
     return this.request<any[]>('/documents/my');
+  }
+
+  async uploadKycDocument(file: File, documentType: string = 'kyc_id') {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('document_type', documentType);
+
+    const headers: HeadersInit = {};
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${API_URL}/documents/kyc/upload`, {
+      method: "POST",
+      body: formData,
+      headers: headers,
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(
+        result.error || result.message || "An error occurred during upload"
+      );
+    }
+    return result;
+  }
+
+  async getInvestorDocuments(investorId: string) {
+    return this.request<any[]>(`/documents/investor/${investorId}`);
   }
 
   async getAllDocuments(status?: string) {

@@ -13,7 +13,7 @@ export default function ViewStaffPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
-  
+
   const [staff, setStaff] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -86,13 +86,13 @@ export default function ViewStaffPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-[1400px] font-helvetica text-[#1F1F1F] p-4 lg:p-8">
+      <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F] p-4 lg:p-8">
         {/* Breadcrumb / Back Link */}
         <div className="mb-8 items-center flex gap-2">
-           <Link href="/dashboard/staff" className="flex items-center gap-2 group">
-              <ChevronLeft className="h-5 w-5 text-[#1F1F1F]" />
-              <span className="text-[17px] font-semibold text-[#1F1F1F]">Staff Details</span>
-           </Link>
+          <Link href="/dashboard/staff" className="flex items-center gap-2 group">
+            <ChevronLeft className="h-5 w-5 text-[#1F1F1F]" />
+            <span className="text-[17px] font-semibold text-[#1F1F1F]">Staff Details</span>
+          </Link>
         </div>
 
         {/* Column 1: Profile Photo */}
@@ -118,13 +118,13 @@ export default function ViewStaffPage() {
                 <p className="text-gray-500 text-sm">Joined date: {formatDate(staff.created_at)}</p>
               </div>
               <div className="flex gap-3">
-                <button 
+                <button
                   onClick={handleDelete}
                   className="bg-[#FFFBEB] hover:bg-[#FEF3C7] text-gray-500 px-8 py-2 rounded-full font-medium border-none shadow-none transition-all"
                 >
                   Delete
                 </button>
-                <Link 
+                <Link
                   href={`/dashboard/staff/edit/${staff.id}`}
                   className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-10 py-2 rounded-full font-medium border-none shadow-sm transition-all"
                 >
@@ -186,7 +186,7 @@ export default function ViewStaffPage() {
                     <ChevronLeft className="h-4 w-4" />
                     <span>Previous</span>
                   </button>
-                  
+
                   <div className="flex gap-1">
                     <button className="w-8 h-8 rounded text-sm font-medium bg-[#1F3B6E] text-white">1</button>
                     <button className="w-8 h-8 rounded text-sm font-medium text-gray-400 hover:bg-gray-100">2</button>
@@ -219,17 +219,17 @@ export default function ViewStaffPage() {
 
 function ChevronRight(props: any) {
   return (
-    <svg 
+    <svg
       {...props}
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
       <path d="m9 18 6-6-6-6" />
     </svg>

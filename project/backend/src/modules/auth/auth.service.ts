@@ -29,10 +29,10 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const userResult = await db.query(
-      `INSERT INTO users (email, password_hash, first_name, last_name, phone, dob, role, status, address_line1, address_line2, city, state, zip_code, country, tax_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-       RETURNING id, email, role, first_name, last_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url`,
-      [email, passwordHash, firstName, lastName, phone, dob, role || 'investor', 'active', addressLine1, addressLine2, city, state, zipCode, country, taxId]
+      `INSERT INTO investors (full_name, email, password_hash, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       RETURNING id, email, role, full_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id`,
+      [firstName + ' ' + (lastName || ''), email, passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId]
     );
 
     const newUser = userResult.rows[0];
@@ -50,19 +50,20 @@ export class AuthService {
     });
 
     // Send welcome email asynchronously
-    this.emailService.sendWelcomeEmail(newUser.email, newUser.first_name, newUser.role || 'investor', password)
+    const firstNameForEmail = newUser.full_name?.split(' ')[0] || 'User';
+    this.emailService.sendWelcomeEmail(newUser.email, firstNameForEmail, newUser.role || 'investor', password)
       .catch(err => console.error(`Failed to send welcome email to ${newUser.email}:`, err));
 
     return {
       user: {
         id: newUser.id,
         email: newUser.email,
-        role: newUser.role,
-        firstName: newUser.first_name,
-        lastName: newUser.last_name,
+        role: newUser.role || 'investor',
+        firstName: newUser.full_name?.split(' ')[0] || '',
+        lastName: newUser.full_name?.split(' ')[1] || '',
         phone: newUser.phone,
+        status: newUser.status || 'active',
         dob: newUser.dob,
-        status: newUser.status,
         addressLine1: newUser.address_line1,
         addressLine2: newUser.address_line2,
         city: newUser.city,
@@ -70,7 +71,8 @@ export class AuthService {
         zipCode: newUser.zip_code,
         country: newUser.country,
         taxId: newUser.tax_id,
-        profileImageUrl: newUser.profile_image_url,
+        profileImageUrl: null,
+        kycStatus: newUser.kyc_status || 'unverified',
       },
       token,
     };
@@ -78,12 +80,28 @@ export class AuthService {
 
   async login(email: string, password: string, role?: string) {
     try {
-      const result = await db.query(
-        'SELECT id, email, password_hash, role, first_name, last_name, status, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url FROM users WHERE email = $1',
+      // 1. Try finding in users table first (Admin)
+      let result = await db.query(
+        'SELECT id, email, password_hash, role, first_name, last_name, status, phone FROM users WHERE email = $1',
         [email]
       );
 
-      const user = result.rows[0];
+      let user = result.rows[0];
+
+      // 2. If not found in users, try investors table
+      if (!user) {
+        result = await db.query(
+          'SELECT id, email, password_hash, role, full_name, status, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, kyc_status FROM investors WHERE email = $1',
+          [email]
+        );
+        user = result.rows[0];
+        
+        // Map full_name to first_name/last_name for consistency in response
+        if (user) {
+          user.first_name = user.full_name?.split(' ')[0] || '';
+          user.last_name = user.full_name?.split(' ')[1] || '';
+        }
+      }
 
       if (!user) {
         throw new UnauthorizedException('Invalid credentials');
@@ -127,6 +145,7 @@ export class AuthService {
           country: user.country,
           taxId: user.tax_id,
           profileImageUrl: user.profile_image_url,
+          kycStatus: user.kyc_status || 'unverified',
         },
         token,
       };

@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ChevronDown, MoreVertical, Search } from 'lucide-react';
+import { ChevronDown, MoreVertical, Search, Loader2 } from 'lucide-react';
+import { apiClient } from '@/lib/api/client';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 type VaultRow = {
   id: string;
@@ -50,6 +52,9 @@ const allDocuments: VaultRow[] = [
 ];
 
 export default function DocumentVaultPage() {
+  const { user } = useAuth();
+  const [documents, setDocuments] = useState<VaultRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [docType, setDocType] = useState('all');
   const [year, setYear] = useState('all');
@@ -58,9 +63,50 @@ export default function DocumentVaultPage() {
 
   const pageSize = 4;
 
+  const getCategoryName = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'tax_return_y1': return 'Tax Return (Year 1)';
+      case 'tax_return_y2': return 'Tax Return (Year 2)';
+      case 'balance_sheet': return 'Balance Sheet / Net Worth';
+      case 'kyc_id': return 'Identity Document';
+      case 'kyc': return 'KYC Documents';
+      default: return type ? type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Other';
+    }
+  };
+
+  useEffect(() => {
+    const fetchDocs = async () => {
+      try {
+        const data = await apiClient.getMyDocuments();
+        const mapped = data.map((doc: any) => ({
+          id: doc.id,
+          documentName: doc.file_name,
+          category: getCategoryName(doc.document_type || doc.category),
+          taxYear: doc.tax_year || 'N/A',
+          uploadedDate: new Date(doc.uploaded_at).toLocaleDateString(),
+          fileUrl: `${apiClient.getApiUrl()}/documents/${doc.id}/view`
+        }));
+        setDocuments(mapped);
+      } catch (err) {
+        console.error('Failed to fetch documents:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDocs();
+  }, []);
+
   const filtered = useMemo(() => {
-    return allDocuments.filter((row) => {
-      const typeMatch = docType === 'all' || row.category === docType;
+    return documents.filter((row) => {
+      let typeMatch = docType === 'all';
+      if (!typeMatch) {
+        if (docType === 'KYC') {
+          typeMatch = ['Tax Return (Year 1)', 'Tax Return (Year 2)', 'Balance Sheet / Net Worth', 'Identity Document', 'KYC Documents'].includes(row.category);
+        } else {
+          typeMatch = row.category === docType;
+        }
+      }
+
       const yearMatch = year === 'all' || row.taxYear === year;
       const searchMatch =
         query.trim().length === 0 ||
@@ -69,7 +115,7 @@ export default function DocumentVaultPage() {
 
       return typeMatch && yearMatch && searchMatch;
     });
-  }, [query, docType, year]);
+  }, [documents, query, docType, year]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
@@ -120,6 +166,7 @@ export default function DocumentVaultPage() {
                 className="h-[40px] min-w-[145px] appearance-none rounded-full bg-[#F5F5F5] px-4 pr-9 text-[13px] text-[#8E8E93] outline-none"
               >
                 <option value="all">Document Type</option>
+                <option value="KYC">KYC Documents</option>
                 <option value="K-1">K-1</option>
                 <option value="W-9">W-9</option>
                 <option value="Statement">Statement</option>

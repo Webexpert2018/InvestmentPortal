@@ -22,7 +22,7 @@ const connectionString = getConnectionString();
 
 const pool = new Pool({
   connectionString,
-  ssl: {
+  ssl: connectionString.includes('sslmode=disable') ? false : {
     rejectUnauthorized: false,
   },
 });

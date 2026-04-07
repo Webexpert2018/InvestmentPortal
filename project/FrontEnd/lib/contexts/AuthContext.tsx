@@ -22,6 +22,7 @@ interface User {
   createdAt?: string;
   status?: string;
   profileImageUrl?: string;
+  kycStatus?: string;
 }
 
 interface AuthContextType {

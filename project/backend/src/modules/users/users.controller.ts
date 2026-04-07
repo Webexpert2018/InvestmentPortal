@@ -116,6 +116,24 @@ export class UsersController {
     return this.usersService.updateUserStatus(id, body.status, user.role);
   }
 
+  @Patch('profile/kyc-status')
+  async updateOwnKycStatus(
+    @Body() body: { kycStatus: string },
+    @CurrentUser() user: any
+  ) {
+    return this.usersService.updateKycStatus(user.userId, body.kycStatus, user.role, user.userId);
+  }
+
+  @Patch(':id/kyc-status')
+  @Roles('admin')
+  async updateKycStatus(
+    @Param('id') id: string,
+    @Body() body: { kycStatus: string },
+    @CurrentUser() user: any
+  ) {
+    return this.usersService.updateKycStatus(id, body.kycStatus, user.role);
+  }
+
   @Patch('change-password')
   async changePassword(
     @CurrentUser() user: any,

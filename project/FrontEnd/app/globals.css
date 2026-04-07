@@ -8,18 +8,21 @@ html {
 
 /* Chrome, Edge, Safari */
 *::-webkit-scrollbar {
-  width:4px !important;
+  width: 4px !important;
   background: transparent;
 }
+
 *::-webkit-scrollbar-track {
   background: transparent;
 }
+
 *::-webkit-scrollbar-thumb {
-  background: rgba(180,180,180,0.12);
+  background: rgba(180, 180, 180, 0.12);
   border-radius: 4px;
   min-height: 20px;
   transition: background 0.2s;
 }
+
 *::-webkit-scrollbar-thumb:hover {
   background: #bdbdbd;
 }
@@ -126,7 +129,7 @@ html {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
-  
+
   body {
     @apply bg-background text-foreground;
     font-family: GoudyOldStyle, Georgia, serif !important;
@@ -143,15 +146,15 @@ html {
     @apply border-border;
   }
 
- body {
-  @apply bg-background text-foreground;
-  font-family: GoudyOldStyle, Georgia, serif !important;
-  font-weight: 400;
-  line-height: 1.5;
-    color: #4B4B4B!important;
-  /* color: #8E8E8E!important; */
-  
-}
+  body {
+    @apply bg-background text-foreground;
+    font-family: GoudyOldStyle, Georgia, serif !important;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #4B4B4B !important;
+    /* color: #8E8E8E!important; */
+
+  }
 
 }
 
@@ -171,37 +174,35 @@ html {
 }
 
 
-.text-md 
-{
+.text-md {
   font-size: 1.049rem;
 }
-.text-xxl, .text-2xl
-{
-  font-size:24px;
+
+.text-xxl,
+.text-2xl {
+  font-size: 24px;
 }
 
 .logo-container {
-    width:132px;
-    cursor: pointer;
+  width: 132px;
+  cursor: pointer;
 
 }
 
-@media (max-width:767px){
-.logo-container {
+@media (max-width:767px) {
+  .logo-container {
     width: 85px !important;
-}
-}
-
-@media (max-width:1024px){
-.dashboard-toggle-button
-{
-    display:none;
-}
+  }
 }
 
-.dashboard-logo-container
-{
-    height:85px;
+@media (max-width:1024px) {
+  .dashboard-toggle-button {
+    display: none;
+  }
+}
+
+.dashboard-logo-container {
+  height: 85px;
 }
 
 /* Pipeline scrollbar: visible and styled for all devices */
@@ -210,30 +211,34 @@ html {
   scrollbar-width: auto !important;
   scrollbar-color: #9ca3af #e5e7eb !important;
 }
+
 .pipeline-scroll::-webkit-scrollbar {
   width: 10px !important;
   height: 10px !important;
   background: #e5e7eb !important;
 }
+
 .pipeline-scroll::-webkit-scrollbar-track {
   background: #e5e7eb !important;
   border-radius: 5px;
 }
+
 .pipeline-scroll::-webkit-scrollbar-thumb {
   background: #9ca3af !important;
   border-radius: 5px;
   border: 2px solid #e5e7eb;
 }
+
 .pipeline-scroll::-webkit-scrollbar-thumb:hover {
   background: #6b7280 !important;
   cursor: pointer;
 }
+
 .pipeline-scroll::-webkit-scrollbar-corner {
   background: #e5e7eb !important;
 }
 
-.logo-con
-{
+.logo-con {
   cursor: pointer;
 }
 
@@ -254,4 +259,4 @@ html {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8 !important;
-}
+}

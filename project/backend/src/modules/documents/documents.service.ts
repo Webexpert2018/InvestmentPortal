@@ -45,12 +45,60 @@ export class DocumentsService {
     return result.rows[0];
   }
 
-  async getDocumentById(id: string) {
-    const result = await db.query('SELECT * FROM fund_documents WHERE id = $1', [id]);
-    if (result.rowCount === 0) {
-      throw new NotFoundException('Document not found');
-    }
+  async uploadKycDocument(investorId: string, data: {
+    file_name: string;
+    file_url: string;
+    document_type: string;
+    file_size?: number;
+    description?: string;
+  }) {
+    const result = await db.query(
+      `INSERT INTO investor_documents (investor_id, file_name, file_url, document_type, file_size, description)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [
+        investorId,
+        data.file_name,
+        data.file_url,
+        data.document_type,
+        data.file_size,
+        data.description
+      ]
+    );
     return result.rows[0];
+  }
+
+  async getInvestorDocuments(investorId: string) {
+    const result = await db.query(
+      'SELECT * FROM investor_documents WHERE investor_id = $1 ORDER BY uploaded_at DESC',
+      [investorId]
+    );
+    return result.rows;
+  }
+
+  async getMyDocuments(investorId: string) {
+    // Both fund documents (if applicable) and personal investor documents
+    const investorDocs = await this.getInvestorDocuments(investorId);
+    
+    // Also include any specific fund documents that this investor might have access to?
+    // For now, just return investor_documents as that's what the vault expects for KYC/Tax docs.
+    return investorDocs;
+  }
+
+  async getDocumentById(id: string) {
+    // First check fund_documents
+    let result = await db.query('SELECT * FROM fund_documents WHERE id = $1', [id]);
+    if (result.rowCount && result.rowCount > 0) {
+      return result.rows[0];
+    }
+
+    // Then check investor_documents
+    result = await db.query('SELECT * FROM investor_documents WHERE id = $1', [id]);
+    if (result.rowCount && result.rowCount > 0) {
+      return result.rows[0];
+    }
+
+    throw new NotFoundException('Document not found');
   }
 
   async updateDocument(id: string, data: {
@@ -59,6 +107,11 @@ export class DocumentsService {
     description?: string;
     note?: string;
   }) {
+    // Check which table the document belongs to
+    const checkFund = await db.query('SELECT id FROM fund_documents WHERE id = $1', [id]);
+    const isFundDoc = checkFund.rowCount && checkFund.rowCount > 0;
+    const tableName = isFundDoc ? 'fund_documents' : 'investor_documents';
+
     const fields = [];
     const values = [];
     let i = 1;
@@ -67,7 +120,7 @@ export class DocumentsService {
       fields.push(`document_type = $${i++}`);
       values.push(data.document_type);
     }
-    if (data.tax_year !== undefined) {
+    if (data.tax_year !== undefined && isFundDoc) {
       fields.push(`tax_year = $${i++}`);
       values.push(data.tax_year);
     }
@@ -75,7 +128,7 @@ export class DocumentsService {
       fields.push(`description = $${i++}`);
       values.push(data.description);
     }
-    if (data.note !== undefined) {
+    if (data.note !== undefined && isFundDoc) {
       fields.push(`note = $${i++}`);
       values.push(data.note);
     }
@@ -86,11 +139,11 @@ export class DocumentsService {
 
     values.push(id);
     const result = await db.query(
-      `UPDATE fund_documents SET ${fields.join(', ')} WHERE id = $${i} RETURNING *`,
+      `UPDATE ${tableName} SET ${fields.join(', ')} WHERE id = $${i} RETURNING *`,
       values
     );
 
-    if (result.rowCount === 0) {
+    if (!result.rowCount || result.rowCount === 0) {
       throw new NotFoundException('Document not found');
     }
     return result.rows[0];
@@ -105,6 +158,10 @@ export class DocumentsService {
     description?: string;
     note?: string;
   }) {
+    const checkFund = await db.query('SELECT id FROM fund_documents WHERE id = $1', [id]);
+    const isFundDoc = checkFund.rowCount && checkFund.rowCount > 0;
+    const tableName = isFundDoc ? 'fund_documents' : 'investor_documents';
+
     const fields = [
       'file_name = $1',
       'file_url = $2',
@@ -117,7 +174,7 @@ export class DocumentsService {
       fields.push(`document_type = $${i++}`);
       values.push(data.document_type);
     }
-    if (data.tax_year !== undefined) {
+    if (data.tax_year !== undefined && isFundDoc) {
       fields.push(`tax_year = $${i++}`);
       values.push(data.tax_year);
     }
@@ -125,28 +182,35 @@ export class DocumentsService {
       fields.push(`description = $${i++}`);
       values.push(data.description);
     }
-    if (data.note !== undefined) {
+    if (data.note !== undefined && isFundDoc) {
       fields.push(`note = $${i++}`);
       values.push(data.note);
     }
 
     values.push(id);
     const result = await db.query(
-      `UPDATE fund_documents SET ${fields.join(', ')} WHERE id = $${i} RETURNING *`,
+      `UPDATE ${tableName} SET ${fields.join(', ')} WHERE id = $${i} RETURNING *`,
       values
     );
 
-    if (result.rowCount === 0) {
+    if (!result.rowCount || result.rowCount === 0) {
       throw new NotFoundException('Document not found');
     }
     return result.rows[0];
   }
 
   async deleteDocument(id: string) {
-    const result = await db.query('DELETE FROM fund_documents WHERE id = $1 RETURNING id', [id]);
-    if (result.rowCount === 0) {
+    // Try deleting from both tables
+    let result = await db.query('DELETE FROM fund_documents WHERE id = $1 RETURNING id', [id]);
+    if (!result.rowCount || result.rowCount === 0) {
+      result = await db.query('DELETE FROM investor_documents WHERE id = $1 RETURNING id', [id]);
+    }
+
+    if (!result.rowCount || result.rowCount === 0) {
       throw new NotFoundException('Document not found');
     }
     return { message: 'Document deleted successfully' };
   }
+
+
 }

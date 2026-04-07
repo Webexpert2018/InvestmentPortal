@@ -58,7 +58,7 @@ export default function StaffPage() {
     setIsDeleteModalOpen(true);
   };
 
-  const filteredStaff = staffList.filter(s => 
+  const filteredStaff = staffList.filter(s =>
     s.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -77,13 +77,13 @@ export default function StaffPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-[1400px] font-helvetica text-[#1F1F1F]">
+      <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F]">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="font-goudy text-[34px] leading-tight text-[#1F1F1F]">Staff</h1>
             <p className="text-[#8E8E93] text-[14px] mt-1">Manage platform users, assign roles and permissions, and view activity</p>
           </div>
-          <Link 
+          <Link
             href="/dashboard/staff/add"
             className="bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F] px-6 py-2.5 rounded-full font-semibold transition-colors flex items-center justify-center gap-2 text-[14px]"
           >
@@ -97,9 +97,8 @@ export default function StaffPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 text-[15px] font-medium transition-all relative ${
-                activeTab === tab.id ? 'text-[#1F1F1F]' : 'text-[#8E8E93] hover:text-[#1F1F1F]'
-              }`}
+              className={`pb-4 text-[15px] font-medium transition-all relative ${activeTab === tab.id ? 'text-[#1F1F1F]' : 'text-[#8E8E93] hover:text-[#1F1F1F]'
+                }`}
             >
               {tab.label}
               {activeTab === tab.id && (
@@ -154,10 +153,9 @@ export default function StaffPage() {
                     <tr key={staff.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white overflow-hidden ${
-                            activeTab === 'relations_associate' ? 'bg-[#274583]' : 
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white overflow-hidden ${activeTab === 'relations_associate' ? 'bg-[#274583]' :
                             activeTab === 'accountant' ? 'bg-[#5B21B6]' : 'bg-[#EF4444]'
-                          }`}>
+                            }`}>
                             {staff.profile_image_url ? (
                               <img src={staff.profile_image_url} alt={staff.full_name} className="w-full h-full object-cover" />
                             ) : (
@@ -206,7 +204,7 @@ export default function StaffPage() {
             <ChevronLeft className="h-4 w-4" />
             <span>Previous</span>
           </button>
-          
+
           <div className="flex gap-1">
             <button className="w-8 h-8 rounded text-sm font-medium bg-[#1F3B6E] text-white">1</button>
             <button className="w-8 h-8 rounded text-sm font-medium text-gray-400 hover:bg-gray-100">2</button>

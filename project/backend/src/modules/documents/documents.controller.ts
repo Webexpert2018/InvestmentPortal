@@ -1,13 +1,18 @@
-import { Controller, Get, Post, Patch, Delete, Param, UseInterceptors, UploadedFile, Body, Res } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, UseInterceptors, UploadedFile, Body, Res, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { extname, join } from 'path';
 import * as fs from 'fs';
 import axios from 'axios';
 import { DocumentsService } from './documents.service';
-import { fundDocumentStorage, cloudinary } from '../../config/cloudinary.config';
+import { fundDocumentStorage, kycDocumentStorage, cloudinary } from '../../config/cloudinary.config';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { CurrentUser } from '../../decorators/current-user.decorator';
+import { UseGuards } from '@nestjs/common';
+import { Roles } from '../../decorators/roles.decorator';
 
 @Controller('api/documents')
+@UseGuards(JwtAuthGuard)
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) { }
 
@@ -38,6 +43,38 @@ export class DocumentsController {
       description: body.description,
       note: body.note,
       file_size: file.size,
+    });
+  }
+
+  @Get('my')
+  async getMyDocuments(@CurrentUser() user: any) {
+    return this.documentsService.getMyDocuments(user.userId);
+  }
+
+  @Get('investor/:investorId')
+  @Roles('admin')
+  async getInvestorDocuments(@Param('investorId') investorId: string) {
+    return this.documentsService.getInvestorDocuments(investorId);
+  }
+
+  @Post('kyc/upload')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: kycDocumentStorage,
+  }))
+  async uploadKycDocument(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
+    @CurrentUser() user: any,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+    return this.documentsService.uploadKycDocument(user.userId, {
+      file_name: file.originalname,
+      file_url: file.path, 
+      document_type: body.document_type || 'kyc_id',
+      file_size: file.size,
+      description: body.description,
     });
   }
 
@@ -111,38 +148,60 @@ export class DocumentsController {
           console.log('Direct fetch failed with 401/403, attempting signed URL fallback...');
         }
 
-        // 2. Fallback: Signed URL (for protected assets)
+        // 2. Fallback: Robust Multi-Pass Signed URL (for all Cloudinary storage types)
         if (doc.file_url.includes('cloudinary.com')) {
-          const urlParts = doc.file_url.split('/upload/');
-          if (urlParts.length > 1) {
-            const pathAfterUpload = urlParts[1];
-            // Public ID should NOT have the extension for the SDK helper, but format should
-            const publicId = pathAfterUpload.replace(/^v\d+\//, '').split('.')[0];
-            const isPDF = doc.file_name.toLowerCase().endsWith('.pdf');
+          // Detect type and path from URL
+          const match = doc.file_url.match(/\/(upload|private|authenticated)\/(v\d+\/)?(.+)$/);
+          if (match) {
+            const originalType = match[1];
+            const pathWithExtension = match[3];
+            const pathWithoutExtension = pathWithExtension.replace(/\.[^/.]+$/, "");
 
-            const signedUrl = cloudinary.url(publicId, {
-              sign_url: true,
-              secure: true,
-              resource_type: 'image',
-              format: isPDF ? 'pdf' : undefined,
-              type: 'upload'
-            });
+            // Define multi-pass strategies (resource_type, type, public_id)
+            const strategies = [
+              // Strategy A: PDF/Image rendering (no extension in public_id)
+              { rType: isPDF ? 'image' : 'auto', dType: originalType, pId: pathWithoutExtension },
+              { rType: isPDF ? 'image' : 'auto', dType: 'private', pId: pathWithoutExtension },
+              { rType: isPDF ? 'image' : 'auto', dType: 'authenticated', pId: pathWithoutExtension },
+              // Strategy B: Raw file fetching (extension kept in public_id)
+              { rType: 'raw', dType: originalType, pId: pathWithExtension },
+              { rType: 'raw', dType: 'upload', pId: pathWithExtension },
+              { rType: 'raw', dType: 'private', pId: pathWithExtension }
+            ];
 
-            const response = await axios.get(signedUrl, {
-              responseType: 'stream',
-              headers: { 'User-Agent': userAgent },
-              timeout: 5000
-            });
-            res.setHeader('Content-Type', contentType);
-            res.setHeader('Content-Disposition', `inline; filename="${doc.file_name}"`);
-            return response.data.pipe(res);
+            let lastError: any = null;
+            for (const strat of strategies) {
+              try {
+                const signedUrl = cloudinary.url(strat.pId, {
+                  sign_url: true,
+                  secure: true,
+                  resource_type: strat.rType as any,
+                  type: strat.dType as any,
+                  format: (strat.rType === 'image' && isPDF) ? 'pdf' : undefined
+                });
+
+                const response = await axios.get(signedUrl, {
+                  responseType: 'stream',
+                  headers: { 'User-Agent': userAgent },
+                  timeout: 10000
+                });
+
+                res.setHeader('Content-Type', contentType);
+                res.setHeader('Content-Disposition', `inline; filename="${doc.file_name}"`);
+                return response.data.pipe(res);
+              } catch (err: any) {
+                lastError = err;
+                continue; // failed, try next strategy
+              }
+            }
+            if (lastError) throw lastError;
           }
         }
 
         return res.status(500).send('Error fetching document from storage.');
       } catch (outerError: any) {
         console.error('Document Proxy Error:', outerError.message, 'Status:', outerError.response?.status);
-        return res.status(500).send('Error fetching document from storage.');
+        return res.status(500).send(`Error fetching document from storage: ${outerError.message}`);
       }
     }
 

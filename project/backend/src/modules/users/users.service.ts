@@ -7,12 +7,37 @@ import { EmailService } from '../email/email.service';
 export class UsersService {
   constructor(private emailService: EmailService) { }
   async getProfile(userId: string) {
-    const result = await db.query(
-      'SELECT id, email, role, first_name, last_name, phone, status, created_at, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url FROM users WHERE id = $1',
+    // First, check the users table (Admin/Staff)
+    let result = await db.query(`
+      SELECT 
+        u.id, u.email, u.role, u.first_name, u.last_name, u.phone, u.status, u.created_at, u.profile_image_url
+      FROM users u
+      WHERE u.id = $1`,
       [userId]
     );
 
-    const user = result.rows[0];
+    let user = result.rows[0];
+
+    // If not found in users, check the investors table
+    if (!user) {
+      result = await db.query(`
+        SELECT 
+          id, email, 'investor' as role, full_name, phone, status, created_at,
+          dob, address_line1, address_line2, city, state, zip_code, country, 
+          tax_id, profile_image_url, kyc_status 
+        FROM investors
+        WHERE id = $1`,
+        [userId]
+      );
+      user = result.rows[0];
+      
+      if (user && user.full_name) {
+        // Map full_name to firstName/lastName for frontend consistency
+        const [firstName, ...lastNameParts] = user.full_name.split(' ');
+        user.firstName = firstName;
+        user.lastName = lastNameParts.join(' ');
+      }
+    }
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -22,8 +47,8 @@ export class UsersService {
       id: user.id,
       email: user.email,
       role: user.role,
-      firstName: user.first_name,
-      lastName: user.last_name,
+      firstName: user.firstName || user.first_name || '',
+      lastName: user.lastName || user.last_name || '',
       phone: user.phone,
       status: user.status,
       createdAt: user.created_at,
@@ -36,6 +61,7 @@ export class UsersService {
       country: user.country,
       taxId: user.tax_id,
       profileImageUrl: user.profile_image_url,
+      kycStatus: user.kyc_status
     };
   }
 
@@ -147,19 +173,21 @@ export class UsersService {
       throw new ForbiddenException('Only admins can view all users');
     }
 
-    const result = await db.query(
-      'SELECT id, email, role, first_name, last_name, phone, status, created_at FROM users ORDER BY created_at DESC'
-    );
+    const result = await db.query(`
+      SELECT 
+        id, email, role, full_name as "firstName", '' as "lastName", phone, status, created_at as "createdAt", 
+        kyc_status as "kycStatus", profile_image_url as "profileImageUrl",
+        (SELECT COALESCE(SUM(investment_amount), 0) FROM investments WHERE user_id = investors.id) as total_invested
+      FROM investors
+      ORDER BY created_at DESC
+    `);
 
     return result.rows.map((user) => ({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      phone: user.phone,
-      status: user.status,
-      createdAt: user.created_at,
+      ...user,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      invested: `$${parseFloat(user.total_invested).toFixed(2)}`,
+      avatar: user.firstName[0].toUpperCase(),
     }));
   }
 
@@ -168,12 +196,34 @@ export class UsersService {
       throw new ForbiddenException('You can only view your own profile');
     }
 
-    const result = await db.query(
-      'SELECT id, email, role, first_name, last_name, phone, status, created_at FROM users WHERE id = $1',
+    // First, check the users table (Admin/Staff)
+    let result = await db.query(
+      'SELECT id, email, role, first_name, last_name, phone, status, created_at, profile_image_url FROM users WHERE id = $1',
       [targetUserId]
     );
 
-    const user = result.rows[0];
+    let user = result.rows[0];
+
+    // If not found in users, check the investors table
+    if (!user) {
+      result = await db.query(`
+        SELECT 
+          id, email, 'investor' as role, full_name, phone, status, created_at,
+          dob, address_line1, address_line2, city, state, zip_code, country, 
+          tax_id, profile_image_url, kyc_status 
+        FROM investors
+        WHERE id = $1`,
+        [targetUserId]
+      );
+      user = result.rows[0];
+      
+      if (user && user.full_name) {
+        // Map full_name to firstName/lastName for frontend consistency
+        const [firstName, ...lastNameParts] = user.full_name.split(' ');
+        user.firstName = firstName;
+        user.lastName = lastNameParts.join(' ');
+      }
+    }
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -183,11 +233,21 @@ export class UsersService {
       id: user.id,
       email: user.email,
       role: user.role,
-      firstName: user.first_name,
-      lastName: user.last_name,
+      firstName: user.firstName || user.first_name || '',
+      lastName: user.lastName || user.last_name || '',
       phone: user.phone,
       status: user.status,
       createdAt: user.created_at,
+      dob: user.dob,
+      addressLine1: user.address_line1,
+      addressLine2: user.address_line2,
+      city: user.city,
+      state: user.state,
+      zipCode: user.zip_code,
+      country: user.country,
+      taxId: user.tax_id,
+      profileImageUrl: user.profile_image_url,
+      kycStatus: user.kyc_status
     };
   }
 
@@ -208,6 +268,25 @@ export class UsersService {
     }
 
     return { id: user.id, email: user.email, status: user.status };
+  }
+
+  async updateKycStatus(userId: string, kycStatus: string, requestingUserRole: string, requestingUserId?: string) {
+    if (requestingUserRole !== 'admin' && requestingUserId !== userId) {
+      throw new ForbiddenException('You do not have permission to update this KYC status');
+    }
+
+    const result = await db.query(
+      'UPDATE investors SET kyc_status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, kyc_status',
+      [kycStatus.toLowerCase(), userId]
+    );
+
+    const investor = result.rows[0];
+
+    if (!investor) {
+      throw new NotFoundException('Investor not found');
+    }
+
+    return { id: investor.id, kycStatus: investor.kyc_status };
   }
 
   async changePassword(userId: string, currentPassword: string, newPassword: string) {

@@ -307,13 +307,13 @@ export default function FundingRequestsPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Request ID</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Investor Name</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Amount</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Payment</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Submitted Date</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Action</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Request ID</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Investor Name</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Amount</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Payment</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Submitted Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -384,8 +384,8 @@ export default function FundingRequestsPage() {
                   key={page}
                   onClick={() => setCurrentPage(page)}
                   className={`w-10 h-10 rounded-lg font-medium transition-colors ${currentPage === page
-                      ? 'bg-[#1F3B6E] text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-[#1F3B6E] text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
                     }`}
                 >
                   {page}
