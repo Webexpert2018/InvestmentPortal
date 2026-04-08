@@ -137,9 +137,19 @@ export default function PortfolioPage() {
               </div>
               <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                  Portfolio Value
+                  YTD Return
                 </p>
-                <p className="mt-3 text-2xl font-semibold text-[#2BB673]">{formatCurrency(stats.totalUnits * stats.currentNav)}</p>
+                {(() => {
+                  const currentValue = stats.totalUnits * stats.currentNav;
+                  const totalInvested = stats.totalInvested;
+                  const ytdReturn = totalInvested > 0 ? (currentValue - totalInvested) / totalInvested : 0;
+                  const isPositive = ytdReturn >= 0;
+                  return (
+                    <p className={`mt-3 text-2xl font-semibold ${isPositive ? 'text-[#2BB673]' : 'text-[#E04343]'}`}>
+                      {isPositive ? '+' : ''}{(ytdReturn * 100).toFixed(1)}%
+                    </p>
+                  );
+                })()}
               </div>
             </div>
           )}
