@@ -5,7 +5,7 @@
 ALTER TABLE investments DROP CONSTRAINT IF EXISTS investments_user_id_fkey;
 ALTER TABLE tax_vault_documents DROP CONSTRAINT IF EXISTS tax_vault_documents_user_id_fkey;
 ALTER TABLE tax_vault_documents DROP CONSTRAINT IF EXISTS tax_vault_documents_uploaded_by_id_fkey;
-ALTER TABLE investor_profiles DROP CONSTRAINT IF EXISTS investor_profiles_user_id_fkey;
+-- ALTER TABLE investor_profiles DROP CONSTRAINT IF EXISTS investor_profiles_user_id_fkey; -- Table does not exist in current schema
 ALTER TABLE portfolios DROP CONSTRAINT IF EXISTS portfolios_user_id_fkey;
 ALTER TABLE documents DROP CONSTRAINT IF EXISTS documents_user_id_fkey;
 ALTER TABLE documents DROP CONSTRAINT IF EXISTS documents_verified_by_fkey;
@@ -49,17 +49,25 @@ SELECT
   u.id, 
   (u.first_name || ' ' || COALESCE(u.last_name, '')) as full_name, 
   u.email, u.phone, u.password_hash, u.role, 
-  ip.kyc_status, ip.profile_image_url, ip.dob, 
-  ip.address_line1, ip.address_line2, ip.city, ip.state, ip.zip_code, ip.country, ip.tax_id, 
+  u.kyc_status, u.profile_image_url, u.dob, 
+  u.address_line1, u.address_line2, u.city, u.state, u.zip_code, u.country, u.tax_id, 
   u.status, u.created_at, u.updated_at
 FROM users u
-LEFT JOIN investor_profiles ip ON u.id = ip.user_id
 WHERE u.role = 'investor'
+  OR u.id IN (SELECT user_id FROM investments)
+  OR u.id IN (SELECT user_id FROM portfolios)
+  OR u.id IN (SELECT user_id FROM ira_accounts)
 ON CONFLICT (id) DO NOTHING;
 
 -- 4. CLEANUP: Delete migrated investors from the old tables
-DELETE FROM investor_profiles WHERE user_id IN (SELECT id FROM investors);
+-- DELETE FROM investor_profiles WHERE user_id IN (SELECT id FROM investors); -- Table does not exist in current schema
 DELETE FROM users WHERE role = 'investor';
+
+-- 4.5 CLEANUP ORPHANS: Remove records in dependent tables that reference non-existent users
+-- This ensures that the foreign key constraints in Step 5 will not fail due to orphaned data.
+DELETE FROM investments WHERE user_id NOT IN (SELECT id FROM investors);
+DELETE FROM portfolios WHERE user_id NOT IN (SELECT id FROM investors);
+DELETE FROM ira_accounts WHERE user_id NOT IN (SELECT id FROM investors);
 
 -- 5. RE-MAP CONSTRAINTS (Selective)
 -- For investments, they always belong to investors now
