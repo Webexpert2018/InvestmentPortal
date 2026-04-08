@@ -472,6 +472,14 @@ class ApiClient {
     return this.request<any[]>('/fund-flows');
   }
 
+  async getMyInvestments() {
+    return this.request<any[]>('/investments/my');
+  }
+
+  async getAllInvestments() {
+    return this.request<any[]>('/investments/all');
+  }
+
   // Investments
   async createInvestment(data: {
     fundId: string;
@@ -654,6 +662,39 @@ class ApiClient {
 
   async deleteStaff(id: string) {
     return this.request<any>(`/staff/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // NAV Management
+  async getNavSummary() {
+    return this.request<any>('/nav-management/summary');
+  }
+
+  async getNavHistory() {
+    return this.request<any[]>('/nav-management/history');
+  }
+
+  async createNavEntry(data: any) {
+    return this.request<any>('/nav-management/entries', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getNavEntryById(id: string) {
+    return this.request<any>(`/nav-management/entries/${id}`);
+  }
+
+  async updateNavEntry(id: string, data: any) {
+    return this.request<any>(`/nav-management/entries/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteNavEntry(id: string) {
+    return this.request<any>(`/nav-management/entries/${id}`, {
       method: 'DELETE',
     });
   }

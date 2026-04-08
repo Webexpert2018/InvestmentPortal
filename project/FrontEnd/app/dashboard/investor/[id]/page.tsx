@@ -214,8 +214,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           <p className="text-sm text-gray-400 font-medium">Joined date: {new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                         </div>
                         <div className="flex gap-2">
-                           <button onClick={() => setShowNoteModal(true)} className="px-6 py-2 bg-[#FFF9EE] text-[#D97706] text-xs font-bold rounded-full hover:bg-orange-100 transition-colors">Note</button>
-                           <button onClick={() => setShowAssignModal(true)} className="px-6 py-2 bg-[#FCD34D] text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-[#FBD24E] transition-colors">Assign Accountant</button>
+                          <button onClick={() => setShowNoteModal(true)} className="px-6 py-2 bg-[#FFF9EE] text-[#D97706] text-xs font-bold rounded-full hover:bg-orange-100 transition-colors">Note</button>
+                          <button onClick={() => setShowAssignModal(true)} className="px-6 py-2 bg-[#FCD34D] text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-[#FBD24E] transition-colors">Assign Accountant</button>
                         </div>
                       </div>
                     </div>
@@ -244,7 +244,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       <div className="md:col-span-2 space-y-1.5">
                         <span className="text-xs font-bold text-gray-400">Address</span>
                         <p className="text-sm font-bold text-gray-900 max-w-lg">
-                          {investorData.addressLine1 || '123 Market St. Suite 450 San Francisco, CA 94103'}(415) 555-0199
+                          {investorData.addressLine1 || '123 Market St. Suite 450 San Francisco, CA 94103'}
                         </p>
                       </div>
                     </div>
@@ -269,14 +269,14 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-8 border-t border-gray-50">
-                       <div className="space-y-1">
-                         <span className="text-xs font-bold text-gray-400">Account Status</span>
-                         <p className="text-sm font-bold text-green-600 capitalize">{investorData.status || 'Active'}</p>
-                       </div>
-                       <div className="space-y-1 text-right sm:text-left">
-                         <span className="text-xs font-bold text-gray-400">Last Login</span>
-                         <p className="text-sm font-bold text-gray-900">July 20, 2025 at 02:30 AM</p>
-                       </div>
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold text-gray-400">Account Status</span>
+                        <p className="text-sm font-bold text-green-600 capitalize">{investorData.status || 'Active'}</p>
+                      </div>
+                      <div className="space-y-1 text-right sm:text-left">
+                        <span className="text-xs font-bold text-gray-400">Last Login</span>
+                        <p className="text-sm font-bold text-gray-900">July 20, 2025 at 02:30 AM</p>
+                      </div>
                     </div>
 
                     {/* Persistent Note Section */}
@@ -336,23 +336,23 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                               <FileText className="w-6 h-6 text-red-500" />
                             </div>
                             <div className="flex gap-2">
-                               <a
-                                 href={`${apiClient.getApiUrl()}/documents/${doc.id}/view`}
-                                 target="_blank"
-                                 rel="noopener noreferrer"
-                                 className="p-2 bg-gray-50 text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors"
-                                 title="View"
-                               >
-                                 <FileText className="w-4 h-4" />
-                               </a>
-                               <a
-                                 href={`${apiClient.getApiUrl()}/documents/${doc.id}/download`}
-                                 download
-                                 className="p-2 bg-gray-50 text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors"
-                                 title="Download"
-                               >
-                                 <Download className="w-4 h-4" />
-                               </a>
+                              <a
+                                href={`${apiClient.getApiUrl()}/documents/${doc.id}/view`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 bg-gray-50 text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors"
+                                title="View"
+                              >
+                                <FileText className="w-4 h-4" />
+                              </a>
+                              <a
+                                href={`${apiClient.getApiUrl()}/documents/${doc.id}/download`}
+                                download
+                                className="p-2 bg-gray-50 text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors"
+                                title="Download"
+                              >
+                                <Download className="w-4 h-4" />
+                              </a>
                             </div>
                           </div>
                           <div className="space-y-1">
@@ -424,7 +424,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <Link 
+                              <Link
                                 href={`/dashboard/funding/${fund.id}`}
                                 className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors inline-block"
                               >
@@ -451,11 +451,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         <button
                           key={page}
                           onClick={() => setFundingPage(page)}
-                          className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                            fundingPage === page
+                          className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${fundingPage === page
                               ? 'bg-[#3B82F6] text-white'
                               : 'text-gray-600 hover:bg-gray-100'
-                          }`}
+                            }`}
                         >
                           {page}
                         </button>
@@ -504,7 +503,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{redemption.requestedDate}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <Link 
+                              <Link
                                 href={`/dashboard/redemption/${redemption.id}`}
                                 className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors inline-block"
                               >
@@ -531,11 +530,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         <button
                           key={page}
                           onClick={() => setRedemptionPage(page)}
-                          className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                            redemptionPage === page
+                          className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${redemptionPage === page
                               ? 'bg-[#3B82F6] text-white'
                               : 'text-gray-600 hover:bg-gray-100'
-                          }`}
+                            }`}
                         >
                           {page}
                         </button>

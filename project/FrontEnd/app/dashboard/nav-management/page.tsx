@@ -1,21 +1,75 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, Check, AlertTriangle, MoreVertical } from 'lucide-react';
+import { ChevronDown, Check, AlertTriangle, MoreVertical, Loader2, Edit2, Trash2 } from 'lucide-react';
+import { apiClient } from '@/lib/api/client';
+import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function NAVManagementPage() {
   const router = useRouter();
-  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState<any>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [summaryRes, historyRes] = await Promise.all([
+        apiClient.getNavSummary(),
+        apiClient.getNavHistory()
+      ]);
+      setSummary(summaryRes);
+      setHistory(historyRes);
+    } catch (error) {
+      console.error('Error fetching NAV data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatCurrency = (value: number) => {
+    if (value >= 1000000) {
+      return `$${(value / 1000000).toFixed(2)}M`;
+    }
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
 
   // Stats data
   const stats = [
-    { label: 'Current NAV', value: '$124.50' },
-    { label: 'Total Fund Value', value: '$12.45M' },
-    { label: '30-Day BTC Trend', value: '+6.2%', isPositive: true },
-    { label: 'Investor Count', value: '1,248' },
+    { label: 'Current NAV', value: summary ? `$${summary.currentNav.toFixed(2)}` : '$0.00' },
+    { label: 'Total Fund Value', value: summary ? formatCurrency(summary.totalFundValue) : '$0.00' },
+    { label: '30-Day BTC Trend', value: summary?.btcTrend || '+6.2%', isPositive: true },
+    { label: 'Investor Count', value: summary ? summary.investorCount.toLocaleString() : '0' },
   ];
 
   // Daily BTC Reference data
@@ -43,42 +97,61 @@ export default function NAVManagementPage() {
     },
   ];
 
-  // NAV History data
-  const navHistoryData = [
-    {
-      id: 1,
-      quarter: 'Q4',
-      year: '2024',
-      pricePerUnit: '$124.50',
-      totalValue: '$12,450.00',
-      status: 'Published',
-    },
-    {
-      id: 2,
-      quarter: 'Q4',
-      year: '2024',
-      pricePerUnit: '$124.50',
-      totalValue: '$12,450.00',
-      status: 'Published',
-    },
-    {
-      id: 3,
-      quarter: 'Q4',
-      year: '2024',
-      pricePerUnit: '$124.50',
-      totalValue: '$12,450.00',
-      status: 'Draft',
-    },
-  ];
+  // NAV History data - Map from history state
+  const navHistoryData = history.map(item => {
+    const date = new Date(item.effective_date);
+    const month = date.getMonth();
+    const quarter = Math.floor(month / 3) + 1;
+    
+    // Map status labels
+    const statusLabelMapped = item.status === 'active' ? 'Published' : 
+                               item.status === 'draft' ? 'Draft' : 'Inactive';
+
+    return {
+      id: item.id,
+      quarter: `Q${quarter}`,
+      year: date.getFullYear().toString(),
+      pricePerUnit: `$${parseFloat(item.nav_per_unit).toFixed(2)}`,
+      totalValue: formatCurrency(parseFloat(item.total_fund_value)),
+      status: statusLabelMapped,
+      rawStatus: item.status
+    };
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Published':
-        return 'text-green-600 bg-green-50';
+        return 'text-emerald-600 bg-emerald-50';
       case 'Draft':
+        return 'text-sky-700 bg-sky-50';
+      case 'Inactive':
         return 'text-gray-600 bg-gray-50';
       default:
         return 'text-gray-600 bg-gray-50';
+    }
+  };
+
+  const handleEdit = (id: string) => {
+    router.push(`/dashboard/nav-management/edit/${id}`);
+  };
+
+  const handleDeleteClick = (id: string) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    
+    try {
+      setIsDeleting(true);
+      await apiClient.deleteNavEntry(deleteId);
+      toast.success('NAV entry deleted successfully');
+      setDeleteId(null);
+      fetchData(); // Refresh list
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete entry');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -101,14 +174,20 @@ export default function NAVManagementPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-sm p-6">
-              <p className="text-gray-600 text-sm mb-2">{stat.label}</p>
-              <p className={`text-3xl font-bold ${stat.isPositive ? 'text-green-600' : 'text-gray-900'}`}>
-                {stat.value}
-              </p>
+          {loading ? (
+            <div className="col-span-4 flex justify-center py-12">
+              <Loader2 className="h-8 w-8 text-[#1F3B6E] animate-spin" />
             </div>
-          ))}
+          ) : (
+            stats.map((stat, index) => (
+              <div key={index} className="bg-white rounded-lg shadow-sm p-6">
+                <p className="text-gray-600 text-sm mb-2">{stat.label}</p>
+                <p className={`text-3xl font-bold ${stat.isPositive ? 'text-green-600' : 'text-gray-900'}`}>
+                  {stat.value}
+                </p>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Performance Overview Section */}
@@ -288,31 +367,29 @@ export default function NAVManagementPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="relative">
-                          <button
-                            onClick={() => setActiveDropdown(activeDropdown === item.id ? null : item.id)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <MoreVertical className="h-5 w-5 text-gray-600" />
-                          </button>
-                          
-                          {activeDropdown === item.id && (
-                            <>
-                              <div 
-                                className="fixed inset-0 z-10"
-                                onClick={() => setActiveDropdown(null)}
-                              />
-                              <div className="absolute right-0 top-full mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
-                                <button className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors">
-                                  Edit
-                                </button>
-                                <button className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors">
-                                  Delete
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors outline-none">
+                              <MoreVertical className="h-5 w-5 text-gray-600" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-32 bg-white">
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => handleEdit(item.id)}
+                            >
+                              <Edit2 className="mr-2 h-4 w-4" />
+                              <span>Edit</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50"
+                              onClick={() => handleDeleteClick(item.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>Delete</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}
@@ -322,6 +399,31 @@ export default function NAVManagementPage() {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete NAV Entry</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this NAV history entry? This action cannot be undone and may affect dashboard statistics.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDelete();
+              }}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </DashboardLayout>
   );
 }

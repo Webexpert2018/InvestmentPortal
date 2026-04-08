@@ -45,6 +45,7 @@ export default function InvestPage() {
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>('personal');
   const [amount, setAmount] = useState<string>('25000');
+  const [unitPrice, setUnitPrice] = useState<number>(1.25);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
@@ -146,14 +147,20 @@ export default function InvestPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [fundsData, flowsData, iraData] = await Promise.all([
+        const [fundsData, flowsData, iraData, navData] = await Promise.all([
           apiClient.getFunds(),
           apiClient.getMyFundFlows(),
           apiClient.getMyIRAAccount().catch(() => null),
+          apiClient.getNavSummary().catch(() => null),
         ]);
         setFunds(fundsData);
         setExistingFlows(flowsData);
         setUserIraAccount(iraData);
+        
+        if (navData && navData.currentNav) {
+          setUnitPrice(navData.currentNav);
+        }
+
         if (fundsData.length > 0 && !selectedFundId) {
           setSelectedFundId(fundsData[0].id);
         }
@@ -168,16 +175,18 @@ export default function InvestPage() {
 
   // Fixed documents are now initialized directly in state
 
-  const { investmentAmount, processingFee, total } = useMemo(() => {
+  const { investmentAmount, processingFee, total, estimatedUnits } = useMemo(() => {
     const cleanAmount = amount.replace(/[^-0-9.]/g, '');
     const numeric = Number.parseFloat(cleanAmount) || 0;
     const fee = numeric * 0.005;
+    const units = unitPrice > 0 ? numeric / unitPrice : 0;
     return {
       investmentAmount: numeric,
       processingFee: fee,
       total: numeric + fee,
+      estimatedUnits: units,
     };
-  }, [amount]);
+  }, [amount, unitPrice]);
 
   // Periodic polling for investment status when in the final steps
   useEffect(() => {
@@ -237,7 +246,7 @@ export default function InvestPage() {
         accountId: isIra ? (selectedAccountId ?? undefined) : undefined,
         accountType: isIra ? 'ira' : 'personal',
         investmentAmount: investmentAmount,
-        unitPrice: 1.25,
+        unitPrice: unitPrice,
         status: 'Subscription Submitted',
         documentSigned: false
       });
@@ -311,7 +320,7 @@ export default function InvestPage() {
         accountId: isIra ? selectedAccountId : undefined,
         accountType: isIra ? 'ira' : 'personal',
         investmentAmount: investmentAmount,
-        unitPrice: 1.25, // Fixed at 1.25 as seen in the UI
+        unitPrice: unitPrice,
         status: finalStatus || 'Subscription Submitted',
         documentSigned: true, // Marked as true since they completed the signing step
       });
@@ -570,11 +579,13 @@ export default function InvestPage() {
             <div className="grid gap-12 md:grid-cols-2">
               <div className="border-r border-gray-100 pr-8">
                 <p className="text-sm font-medium text-[#8E8E93] mb-1">Unit Price</p>
-                <p className="text-xl font-bold text-[#1F1F1F]">$1.25</p>
+                <p className="text-xl font-bold text-[#1F1F1F]">${unitPrice.toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-[#8E8E93] mb-1">Estimated Units</p>
-                <p className="text-xl font-bold text-[#1F1F1F]">40,000 units</p>
+                <p className="text-xl font-bold text-[#1F1F1F]">
+                  {estimatedUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} units
+                </p>
               </div>
             </div>
           </div>

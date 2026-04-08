@@ -211,23 +211,6 @@ const userIcons = [
   '/images/user-icon/user_06.png',
 ];
 
-const investorAccounts = [
-  {
-    id: 1,
-    name: 'Roth SEP (1009437651)',
-    subtitle: 'Total Value: $82,463.00',
-  },
-  {
-    id: 2,
-    name: 'Traditional IRA',
-    subtitle: 'Total Value: $151,300.00',
-  },
-  {
-    id: 3,
-    name: 'Roth IRA',
-    subtitle: 'Total Value: $49,870.00',
-  },
-];
 
 type DashboardRole = 'admin' | 'investor' | 'accountant';
 
@@ -254,6 +237,20 @@ export default function DashboardPage() {
   const [notificationsOpen, setNotificationsOpen] = useState<boolean>(true);
   const [investorKycStatus, setInvestorKycState] = useState<string>('pending');
   const [activeFundsCount, setActiveFundsCount] = useState(0);
+  const [investorStats, setInvestorStats] = useState({
+    totalInvested: 0,
+    totalUnits: 0,
+    currentNav: 0,
+    currentValue: 0,
+  });
+
+  const investorAccountList = [
+    {
+      id: 1,
+      name: 'Personal Account',
+      subtitle: `Total Value: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue)}`,
+    },
+  ];
 
   const dashboardRole = normalizeDashboardRole(user?.role);
   const welcomeName = user?.firstName ? user.firstName : dashboardRole[0].toUpperCase() + dashboardRole.slice(1);
@@ -269,8 +266,25 @@ export default function DashboardPage() {
 
     const fetchStats = async () => {
       try {
-        const flows = await apiClient.getMyFundFlows();
+        const [flows, investments, navSummary] = await Promise.all([
+          apiClient.getMyFundFlows(),
+          apiClient.getMyInvestments(),
+          apiClient.getNavSummary(),
+        ]);
+
         setActiveFundsCount(flows.length);
+
+        const totalInvested = investments.reduce((sum, inv) => sum + parseFloat(inv.investment_amount), 0);
+        const totalUnits = investments.reduce((sum, inv) => sum + parseFloat(inv.estimated_units), 0);
+        const currentNav = navSummary.currentNav;
+        const currentValue = totalUnits * currentNav;
+
+        setInvestorStats({
+          totalInvested,
+          totalUnits,
+          currentNav,
+          currentValue,
+        });
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
       }
@@ -409,7 +423,28 @@ export default function DashboardPage() {
 
           {/* Top summary cards */}
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {investorSummaryCards.map((card) => (
+            {[
+              {
+                label: 'Total Invested',
+                value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.totalInvested),
+                helper: '↑ 12.5% this quarter',
+              },
+              {
+                label: 'Current Value',
+                value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue),
+                helper: `+${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue - investorStats.totalInvested)}`,
+              },
+              {
+                label: 'Total Units',
+                value: investorStats.totalUnits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+                helper: '',
+              },
+              {
+                label: 'Current NAV',
+                value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentNav),
+                helper: 'Per unit',
+              },
+            ].map((card) => (
               <div
                 key={card.label}
                 className="rounded-2xl bg-white px-6 py-5 shadow-sm"
@@ -421,7 +456,7 @@ export default function DashboardPage() {
                   {card.value}
                 </p>
                 {card.helper && (
-                  <p className="mt-2 text-xs font-medium text-[#2BB673]">
+                  <p className={`mt-2 text-xs font-medium ${(card.label === 'Current Value' && (investorStats.currentValue - investorStats.totalInvested) < 0) ? 'text-red-500' : 'text-[#2BB673]'}`}>
                     {card.helper}
                   </p>
                 )}
@@ -617,7 +652,7 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center gap-3">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF3D6] text-sm font-semibold text-[#E29F3A]">
-                    3
+                    {investorAccountList.length}
                   </span>
                   <p className="font-goudy text-sm">Your accounts</p>
                 </div>
@@ -628,7 +663,7 @@ export default function DashboardPage() {
               </button>
               {investorExpanded.accounts && (
                 <div className="mt-4 space-y-3 text-xs text-[#4B4B4B]">
-                  {investorAccounts.map((acc) => (
+                  {investorAccountList.map((acc) => (
                     <div
                       key={acc.id}
                       className="flex items-center justify-between rounded-xl bg-[#F7F8FA] px-4 py-3"

@@ -25,6 +25,12 @@ export class InvestmentsController {
     return this.investmentsService.getMyInvestments(user.userId);
   }
 
+  @Get('all')
+  async getAllInvestments(@CurrentUser() user: any) {
+    // Ideally check if user is admin here
+    return this.investmentsService.getAllInvestments();
+  }
+
   @Get(':id')
   async getInvestmentById(@CurrentUser() user: any, @Param('id') id: string) {
     if (!user.userId) throw new UnauthorizedException('User ID not found');
@@ -40,4 +46,5 @@ export class InvestmentsController {
     if (!user.userId) throw new UnauthorizedException('User ID not found');
     return this.investmentsService.updateInvestmentStatus(user.userId, id, updateStatusDto);
   }
+
 }

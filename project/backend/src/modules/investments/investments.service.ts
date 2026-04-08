@@ -10,10 +10,25 @@ export class InvestmentsService {
     } = data;
 
     try {
-      // Calculate processing fee (0.5% fixed for now)
+      // 1. Fetch latest active NAV to ensure price accuracy
+      const navResult = await db.query(
+        `SELECT nav_per_unit FROM fund_nav_history 
+         WHERE status = 'active' 
+         ORDER BY effective_date DESC 
+         LIMIT 1`
+      );
+
+      if (navResult.rows.length === 0) {
+        throw new BadRequestException('The fund is currently not accepting new investments (No active NAV found).');
+      }
+
+      const activeUnitPrice = parseFloat(navResult.rows[0].nav_per_unit);
+
+      // 2. Calculate processing fee (0.5% fixed) and units
       const processingFee = Number((investmentAmount * 0.005).toFixed(2));
       const totalAmount = Number((investmentAmount + processingFee).toFixed(2));
-      const estimatedUnits = Number((investmentAmount / unitPrice).toFixed(4));
+      const estimatedUnits = Number((investmentAmount / activeUnitPrice).toFixed(4));
+      const unitPrice = activeUnitPrice;
 
       const query = `
         INSERT INTO investments (
@@ -153,6 +168,28 @@ export class InvestmentsService {
       if (error instanceof NotFoundException) throw error;
       console.error('❌ Error fetching investment:', error);
       throw new InternalServerErrorException('Failed to fetch investment');
+    }
+  }
+
+  async getAllInvestments() {
+    try {
+      const query = `
+        SELECT 
+          i.*, 
+          f.name as fund_name, 
+          COALESCE(u.first_name || ' ' || u.last_name, inv.full_name) as investor_name,
+          COALESCE(u.profile_image_url, inv.profile_image_url) as avatar_url
+        FROM investments i
+        LEFT JOIN funds f ON i.fund_id = f.id
+        LEFT JOIN users u ON i.user_id = u.id
+        LEFT JOIN investors inv ON i.user_id = inv.id
+        ORDER BY i.created_at DESC
+      `;
+      const result = await db.query(query);
+      return result.rows;
+    } catch (error) {
+      console.error('❌ Error fetching all investments:', error);
+      throw new InternalServerErrorException('Failed to fetch all investments');
     }
   }
 }

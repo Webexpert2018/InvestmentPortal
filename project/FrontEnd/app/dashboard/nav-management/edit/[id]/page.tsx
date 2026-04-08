@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { ChevronLeft, Calendar as CalendarIcon, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -10,9 +10,14 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
-export default function NAVEntryPage() {
+export default function EditNAVEntryPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+  
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -23,11 +28,34 @@ export default function NAVEntryPage() {
     totalUnits: '',
     navPerUnit: '',
     note: '',
+    status: '',
   });
 
   useEffect(() => {
+    fetchEntryData();
     fetchHistory();
-  }, []);
+  }, [id]);
+
+  const fetchEntryData = async () => {
+    try {
+      setLoading(true);
+      const data = await apiClient.getNavEntryById(id);
+      setFormData({
+        effectiveDate: data.effective_date,
+        totalFundValue: data.total_fund_value.toString(),
+        totalUnits: data.total_units.toString(),
+        navPerUnit: data.nav_per_unit.toString(),
+        note: data.note || '',
+        status: data.status,
+      });
+    } catch (error: any) {
+      console.error('Error fetching entry:', error);
+      toast.error('Failed to load NAV entry details');
+      router.push('/dashboard/nav-management');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchHistory = async () => {
     try {
@@ -77,7 +105,7 @@ export default function NAVEntryPage() {
   };
 
   const handleSaveDraft = async () => {
-    submitEntry('draft');
+    submitUpdate('draft');
   };
 
   const handlePublishNAV = () => {
@@ -86,10 +114,10 @@ export default function NAVEntryPage() {
 
   const confirmPublish = async () => {
     if (!confirmationChecked) return;
-    submitEntry('active');
+    submitUpdate('active');
   };
 
-  const submitEntry = async (status: 'active' | 'draft') => {
+  const submitUpdate = async (status: 'active' | 'draft') => {
     try {
       setSubmitting(true);
       const payload = {
@@ -101,12 +129,13 @@ export default function NAVEntryPage() {
         status: status,
       };
 
-      await apiClient.createNavEntry(payload);
+      await apiClient.updateNavEntry(id, payload);
+      toast.success(`Entry ${status === 'active' ? 'published' : 'saved as draft'} successfully`);
       setShowPublishModal(false);
       router.push('/dashboard/nav-management');
     } catch (error: any) {
-      console.error('Error saving NAV entry:', error);
-      alert(error.message || 'Failed to save entry');
+      console.error('Error updating NAV entry:', error);
+      toast.error(error.message || 'Failed to update entry');
     } finally {
       setSubmitting(false);
     }
@@ -124,6 +153,16 @@ export default function NAVEntryPage() {
     return `Q${quarter} ${date.getFullYear()}`;
   };
 
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-10 w-10 text-[#1F3B6E] animate-spin" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="p-6">
@@ -134,14 +173,14 @@ export default function NAVEntryPage() {
             className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
           >
             <ChevronLeft className="h-5 w-5 mr-1" />
-            <span className="font-medium">Quarterly NAV Entry</span>
+            <span className="font-medium">Edit NAV Entry</span>
           </button>
         </div>
 
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-0">Quarterly NAV Entry</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-0">Edit NAV Entry</h1>
           <p className="text-sm text-gray-600 mt-3">
-            Enter the official total fund value for the quarter. NAV per unit will be calculated automatically using the system's total units for the selected date.
+            Update the official fund value for this entry.
           </p>
         </div>
 
@@ -266,13 +305,13 @@ export default function NAVEntryPage() {
                       onClick={handleSaveDraft}
                       className="px-6 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-full font-medium"
                     >
-                      Save Draft
+                      Update as Draft
                     </Button>
                     <Button
                       onClick={handlePublishNAV}
                       className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 rounded-full font-medium"
                     >
-                      Publish NAV
+                      Update & Publish
                     </Button>
                   </div>
                 </div>
@@ -312,9 +351,9 @@ export default function NAVEntryPage() {
               </button>
 
               <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Confirm Publish NAV</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Confirm Update & Publish</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  You are about to publish the official NAV for {getQuarterYear(formData.effectiveDate)}. This action will recompute positions and performance snapshots, and notify investors (if enabled). Do you want to proceed?
+                  You are about to update and publish the official NAV for {getQuarterYear(formData.effectiveDate)}. If this is changed to 'Published', any previous active NAV will be retired. Do you want to proceed?
                 </p>
               </div>
 
@@ -350,7 +389,7 @@ export default function NAVEntryPage() {
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
                 >
-                  Publish
+                  Confirm & Update
                 </Button>
               </div>
             </div>

@@ -128,17 +128,18 @@ export default function FundOverviewPage() {
     <DashboardLayout>
       <div className="p-8 bg-[#F9FAFB] min-h-screen">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{fund.name}</h1>
-            <p className="text-sm text-gray-500 mt-1">Fund Details</p>
-          </div>
-          <Button
-            onClick={() => router.push(`/dashboard/funds/${params.id}/documents/upload`)}
-            className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-6 py-2 rounded-full font-medium"
+        <div className="flex items-center gap-4 mb-8">
+          <button 
+            onClick={() => router.back()}
+            className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200 group"
+            title="Go back"
           >
-            Upload Doc.
-          </Button>
+            <ChevronLeft className="h-6 w-6 text-gray-600 transition-transform group-hover:-translate-x-0.5" />
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 leading-tight">{fund.name}</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Fund Details</p>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -250,14 +251,6 @@ export default function FundOverviewPage() {
               </div>
             </div>
 
-            {/* Note */}
-            <div className="bg-white rounded-lg shadow-sm p-8">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Note</h3>
-              <p className="text-sm text-gray-500 italic mb-3">(Private note visible only to you)</p>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {fund.note || 'No private notes.'}
-              </p>
-            </div>
 
             {/* Performance Overview */}
             <div className="bg-white rounded-lg shadow-sm p-8">
