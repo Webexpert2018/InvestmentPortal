@@ -3,8 +3,8 @@
 
 -- 1. Drop existing foreign key constraints that point to 'users'
 ALTER TABLE investments DROP CONSTRAINT IF EXISTS investments_user_id_fkey;
-ALTER TABLE tax_vault_documents DROP CONSTRAINT IF EXISTS tax_vault_documents_user_id_fkey;
-ALTER TABLE tax_vault_documents DROP CONSTRAINT IF EXISTS tax_vault_documents_uploaded_by_id_fkey;
+-- ALTER TABLE tax_vault_documents DROP CONSTRAINT IF EXISTS tax_vault_documents_user_id_fkey;
+-- ALTER TABLE tax_vault_documents DROP CONSTRAINT IF EXISTS tax_vault_documents_uploaded_by_id_fkey;
 -- ALTER TABLE investor_profiles DROP CONSTRAINT IF EXISTS investor_profiles_user_id_fkey; -- Table does not exist in current schema
 ALTER TABLE portfolios DROP CONSTRAINT IF EXISTS portfolios_user_id_fkey;
 ALTER TABLE documents DROP CONSTRAINT IF EXISTS documents_user_id_fkey;
