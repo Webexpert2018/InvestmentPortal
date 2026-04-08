@@ -45,7 +45,7 @@ export default function InvestPage() {
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>('personal');
   const [amount, setAmount] = useState<string>('25000');
-  const [unitPrice, setUnitPrice] = useState<number>(1.25);
+  const [unitPrice, setUnitPrice] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
@@ -157,7 +157,7 @@ export default function InvestPage() {
         setExistingFlows(flowsData);
         setUserIraAccount(iraData);
         
-        if (navData && navData.currentNav) {
+        if (navData && typeof navData.currentNav === 'number') {
           setUnitPrice(navData.currentNav);
         }
 
