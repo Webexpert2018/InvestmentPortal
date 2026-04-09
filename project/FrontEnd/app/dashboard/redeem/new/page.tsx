@@ -24,10 +24,23 @@ export default function RedemptionAmountPage() {
   const [amount, setAmount] = useState('0.00');
   const [reason, setReason] = useState('');
   const [selectedBankId, setSelectedBankId] = useState<string | null>('bank-3');
+  const [liveNav, setLiveNav] = useState<number | null>(null);
 
   useEffect(() => {
     fetchHoldings();
+    fetchLiveNav();
   }, []);
+
+  const fetchLiveNav = async () => {
+    try {
+      const data = await apiClient.getNavSummary();
+      if (data && data.currentNav) {
+        setLiveNav(data.currentNav);
+      }
+    } catch (error) {
+      console.error('Error fetching live NAV:', error);
+    }
+  };
 
   const fetchHoldings = async () => {
     try {
@@ -56,8 +69,9 @@ export default function RedemptionAmountPage() {
   }, [amount]);
 
   const currentNav = useMemo(() => {
+    if (liveNav !== null) return liveNav;
     return selectedHolding ? parseFloat(selectedHolding.unit_price) : 0;
-  }, [selectedHolding]);
+  }, [selectedHolding, liveNav]);
 
   const unitsToRedeem = useMemo(() => {
     if (currentNav === 0) return 0;
@@ -109,6 +123,22 @@ export default function RedemptionAmountPage() {
       currency: 'USD',
     }).format(num);
   };
+
+  const estimatedPayoutDate = useMemo(() => {
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(today.getDate() + 3);
+    const end = new Date(today);
+    end.setDate(today.getDate() + 5);
+
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    if (start.getMonth() === end.getMonth()) {
+      return `${monthNames[start.getMonth()]} ${start.getDate()}–${end.getDate()}, ${start.getFullYear()}`;
+    } else {
+      return `${monthNames[start.getMonth()]} ${start.getDate()} – ${monthNames[end.getMonth()]} ${end.getDate()}, ${start.getFullYear()}`;
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -269,7 +299,7 @@ export default function RedemptionAmountPage() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[#8E8E93]">Estimated payout date</span>
-              <span className="font-bold text-[#1F1F1F]">Feb 20–22, 2025</span>
+              <span className="font-bold text-[#1F1F1F]">{estimatedPayoutDate}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[#8E8E93]">Service Fee</span>
