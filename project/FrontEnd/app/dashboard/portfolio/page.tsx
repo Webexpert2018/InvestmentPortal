@@ -16,6 +16,7 @@ export default function PortfolioPage() {
     totalInvested: 0,
     totalUnits: 0,
     currentNav: 0,
+    currentValue: 0,
   });
 
   useEffect(() => {
@@ -36,11 +37,13 @@ export default function PortfolioPage() {
 
       const totalInvested = investmentsData.reduce((sum: number, inv: any) => sum + parseFloat(inv.investment_amount), 0);
       const totalUnits = investmentsData.reduce((sum: number, inv: any) => sum + parseFloat(inv.estimated_units), 0);
+      const currentValue = investmentsData.reduce((sum: number, inv: any) => sum + parseFloat(inv.revised_amount || inv.investment_amount), 0);
 
       setStats({
         totalInvested,
         totalUnits,
         currentNav: navSummary.currentNav,
+        currentValue,
       });
     } catch (error) {
       console.error('Error fetching portfolio data:', error);
@@ -122,12 +125,27 @@ export default function PortfolioPage() {
           </div>
 
           {activeTab === 'investments' && (
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="mt-6 grid gap-4 md:grid-cols-4">
               <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
                   Total Invested
                 </p>
                 <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(stats.totalInvested)}</p>
+              </div>
+              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+                <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+                  Current Value
+                </p>
+                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(stats.currentValue)}</p>
+                {(() => {
+                  const gainLoss = stats.currentValue - stats.totalInvested;
+                  const isPositive = gainLoss >= 0;
+                  return (
+                    <p className={`mt-2 text-xs font-medium ${isPositive ? 'text-[#2BB673]' : 'text-[#E04343]'}`}>
+                      {isPositive ? '+' : ''}{formatCurrency(gainLoss)}
+                    </p>
+                  );
+                })()}
               </div>
               <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
@@ -140,7 +158,7 @@ export default function PortfolioPage() {
                   YTD Return
                 </p>
                 {(() => {
-                  const currentValue = stats.totalUnits * stats.currentNav;
+                  const currentValue = stats.currentValue;
                   const totalInvested = stats.totalInvested;
                   const ytdReturn = totalInvested > 0 ? (currentValue - totalInvested) / totalInvested : 0;
                   const isPositive = ytdReturn >= 0;
@@ -213,7 +231,7 @@ export default function PortfolioPage() {
                     {investments.map((row) => {
                       const units = parseFloat(row.estimated_units);
                       const currentNav = stats.currentNav;
-                      const currentValue = units * currentNav;
+                      const currentValue = parseFloat(row.revised_amount || (units * currentNav));
                       const costBasis = parseFloat(row.investment_amount);
                       const gainLoss = currentValue - costBasis;
                       const gainPositive = gainLoss >= 0;

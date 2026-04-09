@@ -156,7 +156,7 @@ export default function InvestPage() {
         setFunds(fundsData);
         setExistingFlows(flowsData);
         setUserIraAccount(iraData);
-        
+
         if (navData && typeof navData.currentNav === 'number') {
           setUnitPrice(navData.currentNav);
         }
@@ -309,29 +309,36 @@ export default function InvestPage() {
       setIsSigning(false);
     }
   };
-
-  const saveInvestment = async (finalStatus?: string) => {
-    if (!selectedFundId || !selectedAccountId || investmentAmount <= 0) return;
-    setSaving(true);
+  //////////////////////////////////
+  const handleBypass = async () => {
+    if (!selectedFundId || !selectedFund) return;
+    setIsSigning(true);
     try {
       const isIra = selectedAccountId !== 'personal';
-      const result = await apiClient.createInvestment({
+      const investment = await apiClient.createInvestment({
         fundId: selectedFundId,
-        accountId: isIra ? selectedAccountId : undefined,
+        accountId: isIra ? (selectedAccountId ?? undefined) : undefined,
         accountType: isIra ? 'ira' : 'personal',
         investmentAmount: investmentAmount,
         unitPrice: unitPrice,
-        status: finalStatus || 'Subscription Submitted',
-        documentSigned: true, // Marked as true since they completed the signing step
+        status: 'Subscription Submitted',
+        documentSigned: true
       });
-      return result;
+
+      if (investment && investment.id) {
+        localStorage.setItem('last_investment_id', investment.id);
+        setCurrentInvestment(investment);
+      }
+      setStep('fundingInstructions');
     } catch (error) {
-      console.error('Failed to save investment:', error);
-      alert(error instanceof Error ? error.message : 'Failed to save investment. Please try again.');
+      console.error('Bypass error:', error);
+      alert('Failed to bypass DocuSign: ' + (error instanceof Error ? error.message : String(error)));
     } finally {
-      setSaving(false);
+      setIsSigning(false);
     }
   };
+  //////////////////////////////////////////////////
+
 
   const handleDownload = () => {
     if (!selectedSubDoc) return;
@@ -354,13 +361,10 @@ export default function InvestPage() {
     }
 
     if (step === 'investmentStatus') {
-      const result = await saveInvestment('Subscription Submitted');
-      if (result) {
-        setShowSuccess(true);
-        // Reset states for fresh start (but keep success view)
-        setAmount('25000');
-        setSelectedAccountId('personal');
-      }
+      setShowSuccess(true);
+      // Reset states for fresh start (but keep success view)
+      setAmount('25000');
+      setSelectedAccountId('personal');
       return;
     }
 
@@ -776,6 +780,16 @@ export default function InvestPage() {
               >
                 {isSigning ? 'Connecting to DocuSign...' : 'Start Signing'}
               </button>
+              {/* //////////////////////// */}
+              <button
+                type="button"
+                onClick={handleBypass}
+                disabled={isSigning}
+                className="w-full rounded-full bg-red-50 py-3.5 text-sm font-bold text-red-600 hover:bg-neutral-100 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-red-200"
+              >
+                {isSigning ? 'Processing...' : 'Bypass DocuSign (Testing)'}
+              </button>
+              {/* //////////////////////// */}
               <button
                 type="button"
                 onClick={handleDownload}

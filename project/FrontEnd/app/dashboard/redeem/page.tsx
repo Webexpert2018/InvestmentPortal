@@ -1,178 +1,218 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import Link from 'next/link';
-import { MoreVertical } from 'lucide-react';
+import { MoreVertical, Loader2, Search, ExternalLink, XCircle } from 'lucide-react';
+import { apiClient } from '@/lib/api/client';
+import { toast } from 'sonner';
 
-type RedemptionRow = {
-  id: string;
-  requestId: string;
-  amount: string;
-  units: string;
-  destinationBank: string;
-  status: 'Settled' | 'Pending' | 'Rejected';
-  requestedDate: string;
-};
+type Status = 'Settled' | 'Pending' | 'Rejected' | 'Approved' | 'Cancelled';
 
-const rows: RedemptionRow[] = [
-  {
-    id: '1',
-    requestId: 'RED-123456',
-    amount: '$12,000.50',
-    units: '250',
-    destinationBank: 'Checking Account - ****1234',
-    status: 'Settled',
-    requestedDate: 'Jan 25, 2026',
-  },
-  {
-    id: '2',
-    requestId: 'RED-123457',
-    amount: '$12,000.50',
-    units: '250',
-    destinationBank: 'Checking Account - ****1234',
-    status: 'Pending',
-    requestedDate: 'Jan 25, 2026',
-  },
-  {
-    id: '3',
-    requestId: 'RED-123458',
-    amount: '$12,000.50',
-    units: '250',
-    destinationBank: 'Checking Account - ****1234',
-    status: 'Rejected',
-    requestedDate: 'Jan 25, 2026',
-  },
-  {
-    id: '4',
-    requestId: 'RED-123459',
-    amount: '$12,000.50',
-    units: '250',
-    destinationBank: 'Checking Account - ****1234',
-    status: 'Pending',
-    requestedDate: 'Jan 25, 2026',
-  },
-  {
-    id: '5',
-    requestId: 'RED-123460',
-    amount: '$12,000.50',
-    units: '250',
-    destinationBank: 'Checking Account - ****1234',
-    status: 'Pending',
-    requestedDate: 'Jan 25, 2026',
-  },
-];
-
-function statusClass(status: RedemptionRow['status']) {
+function statusClass(status: Status) {
   switch (status) {
     case 'Settled':
-      return 'bg-[#E8FBF1] text-[#1F7A4D]';
+    case 'Approved':
+      return 'bg-[#E8FBF1] text-[#1F7A4D] border border-[#B7EB8F]';
     case 'Rejected':
-      return 'bg-[#FEECEC] text-[#D14343]';
+    case 'Cancelled':
+      return 'bg-[#FEECEC] text-[#D14343] border border-[#FFA39E]';
     default:
-      return 'bg-[#FFF7E0] text-[#C27A21]';
+      return 'bg-[#FFF7E0] text-[#C27A21] border border-[#FFE58F]';
   }
 }
 
 export default function RedeemPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 8;
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [redemptions, setRedemptions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const totalPages = 3; // static pagination UI to match Figma
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const data = await apiClient.getMyRedemptions();
+      setRedemptions(data);
+    } catch (error) {
+      console.error('Error fetching redemptions:', error);
+      toast.error('Failed to load redemption requests');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelRequest = async (id: string) => {
+    if (!confirm('Are you sure you want to cancel this redemption request?')) return;
+    
+    try {
+      await apiClient.cancelRedemption(id);
+      toast.success('Redemption request cancelled successfully');
+      setActiveMenuId(null);
+      fetchData();
+    } catch (error: any) {
+      console.error('Error cancelling redemption:', error);
+      toast.error(error.message || 'Failed to cancel request');
+    }
+  };
+
+  const totalPages = Math.ceil(redemptions.length / itemsPerPage) || 1;
+  const currentRows = redemptions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const formatCurrency = (val: number | string) => {
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(num);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-8xl px-4 py-6 font-helvetica text-[#1F1F1F]">
-        <div className="mb-4 flex items-center justify-between">
+      <div className="mx-auto max-w-8xl px-4 py-8 font-helvetica text-[#1F1F1F]">
+        <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="font-goudy text-sm sm:text-xl leading-[28px]">Redeem</h1>
-            <p className="mt-1 text-xs text-[#8E8E93]">
+            <h1 className="font-goudy text-xl sm:text-3xl font-bold leading-[36px] tracking-tight">Redeem</h1>
+            <p className="mt-1 text-sm text-[#8E8E93]">
               View all your redemption requests, their status, and payout details.
             </p>
           </div>
           <Link
             href="/dashboard/redeem/new"
-            className="rounded-full bg-[#FBCB4B] px-6 py-2 text-sm font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F9B800]"
+            className="rounded-full bg-[#FBCB4B] px-8 py-2.5 text-sm font-bold text-[#1F1F1F] shadow-md hover:bg-[#F9B800] transition-all transform hover:-translate-y-0.5"
           >
             Redemption Request
           </Link>
         </div>
 
-        <div className="mt-4 overflow-hidden rounded-md bg-white shadow-sm">
-          <div className="overflow-x-auto bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100">
+          <div className="overflow-x-auto bg-white p-6">
             <table className="min-w-full text-xs text-[#4B4B4B]">
-              <thead className="bg-[#F8FAFC] text-[11px] uppercase tracking-wide text-[#8E8E93]">
-                <tr>
-                  <th className="px-6 py-3 text-left font-medium">Request ID</th>
-                  <th className="px-6 py-3 text-left font-medium">Amount</th>
-                  <th className="px-6 py-3 text-left font-medium">Units Redeemed</th>
-                  <th className="px-6 py-3 text-left font-medium">Destination Bank</th>
-                  <th className="px-6 py-3 text-left font-medium">Status</th>
-                  <th className="px-6 py-3 text-left font-medium">Requested Date</th>
-                  <th className="px-6 py-3 text-right font-medium">Action</th>
+              <thead className="bg-[#F8FAFC] text-[11px] uppercase tracking-widest text-[#8E8E93]">
+                <tr className="border-b border-gray-100">
+                  <th className="px-6 py-4 text-left font-bold">Request ID</th>
+                  <th className="px-6 py-4 text-left font-bold">Fund</th>
+                  <th className="px-6 py-4 text-left font-bold">Amount</th>
+                  <th className="px-6 py-4 text-left font-bold">Units Redeemed</th>
+                  <th className="px-6 py-4 text-left font-bold">Destination Bank</th>
+                  <th className="px-6 py-4 text-left font-bold">Status</th>
+                  <th className="px-6 py-4 text-left font-bold">Requested Date</th>
+                  <th className="px-6 py-4 text-right font-bold tracking-normal uppercase">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F1F1F1] bg-white text-[12px]">
-                {rows.map((row) => (
-                  <tr key={row.id} className="hover:bg-[#F9FAFB]">
-                    <td className="px-6 py-3 align-middle text-[#1F1F1F]">{row.requestId}</td>
-                    <td className="px-6 py-3 align-middle">{row.amount}</td>
-                    <td className="px-6 py-3 align-middle">{row.units}</td>
-                    <td className="px-6 py-3 align-middle">{row.destinationBank}</td>
-                    <td className="px-6 py-3 align-middle">
-                      <span className={`inline-flex rounded-full px-3 py-1 text-[11px] ${statusClass(row.status)}`}>
-                        {row.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 align-middle">{row.requestedDate}</td>
-                    <td className="px-6 py-3 align-middle">
-                      <div className="relative flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setActiveMenuId((prev) => (prev === row.id ? null : row.id))
-                          }
-                          className="rounded-full p-1.5 text-[#4B4B4B] hover:bg-[#F3F4F6]"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </button>
-
-                        {activeMenuId === row.id && (
-                          <>
-                            <div
-                              className="fixed inset-0 z-10"
-                              onClick={() => setActiveMenuId(null)}
-                            />
-                            <div className="absolute right-0 top-full z-20 mt-2 w-40 rounded-lg border border-[#E5E5EA] bg-white py-1 text-[11px] text-[#4B4B4B] shadow-lg">
-                              <Link
-                                href="/dashboard/funds/1"
-                                className="block w-full px-4 py-2 text-left hover:bg-[#F9FAFB]"
-                              >
-                                View Fund Details
-                              </Link>
-                              <button
-                                type="button"
-                                onClick={() => setActiveMenuId(null)}
-                                className="block w-full px-4 py-2 text-left hover:bg-[#F9FAFB]"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </>
-                        )}
+              <tbody className="divide-y divide-[#F9F9F9] bg-white text-[13px]">
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-20 text-center">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <Loader2 className="h-8 w-8 animate-spin text-[#274583] opacity-40" />
+                        <span className="text-gray-400 font-medium">Fetching your requests...</span>
                       </div>
                     </td>
                   </tr>
-                ))}
+                ) : currentRows.length > 0 ? (
+                  currentRows.map((row) => (
+                    <tr key={row.id} className="hover:bg-[#F9FAFB]/50 transition-colors group">
+                      <td className="px-6 py-4 align-middle font-bold text-[#1F1F1F]">
+                        RED-{row.id.substring(0, 6).toUpperCase()}
+                      </td>
+                      <td className="px-6 py-4 align-middle font-medium text-gray-700">
+                        {row.fund_name}
+                      </td>
+                      <td className="px-6 py-4 align-middle font-bold text-[#1F3B6E]">
+                        {formatCurrency(row.amount)}
+                      </td>
+                      <td className="px-6 py-4 align-middle font-medium text-gray-700">
+                        {parseFloat(row.units).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                      </td>
+                      <td className="px-6 py-4 align-middle text-gray-500 italic">
+                        {row.bank_info?.label || 'Bank transfer'}
+                      </td>
+                      <td className="px-6 py-4 align-middle">
+                        <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${statusClass(row.status)}`}>
+                          {row.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 align-middle text-gray-500 font-medium">
+                        {formatDate(row.created_at)}
+                      </td>
+                      <td className="px-6 py-4 align-middle">
+                        <div className="relative flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setActiveMenuId((prev) => (prev === row.id ? null : row.id))
+                            }
+                            className="rounded-full p-2 text-gray-400 hover:bg-[#F3F4F6] hover:text-[#1F1F1F] transition-all"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+
+                          {activeMenuId === row.id && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-10"
+                                onClick={() => setActiveMenuId(null)}
+                              />
+                              <div className="absolute right-0 top-full z-20 mt-2 w-48 rounded-xl border border-gray-100 bg-white py-2 text-[12px] text-[#4B4B4B] shadow-xl animate-in fade-in slide-in-from-top-1 duration-200">
+                                <div className="px-4 py-1 text-[10px] font-bold text-gray-300 uppercase tracking-widest border-b border-gray-50 mb-1">
+                                  Management
+                                </div>
+                                <Link
+                                  href={`/dashboard/redemption/${row.id}`}
+                                  className="flex items-center gap-2 w-full px-4 py-2.5 text-left hover:bg-[#F9FAFB] hover:text-[#1F3B6E] transition-colors font-medium"
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                  View Details
+                                </Link>
+                                
+                                {row.status === 'Pending' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCancelRequest(row.id)}
+                                    className="flex items-center gap-2 w-full px-4 py-2.5 text-left hover:bg-red-50 text-red-500 transition-colors font-medium border-t border-gray-50 mt-1"
+                                  >
+                                    <XCircle className="h-3.5 w-3.5" />
+                                    Cancel Request
+                                  </button>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-20 text-center text-[#8E8E93]">
+                      <div className="flex flex-col items-center gap-2">
+                        <Search className="h-8 w-8 opacity-20" />
+                        <span className="text-sm font-medium">No redemption requests found.</span>
+                      </div>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
 
-          <div className="flex items-center justify-between border-t border-[#F1F1F1] px-6 py-4 text-xs text-[#4B4B4B]">
+          <div className="flex items-center justify-between border-t border-[#F1F1F1] px-8 py-6 text-[12px] bg-[#F8FAFC]/50">
             <button
               type="button"
-              className="flex items-center gap-1 text-[#4B4B4B] disabled:opacity-40"
+              className="flex items-center gap-1 font-bold text-gray-400 hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             >
@@ -184,8 +224,10 @@ export default function RedeemPage() {
                   key={page}
                   type="button"
                   onClick={() => setCurrentPage(page)}
-                  className={`h-6 w-6 rounded text-xs font-medium ${
-                    currentPage === page ? 'bg-[#274583] text-white' : 'text-[#4B4B4B] hover:bg-[#F3F4F6]'
+                  className={`h-8 w-8 rounded-lg text-xs font-bold transition-all shadow-sm ${
+                    currentPage === page 
+                      ? 'bg-[#1F3B6E] text-white shadow-[#1F3B6E]/20' 
+                      : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'
                   }`}
                 >
                   {page}
@@ -194,7 +236,7 @@ export default function RedeemPage() {
             </div>
             <button
               type="button"
-              className="flex items-center gap-1 text-[#4B4B4B] disabled:opacity-40"
+              className="flex items-center gap-1 font-bold text-gray-400 hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             >

@@ -182,9 +182,9 @@ export default function FundingRequestsPage() {
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Request ID</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Investor Name</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Amount</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Status</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Payment</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Submitted Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Status</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Action</th>
                 </tr>
               </thead>
@@ -226,13 +226,13 @@ export default function FundingRequestsPage() {
                         <td className="px-6 py-4 text-gray-900 font-medium">
                           {formatCurrency(request.investment_amount)}
                         </td>
+                        <td className="px-6 py-4 text-gray-600">Wire</td>
+                        <td className="px-6 py-4 text-gray-600">{formatDate(request.created_at)}</td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor('Pending')}`}>
                             Pending
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-gray-600">Wire</td>
-                        <td className="px-6 py-4 text-gray-600">{formatDate(request.created_at)}</td>
                         <td className="px-6 py-4">
                           <div className="relative">
                             <button

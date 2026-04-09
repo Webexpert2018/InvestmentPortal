@@ -480,6 +480,43 @@ class ApiClient {
     return this.request<any[]>('/investments/all');
   }
 
+  async getInvestmentById(id: string) {
+    return this.request<any>(`/investments/${id}`);
+  }
+
+  // Redemptions
+  async getMyRedemptions() {
+    return this.request<any[]>('/redemptions/my');
+  }
+
+  async getAllRedemptions() {
+    return this.request<any[]>('/redemptions/all');
+  }
+
+  async createRedemption(data: { investment_id: string; amount: number; reason?: string; bank_info?: any }) {
+    return this.request<any>('/redemptions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateRedemptionStatus(id: string, status: string) {
+    return this.request<any>(`/redemptions/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async getRedemptionById(id: string) {
+    return this.request<any>(`/redemptions/${id}`);
+  }
+
+  async cancelRedemption(id: string) {
+    return this.request<any>(`/redemptions/${id}/cancel`, {
+      method: 'POST',
+    });
+  }
+
   // Investments
   async createInvestment(data: {
     fundId: string;

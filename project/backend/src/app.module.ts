@@ -16,6 +16,7 @@ import { InvestmentsModule } from './modules/investments/investments.module';
 import { DocusignModule } from './modules/docusign/docusign.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { NavManagementModule } from './modules/nav-management/nav-management.module';
+import { RedemptionsModule } from './modules/redemptions/redemptions.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -42,6 +43,7 @@ import { HealthController } from './health.controller';
     DocusignModule,
     StaffModule,
     NavManagementModule,
+    RedemptionsModule,
   ],
   controllers: [HealthController],
 })

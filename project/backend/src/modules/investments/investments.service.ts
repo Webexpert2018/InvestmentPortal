@@ -27,17 +27,17 @@ export class InvestmentsService {
       // 2. Calculate processing fee (0.5% fixed) and units
       const processingFee = Number((investmentAmount * 0.005).toFixed(2));
       const totalAmount = Number((investmentAmount + processingFee).toFixed(2));
-      const estimatedUnits = Number((investmentAmount / activeUnitPrice).toFixed(4));
+      const estimatedUnits = Number((investmentAmount / activeUnitPrice).toFixed(8));
       const unitPrice = activeUnitPrice;
 
       const query = `
         INSERT INTO investments (
           user_id, fund_id, account_id, account_type, 
-          investment_amount, processing_fee, total_amount, 
-          unit_price, estimated_units, status, document_signed,
-          awaiting_funding, funds_received, units_issued,
-          awaiting_funding_at, signed_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        investment_amount, processing_fee, total_amount, 
+        unit_price, estimated_units, revised_amount, status, document_signed,
+        awaiting_funding, funds_received, units_issued,
+        awaiting_funding_at, signed_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
         RETURNING *
       `;
 
@@ -45,6 +45,7 @@ export class InvestmentsService {
         userId, fundId, accountId || null, accountType, 
         investmentAmount, processingFee, totalAmount, 
         unitPrice, estimatedUnits, 
+        investmentAmount, // revised_amount initially matches investment_amount
         status || 'Subscription Submitted',
         documentSigned || false,
         awaitingFunding || false,
@@ -154,7 +155,7 @@ export class InvestmentsService {
   async getInvestmentById(userId: string, investmentId: string) {
     try {
       const query = `
-        SELECT i.*, f.name as fund_name 
+        SELECT i.*, f.name as fund_name, f.description as fund_description 
         FROM investments i
         JOIN funds f ON i.fund_id = f.id
         WHERE i.id = $1 AND i.user_id = $2
@@ -190,6 +191,39 @@ export class InvestmentsService {
     } catch (error) {
       console.error('❌ Error fetching all investments:', error);
       throw new InternalServerErrorException('Failed to fetch all investments');
+    }
+  }
+
+  async updateAllRevisedAmounts(manualNav?: number) {
+    try {
+      let currentNav = manualNav;
+
+      if (currentNav === undefined) {
+        // 1. Fetch latest active NAV
+        const navResult = await db.query(
+          `SELECT nav_per_unit FROM fund_nav_history 
+           WHERE status = 'active' 
+           ORDER BY effective_date DESC 
+           LIMIT 1`
+        );
+
+        if (navResult.rows.length === 0) return;
+        currentNav = parseFloat(navResult.rows[0].nav_per_unit);
+      }
+
+      // 2. Update all investments: current_value = units * current_nav
+      // We use ROUND to ensure 2 decimal precision for the dollar amount
+      const query = `
+        UPDATE investments 
+        SET revised_amount = ROUND(estimated_units * $1, 2),
+            updated_at = CURRENT_TIMESTAMP
+      `;
+      await db.query(query, [currentNav]);
+
+      console.log(`✅ Successfully updated all investment revised amounts to NAV: $${currentNav}`);
+    } catch (error) {
+      console.error('❌ Failed to update revised amounts:', error);
+      throw error;
     }
   }
 }

@@ -1,35 +1,58 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ChevronLeft, ChevronDown, MoreVertical } from 'lucide-react';
+import { ChevronLeft, ChevronDown, MoreVertical, Loader2 } from 'lucide-react';
+import { apiClient } from '@/lib/api/client';
 
-const transactions = [
-  { id: 1, date: 'Jan 18, 2025', type: 'Subscription', amount: '$50,000.00', units: 200, status: 'Completed' },
-  { id: 2, date: 'Jan 18, 2025', type: 'Subscription', amount: '$30,000.00', units: 200, status: 'Completed' },
-  { id: 3, date: 'Jan 18, 2025', type: 'Subscription', amount: '$50,000.00', units: 200, status: 'Pending' },
-];
 
-const documents = [
-  { id: 1, date: 'Subscription Agreement — Signed — Feb 12, 2025' },
-  { id: 2, date: 'K-1 Tax Document — 2024' },
-  { id: 3, date: 'Quarterly Statement — Q4 2024' },
-];
+
+
 
 export default function PortfolioFundDetailsPage() {
   const router = useRouter();
   const params = useParams();
+  const id = params.id as string;
+
+  const [loading, setLoading] = useState(true);
+  const [investment, setInvestment] = useState<any>(null);
+  const [navSummary, setNavSummary] = useState<any>(null);
+  const [documents, setDocuments] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'transactions' | 'documents' | 'fundInfo'>('transactions');
   const [sortConfig, setSortConfig] = useState<{
     key: 'date' | 'type' | 'amount' | 'units' | 'status';
     direction: 'asc' | 'desc';
-  }>({ key: 'date', direction: 'asc' });
+  }>({ key: 'date', direction: 'desc' });
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [rangeOpen, setRangeOpen] = useState(false);
   const [range, setRange] = useState<'3m' | '6m' | '1y'>('1y');
 
-  const fundName = 'ABC Fund Details';
+  useEffect(() => {
+    if (id) {
+      fetchData();
+    }
+  }, [id]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [invData, navData, docsData] = await Promise.all([
+        apiClient.getInvestmentById(id),
+        apiClient.getNavSummary(),
+        apiClient.getMyDocuments(),
+      ]);
+      setInvestment(invData);
+      setNavSummary(navData);
+      setDocuments(docsData);
+    } catch (error) {
+      console.error('Error fetching investment details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fundName = investment?.fund_name || 'Fund Details';
 
   const rangeLabel: Record<typeof range, string> = {
     '3m': 'Last 3 months',
@@ -43,19 +66,36 @@ export default function PortfolioFundDetailsPage() {
     '1y': 'Last 12 months +15.33%',
   };
 
-  const sortedTransactions = useMemo(() => {
-    const parseAmount = (value: string) => Number(value.replace(/[^0-9.-]+/g, '')) || 0;
+  const transactionsList = useMemo(() => {
+    if (!investment) return [];
+    // Currently, we treat each investment as a transaction for this view
+    return [
+      {
+        id: investment.id,
+        date: new Date(investment.created_at).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+        type: 'Subscription',
+        amount: investment.investment_amount,
+        units: parseFloat(investment.estimated_units).toLocaleString(undefined, { maximumFractionDigits: 4 }),
+        status: 'Pending', // Reverted back to Pending as requested
+      },
+    ];
+  }, [investment]);
 
-    return [...transactions].sort((a, b) => {
+  const sortedTransactions = useMemo(() => {
+    return [...transactionsList].sort((a, b) => {
       const { key, direction } = sortConfig;
       const multiplier = direction === 'asc' ? 1 : -1;
 
       if (key === 'amount') {
-        return (parseAmount(a.amount) - parseAmount(b.amount)) * multiplier;
+        return (Number(a.amount) - Number(b.amount)) * multiplier;
       }
 
       if (key === 'units') {
-        return (a.units - b.units) * multiplier;
+        return (parseFloat(a.units) - parseFloat(b.units)) * multiplier;
       }
 
       if (key === 'date') {
@@ -66,19 +106,43 @@ export default function PortfolioFundDetailsPage() {
         return a.status.localeCompare(b.status) * multiplier;
       }
 
-      // type
       return a.type.localeCompare(b.type) * multiplier;
     });
-  }, [sortConfig]);
+  }, [transactionsList, sortConfig]);
 
-  const handleSort = (key: 'date' | 'type' | 'amount' | 'units' | 'status') => {
-    setSortConfig((current) => {
-      if (current.key === key) {
-        return { key, direction: current.direction === 'asc' ? 'desc' : 'asc' };
-      }
-      return { key, direction: 'asc' };
-    });
+  const formatCurrency = (val: number | string) => {
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(num);
   };
+
+  const handleViewDocument = (docId: string) => {
+    window.open(`${apiClient.getApiUrl()}/documents/${docId}/view`, '_blank');
+  };
+
+  const handleDownloadDocument = (docId: string) => {
+    window.open(apiClient.getDocumentDownloadUrl(docId), '_blank');
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-10 w-10 text-[#1F3B6E] animate-spin" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const currentValue = parseFloat(investment?.revised_amount || investment?.investment_amount || 0);
+  const costBasis = parseFloat(investment?.investment_amount || 0);
+  const gainLoss = currentValue - costBasis;
+  const isPositive = gainLoss >= 0;
+  const returnPct = costBasis > 0 ? (gainLoss / costBasis) * 100 : 0;
+  const unitsHeld = parseFloat(investment?.estimated_units || 0);
+  const currentNavValue = navSummary?.currentNav || 0;
 
   return (
     <DashboardLayout>
@@ -97,20 +161,24 @@ export default function PortfolioFundDetailsPage() {
         <div className="grid gap-4 md:grid-cols-4">
           <div className="rounded-xl bg-white px-6 py-5">
             <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">Current Value</p>
-            <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">$94,571</p>
+            <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(currentValue)}</p>
           </div>
           <div className="rounded-xl bg-white px-6 py-5">
             <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">Units Held</p>
-            <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">841.05</p>
+            <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{unitsHeld.toLocaleString(undefined, { maximumFractionDigits: 4 })}</p>
           </div>
           <div className="rounded-xl bg-white px-6 py-5">
             <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">Current NAV</p>
-            <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">$112.45</p>
+            <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(currentNavValue)}</p>
           </div>
           <div className="rounded-xl bg-white px-6 py-5">
             <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">Total Gain/Loss</p>
-            <p className="mt-3 text-2xl font-semibold text-[#2BB673]">+12,571</p>
-            <p className="mt-1 text-xs font-medium text-[#2BB673]">+15.33%</p>
+            <p className={`mt-3 text-2xl font-semibold ${isPositive ? 'text-[#2BB673]' : 'text-[#E04343]'}`}>
+              {isPositive ? '+' : ''}{formatCurrency(gainLoss)}
+            </p>
+            <p className={`mt-1 text-xs font-medium ${isPositive ? 'text-[#2BB673]' : 'text-[#E04343]'}`}>
+              {isPositive ? '+' : ''}{returnPct.toFixed(2)}%
+            </p>
           </div>
         </div>
 
@@ -166,7 +234,7 @@ export default function PortfolioFundDetailsPage() {
             </div>
 
             <div className="mt-6">
-              <p className="text-2xl font-semibold text-[#1F1F1F]">$94,571</p>
+              <p className="text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(currentValue)}</p>
               <p className="mt-1 text-sm font-medium text-[#2BB673]">{rangeSummary[range]}</p>
             </div>
 
@@ -214,19 +282,27 @@ export default function PortfolioFundDetailsPage() {
             <div className="mt-4 space-y-2 text-sm text-[#4B4B4B]">
               <div className="flex items-center justify-between">
                 <span>Cost basis:</span>
-                <span className="text-right font-semibold">$82,000</span>
+                <span className="text-right font-semibold">{formatCurrency(costBasis)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Unrealized Gain:</span>
-                <span className="text-right font-semibold">$12,571</span>
+                <span className="text-right font-semibold">{formatCurrency(gainLoss)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>% Return:</span>
-                <span className="text-right font-semibold text-[#2BB673]">+15.33%</span>
+                <span className={`text-right font-semibold ${isPositive ? 'text-[#2BB673]' : 'text-[#E04343]'}`}>
+                  {isPositive ? '+' : ''}{returnPct.toFixed(2)}%
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Inception Date:</span>
-                <span className="text-right font-semibold">Jul 22, 2024</span>
+                <span className="text-right font-semibold">
+                  {new Date(investment?.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </span>
               </div>
             </div>
             <button className="mt-6 w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF]">
@@ -353,13 +429,13 @@ export default function PortfolioFundDetailsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {sortedTransactions.map((tx) => (
+                  {sortedTransactions.map((tx: any) => (
                     <tr key={tx.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-[#4B4B4B]">{tx.date}</td>
                       <td className="px-4 py-3 text-[#4B4B4B]">{tx.type}</td>
-                      <td className="px-4 py-3 text-[#4B4B4B]">{tx.amount}</td>
+                      <td className="px-4 py-3 text-[#4B4B4B]">{formatCurrency(tx.amount)}</td>
                       <td className="px-4 py-3 text-[#4B4B4B]">{tx.units}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-[#2BB673]">{tx.status}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-[#E29F3A]">{tx.status}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -372,39 +448,61 @@ export default function PortfolioFundDetailsPage() {
               <table className="min-w-full text-left text-sm">
                 <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
                   <tr>
+                    <th className="px-4 py-3">Document Name</th>
                     <th className="px-4 py-3">Date</th>
                     <th className="px-4 py-3 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {documents.map((doc) => (
-                    <tr key={doc.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-[#4B4B4B]">{doc.date}</td>
-                      <td className="px-4 py-3 text-right text-xs">
-                        <div className="relative inline-block text-left">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setOpenMenuId((current) => (current === doc.id ? null : doc.id))
-                            }
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100"
-                          >
-                            <MoreVertical className="h-4 w-4 text-[#8E8E93]" />
-                          </button>
-                          {openMenuId === doc.id && (
-                            <div className="absolute right-0 z-10 mt-2 w-40 rounded-xl bg-white py-2 text-xs shadow-lg ring-1 ring-black/5">
-                              <button className="block w-full px-4 py-2 text-left text-[#4B4B4B] hover:bg-gray-50">
-                                View Document
-                              </button>
-                              <button className="block w-full px-4 py-2 text-left text-[#4B4B4B] hover:bg-gray-50">
-                                Download
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                  {documents.length > 0 ? (
+                    documents.map((doc) => (
+                      <tr key={doc.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-[#1F1F1F] font-medium">{doc.file_name}</td>
+                        <td className="px-4 py-3 text-[#4B4B4B]">
+                          {new Date(doc.uploaded_at || doc.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </td>
+                        <td className="px-4 py-3 text-right text-xs">
+                          <div className="relative inline-block text-left">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setOpenMenuId((current) => (current === doc.id ? null : doc.id))
+                              }
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100"
+                            >
+                              <MoreVertical className="h-4 w-4 text-[#8E8E93]" />
+                            </button>
+                            {openMenuId === doc.id && (
+                              <div className="absolute right-0 z-10 mt-2 w-40 rounded-xl bg-white py-2 text-xs shadow-lg ring-1 ring-black/5">
+                                <button 
+                                  onClick={() => handleViewDocument(doc.id)}
+                                  className="block w-full px-4 py-2 text-left text-[#4B4B4B] hover:bg-gray-50"
+                                >
+                                  View Document
+                                </button>
+                                <button 
+                                  onClick={() => handleDownloadDocument(doc.id)}
+                                  className="block w-full px-4 py-2 text-left text-[#4B4B4B] hover:bg-gray-50"
+                                >
+                                  Download
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="px-4 py-8 text-center text-[#8E8E93]">
+                        No documents available for this investment yet.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -413,19 +511,10 @@ export default function PortfolioFundDetailsPage() {
           {activeTab === 'fundInfo' && (
             <div className="px-6 pb-6 pt-4 text-sm text-[#4B4B4B]">
               <h3 className="mb-2 font-semibold text-[#1F1F1F]">
-                The Physician BTC Fund provides exposure to institutional-grade Bitcoin strategies designed specifically for
-                physicians and medical professionals.
+                {investment?.fund_name}
               </h3>
-              <ul className="mb-4 list-disc pl-6 text-xs text-[#6B7280]">
-                <li>Long-term BTC exposure</li>
-                <li>Optimized for tax-advantaged accounts</li>
-                <li>Low operational friction</li>
-              </ul>
               <p className="text-xs leading-relaxed text-[#6B7280]">
-                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry&apos;s
-                standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a
-                type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting,
-                remaining essentially unchanged.
+                {investment?.fund_description || 'No description available for this fund.'}
               </p>
             </div>
           )}

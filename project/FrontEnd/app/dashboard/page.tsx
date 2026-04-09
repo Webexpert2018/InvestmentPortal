@@ -277,7 +277,7 @@ export default function DashboardPage() {
         const totalInvested = investments.reduce((sum, inv) => sum + parseFloat(inv.investment_amount), 0);
         const totalUnits = investments.reduce((sum, inv) => sum + parseFloat(inv.estimated_units), 0);
         const currentNav = navSummary.currentNav;
-        const currentValue = totalUnits * currentNav;
+        const currentValue = investments.reduce((sum, inv) => sum + parseFloat(inv.revised_amount || (parseFloat(inv.estimated_units) * currentNav)), 0);
 
         setInvestorStats({
           totalInvested,

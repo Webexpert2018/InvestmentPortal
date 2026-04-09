@@ -1,9 +1,12 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { db } from '../../config/database';
 import { CreateNavEntryDto } from './dto/create-nav-entry.dto';
+import { InvestmentsService } from '../investments/investments.service';
 
 @Injectable()
 export class NavManagementService {
+  constructor(private readonly investmentsService: InvestmentsService) {}
+
   async getSummary() {
     // 1. Fetch latest active NAV
     const navResult = await db.query(
@@ -69,6 +72,14 @@ export class NavManagementService {
       );
 
       await client.query('COMMIT');
+
+      // 3. Post-commit: Update all investments' revised_amount if this NAV is active
+      if (status === 'active') {
+        await this.investmentsService.updateAllRevisedAmounts(nav_per_unit);
+        // Sync to funds table for backward compatibility and list view accuracy
+        await client.query("UPDATE funds SET unit_price = $1, updated_at = NOW()", [nav_per_unit]);
+      }
+
       return result.rows[0];
     } catch (error) {
       await client.query('ROLLBACK');
@@ -161,6 +172,15 @@ export class NavManagementService {
       }
 
       await client.query('COMMIT');
+
+      // 3. Post-commit: Sync investment revised amounts
+      if (status === 'active' || (currentStatus === 'active' && nav_per_unit !== undefined)) {
+        // Use the updated nav_per_unit if provided, otherwise fetch the one that's active
+        await this.investmentsService.updateAllRevisedAmounts(
+          nav_per_unit !== undefined ? nav_per_unit : undefined
+        );
+      }
+
       return this.getEntryById(id);
     } catch (error) {
       await client.query('ROLLBACK');
