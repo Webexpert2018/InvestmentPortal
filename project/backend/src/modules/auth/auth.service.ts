@@ -88,7 +88,7 @@ export class AuthService {
 
       let user = result.rows[0];
 
-      // 2. If not found in users, try investors table
+        // 2. If not found in users, try investors table
       if (!user) {
         result = await db.query(
           'SELECT id, email, password_hash, role, full_name, status, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, kyc_status FROM investors WHERE email = $1',
@@ -97,6 +97,20 @@ export class AuthService {
         user = result.rows[0];
         
         // Map full_name to first_name/last_name for consistency in response
+        if (user) {
+          user.first_name = user.full_name?.split(' ')[0] || '';
+          user.last_name = user.full_name?.split(' ')[1] || '';
+        }
+      }
+
+      // 3. If still not found, try staff table
+      if (!user) {
+        result = await db.query(
+          'SELECT id, email, password_hash, role, full_name, status, phone, profile_image_url FROM staff WHERE email = $1',
+          [email]
+        );
+        user = result.rows[0];
+        
         if (user) {
           user.first_name = user.full_name?.split(' ')[0] || '';
           user.last_name = user.full_name?.split(' ')[1] || '';
@@ -155,17 +169,62 @@ export class AuthService {
     }
   }
 
-  async forgotPassword(email: string, role?: string) {
-    const userResult = await db.query(
-      'SELECT id, role FROM users WHERE email = $1',
+  private async findUserAcrossTables(email: string) {
+    // 1. Try users table
+    let result = await db.query(
+      'SELECT id, email, role, first_name as first_name, last_name as last_name FROM users WHERE email = $1',
       [email]
     );
+    if (result.rows.length > 0) {
+      return { user: result.rows[0], tableName: 'users', nameField: 'first_name' };
+    }
 
-    if (userResult.rows.length === 0) {
+    // 2. Try investors table
+    result = await db.query(
+      'SELECT id, email, role, full_name FROM investors WHERE email = $1',
+      [email]
+    );
+    if (result.rows.length > 0) {
+      const user = result.rows[0];
+      return { 
+        user: { 
+          ...user, 
+          first_name: user.full_name?.split(' ')[0] || 'User' 
+        }, 
+        tableName: 'investors',
+        nameField: 'full_name'
+      };
+    }
+
+    // 3. Try staff table
+    result = await db.query(
+      'SELECT id, email, role, full_name FROM staff WHERE email = $1',
+      [email]
+    );
+    if (result.rows.length > 0) {
+      const user = result.rows[0];
+      return { 
+        user: { 
+          ...user, 
+          first_name: user.full_name?.split(' ')[0] || 'User' 
+        }, 
+        tableName: 'staff',
+        nameField: 'full_name'
+      };
+    }
+
+    return null;
+  }
+
+  async forgotPassword(email: string, role?: string) {
+    const searchResult = await this.findUserAcrossTables(email);
+
+    if (!searchResult) {
       throw new BadRequestException('Email not registered');
     }
 
-    const user = userResult.rows[0];
+    const { user, tableName } = searchResult;
+
     if (role && user.role !== role) {
       throw new BadRequestException('Email not registered for this role');
     }
@@ -180,11 +239,13 @@ export class AuthService {
       [userId, otp, 'FORGOT_PASSWORD', expiresAt]
     );
 
-    // Also update the users table for backward compatibility (optional but keeping for now)
-    await db.query(
-      'UPDATE users SET reset_otp = $1, reset_otp_expires_at = $2 WHERE id = $3',
-      [otp, expiresAt, userId]
-    );
+    // Also update the users table for backward compatibility IF the user is in the users table
+    if (tableName === 'users') {
+      await db.query(
+        'UPDATE users SET reset_otp = $1, reset_otp_expires_at = $2 WHERE id = $3',
+        [otp, expiresAt, userId]
+      );
+    }
 
     await this.emailService.sendPasswordResetOtp(email, otp);
 
@@ -192,16 +253,13 @@ export class AuthService {
   }
 
   async verifyOtp(email: string, otp: string) {
-    const userResult = await db.query(
-      'SELECT id FROM users WHERE email = $1',
-      [email]
-    );
+    const searchResult = await this.findUserAcrossTables(email);
 
-    if (userResult.rows.length === 0) {
+    if (!searchResult) {
       throw new UnauthorizedException('Invalid email or reset code');
     }
 
-    const userId = userResult.rows[0].id;
+    const userId = searchResult.user.id;
 
     const otpResult = await db.query(
       'SELECT id FROM user_otps WHERE user_id = $1 AND otp = $2 AND type = $3 AND expires_at > NOW() AND is_used = false',
@@ -216,16 +274,14 @@ export class AuthService {
   }
 
   async resetPassword(email: string, otp: string, password: string) {
-    const userResult = await db.query(
-      'SELECT id, first_name FROM users WHERE email = $1',
-      [email]
-    );
+    const searchResult = await this.findUserAcrossTables(email);
 
-    if (userResult.rows.length === 0) {
+    if (!searchResult) {
       throw new UnauthorizedException('Invalid email or reset code');
     }
 
-    const userId = userResult.rows[0].id;
+    const { user, tableName } = searchResult;
+    const userId = user.id;
 
     // Check OTP in user_otps
     const otpResult = await db.query(
@@ -240,11 +296,18 @@ export class AuthService {
     const otpId = otpResult.rows[0].id;
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Start a transaction would be better, but using simple queries for now
-    await db.query(
-      'UPDATE users SET password_hash = $1, reset_otp = NULL, reset_otp_expires_at = NULL WHERE id = $2',
-      [passwordHash, userId]
-    );
+    // Update password in the correct table
+    if (tableName === 'users') {
+      await db.query(
+        'UPDATE users SET password_hash = $1, reset_otp = NULL, reset_otp_expires_at = NULL WHERE id = $2',
+        [passwordHash, userId]
+      );
+    } else {
+      await db.query(
+        `UPDATE ${tableName} SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
+        [passwordHash, userId]
+      );
+    }
 
     // Mark OTP as used
     await db.query(
@@ -253,7 +316,7 @@ export class AuthService {
     );
 
     // Send password changed notification
-    this.emailService.sendPasswordChangedEmail(email, userResult.rows[0].first_name || 'User', password)
+    this.emailService.sendPasswordChangedEmail(email, user.first_name || 'User', password)
       .catch(err => console.error(`Failed to send password changed email to ${email}:`, err));
 
     return { message: 'Password reset successfully' };
