@@ -270,7 +270,7 @@ export default function FundOverviewPage() {
 
             {/* Note Section */}
             {fund.note && (
-              <div className="bg-white rounded-lg shadow-md p-8">
+              <div className="bg-white rounded-lg shadow-sm p-8">
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Note</h3>
                 <div className="space-y-3">
                   <p className="text-sm text-gray-400 font-medium italic">
