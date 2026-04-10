@@ -16,7 +16,7 @@ export class StatsController {
   }
 
   @Get('investor/:id')
-  @Roles('admin', 'staff', 'accountant')
+  @Roles('admin', 'staff', 'accountant', 'investor')
   async getInvestorStats(@Param('id') id: string) {
     return this.statsService.getInvestorStats(id);
   }

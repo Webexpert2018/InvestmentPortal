@@ -242,6 +242,7 @@ export default function DashboardPage() {
     totalUnits: 0,
     currentNav: 0,
     currentValue: 0,
+    ytdReturn: 0,
   });
   const [adminStats, setAdminStats] = useState({
     totalInvestors: 0,
@@ -269,11 +270,12 @@ export default function DashboardPage() {
 
     const fetchStats = async () => {
       try {
-        if (dashboardRole === 'investor') {
-          const [flows, investments, navSummary] = await Promise.all([
+        if (dashboardRole === 'investor' && user?.id) {
+          const [flows, investments, navSummary, dynamicStats] = await Promise.all([
             apiClient.getMyFundFlows(),
             apiClient.getMyInvestments(),
             apiClient.getNavSummary(),
+            apiClient.getInvestorStats(user.id),
           ]);
 
           setActiveFundsCount(flows.length);
@@ -288,6 +290,7 @@ export default function DashboardPage() {
             totalUnits,
             currentNav,
             currentValue,
+            ytdReturn: dynamicStats.ytdReturn || 0,
           });
         } else if (dashboardRole === 'admin') {
           const stats = await apiClient.getAdminStats();
@@ -298,7 +301,7 @@ export default function DashboardPage() {
       }
     };
     fetchStats();
-  }, [dashboardRole, user?.kycStatus]);
+  }, [dashboardRole, user?.kycStatus, user?.id]);
 
   const roleStats = {
     admin: [
@@ -435,12 +438,12 @@ export default function DashboardPage() {
               {
                 label: 'Total Invested',
                 value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.totalInvested),
-                helper: '↑ 12.5% this quarter',
+                helper: `${investorStats.ytdReturn >= 0 ? '↑' : '↓'} ${Math.abs(investorStats.ytdReturn).toFixed(2)}% total return`,
               },
               {
                 label: 'Current Value',
                 value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue),
-                helper: `+${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue - investorStats.totalInvested)}`,
+                helper: `${investorStats.currentValue - investorStats.totalInvested >= 0 ? '+' : ''}${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue - investorStats.totalInvested)}`,
               },
               {
                 label: 'Total Units',
@@ -735,7 +738,7 @@ export default function DashboardPage() {
                 <table className="min-w-full">
                   <thead>
                     <tr className="border-b border-gray-100">
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fund Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Investor Name</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Account Type</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">KYC Status</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Funding Status</th>
@@ -762,7 +765,7 @@ export default function DashboardPage() {
 
                       return (
                         <tr key={person.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{person.fundName || 'N/A'}</td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{person.investorName || 'N/A'}</td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{person.accountType}</td>
                           <td className="px-4 py-4 whitespace-nowrap">
                             <span className={`px-3 py-1 inline-flex text-xs font-medium rounded-full ${kyc.color}`}>

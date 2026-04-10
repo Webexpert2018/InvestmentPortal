@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { MoreVertical, Loader2 } from 'lucide-react';
+import { MoreVertical, Loader2, ArrowUpDown } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 
 export default function PortfolioPage() {
@@ -12,6 +12,7 @@ export default function PortfolioPage() {
   const [loading, setLoading] = useState(true);
   const [investments, setInvestments] = useState<any[]>([]);
   const [funds, setFunds] = useState<any[]>([]);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const [stats, setStats] = useState({
     totalInvested: 0,
     totalUnits: 0,
@@ -70,6 +71,49 @@ export default function PortfolioPage() {
       style: 'currency',
       currency: 'USD',
     }).format(val);
+  };
+
+  const sortedInvestments = useMemo(() => {
+    let sortableItems = [...investments].map(inv => {
+      const units = parseFloat(inv.estimated_units || '0');
+      const currentNav = stats.currentNav || 0;
+      const currentValue = parseFloat(inv.revised_amount || (units * currentNav));
+      const costBasis = parseFloat(inv.investment_amount || '0');
+      const gainLossValue = currentValue - costBasis;
+      return {
+        ...inv,
+        units,
+        currentNav,
+        currentValue,
+        costBasis,
+        gainLossValue,
+        statusValue: inv.status || 'Pending'
+      };
+    });
+
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+        
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [investments, sortConfig, stats.currentNav]);
+
+  const requestSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
   };
 
   if (loading) {
@@ -184,8 +228,8 @@ export default function PortfolioPage() {
                     <div className="flex-shrink-0">
                       <img
                         src={
-                          fund.image_url 
-                            ? (fund.image_url.startsWith('http') ? fund.image_url : `${BASE_URL}${fund.image_url}`) 
+                          fund.image_url
+                            ? (fund.image_url.startsWith('http') ? fund.image_url : `${BASE_URL}${fund.image_url}`)
                             : "/images/strive_funds.jpg"
                         }
                         alt={fund.name}
@@ -216,19 +260,59 @@ export default function PortfolioPage() {
                 <table className="min-w-full text-left text-sm">
                   <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
                     <tr>
-                      <th className="px-4 py-3">Fund Name</th>
-                      <th className="px-4 py-3">Account Type</th>
-                      <th className="px-4 py-3">Units</th>
-                      <th className="px-4 py-3">Current NAV</th>
-                      <th className="px-4 py-3">Current Value</th>
-                      <th className="px-4 py-3">Cost Basis</th>
-                      <th className="px-4 py-3">Gain/Loss</th>
-                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('fund_name')}>
+                        <div className="flex items-center gap-1">
+                          Fund Name
+                          <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'fund_name' ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'}`} />
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('account_type')}>
+                        <div className="flex items-center gap-1">
+                          Account Type
+                          <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'account_type' ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'}`} />
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('units')}>
+                        <div className="flex items-center justify-end gap-1">
+                          Units
+                          <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'units' ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'}`} />
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('currentNav')}>
+                        <div className="flex items-center justify-end gap-1">
+                          Current NAV
+                          <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'currentNav' ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'}`} />
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('currentValue')}>
+                        <div className="flex items-center justify-end gap-1">
+                          Current Value
+                          <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'currentValue' ? 'opacity-100' : 'opacity-20 group-hover:opacity-40'}`} />
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('costBasis')}>
+                        <div className="flex items-center justify-end gap-1">
+                          Cost Basis
+                          <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'costBasis' ? 'opacity-100' : 'opacity-20 group-hover:opacity-40'}`} />
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('gainLossValue')}>
+                        <div className="flex items-center gap-1">
+                          Gain/Loss
+                          <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'gainLossValue' ? 'opacity-100' : 'opacity-20 group-hover:opacity-40'}`} />
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('statusValue')}>
+                        <div className="flex items-center gap-1">
+                          Status
+                          <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'statusValue' ? 'opacity-100' : 'opacity-20 group-hover:opacity-40'}`} />
+                        </div>
+                      </th>
                       <th className="px-4 py-3 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
-                    {investments.map((row) => {
+                    {sortedInvestments.map((row) => {
                       const units = parseFloat(row.estimated_units);
                       const currentNav = stats.currentNav;
                       const currentValue = parseFloat(row.revised_amount || (units * currentNav));
@@ -239,15 +323,15 @@ export default function PortfolioPage() {
 
                       return (
                         <tr key={row.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-[#1F1F1F]">{row.fund_name}</td>
+                          <td className="px-4 py-3 text-[#1F1F1F] font-medium">{row.fund_name}</td>
                           <td className="px-4 py-3 text-[#4B4B4B]">{row.account_type}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B]">{units.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B]">{formatCurrency(currentNav)}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B]">{formatCurrency(currentValue)}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B]">{formatCurrency(costBasis)}</td>
+                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{row.units.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
+                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(row.currentNav)}</td>
+                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(row.currentValue)}</td>
+                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(row.costBasis)}</td>
                           <td className="px-4 py-3 font-medium">
-                            <span className={gainPositive ? 'text-[#2BB673]' : 'text-[#E04343]'}>
-                              {gainPositive ? '+' : ''}{formatCurrency(gainLoss)} ({gainPercent.toFixed(2)}%)
+                            <span className={row.gainLossValue >= 0 ? 'text-[#2BB673]' : 'text-[#E04343]'}>
+                              {row.gainLossValue >= 0 ? '+' : ''}{formatCurrency(row.gainLossValue)} ({(row.costBasis > 0 ? (row.gainLossValue / row.costBasis) * 100 : 0).toFixed(2)}%)
                             </span>
                           </td>
                           <td className="px-4 py-3">

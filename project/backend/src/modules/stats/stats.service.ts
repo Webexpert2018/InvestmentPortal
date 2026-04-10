@@ -13,7 +13,7 @@ export class StatsService {
         db.query(`
           SELECT 
             i.id,
-            f.name as fund_name,
+            inv.full_name as investor_name,
             i.account_type,
             inv.kyc_status,
             i.status as funding_status,
@@ -33,7 +33,7 @@ export class StatsService {
         pendingRedemptions: parseInt(pendingRedemptionsCount.rows[0].count),
         recentInvestors: recentInvestorsResult.rows.map(row => ({
           id: row.id,
-          fundName: row.fund_name,
+          investorName: row.investor_name,
           accountType: row.account_type,
           kycStatus: row.kyc_status,
           fundingStatus: row.funding_status,
@@ -68,6 +68,7 @@ export class StatsService {
       return {
         totalValue,
         totalUnits: parseFloat(total_units),
+        totalInvested: parseFloat(total_invested),
         ytdReturn: parseFloat(ytdReturn.toFixed(2))
       };
     } catch (error) {

@@ -212,7 +212,7 @@ export default function RedemptionAmountPage() {
                 {holdings.length > 0 ? (
                   holdings.map((h) => (
                     <option key={h.id} value={h.id}>
-                      {h.fund_name} — {parseFloat(h.estimated_units).toFixed(4)} Units
+                      {h.fund_name} — {parseFloat(h.estimated_units).toFixed(4)} Units ({formatCurrency(h.revised_amount || h.investment_amount)})
                     </option>
                   ))
                 ) : (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, MoreVertical, X } from 'lucide-react';
+import { ChevronLeft, MoreVertical, X, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
@@ -25,6 +25,8 @@ export default function FundOverviewPage() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [activeDocDropdown, setActiveDocDropdown] = useState<string | null>(null);
+  const [showDocDeleteModal, setShowDocDeleteModal] = useState(false);
+  const [docToDelete, setDocToDelete] = useState<any>(null);
   const { user } = useAuth();
   const isInvestor = user?.role === 'investor';
 
@@ -143,6 +145,18 @@ export default function FundOverviewPage() {
             <h1 className="text-3xl font-bold text-gray-900 leading-tight">{fund.name}</h1>
             <p className="text-sm text-gray-500 mt-0.5">Fund Details</p>
           </div>
+
+          {!isInvestor && (
+            <div className="ml-auto">
+              <Button
+                onClick={() => router.push(`/dashboard/funds/${params.id}/documents/upload`)}
+                className="bg-[#FCD34D] hover:bg-[#fbbf24] text-[#1F3B6E] px-6 py-2 rounded-full font-bold flex items-center gap-2"
+              >
+                <Plus className="h-5 w-5" />
+                Upload Doc.
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
@@ -406,16 +420,10 @@ export default function FundOverviewPage() {
                                         Edit
                                       </Link>
                                       <button
-                                        onClick={async () => {
-                                          if (confirm('Are you sure you want to delete this document?')) {
-                                            try {
-                                              await apiClient.deleteDocument(doc.id);
-                                              toast.success('Document deleted');
-                                              fetchDocuments();
-                                            } catch (err: any) {
-                                              toast.error(err.message);
-                                            }
-                                          }
+                                        onClick={() => {
+                                          setDocToDelete(doc);
+                                          setShowDocDeleteModal(true);
+                                          setActiveDocDropdown(null);
                                         }}
                                         className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
                                       >
@@ -468,6 +476,49 @@ export default function FundOverviewPage() {
               </Button>
               <Button
                 onClick={confirmDelete}
+                className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-8 py-2 rounded-full font-medium"
+              >
+                Yes, Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Delete Confirmation Modal */}
+      {showDocDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-xl w-full mx-4 relative">
+            <button
+              onClick={() => setShowDocDeleteModal(false)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Delete Document</h2>
+            <p className="text-gray-600 mb-8 leading-relaxed">
+              Are you sure you want to delete <span className="font-semibold text-gray-900">"{docToDelete?.file_name}"</span>?<br />
+              This action cannot be undone and will permanently remove the document from the fund.
+            </p>
+            <div className="flex justify-end gap-4">
+              <Button
+                onClick={() => setShowDocDeleteModal(false)}
+                className="bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-900 px-8 py-2 rounded-full font-medium"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  try {
+                    await apiClient.deleteDocument(docToDelete.id);
+                    toast.success('Document deleted successfully');
+                    fetchDocuments();
+                  } catch (error: any) {
+                    toast.error(error.message || 'Failed to delete document');
+                  } finally {
+                    setShowDocDeleteModal(false);
+                  }
+                }}
                 className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-8 py-2 rounded-full font-medium"
               >
                 Yes, Delete
