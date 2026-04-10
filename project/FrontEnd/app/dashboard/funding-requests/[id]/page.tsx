@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, X, ChevronDown } from 'lucide-react';
+import { ChevronLeft, X, ChevronDown, Loader2 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
+import { apiClient } from '@/lib/api/client';
+import { format } from 'date-fns';
 
 interface PageProps {
   params: {
@@ -14,29 +16,50 @@ interface PageProps {
 
 export default function FundingRequestDetailsPage({ params }: PageProps) {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [requestData, setRequestData] = useState<any>(null);
+
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [selectedRejectReason, setSelectedRejectReason] = useState('');
 
-  // Mock data for the funding request
-  const requestData = {
-    requestId: 'FUN-123456',
-    submittedDate: 'Jan 25, 2026',
-    status: 'Pending',
-    investor: 'Jakob Philips',
-    email: 'demo@gmail.com',
-    paymentMethod: 'Wire',
-    accountType: 'Roth IRA',
-    amount: '$1500.00',
-    bankName: 'Metropolitan Commercial Bank',
-  };
+  useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        setLoading(true);
+        const data = await apiClient.getInvestmentById(params.id);
+        setRequestData({
+          requestId: `FUN-${params.id.slice(0, 6).toUpperCase()}`,
+          submittedDate: data.created_at ? format(new Date(data.created_at), 'MMM dd, yyyy') : 'N/A',
+          status: data.status || 'Pending',
+          investor: data.investor_name || 'N/A',
+          email: data.email || 'N/A',
+          paymentMethod: 'Wire', // Default as per plan
+          accountType: data.account_type || 'N/A',
+          amount: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(data.investment_amount || '0')),
+          bankName: data.custodian_name || 'N/A',
+        });
+        setError(null);
+      } catch (err: any) {
+        console.error('Failed to fetch investment details:', err);
+        setError(err.message || 'Failed to load funding request details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchDetails();
+    }
+  }, [params.id]);
 
   const wireInstructions = {
-    bankName: 'Metropolitan Commercial Bank',
+    bankName: requestData?.bankName !== 'N/A' ? requestData?.bankName : 'Metropolitan Commercial Bank',
     accountNumber: '8070001027448',
     routingNumber: '026013356',
-    beneficiaryName: 'John Smith',
+    beneficiaryName: requestData?.investor || 'Investor',
     bankAddress: '99 Park Ave, 4th Fl, New York, NY 10016',
   };
 
@@ -51,15 +74,56 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Pending':
+      case 'Subscription Submitted':
+      case 'Awaiting Funding':
         return 'text-orange-600 bg-orange-50';
       case 'Rejected':
         return 'text-red-600 bg-red-50';
       case 'Approved':
+      case 'Funds Received':
+      case 'Units Issued':
         return 'text-green-600 bg-green-50';
       default:
         return 'text-gray-600 bg-gray-50';
     }
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-12 w-12 animate-spin text-[#FCD34D] mb-4" />
+          <p className="text-gray-500 font-medium">Loading request details...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !requestData) {
+    return (
+      <DashboardLayout>
+        <div className="p-6">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          >
+            <ChevronLeft className="h-5 w-5" />
+            <span className="font-medium">Back</span>
+          </button>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <h2 className="text-red-800 font-bold text-lg mb-2">Error</h2>
+            <p className="text-red-600">{error || 'Request not found'}</p>
+            <Button 
+              onClick={() => window.location.reload()}
+              className="mt-4 bg-red-100 hover:bg-red-200 text-red-700 border-none shadow-none"
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -82,13 +146,13 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
             <div className="flex gap-3">
               <Button
                 onClick={() => setShowRejectModal(true)}
-                className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium"
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium shadow-none h-auto"
               >
                 Reject
               </Button>
               <Button
                 onClick={() => setShowApproveModal(true)}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium"
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium shadow-none h-auto"
               >
                 Approve
               </Button>
@@ -101,7 +165,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
           {/* Request Details */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Req Details</h2>
+              <h2 className="text-xl font-semibold text-gray-900 font-goudy">Req Details</h2>
               <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(requestData.status)}`}>
                 {requestData.status}
               </span>
@@ -110,33 +174,33 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Investor</p>
+                  <p className="text-sm text-gray-400 mb-1">Investor</p>
                   <p className="font-medium text-gray-900">{requestData.investor}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Account Type</p>
+                  <p className="text-sm text-gray-400 mb-1">Account Type</p>
                   <p className="font-medium text-gray-900">{requestData.accountType}</p>
                 </div>
               </div>
 
               <div>
-                <p className="text-sm text-gray-500 mb-1">Email</p>
+                <p className="text-sm text-gray-400 mb-1">Email</p>
                 <p className="font-medium text-gray-900">{requestData.email}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Payment Method</p>
+                  <p className="text-sm text-gray-400 mb-1">Payment Method</p>
                   <p className="font-medium text-gray-900">{requestData.paymentMethod}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Amount</p>
+                  <p className="text-sm text-gray-400 mb-1">Amount</p>
                   <p className="font-medium text-gray-900">{requestData.amount}</p>
                 </div>
               </div>
 
               <div>
-                <p className="text-sm text-gray-500 mb-1">Bank Name</p>
+                <p className="text-sm text-gray-400 mb-1">Bank Name</p>
                 <p className="font-medium text-gray-900">{requestData.bankName}</p>
               </div>
             </div>
@@ -144,7 +208,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
 
           {/* Custodian Wire Instructions */}
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Custodian Wire Instructions</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6 font-goudy">Custodian Wire Instructions</h2>
 
             <div className="mb-6">
               <p className="text-sm text-gray-600">
@@ -203,16 +267,21 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
             <div className="flex gap-3 justify-end">
               <Button
                 onClick={() => setShowApproveModal(false)}
-                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium"
+                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium shadow-none"
               >
                 No
               </Button>
               <Button
-                onClick={() => {
-                  // Handle approve action
-                  setShowApproveModal(false);
+                onClick={async () => {
+                  try {
+                    await apiClient.updateInvestmentStatus(params.id, { status: 'Funds Received' });
+                    setShowApproveModal(false);
+                    window.location.reload();
+                  } catch (err) {
+                    console.error('Failed to approve:', err);
+                  }
                 }}
-                className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 rounded-lg font-medium"
+                className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 rounded-lg font-medium shadow-none"
               >
                 Yes
               </Button>
@@ -274,18 +343,23 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
             <div className="flex gap-3 justify-end">
               <Button
                 onClick={() => setShowRejectModal(false)}
-                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium"
+                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium shadow-none"
               >
                 No
               </Button>
               <Button
-                onClick={() => {
-                  // Handle reject action
-                  setShowRejectModal(false);
-                  setRejectReason('');
-                  setSelectedRejectReason('');
+                onClick={async () => {
+                  try {
+                    await apiClient.updateInvestmentStatus(params.id, { status: 'Rejected' });
+                    setShowRejectModal(false);
+                    setRejectReason('');
+                    setSelectedRejectReason('');
+                    window.location.reload();
+                  } catch (err) {
+                    console.error('Failed to reject:', err);
+                  }
                 }}
-                className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 rounded-lg font-medium"
+                className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 rounded-lg font-medium shadow-none"
               >
                 Yes
               </Button>

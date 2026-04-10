@@ -80,80 +80,108 @@ export class UsersService {
     taxId?: string,
     profileImageUrl?: string,
   ) {
+    // Determine which table handles this user
+    let tableName: string | null = null;
+    let nameFieldType: 'split' | 'full' = 'split';
+
+    // 1. Check users table
+    const userCheck = await db.query('SELECT id FROM users WHERE id = $1', [userId]);
+    if (userCheck.rows.length > 0) {
+      tableName = 'users';
+      nameFieldType = 'split';
+    } else {
+      // 2. Check investors table
+      const investorCheck = await db.query('SELECT id FROM investors WHERE id = $1', [userId]);
+      if (investorCheck.rows.length > 0) {
+        tableName = 'investors';
+        nameFieldType = 'full';
+      } else {
+        // 3. Check staff table
+        const staffCheck = await db.query('SELECT id FROM staff WHERE id = $1', [userId]);
+        if (staffCheck.rows.length > 0) {
+          tableName = 'staff';
+          nameFieldType = 'full';
+        }
+      }
+    }
+
+    if (!tableName) {
+      throw new NotFoundException('User profile not found in any registration table');
+    }
+
     const updates: string[] = ['updated_at = NOW()'];
     const values: any[] = [];
     let paramIndex = 1;
 
-    if (firstName !== undefined) {
-      updates.push(`first_name = $${paramIndex++}`);
-      values.push(firstName);
+    // Handle names based on table structure
+    if (nameFieldType === 'full') {
+      if (firstName !== undefined || lastName !== undefined) {
+        const currentRes = await db.query(`SELECT full_name FROM ${tableName} WHERE id = $1`, [userId]);
+        const currentFullName = currentRes.rows[0]?.full_name || '';
+        const [currFirst, ...currLastParts] = currentFullName.split(' ');
+        
+        const finalFirst = firstName !== undefined ? firstName : currFirst;
+        const finalLast = lastName !== undefined ? lastName : currLastParts.join(' ');
+        const fullName = `${finalFirst} ${finalLast}`.trim();
+
+        updates.push(`full_name = $${paramIndex++}`);
+        values.push(fullName);
+      }
+    } else {
+      if (firstName !== undefined) {
+        updates.push(`first_name = $${paramIndex++}`);
+        values.push(firstName);
+      }
+      if (lastName !== undefined) {
+        updates.push(`last_name = $${paramIndex++}`);
+        values.push(lastName);
+      }
     }
-    if (lastName !== undefined) {
-      updates.push(`last_name = $${paramIndex++}`);
-      values.push(lastName);
-    }
-    if (phone !== undefined) {
-      updates.push(`phone = $${paramIndex++}`);
-      values.push(phone);
-    }
-    if (dob !== undefined) {
-      updates.push(`dob = $${paramIndex++}`);
-      values.push(dob === '' ? null : dob);
-    }
-    if (addressLine1 !== undefined) {
-      updates.push(`address_line1 = $${paramIndex++}`);
-      values.push(addressLine1);
-    }
-    if (addressLine2 !== undefined) {
-      updates.push(`address_line2 = $${paramIndex++}`);
-      values.push(addressLine2);
-    }
-    if (city !== undefined) {
-      updates.push(`city = $${paramIndex++}`);
-      values.push(city);
-    }
-    if (state !== undefined) {
-      updates.push(`state = $${paramIndex++}`);
-      values.push(state);
-    }
-    if (zipCode !== undefined) {
-      updates.push(`zip_code = $${paramIndex++}`);
-      values.push(zipCode);
-    }
-    if (country !== undefined) {
-      updates.push(`country = $${paramIndex++}`);
-      values.push(country);
-    }
-    if (taxId !== undefined) {
-      updates.push(`tax_id = $${paramIndex++}`);
-      values.push(taxId);
-    }
-    if (profileImageUrl !== undefined) {
-      updates.push(`profile_image_url = $${paramIndex++}`);
-      values.push(profileImageUrl);
+
+    // Common fields across all tables
+    const fieldMap: Record<string, any> = {
+      phone,
+      dob,
+      address_line1: addressLine1,
+      address_line2: addressLine2,
+      city,
+      state,
+      zip_code: zipCode,
+      country,
+      tax_id: taxId,
+      profile_image_url: profileImageUrl,
+    };
+
+    for (const [colName, val] of Object.entries(fieldMap)) {
+      if (val !== undefined) {
+        updates.push(`${colName} = $${paramIndex++}`);
+        values.push(val === '' ? null : val);
+      }
     }
 
     values.push(userId);
 
+    const returning = nameFieldType === 'full' 
+      ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url'
+      : 'id, email, first_name, last_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url';
+
     const result = await db.query(
-      `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id, email, role, first_name, last_name, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url`,
+      `UPDATE ${tableName} SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING ${returning}`,
       values,
     );
 
-    console.log(`[UsersService] Updated profile for user ${userId}. New profile_image_url: ${result.rows[0].profile_image_url}`);
-
     const user = result.rows[0];
+    if (!user) throw new NotFoundException('User update failed');
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    console.log(`[UsersService] Updated ${tableName} (${userId}): ${profileImageUrl ? 'image' : 'profile data'}`);
 
+    // Return normalized object
     return {
       id: user.id,
       email: user.email,
       role: user.role,
-      firstName: user.first_name,
-      lastName: user.last_name,
+      firstName: nameFieldType === 'full' ? user.full_name?.split(' ')[0] : user.first_name,
+      lastName: nameFieldType === 'full' ? user.full_name?.split(' ').slice(1).join(' ') : user.last_name,
       phone: user.phone,
       status: user.status,
       dob: user.dob,

@@ -20,13 +20,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      if (isAdmin) {
-        router.push('/admin');
-      } else if (isAccountant) {
-        router.push('/admin/compliance');
-      } else {
-        router.push('/dashboard');
-      }
+      router.push('/dashboard');
     }
   }, [isAuthenticated, isAdmin, isAccountant, loading, router]);
 

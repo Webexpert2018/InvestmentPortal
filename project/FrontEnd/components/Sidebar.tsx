@@ -171,31 +171,6 @@ const menuItems: MenuItem[] = [
     icon: Settings,
     roles: ['investor', 'admin', 'accountant', 'compliance'],
   },
-  // {
-  //   title: 'User Management',
-  //   href: '/admin/users',
-  //   icon: Users,
-  //   roles: ['admin'],
-  // },
-  // {
-  //   title: 'Compliance',
-  //   href: '/admin/compliance',
-  //   icon: Shield,
-  //   roles: ['admin', 'compliance'],
-  // },
-  // {
-  //   title: 'Reports',
-  //   href: '/admin/reports',
-  //   icon: BarChart3,
-  //   roles: ['admin', 'compliance'],
-  // },
-  // {
-  //   title: 'Audit Logs',
-  //   href: '/admin/audit-logs',
-  //   icon: Shield,
-  //   roles: ['admin'],
-  // },
-
 ];
 
 const accountantMenu: MenuItem[] = [
@@ -269,7 +244,10 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
               const isActive =
                 pathname === item.href ||
                 (item.href !== '/dashboard' &&
-                  pathname?.startsWith(item.href + '/'));
+                  pathname?.startsWith(item.href + '/')) ||
+                (item.href === '/dashboard/portfolio' &&
+                  pathname?.startsWith('/dashboard/funds/') &&
+                  currentRole === 'investor');
 
               return (
                 <Link

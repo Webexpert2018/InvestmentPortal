@@ -17,50 +17,65 @@ export class AuthService {
     addressLine1?: string, addressLine2?: string, city?: string, state?: string,
     zipCode?: string, country?: string, taxId?: string
   ) {
-    const existingUserResult = await db.query(
-      'SELECT id FROM users WHERE email = $1',
-      [email]
-    );
+    // 1. Check if user already exists in ANY table (users, investors, staff)
+    const [existingUser, existingInvestor, existingStaff] = await Promise.all([
+      db.query('SELECT id FROM users WHERE email = $1', [email]),
+      db.query('SELECT id FROM investors WHERE email = $1', [email]),
+      db.query('SELECT id FROM staff WHERE email = $1', [email])
+    ]);
 
-    if (existingUserResult.rows.length > 0) {
+    if (existingUser.rows.length > 0 || existingInvestor.rows.length > 0 || existingStaff.rows.length > 0) {
       throw new ConflictException('User with this email already exists');
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    const targetRole = role || 'investor';
+    let newUser;
 
-    const userResult = await db.query(
-      `INSERT INTO investors (full_name, email, password_hash, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-       RETURNING id, email, role, full_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id`,
-      [firstName + ' ' + (lastName || ''), email, passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId]
-    );
-
-    const newUser = userResult.rows[0];
-
-    // await db.query(
-    //   `INSERT INTO portfolios (user_id, bitcoin_balance, nav, performance, total_invested, total_withdrawn)
-    //    VALUES ($1, $2, $3, $4, $5, $6)`,
-    //   [newUser.id, 0, 0, 0, 0, 0]
-    // );
+    if (targetRole === 'admin' || targetRole === 'accountant') {
+      // 2a. Insert into USERS table for staff/admin roles
+      const userResult = await db.query(
+        `INSERT INTO users (email, password_hash, role, first_name, last_name, phone, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING id, email, role, first_name, last_name, phone, status`,
+        [email, passwordHash, targetRole, firstName, lastName, phone || null, 'active']
+      );
+      newUser = userResult.rows[0];
+      // Normalize names for unified response
+      newUser.firstName = newUser.first_name;
+      newUser.lastName = newUser.last_name;
+    } else {
+      // 2b. Insert into INVESTORS table for default/investor role
+      const userResult = await db.query(
+        `INSERT INTO investors (full_name, email, password_hash, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         RETURNING id, email, role, full_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status`,
+        [firstName + ' ' + (lastName || ''), email, passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId]
+      );
+      newUser = userResult.rows[0];
+      // Normalize names for unified response
+      const nameParts = newUser.full_name?.split(' ') || [];
+      newUser.firstName = nameParts[0] || '';
+      newUser.lastName = nameParts.slice(1).join(' ') || '';
+    }
 
     const token = this.jwtService.sign({
       userId: newUser.id,
       email: newUser.email,
-      role: newUser.role
+      role: newUser.role || targetRole
     });
 
     // Send welcome email asynchronously
-    const firstNameForEmail = newUser.full_name?.split(' ')[0] || 'User';
-    this.emailService.sendWelcomeEmail(newUser.email, firstNameForEmail, newUser.role || 'investor', password)
+    this.emailService.sendWelcomeEmail(newUser.email, newUser.firstName || 'User', newUser.role || targetRole, password)
       .catch(err => console.error(`Failed to send welcome email to ${newUser.email}:`, err));
 
     return {
       user: {
         id: newUser.id,
         email: newUser.email,
-        role: newUser.role || 'investor',
-        firstName: newUser.full_name?.split(' ')[0] || '',
-        lastName: newUser.full_name?.split(' ')[1] || '',
+        role: newUser.role || targetRole,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
         phone: newUser.phone,
         status: newUser.status || 'active',
         dob: newUser.dob,

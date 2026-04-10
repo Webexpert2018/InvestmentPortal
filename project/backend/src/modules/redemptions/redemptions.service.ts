@@ -116,10 +116,12 @@ export class RedemptionsService {
     try {
       const query = `
         SELECT r.*, f.name as fund_name, i.investment_amount as original_investment,
+               inv.email as investor_email, i.account_type,
                (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1) as current_nav
         FROM redemptions r
         JOIN investments i ON r.investment_id = i.id
         JOIN funds f ON i.fund_id = f.id
+        JOIN investors inv ON r.investor_id = inv.id
         WHERE r.id = $1 AND r.investor_id = $2
       `;
       const result = await db.query(query, [id, userId]);
@@ -139,9 +141,11 @@ export class RedemptionsService {
       const query = `
         SELECT r.*, 
                inv.full_name as investor_name, 
+               inv.email as investor_email,
                inv.profile_image_url as avatar_url,
                f.name as fund_name, 
                i.investment_amount as original_investment,
+               i.account_type,
                (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1) as current_nav
         FROM redemptions r
         JOIN investments i ON r.investment_id = i.id

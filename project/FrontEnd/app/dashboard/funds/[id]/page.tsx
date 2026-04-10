@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 export default function FundOverviewPage() {
   const router = useRouter();
@@ -24,6 +25,8 @@ export default function FundOverviewPage() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [activeDocDropdown, setActiveDocDropdown] = useState<string | null>(null);
+  const { user } = useAuth();
+  const isInvestor = user?.role === 'investor';
 
   useEffect(() => {
     if (tabParam === 'documents') {
@@ -191,53 +194,55 @@ export default function FundOverviewPage() {
 
                 {/* Right Side - Fund Details */}
                 <div className="flex-1 flex flex-col">
-                  <div className="flex justify-end mb-2">
-                    <p className="text-sm text-gray-500">Start Date: {formatDate(fund.startDate)}</p>
-                  </div>
+                  <p className="text-sm text-gray-500 mb-1">Start Date: {formatDate(fund.startDate)}</p>
                   
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
                       <h2 className="text-3xl font-bold text-gray-900">{fund.name}</h2>
-                      <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium ${
-                        fund.status === 'Active' ? 'bg-[#E8F5E9] text-[#2E7D32]' :
-                        fund.status === 'Closed' ? 'bg-[#FFEBEE] text-[#C62828]' :
-                        'bg-gray-100 text-gray-600'
-                      }`}>
-                        {fund.status || 'Active'}
-                      </span>
-                    </div>
-
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowDropdown(!showDropdown)}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100"
-                      >
-                        <MoreVertical className="h-5 w-5 text-gray-600" />
-                      </button>
-                      
-                      {showDropdown && (
-                        <>
-                          <div 
-                            className="fixed inset-0 z-10"
-                            onClick={() => setShowDropdown(false)}
-                          />
-                          <div className="absolute right-0 top-full mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
-                            <Link
-                              href={`/dashboard/funds/${params.id}/edit`}
-                              className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                              Edit
-                            </Link>
-                            <button
-                              onClick={handleDelete}
-                              className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </>
+                      {!isInvestor && (
+                        <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium ${
+                          fund.status === 'Active' ? 'bg-[#E8F5E9] text-[#2E7D32]' :
+                          fund.status === 'Closed' ? 'bg-[#FFEBEE] text-[#C62828]' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {fund.status || 'Active'}
+                        </span>
                       )}
                     </div>
+
+                    {!isInvestor && (
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowDropdown(!showDropdown)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100"
+                        >
+                          <MoreVertical className="h-5 w-5 text-gray-600" />
+                        </button>
+                        
+                        {showDropdown && (
+                          <>
+                            <div 
+                              className="fixed inset-0 z-10"
+                              onClick={() => setShowDropdown(false)}
+                            />
+                            <div className="absolute right-0 top-full mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+                              <Link
+                                href={`/dashboard/funds/${params.id}/edit`}
+                                className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                              >
+                                Edit
+                              </Link>
+                              <button
+                                onClick={handleDelete}
+                                className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Fund Strategy */}
@@ -392,28 +397,32 @@ export default function FundOverviewPage() {
                                 >
                                   Download
                                 </a>
-                                <Link
-                                  href={`/dashboard/funds/${params.id}/documents/${doc.id}/edit`}
-                                  className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                                >
-                                  Edit
-                                </Link>
-                                <button
-                                  onClick={async () => {
-                                    if (confirm('Are you sure you want to delete this document?')) {
-                                      try {
-                                        await apiClient.deleteDocument(doc.id);
-                                        toast.success('Document deleted');
-                                        fetchDocuments();
-                                      } catch (err: any) {
-                                        toast.error(err.message);
-                                      }
-                                    }
-                                  }}
-                                  className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
-                                >
-                                  Delete
-                                </button>
+                                  {!isInvestor && (
+                                    <>
+                                      <Link
+                                        href={`/dashboard/funds/${params.id}/documents/${doc.id}/edit`}
+                                        className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                                      >
+                                        Edit
+                                      </Link>
+                                      <button
+                                        onClick={async () => {
+                                          if (confirm('Are you sure you want to delete this document?')) {
+                                            try {
+                                              await apiClient.deleteDocument(doc.id);
+                                              toast.success('Document deleted');
+                                              fetchDocuments();
+                                            } catch (err: any) {
+                                              toast.error(err.message);
+                                            }
+                                          }
+                                        }}
+                                        className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
+                                      >
+                                        Delete
+                                      </button>
+                                    </>
+                                  )}
                               </div>
                             </>
                           )}

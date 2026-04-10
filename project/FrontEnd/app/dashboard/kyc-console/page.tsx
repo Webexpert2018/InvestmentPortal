@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { Search, ChevronDown, MoreVertical } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import Link from 'next/link';
-import { apiClient } from '@/lib/api/client';
+import Image from 'next/image';
+import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 
 interface Investor {
@@ -14,6 +15,7 @@ interface Investor {
   email: string;
   kycStatus: string;
   createdAt: string;
+  profileImageUrl: string | null;
   avatar: string;
 }
 
@@ -153,10 +155,26 @@ export default function KYCConsolePage() {
                     <tr key={record.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-semibold flex-shrink-0">
-                            {record.firstName[0]}{record.lastName ? record.lastName[0] : ''}
+                          <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
+                            {record.profileImageUrl ? (
+                              <Image
+                                src={record.profileImageUrl.startsWith('http') 
+                                  ? record.profileImageUrl 
+                                  : `${BASE_URL}${record.profileImageUrl.startsWith('/') ? '' : '/'}${record.profileImageUrl}`}
+                                alt={record.firstName}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <Image
+                                src={`https://api.dicebear.com/7.x/initials/svg?seed=${record.firstName || 'Investor'}&backgroundColor=FCD34D`}
+                                alt={record.firstName}
+                                fill
+                                className="object-cover"
+                              />
+                            )}
                           </div>
-                          <span className="font-medium text-gray-900 whitespace-nowrap">{record.firstName} {record.lastName}</span>
+                          <span className="font-bold text-gray-900 whitespace-nowrap">{record.firstName} {record.lastName}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-gray-600">{record.email}</td>
@@ -182,30 +200,22 @@ export default function KYCConsolePage() {
                                 onClick={() => setActiveDropdown(null)}
                               />
                               <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
-                                <Link href={`/dashboard/investor/${record.id}`}>
+                                <Link href={`/dashboard/kyc-verification/${record.id}`}>
                                   <button className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors">
                                     View Profile
                                   </button>
                                 </Link>
                                 <button
-                                  className="w-full px-4 py-2 text-left text-[#1F3B6E] hover:bg-blue-50 transition-colors font-medium border-b border-gray-100"
+                                  className="w-full px-4 py-2 text-left text-[#1F3B6E] hover:bg-blue-50 transition-colors font-medium"
                                   onClick={() => {
-                                    window.open(`/dashboard/investor/${record.id}?tab=documents`, '_blank');
+                                    // Set some state to show an assignment modal if needed, 
+                                    // or just navigate to profile where assignment can happen.
+                                    // For now, let's just make it a button as requested.
+                                    toast.info('Assign Relation Associate feature coming soon');
+                                    setActiveDropdown(null);
                                   }}
                                 >
-                                  View Documents 📂
-                                </button>
-                                <button
-                                  onClick={() => handleStatusUpdate(record.id, 'Approved')}
-                                  className="w-full px-4 py-2 text-left text-green-600 hover:bg-green-50 transition-colors"
-                                >
-                                  Approve KYC
-                                </button>
-                                <button
-                                  onClick={() => handleStatusUpdate(record.id, 'Rejected')}
-                                  className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
-                                >
-                                  Reject KYC
+                                  Assign Relation Associate
                                 </button>
                               </div>
                             </>

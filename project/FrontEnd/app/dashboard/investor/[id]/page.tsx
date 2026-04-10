@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ChevronLeft, X, ChevronDown, FileText, Download, Calendar, Mail, Phone, Shield, MapPin } from 'lucide-react';
-import { apiClient } from '@/lib/api/client';
+import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 
 export default function InvestorProfilePage({ params }: { params: { id: string } }) {
@@ -20,18 +20,27 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
   const [investorData, setInvestorData] = useState<any>(null);
   const [kycDocuments, setKycDocuments] = useState<any[]>([]);
+  const [fundingHistory, setFundingHistory] = useState<any[]>([]);
+  const [redemptionHistory, setRedemptionHistory] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>({ totalValue: 0, totalUnits: 0, ytdReturn: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [profile, docs] = await Promise.all([
+        const [profile, docs, investments, redemptions, investorStats] = await Promise.all([
           apiClient.getUserById(params.id),
-          apiClient.getInvestorDocuments(params.id)
+          apiClient.getInvestorDocuments(params.id),
+          apiClient.getInvestorInvestments(params.id),
+          apiClient.getInvestorRedemptions(params.id),
+          apiClient.getInvestorStats(params.id)
         ]);
         setInvestorData(profile);
         setKycDocuments(docs);
+        setFundingHistory(investments);
+        setRedemptionHistory(redemptions);
+        setStats(investorStats);
       } catch (err) {
         console.error('Error fetching investor data:', err);
         toast.error('Failed to load investor profile');
@@ -96,53 +105,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     );
   }
 
-  // Funding History Mock Data
-  const fundingHistory = [
-    { id: 1, fundName: 'ABC Fund', accountType: 'Personal', units: 500, currentNav: '$150.25', currentValue: '$75,143.00', costBasis: '$70,000.00', gainLoss: '+$5,143.03 (+7.35%)' },
-    { id: 2, fundName: 'ABC Fund', accountType: 'IRA', units: 500, currentNav: '$150.25', currentValue: '$75,143.00', costBasis: '$70,000.00', gainLoss: '-$5,143.03 (-7.35%)' },
-    { id: 3, fundName: 'ABC Fund', accountType: 'IRA', units: 500, currentNav: '$150.25', currentValue: '$75,143.00', costBasis: '$70,000.00', gainLoss: '+$5,143.03 (+7.35%)' },
-    { id: 4, fundName: 'ABC Fund', accountType: 'IRA', units: 500, currentNav: '$150.25', currentValue: '$75,143.00', costBasis: '$70,000.00', gainLoss: '+$5,143.03 (+7.35%)' },
-    { id: 5, fundName: 'ABC Fund', accountType: 'IRA', units: 500, currentNav: '$150.25', currentValue: '$75,143.00', costBasis: '$70,000.00', gainLoss: '+$5,143.03 (+7.35%)' },
-    { id: 6, fundName: 'XYZ Fund', accountType: 'Personal', units: 750, currentNav: '$180.50', currentValue: '$135,375.00', costBasis: '$130,000.00', gainLoss: '+$5,375.00 (+4.13%)' },
-    { id: 7, fundName: 'XYZ Fund', accountType: 'Roth IRA', units: 300, currentNav: '$180.50', currentValue: '$54,150.00', costBasis: '$55,000.00', gainLoss: '-$850.00 (-1.55%)' },
-    { id: 8, fundName: 'DEF Fund', accountType: 'IRA', units: 600, currentNav: '$125.75', currentValue: '$75,450.00', costBasis: '$72,000.00', gainLoss: '+$3,450.00 (+4.79%)' },
-    { id: 9, fundName: 'DEF Fund', accountType: 'Personal', units: 450, currentNav: '$125.75', currentValue: '$56,587.50', costBasis: '$58,000.00', gainLoss: '-$1,412.50 (-2.44%)' },
-    { id: 10, fundName: 'GHI Fund', accountType: 'IRA', units: 800, currentNav: '$95.30', currentValue: '$76,240.00', costBasis: '$70,000.00', gainLoss: '+$6,240.00 (+8.91%)' },
-    { id: 11, fundName: 'GHI Fund', accountType: 'Roth IRA', units: 550, currentNav: '$95.30', currentValue: '$52,415.00', costBasis: '$50,000.00', gainLoss: '+$2,415.00 (+4.83%)' },
-    { id: 12, fundName: 'JKL Fund', accountType: 'Personal', units: 400, currentNav: '$210.80', currentValue: '$84,320.00', costBasis: '$85,000.00', gainLoss: '-$680.00 (-0.80%)' },
-    { id: 13, fundName: 'JKL Fund', accountType: 'IRA', units: 350, currentNav: '$210.80', currentValue: '$73,780.00', costBasis: '$68,000.00', gainLoss: '+$5,780.00 (+8.50%)' },
-    { id: 14, fundName: 'MNO Fund', accountType: 'IRA', units: 900, currentNav: '$165.40', currentValue: '$148,860.00', costBasis: '$145,000.00', gainLoss: '+$3,860.00 (+2.66%)' },
-    { id: 15, fundName: 'MNO Fund', accountType: 'Personal', units: 275, currentNav: '$165.40', currentValue: '$45,485.00', costBasis: '$46,000.00', gainLoss: '-$515.00 (-1.12%)' },
-    { id: 16, fundName: 'PQR Fund', accountType: 'Roth IRA', units: 520, currentNav: '$140.25', currentValue: '$72,930.00', costBasis: '$70,000.00', gainLoss: '+$2,930.00 (+4.19%)' },
-    { id: 17, fundName: 'PQR Fund', accountType: 'IRA', units: 680, currentNav: '$140.25', currentValue: '$95,370.00', costBasis: '$92,000.00', gainLoss: '+$3,370.00 (+3.66%)' },
-    { id: 18, fundName: 'STU Fund', accountType: 'Personal', units: 425, currentNav: '$198.60', currentValue: '$84,405.00', costBasis: '$80,000.00', gainLoss: '+$4,405.00 (+5.51%)' },
-    { id: 19, fundName: 'STU Fund', accountType: 'IRA', units: 310, currentNav: '$198.60', currentValue: '$61,566.00', costBasis: '$63,000.00', gainLoss: '-$1,434.00 (-2.28%)' },
-    { id: 20, fundName: 'VWX Fund', accountType: 'Roth IRA', units: 590, currentNav: '$175.90', currentValue: '$103,781.00', costBasis: '$100,000.00', gainLoss: '+$3,781.00 (+3.78%)' },
-  ];
-
   const fundingItemsPerPage = 5;
   const fundingTotalPages = Math.ceil(fundingHistory.length / fundingItemsPerPage);
   const fundingStartIndex = (fundingPage - 1) * fundingItemsPerPage;
   const displayedFundingHistory = fundingHistory.slice(fundingStartIndex, fundingStartIndex + fundingItemsPerPage);
-
-  // Redemption History Mock Data
-  const redemptionHistory = [
-    { id: 1, requestId: 'RED-123456', amount: '$12,000.50', units: 250, destinationBank: 'Checking Account - ****1234', status: 'Settled', requestedDate: 'Jan 25, 2026' },
-    { id: 2, requestId: 'RED-123456', amount: '$12,000.50', units: 250, destinationBank: 'Checking Account - ****1234', status: 'Pending', requestedDate: 'Jan 25, 2026' },
-    { id: 3, requestId: 'RED-123456', amount: '$12,000.50', units: 250, destinationBank: 'Checking Account - ****1234', status: 'Rejected', requestedDate: 'Jan 25, 2026' },
-    { id: 4, requestId: 'RED-123456', amount: '$12,000.50', units: 250, destinationBank: 'Checking Account - ****1234', status: 'Pending', requestedDate: 'Jan 25, 2026' },
-    { id: 5, requestId: 'RED-123456', amount: '$12,000.50', units: 250, destinationBank: 'Checking Account - ****1234', status: 'Pending', requestedDate: 'Jan 25, 2026' },
-    { id: 6, requestId: 'RED-789012', amount: '$8,500.75', units: 180, destinationBank: 'Savings Account - ****5678', status: 'Settled', requestedDate: 'Jan 24, 2026' },
-    { id: 7, requestId: 'RED-345678', amount: '$15,200.00', units: 320, destinationBank: 'Checking Account - ****9012', status: 'Pending', requestedDate: 'Jan 23, 2026' },
-    { id: 8, requestId: 'RED-901234', amount: '$6,750.25', units: 140, destinationBank: 'Checking Account - ****3456', status: 'Settled', requestedDate: 'Jan 22, 2026' },
-    { id: 9, requestId: 'RED-567890', amount: '$9,800.00', units: 200, destinationBank: 'Savings Account - ****7890', status: 'Rejected', requestedDate: 'Jan 21, 2026' },
-    { id: 10, requestId: 'RED-234567', amount: '$11,300.50', units: 230, destinationBank: 'Checking Account - ****2345', status: 'Settled', requestedDate: 'Jan 20, 2026' },
-    { id: 11, requestId: 'RED-678901', amount: '$14,500.00', units: 290, destinationBank: 'Checking Account - ****6789', status: 'Pending', requestedDate: 'Jan 19, 2026' },
-    { id: 12, requestId: 'RED-890123', amount: '$7,200.75', units: 150, destinationBank: 'Savings Account - ****0123', status: 'Settled', requestedDate: 'Jan 18, 2026' },
-    { id: 13, requestId: 'RED-456789', amount: '$10,400.00', units: 210, destinationBank: 'Checking Account - ****4567', status: 'Pending', requestedDate: 'Jan 17, 2026' },
-    { id: 14, requestId: 'RED-012345', amount: '$13,100.25', units: 270, destinationBank: 'Checking Account - ****8901', status: 'Rejected', requestedDate: 'Jan 16, 2026' },
-    { id: 15, requestId: 'RED-321098', amount: '$9,000.00', units: 185, destinationBank: 'Savings Account - ****2109', status: 'Settled', requestedDate: 'Jan 15, 2026' },
-  ];
 
   const redemptionItemsPerPage = 5;
   const redemptionTotalPages = Math.ceil(redemptionHistory.length / redemptionItemsPerPage);
@@ -192,14 +158,22 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
               <div className="space-y-8">
                 <div className="flex flex-col lg:flex-row gap-8">
                   {/* Left: Avatar and Identity */}
-                  <div className="w-full lg:w-1/3 space-y-6">
-                    <div className="mx-auto lg:mx-0 w-full max-w-[300px] aspect-[4/5] rounded-xl bg-gray-100 overflow-hidden shadow-sm">
+                  <div className="w-full lg:w-[300px] space-y-6">
+                    <div className="mx-auto lg:mx-0 w-full max-w-[300px] aspect-[4/5] rounded-2xl border border-gray-100 shadow-sm overflow-hidden bg-gray-100">
                       {investorData.profileImageUrl ? (
-                        <img src={investorData.profileImageUrl} alt="Profile" className="w-full h-full object-cover" />
+                        <img 
+                          src={investorData.profileImageUrl.startsWith('http') 
+                            ? investorData.profileImageUrl 
+                            : `${BASE_URL}${investorData.profileImageUrl.startsWith('/') ? '' : '/'}${investorData.profileImageUrl}`} 
+                          alt="Profile" 
+                          className="w-full h-full object-cover" 
+                        />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 text-gray-300 font-bold text-6xl uppercase">
-                          {investorData.firstName?.[0]}{investorData.lastName?.[0]}
-                        </div>
+                        <img 
+                          src={`https://api.dicebear.com/7.x/initials/svg?seed=${investorData.firstName || 'Investor'}&backgroundColor=FCD34D`} 
+                          alt="Profile Placeholder" 
+                          className="w-full h-full object-cover"
+                        />
                       )}
                     </div>
                   </div>
@@ -214,8 +188,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           <p className="text-sm text-gray-400 font-medium">Joined date: {new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                         </div>
                         <div className="flex gap-2">
-                          <button onClick={() => setShowNoteModal(true)} className="px-6 py-2 bg-[#FFF9EE] text-[#D97706] text-xs font-bold rounded-full hover:bg-orange-100 transition-colors">Note</button>
-                          <button onClick={() => setShowAssignModal(true)} className="px-6 py-2 bg-[#FCD34D] text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-[#FBD24E] transition-colors">Assign Accountant</button>
+                          <button onClick={() => setShowAssignModal(true)} className="px-6 py-2 bg-[#FCD34D] text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-[#FBD24E] transition-colors">Assign Relation Associate</button>
                         </div>
                       </div>
                     </div>
@@ -253,18 +226,20 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     <div className="space-y-6">
                       <h3 className="text-sm font-bold text-gray-500">Linked Custodian Accounts</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                        <div>
-                          <span className="text-xs font-bold text-gray-400 block mb-1">Personal Account</span>
-                          <p className="text-sm font-bold text-gray-900">Total Value: <span className="text-gray-900">$82,450</span></p>
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold text-gray-400 block mb-1">Traditional IRA</span>
-                          <p className="text-sm font-bold text-gray-900">Total Value: <span className="text-gray-900">$154,300</span></p>
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold text-gray-400 block mb-1">Roth IRA</span>
-                          <p className="text-sm font-bold text-gray-900">Total Value: <span className="text-gray-900">$49,870</span></p>
-                        </div>
+                        {Object.entries(fundingHistory.reduce((acc: any, curr: any) => {
+                          const type = curr.account_type || 'Other';
+                          const val = parseFloat(curr.revised_amount || curr.investment_amount || 0);
+                          acc[type] = (acc[type] || 0) + val;
+                          return acc;
+                        }, {})).map(([type, total]: [string, any]) => (
+                          <div key={type}>
+                            <span className="text-xs font-bold text-gray-400 block mb-1">{type} Account</span>
+                            <p className="text-sm font-bold text-gray-900">Total Value: <span className="text-gray-900">${total.toLocaleString()}</span></p>
+                          </div>
+                        ))}
+                        {fundingHistory.length === 0 && (
+                          <p className="text-sm text-gray-400 italic">No linked accounts found</p>
+                        )}
                       </div>
                     </div>
 
@@ -381,15 +356,17 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Total Profile Value</p>
-                    <p className="text-2xl font-bold text-[#1F1F1F]">$286,620</p>
+                    <p className="text-2xl font-bold text-[#1F1F1F]">${stats.totalValue.toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Total Units</p>
-                    <p className="text-2xl font-bold text-[#1F1F1F]">1882.34</p>
+                    <p className="text-2xl font-bold text-[#1F1F1F]">{stats.totalUnits.toFixed(2)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 mb-1">YTD Return</p>
-                    <p className="text-2xl font-bold text-green-600">+12.8%</p>
+                    <p className={`text-2xl font-bold ${stats.ytdReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {stats.ytdReturn >= 0 ? '+' : ''}{stats.ytdReturn.toFixed(1)}%
+                    </p>
                   </div>
                 </div>
 
@@ -410,29 +387,37 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-100">
-                        {displayedFundingHistory.map((fund) => (
-                          <tr key={fund.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{fund.fundName}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{fund.accountType}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{fund.units}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{fund.currentNav}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{fund.currentValue}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{fund.costBasis}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <span className={fund.gainLoss.startsWith('+') ? 'text-green-600' : 'text-red-600'}>
-                                {fund.gainLoss}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <Link
-                                href={`/dashboard/funding/${fund.id}`}
-                                className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors inline-block"
-                              >
-                                View Fund Details
-                              </Link>
-                            </td>
-                          </tr>
-                        ))}
+                        {displayedFundingHistory.map((fund) => {
+                          const costBasisValue = parseFloat(fund.investment_amount);
+                          const currentValue = parseFloat(fund.revised_amount || fund.investment_amount);
+                          const gainLossValue = currentValue - costBasisValue;
+                          const gainLossPercent = costBasisValue > 0 ? (gainLossValue / costBasisValue) * 100 : 0;
+                          const isGain = gainLossValue >= 0;
+
+                          return (
+                            <tr key={fund.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{fund.fund_name}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{fund.account_type}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{parseFloat(fund.estimated_units).toFixed(2)}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${parseFloat(fund.unit_price).toFixed(2)}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${currentValue.toLocaleString()}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${costBasisValue.toLocaleString()}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <span className={isGain ? 'text-green-600' : 'text-red-600'}>
+                                  {isGain ? '+' : '-'}${Math.abs(gainLossValue).toLocaleString()} ({isGain ? '+' : ''}{gainLossPercent.toFixed(2)}%)
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <Link
+                                  href={`/dashboard/funding/${fund.id}`}
+                                  className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors inline-block"
+                                >
+                                  View Fund Details
+                                </Link>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -492,16 +477,20 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       <tbody className="bg-white divide-y divide-gray-100">
                         {displayedRedemptionHistory.map((redemption) => (
                           <tr key={redemption.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{redemption.requestId}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{redemption.amount}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{redemption.units}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{redemption.destinationBank}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">RED-{redemption.id.substring(0, 6).toUpperCase()}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${parseFloat(redemption.amount).toLocaleString()}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{parseFloat(redemption.units).toFixed(2)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                              {redemption.bank_info?.accountName || 'Bank Transfer'}
+                            </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-3 py-1 inline-flex text-xs font-medium rounded-full ${getStatusColor(redemption.status)}`}>
                                 {redemption.status}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{redemption.requestedDate}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                              {new Date(redemption.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <Link
                                 href={`/dashboard/redemption/${redemption.id}`}
@@ -562,9 +551,9 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-[#1F1F1F]">Assign Accountant</h2>
+                  <h2 className="text-xl font-semibold text-[#1F1F1F]">Assign Relation Associate</h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    Select an accountant to manage this investor's KYC documents and communication.
+                    Select a relation associate to manage this investor's KYC documents and communication.
                   </p>
                 </div>
                 <button
@@ -574,17 +563,17 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   <X className="h-5 w-5" />
                 </button>
               </div>
-
+ 
               {/* Dropdown */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-700">Accountant</label>
+                <label className="text-sm font-bold text-gray-700">Relation Associate</label>
                 <div className="relative">
                   <select
                     value={selectedAccountant}
                     onChange={(e) => setSelectedAccountant(e.target.value)}
                     className="w-full px-5 py-4 bg-[#F9FAFB] border-none rounded-2xl text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#FCD34D] cursor-pointer font-medium"
                   >
-                    <option value="">Select accountant</option>
+                    <option value="">Select associate</option>
                     <option value="john-doe">John Doe</option>
                     <option value="jane-smith">Jane Smith</option>
                     <option value="michael-johnson">Michael Johnson</option>
@@ -593,7 +582,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                 </div>
               </div>
-
+ 
               {/* Buttons */}
               <div className="flex justify-end gap-4 pt-4">
                 <button
@@ -607,7 +596,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 </button>
                 <button
                   onClick={() => {
-                    console.log('Assigning accountant:', selectedAccountant);
+                    console.log('Assigning associate:', selectedAccountant);
                     setShowAssignModal(false);
                     setSelectedAccountant('');
                   }}

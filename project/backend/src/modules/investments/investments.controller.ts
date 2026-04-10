@@ -25,6 +25,14 @@ export class InvestmentsController {
     return this.investmentsService.getMyInvestments(user.userId);
   }
 
+  @Get('investor/:id')
+  async getInvestorInvestments(@CurrentUser() user: any, @Param('id') id: string) {
+    if (user.role !== 'admin' && user.role !== 'staff' && user.role !== 'accountant') {
+      throw new UnauthorizedException('Access denied');
+    }
+    return this.investmentsService.getMyInvestments(id);
+  }
+
   @Get('all')
   async getAllInvestments(@CurrentUser() user: any) {
     // Ideally check if user is admin here
@@ -34,7 +42,7 @@ export class InvestmentsController {
   @Get(':id')
   async getInvestmentById(@CurrentUser() user: any, @Param('id') id: string) {
     if (!user.userId) throw new UnauthorizedException('User ID not found');
-    return this.investmentsService.getInvestmentById(user.userId, id);
+    return this.investmentsService.getInvestmentById(user.userId, id, user.role);
   }
 
   @Patch(':id/status')
@@ -44,7 +52,7 @@ export class InvestmentsController {
     @Body() updateStatusDto: UpdateInvestmentStatusDto
   ) {
     if (!user.userId) throw new UnauthorizedException('User ID not found');
-    return this.investmentsService.updateInvestmentStatus(user.userId, id, updateStatusDto);
+    return this.investmentsService.updateInvestmentStatus(user.userId, id, updateStatusDto, user.role);
   }
 
 }

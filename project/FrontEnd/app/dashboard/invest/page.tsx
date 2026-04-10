@@ -739,6 +739,7 @@ export default function InvestPage() {
             <p className="mt-4 text-xs text-[#8E8E93] leading-relaxed">
               Please review and sign the documents below, click &quot;Start Signing&quot; to begin.
             </p>
+            {/*
 
             <div className="mt-8 space-y-3">
               {subscriptionDocs.length > 0 ? (
@@ -770,6 +771,7 @@ export default function InvestPage() {
                 </div>
               )}
             </div>
+            */}
 
             <div className="mt-10 space-y-3">
               <button

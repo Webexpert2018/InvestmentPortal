@@ -80,13 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData);
     setSessionExpired(false);
 
-    if (userData.role === 'admin') {
-      router.push('/admin');
-    } else if (userData.role === 'accountant' || userData.role === 'account') {
-      router.push('/admin/compliance');
-    } else {
-      router.push('/dashboard');
-    }
+    router.push('/dashboard');
   };
 
   const signup = async (data: any) => {
@@ -95,13 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData);
     setSessionExpired(false);
 
-    if (userData.role === 'admin') {
-      router.push('/admin');
-    } else if (userData.role === 'accountant' || userData.role === 'account') {
-      router.push('/admin/compliance');
-    } else {
-      router.push('/dashboard');
-    }
+    router.push('/dashboard');
   };
 
   const logout = () => {

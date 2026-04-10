@@ -243,6 +243,13 @@ export default function DashboardPage() {
     currentNav: 0,
     currentValue: 0,
   });
+  const [adminStats, setAdminStats] = useState({
+    totalInvestors: 0,
+    pendingKyc: 0,
+    pendingFundings: 0,
+    pendingRedemptions: 0,
+    recentInvestors: [] as any[],
+  });
 
   const investorAccountList = [
     {
@@ -256,48 +263,49 @@ export default function DashboardPage() {
   const welcomeName = user?.firstName ? user.firstName : dashboardRole[0].toUpperCase() + dashboardRole.slice(1);
 
   useEffect(() => {
-    if (dashboardRole !== 'investor') {
-      return;
-    }
-
-    if (user?.kycStatus) {
+    if (user?.kycStatus && dashboardRole === 'investor') {
       setInvestorKycState(user.kycStatus);
     }
 
     const fetchStats = async () => {
       try {
-        const [flows, investments, navSummary] = await Promise.all([
-          apiClient.getMyFundFlows(),
-          apiClient.getMyInvestments(),
-          apiClient.getNavSummary(),
-        ]);
+        if (dashboardRole === 'investor') {
+          const [flows, investments, navSummary] = await Promise.all([
+            apiClient.getMyFundFlows(),
+            apiClient.getMyInvestments(),
+            apiClient.getNavSummary(),
+          ]);
 
-        setActiveFundsCount(flows.length);
+          setActiveFundsCount(flows.length);
 
-        const totalInvested = investments.reduce((sum, inv) => sum + parseFloat(inv.investment_amount), 0);
-        const totalUnits = investments.reduce((sum, inv) => sum + parseFloat(inv.estimated_units), 0);
-        const currentNav = navSummary.currentNav;
-        const currentValue = investments.reduce((sum, inv) => sum + parseFloat(inv.revised_amount || (parseFloat(inv.estimated_units) * currentNav)), 0);
+          const totalInvested = investments.reduce((sum, inv) => sum + parseFloat(inv.investment_amount), 0);
+          const totalUnits = investments.reduce((sum, inv) => sum + parseFloat(inv.estimated_units), 0);
+          const currentNav = navSummary.currentNav;
+          const currentValue = investments.reduce((sum, inv) => sum + parseFloat(inv.revised_amount || (parseFloat(inv.estimated_units) * currentNav)), 0);
 
-        setInvestorStats({
-          totalInvested,
-          totalUnits,
-          currentNav,
-          currentValue,
-        });
+          setInvestorStats({
+            totalInvested,
+            totalUnits,
+            currentNav,
+            currentValue,
+          });
+        } else if (dashboardRole === 'admin') {
+          const stats = await apiClient.getAdminStats();
+          setAdminStats(stats);
+        }
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
       }
     };
     fetchStats();
-  }, [dashboardRole]);
+  }, [dashboardRole, user?.kycStatus]);
 
   const roleStats = {
     admin: [
-      { name: 'Total Investors', value: '38' },
-      { name: 'Pending KYC', value: '7' },
-      { name: 'Pending Fundings', value: '5' },
-      { name: 'Pending Redemptions', value: '2' },
+      { name: 'Total Investors', value: adminStats.totalInvestors.toString() },
+      { name: 'Pending KYC', value: adminStats.pendingKyc.toString() },
+      { name: 'Pending Fundings', value: adminStats.pendingFundings.toString() },
+      { name: 'Pending Redemptions', value: adminStats.pendingRedemptions.toString() },
     ],
     investor: [
       { name: 'My Active Funds', value: activeFundsCount.toString() },
@@ -529,7 +537,7 @@ export default function DashboardPage() {
                 </p>
                 <div className="mt-5 space-y-3">
                   <Link
-                    href="/dashboard/funds"
+                    href="/dashboard/invest"
                     className="block w-full rounded-full bg-[#FFF3D6] py-3 text-center text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF]"
                   >
                     Invest
@@ -735,23 +743,47 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {recentInvestors.map((person) => (
-                      <tr key={person.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{person.fundName}</td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{person.accountType}</td>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <span className={`px-3 py-1 inline-flex text-xs font-medium rounded-full ${person.kycColor}`}>
-                            {person.kycStatus}
-                          </span>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{person.fundingStatus}</td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-400">
-                          <button className="p-1 rounded-full hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                            <MoreVertical className="h-4 w-4" />
-                          </button>
+                    {adminStats.recentInvestors.length > 0 ? adminStats.recentInvestors.map((person) => {
+                      const getKycDisplay = (status: string) => {
+                        const s = status?.toLowerCase();
+                        if (s === 'verified' || s === 'approved') return { label: 'Approved', color: 'bg-[#F2FAF6] text-[#2A4474]' };
+                        if (s === 'pending') return { label: 'Pending', color: 'bg-[#FFF9EE] text-[#4B4B4B]' };
+                        return { label: 'Unverified', color: 'bg-[#FEF2F2] text-[#4B4B4B]' };
+                      };
+
+                      const getFundingDisplay = (status: string) => {
+                        if (status === 'Units Issued') return 'Funded';
+                        if (status === 'Funds Received') return 'Processing';
+                        if (status === 'Awaiting Funding') return 'Awaiting Funding';
+                        return status || 'Pending';
+                      };
+
+                      const kyc = getKycDisplay(person.kycStatus);
+
+                      return (
+                        <tr key={person.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{person.fundName || 'N/A'}</td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{person.accountType}</td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span className={`px-3 py-1 inline-flex text-xs font-medium rounded-full ${kyc.color}`}>
+                              {kyc.label}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{getFundingDisplay(person.fundingStatus)}</td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-400">
+                            <button className="p-1 rounded-full hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                              <MoreVertical className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    }) : (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500">
+                          No recent investment activity found.
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>

@@ -6,14 +6,18 @@ export class FundsService {
   async getAllFunds() {
     const result = await db.query(
       `SELECT f.id, f.name, f.description, f.image_url as image, f.start_date as "startDate", f.status, f.note,
-              COALESCE(ff.total_investors, 0)::int as "totalInvestors",
-              COALESCE(ff.total_aum, 0)::float as "totalAUM"
+              COALESCE(stats.total_investors, 0)::int as "totalInvestors",
+              COALESCE(stats.total_aum, 0)::float as "totalAUM"
        FROM funds f
        LEFT JOIN (
            SELECT fund_id, COUNT(DISTINCT user_id) as total_investors, SUM(amount) as total_aum
-           FROM fund_flows
+           FROM (
+               SELECT fund_id, user_id, amount FROM fund_flows
+               UNION ALL
+               SELECT fund_id, user_id, investment_amount as amount FROM investments
+           ) combined
            GROUP BY fund_id
-       ) ff ON f.id = ff.fund_id
+       ) stats ON f.id = stats.fund_id
        ORDER BY f.name ASC`
     );
     return result.rows;
@@ -22,14 +26,18 @@ export class FundsService {
   async getFundById(id: string) {
     const result = await db.query(
       `SELECT f.id, f.name, f.description, f.image_url as image, f.start_date as "startDate", f.status, f.note,
-              COALESCE(ff.total_investors, 0)::int as "totalInvestors",
-              COALESCE(ff.total_aum, 0)::float as "totalAUM"
+              COALESCE(stats.total_investors, 0)::int as "totalInvestors",
+              COALESCE(stats.total_aum, 0)::float as "totalAUM"
        FROM funds f
        LEFT JOIN (
            SELECT fund_id, COUNT(DISTINCT user_id) as total_investors, SUM(amount) as total_aum
-           FROM fund_flows
+           FROM (
+               SELECT fund_id, user_id, amount FROM fund_flows
+               UNION ALL
+               SELECT fund_id, user_id, investment_amount as amount FROM investments
+           ) combined
            GROUP BY fund_id
-       ) ff ON f.id = ff.fund_id
+       ) stats ON f.id = stats.fund_id
        WHERE f.id = $1`,
       [id]
     );

@@ -20,6 +20,12 @@ export class RedemptionsController {
     return this.redemptionsService.findAllForUser(user.userId);
   }
 
+  @Get('investor/:id')
+  @Roles('admin', 'staff', 'accountant')
+  async getInvestorRedemptions(@Param('id') id: string) {
+    return this.redemptionsService.findAllForUser(id);
+  }
+
   @Get('all')
   @Roles('admin', 'staff')
   async findAllGlobal() {

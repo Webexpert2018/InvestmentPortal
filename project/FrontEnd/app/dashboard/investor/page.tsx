@@ -180,15 +180,20 @@ export default function InvestorPage() {
                           <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
                             {investor.profileImageUrl ? (
                               <Image
-                                src={investor.profileImageUrl}
+                                src={investor.profileImageUrl.startsWith('http') 
+                                  ? investor.profileImageUrl 
+                                  : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
                                 alt={investor.firstName}
                                 fill
                                 className="object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-[#1F3B6E] text-white text-sm font-bold">
-                                {investor.avatar}
-                              </div>
+                              <Image
+                                src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
+                                alt={investor.firstName}
+                                fill
+                                className="object-cover"
+                              />
                             )}
                           </div>
                           <div>

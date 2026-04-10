@@ -103,8 +103,9 @@ export class InvestmentsService {
     }
   }
 
-  async updateInvestmentStatus(userId: string, investmentId: string, data: any) {
+  async updateInvestmentStatus(userId: string, investmentId: string, data: any, role?: string) {
     const { status, documentSigned } = data;
+    const isAdmin = role === 'admin' || role === 'accountant' || role === 'staff';
     
     try {
       let query = 'UPDATE investments SET updated_at = CURRENT_TIMESTAMP';
@@ -137,8 +138,9 @@ export class InvestmentsService {
         }
       }
 
-      query += ` WHERE id = $${paramCount++} AND user_id = $${paramCount++} RETURNING *`;
-      values.push(investmentId, userId);
+      query += ` WHERE id = $${paramCount++} ${isAdmin ? '' : 'AND user_id = $' + paramCount++} RETURNING *`;
+      values.push(investmentId);
+      if (!isAdmin) values.push(userId);
 
       const result = await db.query(query, values);
       if (result.rows.length === 0) {
@@ -152,15 +154,27 @@ export class InvestmentsService {
     }
   }
 
-  async getInvestmentById(userId: string, investmentId: string) {
+  async getInvestmentById(userId: string, investmentId: string, role?: string) {
     try {
+      const isAdmin = role === 'admin' || role === 'accountant' || role === 'staff';
       const query = `
-        SELECT i.*, f.name as fund_name, f.description as fund_description 
+        SELECT 
+          i.*, 
+          f.name as fund_name, 
+          f.description as fund_description,
+          COALESCE(u.first_name || ' ' || u.last_name, inv.full_name) as investor_name,
+          COALESCE(u.email, inv.email) as email,
+          ira.custodian_name
         FROM investments i
         JOIN funds f ON i.fund_id = f.id
-        WHERE i.id = $1 AND i.user_id = $2
+        LEFT JOIN users u ON i.user_id = u.id
+        LEFT JOIN investors inv ON i.user_id = inv.id
+        LEFT JOIN ira_accounts ira ON i.user_id = ira.user_id
+        WHERE i.id = $1 ${isAdmin ? '' : 'AND i.user_id = $2'}
       `;
-      const result = await db.query(query, [investmentId, userId]);
+      const params = isAdmin ? [investmentId] : [investmentId, userId];
+      const result = await db.query(query, params);
+      
       if (result.rows.length === 0) {
         throw new NotFoundException('Investment not found');
       }

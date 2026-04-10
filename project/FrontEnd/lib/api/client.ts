@@ -735,6 +735,23 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  // Dashboard Stats
+  async getAdminStats() {
+    return this.request<any>('/stats/admin');
+  }
+
+  async getInvestorStats(id: string) {
+    return this.request<any>(`/stats/investor/${id}`);
+  }
+
+  async getInvestorInvestments(id: string) {
+    return this.request<any[]>(`/investments/investor/${id}`);
+  }
+
+  async getInvestorRedemptions(id: string) {
+    return this.request<any[]>(`/redemptions/investor/${id}`);
+  }
 }
 
 

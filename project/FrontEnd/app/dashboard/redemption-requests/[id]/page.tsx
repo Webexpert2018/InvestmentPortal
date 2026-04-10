@@ -71,8 +71,8 @@ export default function RedemptionRequestDetailsPage() {
     requestId: `RED-${redemption.id.substring(0, 6).toUpperCase()}`,
     submittedDate: new Date(redemption.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     investor: redemption.investor_name || 'Jakob Phillips',
-    accountType: 'Personal', // AS REQUESTED
-    email: 'demo@gmail.com',
+    accountType: redemption.account_type || 'Personal', 
+    email: redemption.investor_email || 'demo@gmail.com',
     amount: `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(redemption.amount))} / ${parseFloat(redemption.units).toFixed(4)} Units`,
     paymentMethod: 'Wire', // AS REQUESTED
     bankName: redemption.bank_info?.label || 'Metropolitan Commercial Bank',
