@@ -69,7 +69,7 @@ export default function FundOverviewPage() {
   const getFullImageUrl = (imagePath: string | null | undefined): string | undefined => {
     if (!imagePath) return undefined;
     if (imagePath.startsWith('http')) return imagePath;
-    if (imagePath.startsWith('/images/') || imagePath.startsWith('/documents/')) return imagePath; 
+    if (imagePath.startsWith('/images/') || imagePath.startsWith('/documents/')) return imagePath;
     return `${BASE_URL}${imagePath}`;
   };
 
@@ -134,7 +134,7 @@ export default function FundOverviewPage() {
       <div className="p-8 bg-[#F9FAFB] min-h-screen">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <button 
+          <button
             onClick={() => router.back()}
             className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200 group"
             title="Go back"
@@ -164,9 +164,8 @@ export default function FundOverviewPage() {
           <div className="flex gap-8">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`pb-3 font-medium transition-colors relative ${
-                activeTab === 'overview' ? 'text-[#1F3B6E]' : 'text-gray-600'
-              }`}
+              className={`pb-3 font-medium transition-colors relative ${activeTab === 'overview' ? 'text-[#1F3B6E]' : 'text-gray-600'
+                }`}
             >
               Fund Overview
               {activeTab === 'overview' && (
@@ -175,9 +174,8 @@ export default function FundOverviewPage() {
             </button>
             <button
               onClick={() => setActiveTab('documents')}
-              className={`pb-3 font-medium transition-colors relative ${
-                activeTab === 'documents' ? 'text-[#1F3B6E]' : 'text-gray-600'
-              }`}
+              className={`pb-3 font-medium transition-colors relative ${activeTab === 'documents' ? 'text-[#1F3B6E]' : 'text-gray-600'
+                }`}
             >
               Documents
               {activeTab === 'documents' && (
@@ -209,16 +207,15 @@ export default function FundOverviewPage() {
                 {/* Right Side - Fund Details */}
                 <div className="flex-1 flex flex-col">
                   <p className="text-sm text-gray-500 mb-1">Start Date: {formatDate(fund.startDate)}</p>
-                  
+
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
                       <h2 className="text-3xl font-bold text-gray-900">{fund.name}</h2>
                       {!isInvestor && (
-                        <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium ${
-                          fund.status === 'Active' ? 'bg-[#E8F5E9] text-[#2E7D32]' :
+                        <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium ${fund.status === 'Active' ? 'bg-[#E8F5E9] text-[#2E7D32]' :
                           fund.status === 'Closed' ? 'bg-[#FFEBEE] text-[#C62828]' :
-                          'bg-gray-100 text-gray-600'
-                        }`}>
+                            'bg-gray-100 text-gray-600'
+                          }`}>
                           {fund.status || 'Active'}
                         </span>
                       )}
@@ -232,10 +229,10 @@ export default function FundOverviewPage() {
                         >
                           <MoreVertical className="h-5 w-5 text-gray-600" />
                         </button>
-                        
+
                         {showDropdown && (
                           <>
-                            <div 
+                            <div
                               className="fixed inset-0 z-10"
                               onClick={() => setShowDropdown(false)}
                             />
@@ -269,6 +266,22 @@ export default function FundOverviewPage() {
                 </div>
               </div>
             </div>
+
+
+            {/* Note Section */}
+            {fund.note && (
+              <div className="bg-white rounded-lg shadow-md p-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Note</h3>
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-400 font-medium italic">
+                    (Private note visible only to you)
+                  </p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {fund.note}
+                  </p>
+                </div>
+              </div>
+            )}
 
 
             {/* Performance Overview */}
@@ -411,26 +424,26 @@ export default function FundOverviewPage() {
                                 >
                                   Download
                                 </a>
-                                  {!isInvestor && (
-                                    <>
-                                      <Link
-                                        href={`/dashboard/funds/${params.id}/documents/${doc.id}/edit`}
-                                        className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                                      >
-                                        Edit
-                                      </Link>
-                                      <button
-                                        onClick={() => {
-                                          setDocToDelete(doc);
-                                          setShowDocDeleteModal(true);
-                                          setActiveDocDropdown(null);
-                                        }}
-                                        className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
-                                      >
-                                        Delete
-                                      </button>
-                                    </>
-                                  )}
+                                {!isInvestor && (
+                                  <>
+                                    <Link
+                                      href={`/dashboard/funds/${params.id}/documents/${doc.id}/edit`}
+                                      className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                                    >
+                                      Edit
+                                    </Link>
+                                    <button
+                                      onClick={() => {
+                                        setDocToDelete(doc);
+                                        setShowDocDeleteModal(true);
+                                        setActiveDocDropdown(null);
+                                      }}
+                                      className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
+                                    >
+                                      Delete
+                                    </button>
+                                  </>
+                                )}
                               </div>
                             </>
                           )}
