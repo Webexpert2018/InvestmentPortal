@@ -137,7 +137,7 @@ export function DashboardHeader({
 
             <div className="hidden text-left md:block">
               <p className="font-helvetica text-[15px] font-bold leading-[1] text-[#2A2A2A]">{displayName}</p>
-              <p className="mt-1 font-helvetica text-[14px] leading-[1] text-[#7A7A7A]">{accountLabel}</p>
+              {/* <p className="mt-1 font-helvetica text-[14px] leading-[1] text-[#7A7A7A]">{accountLabel}</p> */}
               <p className="mt-1 text-xs text-[#A0A0A0]">role: <span className="font-mono text-[12px] text-[#666]">{user?.role ?? 'none'}</span></p>
             </div>
 

@@ -16,6 +16,7 @@ export default function PortfolioFundDetailsPage() {
   const id = params.id as string;
 
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [investment, setInvestment] = useState<any>(null);
   const [navSummary, setNavSummary] = useState<any>(null);
   const [documents, setDocuments] = useState<any[]>([]);
@@ -27,34 +28,53 @@ export default function PortfolioFundDetailsPage() {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [rangeOpen, setRangeOpen] = useState(false);
   const [range, setRange] = useState<'3m' | '6m' | '1y'>('1y');
+  const [performanceHistory, setPerformanceHistory] = useState<any[]>([]);
 
   useEffect(() => {
     if (id) {
-      fetchData();
+      if (!investment) {
+        fetchData(true);
+      } else {
+        fetchData(false);
+      }
     }
-  }, [id]);
+  }, [id, range]);
 
-  const fetchData = async () => {
+  const fetchData = async (initial: boolean = false) => {
     try {
-      setLoading(true);
-      const invData = await apiClient.getInvestmentById(id);
-      setInvestment(invData);
+      if (initial) setLoading(true);
+      else setIsRefreshing(true);
 
-      const [navData, docsData] = await Promise.all([
+      const months = range === '3m' ? 3 : range === '6m' ? 6 : 12;
+
+      const [invData, navData, docsData, perfData] = await Promise.all([
+        apiClient.getInvestmentById(id),
         apiClient.getNavSummary(),
-        invData.fund_id ? apiClient.getFundDocuments(invData.fund_id) : Promise.resolve([]),
+        apiClient.getFundDocuments(id), // Fixed: use id instead of invData.fund_id for documents context sometimes, but let's stick to logical data
+        apiClient.getPerformance(months)
       ]);
 
+      setInvestment(invData);
       setNavSummary(navData);
-      setDocuments(docsData);
+      setDocuments(docsData || []);
+      setPerformanceHistory(perfData || []);
     } catch (error) {
       console.error('Error fetching investment details:', error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   const fundName = investment?.fund_name || 'Fund Details';
+
+  const formatCurrency = (val: number | string) => {
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(num);
+  };
 
   const rangeLabel: Record<typeof range, string> = {
     '3m': 'Last 3 months',
@@ -62,11 +82,60 @@ export default function PortfolioFundDetailsPage() {
     '1y': 'Last year',
   };
 
-  const rangeSummary: Record<typeof range, string> = {
-    '3m': 'Last 3 months +4.25%',
-    '6m': 'Last 6 months +9.80%',
-    '1y': 'Last 12 months +15.33%',
-  };
+  const currentValue = parseFloat(investment?.revised_amount || investment?.investment_amount || 0);
+  const costBasis = parseFloat(investment?.investment_amount || 0);
+  const gainLoss = currentValue - costBasis;
+  const isPositive = gainLoss >= 0;
+  const returnPct = costBasis > 0 ? (gainLoss / costBasis) * 100 : 0;
+  const unitsHeld = parseFloat(investment?.estimated_units || 0);
+  const currentNavValue = navSummary?.currentNav || 0;
+
+  // Calculate dynamic performance labels based on history
+  const { displayRangePct, displayRangeValue } = useMemo(() => {
+    if (performanceHistory.length < 2) {
+      return { displayRangePct: '0.00%', displayRangeValue: '+0.00' };
+    }
+    const first = performanceHistory[0].value * unitsHeld;
+    const last = performanceHistory[performanceHistory.length - 1].value * unitsHeld;
+    const diff = last - first;
+    const pct = first > 0 ? (diff / first) * 100 : 0;
+    return {
+      displayRangePct: `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`,
+      displayRangeValue: `${diff >= 0 ? '+' : ''}${formatCurrency(diff)}`
+    };
+  }, [performanceHistory, unitsHeld]);
+
+  // Generate SVG paths dynamically
+  const { linePath, areaPath } = useMemo(() => {
+    if (performanceHistory.length < 2) {
+      // Fallback flat line if no history
+      return {
+        linePath: 'M 20,128 L 780,128',
+        areaPath: 'M 20,128 L 780,128 L 780,256 L 20,256 Z'
+      };
+    }
+
+    const width = 760; // 800 - margin
+    const height = 200; // 256 - padding
+    const minY = Math.min(...performanceHistory.map(p => p.value)) * 0.95; // 5% padding
+    const maxY = Math.max(...performanceHistory.map(p => p.value)) * 1.05;
+    const rangeY = maxY - minY || 1;
+
+    const points = performanceHistory.map((p, i) => {
+      const x = 20 + (i / (performanceHistory.length - 1)) * width;
+      const val = p.value * unitsHeld;
+      // Normalize Y between 20 (top) and 220 (bottom)
+      // High value = low Y (closer to 20)
+      const normalizedValue = (p.value - minY) / rangeY;
+      const y = 220 - normalizedValue * height;
+      return { x, y };
+    });
+
+    const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const area = `${line} L ${points[points.length - 1].x.toFixed(1)},256 L ${points[0].x.toFixed(1)},256 Z`;
+
+    return { linePath: line, areaPath: area };
+  }, [performanceHistory, unitsHeld]);
 
   const transactionsList = useMemo(() => {
     if (!investment) return [];
@@ -112,14 +181,6 @@ export default function PortfolioFundDetailsPage() {
     });
   }, [transactionsList, sortConfig]);
 
-  const formatCurrency = (val: number | string) => {
-    const num = typeof val === 'string' ? parseFloat(val) : val;
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(num);
-  };
-
   const handleSort = (key: 'date' | 'type' | 'amount' | 'units' | 'status') => {
     setSortConfig((prev) => ({
       key,
@@ -144,14 +205,6 @@ export default function PortfolioFundDetailsPage() {
       </DashboardLayout>
     );
   }
-
-  const currentValue = parseFloat(investment?.revised_amount || investment?.investment_amount || 0);
-  const costBasis = parseFloat(investment?.investment_amount || 0);
-  const gainLoss = currentValue - costBasis;
-  const isPositive = gainLoss >= 0;
-  const returnPct = costBasis > 0 ? (gainLoss / costBasis) * 100 : 0;
-  const unitsHeld = parseFloat(investment?.estimated_units || 0);
-  const currentNavValue = navSummary?.currentNav || 0;
 
   return (
     <DashboardLayout>
@@ -242,12 +295,14 @@ export default function PortfolioFundDetailsPage() {
               </div>
             </div>
 
-            <div className="mt-6">
+            <div className={`mt-6 transition-opacity duration-300 ${isRefreshing ? 'opacity-50' : 'opacity-100'}`}>
               <p className="text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(currentValue)}</p>
-              <p className="mt-1 text-sm font-medium text-[#2BB673]">{rangeSummary[range]}</p>
+              <p className={`mt-1 text-sm font-medium ${displayRangePct.startsWith('+') ? 'text-[#2BB673]' : 'text-[#E04343]'}`}>
+                {rangeLabel[range]} {displayRangePct}
+              </p>
             </div>
 
-            <div className="mt-4">
+            <div className={`mt-4 relative transition-opacity duration-300 ${isRefreshing ? 'opacity-50' : 'opacity-100'}`}>
               <svg className="h-56 w-full" viewBox="0 0 800 256" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="portfolioChartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -257,30 +312,25 @@ export default function PortfolioFundDetailsPage() {
                 </defs>
                 <rect x="0" y="0" width="800" height="256" fill="#FFFFFF" />
                 <path
-                  d={
-                    range === '3m'
-                      ? 'M 20,220 L 140,200 L 260,180 L 380,190 L 500,160 L 620,150 L 740,140 L 800,150 L 800,256 L 0,256 Z'
-                      : range === '6m'
-                        ? 'M 20,220 L 80,210 L 140,190 L 200,180 L 260,150 L 320,130 L 380,160 L 440,150 L 500,140 L 560,150 L 620,130 L 680,120 L 740,110 L 800,120 L 800,256 L 0,256 Z'
-                        : 'M 20,220 L 80,200 L 140,190 L 200,140 L 260,110 L 320,80 L 380,70 L 440,100 L 500,120 L 560,100 L 620,80 L 680,100 L 740,110 L 780,90 L 800,80 L 800,256 L 0,256 Z'
-                  }
+                  d={areaPath}
                   fill="url(#portfolioChartGradient)"
+                  className="transition-all duration-700 ease-in-out"
                 />
                 <path
-                  d={
-                    range === '3m'
-                      ? 'M 20,220 L 140,200 L 260,180 L 380,190 L 500,160 L 620,150 L 740,140'
-                      : range === '6m'
-                        ? 'M 20,220 L 80,210 L 140,190 L 200,180 L 260,150 L 320,130 L 380,160 L 440,150 L 500,140 L 560,150 L 620,130 L 680,120 L 740,110'
-                        : 'M 20,220 L 80,200 L 140,190 L 200,140 L 260,110 L 320,80 L 380,70 L 440,100 L 500,120 L 560,100 L 620,80 L 680,100 L 740,110 L 780,90'
-                  }
+                  d={linePath}
                   fill="none"
                   stroke="#F59E0B"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  className="transition-all duration-700 ease-in-out"
                 />
               </svg>
+              {isRefreshing && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 text-[#F59E0B] animate-spin" />
+                </div>
+              )}
             </div>
           </div>
 
