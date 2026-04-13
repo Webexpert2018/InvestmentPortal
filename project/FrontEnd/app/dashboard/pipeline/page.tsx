@@ -2,18 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { X, Plus } from 'lucide-react';
-
-const stageColors = [
-  '#E5E7EB', // gray
-  '#DBEAFE', // blue
-  '#D1FAE5', // green
-  '#E9D5FF', // purple
-  '#C7D2FE', // indigo
-  '#FED7AA', // orange
-  '#FECACA', // red
-  '#FEF3C7', // yellow
-];
+import { X, Plus, GripVertical } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 const colorOptions = [
   '#E5E7EB',
@@ -112,6 +102,7 @@ const initialStages = [
 
 export default function PipelinePage() {
   const [stages, setStages] = useState(initialStages);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [showAddClient, setShowAddClient] = useState(false);
   const [showAddStage, setShowAddStage] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<number | null>(null);
@@ -119,13 +110,80 @@ export default function PipelinePage() {
   const [newStageName, setNewStageName] = useState('');
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
 
+  // Load from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('pipeline_data');
+    if (saved) {
+      try {
+        setStages(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse saved pipeline data', e);
+      }
+    }
+    setIsLoaded(true);
+  }, []);
+
+  // Save to localStorage
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('pipeline_data', JSON.stringify(stages));
+    }
+  }, [stages, isLoaded]);
+
+  const onDragEnd = (result: DropResult) => {
+    const { source, destination } = result;
+
+    if (!destination) return;
+
+    const sourceStageId = parseInt(source.droppableId);
+    const destStageId = parseInt(destination.droppableId);
+
+    // If dropped in same place
+    if (sourceStageId === destStageId && source.index === destination.index) return;
+
+    const newStages = Array.from(stages);
+    const sInd = newStages.findIndex(s => s.id === sourceStageId);
+    const dInd = newStages.findIndex(s => s.id === destStageId);
+
+    if (sInd === -1 || dInd === -1) return;
+
+    const sourceStage = newStages[sInd];
+    const destStage = newStages[dInd];
+
+    const sourceInvestors = Array.from(sourceStage.investors);
+    const [movedInvestor] = sourceInvestors.splice(source.index, 1);
+
+    if (sInd === dInd) {
+      // Internal reorder
+      sourceInvestors.splice(destination.index, 0, movedInvestor);
+      newStages[sInd] = { ...sourceStage, investors: sourceInvestors };
+    } else {
+      // Cross column move
+      const destInvestors = Array.from(destStage.investors);
+      destInvestors.splice(destination.index, 0, movedInvestor);
+      
+      newStages[sInd] = { 
+        ...sourceStage, 
+        investors: sourceInvestors,
+        count: sourceInvestors.length 
+      };
+      newStages[dInd] = { 
+        ...destStage, 
+        investors: destInvestors,
+        count: destInvestors.length 
+      };
+    }
+
+    setStages(newStages);
+  };
+
   const handleAddClient = () => {
     if (!selectedInvestor || !selectedStageId) return;
 
     setStages(
       stages.map((stage) => {
         if (stage.id === selectedStageId) {
-          const newId = Math.max(...stages.flatMap((s) => s.investors.map((i) => i.id))) + 1;
+          const newId = Date.now();
           return {
             ...stage,
             investors: [
@@ -156,7 +214,7 @@ export default function PipelinePage() {
     if (!newStageName.trim()) return;
 
     const newStage = {
-      id: Math.max(...stages.map((s) => s.id)) + 1,
+      id: Date.now(),
       name: newStageName,
       color: selectedColor,
       count: 0,
@@ -173,6 +231,16 @@ export default function PipelinePage() {
     setSelectedStageId(stageId);
     setShowAddClient(true);
   };
+
+  const deleteStage = (id: number) => {
+    setStages(stages.filter(s => s.id !== id));
+  };
+
+  if (!isLoaded) return null;
+
+  const DroppableComponent = Droppable as any;
+  const DraggableComponent = Draggable as any;
+  const DragDropContextComponent = DragDropContext as any;
 
   return (
     <DashboardLayout>
@@ -198,181 +266,203 @@ export default function PipelinePage() {
           </div>
         </div>
 
-        {/* Pipeline Board: fixed-height container with horizontal + vertical scroll */}
-        <div
-          className="overflow-x-auto overflow-y-auto pb-2 pipeline-scroll"
-          style={{ maxHeight: 'calc(100vh - 160px)', maxWidth: 'calc(-300px + 100vw)' }}
-        >
-          <div className="flex flex-nowrap gap-4 lg:gap-6 py-4 pr-4" style={{ minWidth: 'max-content' }}>
-          {stages.map((stage) => (
-            <div key={stage.id} className="flex-none w-[320px]">
-              <div
-                className="rounded-xl p-3 sm:p-4 min-h-[400px]"
-                style={{ backgroundColor: stage.color }}
-              >
-                {/* Stage Header */}
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-gray-900 truncate max-w-[120px]">{stage.name}</h3>
-                    <button className="text-gray-400 hover:text-gray-600 flex-shrink-0">
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <span className="text-xs font-medium text-gray-600 whitespace-nowrap">{stage.count} investors</span>
-                </div>
-
-                {/* Investors */}
-                <div className="space-y-2 sm:space-y-3">
-                  {stage.investors.map((investor) => (
-                    <div
-                      key={investor.id}
-                      className="bg-white rounded-lg p-2.5 sm:p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[#1F3B6E] text-xs sm:text-sm font-semibold text-white flex-shrink-0">
-                          {investor.avatar}
+        {/* Pipeline Board */}
+        <DragDropContextComponent onDragEnd={onDragEnd}>
+          <div
+            className="overflow-x-auto overflow-y-auto pb-2 pipeline-scroll"
+            style={{ maxHeight: 'calc(100vh - 160px)', maxWidth: 'calc(-300px + 100vw)' }}
+          >
+            <div className="flex flex-nowrap gap-4 lg:gap-6 py-4 pr-4" style={{ minWidth: 'max-content' }}>
+              {stages.map((stage) => (
+                <div key={stage.id} className="flex-none w-[320px]">
+                  <DroppableComponent droppableId={stage.id.toString()}>
+                    {(provided: any, snapshot: any) => (
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className={`rounded-2xl p-4 min-h-[500px] transition-all duration-200 border-2 ${
+                          snapshot.isDraggingOver ? 'border-[#FCD34D] ring-4 ring-[#FCD34D]/10' : 'border-transparent'
+                        }`}
+                        style={{ backgroundColor: stage.color }}
+                      >
+                        {/* Stage Header */}
+                        <div className="flex items-center justify-between mb-5">
+                          <div className="flex items-center gap-2 group">
+                            <h3 className="text-sm font-bold text-gray-900 truncate max-w-[150px] uppercase tracking-wider">{stage.name}</h3>
+                            <button 
+                              onClick={() => deleteStage(stage.id)}
+                              className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                          <span className="text-[10px] font-bold text-gray-500 bg-white/50 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                            {stage.count} {stage.count === 1 ? 'investor' : 'investors'}
+                          </span>
                         </div>
-                        <span className="text-xs sm:text-sm font-medium text-gray-900 truncate">{investor.name}</span>
+
+                        {/* Investors List */}
+                        <div className="space-y-3">
+                          {stage.investors.map((investor, index) => (
+                            <DraggableComponent key={investor.id} draggableId={investor.id.toString()} index={index}>
+                              {(provided: any, snapshot: any) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  className={`bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 group border border-transparent ${
+                                    snapshot.isDragging ? 'shadow-2xl scale-[1.02] border-[#FCD34D] rotate-1' : ''
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1F3B6E] text-xs font-bold text-white shadow-inner">
+                                        {investor.avatar}
+                                      </div>
+                                      <span className="text-sm font-semibold text-gray-800">{investor.name}</span>
+                                    </div>
+                                    <GripVertical className="h-4 w-4 text-gray-300 group-hover:text-gray-400 transition-colors" />
+                                  </div>
+                                </div>
+                              )}
+                            </DraggableComponent>
+                          ))}
+                          {provided.placeholder}
+
+                          {/* Add Client to this stage */}
+                          <button
+                            onClick={() => openAddClientModal(stage.id)}
+                            className="w-full border-2 border-dashed border-gray-300 rounded-xl p-3 text-gray-400 hover:border-[#FCD34D] hover:text-[#FCD34D] hover:bg-white/30 transition-all flex items-center justify-center gap-2 mt-4"
+                          >
+                            <Plus className="h-4 w-4" />
+                            <span className="text-sm font-bold uppercase tracking-wide">Add Client</span>
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-
-                  {/* Add Client to this stage */}
-                  <button
-                    onClick={() => openAddClientModal(stage.id)}
-                    className="w-full border-2 border-dashed border-gray-300 rounded-lg p-2.5 sm:p-3 text-gray-400 hover:border-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span className="text-xs sm:text-sm font-medium">Add Client</span>
-                  </button>
+                    )}
+                  </DroppableComponent>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
           </div>
-        </div>
-
-    
+        </DragDropContextComponent>
       </div>
 
-      {/* Add Client Modal */}
+      {/* Modals remain the same but use premium styling */}
       {showAddClient && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-5 sm:p-6 w-full max-w-md shadow-xl mx-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Add Client</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold text-gray-900">Add Client</h2>
               <button
                 onClick={() => {
                   setShowAddClient(false);
                   setSelectedInvestor('');
                   setSelectedStageId(null);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <X className="h-5 w-5" />
+                <X className="h-6 w-6 text-gray-400" />
               </button>
             </div>
 
-            <div className="mb-6">
-              <select
-                value={selectedInvestor}
-                onChange={(e) => setSelectedInvestor(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent"
-              >
-                <option value="">Select investor</option>
-                {mockInvestors.map((investor) => (
-                  <option key={investor} value={investor}>
-                    {investor}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Select Investor</label>
+                <select
+                  value={selectedInvestor}
+                  onChange={(e) => setSelectedInvestor(e.target.value)}
+                  className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                >
+                  <option value="">Choose an investor...</option>
+                  {mockInvestors.map((investor) => (
+                    <option key={investor} value={investor}>
+                      {investor}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="flex gap-3 justify-end flex-wrap">
-              <button
-                onClick={() => {
-                  setShowAddClient(false);
-                  setSelectedInvestor('');
-                  setSelectedStageId(null);
-                }}
-                className="px-5 sm:px-6 py-2 sm:py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddClient}
-                disabled={!selectedInvestor}
-                className="px-5 sm:px-6 py-2 sm:py-2.5 bg-[#FCD34D] text-gray-800 text-sm font-medium rounded-full hover:bg-[#FBD24E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Add
-              </button>
+              <div className="flex gap-4 pt-2">
+                <button
+                  onClick={() => setShowAddClient(false)}
+                  className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddClient}
+                  disabled={!selectedInvestor}
+                  className="flex-1 py-4 bg-[#FCD34D] text-gray-800 text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-xl shadow-yellow-100 transition-all disabled:opacity-50"
+                >
+                  Add Client
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Add New Stage Modal */}
       {showAddStage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-5 sm:p-6 w-full max-w-md shadow-xl mx-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Add New Stage</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold text-gray-900">New Stage</h2>
               <button
                 onClick={() => {
                   setShowAddStage(false);
                   setNewStageName('');
                   setSelectedColor(colorOptions[0]);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <X className="h-5 w-5" />
+                <X className="h-6 w-6 text-gray-400" />
               </button>
             </div>
 
-            <div className="mb-6">
-              <input
-                type="text"
-                value={newStageName}
-                onChange={(e) => setNewStageName(e.target.value)}
-                placeholder="Enter stage name"
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent"
-              />
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Stage Color</label>
-              <div className="flex gap-2 flex-wrap">
-                {colorOptions.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full transition-all flex-shrink-0 ${
-                      selectedColor === color ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''
-                    }`}
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Stage Name</label>
+                <input
+                  type="text"
+                  value={newStageName}
+                  onChange={(e) => setNewStageName(e.target.value)}
+                  placeholder="e.g., Follow up"
+                  className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                />
               </div>
-            </div>
 
-            <div className="flex gap-3 justify-end flex-wrap">
-              <button
-                onClick={() => {
-                  setShowAddStage(false);
-                  setNewStageName('');
-                  setSelectedColor(colorOptions[0]);
-                }}
-                className="px-5 sm:px-6 py-2 sm:py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddStage}
-                disabled={!newStageName.trim()}
-                className="px-5 sm:px-6 py-2 sm:py-2.5 bg-[#FCD34D] text-gray-800 text-sm font-medium rounded-full hover:bg-[#FBD24E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Add
-              </button>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Theme Color</label>
+                <div className="flex gap-3 flex-wrap p-1">
+                  {colorOptions.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`w-10 h-10 rounded-full transition-all border-4 ${
+                        selectedColor === color ? 'border-white ring-2 ring-gray-300 scale-110 shadow-lg' : 'border-transparent opacity-60 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-2">
+                <button
+                  onClick={() => setShowAddStage(false)}
+                  className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddStage}
+                  disabled={!newStageName.trim()}
+                  className="flex-1 py-4 bg-[#FCD34D] text-gray-800 text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-xl shadow-yellow-100 transition-all disabled:opacity-50"
+                >
+                  Create Stage
+                </button>
+              </div>
             </div>
           </div>
         </div>
