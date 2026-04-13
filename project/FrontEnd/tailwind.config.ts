@@ -11,9 +11,9 @@ const config: Config = {
     extend: {
       /* 🔥 ADD THIS BLOCK */
       fontFamily: {
-        sans: ['GoudyOldStyle', 'Georgia', 'serif'], 
+        sans: ['GoudyOldStyle', 'Georgia', 'serif'],
         goudy: ['GoudyOldStyle', 'Georgia', 'serif'],
-        helvetica: ['HelveticaNeue', 'Helvetica', 'Arial', 'sans-serif'],
+        helvetica: ['Helvetica', 'Arial', 'sans-serif'],
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
