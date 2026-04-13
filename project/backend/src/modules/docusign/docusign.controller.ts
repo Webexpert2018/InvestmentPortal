@@ -65,8 +65,8 @@ export class DocusignController {
     @Body() body: {
       fundId: string;
       fundName: string;
-      accessToken: string;
-      accountId: string;
+      accessToken?: string;
+      accountId?: string;
       investmentAmount: number;
       accountType: string;
       iraMetadata?: {
@@ -79,8 +79,8 @@ export class DocusignController {
     try {
       const { fundId, fundName, accessToken, accountId, investmentAmount, accountType, iraMetadata, returnUrl } = body;
 
-      if (!accessToken || !accountId || !fundId || !investmentAmount) {
-        throw new BadRequestException('Missing required authentication, fund, or amount details');
+      if (!fundId || !investmentAmount) {
+        throw new BadRequestException('Missing required fund or amount details');
       }
 
       console.log(`[DocusignController] Initiating signing URL for user ${user.userId}, fund ${fundId}`);
@@ -101,8 +101,8 @@ export class DocusignController {
       const finalReturnUrl = returnUrl || `${process.env.FRONTEND_URL}/dashboard/invest?signing=complete&fundId=${fundId}`;
 
       const result = await this.docusignService.createEnvelopeForInvestment(
-        accessToken,
-        accountId,
+        accessToken ?? null,
+        accountId ?? null,
         signerEmail,
         investorName,
         fundName,
@@ -125,7 +125,7 @@ export class DocusignController {
       const errorResponse = {
         message: 'Failed to initiate DocuSign signing process',
         error: error.message,
-        details: error.response?.body || error.response?.data || 'No additional details available'
+        details: error.response?.body || error.response?.data || error.message || 'No additional details available'
       };
 
       if (isAuthError) {

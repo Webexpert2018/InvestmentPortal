@@ -15,13 +15,87 @@ export class DocusignService {
 
   constructor(private configService: ConfigService) {
     this.dsApiClient = new docusign.ApiClient();
-    const accountBaseUrl = this.configService.get<string>('DOCUSIGN_BASE_URL');
-    if (accountBaseUrl) {
-      this.dsApiClient.setOAuthBasePath(accountBaseUrl.replace('https://', ''));
+    const accountBaseUrl = this.configService.get<string>('DOCUSIGN_BASE_URL') || 'https://account-d.docusign.com';
+    this.dsApiClient.setOAuthBasePath(accountBaseUrl.replace('https://', ''));
+
+    const apiBase = this.configService.get<string>('DOCUSIGN_API_BASE') || 'https://demo.docusign.net/restapi';
+    this.dsApiClient.setBasePath(apiBase);
+  }
+
+  /**
+   * Gets a JWT-based access token for the system account.
+   */
+  async getAccessTokenJWT(): Promise<{ accessToken: string; accountId: string }> {
+    const clientId = this.configService.get<string>('DOCUSIGN_CLIENT_ID');
+    const impersonatedUserId = this.configService.get<string>('DOCUSIGN_IMPERSONATED_USER_ID');
+    let privateKey = this.configService.get<string>('DOCUSIGN_PRIVATE_KEY');
+
+    if (!clientId || !impersonatedUserId || !privateKey) {
+      const missing = [];
+      if (!clientId) missing.push('DOCUSIGN_CLIENT_ID');
+      if (!impersonatedUserId) missing.push('DOCUSIGN_IMPERSONATED_USER_ID');
+      if (!privateKey) missing.push('DOCUSIGN_PRIVATE_KEY');
+      
+      throw new Error(`Missing required DocuSign configuration in .env: ${missing.join(', ')}. Please ensure these are uncommented and have valid values.`);
     }
-    const apiBase = this.configService.get<string>('DOCUSIGN_API_BASE');
-    if (apiBase) {
-      this.dsApiClient.setBasePath(apiBase);
+    
+    // Remove quotes if present
+    if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+      privateKey = privateKey.substring(1, privateKey.length - 1);
+    }
+    
+    // Handle literal \n and ensuring proper PEM format
+    privateKey = privateKey.replace(/\\n/g, '\n');
+    
+    const scopes = [
+      docusign.ApiClient.OAuth.Scope.SIGNATURE,
+      docusign.ApiClient.OAuth.Scope.IMPERSONATION,
+    ];
+
+    try {
+      this.logger.log(`Requesting JWT token for DocuSign User: ${impersonatedUserId}`);
+      this.logger.debug(`Using ClientID: ${clientId}`);
+      
+      const results = await this.dsApiClient.requestJWTUserToken(
+        clientId,
+        impersonatedUserId,
+        scopes,
+        Buffer.from(privateKey),
+        3600
+      );
+
+      const accessToken = results.body.access_token;
+      this.dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
+
+      const userInfo = await this.dsApiClient.getUserInfo(accessToken);
+      const account = userInfo.accounts[0]; // Assuming primary account
+
+      this.dsApiClient.setBasePath(`${account.baseUri}/restapi`);
+
+      return {
+        accessToken,
+        accountId: account.accountId
+      };
+    } catch (error: any) {
+      const errorBody = error.response?.body || error.response?.data;
+      const errorMessage = error.message;
+      
+      if (errorBody?.error === 'consent_required') {
+        const authBaseUrl = this.configService.get<string>('DOCUSIGN_BASE_URL') || 'https://account-d.docusign.com';
+        const redirectUri = this.configService.get<string>('DOCUSIGN_REDIRECT_URI')!;
+        const consentUrl = `${authBaseUrl}/oauth/auth?response_type=code&scope=signature%20impersonation&client_id=${clientId}&redirect_uri=${redirectUri}`;
+        
+        this.logger.error('DocuSign JWT Error: Consent required. Please visit this URL to grant consent:');
+        this.logger.error(consentUrl);
+        
+        throw new Error(`Consent required. Please visit: ${consentUrl}`);
+      }
+
+      this.logger.error('Error requesting DocuSign JWT token:', errorBody || errorMessage);
+      if (errorBody) {
+        this.logger.error('Full Error Body:', JSON.stringify(errorBody, null, 2));
+      }
+      throw error;
     }
   }
 
@@ -120,14 +194,21 @@ export class DocusignService {
    * Creates an envelope for a specific investment and returns the embedded signing URL.
    */
   async createEnvelopeForInvestment(
-    accessToken: string,
-    accountId: string,
+    accessToken: string | null,
+    accountId: string | null,
     signerEmail: string,
     signerName: string,
     fundName: string,
     investmentAmount: number,
     returnUrl: string
   ) {
+    // If no token provided, use JWT system auth
+    if (!accessToken || !accountId) {
+      const auth = await this.getAccessTokenJWT();
+      accessToken = auth.accessToken;
+      accountId = auth.accountId;
+    }
+
     this.dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
 
     // Use any to avoid lint errors with mismatching @types/docusign-esign
@@ -185,132 +266,95 @@ export class DocusignService {
     });
 
     // --- Create Tabs for Signer ---
+    // Surgical anchoring based on provided screenshots to avoid Company/Operating Member sections.
 
-    // 1. Signature Tabs (Primary: /sn1/, Fallbacks: Signature:)
-    const signHere1 = new ds.SignHere();
-    signHere1.anchorString = '/sn1/';
-    signHere1.anchorUnits = 'pixels';
-    signHere1.anchorXOffset = '20';
-    signHere1.anchorYOffset = '-10';
-    signHere1.documentId = '1';
-    signHere1.recipientId = '1';
+    // 1. OA First Page Name
+    const startNameTab = new ds.Text();
+    startNameTab.anchorString = '(the "Investor Member"';
+    startNameTab.anchorUnits = 'pixels';
+    startNameTab.anchorXOffset = '-200'; // Position on the blank line to the left
+    startNameTab.anchorYOffset = '0';
+    startNameTab.value = signerName;
+    startNameTab.tabLabel = 'Initial Investor Name';
+    startNameTab.locked = 'true';
+    startNameTab.documentId = '1';
+    startNameTab.recipientId = '1';
 
-    const signHere2 = new ds.SignHere();
-    signHere2.anchorString = '/sn1/';
-    signHere2.anchorUnits = 'pixels';
-    signHere2.anchorXOffset = '20';
-    signHere2.anchorYOffset = '-10';
-    signHere2.documentId = '2';
-    signHere2.recipientId = '1';
+    // 2. SA Signature Block (Anchored to "INVESTOR:")
+    const saSignature = new ds.SignHere();
+    saSignature.anchorString = 'INVESTOR:';
+    saSignature.anchorUnits = 'pixels';
+    saSignature.anchorXOffset = '100';
+    saSignature.anchorYOffset = '55'; // 2 lines down
+    saSignature.anchorMatchWholeWord = 'true';
+    saSignature.documentId = '2';
+    saSignature.recipientId = '1';
 
-    // Fallback signature for "Signature:" label
-    const signHereFallback = new ds.SignHere();
-    signHereFallback.anchorString = 'Signature:';
-    signHereFallback.anchorUnits = 'pixels';
-    signHereFallback.anchorXOffset = '50';
-    signHereFallback.anchorYOffset = '-10';
-    signHereFallback.recipientId = '1';
+    const saAmount = new ds.Text();
+    saAmount.anchorString = 'INVESTOR:';
+    saAmount.anchorUnits = 'pixels';
+    saAmount.anchorXOffset = '120';
+    saAmount.anchorYOffset = '22'; // 1 line down
+    saAmount.value = `$${investmentAmount.toLocaleString('en-US')}`;
+    saAmount.tabLabel = 'Investment Amount';
+    saAmount.locked = 'true';
+    saAmount.documentId = '2';
+    saAmount.recipientId = '1';
 
-    // 2. Date Tabs (Primary: /ds1/, Fallbacks: Date:, Dated:)
-    const dateSigned1 = new ds.DateSigned();
-    dateSigned1.anchorString = '/ds1/';
-    dateSigned1.anchorUnits = 'pixels';
-    dateSigned1.anchorXOffset = '0';
-    dateSigned1.anchorYOffset = '3';
-    dateSigned1.documentId = '1';
-    dateSigned1.recipientId = '1';
+    const saName = new ds.Text();
+    saName.anchorString = 'INVESTOR:';
+    saName.anchorUnits = 'pixels';
+    saName.anchorXOffset = '80';
+    saName.anchorYOffset = '88'; // 3 lines down
+    saName.value = signerName;
+    saName.tabLabel = 'SA Investor Name';
+    saName.locked = 'true';
+    saName.documentId = '2';
+    saName.recipientId = '1';
 
-    const dateSigned2 = new ds.DateSigned();
-    dateSigned2.anchorString = '/ds1/';
-    dateSigned2.anchorUnits = 'pixels';
-    dateSigned2.anchorXOffset = '0';
-    dateSigned2.anchorYOffset = '3';
-    dateSigned2.documentId = '2';
-    dateSigned2.recipientId = '1';
+    const saDate = new ds.DateSigned();
+    saDate.anchorString = 'INVESTOR:';
+    saDate.anchorUnits = 'pixels';
+    saDate.anchorXOffset = '80';
+    saDate.anchorYOffset = '122'; // 4 lines down
+    saDate.anchorMatchWholeWord = 'true';
+    saDate.documentId = '2';
+    saDate.recipientId = '1';
 
-    const dateFallback = new ds.Text();
-    dateFallback.anchorString = 'Date:';
-    dateFallback.anchorUnits = 'pixels';
-    dateFallback.anchorXOffset = '50';
-    dateFallback.anchorYOffset = '3';
-    dateFallback.value = new Date().toLocaleDateString('en-US');
-    dateFallback.tabLabel = 'Date Fallback 1';
-    dateFallback.locked = 'true';
-    dateFallback.recipientId = '1';
+    // 3. OA Signature Block (Anchored to "INVESTOR MEMBER:")
+    const oaSignature = new ds.SignHere();
+    oaSignature.anchorString = 'INVESTOR MEMBER:';
+    oaSignature.anchorUnits = 'pixels';
+    oaSignature.anchorXOffset = '100';
+    oaSignature.anchorYOffset = '25'; // 1 line down
+    oaSignature.anchorMatchWholeWord = 'true';
+    oaSignature.documentId = '1';
+    oaSignature.recipientId = '1';
 
-    const datedFallback = new ds.Text();
-    datedFallback.anchorString = 'Dated:';
-    datedFallback.anchorUnits = 'pixels';
-    datedFallback.anchorXOffset = '60';
-    datedFallback.anchorYOffset = '3';
-    datedFallback.value = new Date().toLocaleDateString('en-US');
-    datedFallback.tabLabel = 'Date Fallback 2';
-    datedFallback.locked = 'true';
-    datedFallback.recipientId = '1';
+    const oaDate = new ds.DateSigned();
+    oaDate.anchorString = 'INVESTOR MEMBER:';
+    oaDate.anchorUnits = 'pixels';
+    oaDate.anchorXOffset = '80';
+    oaDate.anchorYOffset = '65'; // 2 lines down
+    oaDate.anchorMatchWholeWord = 'true';
+    oaDate.documentId = '1';
+    oaDate.recipientId = '1';
 
-    // 3. Name Tabs (Primary: /nm1/, Fallbacks: Name:)
-    const nameTab = new ds.Text();
-    nameTab.anchorString = '/nm1/';
-    nameTab.anchorUnits = 'pixels';
-    nameTab.anchorXOffset = '0';
-    nameTab.anchorYOffset = '4';
-    nameTab.value = signerName;
-    nameTab.tabLabel = 'Investor Name';
-    nameTab.locked = 'true';
-    nameTab.documentId = '1';
-    nameTab.recipientId = '1';
-
-    const nameTab2 = new ds.Text();
-    nameTab2.anchorString = '/nm1/';
-    nameTab2.anchorUnits = 'pixels';
-    nameTab2.anchorXOffset = '0';
-    nameTab2.anchorYOffset = '4';
-    nameTab2.value = signerName;
-    nameTab2.tabLabel = 'Investor Name 2';
-    nameTab2.locked = 'true';
-    nameTab2.documentId = '2';
-    nameTab2.recipientId = '1';
-
-    const nameFallback = new ds.Text();
-    nameFallback.anchorString = 'Name:';
-    nameFallback.anchorUnits = 'pixels';
-    nameFallback.anchorXOffset = '60';
-    nameFallback.anchorYOffset = '4';
-    nameFallback.value = signerName;
-    nameFallback.tabLabel = 'Investor Name Fallback';
-    nameFallback.locked = 'true';
-    nameFallback.recipientId = '1';
-
-    // 3. Amount Tab (Auto-fill for SA, Anchor string: /am1/)
-    const amountTab = new ds.Text();
-    amountTab.anchorString = '/am1/';
-    amountTab.anchorUnits = 'pixels';
-    amountTab.anchorXOffset = '0';
-    amountTab.anchorYOffset = '4';
-    amountTab.value = `$${investmentAmount.toLocaleString('en-US')}`;
-    amountTab.tabLabel = 'Investment Amount';
-    amountTab.locked = 'true';
-    amountTab.documentId = '2';
-    amountTab.recipientId = '1';
-
-    // 4. Additional Fallbacks (but restricted to Avoid Overlaps)
-    // We only use text fallbacks if the specific anchors fail, 
-    // but we use larger X offsets to avoid the labels themselves.
-    const amountFallback = new ds.Text();
-    amountFallback.anchorString = 'Amount Invested:';
-    amountFallback.anchorUnits = 'pixels';
-    amountFallback.anchorXOffset = '110';
-    amountFallback.anchorYOffset = '4';
-    amountFallback.value = `$${investmentAmount.toLocaleString('en-US')}`;
-    amountFallback.tabLabel = 'Investment Amount Fallback';
-    amountFallback.locked = 'true';
-    amountFallback.documentId = '2';
-    amountFallback.recipientId = '1';
+    const oaName = new ds.Text();
+    oaName.anchorString = 'INVESTOR MEMBER:';
+    oaName.anchorUnits = 'pixels';
+    oaName.anchorXOffset = '80';
+    oaName.anchorYOffset = '105'; // 3 lines down
+    oaName.value = signerName;
+    oaName.tabLabel = 'OA Investor Name';
+    oaName.locked = 'true';
+    oaName.documentId = '1';
+    oaName.recipientId = '1';
 
     const tabs = new ds.Tabs();
-    tabs.signHereTabs = [signHere1, signHere2, signHereFallback];
-    tabs.dateSignedTabs = [dateSigned1, dateSigned2];
-    tabs.textTabs = [nameTab, nameTab2, nameFallback, amountTab, amountFallback, dateFallback, datedFallback];
+    tabs.signHereTabs = [saSignature, oaSignature];
+    tabs.dateSignedTabs = [saDate, oaDate];
+    tabs.textTabs = [startNameTab, saAmount, saName, oaName];
 
     const signer = new ds.Signer();
     signer.email = signerEmail;

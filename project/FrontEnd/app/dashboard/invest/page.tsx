@@ -255,20 +255,11 @@ export default function InvestPage() {
         localStorage.setItem('last_investment_id', investment.id);
       }
 
-      if (!dsAccessToken || !dsAccountId) {
-        const confirmed = window.confirm('DocuSign is not connected. Redirect to authorization?');
-        if (confirmed) {
-          window.location.href = `${BASE_URL}/api/docusign/auth`;
-        }
-        return;
-      }
-
       // 2. Proceed to DocuSign
       const response = await apiClient.createDocuSignEnvelope({
         fundId: selectedFundId,
         fundName: selectedFund.name,
-        accessToken: dsAccessToken,
-        accountId: dsAccountId,
+        // No tokens needed, backend uses JWT
         investmentAmount: investmentAmount,
         accountType: isIra ? 'ira' : 'personal',
         iraMetadata: isIra ? {

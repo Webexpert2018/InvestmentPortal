@@ -44,7 +44,7 @@ export default function PortfolioFundDetailsPage() {
         apiClient.getNavSummary(),
         invData.fund_id ? apiClient.getFundDocuments(invData.fund_id) : Promise.resolve([]),
       ]);
-      
+
       setNavSummary(navData);
       setDocuments(docsData);
     } catch (error) {
@@ -261,8 +261,8 @@ export default function PortfolioFundDetailsPage() {
                     range === '3m'
                       ? 'M 20,220 L 140,200 L 260,180 L 380,190 L 500,160 L 620,150 L 740,140 L 800,150 L 800,256 L 0,256 Z'
                       : range === '6m'
-                      ? 'M 20,220 L 80,210 L 140,190 L 200,180 L 260,150 L 320,130 L 380,160 L 440,150 L 500,140 L 560,150 L 620,130 L 680,120 L 740,110 L 800,120 L 800,256 L 0,256 Z'
-                      : 'M 20,220 L 80,200 L 140,190 L 200,140 L 260,110 L 320,80 L 380,70 L 440,100 L 500,120 L 560,100 L 620,80 L 680,100 L 740,110 L 780,90 L 800,80 L 800,256 L 0,256 Z'
+                        ? 'M 20,220 L 80,210 L 140,190 L 200,180 L 260,150 L 320,130 L 380,160 L 440,150 L 500,140 L 560,150 L 620,130 L 680,120 L 740,110 L 800,120 L 800,256 L 0,256 Z'
+                        : 'M 20,220 L 80,200 L 140,190 L 200,140 L 260,110 L 320,80 L 380,70 L 440,100 L 500,120 L 560,100 L 620,80 L 680,100 L 740,110 L 780,90 L 800,80 L 800,256 L 0,256 Z'
                   }
                   fill="url(#portfolioChartGradient)"
                 />
@@ -271,8 +271,8 @@ export default function PortfolioFundDetailsPage() {
                     range === '3m'
                       ? 'M 20,220 L 140,200 L 260,180 L 380,190 L 500,160 L 620,150 L 740,140'
                       : range === '6m'
-                      ? 'M 20,220 L 80,210 L 140,190 L 200,180 L 260,150 L 320,130 L 380,160 L 440,150 L 500,140 L 560,150 L 620,130 L 680,120 L 740,110'
-                      : 'M 20,220 L 80,200 L 140,190 L 200,140 L 260,110 L 320,80 L 380,70 L 440,100 L 500,120 L 560,100 L 620,80 L 680,100 L 740,110 L 780,90'
+                        ? 'M 20,220 L 80,210 L 140,190 L 200,180 L 260,150 L 320,130 L 380,160 L 440,150 L 500,140 L 560,150 L 620,130 L 680,120 L 740,110'
+                        : 'M 20,220 L 80,200 L 140,190 L 200,140 L 260,110 L 320,80 L 380,70 L 440,100 L 500,120 L 560,100 L 620,80 L 680,100 L 740,110 L 780,90'
                   }
                   fill="none"
                   stroke="#F59E0B"
@@ -288,7 +288,7 @@ export default function PortfolioFundDetailsPage() {
             <div className="border-b border-[#F2F2F2] pb-3">
               <h2 className="font-goudy text-base">Your Holdings</h2>
             </div>
-            <div className="mt-4 space-y-2 text-sm text-[#4B4B4B]">
+            <div className="mt-4 space-y-6 text-sm text-[#4B4B4B]">
               <div className="flex items-center justify-between">
                 <span>Cost basis:</span>
                 <span className="text-right font-semibold">{formatCurrency(costBasis)}</span>
@@ -329,9 +329,8 @@ export default function PortfolioFundDetailsPage() {
                 setActiveTab('transactions');
                 setOpenMenuId(null);
               }}
-              className={`pb-3 text-sm font-medium relative ${
-                activeTab === 'transactions' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'
-              }`}
+              className={`pb-3 text-sm font-medium relative ${activeTab === 'transactions' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'
+                }`}
             >
               Transactions
               {activeTab === 'transactions' && (
@@ -344,9 +343,8 @@ export default function PortfolioFundDetailsPage() {
                 setActiveTab('documents');
                 setOpenMenuId(null);
               }}
-              className={`pb-3 text-sm font-medium relative ${
-                activeTab === 'documents' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'
-              }`}
+              className={`pb-3 text-sm font-medium relative ${activeTab === 'documents' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'
+                }`}
             >
               Documents
               {activeTab === 'documents' && (
@@ -359,9 +357,8 @@ export default function PortfolioFundDetailsPage() {
                 setActiveTab('fundInfo');
                 setOpenMenuId(null);
               }}
-              className={`pb-3 text-sm font-medium relative ${
-                activeTab === 'fundInfo' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'
-              }`}
+              className={`pb-3 text-sm font-medium relative ${activeTab === 'fundInfo' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'
+                }`}
             >
               Fund Info
               {activeTab === 'fundInfo' && (
@@ -487,13 +484,13 @@ export default function PortfolioFundDetailsPage() {
                             </button>
                             {openMenuId === doc.id && (
                               <div className="absolute right-0 z-10 mt-2 w-40 rounded-xl bg-white py-2 text-xs shadow-lg ring-1 ring-black/5">
-                                <button 
+                                <button
                                   onClick={() => handleViewDocument(doc.id)}
                                   className="block w-full px-4 py-2 text-left text-[#4B4B4B] hover:bg-gray-50"
                                 >
                                   View Document
                                 </button>
-                                <button 
+                                <button
                                   onClick={() => handleDownloadDocument(doc.id)}
                                   className="block w-full px-4 py-2 text-left text-[#4B4B4B] hover:bg-gray-50"
                                 >
