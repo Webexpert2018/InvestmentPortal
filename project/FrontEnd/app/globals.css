@@ -132,9 +132,12 @@ html {
 
   body {
     @apply bg-background text-foreground;
-    font-family: GoudyOldStyle, Georgia, serif !important;
+    font-family: 'GoudyOldStyle', Georgia, serif !important;
     font-weight: 400;
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 }
 
@@ -148,14 +151,13 @@ html {
 
   body {
     @apply bg-background text-foreground;
-    font-family: GoudyOldStyle, Georgia, serif !important;
+    font-family: 'GoudyOldStyle', Georgia, serif !important;
     font-weight: 400;
     line-height: 1.5;
     color: #4B4B4B !important;
-    /* color: #8E8E8E!important; */
-
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-
 }
 
 /* =======================
