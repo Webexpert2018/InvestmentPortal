@@ -18,7 +18,7 @@ export class DocumentsService {
     return result.rows;
   }
 
-  async uploadFundDocument(fundId: string, data: {
+  async uploadFundDocument(fundId: string | null, data: {
     file_name: string;
     file_url: string;
     document_type: string;

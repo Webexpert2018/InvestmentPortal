@@ -2,8 +2,9 @@
 
 import { useRef, useState } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown, Plus, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { apiClient } from '@/lib/api/client';
 
 export default function UploadTaxDocumentPage() {
   const router = useRouter();
@@ -12,6 +13,9 @@ export default function UploadTaxDocumentPage() {
   const [description, setDescription] = useState('');
   const [note, setNote] = useState('');
   const [selectedFileName, setSelectedFileName] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{
     documentType?: string;
     taxYear?: string;
@@ -41,7 +45,7 @@ export default function UploadTaxDocumentPage() {
       nextErrors.description = 'Description is required';
     }
 
-    if (!selectedFileName.trim()) {
+    if (!selectedFile) {
       nextErrors.file = 'Please upload a file';
     }
 
@@ -49,27 +53,44 @@ export default function UploadTaxDocumentPage() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSave = () => {
-    if (!validateForm()) {
+  const handleSave = async () => {
+    if (!validateForm() || !selectedFile) {
       return;
     }
 
-    router.push('/dashboard/tax-vault/details');
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      await apiClient.uploadVaultDocument({
+        file: selectedFile,
+        document_type: documentType,
+        tax_year: parseInt(taxYear),
+        description,
+        note
+      });
+
+      router.push('/dashboard/tax-vault');
+    } catch (err: any) {
+      console.error('Upload failed:', err);
+      setUploadError(err.message || 'Failed to upload document. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleCancel = () => {
-    setDocumentType('');
-    setTaxYear('');
-    setDescription('');
-    setNote('');
-    setSelectedFileName('');
-    setErrors({});
+    if (isUploading) return;
+    router.push('/dashboard/tax-vault');
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    setSelectedFileName(file?.name ?? '');
-    setErrors((prev) => ({ ...prev, file: undefined }));
+    if (file) {
+      setSelectedFile(file);
+      setSelectedFileName(file.name);
+      setErrors((prev) => ({ ...prev, file: undefined }));
+    }
   };
 
   return (
@@ -175,13 +196,15 @@ export default function UploadTaxDocumentPage() {
                 type="file"
                 className="hidden"
                 onChange={handleFileChange}
+                disabled={isUploading}
               />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
                 className={`flex h-[103px] w-full flex-col items-center justify-center rounded-[8px] border border-dashed text-[#A2A5AA] ${
                   errors.file ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                }`}
+                } ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
               >
                 <Plus className="h-6 w-6" />
                 <p className="mt-2 text-[14px]">
@@ -191,20 +214,35 @@ export default function UploadTaxDocumentPage() {
               {errors.file && <p className="mt-1 text-[12px] text-[#E05252]">{errors.file}</p>}
             </div>
 
+            {uploadError && (
+              <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-100">
+                {uploadError}
+              </div>
+            )}
+
             <div className="mt-6 flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={handleCancel}
-                className="h-[42px] min-w-[112px] rounded-full bg-[#FFF3D6] px-6 text-[16px] text-[#4B4B4B]"
+                disabled={isUploading}
+                className="h-[42px] min-w-[112px] rounded-full bg-[#FFF3D6] px-6 text-[16px] text-[#4B4B4B] disabled:opacity-50"
                 >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSave}
-                className="h-[42px] min-w-[112px] rounded-full bg-[#FBCB4B] px-6 text-[16px] text-[#1F1F1F]"
+                disabled={isUploading}
+                className="flex h-[42px] min-w-[112px] items-center justify-center gap-2 rounded-full bg-[#FBCB4B] px-6 text-[16px] font-bold text-[#1F1F1F] shadow-sm transition-all hover:bg-[#F9B800] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Save
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  'Save'
+                )}
               </button>
             </div>
           </div>

@@ -46,6 +46,28 @@ export class DocumentsController {
     });
   }
 
+  @Post('vault/upload')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: fundDocumentStorage,
+  }))
+  async uploadVaultDocument(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+    return this.documentsService.uploadFundDocument(null, {
+      file_name: file.originalname,
+      file_url: file.path, // Cloudinary URL
+      document_type: body.document_type,
+      tax_year: body.tax_year ? parseInt(body.tax_year) : undefined,
+      description: body.description,
+      note: body.note,
+      file_size: file.size,
+    });
+  }
+
   @Get('my')
   async getMyDocuments(@CurrentUser() user: any) {
     return this.documentsService.getMyDocuments(user.userId);

@@ -584,6 +584,41 @@ class ApiClient {
     return result;
   }
 
+  async uploadVaultDocument(data: {
+    file: File;
+    document_type: string;
+    tax_year?: number;
+    description?: string;
+    note?: string;
+  }) {
+    const formData = new FormData();
+    formData.append('file', data.file);
+    formData.append('document_type', data.document_type || '');
+    if (data.tax_year) formData.append('tax_year', data.tax_year.toString());
+    if (data.description) formData.append('description', data.description);
+    if (data.note) formData.append('note', data.note);
+
+    const headers: HeadersInit = {};
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${API_URL}/documents/vault/upload`, {
+      method: 'POST',
+      body: formData,
+      headers: headers,
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || result.message || 'An error occurred during upload');
+    }
+    return result;
+  }
+
   async updateDocument(id: string, data: {
     document_type?: string;
     tax_year?: number;
