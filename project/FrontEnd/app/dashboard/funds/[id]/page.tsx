@@ -10,6 +10,15 @@ import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer 
+} from 'recharts';
 
 export default function FundOverviewPage() {
   const router = useRouter();
@@ -30,6 +39,11 @@ export default function FundOverviewPage() {
   const { user } = useAuth();
   const isInvestor = user?.role === 'investor';
 
+  // Performance Chart State
+  const [timeframe, setTimeframe] = useState(12);
+  const [performanceData, setPerformanceData] = useState<any[]>([]);
+  const [isPerformanceLoading, setIsPerformanceLoading] = useState(true);
+
   useEffect(() => {
     if (tabParam === 'documents') {
       setActiveTab('documents');
@@ -44,6 +58,27 @@ export default function FundOverviewPage() {
       fetchDocuments();
     }
   }, [params.id]);
+
+  useEffect(() => {
+    fetchPerformance();
+  }, [timeframe]);
+
+  const fetchPerformance = async () => {
+    setIsPerformanceLoading(true);
+    try {
+      const data = await apiClient.getPerformance(timeframe);
+      const formattedData = data.map((item: any) => ({
+        ...item,
+        formattedDate: new Date(item.date).toLocaleDateString('en-US', { month: 'short' }),
+        fullDate: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      }));
+      setPerformanceData(formattedData);
+    } catch (error) {
+      console.error('Failed to fetch performance data:', error);
+    } finally {
+      setIsPerformanceLoading(false);
+    }
+  };
 
   const fetchDocuments = async () => {
     try {
@@ -288,81 +323,90 @@ export default function FundOverviewPage() {
             <div className="bg-white rounded-lg shadow-sm p-8">
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-lg font-bold text-gray-900">Performance Overview</h3>
-                <select className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:border-[#FCD34D] bg-white cursor-pointer">
-                  <option>Last year</option>
-                  <option>Last 6 months</option>
-                  <option>Last 3 months</option>
+                <select 
+                  value={timeframe}
+                  onChange={(e) => setTimeframe(parseInt(e.target.value))}
+                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:border-[#FCD34D] bg-white cursor-pointer"
+                >
+                  <option value={12}>Last year</option>
+                  <option value={9}>Last 9 months</option>
+                  <option value={6}>Last 6 months</option>
+                  <option value={3}>Last 3 months</option>
                 </select>
               </div>
               <div className="mb-6">
-                <p className="text-3xl font-bold text-gray-900">$124.50</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  ${performanceData.length > 0 ? performanceData[performanceData.length - 1].value.toFixed(2) : '124.50'}
+                </p>
                 <p className="text-sm text-green-600 font-medium mt-1">
-                  Last 12 months <span className="ml-1">+5.2%</span>
+                  Last {timeframe} months <span className="ml-1">
+                    {performanceData.length > 1 ? (
+                      ((performanceData[performanceData.length - 1].value - performanceData[0].value) / performanceData[0].value * 100).toFixed(1)
+                    ) : '+5.2'}%
+                  </span>
                 </p>
               </div>
-              <div className="relative">
-                {/* Y-axis labels */}
-                <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-500">
-                  <span>$1000</span>
-                  <span>$800</span>
-                  <span>$600</span>
-                  <span>$400</span>
-                  <span>$200</span>
-                  <span>$0</span>
-                </div>
-
-                {/* Chart container */}
-                <div className="ml-12 h-64">
-                  <svg className="w-full h-full" viewBox="0 0 800 256" preserveAspectRatio="none">
-                    {/* Grid lines */}
-                    <line x1="0" y1="0" x2="800" y2="0" stroke="#e5e7eb" strokeWidth="1" />
-                    <line x1="0" y1="51" x2="800" y2="51" stroke="#e5e7eb" strokeWidth="1" />
-                    <line x1="0" y1="102" x2="800" y2="102" stroke="#e5e7eb" strokeWidth="1" />
-                    <line x1="0" y1="153" x2="800" y2="153" stroke="#e5e7eb" strokeWidth="1" />
-                    <line x1="0" y1="204" x2="800" y2="204" stroke="#e5e7eb" strokeWidth="1" />
-                    <line x1="0" y1="255" x2="800" y2="255" stroke="#e5e7eb" strokeWidth="1" />
-
-                    {/* Area gradient */}
-                    <defs>
-                      <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style={{ stopColor: '#FCD34D', stopOpacity: 0.4 }} />
-                        <stop offset="100%" style={{ stopColor: '#FEF3C7', stopOpacity: 0.05 }} />
-                      </linearGradient>
-                    </defs>
-
-                    {/* Chart path - area fill */}
-                    <path
-                      d="M 20,220 L 80,200 L 140,190 L 200,140 L 260,110 L 320,80 L 380,70 L 440,100 L 500,120 L 560,100 L 620,80 L 680,100 L 740,110 L 780,90 L 800,80 L 800,256 L 0,256 Z"
-                      fill="url(#chartGradient)"
-                    />
-
-                    {/* Chart line */}
-                    <path
-                      d="M 20,220 L 80,200 L 140,190 L 200,140 L 260,110 L 320,80 L 380,70 L 440,100 L 500,120 L 560,100 L 620,80 L 680,100 L 740,110 L 780,90"
-                      fill="none"
-                      stroke="#F59E0B"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-
-                {/* X-axis - Month labels */}
-                <div className="ml-12 flex justify-between mt-2 text-xs text-gray-500">
-                  <span>Jan</span>
-                  <span>Feb</span>
-                  <span>Mar</span>
-                  <span>Apr</span>
-                  <span>May</span>
-                  <span>Jun</span>
-                  <span>Jul</span>
-                  <span>Aug</span>
-                  <span>Sep</span>
-                  <span>Oct</span>
-                  <span>Nov</span>
-                  <span>Dec</span>
-                </div>
+              
+              <div className="h-[300px] w-full mt-4">
+                {isPerformanceLoading ? (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1F3B6E]"></div>
+                  </div>
+                ) : performanceData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={performanceData}>
+                      <defs>
+                        <linearGradient id="performanceGradient" x1="0" y1="0" x2="0" y2="100%">
+                          <stop offset="5%" stopColor="#FCD34D" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#FCD34D" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis 
+                        dataKey="formattedDate" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{fontSize: 12, fill: '#9CA3AF'}}
+                        dy={10}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{fontSize: 12, fill: '#9CA3AF'}}
+                        tickFormatter={(value) => `$${value}`}
+                      />
+                      <RechartsTooltip 
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-white p-3 border border-gray-100 shadow-lg rounded-lg">
+                                <p className="text-xs text-gray-500 mb-1">{payload[0].payload.fullDate}</p>
+                                <p className="text-sm font-bold text-[#1F3B6E]">
+                                  NAV: ${typeof payload[0].value === 'number' ? payload[0].value.toFixed(2) : payload[0].value}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#F59E0B" 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill="url(#performanceGradient)" 
+                        animationDuration={1500}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                    <p className="text-gray-500 text-sm">No performance data available for this period</p>
+                    <p className="text-xs text-gray-400 mt-1">Start adding NAV entries to see the graph</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

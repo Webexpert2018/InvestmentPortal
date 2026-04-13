@@ -736,6 +736,10 @@ class ApiClient {
     });
   }
 
+  async getPerformance(months: number = 12) {
+    return this.request<any[]>(`/nav-management/performance?months=${months}`);
+  }
+
   // Dashboard Stats
   async getAdminStats() {
     return this.request<any>('/stats/admin');

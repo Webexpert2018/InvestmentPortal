@@ -37,12 +37,14 @@ export default function PortfolioFundDetailsPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [invData, navData, docsData] = await Promise.all([
-        apiClient.getInvestmentById(id),
-        apiClient.getNavSummary(),
-        apiClient.getMyDocuments(),
-      ]);
+      const invData = await apiClient.getInvestmentById(id);
       setInvestment(invData);
+
+      const [navData, docsData] = await Promise.all([
+        apiClient.getNavSummary(),
+        invData.fund_id ? apiClient.getFundDocuments(invData.fund_id) : Promise.resolve([]),
+      ]);
+      
       setNavSummary(navData);
       setDocuments(docsData);
     } catch (error) {
@@ -116,6 +118,13 @@ export default function PortfolioFundDetailsPage() {
       style: 'currency',
       currency: 'USD',
     }).format(num);
+  };
+
+  const handleSort = (key: 'date' | 'type' | 'amount' | 'units' | 'status') => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc',
+    }));
   };
 
   const handleViewDocument = (docId: string) => {

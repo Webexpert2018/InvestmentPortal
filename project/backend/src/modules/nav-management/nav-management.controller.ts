@@ -15,6 +15,12 @@ export class NavManagementController {
     return this.navManagementService.getSummary();
   }
 
+  @Get('performance')
+  async getPerformance(@Req() req: any) {
+    const months = parseInt(req.query.months) || 12;
+    return this.navManagementService.getPerformance(months);
+  }
+
   @Get('history')
   @Roles('admin')
   async getHistory() {

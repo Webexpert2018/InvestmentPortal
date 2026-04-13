@@ -82,17 +82,8 @@ const kycQueue = [
   },
 ];
 
-const fundingRequests = [
-  { id: 1, name: 'Terry Torff', amount: '$25,000.00 - Wire' },
-  { id: 2, name: 'Kadin Stanton', amount: '$25,000.00 - Wire' },
-  { id: 3, name: 'Emerson Torff', amount: '$25,000.00 - Wire' },
-];
+// Hardcoded requests removed in favor of dynamic data from API
 
-const redemptionRequests = [
-  { id: 1, name: 'Jaylon George', amount: '1,200 Units (~$12,540)' },
-  { id: 2, name: 'Wilson Press', amount: '1,200 Units (~$12,540)' },
-  { id: 3, name: 'Emerson Donin', amount: '1,200 Units (~$12,540)' },
-];
 
 const bottomSections = [
   { id: 1, title: 'Funding Requests', count: 4, color: 'text-[#FCD34D]' },
@@ -226,7 +217,11 @@ export default function DashboardPage() {
   const loading = false;
   const { user } = useAuth();
 
-  const [expandedSection, setExpandedSection] = useState<number | null>(1);
+  const [adminExpanded, setAdminExpanded] = useState({
+    funding: true,
+    redemption: false,
+    reconciliation: false,
+  });
   const [investorExpanded, setInvestorExpanded] = useState({
     pending: true,
     messages: true,
@@ -237,13 +232,6 @@ export default function DashboardPage() {
   const [notificationsOpen, setNotificationsOpen] = useState<boolean>(true);
   const [investorKycStatus, setInvestorKycState] = useState<string>('pending');
   const [activeFundsCount, setActiveFundsCount] = useState(0);
-  const [investorStats, setInvestorStats] = useState({
-    totalInvested: 0,
-    totalUnits: 0,
-    currentNav: 0,
-    currentValue: 0,
-    ytdReturn: 0,
-  });
   const [adminStats, setAdminStats] = useState({
     totalInvestors: 0,
     pendingKyc: 0,
@@ -251,6 +239,15 @@ export default function DashboardPage() {
     pendingRedemptions: 0,
     recentInvestors: [] as any[],
   });
+  const [investorStats, setInvestorStats] = useState({
+    totalInvested: 0,
+    totalUnits: 0,
+    currentNav: 0,
+    currentValue: 0,
+    ytdReturn: 0,
+  });
+  const [dynamicFundingRequests, setDynamicFundingRequests] = useState<any[]>([]);
+  const [dynamicRedemptionRequests, setDynamicRedemptionRequests] = useState<any[]>([]);
 
   const investorAccountList = [
     {
@@ -293,8 +290,24 @@ export default function DashboardPage() {
             ytdReturn: dynamicStats.ytdReturn || 0,
           });
         } else if (dashboardRole === 'admin') {
-          const stats = await apiClient.getAdminStats();
+          const [stats, allInvestments, allRedemptions] = await Promise.all([
+            apiClient.getAdminStats(),
+            apiClient.getAllInvestments(),
+            apiClient.getAllRedemptions(),
+          ]);
           setAdminStats(stats);
+          
+          // Filter pending fundings: Subscription Submitted or Awaiting Funding
+          const pendingFundings = allInvestments.filter((inv: any) => 
+            ['Subscription Submitted', 'Awaiting Funding'].includes(inv.status)
+          );
+          setDynamicFundingRequests(pendingFundings);
+
+          // Filter pending redemptions: Pending
+          const pendingRedemptions = allRedemptions.filter((red: any) => 
+            red.status === 'Pending'
+          );
+          setDynamicRedemptionRequests(pendingRedemptions);
         }
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
@@ -951,27 +964,34 @@ export default function DashboardPage() {
             <div className="bg-white shadow-sm rounded-xl overflow-hidden">
               <div
                 className="p-6 flex items-center justify-between cursor-pointer"
-                onClick={() => setExpandedSection(expandedSection === 1 ? null : 1)}
+                onClick={() => setAdminExpanded(prev => ({ ...prev, funding: !prev.funding }))}
               >
                 <div className="flex items-center space-x-4">
-                  <span className="text-lg font-bold text-[#FCD34D]">4</span>
+                  <span className="text-lg font-bold text-[#FCD34D]">{dynamicFundingRequests.length}</span>
                   <span className="text-sm font-medium text-gray-700">Funding Requests</span>
                 </div>
-                <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${expandedSection === 1 ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.funding ? 'rotate-180' : ''}`} />
               </div>
-              {expandedSection === 1 && (
+              {adminExpanded.funding && (
                 <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4">
-                  {fundingRequests.map((request) => (
+                  {dynamicFundingRequests.length > 0 ? dynamicFundingRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{request.name}</p>
-                        <p className="text-xs text-gray-500">{request.amount}</p>
+                        <p className="text-sm font-medium text-gray-900">{request.investor_name}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.investment_amount)} - {request.account_type}
+                        </p>
                       </div>
-                      <button className="px-4 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-full hover:bg-blue-50 transition-colors">
+                      <Link 
+                        href={`/dashboard/funding-requests/${request.id}`}
+                        className="px-4 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-full hover:bg-blue-50 transition-colors"
+                      >
                         Review Req
-                      </button>
+                      </Link>
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-sm text-gray-500 py-2">No pending funding requests.</p>
+                  )}
                 </div>
               )}
             </div>
@@ -980,27 +1000,35 @@ export default function DashboardPage() {
             <div className="bg-white shadow-sm rounded-xl overflow-hidden">
               <div
                 className="p-6 flex items-center justify-between cursor-pointer"
-                onClick={() => setExpandedSection(expandedSection === 2 ? null : 2)}
+                onClick={() => setAdminExpanded(prev => ({ ...prev, redemption: !prev.redemption }))}
               >
                 <div className="flex items-center space-x-4">
-                  <span className="text-lg font-bold text-blue-500">5</span>
+                  <span className="text-lg font-bold text-blue-500">{dynamicRedemptionRequests.length}</span>
                   <span className="text-sm font-medium text-gray-700">Redemption Requests</span>
                 </div>
-                <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${expandedSection === 2 ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.redemption ? 'rotate-180' : ''}`} />
               </div>
-              {expandedSection === 2 && (
+              {adminExpanded.redemption && (
                 <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4">
-                  {redemptionRequests.map((request) => (
+                  {dynamicRedemptionRequests.length > 0 ? dynamicRedemptionRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{request.name}</p>
-                        <p className="text-xs text-gray-500">{request.amount}</p>
+                        <p className="text-sm font-medium text-gray-900">{request.investor_name}</p>
+                        <p className="text-xs text-gray-500">
+                           {request.units ? `${parseFloat(request.units).toFixed(2)} Units` : ''} 
+                           {request.amount ? ` (~${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.amount)})` : ''}
+                        </p>
                       </div>
-                      <button className="px-4 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-full hover:bg-blue-50 transition-colors">
+                      <Link 
+                        href={`/dashboard/redemption-requests/${request.id}`}
+                        className="px-4 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-full hover:bg-blue-50 transition-colors"
+                      >
                         Review Req
-                      </button>
+                      </Link>
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-sm text-gray-500 py-2">No pending redemption requests.</p>
+                  )}
                 </div>
               )}
             </div>
@@ -1009,15 +1037,15 @@ export default function DashboardPage() {
             <div className="bg-white shadow-sm rounded-xl overflow-hidden">
               <div
                 className="p-6 flex items-center justify-between cursor-pointer"
-                onClick={() => setExpandedSection(expandedSection === 3 ? null : 3)}
+                onClick={() => setAdminExpanded(prev => ({ ...prev, reconciliation: !prev.reconciliation }))}
               >
                 <div className="flex items-center space-x-4">
                   <span className="text-lg font-bold text-red-500">5</span>
                   <span className="text-sm font-medium text-gray-700">Reconciliation Alerts</span>
                 </div>
-                <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${expandedSection === 3 ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.reconciliation ? 'rotate-180' : ''}`} />
               </div>
-              {expandedSection === 3 && (
+              {adminExpanded.reconciliation && (
                 <div className="px-6 pb-6 border-t border-gray-100 pt-6 text-center">
                   <p className="text-base font-semibold text-gray-900 mb-1">Nothing pending</p>
                   <p className="text-sm text-gray-500">All are currently up to date</p>

@@ -61,7 +61,7 @@ export default function DocumentVaultPage() {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const pageSize = 4;
+  const pageSize = 8;
 
   const getCategoryName = (type: string) => {
     switch (type?.toLowerCase()) {
@@ -77,13 +77,24 @@ export default function DocumentVaultPage() {
   useEffect(() => {
     const fetchDocs = async () => {
       try {
-        const data = await apiClient.getMyDocuments();
-        const mapped = data.map((doc: any) => ({
+        setLoading(true);
+        const [myDocs, allDocs] = await Promise.all([
+          apiClient.getMyDocuments(),
+          apiClient.getAllDocuments()
+        ]);
+        
+        const combined = [...myDocs, ...allDocs];
+
+        const mapped = combined.map((doc: any) => ({
           id: doc.id,
           documentName: doc.file_name,
           category: getCategoryName(doc.document_type || doc.category),
-          taxYear: doc.tax_year || 'N/A',
-          uploadedDate: new Date(doc.uploaded_at).toLocaleDateString(),
+          taxYear: doc.tax_year?.toString() || 'N/A',
+          uploadedDate: new Date(doc.uploaded_at).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          }),
           fileUrl: `${apiClient.getApiUrl()}/documents/${doc.id}/view`
         }));
         setDocuments(mapped);
@@ -96,17 +107,19 @@ export default function DocumentVaultPage() {
     fetchDocs();
   }, []);
 
+  const categories = useMemo(() => {
+    const cats = new Set(documents.map(d => d.category));
+    return ['all', ...Array.from(cats)].sort();
+  }, [documents]);
+
+  const years = useMemo(() => {
+    const yrs = new Set(documents.map(d => d.taxYear).filter(y => y !== 'N/A'));
+    return ['all', ...Array.from(yrs)].sort((a, b) => b.localeCompare(a));
+  }, [documents]);
+
   const filtered = useMemo(() => {
     return documents.filter((row) => {
-      let typeMatch = docType === 'all';
-      if (!typeMatch) {
-        if (docType === 'KYC') {
-          typeMatch = ['Tax Return (Year 1)', 'Tax Return (Year 2)', 'Balance Sheet / Net Worth', 'Identity Document', 'KYC Documents'].includes(row.category);
-        } else {
-          typeMatch = row.category === docType;
-        }
-      }
-
+      const typeMatch = docType === 'all' || row.category === docType;
       const yearMatch = year === 'all' || row.taxYear === year;
       const searchMatch =
         query.trim().length === 0 ||
@@ -166,10 +179,9 @@ export default function DocumentVaultPage() {
                 className="h-[40px] min-w-[145px] appearance-none rounded-full bg-[#F5F5F5] px-4 pr-9 text-[13px] text-[#8E8E93] outline-none"
               >
                 <option value="all">Document Type</option>
-                <option value="KYC">KYC Documents</option>
-                <option value="K-1">K-1</option>
-                <option value="W-9">W-9</option>
-                <option value="Statement">Statement</option>
+                {categories.filter(c => c !== 'all').map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
             </div>
@@ -184,8 +196,9 @@ export default function DocumentVaultPage() {
                 className="h-[40px] min-w-[90px] appearance-none rounded-full bg-[#F5F5F5] px-4 pr-9 text-[13px] text-[#8E8E93] outline-none"
               >
                 <option value="all">Year</option>
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
+                {years.filter(y => y !== 'all').map(yr => (
+                  <option key={yr} value={yr}>{yr}</option>
+                ))}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
             </div>

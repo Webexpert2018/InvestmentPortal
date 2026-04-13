@@ -37,8 +37,20 @@ export default function FundingRequestsPage() {
   };
 
   const getStatusColor = (status: string) => {
-    // For now, always showing Pending status as requested
-    return 'text-orange-600 bg-orange-50';
+    switch (status) {
+      case 'Pending':
+      case 'Subscription Submitted':
+      case 'Awaiting Funding':
+        return 'text-orange-600 bg-orange-50';
+      case 'Rejected':
+        return 'text-red-600 bg-red-50';
+      case 'Approved':
+      case 'Funds Received':
+      case 'Units Issued':
+        return 'text-green-600 bg-green-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
+    }
   };
 
   const formatCurrency = (val: number | string) => {
@@ -229,8 +241,8 @@ export default function FundingRequestsPage() {
                         <td className="px-6 py-4 text-gray-600">Wire</td>
                         <td className="px-6 py-4 text-gray-600">{formatDate(request.created_at)}</td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor('Pending')}`}>
-                            Pending
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(request.status || 'Pending')}`}>
+                            {request.status || 'Pending'}
                           </span>
                         </td>
                         <td className="px-6 py-4">

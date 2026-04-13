@@ -197,4 +197,17 @@ export class NavManagementService {
     }
     return { success: true };
   }
+
+  async getPerformance(months: number = 12) {
+    const result = await db.query(
+      `SELECT effective_date as date, nav_per_unit as value 
+       FROM fund_nav_history 
+       WHERE effective_date >= NOW() - INTERVAL '${months} months'
+       ORDER BY effective_date ASC`
+    );
+    return result.rows.map(row => ({
+      date: row.date,
+      value: parseFloat(row.value)
+    }));
+  }
 }

@@ -31,6 +31,13 @@ export default function TaxVaultPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState('All');
+  const [selectedYear, setSelectedYear] = useState('All');
+  const [isTypeOpen, setIsTypeOpen] = useState(false);
+  const [isYearOpen, setIsYearOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -82,6 +89,23 @@ export default function TaxVaultPage() {
     setActiveMenuId(null);
   };
 
+  const uniqueTypes = Array.from(new Set(documents.map(d => d.documentType).filter(Boolean)));
+  const documentTypes = ['All', ...uniqueTypes.sort()];
+
+  const uniqueYears = Array.from(new Set(documents.map(d => d.taxYear).filter(y => y && y !== 'N/A')));
+  const taxYears = ['All', ...uniqueYears.sort((a, b) => b.localeCompare(a))];
+
+  const filteredDocuments = documents.filter(doc => {
+    const matchesSearch = doc.fileName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = selectedType === 'All' || doc.documentType === selectedType;
+    const matchesYear = selectedYear === 'All' || doc.taxYear === selectedYear;
+    return matchesSearch && matchesType && matchesYear;
+  });
+
+  const itemsPerPage = 7;
+  const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
+  const currentDocuments = filteredDocuments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F]">
@@ -108,25 +132,82 @@ export default function TaxVaultPage() {
               <input
                 type="text"
                 placeholder="Find something here..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="h-[50px] w-full rounded-[26px] bg-[#F5F5F5] pl-12 pr-4 text-[16px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] ring-1 ring-transparent focus:ring-amber-200 transition-all"
               />
             </label>
 
-            <button
-              type="button"
-              className="inline-flex h-[50px] min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[16px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
-            >
-              Document Type
-              <ChevronDown className="ml-3 h-5 w-5" />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsTypeOpen(!isTypeOpen);
+                  setIsYearOpen(false);
+                }}
+                className="inline-flex h-[50px] min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[16px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+              >
+                {selectedType === 'All' ? 'Document Type' : selectedType}
+                <ChevronDown className={`ml-3 h-5 w-5 transition-transform ${isTypeOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {isTypeOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsTypeOpen(false)} />
+                  <div className="absolute top-full left-0 mt-2 z-20 w-48 rounded-xl border border-[#EFEFEF] bg-white py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
+                    {documentTypes.map(type => (
+                      <button
+                        key={type}
+                        onClick={() => {
+                          setSelectedType(type);
+                          setIsTypeOpen(false);
+                          setCurrentPage(1);
+                        }}
+                        className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedType === type ? 'bg-[#F5F5F5] text-[#274583] font-semibold' : 'text-[#4B4B4B] hover:bg-[#F8F8F8]'}`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
 
-            <button
-              type="button"
-              className="inline-flex h-[50px] min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[16px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
-            >
-              Year
-              <ChevronDown className="ml-3 h-5 w-5" />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsYearOpen(!isYearOpen);
+                  setIsTypeOpen(false);
+                }}
+                className="inline-flex h-[50px] min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[16px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+              >
+                {selectedYear === 'All' ? 'Year' : selectedYear}
+                <ChevronDown className={`ml-3 h-5 w-5 transition-transform ${isYearOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {isYearOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsYearOpen(false)} />
+                  <div className="absolute top-full left-0 mt-2 z-20 w-32 rounded-xl border border-[#EFEFEF] bg-white py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
+                    {taxYears.map(year => (
+                      <button
+                        key={year}
+                        onClick={() => {
+                          setSelectedYear(year);
+                          setIsYearOpen(false);
+                          setCurrentPage(1);
+                        }}
+                        className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedYear === year ? 'bg-[#F5F5F5] text-[#274583] font-semibold' : 'text-[#4B4B4B] hover:bg-[#F8F8F8]'}`}
+                      >
+                        {year}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="mt-6 overflow-x-auto">
@@ -136,8 +217,8 @@ export default function TaxVaultPage() {
               </div>
             ) : error ? (
               <div className="p-8 text-center text-red-500">{error}</div>
-            ) : documents.length === 0 ? (
-              <div className="p-8 text-center text-[#8E8E93]">No documents found in the vault.</div>
+            ) : filteredDocuments.length === 0 ? (
+              <div className="p-8 text-center text-[#8E8E93]">No documents found matching your criteria.</div>
             ) : (
               <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
                 <thead>
@@ -153,7 +234,7 @@ export default function TaxVaultPage() {
                 </thead>
 
                 <tbody>
-                  {documents.map((row) => (
+                  {currentDocuments.map((row) => (
                     <tr key={row.id} className="border-b border-[#F1F1F1] hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
@@ -227,17 +308,32 @@ export default function TaxVaultPage() {
 
           {!loading && !error && documents.length > 0 && (
             <div className="mt-5 flex items-center justify-end gap-2 text-[16px] text-[#8E8E93]">
-              <button type="button" className="px-1 hover:text-[#274583] transition-colors">&lt; Previous</button>
-              <button
-                type="button"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#274583] text-white"
+              <button 
+                type="button" 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-1 hover:text-[#274583] transition-colors disabled:opacity-30 disabled:pointer-events-none"
               >
-                1
+                &lt; Previous
               </button>
-              <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] hover:bg-[#E9EDF4] transition-colors">2</button>
-              <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] hover:bg-[#E9EDF4] transition-colors">3</button>
-              <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] hover:bg-[#E9EDF4] transition-colors">4</button>
-              <button type="button" className="px-1 hover:text-[#274583] transition-colors">Next &gt;</button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-[8px] transition-colors ${currentPage === page ? 'bg-[#274583] text-white' : 'hover:bg-[#E9EDF4]'}`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button 
+                type="button" 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-1 hover:text-[#274583] transition-colors disabled:opacity-30 disabled:pointer-events-none"
+              >
+                Next &gt;
+              </button>
             </div>
           )}
         </div>
