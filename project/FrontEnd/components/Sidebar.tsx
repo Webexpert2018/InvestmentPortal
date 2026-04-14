@@ -255,19 +255,20 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
                   href={item.href}
                   onClick={handleMenuItemClick}
                   className={cn(
-                    "group relative flex items-center font-goudy justify-center rounded-full h-[40px] text-[15px] font-medium transition-all duration-200 overflow-hidden",
+                    "group relative flex items-center font-goudy justify-center rounded-full h-[40px] text-[15px] font-medium transition-all duration-300 ease-out overflow-hidden antialiased will-change-transform",
                     "bg-[#ECECEC]",
                     !isCollapsed && "px-5 justify-start",
+                    isActive ? "scale-100 shadow-md" : "hover:scale-[1.03] hover:shadow-md active:scale-[0.97]"
                   )}
                 >
                   <span
                     className={cn(
-                      "absolute inset-0 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] transition-transform duration-300",
-                      isActive ? "translate-x-0" : "-translate-x-full group-hover:translate-x-0"
+                      "absolute inset-0 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] transition-all duration-300 ease-out",
+                      isActive ? "opacity-100 scale-100" : "opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100"
                     )}
                   />
 
-                  <span className={cn("relative z-10 flex items-center", !isCollapsed && "gap-3", isActive ? "text-gray-900" : "text-[#2F3A4C] group-hover:text-gray-900")}>
+                  <span className={cn("relative z-10 flex items-center transition-colors duration-300 transform-gpu", !isCollapsed && "gap-3", isActive ? "text-gray-900" : "text-[#2F3A4C] group-hover:text-gray-900")}>
                     <Icon className="h-5 w-5 shrink-0" />
                     {!isCollapsed && <span>{item.title}</span>}
                   </span>
