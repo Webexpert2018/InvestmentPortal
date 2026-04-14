@@ -16,11 +16,21 @@ export default function AddFundPage() {
   const [note, setNote] = useState('');
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [routingNumber, setRoutingNumber] = useState('');
+  const [beneficiaryName, setBeneficiaryName] = useState('');
+  const [bankAddress, setBankAddress] = useState('');
   const [errors, setErrors] = useState({
     fundName: '',
     startDate: '',
     description: '',
     note: '',
+    bankName: '',
+    accountNumber: '',
+    routingNumber: '',
+    beneficiaryName: '',
+    bankAddress: '',
   });
 
   const descriptionMaxLength = 500;
@@ -32,6 +42,11 @@ export default function AddFundPage() {
       startDate: '',
       description: '',
       note: '',
+      bankName: '',
+      accountNumber: '',
+      routingNumber: '',
+      beneficiaryName: '',
+      bankAddress: '',
     };
 
     let isValid = true;
@@ -53,6 +68,37 @@ export default function AddFundPage() {
 
     if (!note.trim()) {
       newErrors.note = 'Note is required';
+      isValid = false;
+    }
+
+    if (!bankName.trim()) {
+      newErrors.bankName = 'Bank name is required';
+      isValid = false;
+    }
+
+    if (!accountNumber.trim()) {
+      newErrors.accountNumber = 'Account number is required';
+      isValid = false;
+    } else if (!/^\d+$/.test(accountNumber)) {
+      newErrors.accountNumber = 'Account number must contain only digits';
+      isValid = false;
+    }
+
+    if (!routingNumber.trim()) {
+      newErrors.routingNumber = 'Routing number is required';
+      isValid = false;
+    } else if (!/^\d{9}$/.test(routingNumber)) {
+      newErrors.routingNumber = 'Routing number must be exactly 9 digits';
+      isValid = false;
+    }
+
+    if (!beneficiaryName.trim()) {
+      newErrors.beneficiaryName = 'Beneficiary name is required';
+      isValid = false;
+    }
+
+    if (!bankAddress.trim()) {
+      newErrors.bankAddress = 'Bank address is required';
       isValid = false;
     }
 
@@ -83,6 +129,11 @@ export default function AddFundPage() {
         status,
         min_investment: 0,
         unit_price: 1.00,
+        bankName,
+        accountNumber,
+        routingNumber,
+        beneficiaryName,
+        bankAddress,
       });
 
       if (fundImage && fund.id) {
@@ -290,6 +341,103 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
                 </div>
                 {errors.note && (
                   <p className="text-red-500 text-xs mt-1">{errors.note}</p>
+                )}
+            </div>
+          </div>
+        </div>
+
+          {/* Bank Details Section */}
+          <div className="border-t border-gray-100 pt-8 mb-8">
+            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-6">Bank Details (Wire Instructions)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Metropolitan Commercial Bank"
+                  value={bankName}
+                  onChange={(e) => {
+                    setBankName(e.target.value);
+                    if (errors.bankName) setErrors({ ...errors, bankName: '' });
+                  }}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${
+                    errors.bankName ? 'border-red-500' : 'border-gray-200'
+                  }`}
+                />
+                {errors.bankName && (
+                  <p className="text-red-500 text-xs mt-1">{errors.bankName}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Account Number</label>
+                <input
+                  type="text"
+                  placeholder="Enter account number"
+                  value={accountNumber}
+                  onChange={(e) => {
+                    setAccountNumber(e.target.value);
+                    if (errors.accountNumber) setErrors({ ...errors, accountNumber: '' });
+                  }}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${
+                    errors.accountNumber ? 'border-red-500' : 'border-gray-200'
+                  }`}
+                />
+                {errors.accountNumber && (
+                  <p className="text-red-500 text-xs mt-1">{errors.accountNumber}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Routing Number (ABA)</label>
+                <input
+                  type="text"
+                  placeholder="Enter routing number"
+                  value={routingNumber}
+                  onChange={(e) => {
+                    setRoutingNumber(e.target.value);
+                    if (errors.routingNumber) setErrors({ ...errors, routingNumber: '' });
+                  }}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${
+                    errors.routingNumber ? 'border-red-500' : 'border-gray-200'
+                  }`}
+                />
+                {errors.routingNumber && (
+                  <p className="text-red-500 text-xs mt-1">{errors.routingNumber}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Beneficiary Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter beneficiary name"
+                  value={beneficiaryName}
+                  onChange={(e) => {
+                    setBeneficiaryName(e.target.value);
+                    if (errors.beneficiaryName) setErrors({ ...errors, beneficiaryName: '' });
+                  }}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${
+                    errors.beneficiaryName ? 'border-red-500' : 'border-gray-200'
+                  }`}
+                />
+                {errors.beneficiaryName && (
+                  <p className="text-red-500 text-xs mt-1">{errors.beneficiaryName}</p>
+                )}
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Bank Address</label>
+                <textarea
+                  placeholder="Enter full bank address"
+                  value={bankAddress}
+                  onChange={(e) => {
+                    setBankAddress(e.target.value);
+                    if (errors.bankAddress) setErrors({ ...errors, bankAddress: '' });
+                  }}
+                  rows={2}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${
+                    errors.bankAddress ? 'border-red-500' : 'border-gray-200'
+                  }`}
+                />
+                {errors.bankAddress && (
+                  <p className="text-red-500 text-xs mt-1">{errors.bankAddress}</p>
                 )}
               </div>
             </div>

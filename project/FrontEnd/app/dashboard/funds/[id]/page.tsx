@@ -25,8 +25,9 @@ export default function FundOverviewPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<'overview' | 'documents'>(
-    tabParam === 'documents' ? 'documents' : 'overview'
+  const [activeTab, setActiveTab] = useState<'overview' | 'documents' | 'bankDetails'>(
+    tabParam === 'documents' ? 'documents' : 
+    tabParam === 'bankDetails' ? 'bankDetails' : 'overview'
   );
   const [fund, setFund] = useState<any>(null);
   const [documents, setDocuments] = useState<any[]>([]);
@@ -49,6 +50,8 @@ export default function FundOverviewPage() {
       setActiveTab('documents');
     } else if (tabParam === 'overview') {
       setActiveTab('overview');
+    } else if (tabParam === 'bankDetails') {
+      setActiveTab('bankDetails');
     }
   }, [tabParam]);
 
@@ -217,6 +220,18 @@ export default function FundOverviewPage() {
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FCD34D]" />
               )}
             </button>
+            {!isInvestor && (
+              <button
+                onClick={() => setActiveTab('bankDetails')}
+                className={`pb-3 font-medium transition-colors relative ${activeTab === 'bankDetails' ? 'text-[#1F3B6E]' : 'text-gray-600'
+                  }`}
+              >
+                Wire Instructions
+                {activeTab === 'bankDetails' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FCD34D]" />
+                )}
+              </button>
+            )}
           </div>
         </div>
 
@@ -407,6 +422,48 @@ export default function FundOverviewPage() {
                     <p className="text-xs text-gray-400 mt-1">Start adding NAV entries to see the graph</p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'bankDetails' && !isInvestor && (
+          <div className="bg-white rounded-lg shadow-sm p-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6 font-goudy">Custodian Wire Instructions</h2>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-600">
+                These are the wire transfer instructions associated with this fund. Use these details for all incoming investments.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Bank Name</p>
+                  <p className="font-medium text-gray-900">{fund.bankName || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Account Number</p>
+                  <p className="font-medium text-gray-900 text-lg tracking-wider">{fund.accountNumber || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Routing Number (ABA)</p>
+                  <p className="font-medium text-gray-900">{fund.routingNumber || 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Beneficiary Name</p>
+                  <p className="font-medium text-gray-900">{fund.beneficiaryName || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Bank Address</p>
+                  <p className="font-medium text-gray-900 leading-relaxed whitespace-pre-line">
+                    {fund.bankAddress || 'N/A'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

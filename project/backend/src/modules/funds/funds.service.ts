@@ -6,6 +6,8 @@ export class FundsService {
   async getAllFunds() {
     const result = await db.query(
       `SELECT f.id, f.name, f.description, f.image_url as image, f.start_date as "startDate", f.status, f.note,
+              f.bank_name as "bankName", f.account_number as "accountNumber", f.routing_number as "routingNumber", 
+              f.beneficiary_name as "beneficiaryName", f.bank_address as "bankAddress",
               COALESCE(stats.total_investors, 0)::int as "totalInvestors",
               COALESCE(stats.total_aum, 0)::float as "totalAUM"
        FROM funds f
@@ -26,6 +28,8 @@ export class FundsService {
   async getFundById(id: string) {
     const result = await db.query(
       `SELECT f.id, f.name, f.description, f.image_url as image, f.start_date as "startDate", f.status, f.note,
+              f.bank_name as "bankName", f.account_number as "accountNumber", f.routing_number as "routingNumber", 
+              f.beneficiary_name as "beneficiaryName", f.bank_address as "bankAddress",
               COALESCE(stats.total_investors, 0)::int as "totalInvestors",
               COALESCE(stats.total_aum, 0)::float as "totalAUM"
        FROM funds f
@@ -48,9 +52,27 @@ export class FundsService {
     return fund;
   }
 
-  async createFund(data: { name: string; description: string; image_url: string; start_date?: string; status?: string; note?: string; min_investment?: number; unit_price?: number }) {
+  async createFund(data: { 
+    name: string; 
+    description: string; 
+    image_url: string; 
+    start_date?: string; 
+    status?: string; 
+    note?: string; 
+    min_investment?: number; 
+    unit_price?: number;
+    bankName?: string;
+    accountNumber?: string;
+    routingNumber?: string;
+    beneficiaryName?: string;
+    bankAddress?: string;
+  }) {
     const result = await db.query(
-      'INSERT INTO funds (name, description, image_url, start_date, status, note, min_investment, unit_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      `INSERT INTO funds (
+        name, description, image_url, start_date, status, note, 
+        min_investment, unit_price, bank_name, account_number, 
+        routing_number, beneficiary_name, bank_address
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
       [
         data.name, 
         data.description, 
@@ -59,13 +81,32 @@ export class FundsService {
         data.status || 'Active', 
         data.note || '',
         data.min_investment || 0, 
-        data.unit_price || 1.00
+        data.unit_price || 1.00,
+        data.bankName || null,
+        data.accountNumber || null,
+        data.routingNumber || null,
+        data.beneficiaryName || null,
+        data.bankAddress || null
       ]
     );
     return result.rows[0];
   }
 
-  async updateFund(id: string, data: Partial<{ name: string; description: string; image_url: string; start_date: string; status: string; note: string; min_investment: number; unit_price: number }>) {
+  async updateFund(id: string, data: Partial<{ 
+    name: string; 
+    description: string; 
+    image_url: string; 
+    start_date: string; 
+    status: string; 
+    note: string; 
+    min_investment: number; 
+    unit_price: number;
+    bankName: string;
+    accountNumber: string;
+    routingNumber: string;
+    beneficiaryName: string;
+    bankAddress: string;
+  }>) {
     const updates: string[] = ['updated_at = NOW()'];
     const values: any[] = [];
     let paramIndex = 1;
@@ -101,6 +142,26 @@ export class FundsService {
     if (data.unit_price !== undefined) {
       updates.push(`unit_price = $${paramIndex++}`);
       values.push(data.unit_price);
+    }
+    if (data.bankName !== undefined) {
+      updates.push(`bank_name = $${paramIndex++}`);
+      values.push(data.bankName);
+    }
+    if (data.accountNumber !== undefined) {
+      updates.push(`account_number = $${paramIndex++}`);
+      values.push(data.accountNumber);
+    }
+    if (data.routingNumber !== undefined) {
+      updates.push(`routing_number = $${paramIndex++}`);
+      values.push(data.routingNumber);
+    }
+    if (data.beneficiaryName !== undefined) {
+      updates.push(`beneficiary_name = $${paramIndex++}`);
+      values.push(data.beneficiaryName);
+    }
+    if (data.bankAddress !== undefined) {
+      updates.push(`bank_address = $${paramIndex++}`);
+      values.push(data.bankAddress);
     }
 
     if (values.length === 0) return this.getFundById(id);

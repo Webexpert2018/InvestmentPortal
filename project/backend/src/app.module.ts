@@ -20,6 +20,8 @@ import { RedemptionsModule } from './modules/redemptions/redemptions.module';
 import { StatsModule } from './modules/stats/stats.module';
 import { HealthController } from './health.controller';
 
+import { BankAccountsModule } from './modules/bank-accounts/bank-accounts.module';
+
 @Module({
   imports: [
     // Make env vars available everywhere
@@ -46,6 +48,7 @@ import { HealthController } from './health.controller';
     NavManagementModule,
     RedemptionsModule,
     StatsModule,
+    BankAccountsModule,
   ],
   controllers: [HealthController],
 })

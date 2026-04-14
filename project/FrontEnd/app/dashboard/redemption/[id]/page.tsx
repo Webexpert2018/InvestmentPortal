@@ -222,7 +222,7 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
                 <div>
                   <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-widest mb-1.5">Bank Name</p>
                   <p className="text-sm font-bold text-gray-900 leading-tight">
-                    {redemption.bank_info?.label?.split(' - ')[0] || redemption.bank_info?.label || 'Account on file'}
+                    {redemption.bank_info?.bank_name ? `${redemption.bank_info.bank_name} - ****${redemption.bank_info.account_number?.slice(-4)}` : 'Account on file'}
                   </p>
                 </div>
               </div>

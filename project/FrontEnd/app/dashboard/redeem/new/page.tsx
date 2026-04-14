@@ -3,16 +3,19 @@
 import { useMemo, useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { apiClient } from '@/lib/api/client';
-import { Loader2, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { Loader2, ChevronDown, CheckCircle2, Plus, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 type Step = 'amount' | 'confirm' | 'submitted';
 
-const bankAccounts = [
-  { id: 'bank-1', label: 'Checking Account - ****1234' },
-  { id: 'bank-2', label: 'Checking Account - ****1234' },
-  { id: 'bank-3', label: 'Checking Account - ****1234' },
-];
+const defaultBankAdd = {
+  bank_name: '',
+  account_number: '',
+  routing_number: '',
+  beneficiary_name: '',
+  bank_address: '',
+};
 
 export default function RedemptionAmountPage() {
   const router = useRouter();
@@ -23,13 +26,32 @@ export default function RedemptionAmountPage() {
   const [selectedHoldingId, setSelectedHoldingId] = useState<string>('');
   const [amount, setAmount] = useState('0.00');
   const [reason, setReason] = useState('');
-  const [selectedBankId, setSelectedBankId] = useState<string | null>('bank-3');
+  const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
   const [liveNav, setLiveNav] = useState<number | null>(null);
+  const [userBankAccounts, setUserBankAccounts] = useState<any[]>([]);
+  const [showAddBankModal, setShowAddBankModal] = useState(false);
+  const [newBank, setNewBank] = useState(defaultBankAdd);
+  const [newBankErrors, setNewBankErrors] = useState<Record<string, string>>({});
+  const [addingBank, setAddingBank] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchHoldings();
     fetchLiveNav();
+    fetchBankAccounts();
   }, []);
+
+  const fetchBankAccounts = async () => {
+    try {
+      const data = await apiClient.getBankAccounts();
+      setUserBankAccounts(data);
+      if (data.length > 0 && !selectedBankId) {
+        setSelectedBankId(data[0].id);
+      }
+    } catch (error) {
+      console.error('Error fetching bank accounts:', error);
+    }
+  };
 
   const fetchLiveNav = async () => {
     try {
@@ -46,11 +68,19 @@ export default function RedemptionAmountPage() {
     try {
       setLoading(true);
       const data = await apiClient.getMyInvestments();
-      // Only show investments that are completed/active and have units
-      const activeHoldings = data.filter(h => parseFloat(h.estimated_units) > 0);
-      setHoldings(activeHoldings);
-      if (activeHoldings.length > 0) {
-        setSelectedHoldingId(activeHoldings[0].id);
+      // Only show investments that are completed/active, have units, and were bought over 3 years ago
+      const threeYearsAgo = new Date();
+      threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+
+      const eligibleHoldings = data.filter(h => {
+        const hasUnits = parseFloat(h.estimated_units) > 0;
+        const isOldEnough = new Date(h.created_at) <= threeYearsAgo;
+        return hasUnits && isOldEnough;
+      });
+
+      setHoldings(eligibleHoldings);
+      if (eligibleHoldings.length > 0) {
+        setSelectedHoldingId(eligibleHoldings[0].id);
       }
     } catch (error) {
       console.error('Error fetching holdings:', error);
@@ -98,7 +128,7 @@ export default function RedemptionAmountPage() {
           investment_id: selectedHoldingId,
           amount: numericAmount,
           reason,
-          bank_info: bankAccounts.find(b => b.id === selectedBankId),
+          bank_info: userBankAccounts.find(b => b.id === selectedBankId),
         });
         setStep('submitted');
       } catch (error) {
@@ -132,7 +162,7 @@ export default function RedemptionAmountPage() {
     end.setDate(today.getDate() + 5);
 
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    
+
     if (start.getMonth() === end.getMonth()) {
       return `${monthNames[start.getMonth()]} ${start.getDate()}–${end.getDate()}, ${start.getFullYear()}`;
     } else {
@@ -216,7 +246,7 @@ export default function RedemptionAmountPage() {
                     </option>
                   ))
                 ) : (
-                  <option disabled value="">No active holdings found</option>
+                  <option disabled value="">No eligible holdings found (Must be held for 3+ years)</option>
                 )}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93] pointer-events-none" />
@@ -262,26 +292,38 @@ export default function RedemptionAmountPage() {
           <div className="mt-8 pt-8 border-t border-gray-50">
             <p className="text-sm font-bold text-[#1F1F1F] mb-4">Select Destination Bank</p>
             <div className="grid gap-4 md:grid-cols-2 text-xs">
-              {bankAccounts.map((bank) => {
+              {userBankAccounts.map((bank) => {
                 const selected = bank.id === selectedBankId;
                 return (
                   <button
                     key={bank.id}
                     type="button"
                     onClick={() => setSelectedBankId(bank.id)}
-                    className={`flex w-full items-center justify-between rounded-xl border px-5 py-4 text-left transition-all ${
-                      selected
-                        ? 'border-2 border-[#274583] bg-[#274583]/[0.02] shadow-sm'
-                        : 'border-[#E5E5EA] bg-white hover:border-[#274583]/30'
-                    }`}
+                    className={`flex w-full items-center justify-between rounded-xl border px-5 py-4 text-left transition-all ${selected
+                      ? 'border-2 border-[#274583] bg-[#274583]/[0.02] shadow-sm'
+                      : 'border-[#E5E5EA] bg-white hover:border-[#274583]/30'
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`h-2 w-2 rounded-full ${selected ? 'bg-[#274583]' : 'bg-gray-300'}`} />
-                      <span className={`font-medium ${selected ? 'text-[#274583]' : 'text-[#4B4B4B]'}`}>{bank.label}</span>
+                      <span className={`font-medium ${selected ? 'text-[#274583]' : 'text-[#4B4B4B]'}`}>
+                        {bank.bank_name} - ****{bank.account_number.slice(-4)}
+                      </span>
                     </div>
                   </button>
                 );
               })}
+
+              <button
+                type="button"
+                onClick={() => setShowAddBankModal(true)}
+                className="flex w-full items-center justify-center rounded-xl border border-dashed border-[#274583] px-5 py-4 text-left transition-all bg-[#274583]/[0.02] hover:bg-[#274583]/[0.05]"
+              >
+                <div className="flex items-center gap-2 text-[#274583] font-bold">
+                  <Plus className="h-4 w-4" />
+                  <span>Add New Bank Account</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
@@ -330,7 +372,7 @@ export default function RedemptionAmountPage() {
 
       <div className="rounded-2xl bg-white px-8 py-8 shadow-sm text-sm text-[#4B4B4B] max-w-3xl">
         <h2 className="font-goudy text-[18px] text-[#1F1F1F] mb-6">Redemption Summary</h2>
-        
+
         <div className="grid gap-8 md:grid-cols-2">
           <div className="space-y-6">
             <div>
@@ -351,7 +393,7 @@ export default function RedemptionAmountPage() {
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase tracking-wider mb-1">Destination Bank</p>
               <p className="text-base font-bold text-[#1F1F1F]">
-                {bankAccounts.find(b => b.id === selectedBankId)?.label}
+                {userBankAccounts.find(b => b.id === selectedBankId)?.bank_name} (****{userBankAccounts.find(b => b.id === selectedBankId)?.account_number.slice(-4)})
               </p>
             </div>
             <div>
@@ -384,7 +426,7 @@ export default function RedemptionAmountPage() {
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-500">
           <CheckCircle2 className="h-10 w-10" />
         </div>
-        
+
         <h2 className="font-goudy text-2xl text-[#1F1F1F] mb-2 font-bold">Request Submitted!</h2>
         <p className="mb-8 text-sm leading-relaxed text-[#8E8E93]">
           Your redemption request for <strong>{formatCurrency(numericAmount)}</strong> from <strong>{selectedHolding?.fund_name}</strong> has been received and is being processed.
@@ -416,6 +458,121 @@ export default function RedemptionAmountPage() {
         {step === 'amount' ? renderAmountStep() : renderConfirmStep()}
       </div>
       {step === 'submitted' && renderSubmittedModal()}
+
+      {showAddBankModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-goudy text-xl text-[#1F1F1F]">Add Bank Account</h2>
+              <button
+                onClick={() => {
+                  setShowAddBankModal(false);
+                  setNewBank(defaultBankAdd);
+                  setNewBankErrors({});
+                }}
+                className="text-[#8E8E93] hover:text-[#1F1F1F]"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#8E8E93] captial tracking-wider mb-1">Beneficiary Name</label>
+                <input
+                  type="text"
+                  value={newBank.beneficiary_name}
+                  onChange={(e) => setNewBank(prev => ({ ...prev, beneficiary_name: e.target.value }))}
+                  className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] ${newBankErrors.beneficiary_name ? 'border-red-500' : 'border-[#E5E5EA]'}`}
+                />
+                {newBankErrors.beneficiary_name && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.beneficiary_name}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Bank Name</label>
+                  <input
+                    type="text"
+                    value={newBank.bank_name}
+                    onChange={(e) => setNewBank(prev => ({ ...prev, bank_name: e.target.value }))}
+                    className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] ${newBankErrors.bank_name ? 'border-red-500' : 'border-[#E5E5EA]'}`}
+                  />
+                  {newBankErrors.bank_name && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.bank_name}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Account Number</label>
+                  <input
+                    type="text"
+                    value={newBank.account_number}
+                    onChange={(e) => setNewBank(prev => ({ ...prev, account_number: e.target.value.replace(/\D/g, '') }))}
+                    className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] ${newBankErrors.account_number ? 'border-red-500' : 'border-[#E5E5EA]'}`}
+                  />
+                  {newBankErrors.account_number && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.account_number}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Routing Number (ABA)</label>
+                  <input
+                    type="text"
+                    value={newBank.routing_number}
+                    onChange={(e) => setNewBank(prev => ({ ...prev, routing_number: e.target.value.replace(/\D/g, '') }))}
+                    className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] ${newBankErrors.routing_number ? 'border-red-500' : 'border-[#E5E5EA]'}`}
+                  />
+                  {newBankErrors.routing_number && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.routing_number}</p>}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Bank Address</label>
+                <textarea
+                  value={newBank.bank_address}
+                  onChange={(e) => setNewBank(prev => ({ ...prev, bank_address: e.target.value }))}
+                  rows={2}
+                  className="w-full rounded border border-[#E5E5EA] px-3 py-2 text-sm outline-none focus:border-[#274583]"
+                />
+              </div>
+
+              <div className="pt-4">
+                <button
+                  onClick={async () => {
+                    const errors: Record<string, string> = {};
+                    if (!newBank.beneficiary_name.trim()) errors.beneficiary_name = 'Required';
+                    if (!newBank.bank_name.trim()) errors.bank_name = 'Required';
+                    if (!/^\d{8,17}$/.test(newBank.account_number)) errors.account_number = '8-17 digits';
+                    if (!/^\d{9}$/.test(newBank.routing_number)) errors.routing_number = '9 digits';
+
+                    if (Object.keys(errors).length > 0) {
+                      setNewBankErrors(errors);
+                      return;
+                    }
+
+                    setAddingBank(true);
+                    try {
+                      const created = await apiClient.createBankAccount(newBank);
+                      await fetchBankAccounts();
+                      setSelectedBankId(created.id);
+                      setShowAddBankModal(false);
+                      setNewBank(defaultBankAdd);
+                      setNewBankErrors({});
+                      toast({ title: 'Success', description: 'Bank account added successfully', variant: 'success' });
+                    } catch (err: any) {
+                      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+                    } finally {
+                      setAddingBank(false);
+                    }
+                  }}
+                  disabled={addingBank}
+                  className="w-full rounded-full bg-[#1F3B6E] py-3 text-sm font-bold text-white shadow-lg hover:bg-[#162a50] disabled:opacity-50"
+                >
+                  {addingBank ? 'Adding...' : 'Add Account'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

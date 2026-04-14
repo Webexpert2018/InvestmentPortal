@@ -39,7 +39,12 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
           paymentMethod: 'Wire', // Default as per plan
           accountType: data.account_type || 'N/A',
           amount: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(data.investment_amount || '0')),
-          bankName: data.custodian_name || 'N/A',
+          bankName: data.bank_name || 'N/A',
+          accountNumber: data.account_number || 'N/A',
+          routingNumber: data.routing_number || 'N/A',
+          beneficiaryName: data.beneficiary_name || 'N/A',
+          bankAddress: data.bank_address || 'N/A',
+          fundName: data.fund_name || 'N/A',
         });
         setError(null);
       } catch (err: any) {
@@ -56,11 +61,11 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
   }, [params.id]);
 
   const wireInstructions = {
-    bankName: requestData?.bankName !== 'N/A' ? requestData?.bankName : 'Metropolitan Commercial Bank',
-    accountNumber: '8070001027448',
-    routingNumber: '026013356',
-    beneficiaryName: requestData?.investor || 'Investor',
-    bankAddress: '99 Park Ave, 4th Fl, New York, NY 10016',
+    bankName: requestData?.bankName || 'N/A',
+    accountNumber: requestData?.accountNumber || 'N/A',
+    routingNumber: requestData?.routingNumber || 'N/A',
+    beneficiaryName: requestData?.beneficiaryName || 'N/A',
+    bankAddress: requestData?.bankAddress || 'N/A',
   };
 
   const rejectReasons = [
@@ -154,7 +159,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                 onClick={() => setShowApproveModal(true)}
                 className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium shadow-none h-auto"
               >
-                Approve
+                Reviewed
               </Button>
             </div>
           </div>
@@ -171,8 +176,8 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
               </span>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-6">
                 <div>
                   <p className="text-sm text-gray-400 mb-1">Investor</p>
                   <p className="font-medium text-gray-900">{requestData.investor}</p>
@@ -181,14 +186,16 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                   <p className="text-sm text-gray-400 mb-1">Account Type</p>
                   <p className="font-medium text-gray-900">{requestData.accountType}</p>
                 </div>
-              </div>
+                
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Fund Name</p>
+                  <p className="font-medium text-[#1F3B6E]">{requestData.fundName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Email</p>
+                  <p className="font-medium text-gray-900">{requestData.email}</p>
+                </div>
 
-              <div>
-                <p className="text-sm text-gray-400 mb-1">Email</p>
-                <p className="font-medium text-gray-900">{requestData.email}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-400 mb-1">Payment Method</p>
                   <p className="font-medium text-gray-900">{requestData.paymentMethod}</p>
@@ -197,11 +204,11 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                   <p className="text-sm text-gray-400 mb-1">Amount</p>
                   <p className="font-medium text-gray-900">{requestData.amount}</p>
                 </div>
-              </div>
 
-              <div>
-                <p className="text-sm text-gray-400 mb-1">Bank Name</p>
-                <p className="font-medium text-gray-900">{requestData.bankName}</p>
+                <div className="col-span-2">
+                  <p className="text-sm text-gray-400 mb-1">Bank Name</p>
+                  <p className="font-medium text-gray-900">{requestData.bankName}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -259,9 +266,9 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
               <X className="h-5 w-5" />
             </button>
 
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Approve Funding Request</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Reviewed Request</h2>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to approve this funding request?
+              Are you sure you want to mark this funding request as reviewed?
             </p>
 
             <div className="flex gap-3 justify-end">
@@ -274,7 +281,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
               <Button
                 onClick={async () => {
                   try {
-                    await apiClient.updateInvestmentStatus(params.id, { status: 'Funds Received' });
+                    await apiClient.updateInvestmentStatus(params.id, { status: 'Awaiting Funding' });
                     setShowApproveModal(false);
                     window.location.reload();
                   } catch (err) {

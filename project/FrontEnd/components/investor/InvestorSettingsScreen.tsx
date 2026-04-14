@@ -1,7 +1,7 @@
 'use client';
 
 import { ChangeEvent, useMemo, useRef, useState, useEffect } from 'react';
-import { CalendarDays, ChevronDown, ChevronLeft, Plus, Upload, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronLeft, Plus, Upload, Eye, EyeOff, Loader2, MoreHorizontal, RefreshCcw } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
@@ -15,7 +15,9 @@ type SettingsTab =
   | 'notifications'
   | 'documents'
   | 'accounts'
-  | 'add-account';
+  | 'bank-accounts'
+  | 'add-account'
+  | 'add-bank-account';
 
 type SessionItem = {
   id: string;
@@ -53,6 +55,7 @@ const tabs: Array<{ id: Exclude<SettingsTab, 'add-account'>; label: string }> = 
   { id: 'notifications', label: 'Notifications' },
   { id: 'documents', label: 'Document Preferences' },
   { id: 'accounts', label: 'Account Switcher' },
+  { id: 'bank-accounts', label: 'Bank Accounts' },
 ];
 
 const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
@@ -87,6 +90,14 @@ const defaultAddAccount = {
   passportNumber: '',
   idFileName: '',
   verified: false,
+};
+
+const defaultBankAdd = {
+  bank_name: '',
+  account_number: '',
+  routing_number: '',
+  beneficiary_name: '',
+  bank_address: '',
 };
 
 const initialSessions: SessionItem[] = [
@@ -198,7 +209,13 @@ export function InvestorSettingsScreen() {
   const [profile, setProfile] = useState(defaultProfile);
   const [password, setPassword] = useState(defaultPassword);
   const [sessions, setSessions] = useState<SessionItem[]>(initialSessions);
+  const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+  const [bankAdd, setBankAdd] = useState(defaultBankAdd);
+  const [bankAddErrors, setBankAddErrors] = useState<Record<string, string>>({});
   const [profileImageName, setProfileImageName] = useState('');
+  const [bankAccountMode, setBankAccountMode] = useState<'add' | 'edit' | 'view'>('add');
+  const [currentBankId, setCurrentBankId] = useState<string | null>(null);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
   const countries = useMemo(() => Country.getAllCountries(), []);
   const states = useMemo(() => {
@@ -277,7 +294,17 @@ export function InvestorSettingsScreen() {
       }
     };
 
+    const loadBankAccounts = async () => {
+      try {
+        const data = await apiClient.getBankAccounts();
+        setBankAccounts(data);
+      } catch (err) {
+        console.error('Error loading bank accounts:', err);
+      }
+    };
+
     loadProfile();
+    loadBankAccounts();
   }, []);
 
   const [emailNotifications, setEmailNotifications] = useState({
@@ -1165,6 +1192,285 @@ export function InvestorSettingsScreen() {
     </SectionCard>
   );
 
+  const renderBankAccountsTab = () => (
+    <SectionCard>
+      <div className="flex items-center justify-between border-b border-[#ECEDEF] p-3">
+        <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F]">My Bank Accounts</h3>
+        <button
+          type="button"
+          onClick={() => setActiveTab('add-bank-account')}
+          className="h-[32px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F]"
+        >
+          Add Bank Account
+        </button>
+      </div>
+
+      <div className="p-3">
+        {bankAccounts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <p className="text-[14px] text-[#4B4B4B]">No bank accounts added yet.</p>
+            <p className="mt-1 text-[12px] text-[#A2A5AA]">Add your bank details for easier withdrawals and reinvestments.</p>
+          </div>
+        ) : (
+          <div className="min-h-[200px]">
+            <table className="w-full min-w-[680px] text-left text-[11px] text-[#4B4B4B]">
+              <thead>
+                <tr className="border-b border-[#ECEDEF] text-[10px] text-[#7B8088]">
+                  <th className="py-2 pr-3">Bank Name</th>
+                  <th className="py-2 pr-3">Beneficiary</th>
+                  <th className="py-2 pr-3">Account Number</th>
+                  <th className="py-2 pr-3">Routing Number</th>
+                  <th className="py-2 pr-3">Status</th>
+                  <th className="py-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bankAccounts.map((item) => (
+                  <tr key={item.id} className="border-b border-[#F2F3F5]">
+                    <td className="py-2 pr-3 font-medium text-[#1F1F1F]">{item.bank_name}</td>
+                    <td className="py-2 pr-3">{item.beneficiary_name}</td>
+                    <td className="py-2 pr-3">****{item.account_number.slice(-4)}</td>
+                    <td className="py-2 pr-3">{item.routing_number}</td>
+                    <td className="py-2 pr-3">
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] uppercase font-bold ${item.status === 'active' ? 'bg-[#E1F7E3] text-[#2D8A39]' : 'bg-[#FFF3D6] text-[#B7791F]'}`}>
+                        {item.status || 'Active'}
+                      </span>
+                    </td>
+                    <td className="relative py-2 text-right">
+                      <button
+                        onClick={() => setMenuOpenId(menuOpenId === item.id ? null : item.id)}
+                        className="p-1 text-[#8E8E93] hover:text-[#1F1F1F]"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </button>
+                      
+                      {menuOpenId === item.id && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-10" 
+                            onClick={() => setMenuOpenId(null)} 
+                          />
+                          <div className="absolute right-0 z-20 mt-1 w-28 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                            <button
+                              onClick={() => {
+                                setBankAdd({
+                                  beneficiary_name: item.beneficiary_name,
+                                  bank_name: item.bank_name,
+                                  account_number: item.account_number,
+                                  routing_number: item.routing_number,
+                                  bank_address: item.bank_address || '',
+                                });
+                                setCurrentBankId(item.id);
+                                setBankAccountMode('view');
+                                setActiveTab('add-bank-account');
+                                setMenuOpenId(null);
+                              }}
+                              className="flex w-full px-4 py-2 text-left text-[11px] text-[#4B4B4B] hover:bg-gray-100"
+                            >
+                              View
+                            </button>
+                            <button
+                              onClick={() => {
+                                setBankAdd({
+                                  beneficiary_name: item.beneficiary_name,
+                                  bank_name: item.bank_name,
+                                  account_number: item.account_number,
+                                  routing_number: item.routing_number,
+                                  bank_address: item.bank_address || '',
+                                });
+                                setCurrentBankId(item.id);
+                                setBankAccountMode('edit');
+                                setActiveTab('add-bank-account');
+                                setMenuOpenId(null);
+                              }}
+                              className="flex w-full px-4 py-2 text-left text-[11px] text-[#4B4B4B] hover:bg-gray-100"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (confirm('Are you sure you want to remove this bank account?')) {
+                                  try {
+                                    await apiClient.deleteBankAccount(item.id);
+                                    setBankAccounts(prev => prev.filter(a => a.id !== item.id));
+                                    toast({ title: 'Deleted', description: 'Bank account removed successfully', variant: 'success' });
+                                  } catch (err: any) {
+                                    toast({ title: 'Error', description: err.message, variant: 'destructive' });
+                                  }
+                                }
+                                setMenuOpenId(null);
+                              }}
+                              className="flex w-full px-4 py-2 text-left text-[11px] text-[#E05252] hover:bg-gray-100"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </SectionCard>
+  );
+
+  const renderAddBankAccount = () => (
+    <div>
+      <button
+        type="button"
+        onClick={() => setActiveTab('bank-accounts')}
+        className="mb-3 inline-flex items-center gap-1 text-[14px] text-[#1F1F1F]"
+      >
+        <ChevronLeft className="h-4 w-4 text-[#8E8E93]" />
+        Back to Bank Accounts
+      </button>
+
+      <div className="space-y-2">
+        <SectionCard>
+          <SectionHeader title={bankAccountMode === 'add' ? 'Add Bank Account' : bankAccountMode === 'edit' ? 'Edit Bank Account' : 'Bank Account Details'} />
+          <div className="grid gap-3 p-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <FieldLabel>Beneficiary Name</FieldLabel>
+              <TextInput
+                placeholder="Full name of account holder"
+                value={bankAdd.beneficiary_name}
+                disabled={bankAccountMode === 'view'}
+                onChange={(e) => {
+                  setBankAdd(prev => ({ ...prev, beneficiary_name: e.target.value }));
+                  if (bankAddErrors.beneficiary_name) setBankAddErrors(prev => { const n = { ...prev }; delete n.beneficiary_name; return n; });
+                }}
+                className={bankAddErrors.beneficiary_name ? '!border-[#E05252]' : ''}
+              />
+              {bankAddErrors.beneficiary_name && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.beneficiary_name}</p>}
+            </div>
+            <div>
+              <FieldLabel>Bank Name</FieldLabel>
+              <TextInput
+                placeholder="Enter bank name"
+                disabled={bankAccountMode === 'view'}
+                value={bankAdd.bank_name}
+                onChange={(e) => {
+                  setBankAdd(prev => ({ ...prev, bank_name: e.target.value }));
+                  if (bankAddErrors.bank_name) setBankAddErrors(prev => { const n = { ...prev }; delete n.bank_name; return n; });
+                }}
+                className={bankAddErrors.bank_name ? '!border-[#E05252]' : ''}
+              />
+              {bankAddErrors.bank_name && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.bank_name}</p>}
+            </div>
+            <div>
+              <FieldLabel>Account Number</FieldLabel>
+              <TextInput
+                placeholder="Enter account number"
+                disabled={bankAccountMode === 'view'}
+                value={bankAdd.account_number}
+                onChange={(e) => setBankAdd(prev => ({ ...prev, account_number: e.target.value.replace(/\D/g, '') }))}
+                className={bankAddErrors.account_number ? '!border-[#E05252]' : ''}
+              />
+              {bankAddErrors.account_number && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.account_number}</p>}
+            </div>
+            <div>
+              <FieldLabel>Routing Number (ABA)</FieldLabel>
+              <TextInput
+                placeholder="Enter routing number"
+                disabled={bankAccountMode === 'view'}
+                value={bankAdd.routing_number}
+                onChange={(e) => setBankAdd(prev => ({ ...prev, routing_number: e.target.value.replace(/\D/g, '') }))}
+                className={bankAddErrors.routing_number ? '!border-[#E05252]' : ''}
+              />
+              {bankAddErrors.routing_number && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.routing_number}</p>}
+            </div>
+            <div className="sm:col-span-2">
+              <FieldLabel>Bank Address</FieldLabel>
+              <textarea
+                placeholder="Enter bank branch address"
+                disabled={bankAccountMode === 'view'}
+                value={bankAdd.bank_address}
+                onChange={(e) => setBankAdd(prev => ({ ...prev, bank_address: e.target.value }))}
+                className={`w-full rounded-[6px] border p-3 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] min-h-[80px] ${bankAddErrors.bank_address ? 'border-[#E05252]' : 'border-[#E5E5EA]'}`}
+              />
+            </div>
+          </div>
+        </SectionCard>
+
+        <div className="mt-4 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setBankAdd(defaultBankAdd);
+              setBankAddErrors({});
+              setBankAccountMode('add');
+              setCurrentBankId(null);
+              setActiveTab('bank-accounts');
+            }}
+            className="h-[32px] min-w-[90px] rounded-full bg-[#FFF3D6] px-5 text-[12px] text-[#6A6A6A]"
+          >
+            {bankAccountMode === 'view' ? 'Close' : 'Cancel'}
+          </button>
+          {bankAccountMode !== 'view' && (
+            <button
+              type="button"
+              disabled={saving}
+              onClick={async () => {
+                const errors: Record<string, string> = {};
+                
+                const accountRegex = /^\d{8,17}$/;
+                const routingRegex = /^\d{9}$/;
+
+                if (!bankAdd.beneficiary_name.trim()) errors.beneficiary_name = 'Beneficiary name is required';
+                if (!bankAdd.bank_name.trim()) errors.bank_name = 'Bank name is required';
+                
+                if (!bankAdd.account_number) {
+                  errors.account_number = 'Account number is required';
+                } else if (!accountRegex.test(bankAdd.account_number)) {
+                  errors.account_number = 'Must be between 8 and 17 digits';
+                }
+
+                if (!bankAdd.routing_number) {
+                  errors.routing_number = 'Routing number is required';
+                } else if (!routingRegex.test(bankAdd.routing_number)) {
+                  errors.routing_number = 'Must be exactly 9 digits';
+                }
+                
+                if (Object.keys(errors).length > 0) {
+                  setBankAddErrors(errors);
+                  return;
+                }
+
+                setSaving(true);
+                try {
+                  if (bankAccountMode === 'add') {
+                    const newAccount = await apiClient.createBankAccount(bankAdd);
+                    setBankAccounts(prev => [newAccount, ...prev]);
+                  } else if (bankAccountMode === 'edit' && currentBankId) {
+                    const updatedAccount = await apiClient.updateBankAccount(currentBankId, bankAdd);
+                    setBankAccounts(prev => prev.map(a => a.id === currentBankId ? updatedAccount : a));
+                  }
+                  
+                  setBankAdd(defaultBankAdd);
+                  setBankAccountMode('add');
+                  setCurrentBankId(null);
+                  setActiveTab('bank-accounts');
+                  toast({ title: 'Success', description: bankAccountMode === 'add' ? 'Bank account added successfully' : 'Bank account updated successfully', variant: 'success' });
+                } catch (err: any) {
+                  toast({ title: 'Error', description: err.message, variant: 'destructive' });
+                } finally {
+                  setSaving(false);
+                }
+              }}
+              className="h-[32px] min-w-[120px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] disabled:opacity-50"
+            >
+              {saving ? (bankAccountMode === 'add' ? 'Adding...' : 'Updating...') : (bankAccountMode === 'add' ? 'Add Account' : 'Update Account')}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   const renderAddAccount = () => (
     <div>
       <button
@@ -1394,7 +1700,9 @@ export function InvestorSettingsScreen() {
         {activeTab === 'notifications' && renderNotificationsTab()}
         {activeTab === 'documents' && renderDocumentsTab()}
         {activeTab === 'accounts' && renderAccountsTab()}
+        {activeTab === 'bank-accounts' && renderBankAccountsTab()}
         {activeTab === 'add-account' && renderAddAccount()}
+        {activeTab === 'add-bank-account' && renderAddBankAccount()}
       </div>
     </div>
   );

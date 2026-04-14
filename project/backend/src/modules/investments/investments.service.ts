@@ -162,6 +162,11 @@ export class InvestmentsService {
           i.*, 
           f.name as fund_name, 
           f.description as fund_description,
+          f.bank_name,
+          f.account_number,
+          f.routing_number,
+          f.beneficiary_name,
+          f.bank_address,
           COALESCE(u.first_name || ' ' || u.last_name, inv.full_name) as investor_name,
           COALESCE(u.email, inv.email) as email,
           ira.custodian_name

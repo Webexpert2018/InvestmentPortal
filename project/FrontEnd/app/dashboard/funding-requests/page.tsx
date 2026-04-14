@@ -211,7 +211,14 @@ export default function FundingRequestsPage() {
 
                     return (
                       <tr key={request.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 text-gray-900 font-medium">{requestId}</td>
+                        <td className="px-6 py-4">
+                          <Link 
+                            href={`/dashboard/funding-requests/${request.id}`}
+                            className="font-medium text-[#1F3B6E] hover:underline"
+                          >
+                            {requestId}
+                          </Link>
+                        </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             {request.avatar_url ? (
@@ -232,7 +239,12 @@ export default function FundingRequestsPage() {
                             >
                               {initials}
                             </div>
-                            <span className="font-medium text-gray-900">{investorName}</span>
+                            <Link 
+                              href={`/dashboard/investor/${request.user_id}`}
+                              className="font-medium text-gray-900 hover:text-[#1F3B6E] hover:underline transition-colors"
+                            >
+                              {investorName}
+                            </Link>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-gray-900 font-medium">

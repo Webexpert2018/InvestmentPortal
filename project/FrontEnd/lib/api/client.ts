@@ -791,6 +791,31 @@ class ApiClient {
   async getInvestorRedemptions(id: string) {
     return this.request<any[]>(`/redemptions/investor/${id}`);
   }
+
+  // Bank Accounts
+  async getBankAccounts() {
+    return this.request<any[]>('/bank-accounts');
+  }
+
+  async createBankAccount(data: any) {
+    return this.request<any>('/bank-accounts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteBankAccount(id: string) {
+    return this.request<any>(`/bank-accounts/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async updateBankAccount(id: string, data: any) {
+    return this.request<any>(`/bank-accounts/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 
