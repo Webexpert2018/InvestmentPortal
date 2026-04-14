@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUser = async () => {
     try {
       const userData = await apiClient.getProfile();
-      console.log('[AuthContext] Fetched user data:', userData);
+     // console.log('[AuthContext] Fetched user data:', userData);
       setUser(userData);
       setProfileTimestamp(Date.now());
       setSessionExpired(false);
@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(prev => {
         if (!prev) return null;
         const newUser = { ...prev, ...updates };
-        console.log('[AuthContext] Manually updating user:', newUser);
+        //console.log('[AuthContext] Manually updating user:', newUser);
         return newUser;
       });
       if (updates.profileImageUrl) {

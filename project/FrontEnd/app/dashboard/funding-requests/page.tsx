@@ -26,7 +26,7 @@ export default function FundingRequestsPage() {
       setLoading(true);
       setError(null);
       const data = await apiClient.getAllInvestments();
-      console.log('✅ Fetched Funding Requests:', data);
+     // console.log('✅ Fetched Funding Requests:', data);
       setInvestments(data || []);
     } catch (error: any) {
       console.error('❌ Error fetching funding requests:', error);
