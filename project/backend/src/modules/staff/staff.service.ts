@@ -5,38 +5,85 @@ import { CreateStaffDto, UpdateStaffDto } from './staff.dto';
 
 @Injectable()
 export class StaffService {
-  async findAll(role?: string) {
-    if (role === 'executive_admin') {
-      const result = await db.query(
-        `SELECT id, first_name || ' ' || last_name as full_name, email, phone, role, status, 
-                0 as assigned_investors_count, null as profile_image_url, created_at, updated_at,
-                null as associated_fund_name, null as associated_fund_id
+  async findAll(role?: string, page: number = 1, limit: number = 10, search?: string) {
+    const offset = (page - 1) * limit;
+    let data: any[] = [];
+    let total = 0;
+    const searchPattern = search ? `%${search}%` : null;
+
+    if (role === 'all' || !role) {
+      const query = `
+        WITH combined AS (
+          SELECT id, first_name || ' ' || last_name as full_name, email, phone, role, status, 
+                  0 as assigned_investors_count, profile_image_url, created_at, updated_at,
+                  null as associated_fund_name, null as associated_fund_id
+           FROM users 
+           WHERE role = 'executive_admin'
+           
+           UNION ALL
+           
+           SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
+                  s.assigned_investors_count, s.profile_image_url, s.created_at, s.updated_at,
+                  f.name as associated_fund_name, f.id as associated_fund_id
+           FROM staff s
+           LEFT JOIN funds f ON s.associated_fund_id = f.id
+        )
+        SELECT *, COUNT(*) OVER() AS total_count 
+        FROM combined
+        WHERE ($3::text IS NULL OR full_name ILIKE $3 OR email ILIKE $3)
+        ORDER BY created_at DESC
+        LIMIT $1 OFFSET $2
+      `;
+      const result = await db.query(query, [limit, offset, searchPattern]);
+      data = result.rows;
+      total = data.length > 0 ? parseInt(data[0].total_count) : 0;
+    } else if (role === 'executive_admin') {
+      const query = `
+        SELECT id, first_name || ' ' || last_name as full_name, email, phone, role, status, 
+                0 as assigned_investors_count, profile_image_url, created_at, updated_at,
+                null as associated_fund_name, null as associated_fund_id,
+                COUNT(*) OVER() AS total_count
          FROM users 
          WHERE role = 'executive_admin'
-         ORDER BY created_at DESC`
-      );
-      return result.rows;
+         AND ($3::text IS NULL OR (first_name || ' ' || last_name) ILIKE $3 OR email ILIKE $3)
+         ORDER BY created_at DESC
+         LIMIT $1 OFFSET $2
+      `;
+      const result = await db.query(query, [limit, offset, searchPattern]);
+      data = result.rows;
+      total = data.length > 0 ? parseInt(data[0].total_count) : 0;
+    } else {
+      let query = `
+        SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
+               s.assigned_investors_count, s.profile_image_url, s.created_at, s.updated_at,
+               f.name as associated_fund_name, f.id as associated_fund_id,
+               COUNT(*) OVER() AS total_count
+        FROM staff s
+        LEFT JOIN funds f ON s.associated_fund_id = f.id
+        WHERE s.role = $1
+        AND ($4::text IS NULL OR s.full_name ILIKE $4 OR s.email ILIKE $4)
+        ORDER BY s.created_at DESC
+        LIMIT $2 OFFSET $3
+      `;
+      const result = await db.query(query, [role, limit, offset, searchPattern]);
+      data = result.rows;
+      total = data.length > 0 ? parseInt(data[0].total_count) : 0;
     }
 
-    let query = `
-      SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
-             s.assigned_investors_count, s.profile_image_url, s.created_at, s.updated_at,
-             f.name as associated_fund_name, f.id as associated_fund_id
-      FROM staff s
-      LEFT JOIN funds f ON s.associated_fund_id = f.id
-    `;
-    const params = [];
+    // Remove total_count from each row before returning
+    const sanitizedData = data.map(({ total_count, ...rest }) => rest);
 
-    if (role) {
-      query += ' WHERE s.role = $1';
-      params.push(role);
-    }
-
-    query += ' ORDER BY s.created_at DESC';
-
-    const result = await db.query(query, params);
-    return result.rows;
+    return {
+      data: sanitizedData,
+      meta: {
+        total: total,
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
   }
+
 
   async findOne(id: string) {
     // 1. Try staff table

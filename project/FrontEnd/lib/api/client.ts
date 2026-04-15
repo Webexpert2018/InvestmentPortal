@@ -705,9 +705,13 @@ class ApiClient {
   }
 
   // Staff Module
-  async getStaff(role?: string) {
-    const url = role ? `/staff?role=${role}` : '/staff';
-    return this.request<any[]>(url);
+  async getStaff(role?: string, page: number = 1, limit: number = 10, search?: string) {
+    const params = new URLSearchParams();
+    if (role && role !== 'all') params.append('role', role);
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    if (search) params.append('search', search);
+    return this.request<{ data: any[], meta: { total: number, page: number, limit: number, totalPages: number } }>(`/staff?${params.toString()}`);
   }
 
   async getStaffById(id: string) {
