@@ -2,10 +2,12 @@ import { Controller, Get, Post, Body, Patch, Param, UseGuards, UnauthorizedExcep
 import { InvestmentsService } from './investments.service';
 import { CreateInvestmentDto, UpdateInvestmentStatusDto } from './dto/create-investment.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../decorators/roles.decorator';
 import { CurrentUser } from '../../decorators/current-user.decorator';
 
 @Controller('api/investments')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class InvestmentsController {
   constructor(private readonly investmentsService: InvestmentsService) {}
 
@@ -26,16 +28,14 @@ export class InvestmentsController {
   }
 
   @Get('investor/:id')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
   async getInvestorInvestments(@CurrentUser() user: any, @Param('id') id: string) {
-    if (user.role !== 'admin' && user.role !== 'staff' && user.role !== 'accountant') {
-      throw new UnauthorizedException('Access denied');
-    }
     return this.investmentsService.getMyInvestments(id);
   }
 
   @Get('all')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
   async getAllInvestments(@CurrentUser() user: any) {
-    // Ideally check if user is admin here
     return this.investmentsService.getAllInvestments();
   }
 

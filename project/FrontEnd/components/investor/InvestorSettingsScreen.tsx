@@ -54,7 +54,7 @@ const tabs: Array<{ id: Exclude<SettingsTab, 'add-account'>; label: string }> = 
   { id: 'security', label: 'Security & Login' },
   { id: 'notifications', label: 'Notifications' },
   { id: 'documents', label: 'Document Preferences' },
-  { id: 'accounts', label: 'Account Switcher' },
+  // { id: 'accounts', label: 'Account Switcher' },
   { id: 'bank-accounts', label: 'Bank Accounts' },
 ];
 
@@ -267,7 +267,7 @@ export function InvestorSettingsScreen() {
 
           const foundCountry = countries.find(c => c.isoCode === userData.country || c.name === userData.country);
           const countryIso = foundCountry?.isoCode || userData.country || '';
-          
+
           let stateIso = userData.state || '';
           if (foundCountry) {
             const countryStates = State.getStatesOfCountry(foundCountry.isoCode);
@@ -425,21 +425,35 @@ export function InvestorSettingsScreen() {
       return null;
     })();
     if (phoneError) errors.phoneNumber = phoneError;
+    // if (!profile.dob.trim()) {
+    //   errors.dob = 'Date of birth is required';
+    // } else {
+    //   const birthDate = new Date(profile.dob);
+    //   const today = new Date();
+    //   let age = today.getFullYear() - birthDate.getFullYear();
+    //   const m = today.getMonth() - birthDate.getMonth();
+    //   if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    //     age--;
+    //   }
+
+    //   if (age < 18) {
+    //     errors.dob = 'You must be at least 18 years old';
+    //   } else if (age > 70) {
+    //     errors.dob = 'Age cannot exceed 70 years';
+    //   }
+    // }
     if (!profile.dob.trim()) {
       errors.dob = 'Date of birth is required';
     } else {
       const birthDate = new Date(profile.dob);
       const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
 
-      if (age < 18) {
-        errors.dob = 'You must be at least 18 years old';
-      } else if (age > 70) {
-        errors.dob = 'Age cannot exceed 70 years';
+      // Remove time part for accurate comparison
+      today.setHours(0, 0, 0, 0);
+
+      // ❌ Future date not allowed
+      if (birthDate > today) {
+        errors.dob = 'Future date is not allowed';
       }
     }
     if (!profile.addressLine1.trim()) errors.addressLine1 = 'Street address line 1 is required';
@@ -1162,42 +1176,42 @@ export function InvestorSettingsScreen() {
     </div>
   );
 
-  const renderAccountsTab = () => (
-    <SectionCard>
-      <div className="flex items-center justify-end border-b border-[#ECEDEF] p-3">
-        <button
-          type="button"
-          onClick={() => setActiveTab('add-account')}
-          className="h-[32px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F]"
-        >
-          Add Account
-        </button>
-      </div>
+  // const renderAccountsTab = () => (
+  //   <SectionCard>
+  //     <div className="flex items-center justify-end border-b border-[#ECEDEF] p-3">
+  //       <button
+  //         type="button"
+  //         onClick={() => setActiveTab('add-account')}
+  //         className="h-[32px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F]"
+  //       >
+  //         Add Account
+  //       </button>
+  //     </div>
 
-      <div className="overflow-x-auto p-3">
-        <table className="w-full min-w-[680px] text-left text-[11px] text-[#4B4B4B]">
-          <thead>
-            <tr className="border-b border-[#ECEDEF] text-[10px] text-[#7B8088]">
-              <th className="py-2 pr-3">Account</th>
-              <th className="py-2 pr-3">Assets Value</th>
-              <th className="py-2 pr-3">Total Cash</th>
-              <th className="py-2 pr-3">Cash Available</th>
-            </tr>
-          </thead>
-          <tbody>
-            {accounts.map((item) => (
-              <tr key={item.id} className="border-b border-[#F2F3F5]">
-                <td className="py-2 pr-3">{item.account}</td>
-                <td className="py-2 pr-3">{item.assetsValue}</td>
-                <td className="py-2 pr-3">{item.totalCash}</td>
-                <td className="py-2 pr-3">{item.cashAvailable}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </SectionCard>
-  );
+  //     <div className="overflow-x-auto p-3">
+  //       <table className="w-full min-w-[680px] text-left text-[11px] text-[#4B4B4B]">
+  //         <thead>
+  //           <tr className="border-b border-[#ECEDEF] text-[10px] text-[#7B8088]">
+  //             <th className="py-2 pr-3">Account</th>
+  //             <th className="py-2 pr-3">Assets Value</th>
+  //             <th className="py-2 pr-3">Total Cash</th>
+  //             <th className="py-2 pr-3">Cash Available</th>
+  //           </tr>
+  //         </thead>
+  //         <tbody>
+  //           {accounts.map((item) => (
+  //             <tr key={item.id} className="border-b border-[#F2F3F5]">
+  //               <td className="py-2 pr-3">{item.account}</td>
+  //               <td className="py-2 pr-3">{item.assetsValue}</td>
+  //               <td className="py-2 pr-3">{item.totalCash}</td>
+  //               <td className="py-2 pr-3">{item.cashAvailable}</td>
+  //             </tr>
+  //           ))}
+  //         </tbody>
+  //       </table>
+  //     </div>
+  //   </SectionCard>
+  // );
 
   const renderBankAccountsTab = () => (
     <SectionCard>
@@ -1250,12 +1264,12 @@ export function InvestorSettingsScreen() {
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </button>
-                      
+
                       {menuOpenId === item.id && (
                         <>
-                          <div 
-                            className="fixed inset-0 z-10" 
-                            onClick={() => setMenuOpenId(null)} 
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setMenuOpenId(null)}
                           />
                           <div className="absolute right-0 z-20 mt-1 w-28 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                             <button
@@ -1340,20 +1354,6 @@ export function InvestorSettingsScreen() {
         <SectionCard>
           <SectionHeader title={bankAccountMode === 'add' ? 'Add Bank Account' : bankAccountMode === 'edit' ? 'Edit Bank Account' : 'Bank Account Details'} />
           <div className="grid gap-3 p-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <FieldLabel>Beneficiary Name</FieldLabel>
-              <TextInput
-                placeholder="Full name of account holder"
-                value={bankAdd.beneficiary_name}
-                disabled={bankAccountMode === 'view'}
-                onChange={(e) => {
-                  setBankAdd(prev => ({ ...prev, beneficiary_name: e.target.value }));
-                  if (bankAddErrors.beneficiary_name) setBankAddErrors(prev => { const n = { ...prev }; delete n.beneficiary_name; return n; });
-                }}
-                className={bankAddErrors.beneficiary_name ? '!border-[#E05252]' : ''}
-              />
-              {bankAddErrors.beneficiary_name && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.beneficiary_name}</p>}
-            </div>
             <div>
               <FieldLabel>Bank Name</FieldLabel>
               <TextInput
@@ -1368,6 +1368,21 @@ export function InvestorSettingsScreen() {
               />
               {bankAddErrors.bank_name && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.bank_name}</p>}
             </div>
+            <div>
+              <FieldLabel>Beneficiary Name</FieldLabel>
+              <TextInput
+                placeholder="Full name of account holder"
+                value={bankAdd.beneficiary_name}
+                disabled={bankAccountMode === 'view'}
+                onChange={(e) => {
+                  setBankAdd(prev => ({ ...prev, beneficiary_name: e.target.value }));
+                  if (bankAddErrors.beneficiary_name) setBankAddErrors(prev => { const n = { ...prev }; delete n.beneficiary_name; return n; });
+                }}
+                className={bankAddErrors.beneficiary_name ? '!border-[#E05252]' : ''}
+              />
+              {bankAddErrors.beneficiary_name && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.beneficiary_name}</p>}
+            </div>
+
             <div>
               <FieldLabel>Account Number</FieldLabel>
               <TextInput
@@ -1400,6 +1415,26 @@ export function InvestorSettingsScreen() {
                 className={`w-full rounded-[6px] border p-3 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] min-h-[80px] ${bankAddErrors.bank_address ? 'border-[#E05252]' : 'border-[#E5E5EA]'}`}
               />
             </div>
+            {/* <div className="sm:col-span-2">
+            <FieldLabel>For Further Credit To</FieldLabel>
+            <input
+              type="text"
+              placeholder="Enter description"
+              disabled={bankAccountMode === 'view'}
+              value={bankAdd.further_credit_to}
+              onChange={(e) =>
+                setBankAdd((prev) => ({
+                  ...prev,
+                  further_credit_to: e.target.value,
+                }))
+              }
+              className={`w-full rounded-[6px] border p-3 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] ${
+                bankAddErrors.further_credit_to
+                  ? 'border-[#E05252]'
+                  : 'border-[#E5E5EA]'
+              }`}
+            />
+          </div> */}
           </div>
         </SectionCard>
 
@@ -1423,13 +1458,13 @@ export function InvestorSettingsScreen() {
               disabled={saving}
               onClick={async () => {
                 const errors: Record<string, string> = {};
-                
+
                 const accountRegex = /^\d{8,17}$/;
                 const routingRegex = /^\d{9}$/;
 
                 if (!bankAdd.beneficiary_name.trim()) errors.beneficiary_name = 'Beneficiary name is required';
                 if (!bankAdd.bank_name.trim()) errors.bank_name = 'Bank name is required';
-                
+
                 if (!bankAdd.account_number) {
                   errors.account_number = 'Account number is required';
                 } else if (!accountRegex.test(bankAdd.account_number)) {
@@ -1441,7 +1476,7 @@ export function InvestorSettingsScreen() {
                 } else if (!routingRegex.test(bankAdd.routing_number)) {
                   errors.routing_number = 'Must be exactly 9 digits';
                 }
-                
+
                 if (Object.keys(errors).length > 0) {
                   setBankAddErrors(errors);
                   return;
@@ -1453,10 +1488,10 @@ export function InvestorSettingsScreen() {
                     const newAccount = await apiClient.createBankAccount(bankAdd);
                     setBankAccounts(prev => [newAccount, ...prev]);
                   } else if (bankAccountMode === 'edit' && currentBankId) {
-                    const updatedAccount = await apiClient.updateBankAccount(currentBankId, bankAdd);
-                    setBankAccounts(prev => prev.map(a => a.id === currentBankId ? updatedAccount : a));
+                    // const updatedAccount = await apiClient.updateBankAccount(currentBankId, bankAdd);
+                    //  setBankAccounts(prev => prev.map(a => a.id === currentBankId ? updatedAccount : a));
                   }
-                  
+
                   setBankAdd(defaultBankAdd);
                   setBankAccountMode('add');
                   setCurrentBankId(null);
@@ -1706,7 +1741,7 @@ export function InvestorSettingsScreen() {
         {activeTab === 'security' && renderSecurityTab()}
         {activeTab === 'notifications' && renderNotificationsTab()}
         {activeTab === 'documents' && renderDocumentsTab()}
-        {activeTab === 'accounts' && renderAccountsTab()}
+        {/* {activeTab === 'accounts' && renderAccountsTab()} */}
         {activeTab === 'bank-accounts' && renderBankAccountsTab()}
         {activeTab === 'add-account' && renderAddAccount()}
         {activeTab === 'add-bank-account' && renderAddBankAccount()}

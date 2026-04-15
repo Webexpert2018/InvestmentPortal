@@ -7,6 +7,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface Investor {
   id: string;
@@ -20,9 +22,18 @@ interface Investor {
 }
 
 export default function KYCConsolePage() {
+  const { user, isAdmin, loading: authLoading } = useAuth();
+  const router = useRouter();
+
   const [investors, setInvestors] = useState<Investor[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (!authLoading && user && !isAdmin) {
+      router.push('/dashboard');
+    }
+  }, [user, isAdmin, authLoading, router]);
   const [kycFilter, setKycFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);

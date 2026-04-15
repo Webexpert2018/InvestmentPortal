@@ -13,14 +13,15 @@ export class StatsService {
         db.query(`
           SELECT 
             i.id,
-            inv.full_name as investor_name,
+            COALESCE(inv.full_name, u.first_name || ' ' || u.last_name) as investor_name,
             i.account_type,
-            inv.kyc_status,
+            COALESCE(inv.kyc_status, 'verified') as kyc_status,
             i.status as funding_status,
             i.created_at
           FROM investments i
           LEFT JOIN funds f ON i.fund_id = f.id
           LEFT JOIN investors inv ON i.user_id = inv.id
+          LEFT JOIN users u ON i.user_id = u.id
           ORDER BY i.created_at DESC
           LIMIT 5
         `)

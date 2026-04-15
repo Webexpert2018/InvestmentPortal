@@ -23,22 +23,19 @@ export class UsersController {
   }
 
   @Put('profile')
-  async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDto) {
-    if (updateDto.dob) {
-      const birthDate = new Date(updateDto.dob);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
+async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDto) {
+  if (updateDto.dob) {
+    const birthDate = new Date(updateDto.dob);
+    const today = new Date();
 
-      if (age < 18) {
-        throw new BadRequestException('You must be at least 18 years old');
-      } else if (age > 70) {
-        throw new BadRequestException('Age cannot exceed 70 years');
-      }
+    // Normalize today (remove time)
+    today.setHours(0, 0, 0, 0);
+
+    // ❌ Only block future dates
+    if (birthDate > today) {
+      throw new BadRequestException('Future date is not allowed');
     }
+  }
 
     return this.usersService.updateProfile(
       user.userId,
@@ -96,7 +93,7 @@ export class UsersController {
   }
 
   @Get()
-  @Roles('admin')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
   async getAllUsers(@CurrentUser() user: any) {
     return this.usersService.getAllUsers(user.role);
   }
@@ -107,7 +104,7 @@ export class UsersController {
   }
 
   @Patch(':id/status')
-  @Roles('admin')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
   async updateUserStatus(
     @Param('id') id: string,
     @Body() body: { status: string },
@@ -125,7 +122,7 @@ export class UsersController {
   }
 
   @Patch(':id/kyc-status')
-  @Roles('admin')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
   async updateKycStatus(
     @Param('id') id: string,
     @Body() body: { kycStatus: string },

@@ -4,6 +4,9 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { X, Plus, GripVertical } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const colorOptions = [
   '#E5E7EB',
@@ -101,6 +104,9 @@ const initialStages = [
 ];
 
 export default function PipelinePage() {
+  const { user, isAdmin, loading: authLoading } = useAuth();
+  const router = useRouter();
+
   const [stages, setStages] = useState(initialStages);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showAddClient, setShowAddClient] = useState(false);
@@ -109,6 +115,12 @@ export default function PipelinePage() {
   const [selectedInvestor, setSelectedInvestor] = useState('');
   const [newStageName, setNewStageName] = useState('');
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
+
+  useEffect(() => {
+    if (!authLoading && user && !isAdmin) {
+      router.push('/dashboard');
+    }
+  }, [user, isAdmin, authLoading, router]);
 
   // Load from localStorage
   useEffect(() => {

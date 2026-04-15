@@ -17,7 +17,7 @@ export class CreateStaffDto {
   @IsNotEmpty()
   password: string;
 
-  @IsEnum(['relations_associate', 'accountant', 'partnership'])
+  @IsEnum(['executive_admin', 'admin', 'fund_admin', 'investor_relations', 'accountant', 'relations_associate', 'partnership'])
   role: string;
 
   @IsUUID()
@@ -46,7 +46,7 @@ export class UpdateStaffDto {
   @IsOptional()
   password?: string;
 
-  @IsEnum(['relations_associate', 'accountant', 'partnership'])
+  @IsEnum(['executive_admin', 'admin', 'fund_admin', 'investor_relations', 'accountant', 'relations_associate', 'partnership'])
   @IsOptional()
   role?: string;
 

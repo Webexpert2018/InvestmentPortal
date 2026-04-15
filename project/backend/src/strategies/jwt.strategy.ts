@@ -25,8 +25,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     );
 
     let user = result.rows[0];
+    
+    // 2. If not found in users, try staff table
+    if (!user) {
+      result = await db.query(
+        'SELECT id, email, role, full_name, status FROM staff WHERE id = $1',
+        [payload.userId]
+      );
+      user = result.rows[0];
+      
+      if (user && user.full_name) {
+        const [firstName, ...lastNameParts] = user.full_name.split(' ');
+        user.first_name = firstName;
+        user.last_name = lastNameParts.join(' ');
+      }
+    }
 
-    // 2. If not found in users, try investors table
+    // 3. If not found in users or staff, try investors table
     if (!user) {
       result = await db.query(
         'SELECT id, email, role, full_name, status FROM investors WHERE id = $1',

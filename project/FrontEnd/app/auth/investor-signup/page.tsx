@@ -95,17 +95,7 @@ export default function InvestorSignupPage() {
   const validateStep = (step: Step) => {
     const nextErrors: ValidationErrors = {};
 
-    // if (step === 1) {
-    //   if (!form.firstName.trim()) nextErrors.firstName = 'First name is required';
-    //   if (!form.lastName.trim()) nextErrors.lastName = 'Last name is required';
-    //   if (!form.email.trim()) nextErrors.email = 'Email is required';
-    //   if (!form.phoneNumber.trim()) {
-    //     nextErrors.phoneNumber = 'Phone number is required';
-    //   } else if (form.phoneNumber.length < 10) {
-    //     nextErrors.phoneNumber = 'Please enter a valid phone number';
-    //   }
-    //   if (!form.dob) nextErrors.dob = 'Date of birth is required';
-    // }
+
     if (step === 1) {
       // First Name
       if (!form.firstName.trim()) {
@@ -151,19 +141,17 @@ export default function InvestorSignupPage() {
       // DOB
       if (!form.dob) {
         nextErrors.dob = 'Date of birth is required';
-      } else {
+      }
+      else {
         const birthDate = new Date(form.dob);
         const today = new Date();
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const m = today.getMonth() - birthDate.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-          age--;
-        }
 
-        if (age < 18) {
-          nextErrors.dob = 'You must be at least 18 years old';
-        } else if (age > 70) {
-          nextErrors.dob = 'Age cannot exceed 70 years';
+        // Remove time part for accurate comparison
+        today.setHours(0, 0, 0, 0);
+
+        // ❌ Future date not allowed
+        if (birthDate > today) {
+          nextErrors.dob = 'Future date is not allowed';
         }
       }
     }

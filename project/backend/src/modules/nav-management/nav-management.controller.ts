@@ -22,25 +22,25 @@ export class NavManagementController {
   }
 
   @Get('history')
-  @Roles('admin')
+  @Roles('executive_admin', 'accountant')
   async getHistory() {
     return this.navManagementService.getHistory();
   }
 
   @Post('entries')
-  @Roles('admin')
+  @Roles('executive_admin', 'accountant')
   async createEntry(@Body() createNavEntryDto: CreateNavEntryDto, @Req() req: any) {
     return this.navManagementService.createEntry(createNavEntryDto, req.user.userId);
   }
 
   @Get('entries/:id')
-  @Roles('admin')
+  @Roles('executive_admin', 'accountant')
   async getEntryById(@Param('id') id: string) {
     return this.navManagementService.getEntryById(id);
   }
 
   @Patch('entries/:id')
-  @Roles('admin')
+  @Roles('executive_admin', 'accountant')
   async updateEntry(
     @Param('id') id: string,
     @Body() updateNavEntryDto: Partial<CreateNavEntryDto>,
@@ -50,7 +50,7 @@ export class NavManagementController {
   }
 
   @Delete('entries/:id')
-  @Roles('admin')
+  @Roles('executive_admin', 'accountant')
   async deleteEntry(@Param('id') id: string) {
     return this.navManagementService.deleteEntry(id);
   }

@@ -207,7 +207,9 @@ type DashboardRole = 'admin' | 'investor' | 'accountant';
 
 const normalizeDashboardRole = (role?: string | null): DashboardRole => {
   const normalized = role?.trim().toLowerCase();
-  if (normalized === 'admin') return 'admin';
+  const adminRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations'];
+  
+  if (adminRoles.includes(normalized || '')) return 'admin';
   if (normalized === 'accountant' || normalized === 'accountants' || normalized === 'account') return 'accountant';
   return 'investor';
 };

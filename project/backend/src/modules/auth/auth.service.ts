@@ -29,11 +29,17 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const targetRole = role || 'investor';
+    let targetRole = role || 'investor';
+    
+    // Auto-map 'admin' to 'executive_admin' for new registrations
+    if (targetRole === 'admin') {
+      targetRole = 'executive_admin';
+    }
+
     let newUser;
 
-    if (targetRole === 'admin' || targetRole === 'accountant') {
-      // 2a. Insert into USERS table for staff/admin roles
+    if (targetRole === 'executive_admin') {
+      // 2a. Insert into USERS table for Executive Admin
       const userResult = await db.query(
         `INSERT INTO users (email, password_hash, role, first_name, last_name, phone, status)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -41,11 +47,22 @@ export class AuthService {
         [email, passwordHash, targetRole, firstName, lastName, phone || null, 'active']
       );
       newUser = userResult.rows[0];
-      // Normalize names for unified response
       newUser.firstName = newUser.first_name;
       newUser.lastName = newUser.last_name;
+    } else if (['fund_admin', 'investor_relations', 'accountant', 'relations_associate', 'partnership'].includes(targetRole)) {
+      // 2b. Insert into STAFF table for other administrative roles
+      const userResult = await db.query(
+        `INSERT INTO staff (full_name, email, password_hash, phone, role, status)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING id, email, role, full_name, phone, status`,
+        [firstName + ' ' + (lastName || ''), email, passwordHash, phone || null, targetRole, 'active']
+      );
+      newUser = userResult.rows[0];
+      const nameParts = newUser.full_name?.split(' ') || [];
+      newUser.firstName = nameParts[0] || '';
+      newUser.lastName = nameParts.slice(1).join(' ') || '';
     } else {
-      // 2b. Insert into INVESTORS table for default/investor role
+      // 2c. Insert into INVESTORS table for default/investor role
       const userResult = await db.query(
         `INSERT INTO investors (full_name, email, password_hash, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
@@ -53,7 +70,6 @@ export class AuthService {
         [firstName + ' ' + (lastName || ''), email, passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId]
       );
       newUser = userResult.rows[0];
-      // Normalize names for unified response
       const nameParts = newUser.full_name?.split(' ') || [];
       newUser.firstName = nameParts[0] || '';
       newUser.lastName = nameParts.slice(1).join(' ') || '';
@@ -146,8 +162,17 @@ export class AuthService {
       }
 
       // Role-based access control check
-      if (role && user.role !== role) {
-        throw new UnauthorizedException(`Access denied. You do not have the ${role} role.`);
+      if (role) {
+        const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations', 'relations_associate'];
+        
+        // 1. Admin flows ('admin') are compatible with all administrative roles
+        const isAdminFlow = role === 'admin';
+        const isCompatibleAdmin = isAdminFlow && adminRoles.includes(user.role);
+        
+        // 2. Exact match check for other flows (accountant, investor, etc.)
+        if (!isCompatibleAdmin && user.role !== role) {
+          throw new UnauthorizedException(`Access denied. You do not have the ${role} role.`);
+        }
       }
 
       const token = this.jwtService.sign({

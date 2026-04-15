@@ -71,14 +71,14 @@ export function DashboardHeader({
       </div>
 
       <div className="flex items-center gap-5">
-        <div className="hidden h-[50px] w-[180px] lg:w-[340px] items-center rounded-[40px] bg-[#F2F2F2] px-6 lg:w-[390px] md:flex">
+        {/* <div className="hidden h-[50px] w-[180px] lg:w-[340px] items-center rounded-[40px] bg-[#F2F2F2] px-6 lg:w-[390px] md:flex">
           <Search className="h-[20px] w-[20px] text-[#8D8D8D]" strokeWidth={1.8} />
           <input
             type="text"
             placeholder="Find something here..."
             className="ml-3 w-full bg-transparent font-helvetica text-[14px] leading-none text-[#2A2A2A] outline-none placeholder:text-[#8D8D8D]"
           />
-        </div>
+        </div> */}
         <Link
           href="/dashboard/messages"
           className={cn(

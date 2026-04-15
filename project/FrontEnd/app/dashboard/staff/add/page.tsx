@@ -67,7 +67,7 @@ export default function AddStaffPage() {
       submitData.append('phone', formData.phone);
       submitData.append('password', formData.password);
       
-      if (formData.role === 'partnership' && formData.associated_fund_id) {
+      if ((formData.role === 'partnership' || formData.role === 'fund_admin') && formData.associated_fund_id) {
         submitData.append('associated_fund_id', formData.associated_fund_id);
       }
       
@@ -135,16 +135,19 @@ export default function AddStaffPage() {
                   className="w-full h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border-none text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer"
                 >
                   <option value="">Select staff role</option>
-                  <option value="relations_associate">Relations Associate</option>
+                  <option value="admin">Admin</option>
+                  <option value="fund_admin">Fund Admin</option>
+                  <option value="investor_relations">Investor Relations</option>
                   <option value="accountant">Accountant</option>
+                  <option value="relations_associate">Relations Associates</option>
                   <option value="partnership">Partnership</option>
                 </select>
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8E8E93] h-5 w-5 pointer-events-none" />
               </div>
             </div>
 
-            {/* Associated Fund - ONLY for Partnership */}
-            {formData.role === 'partnership' && (
+            {/* Associated Fund - ONLY for Partnership or Fund Admin */}
+            {(formData.role === 'partnership' || formData.role === 'fund_admin') && (
               <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
                 <label className="text-[14px] font-medium text-[#1F1F1F]">
                   Associated Fund <span className="text-red-500">*</span>

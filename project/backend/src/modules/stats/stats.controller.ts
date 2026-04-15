@@ -10,13 +10,13 @@ export class StatsController {
   constructor(private readonly statsService: StatsService) {}
 
   @Get('admin')
-  @Roles('admin')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
   async getAdminStats() {
     return this.statsService.getAdminStats();
   }
 
   @Get('investor/:id')
-  @Roles('admin', 'staff', 'accountant', 'investor')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant', 'staff', 'investor')
   async getInvestorStats(@Param('id') id: string) {
     return this.statsService.getInvestorStats(id);
   }

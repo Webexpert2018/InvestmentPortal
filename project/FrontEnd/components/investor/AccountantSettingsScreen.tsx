@@ -241,20 +241,29 @@ export function AccountantSettingsScreen() {
 
     if (!dob.trim()) {
       errs.dob = 'Date of birth is required';
-    } else {
+    }
+    else {
       const birthDate = new Date(dob);
       const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
+      // Remove time part for accurate comparison
+      today.setHours(0, 0, 0, 0);
+
+      // ❌ Future date not allowed
+      if (birthDate > today) {
+        errs.dob = 'Future date is not allowed';
       }
 
-      if (age < 18) {
-        errs.dob = 'You must be at least 18 years old';
-      } else if (age > 70) {
-        errs.dob = 'Age cannot exceed 70 years';
-      }
+      // let age = today.getFullYear() - birthDate.getFullYear();
+      // const m = today.getMonth() - birthDate.getMonth();
+      // if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      //   age--;
+      // }
+
+      // if (age < 18) {
+      //   errs.dob = 'You must be at least 18 years old';
+      // } else if (age > 70) {
+      //   errs.dob = 'Age cannot exceed 70 years';
+      // }
     }
 
     if (!addressLine1.trim()) errs.addressLine1 = 'Street address line 1 is required';
