@@ -17,8 +17,20 @@ export class UsersService {
     );
 
     let user = result.rows[0];
+    
+    // If not found in users, check the staff table
+    if (!user) {
+      result = await db.query(`
+        SELECT 
+          id, email, role, full_name, phone, status, created_at, profile_image_url
+        FROM staff
+        WHERE id = $1`,
+        [userId]
+      );
+      user = result.rows[0];
+    }
 
-    // If not found in users, check the investors table
+    // If still not found, check the investors table
     if (!user) {
       result = await db.query(`
         SELECT 
@@ -30,13 +42,13 @@ export class UsersService {
         [userId]
       );
       user = result.rows[0];
-      
-      if (user && user.full_name) {
-        // Map full_name to firstName/lastName for frontend consistency
-        const [firstName, ...lastNameParts] = user.full_name.split(' ');
-        user.firstName = firstName;
-        user.lastName = lastNameParts.join(' ');
-      }
+    }
+
+    // Standardize Name Fields for Staff and Investors
+    if (user && user.full_name) {
+      const nameParts = user.full_name.trim().split(' ');
+      user.firstName = nameParts[0] || '';
+      user.lastName = nameParts.slice(1).join(' ') || '';
     }
 
     if (!user) {
@@ -197,7 +209,8 @@ export class UsersService {
   }
 
   async getAllUsers(requestingUserRole: string) {
-    if (requestingUserRole !== 'admin') {
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(requestingUserRole)) {
       throw new ForbiddenException('Only admins can view all users');
     }
 
@@ -220,7 +233,8 @@ export class UsersService {
   }
 
   async getUserById(targetUserId: string, requestingUserId: string, requestingUserRole: string) {
-    if (requestingUserRole !== 'admin' && requestingUserId !== targetUserId) {
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(requestingUserRole) && requestingUserId !== targetUserId) {
       throw new ForbiddenException('You can only view your own profile');
     }
 
@@ -280,7 +294,8 @@ export class UsersService {
   }
 
   async updateUserStatus(userId: string, status: string, requestingUserRole: string) {
-    if (requestingUserRole !== 'admin') {
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(requestingUserRole)) {
       throw new ForbiddenException('Only admins can update user status');
     }
 
@@ -299,7 +314,8 @@ export class UsersService {
   }
 
   async updateKycStatus(userId: string, kycStatus: string, requestingUserRole: string, requestingUserId?: string) {
-    if (requestingUserRole !== 'admin' && requestingUserId !== userId) {
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(requestingUserRole) && requestingUserId !== userId) {
       throw new ForbiddenException('You do not have permission to update this KYC status');
     }
 

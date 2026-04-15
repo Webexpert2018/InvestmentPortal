@@ -98,10 +98,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setSessionExpired(false);
 
-    if (role === 'admin') {
+    const adminRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations'];
+    if (adminRoles.includes(role || '')) {
       router.push('/auth/login?flow=admin');
-    } else if (role === 'accountant' || role === 'account') {
-      router.push('/auth/login?flow=account');
+    } else if (role === 'accountant') {
+      router.push('/auth/login?flow=accountant');
     } else {
       router.push('/auth/login?flow=investor');
     }
@@ -114,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signup,
     logout,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin',
+    isAdmin: ['admin', 'executive_admin', 'fund_admin', 'investor_relations'].includes(user?.role || ''),
     isAccountant: user?.role === 'accountant' || user?.role === 'account',
     sessionExpired,
     setSessionExpired,

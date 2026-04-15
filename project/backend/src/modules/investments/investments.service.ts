@@ -105,7 +105,7 @@ export class InvestmentsService {
 
   async updateInvestmentStatus(userId: string, investmentId: string, data: any, role?: string) {
     const { status, documentSigned } = data;
-    const isAdmin = role === 'admin' || role === 'accountant' || role === 'staff';
+    const isAdmin = ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant'].includes(role || '');
     
     try {
       let query = 'UPDATE investments SET updated_at = CURRENT_TIMESTAMP';
@@ -156,7 +156,7 @@ export class InvestmentsService {
 
   async getInvestmentById(userId: string, investmentId: string, role?: string) {
     try {
-      const isAdmin = role === 'admin' || role === 'accountant' || role === 'staff';
+      const isAdmin = ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant'].includes(role || '');
       const query = `
         SELECT 
           i.*, 

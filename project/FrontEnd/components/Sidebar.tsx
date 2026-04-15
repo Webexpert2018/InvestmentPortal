@@ -32,7 +32,7 @@ interface MenuItem {
   roles: string[];
 }
 
-type AppRole = 'admin' | 'investor' | 'accountant' | 'compliance';
+type AppRole = 'admin' | 'executive_admin' | 'fund_admin' | 'investor_relations' | 'investor' | 'accountant' | 'compliance';
 
 const normalizeRole = (role?: string | null): AppRole | null => {
   if (!role) return null;
@@ -43,13 +43,9 @@ const normalizeRole = (role?: string | null): AppRole | null => {
     return 'accountant';
   }
 
-  if (
-    normalized === 'admin' ||
-    normalized === 'investor' ||
-    normalized === 'accountant' ||
-    normalized === 'compliance'
-  ) {
-    return normalized;
+  const validRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'investor', 'accountant', 'compliance'];
+  if (validRoles.includes(normalized)) {
+    return normalized as AppRole;
   }
 
   return null;
@@ -67,7 +63,7 @@ const menuItems: MenuItem[] = [
     title: 'Dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
-    roles: ['investor', 'admin', 'accountant', 'compliance'],
+    roles: ['investor', 'admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant', 'compliance'],
   },
   {
     title: 'Portfolio',
@@ -109,67 +105,67 @@ const menuItems: MenuItem[] = [
     title: 'Pipeline',
     href: '/dashboard/pipeline',
     icon: BarChart3,
-    roles: ['admin'],
+    roles: ['admin', 'executive_admin', 'investor_relations'],
   },
   {
     title: 'Investor',
     href: '/dashboard/investor',
     icon: Users,
-    roles: ['admin'],
+    roles: ['admin', 'executive_admin'],
   },
   {
     title: 'KYC Console',
     href: '/dashboard/kyc-console',
     icon: Shield,
-    roles: ['admin', 'compliance'],
+    roles: ['admin', 'executive_admin', 'compliance'],
   },
   {
     title: 'Funding Requests',
     href: '/dashboard/funding-requests',
     icon: Wallet,
-    roles: ['admin', 'accountant'],
+    roles: ['admin', 'executive_admin', 'fund_admin', 'accountant'],
   },
   {
     title: 'Redemption Req.',
     href: '/dashboard/redemption-requests',
     icon: ArrowUpDown,
-    roles: ['admin', 'accountant'],
+    roles: ['admin', 'executive_admin', 'fund_admin', 'accountant'],
   },
   {
     title: 'Reconciliation',
     href: '/dashboard/reconciliation',
     icon: FileText,
-    roles: ['admin', 'accountant'],
+    roles: ['admin', 'executive_admin', 'fund_admin', 'accountant'],
   },
   {
     title: 'NAV Management',
     href: '/dashboard/nav-management',
     icon: BarChart3,
-    roles: ['admin', 'accountant'],
+    roles: ['executive_admin', 'accountant'],
   },
   {
     title: 'Funds',
     href: '/dashboard/funds',
     icon: Wallet,
-    roles: ['admin', 'accountant'],
+    roles: ['admin', 'executive_admin', 'fund_admin', 'accountant'],
   },
   {
     title: 'CRM & Bulk Ops',
     href: '/dashboard/crm-bulk-ops',
     icon: Users,
-    roles: ['admin'],
+    roles: ['admin', 'executive_admin'],
   },
   {
     title: 'Staff',
     href: '/dashboard/staff',
     icon: Users,
-    roles: ['admin'],
+    roles: ['admin', 'executive_admin'],
   },
   {
     title: 'Settings',
     href: '/dashboard/settings',
     icon: Settings,
-    roles: ['investor', 'admin', 'accountant', 'compliance'],
+    roles: ['investor', 'admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant', 'compliance'],
   },
 ];
 

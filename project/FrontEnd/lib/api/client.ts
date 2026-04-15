@@ -809,13 +809,6 @@ class ApiClient {
       method: 'DELETE',
     });
   }
-
-  async updateBankAccount(id: string, data: any) {
-    return this.request<any>(`/bank-accounts/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  }
 }
 
 

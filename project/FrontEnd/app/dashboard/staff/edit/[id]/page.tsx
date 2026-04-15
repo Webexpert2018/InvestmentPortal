@@ -84,7 +84,7 @@ export default function EditStaffPage() {
       submitData.append('phone', formData.phone);
       submitData.append('status', formData.status);
       
-      if (formData.role === 'partnership' && formData.associated_fund_id) {
+      if ((formData.role === 'partnership' || formData.role === 'fund_admin') && formData.associated_fund_id) {
         submitData.append('associated_fund_id', formData.associated_fund_id);
       }
       
@@ -151,13 +151,17 @@ export default function EditStaffPage() {
                 value={formData.role}
                 className="h-[52px] px-4 rounded-[8px] bg-[#f0f0f0] border-none text-[15px] outline-none cursor-not-allowed opacity-70"
               >
-                <option value="relations_associate">Relations Associate</option>
+                <option value="executive_admin">Executive Admin</option>
+                <option value="admin">Admin</option>
+                <option value="fund_admin">Fund Admin</option>
+                <option value="investor_relations">Investor Relations</option>
                 <option value="accountant">Accountant</option>
+                <option value="relations_associate">Relations Associate</option>
                 <option value="partnership">Partnership</option>
               </select>
             </div>
 
-            {formData.role === 'partnership' && (
+            {(formData.role === 'partnership' || formData.role === 'fund_admin') && (
               <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
                 <label className="text-[14px] font-medium text-[#1F1F1F]">Associated Fund</label>
                 <select

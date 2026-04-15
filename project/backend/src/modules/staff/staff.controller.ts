@@ -1,10 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StaffService } from './staff.service';
 import { CreateStaffDto, UpdateStaffDto } from './staff.dto';
 import { staffImageStorage } from '../../config/cloudinary.config';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../decorators/roles.decorator';
 
 @Controller('api/staff')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin', 'executive_admin')
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 

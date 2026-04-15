@@ -21,20 +21,20 @@ export class RedemptionsController {
   }
 
   @Get('investor/:id')
-  @Roles('admin', 'staff', 'accountant')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
   async getInvestorRedemptions(@Param('id') id: string) {
     return this.redemptionsService.findAllForUser(id);
   }
 
   @Get('all')
-  @Roles('admin', 'staff')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
   async findAllGlobal() {
     return this.redemptionsService.findAll();
   }
 
   @Get(':id')
   async findOne(@CurrentUser() user: any, @Param('id') id: string) {
-    if (user.role === 'admin' || user.role === 'staff') {
+    if (user.role === 'admin' || user.role === 'executive_admin' || user.role === 'staff') {
       return this.redemptionsService.findOneGlobal(id);
     }
     return this.redemptionsService.findOne(id, user.userId);
@@ -46,7 +46,7 @@ export class RedemptionsController {
   }
 
   @Patch(':id/status')
-  @Roles('admin', 'staff')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
   async updateStatus(@Param('id') id: string, @Body('status') status: string) {
     return this.redemptionsService.updateStatus(id, status);
   }

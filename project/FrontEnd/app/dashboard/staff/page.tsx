@@ -7,14 +7,23 @@ import { MoreVertical, Search, Plus, Loader2, ChevronLeft } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { DeleteStaffModal } from '@/components/staff/DeleteStaffModal';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const ROLE_TABS = [
+  { id: 'executive_admin', label: 'Executive Admins' },
+  { id: 'admin', label: 'Admins' },
+  { id: 'fund_admin', label: 'Fund Admins' },
+  { id: 'investor_relations', label: 'Investor Relations' },
   { id: 'relations_associate', label: 'Relations Associates' },
   { id: 'accountant', label: 'Accountants' },
   { id: 'partnership', label: 'Partnerships' },
 ];
 
 export default function StaffPage() {
+  const { user, isAdmin, loading: authLoading } = useAuth();
+  const router = useRouter();
+
   const [activeTab, setActiveTab] = useState(ROLE_TABS[0].id);
   const [staffList, setStaffList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,8 +32,17 @@ export default function StaffPage() {
   const [staffToDelete, setStaffToDelete] = useState<any>(null);
 
   useEffect(() => {
-    fetchStaff();
-  }, [activeTab]);
+    if (!authLoading && user && !isAdmin) {
+      toast.error('Access denied. You do not have permission to view staff.');
+      router.push('/dashboard');
+    }
+  }, [user, isAdmin, authLoading, router]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchStaff();
+    }
+  }, [activeTab, isAdmin]);
 
   const fetchStaff = async () => {
     try {
@@ -129,7 +147,8 @@ export default function StaffPage() {
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Name</th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Email</th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">
-                    {activeTab === 'partnership' ? 'Associated Fund' : 'Assigned Investors'}
+                    {activeTab === 'partnership' || activeTab === 'fund_admin' ? 'Associated Fund' : 
+                     activeTab === 'executive_admin' ? 'Access Level' : 'Assigned Investors'}
                   </th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Date</th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] text-right">Action</th>
@@ -153,7 +172,12 @@ export default function StaffPage() {
                     <tr key={staff.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white overflow-hidden ${activeTab === 'relations_associate' ? 'bg-[#274583]' :
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white overflow-hidden ${
+                            activeTab === 'admin' ? 'bg-[#3B82F6]' :
+                            activeTab === 'executive_admin' ? 'bg-[#1F1F1F]' :
+                            activeTab === 'fund_admin' ? 'bg-[#059669]' :
+                            activeTab === 'investor_relations' ? 'bg-[#7C3AED]' :
+                            activeTab === 'relations_associate' ? 'bg-[#274583]' :
                             activeTab === 'accountant' ? 'bg-[#5B21B6]' : 'bg-[#EF4444]'
                             }`}>
                             {staff.profile_image_url ? (
@@ -167,7 +191,8 @@ export default function StaffPage() {
                       </td>
                       <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">{staff.email}</td>
                       <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">
-                        {activeTab === 'partnership' ? (staff.associated_fund_name || 'N/A') : staff.assigned_investors_count}
+                        {activeTab === 'partnership' || activeTab === 'fund_admin' ? (staff.associated_fund_name || 'N/A') : 
+                         activeTab === 'executive_admin' ? 'Full System Access' : staff.assigned_investors_count}
                       </td>
                       <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">{formatDate(staff.created_at)}</td>
                       <td className="px-6 py-4 text-right z-20 relative">
