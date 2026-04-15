@@ -14,8 +14,13 @@ export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 
   @Get()
-  async findAll(@Query('role') role?: string) {
-    return this.staffService.findAll(role);
+  async findAll(
+    @Query('role') role?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Query('search') search?: string
+  ) {
+    return this.staffService.findAll(role, parseInt(page), parseInt(limit), search);
   }
 
   @Get(':id')

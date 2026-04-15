@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, ConflictException } from '@nestjs/common';
 import { db } from '../../config/database';
 import * as bcrypt from 'bcryptjs';
 import { EmailService } from '../email/email.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -220,7 +221,9 @@ export class UsersService {
         kyc_status as "kycStatus", profile_image_url as "profileImageUrl",
         (SELECT COALESCE(SUM(investment_amount), 0) FROM investments WHERE user_id = investors.id) as total_invested
       FROM investors
-      ORDER BY created_at DESC
+      ORDER BY 
+        CASE WHEN status = 'pending' THEN 0 ELSE 1 END,
+        created_at DESC
     `);
 
     return result.rows.map((user) => ({
@@ -360,5 +363,157 @@ export class UsersService {
       .catch(err => console.error(`Failed to send password changed email to ${user.email}:`, err));
 
     return { message: 'Password updated successfully' };
+  }
+
+  async inviteInvestor(data: any, requestingUserRole: string) {
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(requestingUserRole)) {
+      throw new ForbiddenException('Only admins can invite investors');
+    }
+
+    const { 
+      email, 
+      full_name,
+      phone,
+      dob,
+      address_line1,
+      address_line2,
+      city,
+      state,
+      zip_code,
+      country,
+      tax_id
+    } = data;
+
+    // Check if user already exists in ANY table
+    const [existingUser, existingInvestor, existingStaff] = await Promise.all([
+      db.query('SELECT id FROM users WHERE email = $1', [email]),
+      db.query('SELECT id FROM investors WHERE email = $1', [email]),
+      db.query('SELECT id FROM staff WHERE email = $1', [email])
+    ]);
+
+    if (existingUser.rows.length > 0 || existingInvestor.rows.length > 0 || existingStaff.rows.length > 0) {
+      throw new ConflictException('User with this email already exists');
+    }
+
+    const investorId = crypto.randomUUID();
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    // Insert as pending investor
+    // We set a dummy password hash that won't match anything
+    const dummyPasswordHash = 'INVITED_PENDING_' + crypto.randomBytes(16).toString('hex');
+
+    await db.query(
+      `INSERT INTO investors (
+        id, email, full_name, password_hash, status, kyc_status, 
+        phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id
+      )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+      [
+        investorId, email, full_name, dummyPasswordHash, 'pending', 'pending',
+        phone || null, dob || null, address_line1 || null, address_line2 || null, 
+        city || null, state || null, zip_code || null, country || null, tax_id || null
+      ]
+    );
+
+    // Store invitation token in user_otps
+    await db.query(
+      'INSERT INTO user_otps (user_id, otp, type, expires_at) VALUES ($1, $2, $3, $4)',
+      [investorId, token, 'INVITATION', expiresAt]
+    );
+
+    // 5. Send invitation email (if requested, usually only for bulk or immediate invites)
+    if (data.sendEmail) {
+      await this.emailService.sendInvestorInvitationEmail(email, full_name, token);
+    }
+
+    return { message: 'Investor saved successfully', id: investorId };
+  }
+
+  async sendInvitation(userId: string, requestingUserRole: string) {
+    console.log(`[sendInvitation] Invoked for userId: ${userId} by role: ${requestingUserRole}`);
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(requestingUserRole)) {
+      throw new ForbiddenException('Only admins can send invitations');
+    }
+
+    // 1. Verify user exists and is a pending investor
+    const result = await db.query(
+      'SELECT id, email, full_name, status FROM investors WHERE id = $1',
+      [userId]
+    );
+    console.log(`[sendInvitation] Verify query returned rows: ${result.rows.length}`);
+
+    if (result.rows.length === 0) {
+      throw new NotFoundException('Investor not found');
+    }
+
+    const investor = result.rows[0];
+    if (investor.status !== 'pending') {
+      throw new BadRequestException('Can only send invitations to pending investors');
+    }
+
+    // 2. Get the active INVITATION token
+    const tokenResult = await db.query(
+      "SELECT otp FROM user_otps WHERE user_id = $1 AND type = 'INVITATION' AND is_used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1",
+      [userId]
+    );
+
+    if (tokenResult.rows.length === 0) {
+      throw new BadRequestException('No active invitation token found for this investor');
+    }
+
+    const token = tokenResult.rows[0].otp;
+
+    // 3. Send the email
+    await this.emailService.sendInvestorInvitationEmail(investor.email, investor.full_name, token);
+
+    return { message: 'Invitation email sent successfully' };
+  }
+
+  async validateInvitationToken(token: string) {
+    const result = await db.query(
+      `SELECT 
+        i.id, i.email, i.full_name, i.phone, i.status, i.dob,
+        i.address_line1, i.address_line2, i.city, i.state, i.zip_code, i.country, i.tax_id
+       FROM investors i
+       JOIN user_otps o ON i.id = o.user_id
+       WHERE o.otp = $1 AND o.type = 'INVITATION' AND o.expires_at > NOW() AND o.is_used = false`,
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      throw new BadRequestException('Invalid or expired invitation token');
+    }
+
+    return result.rows[0];
+  }
+
+  async deleteUser(userId: string, requestingUserRole: string) {
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(requestingUserRole)) {
+      throw new ForbiddenException('Only admins can delete users');
+    }
+
+    // Identify which table the user is in
+    const [userRes, investorRes, staffRes] = await Promise.all([
+      db.query('SELECT id FROM users WHERE id = $1', [userId]),
+      db.query('SELECT id FROM investors WHERE id = $1', [userId]),
+      db.query('SELECT id FROM staff WHERE id = $1', [userId])
+    ]);
+
+    let tableName = '';
+    if (userRes.rows.length > 0) tableName = 'users';
+    else if (investorRes.rows.length > 0) tableName = 'investors';
+    else if (staffRes.rows.length > 0) tableName = 'staff';
+
+    if (!tableName) return { success: false, message: 'User not found' };
+
+    // Delete OTPs and then user
+    await db.query('DELETE FROM user_otps WHERE user_id = $1', [userId]);
+    await db.query(`DELETE FROM ${tableName} WHERE id = $1`, [userId]);
+
+    return { success: true };
   }
 }

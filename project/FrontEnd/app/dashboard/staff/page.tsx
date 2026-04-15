@@ -10,7 +10,8 @@ import { DeleteStaffModal } from '@/components/staff/DeleteStaffModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
-const ROLE_TABS = [
+const ROLE_OPTIONS = [
+  { id: 'all', label: 'All Roles' },
   { id: 'executive_admin', label: 'Executive Admins' },
   { id: 'admin', label: 'Admins' },
   { id: 'fund_admin', label: 'Fund Admins' },
@@ -24,12 +25,19 @@ export default function StaffPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState(ROLE_TABS[0].id);
+  const [activeTab, setActiveTab] = useState('all');
   const [staffList, setStaffList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 1,
+    limit: 7
+  });
 
   useEffect(() => {
     if (!authLoading && user && !isAdmin) {
@@ -42,13 +50,32 @@ export default function StaffPage() {
     if (isAdmin) {
       fetchStaff();
     }
-  }, [activeTab, isAdmin]);
+  }, [activeTab, isAdmin, currentPage]);
+
+  // Reset to page 1 when filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setActiveDropdown(null);
+  }, [activeTab, searchQuery]);
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isAdmin) fetchStaff();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const fetchStaff = async () => {
     try {
       setLoading(true);
-      const data = await apiClient.getStaff(activeTab);
-      setStaffList(data);
+      const response = await apiClient.getStaff(activeTab, currentPage, 7, searchQuery);
+      setStaffList(response.data);
+      setPagination({
+        total: response.meta.total,
+        totalPages: response.meta.totalPages,
+        limit: response.meta.limit
+      });
     } catch (error) {
       console.error('Error fetching staff:', error);
       toast.error('Failed to load staff list');
@@ -68,24 +95,25 @@ export default function StaffPage() {
     } finally {
       setIsDeleteModalOpen(false);
       setStaffToDelete(null);
+      setActiveDropdown(null);
     }
   };
 
   const handleDeleteStaff = (staff: any) => {
     setStaffToDelete(staff);
     setIsDeleteModalOpen(true);
+    setActiveDropdown(null);
   };
 
-  const filteredStaff = staffList.filter(s =>
-    s.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Sorting/Filtering is now handled server-side
+  const displayStaff = staffList;
 
   const getInitials = (name: string) => {
     return name?.split(' ').map(n => n[0]).join('').toUpperCase() || '??';
   };
 
   const formatDate = (dateStr: string) => {
+    if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -109,33 +137,36 @@ export default function StaffPage() {
           </Link>
         </div>
 
-        {/* Tabs */}
-        <div className="flex items-center gap-8 border-b border-[#F2F2F2] mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide">
-          {ROLE_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 text-[15px] font-medium transition-all relative ${activeTab === tab.id ? 'text-[#1F1F1F]' : 'text-[#8E8E93] hover:text-[#1F1F1F]'
-                }`}
+        {/* Filters */}
+        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-8">
+          <div className="relative max-w-[400px] flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8E8E93] h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Find something here..."
+              className="w-full bg-[#f8f9fa] border-none rounded-full py-2.5 pl-11 pr-4 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="relative min-w-[200px]">
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              className="w-full bg-[#f8f9fa] border-none rounded-full py-2.5 pl-6 pr-10 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer font-medium text-[#1F1F1F]"
             >
-              {tab.label}
-              {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#FFD66B]" />
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Search */}
-        <div className="mb-6 relative max-w-[400px]">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8E8E93] h-4 w-4" />
-          <input
-            type="text"
-            placeholder="Find something here..."
-            className="w-full bg-[#f8f9fa] border-none rounded-full py-2.5 pl-11 pr-4 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+              {ROLE_OPTIONS.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#8E8E93]">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {/* Table wrapper - Removed overflow-hidden to prevent dropdown clipping */}
@@ -146,10 +177,8 @@ export default function StaffPage() {
                 <tr className="border-b border-[#F2F2F2]">
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Name</th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Email</th>
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">
-                    {activeTab === 'partnership' || activeTab === 'fund_admin' ? 'Associated Fund' : 
-                     activeTab === 'executive_admin' ? 'Access Level' : 'Assigned Investors'}
-                  </th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Role Type</th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Assigned Investors</th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Date</th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] text-right">Action</th>
                 </tr>
@@ -157,28 +186,27 @@ export default function StaffPage() {
               <tbody className="divide-y divide-[#F2F2F2]">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="py-20 text-center">
+                    <td colSpan={6} className="py-20 text-center">
                       <Loader2 className="h-8 w-8 animate-spin text-[#FFD66B] mx-auto" />
                     </td>
                   </tr>
-                ) : filteredStaff.length === 0 ? (
+                ) : displayStaff.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-20 text-center text-[#8E8E93]">
+                    <td colSpan={6} className="py-20 text-center text-[#8E8E93]">
                       No staff members found in this category.
                     </td>
                   </tr>
                 ) : (
-                  filteredStaff.map((staff) => (
+                  displayStaff.map((staff) => (
                     <tr key={staff.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white overflow-hidden ${
-                            activeTab === 'admin' ? 'bg-[#3B82F6]' :
-                            activeTab === 'executive_admin' ? 'bg-[#1F1F1F]' :
-                            activeTab === 'fund_admin' ? 'bg-[#059669]' :
-                            activeTab === 'investor_relations' ? 'bg-[#7C3AED]' :
-                            activeTab === 'relations_associate' ? 'bg-[#274583]' :
-                            activeTab === 'accountant' ? 'bg-[#5B21B6]' : 'bg-[#EF4444]'
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white overflow-hidden ${staff.role === 'admin' ? 'bg-[#3B82F6]' :
+                            staff.role === 'executive_admin' ? 'bg-[#1F1F1F]' :
+                              staff.role === 'fund_admin' ? 'bg-[#059669]' :
+                                staff.role === 'investor_relations' ? 'bg-[#7C3AED]' :
+                                  staff.role === 'relations_associate' ? 'bg-[#274583]' :
+                                    staff.role === 'accountant' ? 'bg-[#5B21B6]' : 'bg-[#EF4444]'
                             }`}>
                             {staff.profile_image_url ? (
                               <img src={staff.profile_image_url} alt={staff.full_name} className="w-full h-full object-cover" />
@@ -190,21 +218,60 @@ export default function StaffPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">{staff.email}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-[12px] font-medium ${staff.role === 'executive_admin' ? 'bg-[#1F1F1F] text-white' :
+                          staff.role === 'admin' ? 'bg-[#3B82F6]/10 text-[#3B82F6]' :
+                            staff.role === 'fund_admin' ? 'bg-[#059669]/10 text-[#059669]' :
+                              staff.role === 'investor_relations' ? 'bg-[#7C3AED]/10 text-[#7C3AED]' :
+                                staff.role === 'relations_associate' ? 'bg-[#274583]/10 text-[#274583]' :
+                                  staff.role === 'accountant' ? 'bg-[#5B21B6]/10 text-[#5B21B6]' : 'bg-[#EF4444]/10 text-[#EF4444]'
+                          }`}>
+                          {ROLE_OPTIONS.find(o => o.id === staff.role)?.label || staff.role}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">
-                        {activeTab === 'partnership' || activeTab === 'fund_admin' ? (staff.associated_fund_name || 'N/A') : 
-                         activeTab === 'executive_admin' ? 'Full System Access' : staff.assigned_investors_count}
+                        {staff.assigned_investors_count || 0}
                       </td>
                       <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">{formatDate(staff.created_at)}</td>
-                      <td className="px-6 py-4 text-right z-20 relative">
-                        <div className="relative inline-block group">
-                          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors text-[#8E8E93]">
+                      <td className="px-6 py-4 text-right relative">
+                        <div className="relative inline-block">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDropdown(activeDropdown === staff.id ? null : staff.id);
+                            }}
+                            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-[#8E8E93]"
+                          >
                             <MoreVertical className="h-5 w-5" />
                           </button>
-                          <div className="hidden group-hover:block absolute right-0 top-full mt-1 bg-white border border-[#F2F2F2] rounded-[8px] shadow-xl py-2 w-[120px] z-50 text-left">
-                            <Link href={`/dashboard/staff/view/${staff.id}`} className="block px-4 py-2 text-[13px] text-[#1F1F1F] hover:bg-gray-50 flex items-center gap-2 font-medium">View</Link>
-                            <Link href={`/dashboard/staff/edit/${staff.id}`} className="block px-4 py-2 text-[13px] text-[#1F1F1F] hover:bg-gray-50 flex items-center gap-2 font-medium">Edit</Link>
-                            <button onClick={() => handleDeleteStaff(staff)} className="w-full text-left px-4 py-2 text-[13px] text-red-500 hover:bg-gray-50 flex items-center gap-2 border-t border-gray-50 font-medium pt-2 mt-1">Delete</button>
-                          </div>
+
+                          {activeDropdown === staff.id && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
+                              <div className="absolute right-0 top-full mt-1 bg-white border border-[#F2F2F2] rounded-[8px] shadow-xl py-2 w-[120px] z-50 text-left animate-in fade-in zoom-in duration-200">
+                                <Link
+                                  href={`/dashboard/staff/view/${staff.id}`}
+                                  className="block px-4 py-2 text-[13px] text-[#1F1F1F] hover:bg-gray-50 flex items-center gap-2 font-medium"
+                                  onClick={() => setActiveDropdown(null)}
+                                >
+                                  View
+                                </Link>
+                                <Link
+                                  href={`/dashboard/staff/edit/${staff.id}`}
+                                  className="block px-4 py-2 text-[13px] text-[#1F1F1F] hover:bg-gray-50 flex items-center gap-2 font-medium"
+                                  onClick={() => setActiveDropdown(null)}
+                                >
+                                  Edit
+                                </Link>
+                                <button
+                                  onClick={() => handleDeleteStaff(staff)}
+                                  className="w-full text-left px-4 py-2 text-[13px] text-red-500 hover:bg-gray-50 flex items-center gap-2 border-t border-gray-50 font-medium pt-2 mt-1"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -224,25 +291,46 @@ export default function StaffPage() {
         />
 
         {/* Pagination */}
-        <div className="mt-8 flex justify-end items-center gap-4">
-          <button disabled className="flex items-center gap-1 text-gray-300 cursor-not-allowed text-sm font-medium">
-            <ChevronLeft className="h-4 w-4" />
-            <span>Previous</span>
-          </button>
+        {pagination.totalPages > 1 && (
+          <div className="mt-8 flex justify-end items-center gap-4">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className={`flex items-center gap-1 text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-600 transition-colors'
+                }`}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>Previous</span>
+            </button>
 
-          <div className="flex gap-1">
-            <button className="w-8 h-8 rounded text-sm font-medium bg-[#1F3B6E] text-white">1</button>
-            <button className="w-8 h-8 rounded text-sm font-medium text-gray-400 hover:bg-gray-100">2</button>
-            <button className="w-8 h-8 rounded text-sm font-medium text-gray-400 hover:bg-gray-100">3</button>
+            <div className="flex gap-1">
+              {[...Array(pagination.totalPages)].map((_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === i + 1
+                    ? 'bg-[#1F3B6E] text-white'
+                    : 'text-gray-400 hover:bg-gray-100'
+                    }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+              disabled={currentPage === pagination.totalPages}
+              className={`flex items-center gap-1 text-sm font-medium ${currentPage === pagination.totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-600 transition-colors'
+                }`}
+            >
+              <span>Next</span>
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
-
-          <button className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-sm font-medium transition-colors">
-            <span>Next</span>
-            <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
+        )}
       </div>
     </DashboardLayout>
   );

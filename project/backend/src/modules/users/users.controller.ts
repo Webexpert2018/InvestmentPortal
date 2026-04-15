@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Patch, Post, Body, Param, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Put, Patch, Post, Delete, Body, Param, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -131,6 +131,18 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
     return this.usersService.updateKycStatus(id, body.kycStatus, user.role);
   }
 
+  @Post('invite')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
+  async inviteInvestor(@Body() body: any, @CurrentUser() user: any) {
+    return this.usersService.inviteInvestor(body, user.role);
+  }
+
+  @Post(':id/send-invitation')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
+  async sendInvitation(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.usersService.sendInvitation(id, user.role);
+  }
+
   @Patch('change-password')
   async changePassword(
     @CurrentUser() user: any,
@@ -168,5 +180,11 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
       message: 'Profile image uploaded successfully',
       imageUrl: imageUrl
     };
+  }
+
+  @Delete(':id')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
+  async deleteUser(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.usersService.deleteUser(id, user.role);
   }
 }

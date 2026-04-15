@@ -133,6 +133,7 @@ class ApiClient {
     zipCode?: string;
     country?: string;
     taxId?: string;
+    invitationToken?: string;
   }) {
     return this.request<{ user: any; token: string }>('/auth/signup', {
       method: 'POST',
@@ -175,6 +176,32 @@ class ApiClient {
 
   async getUserById(id: string) {
     return this.request<any>(`/users/${id}`);
+  }
+
+  async inviteInvestor(data: any) {
+    return this.request<any>('/users/invite', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async sendInvitation(userId: string) {
+    return this.request<any>(`/users/${userId}/send-invitation`, {
+      method: 'POST',
+    });
+  }
+
+  async verifyInvitation(token: string) {
+    return this.request<any>('/auth/verify-invitation', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
+
+  async deleteUser(id: string) {
+    return this.request<any>(`/users/${id}`, {
+      method: 'DELETE',
+    });
   }
 
   async updateKycStatus(userId: string, kycStatus: string) {
@@ -705,9 +732,13 @@ class ApiClient {
   }
 
   // Staff Module
-  async getStaff(role?: string) {
-    const url = role ? `/staff?role=${role}` : '/staff';
-    return this.request<any[]>(url);
+  async getStaff(role?: string, page: number = 1, limit: number = 10, search?: string) {
+    const params = new URLSearchParams();
+    if (role && role !== 'all') params.append('role', role);
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    if (search) params.append('search', search);
+    return this.request<{ data: any[], meta: { total: number, page: number, limit: number, totalPages: number } }>(`/staff?${params.toString()}`);
   }
 
   async getStaffById(id: string) {

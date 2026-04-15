@@ -181,7 +181,7 @@ export default function ViewStaffPage() {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex items-center justify-end px-6 py-8 gap-4 border-t border-gray-50">
+                {/* <div className="flex items-center justify-end px-6 py-8 gap-4 border-t border-gray-50">
                   <button disabled className="flex items-center gap-1 text-gray-300 cursor-not-allowed text-sm font-medium">
                     <ChevronLeft className="h-4 w-4" />
                     <span>Previous</span>
@@ -199,7 +199,7 @@ export default function ViewStaffPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="9 5l7 7-7 7" />
                     </svg>
                   </button>
-                </div>
+                </div> */}
               </div>
             )}
           </div>

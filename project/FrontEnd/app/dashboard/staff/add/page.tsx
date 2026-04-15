@@ -26,6 +26,35 @@ export default function AddStaffPage() {
     password: '',
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.role) newErrors.role = 'Role is required';
+    if (!formData.full_name || formData.full_name.trim().length < 2) {
+      newErrors.full_name = 'Full name is required (min 2 characters)';
+    }
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
+    }
+    if (!formData.phone || formData.phone.trim().length < 5) {
+      newErrors.phone = 'Valid phone number is required';
+    }
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+    if ((formData.role === 'partnership' || formData.role === 'fund_admin') && !formData.associated_fund_id) {
+      newErrors.associated_fund_id = 'Please associate this staff with a fund';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   useEffect(() => {
     fetchFunds();
   }, []);
@@ -57,6 +86,11 @@ export default function AddStaffPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) {
+      toast.error('Please fix the errors in the form');
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -79,7 +113,12 @@ export default function AddStaffPage() {
       toast.success('Staff member added successfully');
       router.push('/dashboard/staff');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to add staff member');
+      if (error.status === 409) {
+        setErrors({ email: 'This email is already registered.' });
+        toast.error('Staff member already exists with this email');
+      } else {
+        toast.error(error.message || 'Failed to add staff member');
+      }
     } finally {
       setLoading(false);
     }
@@ -131,8 +170,13 @@ export default function AddStaffPage() {
                 <select
                   required
                   value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border-none text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer"
+                  onChange={(e) => {
+                    setFormData({ ...formData, role: e.target.value });
+                    if (errors.role) setErrors({ ...errors, role: '' });
+                  }}
+                  className={`w-full h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer transition-all ${
+                    errors.role ? 'border-red-500 ring-1 ring-red-500' : 'border-transparent'
+                  }`}
                 >
                   <option value="">Select staff role</option>
                   <option value="admin">Admin</option>
@@ -144,6 +188,7 @@ export default function AddStaffPage() {
                 </select>
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8E8E93] h-5 w-5 pointer-events-none" />
               </div>
+              {errors.role && <p className="text-red-500 text-[12px] mt-1 ml-1 animate-in fade-in slide-in-from-top-1">{errors.role}</p>}
             </div>
 
             {/* Associated Fund - ONLY for Partnership or Fund Admin */}
@@ -154,19 +199,25 @@ export default function AddStaffPage() {
                 </label>
                 <div className="relative">
                   <select
-                    required
-                    value={formData.associated_fund_id}
-                    onChange={(e) => setFormData({ ...formData, associated_fund_id: e.target.value })}
-                    className="w-full h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border-none text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer"
-                  >
-                    <option value="">Select associated fund</option>
-                    {funds.map((fund) => (
-                      <option key={fund.id} value={fund.id}>{fund.name}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8E8E93] h-5 w-5 pointer-events-none" />
-                </div>
+                  required
+                  value={formData.associated_fund_id}
+                  onChange={(e) => {
+                    setFormData({ ...formData, associated_fund_id: e.target.value });
+                    if (errors.associated_fund_id) setErrors({ ...errors, associated_fund_id: '' });
+                  }}
+                  className={`w-full h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer transition-all ${
+                    errors.associated_fund_id ? 'border-red-500 ring-1 ring-red-500' : 'border-transparent'
+                  }`}
+                >
+                  <option value="">Select associated fund</option>
+                  {funds.map((fund) => (
+                    <option key={fund.id} value={fund.id}>{fund.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8E8E93] h-5 w-5 pointer-events-none" />
               </div>
+              {errors.associated_fund_id && <p className="text-red-500 text-[12px] mt-1 ml-1 animate-in fade-in slide-in-from-top-1">{errors.associated_fund_id}</p>}
+            </div>
             )}
 
             <div className="flex flex-col gap-2">
@@ -178,9 +229,15 @@ export default function AddStaffPage() {
                 type="text"
                 placeholder="Enter full name"
                 value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                className="h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border-none text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none"
+                onChange={(e) => {
+                  setFormData({ ...formData, full_name: e.target.value });
+                  if (errors.full_name) setErrors({ ...errors, full_name: '' });
+                }}
+                className={`h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none transition-all ${
+                  errors.full_name ? 'border-red-500 ring-1 ring-red-500' : 'border-transparent'
+                }`}
               />
+              {errors.full_name && <p className="text-red-500 text-[12px] mt-1 ml-1 animate-in fade-in slide-in-from-top-1">{errors.full_name}</p>}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -192,9 +249,15 @@ export default function AddStaffPage() {
                 type="email"
                 placeholder="Enter email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border-none text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none"
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  if (errors.email) setErrors({ ...errors, email: '' });
+                }}
+                className={`h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none transition-all ${
+                  errors.email ? 'border-red-500 ring-1 ring-red-500' : 'border-transparent'
+                }`}
               />
+              {errors.email && <p className="text-red-500 text-[12px] mt-1 ml-1 animate-in fade-in slide-in-from-top-1">{errors.email}</p>}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -210,14 +273,19 @@ export default function AddStaffPage() {
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8E8E93] h-4 w-4 pointer-events-none" />
                 </div>
                 <input
-                  required
                   type="tel"
                   placeholder="admin_user@gmail.com"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="flex-1 h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border-none text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none"
+                  onChange={(e) => {
+                    setFormData({ ...formData, phone: e.target.value });
+                    if (errors.phone) setErrors({ ...errors, phone: '' });
+                  }}
+                  className={`flex-1 h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none transition-all ${
+                    errors.phone ? 'border-red-500 ring-1 ring-red-500' : 'border-transparent'
+                  }`}
                 />
               </div>
+              {errors.phone && <p className="text-red-500 text-[12px] mt-1 ml-1 animate-in fade-in slide-in-from-top-1">{errors.phone}</p>}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -229,9 +297,15 @@ export default function AddStaffPage() {
                 type="password"
                 placeholder="••••••••"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border-none text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none"
+                onChange={(e) => {
+                  setFormData({ ...formData, password: e.target.value });
+                  if (errors.password) setErrors({ ...errors, password: '' });
+                }}
+                className={`h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none transition-all ${
+                  errors.password ? 'border-red-500 ring-1 ring-red-500' : 'border-transparent'
+                }`}
               />
+              {errors.password && <p className="text-red-500 text-[12px] mt-1 ml-1 animate-in fade-in slide-in-from-top-1">{errors.password}</p>}
             </div>
           </div>
 

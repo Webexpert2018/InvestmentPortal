@@ -70,6 +70,11 @@ export class SignupDto {
   @IsOptional()
   @IsString()
   taxId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  invitationToken?: string;
 }
 
 export class LoginDto {
@@ -171,6 +176,7 @@ export class AuthController {
       signupDto.zipCode,
       signupDto.country,
       signupDto.taxId,
+      signupDto.invitationToken
     );
   }
 
@@ -216,7 +222,17 @@ export class AuthController {
       signupDto.zipCode,
       signupDto.country,
       signupDto.taxId,
+      signupDto.invitationToken
     );
+  }
+
+  @Post('verify-invitation')
+  @HttpCode(HttpStatus.OK)
+  async verifyInvitation(@Body() body: { token: string }) {
+    if (!body.token) {
+      throw new BadRequestException('Invitation token is required');
+    }
+    return this.authService.verifyInvitationToken(body.token);
   }
 
   @Post('login')

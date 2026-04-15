@@ -15,7 +15,8 @@ export class AuthService {
     email: string, password: string, firstName: string, lastName: string,
     phone?: string, dob?: string, role?: string,
     addressLine1?: string, addressLine2?: string, city?: string, state?: string,
-    zipCode?: string, country?: string, taxId?: string
+    zipCode?: string, country?: string, taxId?: string,
+    invitationToken?: string
   ) {
     // 1. Check if user already exists in ANY table (users, investors, staff)
     const [existingUser, existingInvestor, existingStaff] = await Promise.all([
@@ -24,8 +25,31 @@ export class AuthService {
       db.query('SELECT id FROM staff WHERE email = $1', [email])
     ]);
 
-    if (existingUser.rows.length > 0 || existingInvestor.rows.length > 0 || existingStaff.rows.length > 0) {
-      throw new ConflictException('User with this email already exists');
+    // If it's an invitation, we allow the existing pending investor
+    const isInvitation = !!invitationToken;
+    let invitationData: any = null;
+
+    if (isInvitation) {
+      const inviteResult = await db.query(
+        `SELECT u.user_id, i.email 
+         FROM user_otps u 
+         JOIN investors i ON u.user_id = i.id
+         WHERE u.otp = $1 AND u.type = 'INVITATION' AND u.expires_at > NOW() AND u.is_used = false`,
+        [invitationToken]
+      );
+      
+      if (inviteResult.rows.length === 0) {
+        throw new BadRequestException('Invalid or expired invitation token');
+      }
+      invitationData = inviteResult.rows[0];
+      
+      if (invitationData.email !== email) {
+        throw new BadRequestException('Invitation token does not match this email');
+      }
+    } else {
+      if (existingUser.rows.length > 0 || existingInvestor.rows.length > 0 || existingStaff.rows.length > 0) {
+        throw new ConflictException('User with this email already exists');
+      }
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -62,14 +86,29 @@ export class AuthService {
       newUser.firstName = nameParts[0] || '';
       newUser.lastName = nameParts.slice(1).join(' ') || '';
     } else {
-      // 2c. Insert into INVESTORS table for default/investor role
-      const userResult = await db.query(
-        `INSERT INTO investors (full_name, email, password_hash, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-         RETURNING id, email, role, full_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status`,
-        [firstName + ' ' + (lastName || ''), email, passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId]
-      );
-      newUser = userResult.rows[0];
+      // 2c. Insert or Update into INVESTORS table for default/investor role
+      if (isInvitation) {
+        const userResult = await db.query(
+          `UPDATE investors 
+           SET full_name = $1, password_hash = $2, phone = $3, dob = $4, address_line1 = $5, address_line2 = $6, city = $7, state = $8, zip_code = $9, country = $10, tax_id = $11, status = 'active', updated_at = NOW()
+           WHERE id = $12
+           RETURNING id, email, role, full_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status`,
+          [firstName + ' ' + (lastName || ''), passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId, invitationData.user_id]
+        );
+        newUser = userResult.rows[0];
+
+        // Mark token as used
+        await db.query('UPDATE user_otps SET is_used = true WHERE otp = $1', [invitationToken]);
+      } else {
+        const userResult = await db.query(
+          `INSERT INTO investors (id, full_name, email, password_hash, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+           RETURNING id, email, role, full_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status`,
+          [crypto.randomUUID(), firstName + ' ' + (lastName || ''), email, passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId, 'active']
+        );
+        newUser = userResult.rows[0];
+      }
+      
       const nameParts = newUser.full_name?.split(' ') || [];
       newUser.firstName = nameParts[0] || '';
       newUser.lastName = nameParts.slice(1).join(' ') || '';
@@ -360,5 +399,43 @@ export class AuthService {
       .catch(err => console.error(`Failed to send password changed email to ${email}:`, err));
 
     return { message: 'Password reset successfully' };
+  }
+
+  async verifyInvitationToken(token: string) {
+    const result = await db.query(
+      `SELECT i.id, i.email, i.full_name, i.phone, i.status, i.dob, i.address_line1, i.address_line2, i.city, i.state, i.zip_code, i.country, i.tax_id 
+       FROM investors i
+       JOIN user_otps o ON i.id = o.user_id
+       WHERE o.otp = $1 AND o.type = 'INVITATION' AND o.expires_at > NOW() AND o.is_used = false`,
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      throw new BadRequestException('Invalid or expired invitation token');
+    }
+
+    const { 
+      id, email, full_name, phone, dob, 
+      address_line1, address_line2, city, 
+      state, zip_code, country, tax_id 
+    } = result.rows[0];
+    
+    const [firstName, ...lastNameParts] = (full_name || '').split(' ');
+
+    return {
+      id,
+      email,
+      firstName,
+      lastName: lastNameParts.join(' '),
+      phone,
+      dob,
+      address_line1,
+      address_line2,
+      city,
+      state,
+      zip_code,
+      country,
+      tax_id
+    };
   }
 }
