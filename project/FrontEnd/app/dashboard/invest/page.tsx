@@ -39,7 +39,7 @@ const getFullImageUrl = (imagePath: string | null | undefined): string | undefin
 export default function InvestPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [step, setStep] = useState<Step>('chooseFund');
+  const [step, setStep] = useState<Step>('investmentAmount');
   const [funds, setFunds] = useState<any[]>([]);
   const [existingFlows, setExistingFlows] = useState<any[]>([]);
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
@@ -214,9 +214,11 @@ export default function InvestPage() {
     setStep((current: Step) => {
       switch (current) {
         case 'investmentAmount':
-          return 'chooseFund';
-        case 'fundingAccount':
+          return current;
+        case 'chooseFund':
           return 'investmentAmount';
+        case 'fundingAccount':
+          return 'chooseFund';
         case 'signDocuments':
           return 'fundingAccount';
         case 'fundingInstructions':
@@ -361,10 +363,9 @@ export default function InvestPage() {
 
     setStep((current: Step) => {
       switch (current) {
-        // ... (the rest of the cases)
-        case 'chooseFund':
-          return 'investmentAmount';
         case 'investmentAmount':
+          return 'chooseFund';
+        case 'chooseFund':
           return 'fundingAccount';
         case 'fundingAccount':
           return 'signDocuments';
@@ -382,14 +383,14 @@ export default function InvestPage() {
     const { primaryLabel = 'Continue', showBack = true } = options;
 
     return (
-      <div className="mt-16 flex items-center justify-between border-t border-[#E5E5EA] pt-8">
-        <button
+      <div className="mt-16 flex items-center justify-end border-t border-[#E5E5EA] pt-8">
+        {/* <button
           type="button"
           onClick={() => setStep('chooseFund')}
           className="rounded-full bg-[#FFF3D6] px-10 py-3 text-sm font-semibold text-[#4B4B4B] hover:bg-[#FFE7AF] transition-all"
         >
           Cancel
-        </button>
+        </button> */}
         <div className="flex items-center gap-4">
           {showBack && (
             <button
@@ -438,10 +439,7 @@ export default function InvestPage() {
               <button
                 key={fund.id}
                 type="button"
-                onClick={() => {
-                  setSelectedFundId(fund.id);
-                  setStep('investmentAmount');
-                }}
+                onClick={() => setSelectedFundId(fund.id)}
                 className={`flex w-full items-center rounded-sm bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : ''
                   }`}
               >
@@ -480,6 +478,7 @@ export default function InvestPage() {
         <div className="mt-6 flex items-center justify-end gap-3">
           <button
             type="button"
+            onClick={() => setStep('investmentAmount')}
             className="rounded-full bg-[#FFF3D6] px-5 py-2 text-sm font-medium text-[#4B4B4B] hover:bg-[#FFE7AF]"
           >
             Cancel
@@ -625,7 +624,7 @@ export default function InvestPage() {
         </div>
       </div>
 
-      {renderFooter()}
+      {renderFooter({ showBack: false })}
     </>
   );
 
