@@ -560,7 +560,12 @@ export default function InvestorSignupPage() {
     }
 
     if (currentStep === 2) {
-      const allCountries = Country.getAllCountries();
+      const allCountriesUnsorted = Country.getAllCountries();
+      // Sort countries with USA at the top
+      const allCountries = [
+        ...allCountriesUnsorted.filter(c => c.isoCode === 'US'),
+        ...allCountriesUnsorted.filter(c => c.isoCode !== 'US').sort((a, b) => a.name.localeCompare(b.name))
+      ];
       const availableStates = form.country ? State.getStatesOfCountry(form.country) : [];
       const availableCities = (form.country && form.state) ? City.getCitiesOfState(form.country, form.state) : [];
 

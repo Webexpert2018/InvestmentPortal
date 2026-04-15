@@ -98,7 +98,14 @@ export function AccountantSettingsScreen() {
   const imgRef = useRef<HTMLInputElement>(null);
   const dobRef = useRef<HTMLInputElement>(null);
 
-  const countries = useMemo(() => Country.getAllCountries(), []);
+  const countries = useMemo(() => {
+    const allCountries = Country.getAllCountries();
+    // Sort countries with USA at the top
+    return [
+      ...allCountries.filter(c => c.isoCode === 'US'),
+      ...allCountries.filter(c => c.isoCode !== 'US').sort((a, b) => a.name.localeCompare(b.name))
+    ];
+  }, []);
   const states = useMemo(() => {
     if (!country) return [];
     const countryObj = countries.find(c => c.isoCode === country || c.name === country);

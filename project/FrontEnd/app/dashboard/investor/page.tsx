@@ -91,7 +91,7 @@ export default function InvestorPage() {
             onClick={() => setShowInviteModal(true)}
             className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95"
           >
-            Invite Investor
+            Add Investor
           </button>
         </div>
 

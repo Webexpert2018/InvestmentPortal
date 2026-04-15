@@ -217,7 +217,14 @@ export function InvestorSettingsScreen() {
   const [currentBankId, setCurrentBankId] = useState<string | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
-  const countries = useMemo(() => Country.getAllCountries(), []);
+  const countries = useMemo(() => {
+    const allCountries = Country.getAllCountries();
+    // Sort countries with USA at the top
+    return [
+      ...allCountries.filter(c => c.isoCode === 'US'),
+      ...allCountries.filter(c => c.isoCode !== 'US').sort((a, b) => a.name.localeCompare(b.name))
+    ];
+  }, []);
   const states = useMemo(() => {
     if (!profile.country) return [];
     const countryObj = countries.find(c => c.isoCode === profile.country || c.name === profile.country);
