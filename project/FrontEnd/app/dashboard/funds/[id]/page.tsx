@@ -611,7 +611,7 @@ export default function FundOverviewPage() {
             </button>
             <h2 className="text-xl font-bold text-gray-900 mb-4">Delete Document</h2>
             <p className="text-gray-600 mb-8 leading-relaxed">
-              Are you sure you want to delete <span className="font-semibold text-gray-900">"{docToDelete?.file_name}"</span>?<br />
+              Are you sure you want to delete <span className="font-semibold text-gray-900">&quot;{docToDelete?.file_name}&quot;</span>?<br />
               This action cannot be undone and will permanently remove the document from the fund.
             </p>
             <div className="flex justify-end gap-4">

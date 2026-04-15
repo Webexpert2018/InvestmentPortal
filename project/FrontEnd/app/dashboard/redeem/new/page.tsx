@@ -15,6 +15,7 @@ const defaultBankAdd = {
   routing_number: '',
   beneficiary_name: '',
   bank_address: '',
+  bank_description: '',
 };
 
 export default function RedemptionAmountPage() {
@@ -477,6 +478,18 @@ export default function RedemptionAmountPage() {
             </div>
 
             <div className="space-y-4">
+           
+              <div>
+                <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Bank Name</label>
+                <input
+                  type="text"
+                  value={newBank.bank_name}
+                  onChange={(e) => setNewBank(prev => ({ ...prev, bank_name: e.target.value }))}
+                  className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] ${newBankErrors.bank_name ? 'border-red-500' : 'border-[#E5E5EA]'}`}
+                />
+                {newBankErrors.bank_name && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.bank_name}</p>}
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium text-[#8E8E93] captial tracking-wider mb-1">Beneficiary Name</label>
                 <input
@@ -488,30 +501,19 @@ export default function RedemptionAmountPage() {
                 {newBankErrors.beneficiary_name && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.beneficiary_name}</p>}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Bank Name</label>
-                  <input
-                    type="text"
-                    value={newBank.bank_name}
-                    onChange={(e) => setNewBank(prev => ({ ...prev, bank_name: e.target.value }))}
-                    className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] ${newBankErrors.bank_name ? 'border-red-500' : 'border-[#E5E5EA]'}`}
-                  />
-                  {newBankErrors.bank_name && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.bank_name}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Account Number</label>
-                  <input
-                    type="text"
-                    value={newBank.account_number}
-                    onChange={(e) => setNewBank(prev => ({ ...prev, account_number: e.target.value.replace(/\D/g, '') }))}
-                    className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] ${newBankErrors.account_number ? 'border-red-500' : 'border-[#E5E5EA]'}`}
-                  />
-                  {newBankErrors.account_number && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.account_number}</p>}
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Account Number</label>
+                <input
+                  type="text"
+                  value={newBank.account_number}
+                  onChange={(e) => setNewBank(prev => ({ ...prev, account_number: e.target.value.replace(/\D/g, '') }))}
+                  className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] ${newBankErrors.account_number ? 'border-red-500' : 'border-[#E5E5EA]'}`}
+                />
+                {newBankErrors.account_number && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.account_number}</p>}
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
+
+              <div>
                 <div>
                   <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Routing Number (ABA)</label>
                   <input
@@ -534,6 +536,18 @@ export default function RedemptionAmountPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Description <span className="text-xs text-[#A2A5AA]">(Optional)</span></label>
+                <textarea
+                  placeholder="For Further Credit To"
+                  value={newBank.bank_description}
+                  onChange={(e) => setNewBank(prev => ({ ...prev, bank_description: e.target.value }))}
+                  rows={2}
+                  className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] placeholder:text-[#B1B3B8] ${newBankErrors.bank_description ? 'border-red-500' : 'border-[#E5E5EA]'}`}
+                />
+                {newBankErrors.bank_description && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.bank_description}</p>}
+              </div>
+
               <div className="pt-4">
                 <button
                   onClick={async () => {
@@ -542,6 +556,7 @@ export default function RedemptionAmountPage() {
                     if (!newBank.bank_name.trim()) errors.bank_name = 'Required';
                     if (!/^\d{8,17}$/.test(newBank.account_number)) errors.account_number = '8-17 digits';
                     if (!/^\d{9}$/.test(newBank.routing_number)) errors.routing_number = '9 digits';
+                    if (!newBank.bank_address.trim()) errors.bank_address = 'Required';
 
                     if (Object.keys(errors).length > 0) {
                       setNewBankErrors(errors);

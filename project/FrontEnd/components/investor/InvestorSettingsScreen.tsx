@@ -98,6 +98,7 @@ const defaultBankAdd = {
   routing_number: '',
   beneficiary_name: '',
   bank_address: '',
+  bank_description: '',
 };
 
 const initialSessions: SessionItem[] = [
@@ -210,6 +211,7 @@ export function InvestorSettingsScreen() {
   const [password, setPassword] = useState(defaultPassword);
   const [sessions, setSessions] = useState<SessionItem[]>(initialSessions);
   const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+  const [bankAccountsLoading, setBankAccountsLoading] = useState(true);
   const [bankAdd, setBankAdd] = useState(defaultBankAdd);
   const [bankAddErrors, setBankAddErrors] = useState<Record<string, string>>({});
   const [profileImageName, setProfileImageName] = useState('');
@@ -303,10 +305,19 @@ export function InvestorSettingsScreen() {
 
     const loadBankAccounts = async () => {
       try {
+        setBankAccountsLoading(true);
+        console.log('📋 Loading bank accounts from API...');
         const data = await apiClient.getBankAccounts();
-        setBankAccounts(data);
-      } catch (err) {
-        console.error('Error loading bank accounts:', err);
+        console.log('✅ Bank accounts loaded:', data?.length || 0, 'accounts');
+        setBankAccounts(data || []);
+        setError(null);
+      } catch (err: any) {
+        console.error('❌ Error loading bank accounts:', err);
+        const errorMsg = err.message || 'Failed to load bank accounts';
+        setError(errorMsg);
+        setBankAccounts([]);
+      } finally {
+        setBankAccountsLoading(false);
       }
     };
 
@@ -1227,7 +1238,26 @@ export function InvestorSettingsScreen() {
       </div>
 
       <div className="p-3">
-        {bankAccounts.length === 0 ? (
+        {error && (
+          <div className="mb-3 rounded-md bg-[#FEF0F0] p-3">
+            <p className="text-[12px] text-[#E05252]">⚠️ {error}</p>
+            <button
+              onClick={() => {
+                setError(null);
+                loadBankAccounts();
+              }}
+              className="mt-2 text-[11px] text-[#274583] hover:underline"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+        {bankAccountsLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="h-6 w-6 animate-spin text-[#274583]" />
+            <span className="ml-2 text-[12px] text-[#4B4B4B]">Loading bank accounts...</span>
+          </div>
+        ) : bankAccounts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center">
             <p className="text-[14px] text-[#4B4B4B]">No bank accounts added yet.</p>
             <p className="mt-1 text-[12px] text-[#A2A5AA]">Add your bank details for easier withdrawals and reinvestments.</p>
@@ -1241,6 +1271,8 @@ export function InvestorSettingsScreen() {
                   <th className="py-2 pr-3">Beneficiary</th>
                   <th className="py-2 pr-3">Account Number</th>
                   <th className="py-2 pr-3">Routing Number</th>
+                  <th className="py-2 pr-3">Bank Address</th>
+                  <th className="py-2 pr-3">Description</th>
                   <th className="py-2 pr-3">Status</th>
                   <th className="py-2 text-right">Action</th>
                 </tr>
@@ -1250,8 +1282,10 @@ export function InvestorSettingsScreen() {
                   <tr key={item.id} className="border-b border-[#F2F3F5]">
                     <td className="py-2 pr-3 font-medium text-[#1F1F1F]">{item.bank_name}</td>
                     <td className="py-2 pr-3">{item.beneficiary_name}</td>
-                    <td className="py-2 pr-3">****{item.account_number.slice(-4)}</td>
+                    <td className="py-2 pr-3">****{item.account_number?.slice(-4) || 'N/A'}</td>
                     <td className="py-2 pr-3">{item.routing_number}</td>
+                    <td className="py-2 pr-3">{item.bank_address || 'N/A'}</td>
+                    <td className="py-2 pr-3 max-w-[150px] truncate" title={item.bank_description || 'No description'}>{item.bank_description || <span className="text-[#A2A5AA]">-</span>}</td>
                     <td className="py-2 pr-3">
                       <span className={`rounded-full px-2 py-0.5 text-[9px] uppercase font-bold ${item.status === 'active' ? 'bg-[#E1F7E3] text-[#2D8A39]' : 'bg-[#FFF3D6] text-[#B7791F]'}`}>
                         {item.status || 'Active'}
@@ -1280,6 +1314,7 @@ export function InvestorSettingsScreen() {
                                   account_number: item.account_number,
                                   routing_number: item.routing_number,
                                   bank_address: item.bank_address || '',
+                                  bank_description: item.bank_description || '',
                                 });
                                 setCurrentBankId(item.id);
                                 setBankAccountMode('view');
@@ -1298,6 +1333,7 @@ export function InvestorSettingsScreen() {
                                   account_number: item.account_number,
                                   routing_number: item.routing_number,
                                   bank_address: item.bank_address || '',
+                                  bank_description: item.bank_description || '',
                                 });
                                 setCurrentBankId(item.id);
                                 setBankAccountMode('edit');
@@ -1405,36 +1441,34 @@ export function InvestorSettingsScreen() {
               />
               {bankAddErrors.routing_number && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.routing_number}</p>}
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <FieldLabel>Bank Address</FieldLabel>
               <textarea
                 placeholder="Enter bank branch address"
                 disabled={bankAccountMode === 'view'}
                 value={bankAdd.bank_address}
-                onChange={(e) => setBankAdd(prev => ({ ...prev, bank_address: e.target.value }))}
+                onChange={(e) => {
+                  setBankAdd(prev => ({ ...prev, bank_address: e.target.value }));
+                  if (bankAddErrors.bank_address) setBankAddErrors(prev => { const n = { ...prev }; delete n.bank_address; return n; });
+                }}
                 className={`w-full rounded-[6px] border p-3 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] min-h-[80px] ${bankAddErrors.bank_address ? 'border-[#E05252]' : 'border-[#E5E5EA]'}`}
               />
+              {bankAddErrors.bank_address && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.bank_address}</p>}
             </div>
-            {/* <div className="sm:col-span-2">
-            <FieldLabel>For Further Credit To</FieldLabel>
-            <input
-              type="text"
-              placeholder="Enter description"
-              disabled={bankAccountMode === 'view'}
-              value={bankAdd.further_credit_to}
-              onChange={(e) =>
-                setBankAdd((prev) => ({
-                  ...prev,
-                  further_credit_to: e.target.value,
-                }))
-              }
-              className={`w-full rounded-[6px] border p-3 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] ${
-                bankAddErrors.further_credit_to
-                  ? 'border-[#E05252]'
-                  : 'border-[#E5E5EA]'
-              }`}
-            />
-          </div> */}
+            <div>
+              <FieldLabel>Description <span className="text-[9px] text-[#A2A5AA]">(Optional)</span></FieldLabel>
+              <textarea
+                placeholder="For Further Credit To"
+                disabled={bankAccountMode === 'view'}
+                value={bankAdd.bank_description}
+                onChange={(e) => {
+                  setBankAdd(prev => ({ ...prev, bank_description: e.target.value }));
+                  if (bankAddErrors.bank_description) setBankAddErrors(prev => { const n = { ...prev }; delete n.bank_description; return n; });
+                }}
+                className={`w-full rounded-[6px] border p-3 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] min-h-[80px] ${bankAddErrors.bank_description ? 'border-[#E05252]' : 'border-[#E5E5EA]'}`}
+              />
+              {bankAddErrors.bank_description && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.bank_description}</p>}
+            </div> 
           </div>
         </SectionCard>
 
@@ -1459,26 +1493,30 @@ export function InvestorSettingsScreen() {
               onClick={async () => {
                 const errors: Record<string, string> = {};
 
-                const accountRegex = /^\d{8,17}$/;
-                const routingRegex = /^\d{9}$/;
-
                 if (!bankAdd.beneficiary_name.trim()) errors.beneficiary_name = 'Beneficiary name is required';
                 if (!bankAdd.bank_name.trim()) errors.bank_name = 'Bank name is required';
 
+                const accountRegex = /^\d{8,17}$/;
                 if (!bankAdd.account_number) {
                   errors.account_number = 'Account number is required';
                 } else if (!accountRegex.test(bankAdd.account_number)) {
                   errors.account_number = 'Must be between 8 and 17 digits';
                 }
 
+                const routingRegex = /^\d{9}$/;
                 if (!bankAdd.routing_number) {
                   errors.routing_number = 'Routing number is required';
                 } else if (!routingRegex.test(bankAdd.routing_number)) {
                   errors.routing_number = 'Must be exactly 9 digits';
                 }
 
+                if (!bankAdd.bank_address.trim()) {
+                  errors.bank_address = 'Bank address is required';
+                }
+
                 if (Object.keys(errors).length > 0) {
                   setBankAddErrors(errors);
+                  toast({ title: 'Validation Error', description: 'Please fill in all required fields', variant: 'destructive' });
                   return;
                 }
 
@@ -1487,18 +1525,22 @@ export function InvestorSettingsScreen() {
                   if (bankAccountMode === 'add') {
                     const newAccount = await apiClient.createBankAccount(bankAdd);
                     setBankAccounts(prev => [newAccount, ...prev]);
+                    toast({ title: 'Success', description: 'Bank account added successfully', variant: 'success' });
                   } else if (bankAccountMode === 'edit' && currentBankId) {
-                    // const updatedAccount = await apiClient.updateBankAccount(currentBankId, bankAdd);
-                    //  setBankAccounts(prev => prev.map(a => a.id === currentBankId ? updatedAccount : a));
+                    const updatedAccount = await apiClient.updateBankAccount(currentBankId, bankAdd);
+                    setBankAccounts(prev => prev.map(a => a.id === currentBankId ? updatedAccount : a));
+                    toast({ title: 'Success', description: 'Bank account updated successfully', variant: 'success' });
                   }
 
                   setBankAdd(defaultBankAdd);
+                  setBankAddErrors({});
                   setBankAccountMode('add');
                   setCurrentBankId(null);
                   setActiveTab('bank-accounts');
-                  toast({ title: 'Success', description: bankAccountMode === 'add' ? 'Bank account added successfully' : 'Bank account updated successfully', variant: 'success' });
                 } catch (err: any) {
-                  toast({ title: 'Error', description: err.message, variant: 'destructive' });
+                  const errorMsg = err.message || 'Failed to save bank account';
+                  console.error('❌ Bank account save error:', err);
+                  toast({ title: 'Error', description: errorMsg, variant: 'destructive' });
                 } finally {
                   setSaving(false);
                 }
