@@ -105,6 +105,101 @@ export class EmailService {
     await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
   }
 
+  async sendStaffWelcomeEmail(email: string, fullName: string, role: string, password: string) {
+    const title = 'Welcome to the Team';
+    const subject = 'Welcome to Ovalia Capital - Your Staff Account Details';
+
+    // Map internal role IDs to human-readable names
+    const roleMap: Record<string, string> = {
+      'admin': 'Administrator',
+      'fund_admin': 'Fund Administrator',
+      'investor_relations': 'Investor Relations Manager',
+      'accountant': 'Accountant',
+      'executive_admin': 'Executive Administrator',
+      'relations_associate': 'Relations Associate',
+      'partnership': 'Partnership Manager'
+    };
+
+    const roleName = roleMap[role.toLowerCase()] || role.charAt(0).toUpperCase() + role.slice(1);
+
+    const flow = role.toLowerCase() === 'accountant' ? 'accountant' : 'admin';
+    const buttonText = flow === 'accountant' ? 'Login to Accountant Portal' : 'Login to Admin Portal';
+
+    const content = `
+      <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Welcome to the Team, ${fullName}!</h1>
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
+        We are excited to inform you that you have been added as a <strong>${roleName}</strong> on the <strong>Bitcoin IRA Platform</strong>.
+      </p>
+      
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
+        As part of your role, you can log in to the ${flow} portal to manage relevant data and operations.
+      </p>
+
+      <!-- Account Details Section -->
+      <div style="background-color: #F9FAFB; border-radius: 8px; padding: 20px; margin: 30px 0; border: 1px solid #E5E7EB;">
+        <h3 style="margin: 0 0 15px; font-size: 16px; color: #374151; text-transform: uppercase; letter-spacing: 1px;">Your Login Credentials</h3>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding: 5px 0; color: #6B7280; font-size: 14px; width: 100px;"><strong>Email:</strong></td>
+            <td style="padding: 5px 0; color: #1F1F1F; font-size: 14px;">${email}</td>
+          </tr>
+          <tr>
+            <td style="padding: 5px 0; color: #6B7280; font-size: 14px;"><strong>Password:</strong></td>
+            <td style="padding: 5px 0; color: #1F1F1F; font-size: 14px;"><code>${password}</code></td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="http://localhost:3000/auth/login?flow=${flow}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
+          ${buttonText}
+        </a>
+      </div>
+
+      <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 20px;">
+        Need assistance? Please contact your system administrator or reach out to support at <a href="mailto:support@ovaliacapital.com" style="color: #2A4474; text-decoration: none;">support@ovaliacapital.com</a>
+      </p>
+    `;
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+  }
+
+  async sendInvestorInvitationEmail(email: string, fullName: string, token: string) {
+    const title = 'Invitation to Bitcoin IRA';
+    const subject = 'You have been invited to join the Bitcoin IRA Platform';
+    const inviteLink = `http://localhost:3000/auth/investor-signup?invite=${token}`;
+
+    const content = `
+      <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Exclusive Invitation</h1>
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
+        Hello ${fullName || 'Valued Investor'},
+      </p>
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
+        You have been personally invited to join the <strong>Bitcoin IRA Platform</strong>. Our platform provides you with a secure and streamlined way to manage your digital asset investments.
+      </p>
+      
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
+        To get started and set up your account, please follow the link below. Your registration data has already been prepared for you.
+      </p>
+
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="${inviteLink}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
+          Complete Your Registration
+        </a>
+      </div>
+
+      <div style="background-color: #F9FAFB; border-left: 4px solid #FBCB4B; padding: 15px; margin: 25px 0;">
+        <p style="margin: 0; font-size: 13px; color: #374151; line-height: 1.5;">
+          <strong>Security Note:</strong> This invitation link is unique to you and should not be shared. If you have any questions, please reach out to our investor relations team.
+        </p>
+      </div>
+
+      <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 20px;">
+        Need help? Contact our support team at <a href="mailto:support@ovaliacapital.com" style="color: #2A4474; text-decoration: none;">support@ovaliacapital.com</a>
+      </p>
+    `;
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+  }
+
   private getHtmlTemplate(content: string, title: string) {
     return `
       <!DOCTYPE html>

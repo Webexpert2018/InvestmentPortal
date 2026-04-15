@@ -2,9 +2,12 @@ import { Injectable, ConflictException, NotFoundException } from '@nestjs/common
 import * as bcrypt from 'bcryptjs';
 import { db } from '../../config/database';
 import { CreateStaffDto, UpdateStaffDto } from './staff.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class StaffService {
+  constructor(private emailService: EmailService) {}
+
   async findAll(role?: string, page: number = 1, limit: number = 10, search?: string) {
     const offset = (page - 1) * limit;
     let data: any[] = [];
@@ -140,7 +143,13 @@ export class StaffService {
       [full_name, email, phone, passwordHash, role, associated_fund_id || null, 0, profile_image_url || null]
     );
 
-    return result.rows[0];
+    const newStaff = result.rows[0];
+
+    // Send welcome email - Don't await to avoid delaying the response, but catch errors
+    this.emailService.sendStaffWelcomeEmail(email, full_name, role, password)
+      .catch(err => console.error(`Failed to send welcome email to staff ${email}:`, err));
+
+    return newStaff;
   }
 
   async update(id: string, updateStaffDto: UpdateStaffDto) {

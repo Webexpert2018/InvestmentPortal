@@ -178,10 +178,7 @@ export default function StaffPage() {
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Name</th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Email</th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Role Type</th>
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">
-                    {activeTab === 'partnership' || activeTab === 'fund_admin' ? 'Associated Fund' :
-                      activeTab === 'executive_admin' ? 'Access Level' : 'Assigned Investors'}
-                  </th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Assigned Investors</th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Date</th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] text-right">Action</th>
                 </tr>
@@ -233,8 +230,7 @@ export default function StaffPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">
-                        {staff.role === 'partnership' || staff.role === 'fund_admin' ? (staff.associated_fund_name || 'N/A') :
-                          staff.role === 'executive_admin' ? 'Full System Access' : staff.assigned_investors_count}
+                        {staff.assigned_investors_count || 0}
                       </td>
                       <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">{formatDate(staff.created_at)}</td>
                       <td className="px-6 py-4 text-right relative">

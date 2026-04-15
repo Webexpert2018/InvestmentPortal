@@ -3,8 +3,11 @@
 import { useState, Suspense } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
-import { Loader2, Eye, EyeOff, ChevronDown } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation'; 
+import { useEffect } from 'react';
+import { apiClient } from '@/lib/api/client';
+import { toast } from 'sonner';
 
 const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
 
@@ -26,12 +29,48 @@ function SignupForm() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [verifyingInvite, setVerifyingInvite] = useState(false);
+  const [isInvited, setIsInvited] = useState(false);
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const inviteToken = searchParams.get('invite');
+
+  useEffect(() => {
+    if (inviteToken) {
+      verifyInvite();
+    }
+  }, [inviteToken]);
+
+  const verifyInvite = async () => {
+    try {
+      setVerifyingInvite(true);
+      const data = await apiClient.verifyInvitation(inviteToken!);
+      setFormData(prev => ({
+        ...prev,
+        email: data.email,
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        phone: data.phone?.replace(/^\+\d+\s/, '') || '',
+        phoneCountryCode: data.phone?.split(' ')[0] ? `${data.phone.split(' ')[0]} (Custom)` : prev.phoneCountryCode
+      }));
+      setIsInvited(true);
+      toast.success('Invitation verified! Some fields have been pre-filled.');
+    } catch (err: any) {
+      console.error('Invite verification failed:', err);
+      toast.error(err.message || 'Invalid or expired invitation link');
+    } finally {
+      setVerifyingInvite(false);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (name === 'email' && emailError) {
+      setEmailError('');
+    }
     if (name === 'phone') {
       const digits = value.replace(/\D/g, '');
       setFormData({ ...formData, [name]: digits });
@@ -44,6 +83,14 @@ function SignupForm() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setEmailError('');
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setEmailError('Please enter a valid email address');
+      setLoading(false);
+      return;
+    }
 
     if (!formData.firstName.trim() || !/^[A-Za-z\s\-']+$/.test(formData.firstName.trim())) {
       setError('First name can only contain letters');
@@ -93,9 +140,14 @@ function SignupForm() {
         lastName: formData.lastName,
         phone: formData.phone ? `${formData.phoneCountryCode} ${formData.phone}` : undefined,
         role: flow,
+        invitationToken: inviteToken || undefined
       });
     } catch (err: any) {
-      setError(err?.message || 'Signup failed');
+      if (err.message?.includes('already exists') || err.status === 409) {
+        setEmailError('This email is already registered');
+      } else {
+        setError(err?.message || 'Signup failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -124,6 +176,13 @@ function SignupForm() {
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4 sm:space-y-5">
+          {isInvited && (
+            <div className="flex items-center gap-2 px-4 py-3 bg-[#F2FAF6] border border-[#D1FAE5] rounded-xl mb-4">
+              <CheckCircle2 className="h-5 w-5 text-[#10B981]" />
+              <p className="text-xs font-bold text-[#10B981]">Secure Invitation Verified</p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input
               name="firstName"
@@ -131,8 +190,8 @@ function SignupForm() {
               value={formData.firstName}
               onChange={handleChange}
               required
-              disabled={loading}
-              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              disabled={loading || verifyingInvite}
+              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:bg-gray-50"
             />
             <input
               name="lastName"
@@ -140,21 +199,30 @@ function SignupForm() {
               value={formData.lastName}
               onChange={handleChange}
               required
-              disabled={loading}
-              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              disabled={loading || verifyingInvite}
+              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:bg-gray-50"
             />
           </div>
 
-          <input
-            type="email"
-            name="email"
-            placeholder="Email address"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            disabled={loading}
-            className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          />
+          <div className="space-y-1">
+            <input
+              type="email"
+              name="email"
+              placeholder="Email address"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              disabled={loading || verifyingInvite || isInvited}
+              className={`w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 transition-all ${
+                emailError ? 'border-red-500 ring-red-100' : 'focus:ring-yellow-400'
+              } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+            />
+            {emailError && (
+              <p className="text-[10px] sm:text-xs text-red-500 font-bold ml-1 animate-in fade-in slide-in-from-top-1">
+                {emailError}
+              </p>
+            )}
+          </div>
 
           <div className="flex gap-2">
             <div className="relative w-[110px] shrink-0">

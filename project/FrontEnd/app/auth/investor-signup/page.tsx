@@ -7,6 +7,11 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Country, State, City } from 'country-state-city';
 import { Combobox } from '@/components/ui/combobox';
+import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { apiClient } from '@/lib/api/client';
+import { toast } from 'sonner';
+import { CheckCircle2, Loader2 } from 'lucide-react';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -28,6 +33,69 @@ export default function InvestorSignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [globalError, setGlobalError] = useState('');
+  const [verifyingInvite, setVerifyingInvite] = useState(false);
+  const [isInvited, setIsInvited] = useState(false);
+
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get('invite');
+
+  useEffect(() => {
+    if (inviteToken) {
+      verifyInvite();
+    }
+  }, [inviteToken]);
+
+  const verifyInvite = async () => {
+    try {
+      setVerifyingInvite(true);
+      const data = await apiClient.verifyInvitation(inviteToken!);
+
+      // Backend now sends firstName & lastName separately
+      // For phone: stored as raw number, try to split if formatted
+      const rawPhone = data.phone || '';
+      let parsedCode = '+1 (USA)';
+      let parsedNumber = '';
+
+      // Check if phone has a recognisable country-code prefix stored
+      if (rawPhone.startsWith('+44')) {
+        parsedCode = '+44 (UK)';
+        parsedNumber = rawPhone.replace(/^\+44\s*/, '').replace(/\D/g, '');
+      } else if (rawPhone.startsWith('+91')) {
+        parsedCode = '+91 (IN)';
+        parsedNumber = rawPhone.replace(/^\+91\s*/, '').replace(/\D/g, '');
+      } else if (rawPhone.startsWith('+1')) {
+        parsedCode = '+1 (USA)';
+        parsedNumber = rawPhone.replace(/^\+1\s*/, '').replace(/\D/g, '');
+      } else {
+        // Stored as plain digits (no prefix)
+        parsedNumber = rawPhone.replace(/\D/g, '');
+      }
+
+      setForm(prev => ({
+        ...prev,
+        email: data.email || prev.email,
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        phoneNumber: parsedNumber,
+        phoneCountryCode: parsedCode,
+        dob: data.dob ? new Date(data.dob).toISOString().split('T')[0] : '',
+        addressLine1: data.address_line1 || '',
+        addressLine2: data.address_line2 || '',
+        city: data.city || '',
+        state: data.state || '',
+        zipCode: data.zip_code || '',
+        country: data.country || 'US',
+        taxId: data.tax_id || '',
+      }));
+      setIsInvited(true);
+      toast.success('Invitation verified! Your profile has been pre-filled.');
+    } catch (err: any) {
+      console.error('Invite verification failed:', err);
+      toast.error(err.message || 'Invalid or expired invitation link');
+    } finally {
+      setVerifyingInvite(false);
+    }
+  };
 
   const [form, setForm] = useState({
     email: '',
@@ -45,7 +113,7 @@ export default function InvestorSignupPage() {
     city: '',
     state: '',
     zipCode: '',
-    country: '',
+    country: 'US', // Default to USA
 
     taxId: '',
 
@@ -270,10 +338,17 @@ export default function InvestorSignupPage() {
         zipCode: form.zipCode,
         country: form.country,
         taxId: form.taxId,
+        invitationToken: inviteToken || undefined
       });
       router.push('/dashboard');
     } catch (err: any) {
-      setGlobalError(err?.message || 'Signup failed. Please try again.');
+      if (err.message?.includes('already exists') || err.status === 409) {
+        setErrors({ email: 'This email is already registered' });
+        setShowProfileFlow(false);
+        setCurrentStep(1);
+      } else {
+        setGlobalError(err?.message || 'Signup failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -312,13 +387,22 @@ export default function InvestorSignupPage() {
             Enter your details to begin your Ovalia Capital onboarding.
           </p>
 
+          {isInvited && (
+            <div className="flex items-center gap-2 px-4 py-3 bg-[#F2FAF6] border border-[#D1FAE5] rounded-xl my-4">
+              <CheckCircle2 className="h-5 w-5 text-[#10B981]" />
+              <p className="text-xs font-bold text-[#10B981]">Secure Invitation Verified</p>
+            </div>
+          )}
+
           <div className="space-y-4">
             <FormField label="Email" error={errors.email}>
               <input
                 value={form.email}
                 onChange={(e) => setField('email', e.target.value)}
                 placeholder="Enter email"
-                className="h-11 w-full rounded-md border border-[#E5E5E5] px-3 font-helvetica text-sm outline-none focus:border-yellow-400"
+                className={`h-11 w-full rounded-md border px-3 font-helvetica text-sm outline-none transition-all ${
+                  errors.email ? 'border-red-500 ring-2 ring-red-100' : 'border-[#E5E5E5] focus:border-yellow-400'
+                }`}
               />
             </FormField>
 
@@ -404,6 +488,13 @@ export default function InvestorSignupPage() {
                   </div>
                 ))}
               </div>
+
+              {verifyingInvite && (
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+                  <Loader2 className="h-10 w-10 animate-spin text-yellow-500 mb-2" />
+                  <p className="text-sm font-bold text-[#1F1F1F]">Verifying Invitation...</p>
+                </div>
+              )}
             </div>
 
             <div className="px-6 py-5">{renderStepContent()}</div>
@@ -494,8 +585,8 @@ export default function InvestorSignupPage() {
               value={form.email}
               onChange={(e) => setField('email', e.target.value)}
               placeholder="Enter email"
-              disabled
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+              disabled={isInvited}
+              className={`h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm ${isInvited ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
             />
           </FormField>
 

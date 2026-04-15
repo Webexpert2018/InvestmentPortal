@@ -133,6 +133,7 @@ class ApiClient {
     zipCode?: string;
     country?: string;
     taxId?: string;
+    invitationToken?: string;
   }) {
     return this.request<{ user: any; token: string }>('/auth/signup', {
       method: 'POST',
@@ -175,6 +176,32 @@ class ApiClient {
 
   async getUserById(id: string) {
     return this.request<any>(`/users/${id}`);
+  }
+
+  async inviteInvestor(data: any) {
+    return this.request<any>('/users/invite', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async sendInvitation(userId: string) {
+    return this.request<any>(`/users/${userId}/send-invitation`, {
+      method: 'POST',
+    });
+  }
+
+  async verifyInvitation(token: string) {
+    return this.request<any>('/auth/verify-invitation', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
+
+  async deleteUser(id: string) {
+    return this.request<any>(`/users/${id}`, {
+      method: 'DELETE',
+    });
   }
 
   async updateKycStatus(userId: string, kycStatus: string) {
