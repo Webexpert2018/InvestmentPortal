@@ -66,7 +66,7 @@ export class EmailService {
       </div>
 
       <div style="text-align: center; margin: 40px 0;">
-        <a href="http://localhost:3000/auth/login?flow=${role.toLowerCase()}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
+        <a href="https://investmentportalfrontend.vercel.app/auth/login?flow=${role.toLowerCase()}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
           Go to Dashboard
         </a>
       </div>
@@ -151,7 +151,7 @@ export class EmailService {
       </div>
 
       <div style="text-align: center; margin: 40px 0;">
-        <a href="http://localhost:3000/auth/login?flow=${flow}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
+        <a href="https://investmentportalfrontend.vercel.app/auth/login?flow=${flow}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
           ${buttonText}
         </a>
       </div>
@@ -166,7 +166,7 @@ export class EmailService {
   async sendInvestorInvitationEmail(email: string, fullName: string, token: string) {
     const title = 'Invitation to Bitcoin IRA';
     const subject = 'You have been invited to join the Bitcoin IRA Platform';
-    const inviteLink = `http://localhost:3000/auth/investor-signup?invite=${token}`;
+    const inviteLink = `https://investmentportalfrontend.vercel.app/auth/investor-signup?invite=${token}`;
 
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Exclusive Invitation</h1>
