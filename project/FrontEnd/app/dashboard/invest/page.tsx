@@ -443,11 +443,9 @@ export default function InvestPage() {
                 className={`flex w-full items-center rounded-sm bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : ''
                   }`}
               >
-                <img
-                  src={getFullImageUrl(fund.image)}
+                <img src={getFullImageUrl(fund.image)}
                   alt={fund.name}
-                  className="mr-6 h-24 w-40 rounded-lg object-cover"
-                />
+                  className="mr-6 h-24 w-40 rounded-lg object-cover" />
                 <div className="flex flex-col">
                   <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F]">
                     {fund.name}
@@ -465,7 +463,7 @@ export default function InvestPage() {
                     {fund.description || 'Secure institutional-grade Bitcoin strategies.'}
                   </p>
                   {fund.note && (
-                    <p className="mt-1.5 text-[10px] text-gray-400 line-clamp-1 italic italic">
+                    <p className="mt-1.5 text-[10px] text-gray-400 line-clamp-1 italic">
                       {fund.note}
                     </p>
                   )}

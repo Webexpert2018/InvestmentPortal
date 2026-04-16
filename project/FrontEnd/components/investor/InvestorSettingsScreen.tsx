@@ -1506,9 +1506,10 @@ export function InvestorSettingsScreen() {
                 const routingRegex = /^\d{9}$/;
                 if (!bankAdd.routing_number) {
                   errors.routing_number = 'Routing number is required';
-                } else if (!routingRegex.test(bankAdd.routing_number)) {
-                  errors.routing_number = 'Must be exactly 9 digits';
-                }
+                } 
+                // else if (!routingRegex.test(bankAdd.routing_number)) {
+                //   errors.routing_number = 'Must be exactly 9 digits';
+                // }
 
                 if (!bankAdd.bank_address.trim()) {
                   errors.bank_address = 'Bank address is required';
