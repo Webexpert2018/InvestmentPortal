@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { X, Plus, GripVertical } from 'lucide-react';
+import { X, GripVertical } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -28,12 +28,8 @@ export default function PipelinePage() {
 
   const { toast } = useToast();
   const [stages, setStages] = useState<any[]>([]);
-  const [investors, setInvestors] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showAddClient, setShowAddClient] = useState(false);
   const [showAddStage, setShowAddStage] = useState(false);
-  const [selectedStageId, setSelectedStageId] = useState<string | number | null>(null);
-  const [selectedInvestorId, setSelectedInvestorId] = useState('');
   const [newStageName, setNewStageName] = useState('');
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,12 +42,8 @@ export default function PipelinePage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [boardData, investorsData] = await Promise.all([
-        apiClient.getPipelineData(),
-        apiClient.getInvestors('', 1, 1000)
-      ]);
+      const boardData = await apiClient.getPipelineData();
       setStages(boardData);
-      setInvestors(investorsData.data || []);
       setIsLoaded(true);
     } catch (err) {
       console.error('Failed to fetch pipeline data:', err);
@@ -139,38 +131,6 @@ export default function PipelinePage() {
     }
   };
 
-  const handleAddClient = async () => {
-    if (!selectedInvestorId || !selectedStageId) return;
-
-    setIsSubmitting(true);
-    try {
-      await apiClient.updateInvestorPipelineStage(selectedInvestorId, selectedStageId as number);
-      toast({
-        title: 'Success',
-        description: 'Client added to stage',
-        variant: 'success',
-      });
-      fetchData();
-      setShowAddClient(false);
-      setSelectedInvestorId('');
-      setSelectedStageId(null);
-    } catch (err) {
-      console.error('Failed to add client:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to add client',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const openAddClientModal = (stageId: string | number) => {
-    setSelectedStageId(stageId);
-    setShowAddClient(true);
-  };
-
   const handleAddStage = async () => {
     if (!newStageName.trim()) return;
 
@@ -237,12 +197,6 @@ export default function PipelinePage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-[#1F1F1F]">Pipeline</h1>
           </div>
           <div className="flex gap-3 flex-wrap">
-            <button
-              onClick={() => setShowAddClient(true)}
-              className="px-5 py-2 bg-[#FCD34D] text-gray-800 text-sm font-medium rounded-full hover:bg-[#FBD24E] transition-colors whitespace-nowrap"
-            >
-              Add Client
-            </button>
             <button
               onClick={() => setShowAddStage(true)}
               className="px-5 py-2 bg-[#FCD34D] text-gray-800 text-sm font-medium rounded-full hover:bg-[#FBD24E] transition-colors whitespace-nowrap"
@@ -321,15 +275,6 @@ export default function PipelinePage() {
                             </DraggableComponent>
                           ))}
                           {provided.placeholder}
-
-                          {/* Add Client to this stage */}
-                          <button
-                            onClick={() => openAddClientModal(stage.id)}
-                            className="w-full border-2 border-dashed border-gray-300 rounded-xl p-3 text-gray-400 hover:border-[#FCD34D] hover:text-[#FCD34D] hover:bg-white/30 transition-all flex items-center justify-center gap-2 mt-4"
-                          >
-                            <Plus className="h-4 w-4" />
-                            <span className="text-sm font-bold uppercase tracking-wide">Add Client</span>
-                          </button>
                         </div>
                       </div>
                     )}
@@ -340,61 +285,6 @@ export default function PipelinePage() {
           </div>
         </DragDropContextComponent>
       </div>
-
-      {/* Modals remain the same but use premium styling */}
-      {showAddClient && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-gray-900">Add Client</h2>
-              <button
-                onClick={() => {
-                  setShowAddClient(false);
-                  setSelectedInvestorId('');
-                  setSelectedStageId(null);
-                }}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X className="h-6 w-6 text-gray-400" />
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Select Investor</label>
-                <select
-                  value={selectedInvestorId}
-                  onChange={(e) => setSelectedInvestorId(e.target.value)}
-                  className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-[#FCD34D] transition-all"
-                >
-                  <option value="">Choose an investor...</option>
-                  {investors.map((investor) => (
-                    <option key={investor.id} value={investor.id}>
-                      {investor.fullName} ({investor.email})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex gap-4 pt-2">
-                <button
-                  onClick={() => setShowAddClient(false)}
-                  className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddClient}
-                  disabled={!selectedInvestorId}
-                  className="flex-1 py-4 bg-[#FCD34D] text-gray-800 text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-xl shadow-yellow-100 transition-all disabled:opacity-50"
-                >
-                  Add Client
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showAddStage && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
