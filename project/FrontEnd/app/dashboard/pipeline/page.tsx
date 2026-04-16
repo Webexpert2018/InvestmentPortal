@@ -5,12 +5,11 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { X, Plus, GripVertical } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { useRouter } from 'next/router';
 
 const colorOptions = [
   '#E5E7EB',
-  '#DBEAFE', 
+  '#DBEAFE',
   '#BBF7D0',
   '#C7D2FE',
   '#DDD6FE',
@@ -173,16 +172,16 @@ export default function PipelinePage() {
       // Cross column move
       const destInvestors = Array.from(destStage.investors);
       destInvestors.splice(destination.index, 0, movedInvestor);
-      
-      newStages[sInd] = { 
-        ...sourceStage, 
+
+      newStages[sInd] = {
+        ...sourceStage,
         investors: sourceInvestors,
-        count: sourceInvestors.length 
+        count: sourceInvestors.length
       };
-      newStages[dInd] = { 
-        ...destStage, 
+      newStages[dInd] = {
+        ...destStage,
         investors: destInvestors,
-        count: destInvestors.length 
+        count: destInvestors.length
       };
     }
 
@@ -292,16 +291,15 @@ export default function PipelinePage() {
                       <div
                         {...provided.droppableProps}
                         ref={provided.innerRef}
-                        className={`rounded-2xl p-4 min-h-[500px] transition-all duration-200 border-2 ${
-                          snapshot.isDraggingOver ? 'border-[#FCD34D] ring-4 ring-[#FCD34D]/10' : 'border-transparent'
-                        }`}
+                        className={`rounded-2xl p-4 min-h-[500px] transition-all duration-200 border-2 ${snapshot.isDraggingOver ? 'border-[#FCD34D] ring-4 ring-[#FCD34D]/10' : 'border-transparent'
+                          }`}
                         style={{ backgroundColor: stage.color }}
                       >
                         {/* Stage Header */}
                         <div className="flex items-center justify-between mb-5">
                           <div className="flex items-center gap-2 group">
                             <h3 className="text-sm font-bold text-gray-900 truncate max-w-[150px] uppercase tracking-wider">{stage.name}</h3>
-                            <button 
+                            <button
                               onClick={() => deleteStage(stage.id)}
                               className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
@@ -322,9 +320,8 @@ export default function PipelinePage() {
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  className={`bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 group border border-transparent ${
-                                    snapshot.isDragging ? 'shadow-2xl scale-[1.02] border-[#FCD34D] rotate-1' : ''
-                                  }`}
+                                  className={`bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 group border border-transparent ${snapshot.isDragging ? 'shadow-2xl scale-[1.02] border-[#FCD34D] rotate-1' : ''
+                                    }`}
                                 >
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -451,9 +448,8 @@ export default function PipelinePage() {
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}
-                      className={`w-10 h-10 rounded-full transition-all border-4 ${
-                        selectedColor === color ? 'border-white ring-2 ring-gray-300 scale-110 shadow-lg' : 'border-transparent opacity-60 hover:opacity-100'
-                      }`}
+                      className={`w-10 h-10 rounded-full transition-all border-4 ${selectedColor === color ? 'border-white ring-2 ring-gray-300 scale-110 shadow-lg' : 'border-transparent opacity-60 hover:opacity-100'
+                        }`}
                       style={{ backgroundColor: color }}
                     />
                   ))}

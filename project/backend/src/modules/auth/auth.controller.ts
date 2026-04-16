@@ -145,21 +145,21 @@ export class AuthController {
     ) {
       throw new BadRequestException('Missing required signup fields');
     }
-    if (signupDto.dob) {
-      const birthDate = new Date(signupDto.dob);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
+    // if (signupDto.dob) {
+    //   const birthDate = new Date(signupDto.dob);
+    //   const today = new Date();
+    //   let age = today.getFullYear() - birthDate.getFullYear();
+    //   const m = today.getMonth() - birthDate.getMonth();
+    //   if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    //     age--;
+    //   }
 
-      if (age < 18) {
-        throw new BadRequestException('You must be at least 18 years old');
-      } else if (age > 70) {
-        throw new BadRequestException('Age cannot exceed 70 years');
-      }
-    }
+    //   if (age < 18) {
+    //     throw new BadRequestException('You must be at least 18 years old');
+    //   } else if (age > 70) {
+    //     throw new BadRequestException('Age cannot exceed 70 years');
+    //   }
+    // }
 
     return this.authService.signup(
       signupDto.email,
@@ -191,21 +191,21 @@ export class AuthController {
     ) {
       throw new BadRequestException('Missing required signup fields');
     }
-    if (signupDto.dob) {
-      const birthDate = new Date(signupDto.dob);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
+    // if (signupDto.dob) {
+    //   const birthDate = new Date(signupDto.dob);
+    //   const today = new Date();
+    //   let age = today.getFullYear() - birthDate.getFullYear();
+    //   const m = today.getMonth() - birthDate.getMonth();
+    //   if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    //     age--;
+    //   }
 
-      if (age < 18) {
-        throw new BadRequestException('You must be at least 18 years old');
-      } else if (age > 70) {
-        throw new BadRequestException('Age cannot exceed 70 years');
-      }
-    }
+    //   if (age < 18) {
+    //     throw new BadRequestException('You must be at least 18 years old');
+    //   } else if (age > 70) {
+    //     throw new BadRequestException('Age cannot exceed 70 years');
+    //   }
+    // }
 
     return this.authService.signup(
       signupDto.email,
@@ -214,7 +214,7 @@ export class AuthController {
       signupDto.lastName,
       signupDto.phone,
       signupDto.dob,
-      signupDto.role || 'investor', 
+      signupDto.role || 'investor',
       signupDto.addressLine1,
       signupDto.addressLine2,
       signupDto.city,

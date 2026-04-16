@@ -7,6 +7,8 @@ import { Search, ChevronDown, MoreVertical, X, Loader2, Send } from 'lucide-reac
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import { Country, State, City } from 'country-state-city';
+import { Combobox } from '@/components/ui/combobox';
 
 interface Investor {
   id: string;
@@ -44,7 +46,7 @@ export default function InvestorPage() {
     city: '',
     state: '',
     zip_code: '',
-    country: 'US',
+    country: '',
     tax_id: ''
   });
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -134,7 +136,7 @@ export default function InvestorPage() {
         city: '',
         state: '',
         zip_code: '',
-        country: 'US',
+        country: '',
         tax_id: ''
       });
       fetchInvestors();
@@ -578,81 +580,98 @@ export default function InvestorPage() {
                 {/* Address */}
                 <section>
                   <h4 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-widest mb-4">Residential Address</h4>
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-[#4B5563] ml-1">Address Line 1</label>
-                      <input
-                        type="text"
-                        placeholder="Street Address"
-                        value={inviteForm.address_line1}
-                        onChange={(e) => setInviteForm({ ...inviteForm, address_line1: e.target.value })}
-                        className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-[#4B5563] ml-1">City</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. New York"
-                          value={inviteForm.city}
-                          onChange={(e) => setInviteForm({ ...inviteForm, city: e.target.value })}
-                          className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
-                        />
+                  {(() => {
+                    const allCountriesUnsorted = Country.getAllCountries();
+                    const allCountries = [
+                      ...allCountriesUnsorted.filter(c => c.isoCode === 'US'),
+                      ...allCountriesUnsorted.filter(c => c.isoCode !== 'US').sort((a, b) => a.name.localeCompare(b.name))
+                    ];
+                    const availableStates = inviteForm.country ? State.getStatesOfCountry(inviteForm.country) : [];
+                    const availableCities = (inviteForm.country && inviteForm.state) ? City.getCitiesOfState(inviteForm.country, inviteForm.state) : [];
+
+                    return (
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">Address Line 1</label>
+                          <input
+                            type="text"
+                            placeholder="Street Address"
+                            value={inviteForm.address_line1}
+                            onChange={(e) => setInviteForm({ ...inviteForm, address_line1: e.target.value })}
+                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">Address Line 2</label>
+                          <input
+                            type="text"
+                            placeholder="Apt, Suite, Unit, etc. (optional)"
+                            value={inviteForm.address_line2}
+                            onChange={(e) => setInviteForm({ ...inviteForm, address_line2: e.target.value })}
+                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-[#4B5563] ml-1">Country</label>
+                            <Combobox
+                              options={allCountries.map(c => ({ label: c.name, value: c.isoCode }))}
+                              value={inviteForm.country}
+                              onChange={(val) => setInviteForm({ ...inviteForm, country: val, state: '', city: '' })}
+                              placeholder="Select country"
+                              className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-[#4B5563] ml-1">State / Province</label>
+                            <Combobox
+                              options={availableStates.map(s => ({ label: s.name, value: s.isoCode }))}
+                              value={inviteForm.state}
+                              onChange={(val) => setInviteForm({ ...inviteForm, state: val, city: '' })}
+                              placeholder="Select state"
+                              disabled={!inviteForm.country}
+                              className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-[#4B5563] ml-1">City</label>
+                            <Combobox
+                              options={availableCities.map(city => ({ label: city.name, value: city.name }))}
+                              value={inviteForm.city}
+                              onChange={(val) => setInviteForm({ ...inviteForm, city: val })}
+                              placeholder="Select city"
+                              disabled={!inviteForm.state}
+                              className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-[#4B5563] ml-1">ZIP Code</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. 10001"
+                              value={inviteForm.zip_code}
+                              onChange={(e) => setInviteForm({ ...inviteForm, zip_code: e.target.value })}
+                              className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-[#4B5563] ml-1">Tax ID / SSN</label>
+                            <input
+                              type="text"
+                              placeholder="SSN or TaxID"
+                              value={inviteForm.tax_id}
+                              onChange={(e) => setInviteForm({ ...inviteForm, tax_id: e.target.value })}
+                              className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-[#4B5563] ml-1">State / Province</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. NY"
-                          value={inviteForm.state}
-                          onChange={(e) => setInviteForm({ ...inviteForm, state: e.target.value })}
-                          className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-[#4B5563] ml-1">Tax ID / SSN</label>
-                        <input
-                          type="text"
-                          placeholder="SSN or TaxID"
-                          value={inviteForm.tax_id}
-                          onChange={(e) => setInviteForm({ ...inviteForm, tax_id: e.target.value })}
-                          className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-[#4B5563] ml-1">Country</label>
-                        <select
-                          value={inviteForm.country}
-                          onChange={(e) => setInviteForm({ ...inviteForm, country: e.target.value })}
-                          className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all"
-                        >
-                          <option value="US">United States</option>
-                          <option value="GB">United Kingdom</option>
-                          <option value="CA">Canada</option>
-                          <option value="AU">Australia</option>
-                          <option value="IN">India</option>
-                          <option value="DE">Germany</option>
-                          <option value="FR">France</option>
-                          <option value="SG">Singapore</option>
-                          <option value="AE">United Arab Emirates</option>
-                          <option value="JP">Japan</option>
-                          <option value="CN">China</option>
-                          <option value="BR">Brazil</option>
-                          <option value="MX">Mexico</option>
-                          <option value="ZA">South Africa</option>
-                          <option value="NG">Nigeria</option>
-                          <option value="KE">Kenya</option>
-                          <option value="EG">Egypt</option>
-                          <option value="SA">Saudi Arabia</option>
-                          <option value="NZ">New Zealand</option>
-                          <option value="PK">Pakistan</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })()}
                 </section>
               </div>
 

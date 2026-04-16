@@ -247,6 +247,24 @@ export function InvestorSettingsScreen() {
   const [error, setError] = useState<string | null>(null);
   const dobInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const loadBankAccounts = async () => {
+    try {
+      setBankAccountsLoading(true);
+      console.log('📋 Loading bank accounts from API...');
+      const data = await apiClient.getBankAccounts();
+      console.log('✅ Bank accounts loaded:', data?.length || 0, 'accounts');
+      setBankAccounts(data || []);
+      setError(null);
+    } catch (err: any) {
+      console.error('❌ Error loading bank accounts:', err);
+      const errorMsg = err.message || 'Failed to load bank accounts';
+      setError(errorMsg);
+      setBankAccounts([]);
+    } finally {
+      setBankAccountsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -300,24 +318,6 @@ export function InvestorSettingsScreen() {
         console.error('Error loading profile:', err);
       } finally {
         setLoading(false);
-      }
-    };
-
-    const loadBankAccounts = async () => {
-      try {
-        setBankAccountsLoading(true);
-        console.log('📋 Loading bank accounts from API...');
-        const data = await apiClient.getBankAccounts();
-        console.log('✅ Bank accounts loaded:', data?.length || 0, 'accounts');
-        setBankAccounts(data || []);
-        setError(null);
-      } catch (err: any) {
-        console.error('❌ Error loading bank accounts:', err);
-        const errorMsg = err.message || 'Failed to load bank accounts';
-        setError(errorMsg);
-        setBankAccounts([]);
-      } finally {
-        setBankAccountsLoading(false);
       }
     };
 
