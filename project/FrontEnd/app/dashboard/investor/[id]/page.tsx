@@ -163,15 +163,15 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 <div className="flex flex-col lg:flex-row gap-8">
                   {/* Left: Avatar and Identity */}
                   <div className="w-full lg:w-[300px] space-y-6">
-                    <div className="mx-auto lg:mx-0 w-full max-w-[300px] aspect-square lg:aspect-[4/5] rounded-2xl border border-gray-100 shadow-sm overflow-hidden bg-gray-100">
+                    <div className="mx-auto lg:mx-0 relative w-full max-w-[300px] aspect-square lg:aspect-[4/5] rounded-2xl border border-gray-100 shadow-sm overflow-hidden bg-gray-100 flex items-center justify-center">
                       {investorData.profileImageUrl ? (
-                        <Image 
-                          src={investorData.profileImageUrl.startsWith('http') 
-                            ? investorData.profileImageUrl 
-                            : `${BASE_URL}${investorData.profileImageUrl.startsWith('/') ? '' : '/'}${investorData.profileImageUrl}`} 
-                          alt="Profile" 
+                        <Image
+                          src={investorData.profileImageUrl.startsWith('http')
+                            ? investorData.profileImageUrl
+                            : `${BASE_URL}${investorData.profileImageUrl.startsWith('/') ? '' : '/'}${investorData.profileImageUrl}`}
+                          alt="Profile"
                           fill
-                          className="object-cover" 
+                          className="object-cover"
                         />
                       ) : (
                         <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-white text-[120px] font-bold">
@@ -200,7 +200,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <button 
+                          <button
                             onClick={async () => {
                               setShowAssignModal(true);
                               setSelectedIrStaff(investorData.assignedIrId || '');
@@ -210,7 +210,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 setIrStaffList(res.data || []);
                               } catch (err) { console.error('Failed to fetch IR staff:', err); }
                               finally { setIrLoading(false); }
-                            }} 
+                            }}
                             className="px-6 py-2 bg-[#FCD34D] text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-[#FBD24E] transition-colors border border-transparent active:border-yellow-600 shadow-sm"
                           >
                             {investorData.assignedIrId ? 'Change Investor Relations' : 'Assign Investor Relations'}
@@ -467,8 +467,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           key={page}
                           onClick={() => setFundingPage(page)}
                           className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${fundingPage === page
-                              ? 'bg-[#3B82F6] text-white'
-                              : 'text-gray-600 hover:bg-gray-100'
+                            ? 'bg-[#3B82F6] text-white'
+                            : 'text-gray-600 hover:bg-gray-100'
                             }`}
                         >
                           {page}
@@ -550,8 +550,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           key={page}
                           onClick={() => setRedemptionPage(page)}
                           className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${redemptionPage === page
-                              ? 'bg-[#3B82F6] text-white'
-                              : 'text-gray-600 hover:bg-gray-100'
+                            ? 'bg-[#3B82F6] text-white'
+                            : 'text-gray-600 hover:bg-gray-100'
                             }`}
                         >
                           {page}
@@ -593,7 +593,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   <X className="h-5 w-5" />
                 </button>
               </div>
- 
+
               {/* Dropdown */}
               <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-700">Investor Relations</label>
@@ -612,7 +612,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                 </div>
               </div>
- 
+
               {/* Buttons */}
               <div className="flex justify-end gap-4 pt-4">
                 <button
