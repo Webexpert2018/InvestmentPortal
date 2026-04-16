@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ChevronLeft, X, ChevronDown, FileText, Download, Calendar, Mail, Phone, Shield, MapPin } from 'lucide-react';
+import { ChevronLeft, X, ChevronDown, FileText, Download, Calendar, Mail, Phone, Shield, MapPin, User } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 
@@ -13,7 +14,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [activeTab, setActiveTab] = useState('basic');
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
-  const [selectedAccountant, setSelectedAccountant] = useState('');
+  const [selectedIrStaff, setSelectedIrStaff] = useState('');
+  const [irStaffList, setIrStaffList] = useState<any[]>([]);
+  const [irLoading, setIrLoading] = useState(false);
+  const [assigning, setAssigning] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [fundingPage, setFundingPage] = useState(1);
   const [redemptionPage, setRedemptionPage] = useState(1);
@@ -159,21 +163,20 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 <div className="flex flex-col lg:flex-row gap-8">
                   {/* Left: Avatar and Identity */}
                   <div className="w-full lg:w-[300px] space-y-6">
-                    <div className="mx-auto lg:mx-0 w-full max-w-[300px] aspect-[4/5] rounded-2xl border border-gray-100 shadow-sm overflow-hidden bg-gray-100">
+                    <div className="mx-auto lg:mx-0 w-full max-w-[300px] aspect-square lg:aspect-[4/5] rounded-2xl border border-gray-100 shadow-sm overflow-hidden bg-gray-100">
                       {investorData.profileImageUrl ? (
-                        <img 
+                        <Image 
                           src={investorData.profileImageUrl.startsWith('http') 
                             ? investorData.profileImageUrl 
                             : `${BASE_URL}${investorData.profileImageUrl.startsWith('/') ? '' : '/'}${investorData.profileImageUrl}`} 
                           alt="Profile" 
-                          className="w-full h-full object-cover" 
+                          fill
+                          className="object-cover" 
                         />
                       ) : (
-                        <img 
-                          src={`https://api.dicebear.com/7.x/initials/svg?seed=${investorData.firstName || 'Investor'}&backgroundColor=FCD34D`} 
-                          alt="Profile Placeholder" 
-                          className="w-full h-full object-cover"
-                        />
+                        <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-white text-[120px] font-bold">
+                          {(investorData.firstName?.[0] || '') + (investorData.lastName?.[0] || '')}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -185,10 +188,33 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
                           <h2 className="text-3xl font-bold text-[#1F1F1F] leading-tight">{investorData.firstName} {investorData.lastName}</h2>
-                          <p className="text-sm text-gray-400 font-medium">Joined date: {new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-1">
+                            <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
+                              <Calendar className="h-4 w-4" />
+                              Joined date: {new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </p>
+                            <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
+                              <User className="h-4 w-4" />
+                              Investor Relations: <span className="text-gray-900 font-bold">{investorData.assignedIrName || 'Not assigned'}</span>
+                            </p>
+                          </div>
                         </div>
                         <div className="flex gap-2">
-                          <button onClick={() => setShowAssignModal(true)} className="px-6 py-2 bg-[#FCD34D] text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-[#FBD24E] transition-colors">Assign Relation Associate</button>
+                          <button 
+                            onClick={async () => {
+                              setShowAssignModal(true);
+                              setSelectedIrStaff(investorData.assignedIrId || '');
+                              setIrLoading(true);
+                              try {
+                                const res = await apiClient.getStaff('investor_relations', 1, 100);
+                                setIrStaffList(res.data || []);
+                              } catch (err) { console.error('Failed to fetch IR staff:', err); }
+                              finally { setIrLoading(false); }
+                            }} 
+                            className="px-6 py-2 bg-[#FCD34D] text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-[#FBD24E] transition-colors border border-transparent active:border-yellow-600 shadow-sm"
+                          >
+                            {investorData.assignedIrId ? 'Change Investor Relations' : 'Assign Investor Relations'}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -243,10 +269,14 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-8 border-t border-gray-50">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-8 border-t border-gray-50">
                       <div className="space-y-1">
                         <span className="text-xs font-bold text-gray-400">Account Status</span>
                         <p className="text-sm font-bold text-green-600 capitalize">{investorData.status || 'Active'}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold text-gray-400">Assigned Investor Relations</span>
+                        <p className="text-sm font-bold text-gray-900">{investorData.assignedIrName || <span className="text-gray-400 italic">Not assigned</span>}</p>
                       </div>
                       <div className="space-y-1 text-right sm:text-left">
                         <span className="text-xs font-bold text-gray-400">Last Login</span>
@@ -543,7 +573,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         </div>
       </div>
 
-      {/* Assign Accountant Modal */}
+      {/* Assign Investor Relations Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
@@ -551,9 +581,9 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-[#1F1F1F]">Assign Relation Associate</h2>
+                  <h2 className="text-xl font-semibold text-[#1F1F1F]">Assign Investor Relations</h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    Select a relation associate to manage this investor's KYC documents and communication.
+                    Select an investor relations member to manage this investor's KYC documents and communication.
                   </p>
                 </div>
                 <button
@@ -566,18 +596,18 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
  
               {/* Dropdown */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-700">Relation Associate</label>
+                <label className="text-sm font-bold text-gray-700">Investor Relations</label>
                 <div className="relative">
                   <select
-                    value={selectedAccountant}
-                    onChange={(e) => setSelectedAccountant(e.target.value)}
-                    className="w-full px-5 py-4 bg-[#F9FAFB] border-none rounded-2xl text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#FCD34D] cursor-pointer font-medium"
+                    value={selectedIrStaff}
+                    onChange={(e) => setSelectedIrStaff(e.target.value)}
+                    disabled={irLoading}
+                    className="w-full px-5 py-4 bg-[#F9FAFB] border-none rounded-2xl text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#FCD34D] cursor-pointer font-medium disabled:opacity-50"
                   >
-                    <option value="">Select associate</option>
-                    <option value="john-doe">John Doe</option>
-                    <option value="jane-smith">Jane Smith</option>
-                    <option value="michael-johnson">Michael Johnson</option>
-                    <option value="sarah-williams">Sarah Williams</option>
+                    <option value="">{irLoading ? 'Loading...' : 'Select investor relations'}</option>
+                    {irStaffList.map((staff: any) => (
+                      <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
+                    ))}
                   </select>
                   <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                 </div>
@@ -588,21 +618,33 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 <button
                   onClick={() => {
                     setShowAssignModal(false);
-                    setSelectedAccountant('');
+                    setSelectedIrStaff('');
                   }}
                   className="flex-1 py-4 text-sm font-bold text-[#6B7280] hover:bg-[#F9FAFB] rounded-2xl transition-all"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    console.log('Assigning associate:', selectedAccountant);
-                    setShowAssignModal(false);
-                    setSelectedAccountant('');
+                  disabled={assigning}
+                  onClick={async () => {
+                    try {
+                      setAssigning(true);
+                      await apiClient.assignInvestorRelations(params.id, selectedIrStaff || null);
+                      toast.success('Investor Relations assigned successfully');
+                      // Refresh investor data to show updated assignment
+                      const profile = await apiClient.getUserById(params.id);
+                      setInvestorData(profile);
+                      setShowAssignModal(false);
+                      setSelectedIrStaff('');
+                    } catch (err: any) {
+                      toast.error(err.message || 'Failed to assign');
+                    } finally {
+                      setAssigning(false);
+                    }
                   }}
-                  className="flex-1 py-4 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all"
+                  className="flex-1 py-4 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all disabled:opacity-70"
                 >
-                  Assign
+                  {assigning ? 'Assigning...' : 'Assign'}
                 </button>
               </div>
             </div>

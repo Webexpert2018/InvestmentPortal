@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ChevronLeft, Loader2, MoreVertical, Search, Plus, Trash2, Edit2, User } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
@@ -15,22 +16,31 @@ export default function ViewStaffPage() {
   const id = params.id as string;
 
   const [staff, setStaff] = useState<any>(null);
+  const [assignedInvestors, setAssignedInvestors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
-      fetchStaff();
+      fetchData();
     }
   }, [id]);
 
-  const fetchStaff = async () => {
+  const fetchData = async () => {
     try {
-      const data = await apiClient.getStaffById(id);
-      setStaff(data);
-    } catch (error) {
-      console.error('Error fetching staff:', error);
+      setLoading(true);
+      const [staffData, investorsData] = await Promise.all([
+        apiClient.getStaffById(id),
+        apiClient.getStaffAssignedInvestors(id)
+      ]);
+      setStaff(staffData);
+      setAssignedInvestors(investorsData);
+    } catch (error: any) {
+      console.error('Error fetching staff data:', error);
+      toast.error(error.message || 'Failed to load staff details');
     } finally {
       setLoading(false);
     }
@@ -42,8 +52,8 @@ export default function ViewStaffPage() {
       await apiClient.deleteStaff(id);
       toast.success('Staff member deleted successfully');
       router.push('/dashboard/staff');
-    } catch (error) {
-      toast.error('Failed to delete staff member');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete staff member');
     } finally {
       setIsDeleting(false);
       setIsDeleteModalOpen(false);
@@ -62,6 +72,16 @@ export default function ViewStaffPage() {
       year: 'numeric'
     });
   };
+
+  const getInitials = (name: string) => {
+    if (!name) return '??';
+    return name?.split(' ').map(n => n[0]).join('').toUpperCase() || '??';
+  };
+
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(assignedInvestors.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentInvestors = assignedInvestors.slice(startIndex, startIndex + itemsPerPage);
 
   if (loading) {
     return (
@@ -89,21 +109,26 @@ export default function ViewStaffPage() {
       <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F] p-4 lg:p-8">
         {/* Breadcrumb / Back Link */}
         <div className="mb-8 items-center flex gap-2">
-          <Link href="/dashboard/staff" className="flex items-center gap-2 group">
+          <button onClick={() => router.back()} className="flex items-center gap-2 group">
             <ChevronLeft className="h-5 w-5 text-[#1F1F1F]" />
             <span className="text-[17px] font-semibold text-[#1F1F1F]">Staff Details</span>
-          </Link>
+          </button>
         </div>
 
         {/* Column 1: Profile Photo */}
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-shrink-0">
-            <div className="w-[240px] h-[340px] rounded-xl overflow-hidden shadow-md">
+            <div className="w-[240px] h-[340px] rounded-xl overflow-hidden shadow-md relative bg-gray-100">
               {staff.profile_image_url ? (
-                <img src={staff.profile_image_url} alt={staff.full_name} className="w-full h-full object-cover" />
+                <Image 
+                  src={staff.profile_image_url} 
+                  alt={staff.full_name} 
+                  fill
+                  className="object-cover"
+                />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-[#274583] text-white text-[80px] font-bold">
-                  {staff.full_name?.split(' ').map((n: any) => n[0]).join('').toUpperCase()}
+                  {getInitials(staff.full_name)}
                 </div>
               )}
             </div>
@@ -141,16 +166,20 @@ export default function ViewStaffPage() {
               </div>
               <div>
                 <p className="text-[12px] tracking-wider text-gray-400 mb-2 font-bold">Phone Number</p>
-                <p className="text-[18px] text-[#1F1F1F] font-medium">{staff.phone || '(+1) 4589 6992'}</p>
+                <p className="text-[18px] text-[#1F1F1F] font-medium">{staff.phone || '(Not set)'}</p>
               </div>
               <div className="col-span-1">
                 <p className="text-[12px] tracking-wider text-gray-400 mb-2 font-bold">Password</p>
                 <p className="text-[18px] text-[#1F1F1F] font-medium">••••••••</p>
               </div>
-              {staff.role === 'partnership' && (
+              <div className="col-span-1">
+                <p className="text-[12px] tracking-wider text-gray-400 mb-2 font-bold">Role</p>
+                <p className="text-[18px] text-[#1F1F1F] font-medium capitalize">{staff.role?.replace('_', ' ')}</p>
+              </div>
+              {staff.associated_fund_name && (
                 <div className="col-span-1">
                   <p className="text-[12px] tracking-wider text-gray-400 mb-2 font-bold">Associated Fund</p>
-                  <p className="text-[18px] text-[#274583] font-medium">{staff.associated_fund_name || 'No fund assigned'}</p>
+                  <p className="text-[18px] text-[#274583] font-medium">{staff.associated_fund_name}</p>
                 </div>
               )}
             </div>
@@ -171,35 +200,92 @@ export default function ViewStaffPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      <tr>
-                        <td colSpan={3} className="px-6 py-16 text-center text-gray-400 bg-white italic font-medium">
-                          No assigned investors yet
-                        </td>
-                      </tr>
+                      {currentInvestors.length === 0 ? (
+                        <tr>
+                          <td colSpan={3} className="px-6 py-16 text-center text-gray-400 bg-white italic font-medium">
+                            No assigned investors yet
+                          </td>
+                        </tr>
+                      ) : (
+                        currentInvestors.map((investor) => (
+                          <tr key={investor.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 text-gray-600 text-sm">{formatDate(investor.updated_at || investor.created_at)}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[#274583] flex items-center justify-center text-white font-semibold text-[11px]">
+                                  {getInitials(investor.full_name)}
+                                </div>
+                                <span className="text-[14px] font-medium text-[#1F1F1F]">{investor.full_name}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right pr-12">
+                              <div className="relative inline-block text-left">
+                                <button
+                                  onClick={() => setActiveDropdown(activeDropdown === investor.id ? null : investor.id)}
+                                  className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                                >
+                                  <MoreVertical className="h-4 w-4 text-gray-400" />
+                                </button>
+                                
+                                {activeDropdown === investor.id && (
+                                  <>
+                                    <div 
+                                      className="fixed inset-0 z-10"
+                                      onClick={() => setActiveDropdown(null)}
+                                    />
+                                    <div className="absolute right-0 top-full mt-2 w-36 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-20">
+                                      <Link 
+                                        href={`/dashboard/investor/${investor.id}`}
+                                        className="block w-full px-4 py-2 text-left text-[13px] text-gray-700 hover:bg-gray-50 transition-colors"
+                                      >
+                                        View Profile
+                                      </Link>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
 
                 {/* Pagination */}
-                {/* <div className="flex items-center justify-end px-6 py-8 gap-4 border-t border-gray-50">
-                  <button disabled className="flex items-center gap-1 text-gray-300 cursor-not-allowed text-sm font-medium">
-                    <ChevronLeft className="h-4 w-4" />
-                    <span>Previous</span>
-                  </button>
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-end px-6 py-4 gap-4 border-t border-gray-50">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className={`flex items-center gap-1 text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      <span>Previous</span>
+                    </button>
 
-                  <div className="flex gap-1">
-                    <button className="w-8 h-8 rounded text-sm font-medium bg-[#1F3B6E] text-white">1</button>
-                    <button className="w-8 h-8 rounded text-sm font-medium text-gray-400 hover:bg-gray-100">2</button>
-                    <button className="w-8 h-8 rounded text-sm font-medium text-gray-400 hover:bg-gray-100">3</button>
+                    <div className="flex gap-1">
+                      {[...Array(totalPages)].map((_, i) => (
+                        <button
+                          key={i + 1}
+                          onClick={() => setCurrentPage(i + 1)}
+                          className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === i + 1 ? 'bg-[#1F3B6E] text-white' : 'text-gray-400 hover:bg-gray-100'}`}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className={`flex items-center gap-1 text-sm font-medium ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
                   </div>
-
-                  <button className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-sm font-medium transition-colors">
-                    <span>Next</span>
-                    <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div> */}
+                )}
               </div>
             )}
           </div>

@@ -5,115 +5,38 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { X, Plus, GripVertical } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
+
+import { apiClient } from '@/lib/api/client';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const colorOptions = [
-  '#E5E7EB',
-  '#DBEAFE',
-  '#BBF7D0',
-  '#C7D2FE',
-  '#DDD6FE',
-  '#FDBA74',
-  '#FCA5A5',
-  '#FDE68A',
-];
-
-const mockInvestors = [
-  'Marcus Arcand',
-  'Ruben Korsgaard',
-  'Omar Aminoff',
-  'Jaxson Rhiel Madsen',
-  'Chance Septimus',
-];
-
-const initialStages = [
-  {
-    id: 1,
-    name: 'To Contact',
-    color: '#F3F4F6',
-    count: 5,
-    investors: [
-      { id: 1, name: 'Marcus Arcand', avatar: 'MA' },
-      { id: 2, name: 'Ruben Korsgaard', avatar: 'RK' },
-      { id: 3, name: 'Omar Aminoff', avatar: 'OA' },
-      { id: 4, name: 'Jaxson Rhiel Madsen', avatar: 'JM' },
-      { id: 5, name: 'Chance Septimus', avatar: 'CS' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Contacted',
-    color: '#DBEAFE',
-    count: 6,
-    investors: [
-      { id: 6, name: 'Cristofor Westervelt', avatar: 'CW' },
-      { id: 7, name: 'Nolan Dias', avatar: 'ND' },
-      { id: 8, name: 'Wilson Saris', avatar: 'WS' },
-      { id: 9, name: 'Gustavo Bergson', avatar: 'GB' },
-      { id: 10, name: 'Carter Lubin', avatar: 'CL' },
-      { id: 11, name: 'Gustavo Vetrovs', avatar: 'GV' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Interested',
-    color: '#D1FAE5',
-    count: 4,
-    investors: [
-      { id: 12, name: 'Omar Donin', avatar: 'OD' },
-      { id: 13, name: 'Ryan Carder', avatar: 'RC' },
-      { id: 14, name: 'Phillip Westervelt', avatar: 'PW' },
-      { id: 15, name: 'Alfonso Levin', avatar: 'AL' },
-    ],
-  },
-  {
-    id: 4,
-    name: 'Set Up in Portal',
-    color: '#E9D5FF',
-    count: 4,
-    investors: [
-      { id: 16, name: 'Craig Westervelt', avatar: 'CW' },
-      { id: 17, name: 'Roger Franci', avatar: 'RF' },
-      { id: 18, name: 'Phillip Geidt', avatar: 'PG' },
-      { id: 19, name: 'Leo Herwitz', avatar: 'LH' },
-    ],
-  },
-  {
-    id: 5,
-    name: 'IRA Set Up',
-    color: '#DDD6FE',
-    count: 2,
-    investors: [
-      { id: 20, name: 'Chance Donin', avatar: 'CD' },
-      { id: 21, name: 'Nolan Curtis', avatar: 'NC' },
-    ],
-  },
-  {
-    id: 6,
-    name: 'Ready to Fund',
-    color: '#FED7AA',
-    count: 4,
-    investors: [
-      { id: 22, name: 'Cooper Dorwart', avatar: 'CD' },
-      { id: 23, name: 'Talan Schleifer', avatar: 'TS' },
-      { id: 24, name: 'Talan Herwitz', avatar: 'TH' },
-      { id: 25, name: 'Ahmad Torff', avatar: 'AT' },
-    ],
-  },
+  '#F3F4F6', // Gray
+  '#DBEAFE', // Blue
+  '#D1FAE5', // Green
+  '#E9D5FF', // Purple
+  '#DDD6FE', // Indigo
+  '#FED7AA', // Orange
+  '#FCA5A5', // Red
+  '#FDE68A', // Yellow
 ];
 
 export default function PipelinePage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [stages, setStages] = useState(initialStages);
+  const { toast } = useToast();
+  const [stages, setStages] = useState<any[]>([]);
+  const [investors, setInvestors] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showAddClient, setShowAddClient] = useState(false);
   const [showAddStage, setShowAddStage] = useState(false);
-  const [selectedStageId, setSelectedStageId] = useState<number | null>(null);
-  const [selectedInvestor, setSelectedInvestor] = useState('');
+  const [selectedStageId, setSelectedStageId] = useState<string | number | null>(null);
+  const [selectedInvestorId, setSelectedInvestorId] = useState('');
   const [newStageName, setNewStageName] = useState('');
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user && !isAdmin) {
@@ -121,28 +44,31 @@ export default function PipelinePage() {
     }
   }, [user, isAdmin, authLoading, router]);
 
-  // Load from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('pipeline_data');
-    if (saved) {
-      try {
-        setStages(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse saved pipeline data', e);
-      }
+  const fetchData = useCallback(async () => {
+    try {
+      const [boardData, investorsData] = await Promise.all([
+        apiClient.getPipelineData(),
+        apiClient.getInvestors('', 1, 1000)
+      ]);
+      setStages(boardData);
+      setInvestors(investorsData.data || []);
+      setIsLoaded(true);
+    } catch (err) {
+      console.error('Failed to fetch pipeline data:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to load pipeline data',
+        variant: 'destructive',
+      });
     }
-    setIsLoaded(true);
-  }, []);
+  }, [toast]);
 
-  // Save to localStorage
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('pipeline_data', JSON.stringify(stages));
-    }
-  }, [stages, isLoaded]);
+    fetchData();
+  }, [fetchData]);
 
-  const onDragEnd = (result: DropResult) => {
-    const { source, destination } = result;
+  const onDragEnd = async (result: DropResult) => {
+    const { source, destination, draggableId } = result;
 
     if (!destination) return;
 
@@ -152,6 +78,7 @@ export default function PipelinePage() {
     // If dropped in same place
     if (sourceStageId === destStageId && source.index === destination.index) return;
 
+    // Optimistic Update
     const newStages = Array.from(stages);
     const sInd = newStages.findIndex(s => s.id === sourceStageId);
     const dInd = newStages.findIndex(s => s.id === destStageId);
@@ -161,16 +88,22 @@ export default function PipelinePage() {
     const sourceStage = newStages[sInd];
     const destStage = newStages[dInd];
 
-    const sourceInvestors = Array.from(sourceStage.investors);
+    if (!sourceStage || !destStage) return;
+
+    const sourceInvestors = Array.from(sourceStage.investors || []);
+    if (source.index < 0 || source.index >= sourceInvestors.length) return;
+    
     const [movedInvestor] = sourceInvestors.splice(source.index, 1);
+    if (!movedInvestor) return;
 
     if (sInd === dInd) {
-      // Internal reorder
+      // Internal reorder (backend reorder not implemented yet, just UI)
       sourceInvestors.splice(destination.index, 0, movedInvestor);
       newStages[sInd] = { ...sourceStage, investors: sourceInvestors };
+      setStages(newStages);
     } else {
       // Cross column move
-      const destInvestors = Array.from(destStage.investors);
+      const destInvestors = Array.from(destStage.investors || []);
       destInvestors.splice(destination.index, 0, movedInvestor);
 
       newStages[sInd] = {
@@ -183,68 +116,110 @@ export default function PipelinePage() {
         investors: destInvestors,
         count: destInvestors.length
       };
+
+      setStages(newStages);
+
+      // Persist to Backend
+      try {
+        await apiClient.updateInvestorPipelineStage(draggableId, destStageId);
+        toast({
+          title: 'Success',
+          description: `Moved ${(movedInvestor as any)?.name || (movedInvestor as any)?.fullName || 'Investor'} to ${(destStage as any)?.name || 'Target Stage'}`,
+          variant: 'success',
+        });
+      } catch (err) {
+        console.error('Failed to update stage:', err);
+        toast({
+          title: 'Error',
+          description: 'Failed to persist move',
+          variant: 'destructive',
+        });
+        fetchData(); // Rollback
+      }
     }
-
-    setStages(newStages);
   };
 
-  const handleAddClient = () => {
-    if (!selectedInvestor || !selectedStageId) return;
+  const handleAddClient = async () => {
+    if (!selectedInvestorId || !selectedStageId) return;
 
-    setStages(
-      stages.map((stage) => {
-        if (stage.id === selectedStageId) {
-          const newId = Date.now();
-          return {
-            ...stage,
-            investors: [
-              ...stage.investors,
-              {
-                id: newId,
-                name: selectedInvestor,
-                avatar: selectedInvestor
-                  .split(' ')
-                  .map((n) => n[0])
-                  .join('')
-                  .toUpperCase(),
-              },
-            ],
-            count: stage.count + 1,
-          };
-        }
-        return stage;
-      })
-    );
-
-    setShowAddClient(false);
-    setSelectedInvestor('');
-    setSelectedStageId(null);
+    setIsSubmitting(true);
+    try {
+      await apiClient.updateInvestorPipelineStage(selectedInvestorId, selectedStageId as number);
+      toast({
+        title: 'Success',
+        description: 'Client added to stage',
+        variant: 'success',
+      });
+      fetchData();
+      setShowAddClient(false);
+      setSelectedInvestorId('');
+      setSelectedStageId(null);
+    } catch (err) {
+      console.error('Failed to add client:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to add client',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleAddStage = () => {
-    if (!newStageName.trim()) return;
-
-    const newStage = {
-      id: Date.now(),
-      name: newStageName,
-      color: selectedColor,
-      count: 0,
-      investors: [],
-    };
-
-    setStages([...stages, newStage]);
-    setShowAddStage(false);
-    setNewStageName('');
-    setSelectedColor(colorOptions[0]);
-  };
-
-  const openAddClientModal = (stageId: number) => {
+  const openAddClientModal = (stageId: string | number) => {
     setSelectedStageId(stageId);
     setShowAddClient(true);
   };
 
-  const deleteStage = (id: number) => {
-    setStages(stages.filter(s => s.id !== id));
+  const handleAddStage = async () => {
+    if (!newStageName.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      await apiClient.createPipelineStage({
+        name: newStageName,
+        color: selectedColor
+      });
+      toast({
+        title: 'Success',
+        description: 'Stage created',
+        variant: 'success',
+      });
+      fetchData();
+      setShowAddStage(false);
+      setNewStageName('');
+      setSelectedColor(colorOptions[0]);
+    } catch (err) {
+      console.error('Failed to create stage:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to create stage',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const deleteStage = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this stage? Investors will be moved to the first stage.')) return;
+
+    try {
+      await apiClient.deletePipelineStage(id);
+      toast({
+        title: 'Success',
+        description: 'Stage deleted',
+        variant: 'success',
+      });
+      fetchData();
+    } catch (err) {
+      console.error('Failed to delete stage:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete stage',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (!isLoaded) return null;
@@ -313,7 +288,7 @@ export default function PipelinePage() {
 
                         {/* Investors List */}
                         <div className="space-y-3">
-                          {stage.investors.map((investor, index) => (
+                          {stage.investors?.map((investor: any, index: number) => (
                             <DraggableComponent key={investor.id} draggableId={investor.id.toString()} index={index}>
                               {(provided: any, snapshot: any) => (
                                 <div
@@ -326,9 +301,18 @@ export default function PipelinePage() {
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1F3B6E] text-xs font-bold text-white shadow-inner">
-                                        {investor.avatar}
+                                        {investor.avatar || (investor.name || investor.fullName || '?').charAt(0).toUpperCase()}
                                       </div>
-                                      <span className="text-sm font-semibold text-gray-800">{investor.name}</span>
+                                      <div className="flex flex-col">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-semibold text-gray-800">{investor.name || investor.fullName || 'Unnamed Investor'}</span>
+                                          {user?.role === 'investor_relations' && investor.assignedIrId === user?.id && (
+                                            <span className="px-1.5 py-0.5 bg-green-100 text-[10px] font-bold text-green-700 rounded-md uppercase tracking-tight">
+                                              Assigned to Me
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
                                     </div>
                                     <GripVertical className="h-4 w-4 text-gray-300 group-hover:text-gray-400 transition-colors" />
                                   </div>
@@ -366,7 +350,7 @@ export default function PipelinePage() {
               <button
                 onClick={() => {
                   setShowAddClient(false);
-                  setSelectedInvestor('');
+                  setSelectedInvestorId('');
                   setSelectedStageId(null);
                 }}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -379,14 +363,14 @@ export default function PipelinePage() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Select Investor</label>
                 <select
-                  value={selectedInvestor}
-                  onChange={(e) => setSelectedInvestor(e.target.value)}
+                  value={selectedInvestorId}
+                  onChange={(e) => setSelectedInvestorId(e.target.value)}
                   className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-[#FCD34D] transition-all"
                 >
                   <option value="">Choose an investor...</option>
-                  {mockInvestors.map((investor) => (
-                    <option key={investor} value={investor}>
-                      {investor}
+                  {investors.map((investor) => (
+                    <option key={investor.id} value={investor.id}>
+                      {investor.fullName} ({investor.email})
                     </option>
                   ))}
                 </select>
@@ -401,7 +385,7 @@ export default function PipelinePage() {
                 </button>
                 <button
                   onClick={handleAddClient}
-                  disabled={!selectedInvestor}
+                  disabled={!selectedInvestorId}
                   className="flex-1 py-4 bg-[#FCD34D] text-gray-800 text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-xl shadow-yellow-100 transition-all disabled:opacity-50"
                 >
                   Add Client

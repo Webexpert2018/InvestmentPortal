@@ -21,6 +21,7 @@ import { StatsModule } from './modules/stats/stats.module';
 import { HealthController } from './health.controller';
 
 import { BankAccountsModule } from './modules/bank-accounts/bank-accounts.module';
+import { PipelineModule } from './modules/pipeline/pipeline.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { BankAccountsModule } from './modules/bank-accounts/bank-accounts.module
     RedemptionsModule,
     StatsModule,
     BankAccountsModule,
+    PipelineModule,
   ],
   controllers: [HealthController],
 })

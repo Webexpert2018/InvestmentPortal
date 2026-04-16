@@ -16,7 +16,6 @@ const ROLE_OPTIONS = [
   { id: 'admin', label: 'Admins' },
   { id: 'fund_admin', label: 'Fund Admins' },
   { id: 'investor_relations', label: 'Investor Relations' },
-  { id: 'relations_associate', label: 'Relations Associates' },
   { id: 'accountant', label: 'Accountants' },
   { id: 'partnership', label: 'Partnerships' },
 ];

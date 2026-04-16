@@ -28,6 +28,11 @@ export class StaffController {
     return this.staffService.findOne(id);
   }
 
+  @Get(':id/assigned-investors')
+  async getAssignedInvestors(@Param('id') id: string) {
+    return this.staffService.findAssignedInvestors(id);
+  }
+
   @Post()
   @UseInterceptors(FileInterceptor('file', { storage: staffImageStorage }))
   async create(

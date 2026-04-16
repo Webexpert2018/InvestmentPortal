@@ -253,11 +253,13 @@ export class UsersService {
     if (!user) {
       result = await db.query(`
         SELECT 
-          id, email, 'investor' as role, full_name, phone, status, created_at,
-          dob, address_line1, address_line2, city, state, zip_code, country, 
-          tax_id, profile_image_url, kyc_status 
-        FROM investors
-        WHERE id = $1`,
+          i.id, i.email, 'investor' as role, i.full_name, i.phone, i.status, i.created_at,
+          i.dob, i.address_line1, i.address_line2, i.city, i.state, i.zip_code, i.country, 
+          i.tax_id, i.profile_image_url, i.kyc_status, i.assigned_ir_id,
+          s.full_name as assigned_ir_name, s.email as assigned_ir_email
+        FROM investors i
+        LEFT JOIN staff s ON i.assigned_ir_id = s.id
+        WHERE i.id = $1`,
         [targetUserId]
       );
       user = result.rows[0];
@@ -292,7 +294,10 @@ export class UsersService {
       country: user.country,
       taxId: user.tax_id,
       profileImageUrl: user.profile_image_url,
-      kycStatus: user.kyc_status
+      kycStatus: user.kyc_status,
+      assignedIrId: user.assigned_ir_id || null,
+      assignedIrName: user.assigned_ir_name || null,
+      assignedIrEmail: user.assigned_ir_email || null,
     };
   }
 
@@ -411,7 +416,7 @@ export class UsersService {
       )
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
       [
-        investorId, email, full_name, dummyPasswordHash, 'pending', 'pending',
+        investorId, email, full_name, dummyPasswordHash, 'pending', 'unverified',
         phone || null, dob || null, address_line1 || null, address_line2 || null, 
         city || null, state || null, zip_code || null, country || null, tax_id || null
       ]
@@ -515,5 +520,36 @@ export class UsersService {
     await db.query(`DELETE FROM ${tableName} WHERE id = $1`, [userId]);
 
     return { success: true };
+  }
+
+  async assignInvestorRelations(investorId: string, staffId: string | null, requestingUserRole: string) {
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(requestingUserRole)) {
+      throw new ForbiddenException('Only admins can assign investor relations');
+    }
+
+    // Verify investor exists
+    const investorCheck = await db.query('SELECT id FROM investors WHERE id = $1', [investorId]);
+    if (investorCheck.rows.length === 0) {
+      throw new NotFoundException('Investor not found');
+    }
+
+    // If staffId provided, verify it's a valid investor_relations staff
+    if (staffId) {
+      const staffCheck = await db.query(
+        "SELECT id, full_name FROM staff WHERE id = $1 AND role = 'investor_relations'",
+        [staffId]
+      );
+      if (staffCheck.rows.length === 0) {
+        throw new NotFoundException('Investor Relations staff member not found');
+      }
+    }
+
+    const result = await db.query(
+      'UPDATE investors SET assigned_ir_id = $1, updated_at = NOW() WHERE id = $2 RETURNING id, assigned_ir_id',
+      [staffId, investorId]
+    );
+
+    return { id: result.rows[0].id, assignedIrId: result.rows[0].assigned_ir_id };
   }
 }

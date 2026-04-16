@@ -60,6 +60,13 @@ export class AuthService {
       targetRole = 'executive_admin';
     }
 
+    // Get first pipeline stage ID if it's an investor
+    let firstStageId: number | null = null;
+    if (targetRole === 'investor' || !targetRole) {
+      const stageResult = await db.query('SELECT id FROM pipeline_stages ORDER BY order_index ASC LIMIT 1');
+      firstStageId = stageResult.rows[0]?.id || null;
+    }
+
     let newUser;
 
     if (targetRole === 'executive_admin') {
@@ -90,10 +97,10 @@ export class AuthService {
       if (isInvitation) {
         const userResult = await db.query(
           `UPDATE investors 
-           SET full_name = $1, password_hash = $2, phone = $3, dob = $4, address_line1 = $5, address_line2 = $6, city = $7, state = $8, zip_code = $9, country = $10, tax_id = $11, status = 'active', updated_at = NOW()
-           WHERE id = $12
-           RETURNING id, email, role, full_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status`,
-          [firstName + ' ' + (lastName || ''), passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId, invitationData.user_id]
+           SET full_name = $1, password_hash = $2, phone = $3, dob = $4, address_line1 = $5, address_line2 = $6, city = $7, state = $8, zip_code = $9, country = $10, tax_id = $11, status = 'active', kyc_status = 'unverified', pipeline_stage_id = COALESCE(pipeline_stage_id, $12), updated_at = NOW()
+           WHERE id = $13
+           RETURNING id, email, role, full_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status, kyc_status`,
+          [firstName + ' ' + (lastName || ''), passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId, firstStageId, invitationData.user_id]
         );
         newUser = userResult.rows[0];
 
@@ -101,10 +108,10 @@ export class AuthService {
         await db.query('UPDATE user_otps SET is_used = true WHERE otp = $1', [invitationToken]);
       } else {
         const userResult = await db.query(
-          `INSERT INTO investors (id, full_name, email, password_hash, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          `INSERT INTO investors (id, full_name, email, password_hash, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status, pipeline_stage_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
            RETURNING id, email, role, full_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status`,
-          [crypto.randomUUID(), firstName + ' ' + (lastName || ''), email, passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId, 'active']
+          [crypto.randomUUID(), firstName + ' ' + (lastName || ''), email, passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId, 'active', firstStageId]
         );
         newUser = userResult.rows[0];
       }

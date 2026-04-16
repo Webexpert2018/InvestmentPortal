@@ -182,6 +182,16 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
     };
   }
 
+  @Patch(':id/assign-ir')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
+  async assignInvestorRelations(
+    @Param('id') id: string,
+    @Body() body: { staffId: string | null },
+    @CurrentUser() user: any
+  ) {
+    return this.usersService.assignInvestorRelations(id, body.staffId, user.role);
+  }
+
   @Delete(':id')
   @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
   async deleteUser(@Param('id') id: string, @CurrentUser() user: any) {

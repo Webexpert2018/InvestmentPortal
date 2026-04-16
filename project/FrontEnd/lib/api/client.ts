@@ -204,6 +204,13 @@ class ApiClient {
     });
   }
 
+  async assignInvestorRelations(investorId: string, staffId: string | null) {
+    return this.request<any>(`/users/${investorId}/assign-ir`, {
+      method: 'PATCH',
+      body: JSON.stringify({ staffId }),
+    });
+  }
+
   async updateKycStatus(userId: string, kycStatus: string) {
     return this.request<any>(`/users/${userId}/kyc-status`, {
       method: 'PATCH',
@@ -745,6 +752,10 @@ class ApiClient {
     return this.request<any>(`/staff/${id}`);
   }
 
+  async getStaffAssignedInvestors(id: string) {
+    return this.request<any[]>(`/staff/${id}/assigned-investors`);
+  }
+
   async createStaff(data: any) {
     const isFormData = data instanceof FormData;
     return this.request<any>('/staff', {
@@ -845,6 +856,38 @@ class ApiClient {
   async deleteBankAccount(id: string) {
     return this.request<any>(`/bank-accounts/${id}`, {
       method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  async getInvestors(search?: string, page: number = 1, limit: number = 100) {
+    // For now, this calls /users which returns all investors
+    const users = await this.request<any[]>('/users');
+    return { data: users };
+  }
+
+  // --- Pipeline Module ---
+  async getPipelineData() {
+    return this.request<any[]>('/pipeline');
+  }
+
+  async updateInvestorPipelineStage(investorId: string, stageId: number) {
+    return this.request<any>(`/pipeline/investors/${investorId}/stage`, {
+      method: 'PATCH',
+      body: JSON.stringify({ stageId }),
+    });
+  }
+
+  async createPipelineStage(data: { name: string, color: string }) {
+    return this.request<any>('/pipeline/stages', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deletePipelineStage(stageId: number) {
+    return this.request<any>(`/pipeline/stages/${stageId}`, {
+      method: 'DELETE'
     });
   }
 }
