@@ -27,7 +27,7 @@ export class BankAccountsController {
     if (validateErrors.length > 0) {
       throw new BadRequestException(validateErrors.join(', '));
     }
-    return this.bankAccountsService.create(user.userId, data);
+return this.bankAccountsService.create(user.userId, data, user);
   }
 
   @Delete(':id')
@@ -55,21 +55,53 @@ export class BankAccountsController {
     if (validateErrors.length > 0) {
       throw new BadRequestException(validateErrors.join(', '));
     }
-    return this.bankAccountsService.update(user.userId, id, data);
+return this.bankAccountsService.update(user.userId, id, data, user);
   }
 
   private validateBankAccount(data: any, isCreate: boolean = true): string[] {
     const errors: string[] = [];
+
+  const isValidAccount = (val: string) => /^\d{8,17}$/.test(val);
+  const isValidRouting = (val: string) => /^\d{9}$/.test(val);
+
     if (isCreate) {
       if (!data.bank_name || !data.bank_name.trim()) errors.push('Bank name is required');
-      if (!data.account_number || !data.account_number.trim()) errors.push('Account number is required');
-      if (!data.routing_number || !data.routing_number.trim()) errors.push('Routing number is required');
+      // if (!data.account_number || !data.account_number.trim()) errors.push('Account number is required');
+      // if (!data.routing_number || !data.routing_number.trim()) errors.push('Routing number is required');
+       if (!data.account_number?.trim()) {
+          errors.push('Account number is required');
+        } else if (!isValidAccount(data.account_number)) {
+          errors.push('Account number must be 8-17 digits');
+        }
+
+        if (!data.routing_number?.trim()) {
+          errors.push('Routing number is required');
+        } 
+        // else if (!isValidRouting(data.routing_number)) {
+        //   errors.push('Routing number must be 9 digits');
+        // }
       if (!data.beneficiary_name || !data.beneficiary_name.trim()) errors.push('Beneficiary name is required');
       if (!data.bank_address || !data.bank_address.trim()) errors.push('Bank address is required');
     } else {
       if (data.bank_name !== undefined && !data.bank_name.trim()) errors.push('Bank name cannot be empty');
-      if (data.account_number !== undefined && !data.account_number.trim()) errors.push('Account number cannot be empty');
-      if (data.routing_number !== undefined && !data.routing_number.trim()) errors.push('Routing number cannot be empty');
+      // if (data.account_number !== undefined && !data.account_number.trim()) errors.push('Account number cannot be empty');
+      // if (data.routing_number !== undefined && !data.routing_number.trim()) errors.push('Routing number cannot be empty');
+
+      if (data.account_number !== undefined) {
+      if (!data.account_number.trim()) {
+        errors.push('Account number cannot be empty');
+      } else if (!isValidAccount(data.account_number)) {
+        errors.push('Account number must be 8-17 digits');
+      }
+    }
+
+    if (data.routing_number !== undefined) {
+      if (!data.routing_number.trim()) {
+        errors.push('Routing number cannot be empty');
+      } else if (!isValidRouting(data.routing_number)) {
+        errors.push('Routing number must be 9 digits');
+      }
+    }
       if (data.beneficiary_name !== undefined && !data.beneficiary_name.trim()) errors.push('Beneficiary name cannot be empty');
       if (data.bank_address !== undefined && !data.bank_address.trim()) errors.push('Bank address cannot be empty');
     }

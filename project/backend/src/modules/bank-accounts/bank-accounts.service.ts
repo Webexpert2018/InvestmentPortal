@@ -3,29 +3,18 @@ import { db } from '../../config/database';
 
 @Injectable()
 export class BankAccountsService {
-  async findAll(investorId: string) {
+  async findAll(userId: string) {
     try {
-      console.log('📋 [findAll] Fetching bank accounts for investor:', investorId);
-      
-      // Check if investor exists
-      const investorCheck = await db.query(
-        'SELECT id FROM investors WHERE id = $1',
-        [investorId]
-      );
-      
-      if (investorCheck.rows.length === 0) {
-        console.warn(`⚠️ [findAll] Investor not found: ${investorId} - Returning empty array`);
-        return [];
-      }
+      console.log('📋 [findAll] Fetching bank accounts for user:', userId);
 
       const query = `
-        SELECT id, investor_id, bank_name, account_number, routing_number, beneficiary_name, bank_address, bank_description, status, created_at, updated_at
-        FROM investor_bank_accounts 
-        WHERE investor_id = $1 
+        SELECT id, user_id, role, bank_name, account_number, routing_number, beneficiary_name, bank_address, bank_description, status, created_at, updated_at
+        FROM user_bank_accounts
+        WHERE user_id = $1
         ORDER BY created_at DESC
       `;
-      const result = await db.query(query, [investorId]);
-      console.log(`✅ [findAll] Found ${result.rows.length} bank accounts for investor: ${investorId}`);
+      const result = await db.query(query, [userId]);
+      console.log(`✅ [findAll] Found ${result.rows.length} bank accounts for user: ${userId}`);
       return result.rows;
     } catch (error) {
       console.error('❌ [findAll] Error fetching bank accounts:', error);
@@ -33,25 +22,16 @@ export class BankAccountsService {
     }
   }
 
-  async create(investorId: string, data: any) {
+  async create(userId: string, data: any, user: any) {
     const { bank_name, account_number, routing_number, beneficiary_name, bank_address, bank_description } = data;
+    const accountRole = user.role;
+    if (!accountRole) {
+      throw new InternalServerErrorException('User role not found in request');
+    }
     
     try {
-      console.log('📝 [create] Creating bank account for investor:', investorId);
+      console.log('📝 [create] Creating bank account for user:', userId, 'role:', accountRole);
       console.log('📝 [create] Data:', { bank_name, beneficiary_name, account_number });
-
-      // Verify investor exists before creating bank account
-      const investorCheck = await db.query(
-        'SELECT id, email FROM investors WHERE id = $1',
-        [investorId]
-      );
-
-      if (investorCheck.rows.length === 0) {
-        console.error(`❌ [create] Investor not found: ${investorId}`);
-        throw new InternalServerErrorException(`Investor with ID ${investorId} not found in system`);
-      }
-
-      console.log('✅ [create] Investor verified:', investorCheck.rows[0].email);
 
       // Validate required fields
       if (!bank_name?.trim()) throw new InternalServerErrorException('Bank name is required');
@@ -61,13 +41,14 @@ export class BankAccountsService {
       if (!bank_address?.trim()) throw new InternalServerErrorException('Bank address is required');
 
       const query = `
-        INSERT INTO investor_bank_accounts (
-          investor_id, bank_name, account_number, routing_number, beneficiary_name, bank_address, bank_description
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO user_bank_accounts (
+          user_id, role, bank_name, account_number, routing_number, beneficiary_name, bank_address, bank_description
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
       `;
       const result = await db.query(query, [
-        investorId,
+        userId,
+        accountRole,
         bank_name.trim(),
         account_number.trim(),
         routing_number.trim(),
@@ -82,11 +63,11 @@ export class BankAccountsService {
       await db.query(
         'INSERT INTO audit_logs (user_id, action, resource_type, resource_id, metadata) VALUES ($1, $2, $3, $4, $5)',
         [
-          investorId,
+          userId,
           'CREATE_BANK_ACCOUNT',
           'bank_account',
           result.rows[0].id,
-          JSON.stringify({ bank_name, beneficiary_name, timestamp: new Date().toISOString() })
+          JSON.stringify({ bank_name, beneficiary_name, role: accountRole, timestamp: new Date().toISOString() })
         ]
       ).catch(err => console.warn('⚠️ [create] Audit log failed:', err));
 
@@ -98,19 +79,19 @@ export class BankAccountsService {
     }
   }
 
-  async delete(investorId: string, accountId: string) {
+  async delete(userId: string, accountId: string) {
     try {
-      console.log('🗑️ [delete] Deleting bank account:', accountId, 'for investor:', investorId);
+      console.log('🗑️ [delete] Deleting bank account:', accountId, 'for user:', userId);
       
       const query = `
-        DELETE FROM investor_bank_accounts 
-        WHERE id = $1 AND investor_id = $2
+        DELETE FROM user_bank_accounts
+        WHERE id = $1 AND user_id = $2
         RETURNING *
       `;
-      const result = await db.query(query, [accountId, investorId]);
+      const result = await db.query(query, [accountId, userId]);
       
       if (result.rows.length === 0) {
-        console.warn(`⚠️ [delete] Bank account not found: ${accountId} for investor ${investorId}`);
+        console.warn(`⚠️ [delete] Bank account not found: ${accountId} for user ${userId}`);
         throw new NotFoundException('Bank account not found');
       }
 
@@ -120,11 +101,11 @@ export class BankAccountsService {
       await db.query(
         'INSERT INTO audit_logs (user_id, action, resource_type, resource_id, metadata) VALUES ($1, $2, $3, $4, $5)',
         [
-          investorId,
+          userId,
           'DELETE_BANK_ACCOUNT',
           'bank_account',
           accountId,
-          JSON.stringify({ bank_name: result.rows[0].bank_name, timestamp: new Date().toISOString() })
+          JSON.stringify({ bank_name: result.rows[0].bank_name, role: result.rows[0].role, timestamp: new Date().toISOString() })
         ]
       ).catch(err => console.warn('⚠️ [delete] Audit log failed:', err));
 
@@ -136,11 +117,11 @@ export class BankAccountsService {
     }
   }
 
-  async update(investorId: string, accountId: string, data: any) {
-    const { bank_name, account_number, routing_number, beneficiary_name, bank_address, bank_description, status } = data;
+  async update(userId: string, accountId: string, data: any, user: any) {
+    const { bank_name, account_number, routing_number, beneficiary_name, bank_address, bank_description, status } = data; // role ignored for security
     try {
-      console.log('✏️ [update] Updating bank account:', accountId, 'for investor:', investorId);
-      let query = 'UPDATE investor_bank_accounts SET updated_at = CURRENT_TIMESTAMP';
+      console.log('✏️ [update] Updating bank account:', accountId, 'for user:', userId);
+      let query = 'UPDATE user_bank_accounts SET updated_at = CURRENT_TIMESTAMP';
       const values: any[] = [];
       let paramCount = 1;
 
@@ -173,14 +154,14 @@ export class BankAccountsService {
         values.push(status);
       }
 
-      query += ` WHERE id = $${paramCount++} AND investor_id = $${paramCount++} RETURNING *`;
-      values.push(accountId, investorId);
+      query += ` WHERE id = $${paramCount++} AND user_id = $${paramCount++} RETURNING *`;
+      values.push(accountId, userId);
 
       console.log(`✏️ [update] Query values:`, values);
       const result = await db.query(query, values);
       
       if (result.rows.length === 0) {
-        console.warn(`⚠️ [update] Bank account not found: ${accountId} for investor ${investorId}`);
+        console.warn(`⚠️ [update] Bank account not found: ${accountId} for user ${userId}`);
         throw new NotFoundException('Bank account not found');
       }
 
@@ -190,7 +171,7 @@ export class BankAccountsService {
       await db.query(
         'INSERT INTO audit_logs (user_id, action, resource_type, resource_id, metadata) VALUES ($1, $2, $3, $4, $5)',
         [
-          investorId,
+          userId,
           'UPDATE_BANK_ACCOUNT',
           'bank_account',
           accountId,
@@ -206,3 +187,4 @@ export class BankAccountsService {
     }
   }
 }
+
