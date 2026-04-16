@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Post, Delete, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Delete, Body, Param, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
 import { PipelineService } from './pipeline.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { RolesGuard } from '../../guards/roles.guard';
@@ -11,8 +11,9 @@ export class PipelineController {
   constructor(private readonly pipelineService: PipelineService) {}
 
   @Get()
-  async getBoard() {
-    return this.pipelineService.findAll();
+  async getBoard(@Req() req: any) {
+    const { userId, role } = req.user || {};
+    return this.pipelineService.findAll(userId, role);
   }
 
   @Patch('investors/:id/stage')

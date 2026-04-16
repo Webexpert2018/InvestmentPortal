@@ -3,7 +3,7 @@ import { db } from '../../config/database';
 
 @Injectable()
 export class PipelineService {
-  async findAll() {
+  async findAll(userId?: string, role?: string) {
     // 1. Fetch all stages ordered by order_index
     const stagesResult = await db.query(
       'SELECT id, name, color, order_index, status FROM pipeline_stages ORDER BY order_index ASC'
@@ -20,16 +20,32 @@ export class PipelineService {
       `, [firstStageId]);
     }
 
-    // 3. Fetch all investors and their assigned stages
-    const investorsResult = await db.query(`
-      SELECT i.id, i.full_name as name, i.pipeline_stage_id, i.assigned_ir_id
+    // 3. Fetch investors with role-based filtering
+    const userRole = (role || '').toLowerCase();
+    const isIR = userRole === 'investor_relations';
+    
+    // Admins and other staff see everyone. IR staff only see assigned investors.
+    const query = `
+      SELECT 
+        i.id, 
+        i.full_name as name, 
+        i.pipeline_stage_id, 
+        i.assigned_ir_id,
+        s.full_name as assigned_ir_name,
+        COALESCE(SUM(inv.investment_amount), 0) as total_investment
       FROM investors i
+      LEFT JOIN staff s ON i.assigned_ir_id = s.id
+      LEFT JOIN investments inv ON i.id = inv.user_id
       WHERE i.pipeline_stage_id IS NOT NULL
+      ${isIR ? 'AND i.assigned_ir_id = $1' : ''}
+      GROUP BY i.id, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, s.full_name, i.updated_at
       ORDER BY i.updated_at DESC
-    `);
+    `;
+
+    const investorsResult = await db.query(query, isIR ? [userId] : []);
     const investors = investorsResult.rows;
 
-    // 3. Group investors by stage
+    // 4. Group investors by stage
     return stages.map(stage => ({
       ...stage,
       count: investors.filter(i => i.pipeline_stage_id === stage.id).length,
@@ -39,6 +55,8 @@ export class PipelineService {
           id: i.id,
           name: i.name,
           assignedIrId: i.assigned_ir_id,
+          assignedIrName: i.assigned_ir_name,
+          totalInvestment: parseFloat(i.total_investment),
           avatar: i.name
             .split(' ')
             .map((n: string) => n[0])

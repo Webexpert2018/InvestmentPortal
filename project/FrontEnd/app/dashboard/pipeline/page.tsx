@@ -22,6 +22,17 @@ const colorOptions = [
   '#FDE68A', // Yellow
 ];
 
+const formatCompactAmount = (amount: number) => {
+  if (amount === 0) return '$0';
+  if (amount < 1000) return `$${amount}`;
+  if (amount < 1000000) {
+    const k = amount / 1000;
+    return `$${Number.isInteger(k) ? k : k.toFixed(1)}K`;
+  }
+  const m = amount / 1000000;
+  return `$${Number.isInteger(m) ? m : m.toFixed(1)}M`;
+};
+
 export default function PipelinePage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -257,15 +268,33 @@ export default function PipelinePage() {
                                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1F3B6E] text-xs font-bold text-white shadow-inner">
                                         {investor.avatar || (investor.name || investor.fullName || '?').charAt(0).toUpperCase()}
                                       </div>
-                                      <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-sm font-semibold text-gray-800">{investor.name || investor.fullName || 'Unnamed Investor'}</span>
-                                          {user?.role === 'investor_relations' && investor.assignedIrId === user?.id && (
-                                            <span className="px-1.5 py-0.5 bg-green-100 text-[10px] font-bold text-green-700 rounded-md uppercase tracking-tight">
-                                              Assigned to Me
+                                      <div className="flex flex-col flex-1 min-w-0">
+                                        <div className="flex items-center justify-between gap-2">
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <span className="text-sm font-semibold text-gray-800 truncate">
+                                              {investor.name || investor.fullName || 'Unnamed Investor'}
                                             </span>
-                                          )}
+                                            {user?.role !== 'investor_relations' && investor.assignedIrId === user?.id && (
+                                              <span className="flex-none px-1.5 py-0.5 bg-green-100 text-[10px] font-bold text-green-700 rounded-md uppercase tracking-tight">
+                                                Self
+                                              </span>
+                                            )}
+                                          </div>
+                                          <span className="flex-none text-sm font-bold text-[#1F3B6E]">
+                                            {formatCompactAmount(investor.totalInvestment || 0)}
+                                          </span>
                                         </div>
+                                        {user?.role !== 'investor_relations' && (
+                                          <div className="flex items-center gap-1 mt-1">
+                                            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Assigned to:</span>
+                                            <span className={cn(
+                                              "text-[10px] font-bold uppercase",
+                                              investor.assignedIrName ? "text-[#FCD34D]" : "text-gray-300 italic"
+                                            )}>
+                                              {investor.assignedIrName || 'No assigned ITR'}
+                                            </span>
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                     <GripVertical className="h-4 w-4 text-gray-300 group-hover:text-gray-400 transition-colors" />
