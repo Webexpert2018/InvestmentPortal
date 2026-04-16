@@ -39,7 +39,7 @@ const getFullImageUrl = (imagePath: string | null | undefined): string | undefin
 export default function InvestPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [step, setStep] = useState<Step>('investmentAmount');
+  const [step, setStep] = useState<Step>('chooseFund');
   const [funds, setFunds] = useState<any[]>([]);
   const [existingFlows, setExistingFlows] = useState<any[]>([]);
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
@@ -213,14 +213,14 @@ export default function InvestPage() {
   const goBack = () => {
     setStep((current: Step) => {
       switch (current) {
-        case 'investmentAmount':
-          return current;
         case 'chooseFund':
-          return 'investmentAmount';
+          return current;
         case 'fundingAccount':
           return 'chooseFund';
-        case 'signDocuments':
+        case 'investmentAmount':
           return 'fundingAccount';
+        case 'signDocuments':
+          return 'investmentAmount';
         case 'fundingInstructions':
           return 'signDocuments';
         case 'investmentStatus':
@@ -363,11 +363,11 @@ export default function InvestPage() {
 
     setStep((current: Step) => {
       switch (current) {
-        case 'investmentAmount':
-          return 'chooseFund';
         case 'chooseFund':
           return 'fundingAccount';
         case 'fundingAccount':
+          return 'investmentAmount';
+        case 'investmentAmount':
           return 'signDocuments';
         case 'signDocuments':
           return 'fundingInstructions';
@@ -476,7 +476,7 @@ export default function InvestPage() {
         <div className="mt-6 flex items-center justify-end gap-3">
           <button
             type="button"
-            onClick={() => setStep('investmentAmount')}
+            onClick={() => router.push('/dashboard')}
             className="rounded-full bg-[#FFF3D6] px-5 py-2 text-sm font-medium text-[#4B4B4B] hover:bg-[#FFE7AF]"
           >
             Cancel
@@ -622,7 +622,7 @@ export default function InvestPage() {
         </div>
       </div>
 
-      {renderFooter({ showBack: false })}
+      {renderFooter()}
     </>
   );
 
