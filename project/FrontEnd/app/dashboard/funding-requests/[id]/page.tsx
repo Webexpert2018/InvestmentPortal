@@ -118,7 +118,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <h2 className="text-red-800 font-bold text-lg mb-2">Error</h2>
             <p className="text-red-600">{error || 'Request not found'}</p>
-            <Button 
+            <Button
               onClick={() => window.location.reload()}
               className="mt-4 bg-red-100 hover:bg-red-200 text-red-700 border-none shadow-none"
             >
@@ -159,7 +159,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                 onClick={() => setShowApproveModal(true)}
                 className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium shadow-none h-auto"
               >
-                Reviewed
+                Received
               </Button>
             </div>
           </div>
@@ -186,7 +186,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                   <p className="text-sm text-gray-400 mb-1">Account Type</p>
                   <p className="font-medium text-gray-900">{requestData.accountType}</p>
                 </div>
-                
+
                 <div>
                   <p className="text-sm text-gray-400 mb-1">Fund Name</p>
                   <p className="font-medium text-[#1F3B6E]">{requestData.fundName}</p>
