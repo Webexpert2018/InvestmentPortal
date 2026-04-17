@@ -16,6 +16,7 @@ interface Investor {
   lastName: string;
   email: string;
   invested: string;
+  units: string;
   kycStatus: string;
   profileImageUrl: string | null;
   createdAt: string;
@@ -257,11 +258,12 @@ export default function InvestorPage() {
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Email</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Account Type</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">KYC Status</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize">Invested</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">DateJoined</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Action</th>
-                </tr>
-              </thead>
+                   <th className="px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize">Units</th>
+                   <th className="px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize">Invested</th>
+                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">DateJoined</th>
+                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Action</th>
+                 </tr>
+               </thead>
               <tbody className="divide-y divide-[#F3F4F6]">
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
@@ -326,10 +328,13 @@ export default function InvestorPage() {
                               {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
                             </span>
                           </td>
-                          <td className="px-6 py-5 text-right font-bold text-[#111827]">
-                            {investor.invested || '-'}
-                          </td>
-                          <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
+                           <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                             {investor.units || '0.00'}
+                           </td>
+                           <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                             {investor.invested || '-'}
+                           </td>
+                           <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
                             {new Date(investor.createdAt).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
@@ -393,8 +398,9 @@ export default function InvestorPage() {
                                 Invited
                               </span>
                             </td>
-                            <td className="px-6 py-5 text-right text-[#9CA3AF]">-</td>
-                            <td className="px-6 py-5 text-sm text-[#9CA3AF]">
+                             <td className="px-6 py-5 text-right text-[#9CA3AF]">-</td>
+                             <td className="px-6 py-5 text-right text-[#9CA3AF]">-</td>
+                             <td className="px-6 py-5 text-sm text-[#9CA3AF]">
                               {new Date(investor.createdAt).toLocaleDateString()}
                             </td>
                             <td className="px-8 py-5 text-center relative">

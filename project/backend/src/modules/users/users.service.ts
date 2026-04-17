@@ -225,7 +225,8 @@ export class UsersService {
       SELECT 
         id, email, role, full_name as "firstName", '' as "lastName", phone, status, created_at as "createdAt", 
         kyc_status as "kycStatus", profile_image_url as "profileImageUrl",
-        (SELECT COALESCE(SUM(investment_amount), 0) FROM investments WHERE user_id = investors.id) as total_invested
+        (SELECT COALESCE(SUM(investment_amount), 0) FROM investments WHERE user_id = investors.id) as total_invested,
+        (SELECT COALESCE(SUM(estimated_units), 0) FROM investments WHERE user_id = investors.id) as total_units
       FROM investors
       ORDER BY 
         CASE WHEN status = 'pending' THEN 0 ELSE 1 END,
@@ -237,6 +238,7 @@ export class UsersService {
       firstName: user.firstName,
       lastName: user.lastName,
       invested: `$${parseFloat(user.total_invested).toFixed(2)}`,
+      units: parseFloat(user.total_units).toFixed(2),
       avatar: user.firstName[0].toUpperCase(),
     }));
   }
