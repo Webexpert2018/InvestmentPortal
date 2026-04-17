@@ -8,11 +8,24 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 export default function SettingsPage() {
   const { user } = useAuth();
   const role = user?.role?.trim().toLowerCase();
-  const isAccountant = role === 'accountant' || role === 'accountants';
+  
+  // Define staff roles that should use the Accountant/Staff settings screen
+  const staffRoles = [
+    'admin', 
+    'executive_admin', 
+    'accountant', 
+    'accountants',
+    'fund_admin', 
+    'investor_relations', 
+    'relations_associate', 
+    'partnership'
+  ];
+  
+  const isStaff = staffRoles.includes(role || '');
 
   return (
     <DashboardLayout>
-      {isAccountant ? <AccountantSettingsScreen /> : <InvestorSettingsScreen />}
+      {isStaff ? <AccountantSettingsScreen /> : <InvestorSettingsScreen />}
     </DashboardLayout>
   );
 }

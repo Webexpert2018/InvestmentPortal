@@ -1,0 +1,16 @@
+-- Migration: Add profile fields to staff table
+-- Created: 2026-04-16
+
+ALTER TABLE staff
+ADD COLUMN IF NOT EXISTS dob DATE,
+ADD COLUMN IF NOT EXISTS address_line1 VARCHAR(255),
+ADD COLUMN IF NOT EXISTS address_line2 VARCHAR(255),
+ADD COLUMN IF NOT EXISTS city VARCHAR(100),
+ADD COLUMN IF NOT EXISTS state VARCHAR(100),
+ADD COLUMN IF NOT EXISTS zip_code VARCHAR(50),
+ADD COLUMN IF NOT EXISTS country VARCHAR(100),
+ADD COLUMN IF NOT EXISTS tax_id VARCHAR(100);
+
+-- Record migration
+INSERT INTO migrations (name) VALUES ('042_add_profile_fields_to_staff.sql')
+ON CONFLICT (name) DO NOTHING;

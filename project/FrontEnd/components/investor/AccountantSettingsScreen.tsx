@@ -68,7 +68,7 @@ const formatDateForInput = (dateStr: string | null | undefined) => {
 };
 
 export function AccountantSettingsScreen() {
-  const { logout } = useAuth();
+  const { logout, updateUser, profileTimestamp } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -94,6 +94,7 @@ export function AccountantSettingsScreen() {
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [country, setCountry] = useState('');
+  const [taxId, setTaxId] = useState('');
 
   const imgRef = useRef<HTMLInputElement>(null);
   const dobRef = useRef<HTMLInputElement>(null);
@@ -166,6 +167,7 @@ export function AccountantSettingsScreen() {
           }
 
           setCity(userData.city || '');
+          setTaxId(userData.taxId || '');
         }
         setError(null);
       } catch (err) {
@@ -303,27 +305,29 @@ export function AccountantSettingsScreen() {
     setProfileImg(e.target.files?.[0]?.name ?? '');
   };
 
-  /* ─────────────── Toggle ─────────────── */
-  const Toggle = ({ on, toggle }: { on: boolean; toggle: () => void }) => (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      onClick={toggle}
-      className={`relative inline-flex h-[22px] w-[42px] shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${on ? 'bg-[#2196F3]' : 'bg-[#D1D5DB]'
-        }`}
-    >
-      <span
-        className={`pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-white shadow-sm transition-transform duration-200 ${on ? 'translate-x-[22px]' : 'translate-x-[2px]'
-          }`}
-      />
-    </button>
-  );
+  /* -----------------------------------
+     Toggle
+     ----------------------------------- */
+  const renderToggle = (on: boolean, toggle: () => void) => {
+    return (
+      <button
+        type="button"
+        role="switch"
+        aria-checked={on}
+        onClick={toggle}
+        className={`relative inline-flex h-[22px] w-[42px] shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${on ? 'bg-[#2196F3]' : 'bg-[#D1D5DB]'}`}
+      >
+        <span
+          className={`pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-white shadow-sm transition-transform duration-200 ${on ? 'translate-x-[22px]' : 'translate-x-[2px]'}`}
+        />
+      </button>
+    );
+  };
 
-  /* ═══════════════════════════════════════
-     TAB 1 — Profile Information
-     ═══════════════════════════════════════ */
-  const ProfileTab = () => (
+  /* -----------------------------------
+     TAB 1 - Profile Information
+     ----------------------------------- */
+  const renderProfileTab = () => (
     <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white p-6 sm:p-8">
       {loading ? (
         <div className="flex items-center justify-center py-8">
@@ -342,6 +346,7 @@ export function AccountantSettingsScreen() {
               try {
                 setSaving(true);
                 const result = await apiClient.uploadProfileImage(file);
+                updateUser({ profileImageUrl: result.imageUrl });
                 setProfileImageUrl(result.imageUrl);
                 toast({ title: 'Success', description: 'Profile image updated', variant: 'success' });
               } catch (err: any) {
@@ -358,7 +363,17 @@ export function AccountantSettingsScreen() {
             >
               {profileImageUrl ? (
                 <>
-                  <img src={`${BASE_URL}${profileImageUrl}`} alt="Profile" className="h-full w-full object-cover" />
+                  <img src={(() => {
+                    if (!profileImageUrl) return '';
+                    if (profileImageUrl.startsWith('http')) {
+                      const url = new URL(profileImageUrl);
+                      url.searchParams.set('t', profileTimestamp.toString());
+                      return url.toString();
+                    }
+                    const baseUrl = BASE_URL;
+                    const separator = profileImageUrl.includes('?') ? '&' : '?';
+                    return `${baseUrl}${profileImageUrl}${separator}t=${profileTimestamp}`;
+                  })()} alt="Profile" className="h-full w-full object-cover" />
                   {!saving && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Upload className="h-4 w-4 text-white" />
@@ -562,9 +577,9 @@ export function AccountantSettingsScreen() {
               {profileErrors.city && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.city}</p>}
             </div>
 
-            {/* ZIP Code */}
+            {/* Zip Code */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">ZIP Code</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Zip Code</label>
               <input
                 placeholder="Enter zip code"
                 value={zipCode}
@@ -573,6 +588,19 @@ export function AccountantSettingsScreen() {
               />
               {profileErrors.zipCode && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.zipCode}</p>}
             </div>
+          </div>
+
+          <div className="mt-6 max-w-[360px]">
+            <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">TAX Information</label>
+            <p className="mb-2 text-[11px] text-[#9CA3AF] font-helvetica">Social Security Number / Tax ID</p>
+            <input
+              placeholder="Format: XXX-XX-XXXX"
+              value={taxId}
+              maxLength={11}
+              onChange={(e) => setTaxId(e.target.value)}
+              className="h-[42px] w-full rounded-[8px] border border-[#E5E7EB] bg-white px-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica"
+            />
+            <p className="mt-1 text-[11px] text-[#9CA3AF] font-helvetica">Your information is encrypted and secure</p>
           </div>
 
           {profileSaved && <p className="mt-3 text-[12px] text-[#16A66A] font-helvetica">Profile updated successfully!</p>}
@@ -613,6 +641,7 @@ export function AccountantSettingsScreen() {
                     state,
                     zipCode,
                     country,
+                    taxId,
                   };
 
                   await apiClient.updateProfile(updateData);
@@ -643,10 +672,10 @@ export function AccountantSettingsScreen() {
     </div>
   );
 
-  /* ═══════════════════════════════════════
+  /* -----------------------------------
      TAB 2 — Security & Login
-     ═══════════════════════════════════════ */
-  const SecurityTab = () => (
+     ----------------------------------- */
+  const renderSecurityTab = () => (
     <div className="space-y-5">
       {/* Change Password */}
       <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white">
@@ -741,15 +770,14 @@ export function AccountantSettingsScreen() {
               <p className="text-[14px] font-semibold text-[#1F1F1F] font-helvetica">Authenticator App</p>
               <p className="mt-[2px] text-[12px] text-[#9CA3AF] font-helvetica">Time-based one-time password (OTP)</p>
             </div>
-            <Toggle on={authApp} toggle={() => setAuthApp(!authApp)} />
+            {renderToggle(authApp, () => setAuthApp(!authApp))}
           </div>
-          {/* SMS Backup Codes */}
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
             <div>
               <p className="text-[14px] font-semibold text-[#1F1F1F] font-helvetica">SMS Backup Codes</p>
               <p className="mt-[2px] text-[12px] text-[#9CA3AF] font-helvetica">Receive codes via text message as a backup.</p>
             </div>
-            <Toggle on={smsCodes} toggle={() => setSmsCodes(!smsCodes)} />
+            {renderToggle(smsCodes, () => setSmsCodes(!smsCodes))}
           </div>
           {/* Download Recovery Codes */}
           <div className="py-4">
@@ -796,10 +824,10 @@ export function AccountantSettingsScreen() {
     </div>
   );
 
-  /* ═══════════════════════════════════════
+  /* -----------------------------------
      TAB 3 — Notifications
-     ═══════════════════════════════════════ */
-  const NotificationsTab = () => (
+     ----------------------------------- */
+  const renderNotificationsTab = () => (
     <div>
       <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white">
         <div className="border-b border-[#ECEDEF] px-6 py-4">
@@ -809,22 +837,22 @@ export function AccountantSettingsScreen() {
           {/* New document uploaded */}
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
             <span className="text-[14px] text-[#1F1F1F] font-helvetica">New document uploaded</span>
-            <Toggle on={notifDocUploaded} toggle={() => setNotifDocUploaded(!notifDocUploaded)} />
+            {renderToggle(notifDocUploaded, () => setNotifDocUploaded(!notifDocUploaded))}
           </div>
           {/* Missing document alerts */}
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
             <span className="text-[14px] text-[#1F1F1F] font-helvetica">Missing document alerts</span>
-            <Toggle on={notifMissingDoc} toggle={() => setNotifMissingDoc(!notifMissingDoc)} />
+            {renderToggle(notifMissingDoc, () => setNotifMissingDoc(!notifMissingDoc))}
           </div>
           {/* New investor messages */}
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
             <span className="text-[14px] text-[#1F1F1F] font-helvetica">New investor messages</span>
-            <Toggle on={notifInvestorMsg} toggle={() => setNotifInvestorMsg(!notifInvestorMsg)} />
+            {renderToggle(notifInvestorMsg, () => setNotifInvestorMsg(!notifInvestorMsg))}
           </div>
           {/* Reminder */}
           <div className="flex items-center justify-between py-4">
             <span className="text-[14px] text-[#1F1F1F] font-helvetica">Reminder</span>
-            <Toggle on={notifReminder} toggle={() => setNotifReminder(!notifReminder)} />
+            {renderToggle(notifReminder, () => setNotifReminder(!notifReminder))}
           </div>
         </div>
 
@@ -842,10 +870,10 @@ export function AccountantSettingsScreen() {
     </div>
   );
 
-  /* ═══════════════════════════════════════
+  /* -----------------------------------
      LOGOUT CONFIRMATION MODAL
-     ═══════════════════════════════════════ */
-  const LogoutModal = () => {
+     ----------------------------------- */
+  const renderLogoutModal = () => {
     if (!logoutOpen) return null;
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40">
@@ -890,9 +918,9 @@ export function AccountantSettingsScreen() {
     );
   };
 
-  /* ═══════════════════════════════════════
+  /* -----------------------------------
      PAGE LAYOUT
-     ═══════════════════════════════════════ */
+     ----------------------------------- */
   return (
     <div className="mx-auto w-full max-w-8xl font-helvetica">
       {/* Title */}
@@ -923,12 +951,12 @@ export function AccountantSettingsScreen() {
 
       {/* Content */}
       <div className="mt-6 pb-8">
-        {tab === 'profile' && <ProfileTab />}
-        {tab === 'security' && <SecurityTab />}
-        {tab === 'notifications' && <NotificationsTab />}
+        {tab === 'profile' && renderProfileTab()}
+        {tab === 'security' && renderSecurityTab()}
+        {tab === 'notifications' && renderNotificationsTab()}
       </div>
 
-      <LogoutModal />
+      {renderLogoutModal()}
     </div>
   );
 }

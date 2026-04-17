@@ -11,9 +11,11 @@ export class UsersService {
     // First, check the users table (Admin/Staff)
     let result = await db.query(`
       SELECT 
-        u.id, u.email, u.role, u.first_name, u.last_name, u.phone, u.status, u.created_at, u.profile_image_url
-      FROM users u
-      WHERE u.id = $1`,
+        id, email, role, first_name as "firstName", last_name as "lastName", phone, status, created_at as "createdAt", 
+        profile_image_url as "profileImageUrl", dob, address_line1 as "addressLine1", address_line2 as "addressLine2", 
+        city, state, zip_code as "zipCode", country, tax_id as "taxId", kyc_status as "kycStatus"
+      FROM users
+      WHERE id = $1`,
       [userId]
     );
 
@@ -23,7 +25,10 @@ export class UsersService {
     if (!user) {
       result = await db.query(`
         SELECT 
-          id, email, role, full_name, phone, status, created_at, profile_image_url
+          id, email, role, full_name, phone, status, created_at as "createdAt", 
+          profile_image_url as "profileImageUrl", dob, address_line1 as "addressLine1", 
+          address_line2 as "addressLine2", city, state, zip_code as "zipCode", country, 
+          tax_id as "taxId", 'approved' as "kycStatus"
         FROM staff
         WHERE id = $1`,
         [userId]
@@ -35,9 +40,10 @@ export class UsersService {
     if (!user) {
       result = await db.query(`
         SELECT 
-          id, email, 'investor' as role, full_name, phone, status, created_at,
-          dob, address_line1, address_line2, city, state, zip_code, country, 
-          tax_id, profile_image_url, kyc_status 
+          id, email, 'investor' as role, full_name, phone, status, created_at as "createdAt",
+          dob, address_line1 as "addressLine1", address_line2 as "addressLine2", 
+          city, state, zip_code as "zipCode", country, tax_id as "taxId", 
+          profile_image_url as "profileImageUrl", kyc_status as "kycStatus" 
         FROM investors
         WHERE id = $1`,
         [userId]
@@ -45,36 +51,36 @@ export class UsersService {
       user = result.rows[0];
     }
 
-    // Standardize Name Fields for Staff and Investors
-    if (user && user.full_name) {
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Standardize Name Fields for Staff and Investors (who use full_name)
+    if (user.full_name && (!user.firstName || !user.lastName)) {
       const nameParts = user.full_name.trim().split(' ');
       user.firstName = nameParts[0] || '';
       user.lastName = nameParts.slice(1).join(' ') || '';
-    }
-
-    if (!user) {
-      throw new NotFoundException('User not found');
     }
 
     return {
       id: user.id,
       email: user.email,
       role: user.role,
-      firstName: user.firstName || user.first_name || '',
-      lastName: user.lastName || user.last_name || '',
-      phone: user.phone,
-      status: user.status,
-      createdAt: user.created_at,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      phone: user.phone || '',
+      status: user.status || 'active',
+      createdAt: user.createdAt,
       dob: user.dob,
-      addressLine1: user.address_line1,
-      addressLine2: user.address_line2,
-      city: user.city,
-      state: user.state,
-      zipCode: user.zip_code,
-      country: user.country,
-      taxId: user.tax_id,
-      profileImageUrl: user.profile_image_url,
-      kycStatus: user.kyc_status
+      addressLine1: user.addressLine1 || '',
+      addressLine2: user.addressLine2 || '',
+      city: user.city || '',
+      state: user.state || '',
+      zipCode: user.zipCode || '',
+      country: user.country || '',
+      taxId: user.taxId || '',
+      profileImageUrl: user.profileImageUrl || '',
+      kycStatus: user.kycStatus || 'pending'
     };
   }
 
@@ -242,20 +248,41 @@ export class UsersService {
     }
 
     // First, check the users table (Admin/Staff)
-    let result = await db.query(
-      'SELECT id, email, role, first_name, last_name, phone, status, created_at, profile_image_url FROM users WHERE id = $1',
+    let result = await db.query(`
+      SELECT 
+        id, email, role, first_name as "firstName", last_name as "lastName", phone, status, created_at as "createdAt", 
+        profile_image_url as "profileImageUrl", dob, address_line1 as "addressLine1", address_line2 as "addressLine2", 
+        city, state, zip_code as "zipCode", country, tax_id as "taxId", kyc_status as "kycStatus"
+      FROM users
+      WHERE id = $1`,
       [targetUserId]
     );
 
     let user = result.rows[0];
 
-    // If not found in users, check the investors table
+    // If not found in users, check the staff table
     if (!user) {
       result = await db.query(`
         SELECT 
-          i.id, i.email, 'investor' as role, i.full_name, i.phone, i.status, i.created_at,
-          i.dob, i.address_line1, i.address_line2, i.city, i.state, i.zip_code, i.country, 
-          i.tax_id, i.profile_image_url, i.kyc_status, i.assigned_ir_id,
+          id, email, role, full_name, phone, status, created_at as "createdAt", 
+          profile_image_url as "profileImageUrl", dob, address_line1 as "addressLine1", 
+          address_line2 as "addressLine2", city, state, zip_code as "zipCode", country, 
+          tax_id as "taxId", 'approved' as "kycStatus"
+        FROM staff
+        WHERE id = $1`,
+        [targetUserId]
+      );
+      user = result.rows[0];
+    }
+
+    // If still not found, check the investors table
+    if (!user) {
+      result = await db.query(`
+        SELECT 
+          i.id, i.email, 'investor' as role, i.full_name, i.phone, i.status, i.created_at as "createdAt",
+          i.dob, i.address_line1 as "addressLine1", i.address_line2 as "addressLine2", 
+          i.city, i.state, i.zip_code as "zipCode", i.country, 
+          i.tax_id as "taxId", i.profile_image_url as "profileImageUrl", i.kyc_status as "kycStatus", i.assigned_ir_id,
           s.full_name as assigned_ir_name, s.email as assigned_ir_email
         FROM investors i
         LEFT JOIN staff s ON i.assigned_ir_id = s.id
@@ -263,41 +290,41 @@ export class UsersService {
         [targetUserId]
       );
       user = result.rows[0];
-      
-      if (user && user.full_name) {
-        // Map full_name to firstName/lastName for frontend consistency
-        const [firstName, ...lastNameParts] = user.full_name.split(' ');
-        user.firstName = firstName;
-        user.lastName = lastNameParts.join(' ');
-      }
     }
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
+    // Standardize Name Fields for Staff and Investors (who use full_name)
+    if (user.full_name && (!user.firstName || !user.lastName)) {
+      const nameParts = user.full_name.trim().split(' ');
+      user.firstName = nameParts[0] || '';
+      user.lastName = nameParts.slice(1).join(' ') || '';
+    }
+
     return {
       id: user.id,
       email: user.email,
       role: user.role,
-      firstName: user.firstName || user.first_name || '',
-      lastName: user.lastName || user.last_name || '',
-      phone: user.phone,
-      status: user.status,
-      createdAt: user.created_at,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      phone: user.phone || '',
+      status: user.status || 'active',
+      createdAt: user.createdAt,
       dob: user.dob,
-      addressLine1: user.address_line1,
-      addressLine2: user.address_line2,
-      city: user.city,
-      state: user.state,
-      zipCode: user.zip_code,
-      country: user.country,
-      taxId: user.tax_id,
-      profileImageUrl: user.profile_image_url,
-      kycStatus: user.kyc_status,
-      assignedIrId: user.assigned_ir_id || null,
-      assignedIrName: user.assigned_ir_name || null,
-      assignedIrEmail: user.assigned_ir_email || null,
+      addressLine1: user.addressLine1 || '',
+      addressLine2: user.addressLine2 || '',
+      city: user.city || '',
+      state: user.state || '',
+      zipCode: user.zipCode || '',
+      country: user.country || '',
+      taxId: user.taxId || '',
+      profileImageUrl: user.profileImageUrl || '',
+      kycStatus: user.kycStatus || 'pending',
+      assignedIrId: user.assigned_ir_id,
+      assignedIrName: user.assigned_ir_name,
+      assignedIrEmail: user.assigned_ir_email
     };
   }
 
@@ -307,18 +334,34 @@ export class UsersService {
       throw new ForbiddenException('Only admins can update user status');
     }
 
-    const result = await db.query(
-      'UPDATE users SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, email, status',
-      [status, userId]
-    );
+    // Determine which table handles this user
+    let tableName: string | null = null;
+    
+    const userCheck = await db.query('SELECT id FROM users WHERE id = $1', [userId]);
+    if (userCheck.rows.length > 0) {
+      tableName = 'users';
+    } else {
+      const investorCheck = await db.query('SELECT id FROM investors WHERE id = $1', [userId]);
+      if (investorCheck.rows.length > 0) {
+        tableName = 'investors';
+      } else {
+        const staffCheck = await db.query('SELECT id FROM staff WHERE id = $1', [userId]);
+        if (staffCheck.rows.length > 0) {
+          tableName = 'staff';
+        }
+      }
+    }
 
-    const user = result.rows[0];
-
-    if (!user) {
+    if (!tableName) {
       throw new NotFoundException('User not found');
     }
 
-    return { id: user.id, email: user.email, status: user.status };
+    const result = await db.query(
+      `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, email, status`,
+      [status, userId]
+    );
+
+    return result.rows[0];
   }
 
   async updateKycStatus(userId: string, kycStatus: string, requestingUserRole: string, requestingUserId?: string) {
@@ -327,30 +370,61 @@ export class UsersService {
       throw new ForbiddenException('You do not have permission to update this KYC status');
     }
 
+    // Determine which table handles this user
+    let tableName: string | null = null;
+    
+    // Check investors table (primary for KYC)
+    const investorCheck = await db.query('SELECT id FROM investors WHERE id = $1', [userId]);
+    if (investorCheck.rows.length > 0) {
+      tableName = 'investors';
+    } else {
+      // Check users table (some admins/staff might have KYC status)
+      const userCheck = await db.query('SELECT id FROM users WHERE id = $1', [userId]);
+      if (userCheck.rows.length > 0) {
+        tableName = 'users';
+      }
+    }
+
+    if (!tableName) {
+      throw new NotFoundException('User not found or role does not support KYC');
+    }
+
     const result = await db.query(
-      'UPDATE investors SET kyc_status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, kyc_status',
+      `UPDATE ${tableName} SET kyc_status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, kyc_status`,
       [kycStatus.toLowerCase(), userId]
     );
 
-    const investor = result.rows[0];
-
-    if (!investor) {
-      throw new NotFoundException('Investor not found');
-    }
-
-    return { id: investor.id, kycStatus: investor.kyc_status };
+    const updatedUser = result.rows[0];
+    return { id: updatedUser.id, kycStatus: updatedUser.kyc_status };
   }
 
   async changePassword(userId: string, currentPassword: string, newPassword: string) {
-    const userResult = await db.query(
-      'SELECT email, first_name, password_hash FROM users WHERE id = $1',
-      [userId]
-    );
-    const user = userResult.rows[0];
+    // Determine which table handles this user
+    let tableName: string | null = null;
+    let nameField: string = 'first_name';
+    let queryResult = await db.query('SELECT email, first_name, password_hash FROM users WHERE id = $1', [userId]);
+    
+    if (queryResult.rows.length > 0) {
+      tableName = 'users';
+    } else {
+      queryResult = await db.query('SELECT email, full_name, password_hash FROM investors WHERE id = $1', [userId]);
+      if (queryResult.rows.length > 0) {
+        tableName = 'investors';
+        nameField = 'full_name';
+      } else {
+        queryResult = await db.query('SELECT email, full_name, password_hash FROM staff WHERE id = $1', [userId]);
+        if (queryResult.rows.length > 0) {
+          tableName = 'staff';
+          nameField = 'full_name';
+        }
+      }
+    }
 
-    if (!user) {
+    if (!tableName || queryResult.rows.length === 0) {
       throw new NotFoundException('User not found');
     }
+
+    const user = queryResult.rows[0];
 
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isPasswordValid) {
@@ -358,13 +432,11 @@ export class UsersService {
     }
 
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
-    await db.query(
-      'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
-      [newPasswordHash, userId]
-    );
+    await db.query(`UPDATE ${tableName} SET password_hash = $1, updated_at = NOW() WHERE id = $2`, [newPasswordHash, userId]);
 
     // Send password changed notification
-    this.emailService.sendPasswordChangedEmail(user.email || '', user.first_name || 'User', newPassword)
+    const displayName = nameField === 'full_name' ? (user.full_name?.split(' ')[0] || 'User') : (user.first_name || 'User');
+    this.emailService.sendPasswordChangedEmail(user.email || '', displayName, newPassword)
       .catch(err => console.error(`Failed to send password changed email to ${user.email}:`, err));
 
     return { message: 'Password updated successfully' };
