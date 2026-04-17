@@ -204,4 +204,44 @@ export class RedemptionsService {
       throw new InternalServerErrorException('Failed to update redemption status');
     }
   }
+
+  async updateInternalAmount(id: string, amount: number) {
+    try {
+      const query = `
+        UPDATE redemptions 
+        SET internal_amount = $1, updated_at = CURRENT_TIMESTAMP 
+        WHERE id = $2 
+        RETURNING *
+      `;
+      const result = await db.query(query, [amount, id]);
+      if (result.rows.length === 0) {
+        throw new NotFoundException('Redemption request not found');
+      }
+      return result.rows[0];
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      console.error('❌ Error updating internal amount for redemption:', error);
+      throw new InternalServerErrorException('Failed to update internal amount');
+    }
+  }
+
+  async markAsReconciled(id: string, isReconciled: boolean) {
+    try {
+      const query = `
+        UPDATE redemptions 
+        SET is_reconciled = $1, updated_at = CURRENT_TIMESTAMP 
+        WHERE id = $2 
+        RETURNING *
+      `;
+      const result = await db.query(query, [isReconciled, id]);
+      if (result.rows.length === 0) {
+        throw new NotFoundException('Redemption request not found');
+      }
+      return result.rows[0];
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      console.error('❌ Error marking redemption as reconciled:', error);
+      throw new InternalServerErrorException('Failed to update reconciliation status');
+    }
+  }
 }

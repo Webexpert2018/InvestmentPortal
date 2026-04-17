@@ -50,4 +50,16 @@ export class RedemptionsController {
   async updateStatus(@Param('id') id: string, @Body('status') status: string) {
     return this.redemptionsService.updateStatus(id, status);
   }
+
+  @Patch(':id/internal-amount')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
+  async updateInternalAmount(@Param('id') id: string, @Body('amount') amount: number) {
+    return this.redemptionsService.updateInternalAmount(id, amount);
+  }
+
+  @Patch(':id/reconcile')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
+  async markAsReconciled(@Param('id') id: string, @Body('reconciled') reconciled: boolean) {
+    return this.redemptionsService.markAsReconciled(id, reconciled);
+  }
 }
