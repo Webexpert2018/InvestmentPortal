@@ -39,30 +39,43 @@ export default function ReconciliationPage() {
         apiClient.getAllRedemptions(),
       ]);
 
-      const merged: ReconciliationRecord[] = [
-        ...investments.map((inv: any) => ({
-          id: inv.id,
-          recordId: inv.id.substring(0, 8).toUpperCase(),
-          type: 'Funding' as const,
-          custodian: parseFloat(inv.investment_amount),
-          internal: parseFloat(inv.internal_amount || 0),
-          difference: parseFloat(inv.investment_amount) - parseFloat(inv.internal_amount || 0),
-          status: (parseFloat(inv.investment_amount) - parseFloat(inv.internal_amount || 0)) === 0 ? 'Matched' : 'Mismatch',
-          isReconciled: !!inv.is_reconciled,
-          date: inv.created_at,
-        })),
-        ...redemptions.map((red: any) => ({
-          id: red.id,
-          recordId: red.id.substring(0, 8).toUpperCase(),
-          type: 'Redemption' as const,
-          custodian: parseFloat(red.amount),
-          internal: parseFloat(red.internal_amount || 0),
-          difference: parseFloat(red.amount) - parseFloat(red.internal_amount || 0),
-          status: (parseFloat(red.amount) - parseFloat(red.internal_amount || 0)) === 0 ? 'Matched' : 'Mismatch',
-          isReconciled: !!red.is_reconciled,
-          date: red.created_at,
-        })),
-      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      const investmentRecords: ReconciliationRecord[] = (Array.isArray(investments) ? investments : []).map((inv: any) => {
+        const custodian = parseFloat(inv?.investment_amount || 0);
+        const internal = parseFloat(inv?.internal_amount || 0);
+        const difference = custodian - internal;
+        return {
+          id: String(inv?.id || ''),
+          recordId: String(inv?.id || '').substring(0, 8).toUpperCase(),
+          type: 'Funding',
+          custodian,
+          internal,
+          difference,
+          status: Math.abs(difference) < 0.01 ? 'Matched' : 'Mismatch',
+          isReconciled: !!inv?.is_reconciled,
+          date: String(inv?.created_at || new Date().toISOString()),
+        };
+      });
+
+      const redemptionRecords: ReconciliationRecord[] = (Array.isArray(redemptions) ? redemptions : []).map((red: any) => {
+        const custodian = parseFloat(red?.amount || 0);
+        const internal = parseFloat(red?.internal_amount || 0);
+        const difference = custodian - internal;
+        return {
+          id: String(red?.id || ''),
+          recordId: String(red?.id || '').substring(0, 8).toUpperCase(),
+          type: 'Redemption',
+          custodian,
+          internal,
+          difference,
+          status: Math.abs(difference) < 0.01 ? 'Matched' : 'Mismatch',
+          isReconciled: !!red?.is_reconciled,
+          date: String(red?.created_at || new Date().toISOString()),
+        };
+      });
+
+      const merged = [...investmentRecords, ...redemptionRecords].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
 
       setRecords(merged);
     } catch (error) {
