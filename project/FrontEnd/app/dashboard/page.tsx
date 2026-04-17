@@ -208,7 +208,7 @@ type DashboardRole = 'admin' | 'investor' | 'accountant';
 const normalizeDashboardRole = (role?: string | null): DashboardRole => {
   const normalized = role?.trim().toLowerCase();
   const adminRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations'];
-  
+
   if (adminRoles.includes(normalized || '')) return 'admin';
   if (normalized === 'accountant' || normalized === 'accountants' || normalized === 'account') return 'accountant';
   return 'investor';
@@ -298,15 +298,15 @@ export default function DashboardPage() {
             apiClient.getAllRedemptions(),
           ]);
           setAdminStats(stats);
-          
+
           // Filter pending fundings: Subscription Submitted or Awaiting Funding
-          const pendingFundings = allInvestments.filter((inv: any) => 
+          const pendingFundings = allInvestments.filter((inv: any) =>
             ['Subscription Submitted', 'Awaiting Funding'].includes(inv.status)
           );
           setDynamicFundingRequests(pendingFundings);
 
           // Filter pending redemptions: Pending
-          const pendingRedemptions = allRedemptions.filter((red: any) => 
+          const pendingRedemptions = allRedemptions.filter((red: any) =>
             red.status === 'Pending'
           );
           setDynamicRedemptionRequests(pendingRedemptions);
@@ -808,13 +808,13 @@ export default function DashboardPage() {
             </div>
 
             {/* KYC Review Queue */}
-            <div className="bg-white shadow-sm rounded-xl p-6 h-fit">
+            <div className="bg-white shadow-sm rounded-xl p-6 h-fit h-screen flex flex-col">
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-[#1F1F1F] ">
                   KYC Review Queue
                 </h3>
               </div>
-              <div className="space-y-6">
+              <div className="space-y-6  h-[calc(100vh-100px)] overflow-y-auto pr-3">
                 {kycQueue.map((item, index) => (
                   <div key={item.id} className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
@@ -975,7 +975,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.funding ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.funding && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4">
+                <div className="px-6 pb-6 pt-4 border-t border-gray-100 space-y-4 max-h-[calc(100vh-60vh)] overflow-y-auto">
                   {dynamicFundingRequests.length > 0 ? dynamicFundingRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
@@ -984,7 +984,7 @@ export default function DashboardPage() {
                           {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.investment_amount)} - {request.account_type}
                         </p>
                       </div>
-                      <Link 
+                      <Link
                         href={`/dashboard/funding-requests/${request.id}`}
                         className="px-4 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-full hover:bg-blue-50 transition-colors"
                       >
@@ -1011,17 +1011,17 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.redemption ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.redemption && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4">
+                <div className="px-6 pb-6 pt-4 border-t border-gray-100 space-y-4 max-h-[calc(100vh-60vh)] overflow-y-auto">
                   {dynamicRedemptionRequests.length > 0 ? dynamicRedemptionRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-900">{request.investor_name}</p>
                         <p className="text-xs text-gray-500">
-                           {request.units ? `${parseFloat(request.units).toFixed(2)} Units` : ''} 
-                           {request.amount ? ` (~${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.amount)})` : ''}
+                          {request.units ? `${parseFloat(request.units).toFixed(2)} Units` : ''}
+                          {request.amount ? ` (~${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.amount)})` : ''}
                         </p>
                       </div>
-                      <Link 
+                      <Link
                         href={`/dashboard/redemption-requests/${request.id}`}
                         className="px-4 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-full hover:bg-blue-50 transition-colors"
                       >

@@ -223,11 +223,12 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
       <div className="flex h-full flex-col border-b bg-white">
 
         {/* ================= LOGO SECTION ================= */}
-        <div className="flex items-center justify-center border-b border-r border-[#EEEEEE] px-3 dashboard-logo-container">
-          <img
+        <div className="flex items-center justify-center border-b border-r border-[#EEEEEE] px-3 dashboard-logo-container relative h-[70px]">
+          <Image
             src="/images/dashboard-logo.png"
-            alt="Logo"
-            className={`${isCollapsed ? "h-[70px]" : "h-[70px]"} object-contain`}
+            alt="Dashboard Logo"
+            fill
+            className="object-contain"
           />
         </div>
 

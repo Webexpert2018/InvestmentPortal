@@ -858,7 +858,7 @@ export function AccountantSettingsScreen() {
 
 
         {/* Save button */}
-        <div className="mt-5 flex justify-end">
+        <div className="mt-5 flex justify-end mb-3 mr-3">
           <button
             type="button"
             className="h-[40px] min-w-[100px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] shadow-sm hover:shadow-md transition-shadow font-helvetica"
