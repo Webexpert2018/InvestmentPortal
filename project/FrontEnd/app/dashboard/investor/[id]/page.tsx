@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ChevronLeft, X, ChevronDown, FileText, Download, Calendar, Mail, Phone, Shield, MapPin, User } from 'lucide-react';
+import { ChevronLeft, X, ChevronDown, FileText, Download, Calendar, Mail, Phone, Shield, MapPin, User, Loader2 } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 
@@ -28,6 +28,9 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [redemptionHistory, setRedemptionHistory] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({ totalValue: 0, totalUnits: 0, ytdReturn: 0 });
   const [loading, setLoading] = useState(true);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [isSuspending, setIsSuspending] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,6 +122,48 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const redemptionStartIndex = (redemptionPage - 1) * redemptionItemsPerPage;
   const displayedRedemptionHistory = redemptionHistory.slice(redemptionStartIndex, redemptionStartIndex + redemptionItemsPerPage);
 
+  const handleSendInvite = async () => {
+    try {
+      setIsSendingInvite(true);
+      await apiClient.sendInvitation(params.id);
+      toast.success('Invitation link sent successfully');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send invitation');
+    } finally {
+      setIsSendingInvite(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    try {
+      setIsResettingPassword(true);
+      await apiClient.forgotPassword(investorData.email, 'investor');
+      toast.success('Password reset email sent');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send reset email');
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
+  const handleSuspendAccount = async () => {
+    const isSuspended = investorData.status === 'suspended';
+    const action = isSuspended ? 'activate' : 'suspend';
+    if (!confirm(`Are you sure you want to ${action} this account?`)) return;
+
+    try {
+      setIsSuspending(true);
+      await apiClient.updateUserStatus(params.id, isSuspended ? 'active' : 'suspended');
+      toast.success(`Account ${isSuspended ? 'activated' : 'suspended'} successfully`);
+      const profile = await apiClient.getUserById(params.id);
+      setInvestorData(profile);
+    } catch (err: any) {
+      toast.error(err.message || `Failed to ${action} account`);
+    } finally {
+      setIsSuspending(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6 font-helvetica">
@@ -199,7 +244,34 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             </p>
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={handleSendInvite}
+                            disabled={isSendingInvite}
+                            className="px-4 py-2 bg-white text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-gray-50 transition-colors border border-gray-200 flex items-center gap-2 shadow-sm"
+                          >
+                            {isSendingInvite ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
+                            Send Invite
+                          </button>
+                          <button
+                            onClick={handleForgotPassword}
+                            disabled={isResettingPassword}
+                            className="px-4 py-2 bg-white text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-gray-50 transition-colors border border-gray-200 flex items-center gap-2 shadow-sm"
+                          >
+                            {isResettingPassword ? <Loader2 className="h-3 w-3 animate-spin" /> : <Shield className="h-3 w-3" />}
+                            Forgot Password
+                          </button>
+                          <button
+                            onClick={handleSuspendAccount}
+                            disabled={isSuspending}
+                            className={`px-4 py-2 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 shadow-sm ${investorData.status === 'suspended'
+                              ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                              : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                              }`}
+                          >
+                            {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
+                            {investorData.status === 'suspended' ? 'Activate Account' : 'Suspend Account'}
+                          </button>
                           <button
                             onClick={async () => {
                               setShowAssignModal(true);

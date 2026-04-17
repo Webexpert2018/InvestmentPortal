@@ -358,9 +358,6 @@ export default function InvestorPage() {
                                       View Profile
                                     </button>
                                   </Link>
-                                  <button className="w-full px-5 py-3 text-left text-sm font-bold text-[#EF4444] hover:bg-[#FEF2F2] transition-colors">
-                                    Suspend Account
-                                  </button>
                                 </div>
                               </>
                             )}
