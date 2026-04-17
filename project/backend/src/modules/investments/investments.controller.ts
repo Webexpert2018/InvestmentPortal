@@ -55,4 +55,16 @@ export class InvestmentsController {
     return this.investmentsService.updateInvestmentStatus(user.userId, id, updateStatusDto, user.role);
   }
 
+  @Patch(':id/internal-amount')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
+  async updateInternalAmount(@Param('id') id: string, @Body('amount') amount: number) {
+    return this.investmentsService.updateInternalAmount(id, amount);
+  }
+
+  @Patch(':id/reconcile')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
+  async markAsReconciled(@Param('id') id: string, @Body('reconciled') reconciled: boolean) {
+    return this.investmentsService.markAsReconciled(id, reconciled);
+  }
+
 }

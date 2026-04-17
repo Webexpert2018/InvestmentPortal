@@ -574,6 +574,34 @@ class ApiClient {
     });
   }
 
+  async updateInvestmentInternalAmount(id: string, amount: number) {
+    return this.request<any>(`/investments/${id}/internal-amount`, {
+      method: 'PATCH',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  async updateRedemptionInternalAmount(id: string, amount: number) {
+    return this.request<any>(`/redemptions/${id}/internal-amount`, {
+      method: 'PATCH',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  async reconcileInvestment(id: string, reconciled: boolean = true) {
+    return this.request<any>(`/investments/${id}/reconcile`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reconciled }),
+    });
+  }
+
+  async reconcileRedemption(id: string, reconciled: boolean = true) {
+    return this.request<any>(`/redemptions/${id}/reconcile`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reconciled }),
+    });
+  }
+
   // Fund Documents
   async getFundDocuments(fundId: string) {
     return this.request<any[]>(`/documents/fund/${fundId}`);

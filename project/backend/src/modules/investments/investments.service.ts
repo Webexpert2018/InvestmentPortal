@@ -245,4 +245,44 @@ export class InvestmentsService {
       throw error;
     }
   }
+
+  async updateInternalAmount(investmentId: string, amount: number) {
+    try {
+      const query = `
+        UPDATE investments 
+        SET internal_amount = $1, updated_at = CURRENT_TIMESTAMP 
+        WHERE id = $2 
+        RETURNING *
+      `;
+      const result = await db.query(query, [amount, investmentId]);
+      if (result.rows.length === 0) {
+        throw new NotFoundException('Investment not found');
+      }
+      return result.rows[0];
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      console.error('❌ Error updating internal amount for investment:', error);
+      throw new InternalServerErrorException('Failed to update internal amount');
+    }
+  }
+
+  async markAsReconciled(investmentId: string, isReconciled: boolean) {
+    try {
+      const query = `
+        UPDATE investments 
+        SET is_reconciled = $1, updated_at = CURRENT_TIMESTAMP 
+        WHERE id = $2 
+        RETURNING *
+      `;
+      const result = await db.query(query, [isReconciled, investmentId]);
+      if (result.rows.length === 0) {
+        throw new NotFoundException('Investment not found');
+      }
+      return result.rows[0];
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      console.error('❌ Error marking investment as reconciled:', error);
+      throw new InternalServerErrorException('Failed to update reconciliation status');
+    }
+  }
 }
