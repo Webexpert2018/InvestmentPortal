@@ -183,7 +183,6 @@ export default function AddStaffPage() {
                   <option value="fund_admin">Fund Admin</option>
                   <option value="investor_relations">Investor Relations</option>
                   <option value="accountant">Accountant</option>
-                  <option value="relations_associate">Relations Associates</option>
                   <option value="partnership">Partnership</option>
                 </select>
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8E8E93] h-5 w-5 pointer-events-none" />

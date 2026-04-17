@@ -39,7 +39,7 @@ const getFullImageUrl = (imagePath: string | null | undefined): string | undefin
 export default function InvestPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [step, setStep] = useState<Step>('chooseFund');
+  const [step, setStep] = useState<Step>('fundingAccount');
   const [funds, setFunds] = useState<any[]>([]);
   const [existingFlows, setExistingFlows] = useState<any[]>([]);
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
@@ -213,12 +213,12 @@ export default function InvestPage() {
   const goBack = () => {
     setStep((current: Step) => {
       switch (current) {
-        case 'chooseFund':
-          return current;
         case 'fundingAccount':
-          return 'chooseFund';
-        case 'investmentAmount':
+          return current;
+        case 'chooseFund':
           return 'fundingAccount';
+        case 'investmentAmount':
+          return 'chooseFund';
         case 'signDocuments':
           return 'investmentAmount';
         case 'fundingInstructions':
@@ -363,9 +363,9 @@ export default function InvestPage() {
 
     setStep((current: Step) => {
       switch (current) {
-        case 'chooseFund':
-          return 'fundingAccount';
         case 'fundingAccount':
+          return 'chooseFund';
+        case 'chooseFund':
           return 'investmentAmount';
         case 'investmentAmount':
           return 'signDocuments';
@@ -432,6 +432,24 @@ export default function InvestPage() {
       </div>
 
       <div className="rounded-2xl bg-white px-6 py-6 shadow-sm">
+        <div className="mb-6 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={goBack}
+            className="rounded-full bg-[#FFF3D6] px-5 py-2 text-sm font-medium text-[#4B4B4B] hover:bg-[#FFE7AF]"
+          >
+            Back
+          </button>
+          <button
+            type="button"
+            onClick={goNext}
+            className="rounded-full bg-[#FBCB4B] px-6 py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={!selectedFundId}
+          >
+            Invest Now
+          </button>
+        </div>
+
         <div className="grid gap-6 md:grid-cols-2">
           {funds.map((fund) => {
             const selected = fund.id === selectedFundId;
@@ -471,24 +489,6 @@ export default function InvestPage() {
               </button>
             );
           })}
-        </div>
-
-        <div className="mt-6 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => router.push('/dashboard')}
-            className="rounded-full bg-[#FFF3D6] px-5 py-2 text-sm font-medium text-[#4B4B4B] hover:bg-[#FFE7AF]"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={goNext}
-            className="rounded-full bg-[#FBCB4B] px-6 py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={!selectedFundId}
-          >
-            Invest Now
-          </button>
         </div>
       </div>
     </>
@@ -533,7 +533,7 @@ export default function InvestPage() {
         })}
       </div>
 
-      {renderFooter()}
+      {renderFooter({ showBack: false })}
     </>
   );
 

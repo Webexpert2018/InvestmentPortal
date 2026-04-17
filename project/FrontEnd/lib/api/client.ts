@@ -739,8 +739,8 @@ class ApiClient {
   async createDocuSignEnvelope(data: {
     fundId: string;
     fundName: string;
-    accessToken: string;
-    accountId: string;
+    accessToken?: string;
+    accountId?: string;
     investmentAmount: number;
     accountType: string;
     iraMetadata?: {
