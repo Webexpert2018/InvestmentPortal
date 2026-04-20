@@ -62,6 +62,8 @@ export default function PipelinePage() {
     }
   }, [user, isAdmin, authLoading, router]);
 
+  const canManageStages = user?.role === 'admin' || user?.role === 'executive_admin';
+
   const fetchData = useCallback(async () => {
     try {
       const boardData = await apiClient.getPipelineData();
@@ -88,6 +90,14 @@ export default function PipelinePage() {
 
     // Handle Stage (Column) Reordering
     if (type === 'column') {
+      if (!canManageStages) {
+        toast({
+          title: 'Permission Denied',
+          description: 'You do not have permission to reorder stages',
+          variant: 'destructive',
+        });
+        return;
+      }
       if (source.index === destination.index) return;
 
       const newStages = Array.from(stages);
@@ -309,14 +319,16 @@ export default function PipelinePage() {
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-[#1F1F1F]">Pipeline</h1>
           </div>
-          <div className="flex gap-3 flex-wrap">
-            <button
-              onClick={() => setShowAddStage(true)}
-              className="px-5 py-2 bg-[#FCD34D] text-gray-800 text-sm font-medium rounded-full hover:bg-[#FBD24E] transition-colors whitespace-nowrap"
-            >
-              Add Stage
-            </button>
-          </div>
+          {canManageStages && (
+            <div className="flex gap-3 flex-wrap">
+              <button
+                onClick={() => setShowAddStage(true)}
+                className="px-5 py-2 bg-[#FCD34D] text-gray-800 text-sm font-medium rounded-full hover:bg-[#FBD24E] transition-colors whitespace-nowrap"
+              >
+                Add Stage
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Pipeline Board */}
@@ -334,7 +346,12 @@ export default function PipelinePage() {
                   style={{ minWidth: 'max-content' }}
                 >
                   {stages.map((stage, index) => (
-                    <DraggableComponent key={stage.id} draggableId={`stage-${stage.id}`} index={index}>
+                    <DraggableComponent
+                      key={stage.id}
+                      draggableId={`stage-${stage.id}`}
+                      index={index}
+                      isDragDisabled={!canManageStages}
+                    >
                       {(providedStage: any) => (
                         <div
                           ref={providedStage.innerRef}
@@ -351,15 +368,23 @@ export default function PipelinePage() {
                                 style={{ backgroundColor: stage.color }}
                               >
                                 {/* Stage Header */}
-                                <div {...providedStage.dragHandleProps} className="flex items-center justify-between mb-5 cursor-grab active:cursor-grabbing">
+                                <div
+                                  {...(canManageStages ? providedStage.dragHandleProps : {})}
+                                  className={cn(
+                                    "flex items-center justify-between mb-5 select-none",
+                                    canManageStages ? "cursor-grab active:cursor-grabbing" : "cursor-default"
+                                  )}
+                                >
                                   <div className="flex items-center gap-2 group">
                                     <h3 className="text-sm font-bold text-gray-900 truncate max-w-[150px] uppercase tracking-wider">{stage.name}</h3>
-                                    <button
-                                      onClick={() => deleteStage(stage.id)}
-                                      className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                      <X className="h-3.5 w-3.5" />
-                                    </button>
+                                    {canManageStages && (
+                                      <button
+                                        onClick={() => deleteStage(stage.id)}
+                                        className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      >
+                                        <X className="h-3.5 w-3.5" />
+                                      </button>
+                                    )}
                                   </div>
                                   <span className="text-[10px] font-bold text-gray-500 bg-white/50 px-2 py-0.5 rounded-full uppercase tracking-tighter">
                                     {stage.count} {stage.count === 1 ? 'investor' : 'investors'}
