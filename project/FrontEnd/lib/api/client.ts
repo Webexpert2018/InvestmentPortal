@@ -914,6 +914,13 @@ class ApiClient {
     });
   }
 
+  async updateInvestorPipelineDetails(investorId: string, details: { expectedFutureInvestment: number }) {
+    return this.request<any>(`/pipeline/investors/${investorId}/details`, {
+      method: 'PATCH',
+      body: JSON.stringify(details),
+    });
+  }
+
   async createPipelineStage(data: { name: string, color: string }) {
     return this.request<any>('/pipeline/stages', {
       method: 'POST',

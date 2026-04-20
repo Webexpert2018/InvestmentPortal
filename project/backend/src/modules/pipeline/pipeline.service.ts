@@ -28,9 +28,12 @@ export class PipelineService {
     const query = `
       SELECT 
         i.id, 
+        i.email,
+        i.phone,
         i.full_name as name, 
         i.pipeline_stage_id, 
         i.assigned_ir_id,
+        i.expected_future_investment,
         s.full_name as assigned_ir_name,
         COALESCE(SUM(inv.investment_amount), 0) as total_investment
       FROM investors i
@@ -38,7 +41,7 @@ export class PipelineService {
       LEFT JOIN investments inv ON i.id = inv.user_id
       WHERE i.pipeline_stage_id IS NOT NULL
       ${isIR ? 'AND i.assigned_ir_id = $1' : ''}
-      GROUP BY i.id, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, s.full_name, i.updated_at
+      GROUP BY i.id, i.email, i.phone, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, s.full_name, i.updated_at, i.expected_future_investment
       ORDER BY i.updated_at DESC
     `;
 
@@ -54,9 +57,12 @@ export class PipelineService {
         .map(i => ({
           id: i.id,
           name: i.name,
+          email: i.email,
+          phone: i.phone,
           assignedIrId: i.assigned_ir_id,
           assignedIrName: i.assigned_ir_name,
           totalInvestment: parseFloat(i.total_investment),
+          expectedFutureInvestment: parseFloat(i.expected_future_investment || 0),
           avatar: i.name
             .split(' ')
             .map((n: string) => n[0])
@@ -70,6 +76,20 @@ export class PipelineService {
     const result = await db.query(
       'UPDATE investors SET pipeline_stage_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
       [stageId, investorId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundException('Investor not found');
+    }
+
+    return result.rows[0];
+  }
+
+  async updateInvestorDetails(investorId: string, details: { expectedFutureInvestment?: number }) {
+    const { expectedFutureInvestment } = details;
+    const result = await db.query(
+      'UPDATE investors SET expected_future_investment = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
+      [expectedFutureInvestment, investorId]
     );
 
     if (result.rows.length === 0) {
