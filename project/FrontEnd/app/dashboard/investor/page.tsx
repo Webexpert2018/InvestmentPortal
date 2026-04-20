@@ -375,30 +375,45 @@ export default function InvestorPage() {
                           </td>
                         </tr>
                         {pendingInvestors.map((investor) => (
-                          <tr key={investor.id} className="hover:bg-[#FFFBEB]/50 transition-colors group opacity-80">
+                          <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group">
                             <td className="px-8 py-5">
                               <div className="flex items-center gap-4">
-                                <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#F3F4F6] border-2 border-dashed border-[#D1D5DB] flex items-center justify-center text-[#9CA3AF] text-xs font-bold">
-                                  ?
+                                <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
+                                  <Image
+                                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
+                                    alt={investor.firstName}
+                                    fill
+                                    className="object-cover"
+                                  />
                                 </div>
                                 <div>
-                                  <p className="text-sm font-bold text-[#4B5563]">{investor.firstName || '-'}</p>
+                                  <p className="text-sm font-bold text-[#111827]">{investor.firstName} {investor.lastName || '-'}</p>
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-5">
                               <span className="text-sm text-[#4B5563] font-medium">{investor.email}</span>
                             </td>
-                            <td className="px-6 py-5 italic text-[#9CA3AF] text-sm">-</td>
                             <td className="px-6 py-5">
-                              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-500 border border-gray-200 uppercase">
+                              <span className="text-sm text-[#4B5563] font-medium">-</span>
+                            </td>
+                            <td className="px-6 py-5">
+                              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-500 border border-gray-200">
                                 Invited
                               </span>
                             </td>
-                             <td className="px-6 py-5 text-right text-[#9CA3AF]">-</td>
-                             <td className="px-6 py-5 text-right text-[#9CA3AF]">-</td>
-                             <td className="px-6 py-5 text-sm text-[#9CA3AF]">
-                              {new Date(investor.createdAt).toLocaleDateString()}
+                             <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                               0.00
+                             </td>
+                             <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                               -
+                             </td>
+                             <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
+                              {new Date(investor.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
                             </td>
                             <td className="px-8 py-5 text-center relative">
                               <button
@@ -412,23 +427,11 @@ export default function InvestorPage() {
                                 <>
                                   <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
                                   <div className="absolute right-12 top-12 w-48 bg-white rounded-2xl shadow-xl border border-[#F3F4F6] py-2 z-20 overflow-hidden animate-in fade-in zoom-in duration-200">
-                                    <button 
-                                      onClick={() => handleSendInvitation(investor.id)}
-                                      className="w-full text-left px-5 py-3 text-sm font-bold text-[#111827] hover:bg-[#F9FAFB] flex items-center gap-2"
-                                    >
-                                      {isSending === investor.id ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                      ) : (
-                                        <Send className="w-4 h-4" />
-                                      )}
-                                      Send Invite Link
-                                    </button>
-                                    <button 
-                                      onClick={() => handleCancelInvite(investor.id)}
-                                      className="w-full px-5 py-3 text-left text-sm font-bold text-[#EF4444] hover:bg-[#FEF2F2] transition-colors"
-                                    >
-                                      Cancel Invite
-                                    </button>
+                                    <Link href={`/dashboard/investor/${investor.id}`}>
+                                      <button className="w-full px-5 py-3 text-left text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">
+                                        View Profile
+                                      </button>
+                                    </Link>
                                   </div>
                                 </>
                               )}

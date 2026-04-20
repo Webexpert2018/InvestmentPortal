@@ -444,6 +444,61 @@ export class UsersService {
     return { message: 'Password updated successfully' };
   }
 
+  async adminResetPassword(userId: string, newPassword: string, requestingUserRole: string) {
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(requestingUserRole)) {
+      throw new ForbiddenException('Only admins can reset user passwords');
+    }
+
+    // Determine which table handles this user
+    let tableName: string | null = null;
+    let nameField: string = 'first_name';
+    let queryResult = await db.query('SELECT email, first_name FROM users WHERE id = $1', [userId]);
+
+    if (queryResult.rows.length > 0) {
+      tableName = 'users';
+    } else {
+      queryResult = await db.query('SELECT email, full_name FROM investors WHERE id = $1', [userId]);
+      if (queryResult.rows.length > 0) {
+        tableName = 'investors';
+        nameField = 'full_name';
+      } else {
+        queryResult = await db.query('SELECT email, full_name FROM staff WHERE id = $1', [userId]);
+        if (queryResult.rows.length > 0) {
+          tableName = 'staff';
+          nameField = 'full_name';
+        }
+      }
+    }
+
+    if (!tableName || queryResult.rows.length === 0) {
+      throw new NotFoundException('User not found');
+    }
+
+    const user = queryResult.rows[0];
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    
+    // Update password in the correct table
+    if (tableName === 'users') {
+      await db.query(
+        'UPDATE users SET password_hash = $1, reset_otp = NULL, reset_otp_expires_at = NULL, updated_at = NOW() WHERE id = $2',
+        [newPasswordHash, userId]
+      );
+    } else {
+      await db.query(
+        `UPDATE ${tableName} SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
+        [newPasswordHash, userId]
+      );
+    }
+
+    // Send password changed notification with the new password
+    const displayName = nameField === 'full_name' ? (user.full_name?.split(' ')[0] || 'User') : (user.first_name || 'User');
+    await this.emailService.sendPasswordChangedEmail(user.email || '', displayName, newPassword);
+
+    return { message: 'Password updated successfully' };
+  }
+
+
   async inviteInvestor(data: any, requestingUserRole: string) {
     const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
     if (!adminRoles.includes(requestingUserRole)) {

@@ -411,6 +411,14 @@ class ApiClient {
     });
   }
 
+  async adminResetPassword(userId: string, password: string) {
+    return this.request<any>(`/users/${userId}/reset-password`, {
+      method: 'PATCH',
+      body: JSON.stringify({ password }),
+    });
+  }
+
+
   async uploadProfileImage(file: File) {
     const formData = new FormData();
     formData.append('file', file);
