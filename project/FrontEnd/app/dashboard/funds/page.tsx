@@ -249,7 +249,7 @@ export default function FundsPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-4 px-6 py-6 border-t border-gray-100">
+            <div className="flex items-center justify-center gap-4 px-6 py-6 border-t border-gray-100">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}

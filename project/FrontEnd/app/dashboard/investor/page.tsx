@@ -558,7 +558,7 @@ export default function InvestorPage() {
           </div>
 
           {/* Pagination */}
-          <div className="px-8 py-6 bg-white border-t border-[#F3F4F6] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="px-8 py-6 bg-white border-t border-[#F3F4F6] flex flex-col items-center justify-center gap-6">
             <span className="text-sm font-bold text-[#6B7280]">
               Showing {activeInvestors.length} Active, {pendingInvestors.length} Pending, and {suspendedInvestors.length} Suspended Investors
             </span>

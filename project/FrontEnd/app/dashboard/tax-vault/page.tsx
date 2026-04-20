@@ -307,7 +307,7 @@ export default function TaxVaultPage() {
           </div>
 
           {!loading && !error && documents.length > 0 && (
-            <div className="mt-5 flex items-center justify-end gap-2 text-[16px] text-[#8E8E93]">
+            <div className="mt-5 flex items-center justify-center gap-6 text-[16px] text-[#8E8E93]">
               <button 
                 type="button" 
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}

@@ -380,7 +380,7 @@ export default function PortfolioPage() {
                 </table>
               </div>
 
-              <div className="mt-4 flex items-center justify-between text-xs text-[#8E8E93]">
+              <div className="mt-4 flex flex-col items-center justify-center gap-4 text-xs text-[#8E8E93]">
                 <span>Showing 1-{investments.length} of {investments.length}</span>
                 <div className="flex items-center gap-2">
                   <button className="rounded-full px-3 py-1 text-[#8E8E93] hover:bg-gray-100">

@@ -975,7 +975,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.funding ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.funding && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicFundingRequests.length > 0 ? dynamicFundingRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
@@ -1011,7 +1011,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.redemption ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.redemption && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicRedemptionRequests.length > 0 ? dynamicRedemptionRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
@@ -1048,7 +1048,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.reconciliation ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.reconciliation && (
-                <div className="px-6 pb-6 border-t border-gray-100 pt-6 text-center">
+                <div className="px-6 pb-6 border-t border-gray-100 pt-6 text-center h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   <p className="text-base font-semibold text-gray-900 mb-1">Nothing pending</p>
                   <p className="text-sm text-gray-500">All are currently up to date</p>
                 </div>

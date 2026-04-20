@@ -289,7 +289,7 @@ export default function StaffPage() {
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <div className="mt-8 flex justify-end items-center gap-4">
+          <div className="mt-8 flex justify-center items-center gap-4">
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
