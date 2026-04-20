@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { 
   ChevronLeft, X, ChevronDown, FileText, Download, Calendar, Mail, Phone, 
-  Shield, MapPin, User, Loader2, Eye, EyeOff 
+  Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle 
 } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
@@ -38,6 +38,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [isSuspending, setIsSuspending] = useState(false);
+  const [showSuspendModal, setShowSuspendModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -167,16 +168,18 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const handleSuspendAccount = async () => {
     const isSuspended = investorData.status === 'suspended';
     const action = isSuspended ? 'activate' : 'suspend';
-    if (!confirm(`Are you sure you want to ${action} this account?`)) return;
 
     try {
       setIsSuspending(true);
+      console.log(`[handleSuspendAccount] Attempting to ${action} user ${params.id}. Target status: ${isSuspended ? 'active' : 'suspended'}`);
       await apiClient.updateUserStatus(params.id, isSuspended ? 'active' : 'suspended');
       toast.success(`Account ${isSuspended ? 'activated' : 'suspended'} successfully`);
       const profile = await apiClient.getUserById(params.id);
       setInvestorData(profile);
+      setShowSuspendModal(false);
     } catch (err: any) {
-      toast.error(err.message || `Failed to ${action} account`);
+      console.error(`[handleSuspendAccount] Failed to ${action} account:`, err);
+      toast.error(err.message || `Failed to ${action} account. Please check browser console for details.`);
     } finally {
       setIsSuspending(false);
     }
@@ -315,7 +318,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 Forgot Password
                               </button>
                               <button
-                                onClick={handleSuspendAccount}
+                                onClick={() => setShowSuspendModal(true)}
                                 disabled={isSuspending}
                                 className={`px-4 py-2 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 shadow-sm ${investorData.status === 'suspended'
                                   ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
@@ -915,6 +918,61 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
             </div>
           </div>
         )}
+      {/* Suspend Account Confirmation Modal */}
+      {showSuspendModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden transform transition-all">
+            <div className="p-8">
+              {/* Icon & Title */}
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className={`p-4 rounded-2xl ${investorData.status === 'suspended' ? 'bg-green-50' : 'bg-red-50'}`}>
+                  {investorData.status === 'suspended' ? (
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  ) : (
+                    <AlertTriangle className="h-8 w-8 text-red-600" />
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold text-gray-900 leading-tight">
+                    {investorData.status === 'suspended' ? 'Activate Account?' : 'Suspend Account?'}
+                  </h2>
+                  <p className="text-gray-500 text-sm leading-relaxed max-w-[280px]">
+                    {investorData.status === 'suspended' 
+                      ? "Are you sure you want to activate this account? The investor will be able to log in again."
+                      : "Are you sure you want to suspend this account? The investor will no longer be able to log in to the portal."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3 mt-10">
+                <button
+                  disabled={isSuspending}
+                  onClick={handleSuspendAccount}
+                  className={`w-full py-4 text-sm font-bold text-white rounded-2xl transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${
+                    investorData.status === 'suspended'
+                      ? 'bg-green-600 hover:bg-green-700 shadow-green-100'
+                      : 'bg-red-600 hover:bg-red-700 shadow-red-100'
+                  }`}
+                >
+                  {isSuspending ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    investorData.status === 'suspended' ? 'Activate Account' : 'Suspend Account'
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowSuspendModal(false)}
+                  disabled={isSuspending}
+                  className="w-full py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

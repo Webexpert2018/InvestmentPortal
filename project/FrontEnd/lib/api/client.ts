@@ -227,7 +227,7 @@ class ApiClient {
 
   async updateUserStatus(userId: string, status: string) {
     return this.request<any>(`/users/${userId}/status`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify({ status }),
     });
   }

@@ -400,9 +400,8 @@ export default function InvestorSignupPage() {
                 value={form.email}
                 onChange={(e) => setField('email', e.target.value)}
                 placeholder="Enter email"
-                className={`h-11 w-full rounded-md border px-3 font-helvetica text-sm outline-none transition-all ${
-                  errors.email ? 'border-red-500 ring-2 ring-red-100' : 'border-[#E5E5E5] focus:border-yellow-400'
-                }`}
+                className={`h-11 w-full rounded-md border px-3 font-helvetica text-sm outline-none transition-all ${errors.email ? 'border-red-500 ring-2 ring-red-100' : 'border-[#E5E5E5] focus:border-yellow-400'
+                  }`}
               />
             </FormField>
 
