@@ -132,4 +132,15 @@ export class PipelineService {
 
     return { message: 'Stage deleted successfully' };
   }
+
+  async reorderStages(stageIds: number[]) {
+    // Sequentially update each stage's order_index to match its position in the array
+    for (let i = 0; i < stageIds.length; i++) {
+      await db.query(
+        'UPDATE pipeline_stages SET order_index = $1 WHERE id = $2',
+        [i + 1, stageIds[i]]
+      );
+    }
+    return { message: 'Stages reordered successfully' };
+  }
 }

@@ -44,4 +44,9 @@ export class PipelineController {
   async deleteStage(@Param('id', ParseIntPipe) id: number) {
     return this.pipelineService.deleteStage(id);
   }
+
+  @Patch('stages/reorder')
+  async reorderStages(@Body('stageIds') stageIds: number[]) {
+    return this.pipelineService.reorderStages(stageIds);
+  }
 }

@@ -933,6 +933,13 @@ class ApiClient {
       method: 'DELETE'
     });
   }
+
+  async reorderPipelineStages(stageIds: number[]) {
+    return this.request<any>('/pipeline/stages/reorder', {
+      method: 'PATCH',
+      body: JSON.stringify({ stageIds }),
+    });
+  }
 }
 
 
