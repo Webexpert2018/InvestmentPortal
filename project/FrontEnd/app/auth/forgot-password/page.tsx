@@ -24,6 +24,14 @@ export default function ForgotPassword() {
         if (flowParam === 'account') flowParam = 'accountant';
         setFlow(flowParam);
       }
+
+      const emailParam = params.get('email');
+      const otpParam = params.get('otp');
+      if (emailParam) setEmail(emailParam);
+      if (otpParam) {
+        setOtp(otpParam);
+        setStep('reset');
+      }
     }
   }, []);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bitcoin, Wallet, TrendingUp, Layers, CircleDollarSign, Users } from 'lucide-react';
@@ -252,14 +252,39 @@ export default function DashboardPage() {
   });
   const [dynamicFundingRequests, setDynamicFundingRequests] = useState<any[]>([]);
   const [dynamicRedemptionRequests, setDynamicRedemptionRequests] = useState<any[]>([]);
+  const [iraAccounts, setIraAccounts] = useState<any[]>([]);
+  const [allInvestments, setAllInvestments] = useState<any[]>([]);
 
-  const investorAccountList = [
-    {
-      id: 1,
-      name: 'Personal Account',
-      subtitle: `Total Value: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue)}`,
-    },
-  ];
+  const investorAccountList = useMemo(() => {
+    const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+    // Calculate personal value
+    const personalValue = allInvestments
+      .filter(inv => !inv.account_id)
+      .reduce((sum, inv) => sum + parseFloat(inv.revised_amount || (parseFloat(inv.estimated_units) * (investorStats.currentNav || 0))), 0);
+
+    const list = [
+      {
+        id: 'personal',
+        name: 'Personal Account',
+        subtitle: `Total Value: ${formatter.format(personalValue)}`,
+      },
+    ];
+
+    iraAccounts.forEach((acc, index) => {
+      const accountValue = allInvestments
+        .filter(inv => inv.account_id === acc.id)
+        .reduce((sum, inv) => sum + parseFloat(inv.revised_amount || (parseFloat(inv.estimated_units) * (investorStats.currentNav || 0))), 0);
+
+      list.push({
+        id: acc.id || `ira-${index}`,
+        name: acc.account_type || 'IRA Account',
+        subtitle: `Total Value: ${formatter.format(accountValue)}`,
+      });
+    });
+
+    return list;
+  }, [allInvestments, iraAccounts, investorStats.currentNav]);
 
   const dashboardRole = normalizeDashboardRole(user?.role);
   const welcomeName = user?.firstName ? user.firstName : dashboardRole[0].toUpperCase() + dashboardRole.slice(1);
@@ -272,13 +297,15 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         if (dashboardRole === 'investor' && user?.id) {
-          const [flows, investments, navSummary, dynamicStats] = await Promise.all([
+          const [flows, investments, navSummary, dynamicStats, iraData] = await Promise.all([
             apiClient.getMyFundFlows(),
             apiClient.getMyInvestments(),
             apiClient.getNavSummary(),
             apiClient.getInvestorStats(user.id),
+            apiClient.getMyIRAAccount(),
           ]);
 
+          setAllInvestments(investments);
           setActiveFundsCount(flows.length);
 
           const totalInvested = investments.reduce((sum, inv) => sum + parseFloat(inv.investment_amount), 0);
@@ -293,6 +320,8 @@ export default function DashboardPage() {
             currentValue,
             ytdReturn: dynamicStats.ytdReturn || 0,
           });
+
+          setIraAccounts(Array.isArray(iraData) ? iraData : (iraData ? [iraData] : []));
         } else if (dashboardRole === 'admin') {
           const [stats, allInvestments, allRedemptions] = await Promise.all([
             apiClient.getAdminStats(),
@@ -1042,7 +1071,6 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-
             {/* Reconciliation Alerts */}
             <div className="bg-white shadow-sm rounded-xl overflow-hidden">
               <div
@@ -1064,7 +1092,6 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
-
       </div>
     </DashboardLayout>
   );

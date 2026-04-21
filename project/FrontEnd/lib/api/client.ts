@@ -383,10 +383,10 @@ class ApiClient {
     return this.request<any[]>('/compliance/all');
   }
 
-  async forgotPassword(email: string, role?: string) {
+  async forgotPassword(email: string, role?: string, isAdminTriggered: boolean = false) {
     return this.request<any>('/auth/forgot-password', {
       method: 'POST',
-      body: JSON.stringify({ email, role }),
+      body: JSON.stringify({ email, role, isAdminTriggered }),
     });
   }
 

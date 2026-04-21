@@ -55,7 +55,7 @@ export default function PipelinePage() {
   const [isAssigning, setIsAssigning] = useState(false);
   const [isIrLoading, setIsIrLoading] = useState(false);
   const [pipelineNote, setPipelineNote] = useState('');
-  
+
   const topScrollRef = useRef<HTMLDivElement>(null);
   const boardScrollRef = useRef<HTMLDivElement>(null);
 
@@ -265,13 +265,13 @@ export default function PipelinePage() {
       const amountChanged = parseFloat(expectedInvestment) !== selectedInvestor.expectedFutureInvestment;
       const irChanged = selectedIrStaff !== (selectedInvestor.assignedIrId || '');
       const noteChanged = pipelineNote !== (selectedInvestor.pipelineNote || '');
-      
+
       const promises = [];
       if (amountChanged || noteChanged) {
         const details: any = {};
         if (amountChanged) details.expectedFutureInvestment = parseFloat(expectedInvestment) || 0;
         if (noteChanged) details.pipelineNote = pipelineNote;
-        
+
         promises.push(apiClient.updateInvestorPipelineDetails(selectedInvestor.id, details));
       }
       if (irChanged) {
@@ -339,7 +339,7 @@ export default function PipelinePage() {
         </div>
 
         {/* Top Sync Scrollbar */}
-        <div 
+        <div
           ref={topScrollRef}
           onScroll={handleSyncBoardScroll}
           className="overflow-x-auto pipeline-scroll"
@@ -361,8 +361,8 @@ export default function PipelinePage() {
             ref={boardScrollRef}
             onScroll={handleSyncTopScroll}
             className="overflow-x-auto overflow-y-auto pt-2 pipeline-scroll"
-            style={{ 
-              maxHeight: 'calc(100vh - 160px)', 
+            style={{
+              maxHeight: 'calc(100vh - 160px)',
               maxWidth: 'calc(-300px + 100vw)',
             }}
           >
@@ -430,14 +430,14 @@ export default function PipelinePage() {
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
                                           onClick={() => {
-                                             setSelectedInvestor(investor);
-                                             setExpectedInvestment(investor.expectedFutureInvestment.toString());
-                                             setSelectedIrStaff(investor.assignedIrId || '');
-                                             setPipelineNote(investor.pipelineNote || '');
-                                             if (user?.role === 'admin' || user?.role === 'executive_admin') {
-                                                fetchIRStaff();
-                                             }
-                                             setShowDetailModal(true);
+                                            setSelectedInvestor(investor);
+                                            setExpectedInvestment(investor.expectedFutureInvestment.toString());
+                                            setSelectedIrStaff(investor.assignedIrId || '');
+                                            setPipelineNote(investor.pipelineNote || '');
+                                            if (user?.role === 'admin' || user?.role === 'executive_admin') {
+                                              fetchIRStaff();
+                                            }
+                                            setShowDetailModal(true);
                                           }}
                                           className={`bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 group border border-transparent cursor-pointer ${snapshot.isDragging ? 'shadow-2xl scale-[1.02] border-[#FCD34D] rotate-1' : ''
                                             }`}
@@ -501,7 +501,7 @@ export default function PipelinePage() {
 
                                                     <div className="flex items-start gap-1.5 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
 
-                                                      <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 flex-none">With</span>
+                                                      <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest flex-none">With</span>
 
                                                       <span className={cn(
 

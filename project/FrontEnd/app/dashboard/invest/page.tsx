@@ -49,7 +49,7 @@ export default function InvestPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
-  const [userIraAccount, setUserIraAccount] = useState<any>(null);
+  const [userIraAccounts, setUserIraAccounts] = useState<any[]>([]);
   const [subscriptionDocs, setSubscriptionDocs] = useState<any[]>([
     { name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB' },
     { name: 'SA-BWell-Fund.pdf', pages: 12, lastModified: 'Oct 12, 2025', size: '138 KB' }
@@ -133,16 +133,16 @@ export default function InvestPage() {
       },
     ];
 
-    if (userIraAccount) {
+    userIraAccounts.forEach((acc, index) => {
       list.push({
-        id: userIraAccount.id || 'ira',
-        label: `${userIraAccount.account_type || 'IRA'} Account`,
-        value: userIraAccount.custodian_name || 'IRA Custodian',
+        id: acc.id || `ira-${index}`,
+        label: `${acc.account_type || 'IRA'} Account`,
+        value: 'IRA',
       });
-    }
+    });
 
     return list;
-  }, [userIraAccount]);
+  }, [userIraAccounts]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -155,7 +155,7 @@ export default function InvestPage() {
         ]);
         setFunds(fundsData);
         setExistingFlows(flowsData);
-        setUserIraAccount(iraData);
+        setUserIraAccounts(Array.isArray(iraData) ? iraData : (iraData ? [iraData] : []));
 
         if (navData && typeof navData.currentNav === 'number') {
           setUnitPrice(navData.currentNav);
@@ -241,12 +241,14 @@ export default function InvestPage() {
     setIsSigning(true);
     try {
       const isIra = selectedAccountId !== 'personal';
+      const selectedIra = userIraAccounts.find(a => a.id === selectedAccountId);
+      const finalAccountType = isIra ? (selectedIra?.account_type || 'ira') : 'personal';
 
       // 1. Create investment record first (Status: Pending Signature)
       const investment = await apiClient.createInvestment({
         fundId: selectedFundId,
         accountId: isIra ? (selectedAccountId ?? undefined) : undefined,
-        accountType: isIra ? 'ira' : 'personal',
+        accountType: finalAccountType,
         investmentAmount: investmentAmount,
         unitPrice: unitPrice,
         status: 'Subscription Submitted',
@@ -263,10 +265,10 @@ export default function InvestPage() {
         fundName: selectedFund.name,
         // No tokens needed, backend uses JWT
         investmentAmount: investmentAmount,
-        accountType: isIra ? 'ira' : 'personal',
+        accountType: finalAccountType,
         iraMetadata: isIra ? {
-          custodian: userIraAccount?.custodian_name,
-          type: userIraAccount?.account_type
+          custodian: selectedIra?.custodian_name,
+          type: selectedIra?.account_type
         } : undefined,
         returnUrl: `${window.location.origin}/dashboard/invest?signing=complete`
       });
@@ -308,10 +310,13 @@ export default function InvestPage() {
     setIsSigning(true);
     try {
       const isIra = selectedAccountId !== 'personal';
+      const selectedIra = userIraAccounts.find(a => a.id === selectedAccountId);
+      const finalAccountType = isIra ? (selectedIra?.account_type || 'ira') : 'personal';
+
       const investment = await apiClient.createInvestment({
         fundId: selectedFundId,
         accountId: isIra ? (selectedAccountId ?? undefined) : undefined,
-        accountType: isIra ? 'ira' : 'personal',
+        accountType: finalAccountType,
         investmentAmount: investmentAmount,
         unitPrice: unitPrice,
         status: 'Subscription Submitted',
