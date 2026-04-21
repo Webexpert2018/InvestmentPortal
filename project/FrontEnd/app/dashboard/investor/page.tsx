@@ -295,8 +295,8 @@ export default function InvestorPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="text-[#6B7280] text-[13px] font-semibold uppercase tracking-wider bg-[#F9FAFB]/50">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize w-10">Select</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Investor Name</th>
+                  <th className="px-4 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize w-10">Select</th>
+                  <th className="px-4 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Investor Name</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Email</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Account Type</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">KYC Status</th>
@@ -340,14 +340,14 @@ export default function InvestorPage() {
                             setSelectedInvestorId(selectedInvestorId === investor.id ? null : investor.id);
                           }}
                         >
-                          <td className="px-6 py-5">
+                          <td className="px-4 py-5">
                             <div className="flex items-center justify-center">
                               <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedInvestorId === investor.id ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
                                 {selectedInvestorId === investor.id && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
                               </div>
                             </div>
                           </td>
-                          <td className="px-8 py-5">
+                          <td className="px-4 py-5">
                             <div className="flex items-center gap-4">
                               <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
                                 {investor.profileImageUrl ? (
@@ -432,7 +432,8 @@ export default function InvestorPage() {
                         </tr>
                         {pendingInvestors.map((investor) => (
                           <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group">
-                            <td className="px-8 py-5">
+                            <td className="px-4 py-5"></td>
+                            <td className="px-4 py-5">
                               <div className="flex items-center gap-4">
                                 <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
                                   <Image
@@ -513,7 +514,8 @@ export default function InvestorPage() {
                         </tr>
                         {suspendedInvestors.map((investor) => (
                           <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group opacity-80">
-                            <td className="px-8 py-5">
+                            <td className="px-4 py-5"></td>
+                            <td className="px-4 py-5">
                               <div className="flex items-center gap-4">
                                 <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB] grayscale">
                                   {investor.profileImageUrl ? (

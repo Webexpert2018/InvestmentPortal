@@ -239,7 +239,7 @@ export class UsersService {
       lastName: user.lastName,
       invested: `$${parseFloat(user.total_invested).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       units: parseFloat(user.total_units).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-      avatar: user.firstName[0].toUpperCase(),
+      avatar: (user.firstName && user.firstName.length > 0) ? user.firstName[0].toUpperCase() : '?',
     }));
   }
 
