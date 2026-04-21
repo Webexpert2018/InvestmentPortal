@@ -283,7 +283,7 @@ export default function IRAPage() {
       setErrors({});
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: error?.status === 409 ? 'Duplicate Account Type' : 'Error',
         description: error?.message || 'Failed to save IRA account',
         variant: 'destructive'
       });

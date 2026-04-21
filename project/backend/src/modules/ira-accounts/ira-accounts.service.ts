@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { db } from '../../config/database';
 // import axios from 'axios';
 import { CreateAccountDto } from './dto/create-ira-account.dto';
@@ -37,6 +37,16 @@ export class AccountsService {
     try {
       console.log('📝 Saving IRA account details for user:', userId);
       
+      // 0. Validation: Check if user already has an account of this type
+      const checkResult = await db.query(
+        'SELECT id FROM ira_accounts WHERE user_id = $1::uuid AND account_type = $2',
+        [userId, dto.accountType]
+      );
+
+      if (checkResult.rows.length > 0) {
+        throw new Error('DUPLICATE_ACCOUNT_TYPE');
+      }
+
       // 1. Update/Upsert IRA Account - Now using account_number as the conflict target
       const upsertQuery = `
         INSERT INTO ira_accounts (
@@ -106,6 +116,9 @@ export class AccountsService {
         message: 'IRA account saved locally successfully'
       };
     } catch (error: any) {
+      if (error.message === 'DUPLICATE_ACCOUNT_TYPE') {
+        throw new ConflictException('An account of this type already exists for this investor.');
+      }
       console.error('❌ Error creating/updating IRA account:', error.message || error);
       throw new InternalServerErrorException(
         'Failed to save account: ' + (error.message || 'Unknown error')

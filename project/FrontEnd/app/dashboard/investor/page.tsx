@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Search, ChevronDown, MoreVertical, X, Loader2, Send } from 'lucide-react';
+import { Search, ChevronDown, MoreVertical, X, Loader2, Send, Plus } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { Country, State, City } from 'country-state-city';
 import { Combobox } from '@/components/ui/combobox';
+import { AdminAddIraModal } from '@/components/ira/AdminAddIraModal';
 
 interface Investor {
   id: string;
@@ -35,6 +36,8 @@ export default function InvestorPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState<string | null>(null);
+  const [selectedInvestorId, setSelectedInvestorId] = useState<string | null>(null);
+  const [showAdminIraModal, setShowAdminIraModal] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [inviteForm, setInviteForm] = useState({
     first_name: '',
@@ -186,7 +189,10 @@ export default function InvestorPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 font-sans max-w-xxl mx-auto">
+      <div 
+        className="space-y-8 font-sans max-w-xxl mx-auto"
+        onClick={() => setSelectedInvestorId(null)}
+      >
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2">
           <div>
@@ -195,19 +201,35 @@ export default function InvestorPage() {
               View and manage all investor accounts.
             </p>
           </div>
-          <button
-            onClick={() => setShowInviteModal(true)}
-            className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95"
-          >
-            Add Investor
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAdminIraModal(true);
+              }}
+              disabled={!selectedInvestorId}
+              className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add IRA Account
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowInviteModal(true);
+              }}
+              className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95"
+            >
+              Add Investor
+            </button>
+          </div>
         </div>
 
         {/* Filters and Table Container */}
         <div className="bg-[#FFFFFF] rounded-[24px] shadow-sm border border-[#F3F4F6] overflow-hidden">
 
           {/* Action Bar */}
-          <div className="p-6 border-b border-[#F3F4F6]">
+          <div className="p-6 border-b border-[#F3F4F6]" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col md:flex-row gap-4">
               {/* Search Box */}
               <div className="relative max-w-md w-full">
@@ -273,6 +295,7 @@ export default function InvestorPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="text-[#6B7280] text-[13px] font-semibold uppercase tracking-wider bg-[#F9FAFB]/50">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize w-10">Select</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Investor Name</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Email</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Account Type</th>
@@ -309,7 +332,21 @@ export default function InvestorPage() {
                       </tr>
                     ) : (
                       displayedActiveInvestors.map((investor) => (
-                        <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group">
+                        <tr 
+                          key={investor.id} 
+                          className={`hover:bg-[#F9FAFB]/80 transition-colors group cursor-pointer ${selectedInvestorId === investor.id ? 'bg-amber-50/50' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedInvestorId(selectedInvestorId === investor.id ? null : investor.id);
+                          }}
+                        >
+                          <td className="px-6 py-5">
+                            <div className="flex items-center justify-center">
+                              <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedInvestorId === investor.id ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                {selectedInvestorId === investor.id && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
+                              </div>
+                            </div>
+                          </td>
                           <td className="px-8 py-5">
                             <div className="flex items-center gap-4">
                               <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
@@ -558,7 +595,10 @@ export default function InvestorPage() {
           </div>
 
           {/* Pagination */}
-          <div className="px-8 py-6 bg-white border-t border-[#F3F4F6] flex flex-col items-center justify-center gap-6">
+          <div 
+            className="px-8 py-6 bg-white border-t border-[#F3F4F6] flex flex-col items-center justify-center gap-6"
+            onClick={(e) => e.stopPropagation()}
+          >
             <span className="text-sm font-bold text-[#6B7280]">
               Showing {activeInvestors.length} Active, {pendingInvestors.length} Pending, and {suspendedInvestors.length} Suspended Investors
             </span>
@@ -598,6 +638,18 @@ export default function InvestorPage() {
           </div>
         </div>
       </div>
+      
+      {/* Admin Add IRA Modal */}
+      {showAdminIraModal && selectedInvestorId && (
+        <AdminAddIraModal
+          isOpen={showAdminIraModal}
+          targetInvestorId={selectedInvestorId}
+          onClose={() => setShowAdminIraModal(false)}
+          onSuccess={() => {
+            fetchInvestors();
+          }}
+        />
+      )}
 
       {/* Invite Modal */}
       {showInviteModal && (

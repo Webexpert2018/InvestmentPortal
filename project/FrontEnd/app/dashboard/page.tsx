@@ -1071,7 +1071,6 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-
             {/* Reconciliation Alerts */}
             <div className="bg-white shadow-sm rounded-xl overflow-hidden">
               <div
@@ -1093,7 +1092,6 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
-
       </div>
     </DashboardLayout>
   );

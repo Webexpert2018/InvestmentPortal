@@ -1,6 +1,10 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsUUID } from 'class-validator';
 
 export class CreateAccountDto {
+  @IsUUID()
+  @IsOptional()
+  targetUserId?: string;
+
   @IsString()
   @IsNotEmpty()
   accountType: string;
