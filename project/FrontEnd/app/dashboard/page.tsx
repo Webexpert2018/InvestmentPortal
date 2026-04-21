@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bitcoin, Wallet, TrendingUp, Layers, CircleDollarSign, Users } from 'lucide-react';
@@ -208,7 +208,7 @@ type DashboardRole = 'admin' | 'investor' | 'accountant';
 const normalizeDashboardRole = (role?: string | null): DashboardRole => {
   const normalized = role?.trim().toLowerCase();
   const adminRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations'];
-  
+
   if (adminRoles.includes(normalized || '')) return 'admin';
   if (normalized === 'accountant' || normalized === 'accountants' || normalized === 'account') return 'accountant';
   return 'investor';
@@ -252,14 +252,39 @@ export default function DashboardPage() {
   });
   const [dynamicFundingRequests, setDynamicFundingRequests] = useState<any[]>([]);
   const [dynamicRedemptionRequests, setDynamicRedemptionRequests] = useState<any[]>([]);
+  const [iraAccounts, setIraAccounts] = useState<any[]>([]);
+  const [allInvestments, setAllInvestments] = useState<any[]>([]);
 
-  const investorAccountList = [
-    {
-      id: 1,
-      name: 'Personal Account',
-      subtitle: `Total Value: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue)}`,
-    },
-  ];
+  const investorAccountList = useMemo(() => {
+    const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+    // Calculate personal value
+    const personalValue = allInvestments
+      .filter(inv => !inv.account_id)
+      .reduce((sum, inv) => sum + parseFloat(inv.revised_amount || (parseFloat(inv.estimated_units) * (investorStats.currentNav || 0))), 0);
+
+    const list = [
+      {
+        id: 'personal',
+        name: 'Personal Account',
+        subtitle: `Total Value: ${formatter.format(personalValue)}`,
+      },
+    ];
+
+    iraAccounts.forEach((acc, index) => {
+      const accountValue = allInvestments
+        .filter(inv => inv.account_id === acc.id)
+        .reduce((sum, inv) => sum + parseFloat(inv.revised_amount || (parseFloat(inv.estimated_units) * (investorStats.currentNav || 0))), 0);
+
+      list.push({
+        id: acc.id || `ira-${index}`,
+        name: acc.account_type || 'IRA Account',
+        subtitle: `Total Value: ${formatter.format(accountValue)}`,
+      });
+    });
+
+    return list;
+  }, [allInvestments, iraAccounts, investorStats.currentNav]);
 
   const dashboardRole = normalizeDashboardRole(user?.role);
   const welcomeName = user?.firstName ? user.firstName : dashboardRole[0].toUpperCase() + dashboardRole.slice(1);
@@ -272,13 +297,15 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         if (dashboardRole === 'investor' && user?.id) {
-          const [flows, investments, navSummary, dynamicStats] = await Promise.all([
+          const [flows, investments, navSummary, dynamicStats, iraData] = await Promise.all([
             apiClient.getMyFundFlows(),
             apiClient.getMyInvestments(),
             apiClient.getNavSummary(),
             apiClient.getInvestorStats(user.id),
+            apiClient.getMyIRAAccount(),
           ]);
 
+          setAllInvestments(investments);
           setActiveFundsCount(flows.length);
 
           const totalInvested = investments.reduce((sum, inv) => sum + parseFloat(inv.investment_amount), 0);
@@ -293,6 +320,8 @@ export default function DashboardPage() {
             currentValue,
             ytdReturn: dynamicStats.ytdReturn || 0,
           });
+
+          setIraAccounts(Array.isArray(iraData) ? iraData : (iraData ? [iraData] : []));
         } else if (dashboardRole === 'admin') {
           const [stats, allInvestments, allRedemptions] = await Promise.all([
             apiClient.getAdminStats(),
@@ -300,15 +329,15 @@ export default function DashboardPage() {
             apiClient.getAllRedemptions(),
           ]);
           setAdminStats(stats);
-          
+
           // Filter pending fundings: Subscription Submitted or Awaiting Funding
-          const pendingFundings = allInvestments.filter((inv: any) => 
+          const pendingFundings = allInvestments.filter((inv: any) =>
             ['Subscription Submitted', 'Awaiting Funding'].includes(inv.status)
           );
           setDynamicFundingRequests(pendingFundings);
 
           // Filter pending redemptions: Pending
-          const pendingRedemptions = allRedemptions.filter((red: any) => 
+          const pendingRedemptions = allRedemptions.filter((red: any) =>
             red.status === 'Pending'
           );
           setDynamicRedemptionRequests(pendingRedemptions);
@@ -992,7 +1021,7 @@ export default function DashboardPage() {
                           {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.investment_amount)} - {request.account_type}
                         </p>
                       </div>
-                      <Link 
+                      <Link
                         href={`/dashboard/funding-requests/${request.id}`}
                         className="px-4 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-full hover:bg-blue-50 transition-colors"
                       >
@@ -1025,11 +1054,11 @@ export default function DashboardPage() {
                       <div>
                         <p className="text-sm font-medium text-gray-900">{request.investor_name}</p>
                         <p className="text-xs text-gray-500">
-                           {request.units ? `${parseFloat(request.units).toFixed(2)} Units` : ''} 
-                           {request.amount ? ` (~${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.amount)})` : ''}
+                          {request.units ? `${parseFloat(request.units).toFixed(2)} Units` : ''}
+                          {request.amount ? ` (~${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.amount)})` : ''}
                         </p>
                       </div>
-                      <Link 
+                      <Link
                         href={`/dashboard/redemption-requests/${request.id}`}
                         className="px-4 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-full hover:bg-blue-50 transition-colors"
                       >

@@ -21,13 +21,13 @@ export class AccountsController {
   }
 
 
-  @Post(':userId')
+  @Post()
   async createAccount(
-    @Param('userId') userId: string,
+    @CurrentUser() user: any,
     @Body() dto: CreateAccountDto,
     @Headers('authorization') authHeader: string,
   ) {
     const token = authHeader?.replace('Bearer ', '');
-    return this.accountsService.createAccount(userId, dto, token);
+    return this.accountsService.createAccount(user.userId, dto, token);
   }
 }

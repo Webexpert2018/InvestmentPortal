@@ -12,8 +12,8 @@ export class CreateInvestmentDto {
   @IsOptional()
   accountId?: string;
 
-  @ApiProperty({ description: 'The investment source type', enum: ['personal', 'ira'] })
-  @IsEnum(['personal', 'ira'])
+  @ApiProperty({ description: 'The investment source type (e.g., personal, Traditional, Roth, DB Plan)' })
+  @IsString()
   @IsNotEmpty()
   accountType: string;
 
