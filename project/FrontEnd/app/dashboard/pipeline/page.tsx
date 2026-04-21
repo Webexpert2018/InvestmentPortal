@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { X, GripVertical, UserPlus, Mail, Phone, Loader2, ChevronDown } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -55,6 +55,21 @@ export default function PipelinePage() {
   const [isAssigning, setIsAssigning] = useState(false);
   const [isIrLoading, setIsIrLoading] = useState(false);
   const [pipelineNote, setPipelineNote] = useState('');
+  
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const boardScrollRef = useRef<HTMLDivElement>(null);
+
+  const handleSyncBoardScroll = () => {
+    if (topScrollRef.current && boardScrollRef.current) {
+      boardScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+  };
+
+  const handleSyncTopScroll = () => {
+    if (topScrollRef.current && boardScrollRef.current) {
+      topScrollRef.current.scrollLeft = boardScrollRef.current.scrollLeft;
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && user && !isAdmin) {
@@ -323,11 +338,33 @@ export default function PipelinePage() {
           )}
         </div>
 
+        {/* Top Sync Scrollbar */}
+        <div 
+          ref={topScrollRef}
+          onScroll={handleSyncBoardScroll}
+          className="overflow-x-auto pipeline-scroll"
+          style={{ maxWidth: 'calc(-300px + 100vw)', marginBottom: '-10px' }}
+        >
+          <div style={{ width: 'max-content', height: '1px' }}>
+            <div className="flex flex-nowrap gap-4 lg:gap-6 opacity-0 pointer-events-none" style={{ minWidth: 'max-content' }}>
+              {stages.map((stage) => (
+                <div key={stage.id} style={{ width: '350px' }} className="flex-none" />
+              ))}
+              <div className="pr-4" />
+            </div>
+          </div>
+        </div>
+
         {/* Pipeline Board */}
         <DragDropContextComponent onDragEnd={onDragEnd}>
           <div
-            className="overflow-x-auto overflow-y-auto pb-2 pipeline-scroll"
-            style={{ maxHeight: 'calc(100vh - 160px)', maxWidth: 'calc(-300px + 100vw)' }}
+            ref={boardScrollRef}
+            onScroll={handleSyncTopScroll}
+            className="overflow-x-auto overflow-y-auto pt-2 pipeline-scroll"
+            style={{ 
+              maxHeight: 'calc(100vh - 160px)', 
+              maxWidth: 'calc(-300px + 100vw)',
+            }}
           >
             <DroppableComponent droppableId="board" type="column" direction="horizontal">
               {(providedBoard: any) => (
