@@ -302,7 +302,7 @@ export default function FundingRequestsPage() {
 
           {/* Pagination */}
           {filteredRequests.length > itemsPerPage && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-center px-6 py-4 border-t border-gray-200">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}

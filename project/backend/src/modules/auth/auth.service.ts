@@ -37,12 +37,12 @@ export class AuthService {
          WHERE u.otp = $1 AND u.type = 'INVITATION' AND u.expires_at > NOW() AND u.is_used = false`,
         [invitationToken]
       );
-      
+
       if (inviteResult.rows.length === 0) {
         throw new BadRequestException('Invalid or expired invitation token');
       }
       invitationData = inviteResult.rows[0];
-      
+
       if (invitationData.email !== email) {
         throw new BadRequestException('Invitation token does not match this email');
       }
@@ -54,7 +54,7 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(password, 10);
     let targetRole = role || 'investor';
-    
+
     // Auto-map 'admin' to 'executive_admin' for new registrations
     if (targetRole === 'admin') {
       targetRole = 'executive_admin';
@@ -115,7 +115,7 @@ export class AuthService {
         );
         newUser = userResult.rows[0];
       }
-      
+
       const nameParts = newUser.full_name?.split(' ') || [];
       newUser.firstName = nameParts[0] || '';
       newUser.lastName = nameParts.slice(1).join(' ') || '';
@@ -165,14 +165,14 @@ export class AuthService {
 
       let user = result.rows[0];
 
-        // 2. If not found in users, try investors table
+      // 2. If not found in users, try investors table
       if (!user) {
         result = await db.query(
           'SELECT id, email, password_hash, role, full_name, status, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, kyc_status FROM investors WHERE email = $1',
           [email]
         );
         user = result.rows[0];
-        
+
         // Map full_name to first_name/last_name for consistency in response
         if (user) {
           user.first_name = user.full_name?.split(' ')[0] || '';
@@ -187,7 +187,7 @@ export class AuthService {
           [email]
         );
         user = result.rows[0];
-        
+
         if (user) {
           user.first_name = user.full_name?.split(' ')[0] || '';
           user.last_name = user.full_name?.split(' ')[1] || '';
@@ -198,8 +198,12 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
+      if (user.status === 'suspended') {
+        throw new UnauthorizedException('This account has been suspended. Please contact support.');
+      }
+
       if (user.status !== 'active') {
-        throw new UnauthorizedException('Account is not active');
+        throw new UnauthorizedException('Account is not active or pending approval');
       }
 
       const isPasswordValid = await bcrypt.compare(password, user.password_hash);
@@ -210,11 +214,11 @@ export class AuthService {
       // Role-based access control check
       if (role) {
         const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations', 'relations_associate'];
-        
+
         // 1. Admin flows ('admin') are compatible with all administrative roles
         const isAdminFlow = role === 'admin';
         const isCompatibleAdmin = isAdminFlow && adminRoles.includes(user.role);
-        
+
         // 2. Exact match check for other flows (accountant, investor, etc.)
         if (!isCompatibleAdmin && user.role !== role) {
           throw new UnauthorizedException(`Access denied. You do not have the ${role} role.`);
@@ -272,11 +276,11 @@ export class AuthService {
     );
     if (result.rows.length > 0) {
       const user = result.rows[0];
-      return { 
-        user: { 
-          ...user, 
-          first_name: user.full_name?.split(' ')[0] || 'User' 
-        }, 
+      return {
+        user: {
+          ...user,
+          first_name: user.full_name?.split(' ')[0] || 'User'
+        },
         tableName: 'investors',
         nameField: 'full_name'
       };
@@ -289,11 +293,11 @@ export class AuthService {
     );
     if (result.rows.length > 0) {
       const user = result.rows[0];
-      return { 
-        user: { 
-          ...user, 
-          first_name: user.full_name?.split(' ')[0] || 'User' 
-        }, 
+      return {
+        user: {
+          ...user,
+          first_name: user.full_name?.split(' ')[0] || 'User'
+        },
         tableName: 'staff',
         nameField: 'full_name'
       };
@@ -421,12 +425,12 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired invitation token');
     }
 
-    const { 
-      id, email, full_name, phone, dob, 
-      address_line1, address_line2, city, 
-      state, zip_code, country, tax_id 
+    const {
+      id, email, full_name, phone, dob,
+      address_line1, address_line2, city,
+      state, zip_code, country, tax_id
     } = result.rows[0];
-    
+
     const [firstName, ...lastNameParts] = (full_name || '').split(' ');
 
     return {

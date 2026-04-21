@@ -274,7 +274,7 @@ export default function DocumentVaultPage() {
             </table>
           </div>
 
-          <div className="mt-4 flex items-center justify-end gap-2 text-[12px] text-[#8E8E93]">
+          <div className="mt-4 flex items-center justify-center gap-6 text-[12px] text-[#8E8E93]">
             <button
               type="button"
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}

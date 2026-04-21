@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ChevronLeft, X, ChevronDown, FileText, Download, Shield, Mail, Phone, Calendar, User, MapPin } from 'lucide-react';
+import { ChevronLeft, X, ChevronDown, FileText, Download, Shield, Mail, Phone, Calendar, User, MapPin, Loader2 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
@@ -15,6 +15,9 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
   const [loading, setLoading] = useState(true);
   const [selectedAssociate, setSelectedAssociate] = useState('');
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [irStaffList, setIrStaffList] = useState<any[]>([]);
+  const [irLoading, setIrLoading] = useState(false);
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,7 +123,19 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                   {/* Dedicated Action Buttons */}
                   <div className="flex flex-wrap gap-3">
                     <button 
-                      onClick={() => setShowAssignModal(true)}
+                      onClick={async () => {
+                        setShowAssignModal(true);
+                        setSelectedAssociate(investorData.assignedIrId || '');
+                        setIrLoading(true);
+                        try {
+                          const res = await apiClient.getStaff('investor_relations', 1, 100);
+                          setIrStaffList(res.data || []);
+                        } catch (err) {
+                          console.error('Failed to fetch IR staff:', err);
+                        } finally {
+                          setIrLoading(false);
+                        }
+                      }}
                       className="px-6 py-3 bg-[#FCD34D] text-[#1F1F1F] text-sm font-bold rounded-xl hover:bg-[#FBD24E] transition-all shadow-lg shadow-yellow-50 active:scale-95"
                     >
                       Assign Relations Associate
@@ -251,12 +266,13 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                   <select
                     value={selectedAssociate}
                     onChange={(e) => setSelectedAssociate(e.target.value)}
-                    className="w-full px-6 py-4 bg-[#F9FAFB] border border-transparent rounded-2xl text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:bg-white transition-all font-bold cursor-pointer"
+                    disabled={irLoading}
+                    className="w-full px-6 py-4 bg-[#F9FAFB] border border-transparent rounded-2xl text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:bg-white transition-all font-bold cursor-pointer disabled:opacity-50"
                   >
-                    <option value="">Select Associate</option>
-                    <option value="john-doe">John Doe</option>
-                    <option value="jane-smith">Jane Smith</option>
-                    <option value="michael-johnson">Michael Johnson</option>
+                    <option value="">{irLoading ? 'Loading associates...' : 'Select Associate'}</option>
+                    {irStaffList.map((staff: any) => (
+                      <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
+                    ))}
                   </select>
                   <ChevronDown className="absolute right-5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                 </div>
@@ -270,14 +286,29 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    toast.success(`Investor assigned to ${selectedAssociate}`);
-                    setShowAssignModal(false);
+                  onClick={async () => {
+                    try {
+                      setAssigning(true);
+                      await apiClient.assignInvestorRelations(params.id, selectedAssociate || null);
+                      toast.success('Relation Associate assigned successfully');
+                      const profile = await apiClient.getUserById(params.id);
+                      setInvestorData(profile);
+                      setShowAssignModal(false);
+                    } catch (err: any) {
+                      toast.error(err.message || 'Failed to assign');
+                    } finally {
+                      setAssigning(false);
+                    }
                   }}
-                  disabled={!selectedAssociate}
-                  className="flex-1 py-4 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all disabled:opacity-50 disabled:shadow-none"
+                  disabled={assigning}
+                  className="flex-1 py-4 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2"
                 >
-                  Assign
+                  {assigning ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Assigning...
+                    </>
+                  ) : 'Assign'}
                 </button>
               </div>
             </div>

@@ -227,7 +227,7 @@ class ApiClient {
 
   async updateUserStatus(userId: string, status: string) {
     return this.request<any>(`/users/${userId}/status`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify({ status }),
     });
   }
@@ -410,6 +410,14 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  async adminResetPassword(userId: string, password: string) {
+    return this.request<any>(`/users/${userId}/reset-password`, {
+      method: 'PATCH',
+      body: JSON.stringify({ password }),
+    });
+  }
+
 
   async uploadProfileImage(file: File) {
     const formData = new FormData();
@@ -739,8 +747,8 @@ class ApiClient {
   async createDocuSignEnvelope(data: {
     fundId: string;
     fundName: string;
-    accessToken: string;
-    accountId: string;
+    accessToken?: string;
+    accountId?: string;
     investmentAmount: number;
     accountType: string;
     iraMetadata?: {
@@ -906,6 +914,13 @@ class ApiClient {
     });
   }
 
+  async updateInvestorPipelineDetails(investorId: string, details: { expectedFutureInvestment: number }) {
+    return this.request<any>(`/pipeline/investors/${investorId}/details`, {
+      method: 'PATCH',
+      body: JSON.stringify(details),
+    });
+  }
+
   async createPipelineStage(data: { name: string, color: string }) {
     return this.request<any>('/pipeline/stages', {
       method: 'POST',
@@ -916,6 +931,13 @@ class ApiClient {
   async deletePipelineStage(stageId: number) {
     return this.request<any>(`/pipeline/stages/${stageId}`, {
       method: 'DELETE'
+    });
+  }
+
+  async reorderPipelineStages(stageIds: number[]) {
+    return this.request<any>('/pipeline/stages/reorder', {
+      method: 'PATCH',
+      body: JSON.stringify({ stageIds }),
     });
   }
 }

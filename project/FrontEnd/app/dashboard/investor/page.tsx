@@ -21,7 +21,7 @@ interface Investor {
   profileImageUrl: string | null;
   createdAt: string;
   avatar: string;
-  status: 'active' | 'pending';
+  status: 'active' | 'pending' | 'suspended';
 }
 
 export default function InvestorPage() {
@@ -30,6 +30,7 @@ export default function InvestorPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [kycFilter, setKycFilter] = useState('');
   const [accountTypeFilter, setAccountTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -89,11 +90,14 @@ export default function InvestorPage() {
     const matchesSearch = fullNameStr.includes(searchQuery.toLowerCase()) ||
       investor.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesKyc = !kycFilter || investor.kycStatus?.toLowerCase() === kycFilter.toLowerCase();
-    return matchesSearch && matchesKyc;
+    const effectiveStatus = investor.status || 'active';
+    const matchesStatus = !statusFilter || effectiveStatus === statusFilter;
+    return matchesSearch && matchesKyc && matchesStatus;
   });
 
   const activeInvestors = filteredInvestors.filter(i => i.status === 'active' || !i.status);
   const pendingInvestors = filteredInvestors.filter(i => i.status === 'pending');
+  const suspendedInvestors = filteredInvestors.filter(i => i.status === 'suspended');
 
   const handleInvite = async () => {
     setEmailError('');
@@ -246,6 +250,21 @@ export default function InvestorPage() {
                 </select>
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] pointer-events-none" />
               </div>
+
+              {/* Account Status Filter */}
+              <div className="relative">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="appearance-none pl-5 pr-10 py-3 bg-[#F9FAFB] border-none rounded-full text-sm font-medium text-[#4B5563] cursor-pointer focus:ring-2 focus:ring-[#FCD34D] transition-all min-w-[150px]"
+                >
+                  <option value="">Account Status</option>
+                  <option value="active">Active</option>
+                  <option value="pending">Pending</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] pointer-events-none" />
+              </div>
             </div>
           </div>
 
@@ -358,9 +377,6 @@ export default function InvestorPage() {
                                       View Profile
                                     </button>
                                   </Link>
-                                  <button className="w-full px-5 py-3 text-left text-sm font-bold text-[#EF4444] hover:bg-[#FEF2F2] transition-colors">
-                                    Suspend Account
-                                  </button>
                                 </div>
                               </>
                             )}
@@ -373,35 +389,50 @@ export default function InvestorPage() {
                     {pendingInvestors.length > 0 && (
                       <>
                         <tr className="bg-[#F9FAFB]/30">
-                          <td colSpan={7} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
+                          <td colSpan={8} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
                             Pending Invitations ({pendingInvestors.length})
                           </td>
                         </tr>
                         {pendingInvestors.map((investor) => (
-                          <tr key={investor.id} className="hover:bg-[#FFFBEB]/50 transition-colors group opacity-80">
+                          <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group">
                             <td className="px-8 py-5">
                               <div className="flex items-center gap-4">
-                                <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#F3F4F6] border-2 border-dashed border-[#D1D5DB] flex items-center justify-center text-[#9CA3AF] text-xs font-bold">
-                                  ?
+                                <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
+                                  <Image
+                                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
+                                    alt={investor.firstName}
+                                    fill
+                                    className="object-cover opacity-60"
+                                  />
                                 </div>
                                 <div>
-                                  <p className="text-sm font-bold text-[#4B5563]">{investor.firstName || '-'}</p>
+                                  <p className="text-sm font-bold text-[#111827]">{investor.firstName} {investor.lastName || '-'}</p>
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-5">
                               <span className="text-sm text-[#4B5563] font-medium">{investor.email}</span>
                             </td>
-                            <td className="px-6 py-5 italic text-[#9CA3AF] text-sm">-</td>
                             <td className="px-6 py-5">
-                              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-500 border border-gray-200 uppercase">
+                              <span className="text-sm text-[#4B5563] font-medium">-</span>
+                            </td>
+                            <td className="px-6 py-5">
+                              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-200">
                                 Invited
                               </span>
                             </td>
-                             <td className="px-6 py-5 text-right text-[#9CA3AF]">-</td>
-                             <td className="px-6 py-5 text-right text-[#9CA3AF]">-</td>
-                             <td className="px-6 py-5 text-sm text-[#9CA3AF]">
-                              {new Date(investor.createdAt).toLocaleDateString()}
+                             <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                               0.00
+                             </td>
+                             <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                               -
+                             </td>
+                             <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
+                              {new Date(investor.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
                             </td>
                             <td className="px-8 py-5 text-center relative">
                               <button
@@ -415,23 +446,103 @@ export default function InvestorPage() {
                                 <>
                                   <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
                                   <div className="absolute right-12 top-12 w-48 bg-white rounded-2xl shadow-xl border border-[#F3F4F6] py-2 z-20 overflow-hidden animate-in fade-in zoom-in duration-200">
-                                    <button 
-                                      onClick={() => handleSendInvitation(investor.id)}
-                                      className="w-full text-left px-5 py-3 text-sm font-bold text-[#111827] hover:bg-[#F9FAFB] flex items-center gap-2"
-                                    >
-                                      {isSending === investor.id ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                      ) : (
-                                        <Send className="w-4 h-4" />
-                                      )}
-                                      Send Invite Link
-                                    </button>
+                                    <Link href={`/dashboard/investor/${investor.id}`}>
+                                      <button className="w-full px-5 py-3 text-left text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">
+                                        View Profile
+                                      </button>
+                                    </Link>
                                     <button 
                                       onClick={() => handleCancelInvite(investor.id)}
-                                      className="w-full px-5 py-3 text-left text-sm font-bold text-[#EF4444] hover:bg-[#FEF2F2] transition-colors"
+                                      className="w-full px-5 py-3 text-left text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
                                     >
                                       Cancel Invite
                                     </button>
+                                  </div>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </>
+                    )}
+
+                    {/* Suspended Accounts Heading */}
+                    {suspendedInvestors.length > 0 && (
+                      <>
+                        <tr className="bg-[#F9FAFB]/30">
+                          <td colSpan={8} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
+                            Suspended Accounts ({suspendedInvestors.length})
+                          </td>
+                        </tr>
+                        {suspendedInvestors.map((investor) => (
+                          <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group opacity-80">
+                            <td className="px-8 py-5">
+                              <div className="flex items-center gap-4">
+                                <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB] grayscale">
+                                  {investor.profileImageUrl ? (
+                                    <Image
+                                      src={investor.profileImageUrl.startsWith('http') 
+                                        ? investor.profileImageUrl 
+                                        : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
+                                      alt={investor.firstName}
+                                      fill
+                                      className="object-cover opacity-50"
+                                    />
+                                  ) : (
+                                    <Image
+                                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=9CA3AF`}
+                                      alt={investor.firstName}
+                                      fill
+                                      className="object-cover opacity-50"
+                                    />
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-gray-400 line-through decoration-gray-300">{investor.firstName} {investor.lastName || '-'}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <span className="text-sm text-gray-400 font-medium">{investor.email}</span>
+                            </td>
+                            <td className="px-6 py-5">
+                              <span className="text-sm text-gray-400 font-medium">Personal</span>
+                            </td>
+                            <td className="px-6 py-5">
+                              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-500 border border-red-100 italic">
+                                Suspended
+                              </span>
+                            </td>
+                             <td className="px-6 py-5 text-right font-bold text-gray-400">
+                               {investor.units || '0.00'}
+                             </td>
+                             <td className="px-6 py-5 text-right font-bold text-gray-400">
+                               {investor.invested || '-'}
+                             </td>
+                             <td className="px-6 py-5 text-sm text-gray-400 font-medium">
+                              {new Date(investor.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </td>
+                            <td className="px-8 py-5 text-center relative">
+                              <button
+                                onClick={() => setActiveDropdown(activeDropdown === investor.id ? null : investor.id)}
+                                className="p-2 text-[#9CA3AF] hover:text-[#111827] hover:bg-[#F3F4F6] rounded-full transition-all"
+                              >
+                                <MoreVertical className="h-5 w-5" />
+                              </button>
+
+                              {activeDropdown === investor.id && (
+                                <>
+                                  <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
+                                  <div className="absolute right-12 top-12 w-48 bg-white rounded-2xl shadow-xl border border-[#F3F4F6] py-2 z-20 overflow-hidden animate-in fade-in zoom-in duration-200">
+                                    <Link href={`/dashboard/investor/${investor.id}`}>
+                                      <button className="w-full px-5 py-3 text-left text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">
+                                        View Profile
+                                      </button>
+                                    </Link>
                                   </div>
                                 </>
                               )}
@@ -447,9 +558,9 @@ export default function InvestorPage() {
           </div>
 
           {/* Pagination */}
-          <div className="px-8 py-6 bg-white border-t border-[#F3F4F6] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="px-8 py-6 bg-white border-t border-[#F3F4F6] flex flex-col items-center justify-center gap-6">
             <span className="text-sm font-bold text-[#6B7280]">
-              Showing {activeInvestors.length} Active of {filteredInvestors.length} Total Investors
+              Showing {activeInvestors.length} Active, {pendingInvestors.length} Pending, and {suspendedInvestors.length} Suspended Investors
             </span>
 
             <div className="flex items-center gap-2">

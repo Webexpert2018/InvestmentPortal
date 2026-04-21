@@ -204,8 +204,7 @@ export default function StaffPage() {
                             staff.role === 'executive_admin' ? 'bg-[#1F1F1F]' :
                               staff.role === 'fund_admin' ? 'bg-[#059669]' :
                                 staff.role === 'investor_relations' ? 'bg-[#7C3AED]' :
-                                  staff.role === 'relations_associate' ? 'bg-[#274583]' :
-                                    staff.role === 'accountant' ? 'bg-[#5B21B6]' : 'bg-[#EF4444]'
+                                  staff.role === 'accountant' ? 'bg-[#5B21B6]' : 'bg-[#EF4444]'
                             }`}>
                             {staff.profile_image_url ? (
                               <img src={staff.profile_image_url} alt={staff.full_name} className="w-full h-full object-cover" />
@@ -222,8 +221,7 @@ export default function StaffPage() {
                           staff.role === 'admin' ? 'bg-[#3B82F6]/10 text-[#3B82F6]' :
                             staff.role === 'fund_admin' ? 'bg-[#059669]/10 text-[#059669]' :
                               staff.role === 'investor_relations' ? 'bg-[#7C3AED]/10 text-[#7C3AED]' :
-                                staff.role === 'relations_associate' ? 'bg-[#274583]/10 text-[#274583]' :
-                                  staff.role === 'accountant' ? 'bg-[#5B21B6]/10 text-[#5B21B6]' : 'bg-[#EF4444]/10 text-[#EF4444]'
+                                staff.role === 'accountant' ? 'bg-[#5B21B6]/10 text-[#5B21B6]' : 'bg-[#EF4444]/10 text-[#EF4444]'
                           }`}>
                           {ROLE_OPTIONS.find(o => o.id === staff.role)?.label || staff.role}
                         </span>
@@ -291,7 +289,7 @@ export default function StaffPage() {
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <div className="mt-8 flex justify-end items-center gap-4">
+          <div className="mt-8 flex justify-center items-center gap-4">
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}

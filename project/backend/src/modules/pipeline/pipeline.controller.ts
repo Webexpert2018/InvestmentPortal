@@ -24,6 +24,14 @@ export class PipelineController {
     return this.pipelineService.updateInvestorStage(id, stageId);
   }
 
+  @Patch('investors/:id/details')
+  async updateInvestorDetails(
+    @Param('id') id: string,
+    @Body() details: { expectedFutureInvestment?: number },
+  ) {
+    return this.pipelineService.updateInvestorDetails(id, details);
+  }
+
   @Post('stages')
   async createStage(
     @Body('name') name: string,
@@ -35,5 +43,10 @@ export class PipelineController {
   @Delete('stages/:id')
   async deleteStage(@Param('id', ParseIntPipe) id: number) {
     return this.pipelineService.deleteStage(id);
+  }
+
+  @Patch('stages/reorder')
+  async reorderStages(@Body('stageIds') stageIds: number[]) {
+    return this.pipelineService.reorderStages(stageIds);
   }
 }

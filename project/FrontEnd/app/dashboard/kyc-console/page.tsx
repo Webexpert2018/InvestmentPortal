@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, ChevronDown, MoreVertical } from 'lucide-react';
+import { Search, ChevronDown, MoreVertical, Loader2, X } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -37,6 +37,14 @@ export default function KYCConsolePage() {
   const [kycFilter, setKycFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  
+  // Assignment Modal State
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedInvestorId, setSelectedInvestorId] = useState<string | null>(null);
+  const [selectedAssociate, setSelectedAssociate] = useState('');
+  const [irStaffList, setIrStaffList] = useState<any[]>([]);
+  const [irLoading, setIrLoading] = useState(false);
+  const [assigning, setAssigning] = useState(false);
 
   const fetchInvestors = async () => {
     try {
@@ -218,12 +226,24 @@ export default function KYCConsolePage() {
                                 </Link>
                                 <button
                                   className="w-full px-4 py-2 text-left text-[#1F3B6E] hover:bg-blue-50 transition-colors font-medium"
-                                  onClick={() => {
-                                    // Set some state to show an assignment modal if needed, 
-                                    // or just navigate to profile where assignment can happen.
-                                    // For now, let's just make it a button as requested.
-                                    toast.info('Assign Relation Associate feature coming soon');
+                                  onClick={async () => {
+                                    const investor = currentRecords.find(inv => inv.id === record.id);
+                                    setSelectedInvestorId(record.id);
+                                    // Need to find if record has assignedIrId (not in interface currently)
+                                    // For now just reset
+                                    setSelectedAssociate(''); 
+                                    setShowAssignModal(true);
                                     setActiveDropdown(null);
+                                    
+                                    setIrLoading(true);
+                                    try {
+                                      const res = await apiClient.getStaff('investor_relations', 1, 100);
+                                      setIrStaffList(res.data || []);
+                                    } catch (err) {
+                                      console.error('Failed to fetch IR staff:', err);
+                                    } finally {
+                                      setIrLoading(false);
+                                    }
                                   }}
                                 >
                                   Assign Relation Associate
@@ -242,7 +262,7 @@ export default function KYCConsolePage() {
 
           {/* Pagination */}
           {!loading && filteredInvestors.length > itemsPerPage && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-center px-6 py-4 border-t border-gray-200">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
@@ -277,6 +297,81 @@ export default function KYCConsolePage() {
           )}
         </div>
       </div>
+
+      {/* Assign Relation Associate Modal */}
+      {showAssignModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="p-8 space-y-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-[#1F1F1F]">Assign Relation Associate</h2>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Select a relation associate to manage this investor's KYC verification.
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setShowAssignModal(false)} 
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="h-6 w-6 text-gray-400" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-sm font-bold text-gray-700 ml-1">Relation Associate</label>
+                <div className="relative">
+                  <select
+                    value={selectedAssociate}
+                    onChange={(e) => setSelectedAssociate(e.target.value)}
+                    disabled={irLoading}
+                    className="w-full px-6 py-4 bg-[#F9FAFB] border border-transparent rounded-2xl text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:bg-white transition-all font-bold cursor-pointer disabled:opacity-50"
+                  >
+                    <option value="">{irLoading ? 'Loading associates...' : 'Select Associate'}</option>
+                    {irStaffList.map((staff: any) => (
+                      <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button
+                  onClick={() => setShowAssignModal(false)}
+                  className="flex-1 py-4 text-sm font-bold text-[#6B7280] bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!selectedInvestorId) return;
+                    try {
+                      setAssigning(true);
+                      await apiClient.assignInvestorRelations(selectedInvestorId, selectedAssociate || null);
+                      toast.success('Relation Associate assigned successfully');
+                      setShowAssignModal(false);
+                    } catch (err: any) {
+                      toast.error(err.message || 'Failed to assign');
+                    } finally {
+                      setAssigning(false);
+                    }
+                  }}
+                  disabled={assigning}
+                  className="flex-1 py-4 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2"
+                >
+                  {assigning ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Assigning...
+                    </>
+                  ) : 'Assign'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

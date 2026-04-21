@@ -17,7 +17,6 @@ export default function SettingsPage() {
     'accountants',
     'fund_admin', 
     'investor_relations', 
-    'relations_associate', 
     'partnership'
   ];
   

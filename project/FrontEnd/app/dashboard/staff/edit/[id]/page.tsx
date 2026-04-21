@@ -156,7 +156,6 @@ export default function EditStaffPage() {
                 <option value="fund_admin">Fund Admin</option>
                 <option value="investor_relations">Investor Relations</option>
                 <option value="accountant">Accountant</option>
-                <option value="relations_associate">Relations Associate</option>
                 <option value="partnership">Partnership</option>
               </select>
             </div>

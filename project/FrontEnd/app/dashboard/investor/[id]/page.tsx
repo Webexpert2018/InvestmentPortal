@@ -5,7 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ChevronLeft, X, ChevronDown, FileText, Download, Calendar, Mail, Phone, Shield, MapPin, User } from 'lucide-react';
+import { 
+  ChevronLeft, X, ChevronDown, FileText, Download, Calendar, Mail, Phone, 
+  Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle 
+} from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 
@@ -17,6 +20,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [selectedIrStaff, setSelectedIrStaff] = useState('');
   const [irStaffList, setIrStaffList] = useState<any[]>([]);
   const [irLoading, setIrLoading] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [fundingPage, setFundingPage] = useState(1);
@@ -28,6 +35,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [redemptionHistory, setRedemptionHistory] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({ totalValue: 0, totalUnits: 0, ytdReturn: 0 });
   const [loading, setLoading] = useState(true);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [isSuspending, setIsSuspending] = useState(false);
+  const [showSuspendModal, setShowSuspendModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,6 +130,75 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const redemptionStartIndex = (redemptionPage - 1) * redemptionItemsPerPage;
   const displayedRedemptionHistory = redemptionHistory.slice(redemptionStartIndex, redemptionStartIndex + redemptionItemsPerPage);
 
+  const handleSendInvite = async () => {
+    try {
+      setIsSendingInvite(true);
+      await apiClient.sendInvitation(params.id);
+      toast.success('Invitation link sent successfully');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send invitation');
+    } finally {
+      setIsSendingInvite(false);
+    }
+  };
+
+  const handleForgotPassword = () => {
+    setShowResetModal(true);
+  };
+
+  const handleAdminResetPassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    try {
+      setIsResetting(true);
+      await apiClient.adminResetPassword(params.id, newPassword);
+      toast.success('Password updated and email sent to investor');
+      setShowResetModal(false);
+      setNewPassword('');
+      setShowPassword(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update password');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleSuspendAccount = async () => {
+    const isSuspended = investorData.status === 'suspended';
+    const action = isSuspended ? 'activate' : 'suspend';
+
+    try {
+      setIsSuspending(true);
+      console.log(`[handleSuspendAccount] Attempting to ${action} user ${params.id}. Target status: ${isSuspended ? 'active' : 'suspended'}`);
+      await apiClient.updateUserStatus(params.id, isSuspended ? 'active' : 'suspended');
+      toast.success(`Account ${isSuspended ? 'activated' : 'suspended'} successfully`);
+      const profile = await apiClient.getUserById(params.id);
+      setInvestorData(profile);
+      setShowSuspendModal(false);
+    } catch (err: any) {
+      console.error(`[handleSuspendAccount] Failed to ${action} account:`, err);
+      toast.error(err.message || `Failed to ${action} account. Please check browser console for details.`);
+    } finally {
+      setIsSuspending(false);
+    }
+  };
+
+  const handleCancelInvite = async () => {
+    if (!confirm('Are you sure you want to cancel this invitation? This will delete the investor record.')) return;
+    try {
+      setIsSuspending(true); // Using this as a general loading state for buttons
+      await apiClient.deleteUser(params.id);
+      toast.success('Invitation cancelled');
+      router.push('/dashboard/investor');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to cancel invitation');
+    } finally {
+      setIsSuspending(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6 font-helvetica">
@@ -199,22 +279,72 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             </p>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={async () => {
-                              setShowAssignModal(true);
-                              setSelectedIrStaff(investorData.assignedIrId || '');
-                              setIrLoading(true);
-                              try {
-                                const res = await apiClient.getStaff('investor_relations', 1, 100);
-                                setIrStaffList(res.data || []);
-                              } catch (err) { console.error('Failed to fetch IR staff:', err); }
-                              finally { setIrLoading(false); }
-                            }}
-                            className="px-6 py-2 bg-[#FCD34D] text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-[#FBD24E] transition-colors border border-transparent active:border-yellow-600 shadow-sm"
-                          >
-                            {investorData.assignedIrId ? 'Change Investor Relations' : 'Assign Investor Relations'}
-                          </button>
+                        <div className="flex flex-wrap gap-2">
+                          {investorData.status === 'pending' ? (
+                            <>
+                              <button
+                                onClick={handleSendInvite}
+                                disabled={isSendingInvite}
+                                className="px-4 py-2 bg-[#FCD34D] text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-[#FBD24E] transition-colors border border-transparent flex items-center gap-2 shadow-sm"
+                              >
+                                {isSendingInvite ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
+                                Send Invite
+                              </button>
+                              <button
+                                onClick={handleSendInvite}
+                                disabled={isSendingInvite}
+                                className="px-4 py-2 bg-white text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-gray-50 transition-colors border border-gray-200 flex items-center gap-2 shadow-sm"
+                              >
+                                {isSendingInvite ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
+                                Resend Invite
+                              </button>
+                              <button
+                                onClick={handleCancelInvite}
+                                disabled={isSuspending}
+                                className="px-4 py-2 bg-red-50 text-red-700 text-xs font-bold rounded-full hover:bg-red-100 transition-colors border border-red-200 flex items-center gap-2 shadow-sm"
+                              >
+                                {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
+                                Cancel Invite
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={handleForgotPassword}
+                                disabled={isResetting}
+                                className="px-4 py-2 bg-white text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-gray-50 transition-colors border border-gray-200 flex items-center gap-2 shadow-sm"
+                              >
+                                {isResetting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Shield className="h-3 w-3" />}
+                                Forgot Password
+                              </button>
+                              <button
+                                onClick={() => setShowSuspendModal(true)}
+                                disabled={isSuspending}
+                                className={`px-4 py-2 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 shadow-sm ${investorData.status === 'suspended'
+                                  ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                  : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                  }`}
+                              >
+                                {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
+                                {investorData.status === 'suspended' ? 'Activate Account' : 'Suspend Account'}
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  setShowAssignModal(true);
+                                  setSelectedIrStaff(investorData.assignedIrId || '');
+                                  setIrLoading(true);
+                                  try {
+                                    const res = await apiClient.getStaff('investor_relations', 1, 100);
+                                    setIrStaffList(res.data || []);
+                                  } catch (err) { console.error('Failed to fetch IR staff:', err); }
+                                  finally { setIrLoading(false); }
+                                }}
+                                className="px-6 py-2 bg-[#FCD34D] text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-[#FBD24E] transition-colors border border-transparent active:border-yellow-600 shadow-sm"
+                              >
+                                {investorData.assignedIrId ? 'Change Investor Relations' : 'Assign Investor Relations'}
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -710,6 +840,133 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   className="flex-1 py-4 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all"
                 >
                   Assign
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+        {/* Password Reset Modal */}
+        {showResetModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="px-8 pt-8 pb-6 text-center">
+                <div className="w-16 h-16 bg-[#FCD34D]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Shield className="h-8 w-8 text-[#FCD34D]" />
+                </div>
+                <h2 className="text-2xl font-bold text-[#1F1F1F] mb-2 font-garamond text-center">Reset Investor Password</h2>
+                <p className="text-[#4B5563] text-sm leading-relaxed mb-8 text-center">
+                  Set a new password for <span className="font-bold text-[#1F1F1F] text-center">{investorData.firstName} {investorData.lastName}</span>. 
+                  A confirmation email will be sent with their new credentials.
+                </p>
+
+                <div className="space-y-6 text-left relative">
+                  <div>
+                    <label className="block text-xs font-bold text-[#4B5563] uppercase tracking-wider mb-2 ml-1">New Password</label>
+                    <div className="relative group">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-[#FCD34D]/20 focus:border-[#FCD34D] outline-none transition-all pr-12 group-hover:border-gray-200"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
+                    </div>
+                    <p className="mt-2 ml-1 text-[10px] text-gray-400 italic">Recommended: Use at least 8 characters with numbers and symbols.</p>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={() => {
+                        setShowResetModal(false);
+                        setNewPassword('');
+                        setShowPassword(false);
+                      }}
+                      className="flex-1 py-4 text-sm font-bold text-[#4B5563] hover:bg-gray-50 rounded-2xl transition-colors border border-gray-100 active:scale-[0.98]"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleAdminResetPassword}
+                      disabled={isResetting || !newPassword}
+                      className="flex-[2] py-4 bg-[#FCD34D] text-[#1F1F1F] text-sm font-bold rounded-2xl hover:bg-[#FBD24E] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#FCD34D]/20 disabled:opacity-50 disabled:shadow-none active:scale-[0.98]"
+                    >
+                      {isResetting ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        'Update Password'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-8 py-4 text-center border-t border-gray-100">
+                <p className="text-[11px] text-[#9CA3AF] flex items-center justify-center gap-1.5 uppercase font-bold tracking-widest">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                  Secure Admin Action
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      {/* Suspend Account Confirmation Modal */}
+      {showSuspendModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden transform transition-all">
+            <div className="p-8">
+              {/* Icon & Title */}
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className={`p-4 rounded-2xl ${investorData.status === 'suspended' ? 'bg-green-50' : 'bg-red-50'}`}>
+                  {investorData.status === 'suspended' ? (
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  ) : (
+                    <AlertTriangle className="h-8 w-8 text-red-600" />
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold text-gray-900 leading-tight">
+                    {investorData.status === 'suspended' ? 'Activate Account?' : 'Suspend Account?'}
+                  </h2>
+                  <p className="text-gray-500 text-sm leading-relaxed max-w-[280px]">
+                    {investorData.status === 'suspended' 
+                      ? "Are you sure you want to activate this account? The investor will be able to log in again."
+                      : "Are you sure you want to suspend this account? The investor will no longer be able to log in to the portal."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3 mt-10">
+                <button
+                  disabled={isSuspending}
+                  onClick={handleSuspendAccount}
+                  className={`w-full py-4 text-sm font-bold text-white rounded-2xl transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${
+                    investorData.status === 'suspended'
+                      ? 'bg-green-600 hover:bg-green-700 shadow-green-100'
+                      : 'bg-red-600 hover:bg-red-700 shadow-red-100'
+                  }`}
+                >
+                  {isSuspending ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    investorData.status === 'suspended' ? 'Activate Account' : 'Suspend Account'
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowSuspendModal(false)}
+                  disabled={isSuspending}
+                  className="w-full py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-all"
+                >
+                  Cancel
                 </button>
               </div>
             </div>

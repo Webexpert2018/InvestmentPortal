@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bitcoin, Wallet, TrendingUp } from 'lucide-react';
+import { Bitcoin, Wallet, TrendingUp, Layers, CircleDollarSign, Users } from 'lucide-react';
 import { formatUSD, formatBTC } from '@/lib/utils/bitcoin';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import Link from 'next/link';
@@ -239,6 +239,8 @@ export default function DashboardPage() {
     pendingKyc: 0,
     pendingFundings: 0,
     pendingRedemptions: 0,
+    totalUnits: 0,
+    totalInvestmentValue: 0,
     recentInvestors: [] as any[],
   });
   const [investorStats, setInvestorStats] = useState({
@@ -320,22 +322,24 @@ export default function DashboardPage() {
 
   const roleStats = {
     admin: [
-      { name: 'Total Investors', value: adminStats.totalInvestors.toString() },
-      { name: 'Pending KYC', value: adminStats.pendingKyc.toString() },
-      { name: 'Pending Fundings', value: adminStats.pendingFundings.toString() },
-      { name: 'Pending Redemptions', value: adminStats.pendingRedemptions.toString() },
+      { name: 'Total Investors', value: adminStats.totalInvestors.toString(), icon: Users, color: 'text-gray-600' },
+      { name: 'Pending KYC', value: adminStats.pendingKyc.toString(), icon: TrendingUp, color: 'text-amber-500' },
+      { name: 'Pending Fundings', value: adminStats.pendingFundings.toString(), icon: Wallet, color: 'text-yellow-600' },
+      { name: 'Total Units', value: adminStats.totalUnits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }), icon: Layers, color: 'text-blue-600' },
+      { name: 'Total Investments', value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(adminStats.totalInvestmentValue), icon: CircleDollarSign, color: 'text-emerald-600' },
+      { name: 'Pending Redemptions', value: adminStats.pendingRedemptions.toString(), icon: TrendingUp, color: 'text-red-500' },
     ],
     investor: [
-      { name: 'My Active Funds', value: activeFundsCount.toString() },
-      { name: 'Pending KYC', value: '1' },
-      { name: 'Pending Funding', value: '1' },
-      { name: 'Pending Redemption', value: '0' },
+      { name: 'My Active Funds', value: activeFundsCount.toString(), icon: Bitcoin, color: 'text-orange-500' },
+      { name: 'Pending KYC', value: '1', icon: TrendingUp, color: 'text-amber-500' },
+      { name: 'Pending Funding', value: '1', icon: Wallet, color: 'text-yellow-600' },
+      { name: 'Pending Redemption', value: '0', icon: TrendingUp, color: 'text-red-500' },
     ],
     accountant: [
-      { name: 'Total Assigned Investors', value: '3' },
-      { name: 'Investors With Missing Docs', value: '7' },
-      { name: 'Unread Messages', value: '2' },
-      { name: 'Upcoming meetings', value: '3' },
+      { name: 'Assigned Investors', value: '3', icon: Users, color: 'text-gray-600' },
+      { name: 'Missing Docs', value: '7', icon: Layers, color: 'text-amber-600' },
+      { name: 'Unread Messages', value: '2', icon: CircleDollarSign, color: 'text-emerald-600' },
+      { name: 'Upcoming Meetings', value: '3', icon: TrendingUp, color: 'text-blue-500' },
     ],
   };
 
@@ -724,16 +728,20 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {roleStats[dashboardRole].map((item) => (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {roleStats[dashboardRole].map((item: any) => (
             <div
               key={item.name}
-              className="bg-white overflow-hidden shadow-sm rounded-xl p-6 flex flex-col justify-between h-32"
+              className="bg-white overflow-hidden shadow-sm rounded-xl p-6 flex flex-col justify-between h-36 border-t-4 border-transparent hover:border-current transition-all duration-200"
+              style={{ borderColor: item.color?.replace('text-', '') }}
             >
-              <dt className="text-md sm:text-lg font-helvetica font-medium truncate">
-                {item.name}
-              </dt>
-              <dd className="text-xl sm:text-3xl font-bold text-[#1F1F1F] font-helvetica">
+              <div className="flex items-center justify-between">
+                <dt className="text-sm sm:text-md font-helvetica font-medium text-gray-500 uppercase tracking-wider">
+                  {item.name}
+                </dt>
+                {item.icon && <item.icon className={`h-5 w-5 ${item.color}`} />}
+              </div>
+              <dd className="text-xl sm:text-3xl font-bold text-[#1F1F1F] font-helvetica mt-2">
                 {item.value}
               </dd>
             </div>
@@ -975,7 +983,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.funding ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.funding && (
-                <div className="px-6 pb-6 pt-4 border-t border-gray-100 space-y-4 max-h-[calc(100vh-60vh)] overflow-y-auto">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicFundingRequests.length > 0 ? dynamicFundingRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
@@ -1011,7 +1019,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.redemption ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.redemption && (
-                <div className="px-6 pb-6 pt-4 border-t border-gray-100 space-y-4 max-h-[calc(100vh-60vh)] overflow-y-auto">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicRedemptionRequests.length > 0 ? dynamicRedemptionRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
@@ -1048,7 +1056,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.reconciliation ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.reconciliation && (
-                <div className="px-6 pb-6 border-t border-gray-100 pt-6 text-center">
+                <div className="px-6 pb-6 border-t border-gray-100 pt-6 text-center h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   <p className="text-base font-semibold text-gray-900 mb-1">Nothing pending</p>
                   <p className="text-sm text-gray-500">All are currently up to date</p>
                 </div>

@@ -5,11 +5,18 @@ import { db } from '../../config/database';
 export class StatsService {
   async getAdminStats() {
     try {
-      const [investorsCount, pendingKycCount, pendingFundingsCount, pendingRedemptionsCount, recentInvestorsResult] = await Promise.all([
+      const [investorsCount, pendingKycCount, pendingFundingsCount, pendingRedemptionsCount, financialTotals, recentInvestorsResult] = await Promise.all([
         db.query("SELECT COUNT(*) FROM investors"),
         db.query("SELECT COUNT(*) FROM investors WHERE kyc_status = 'pending'"),
         db.query("SELECT COUNT(*) FROM investments WHERE status IN ('Subscription Submitted', 'Awaiting Funding')"),
         db.query("SELECT COUNT(*) FROM redemptions WHERE status = 'Pending'"),
+        db.query(`
+          SELECT 
+            COALESCE(SUM(estimated_units), 0) as total_units,
+            COALESCE(SUM(COALESCE(revised_amount, investment_amount)), 0) as total_value
+          FROM investments 
+          WHERE is_reconciled = true
+        `),
         db.query(`
           SELECT 
             i.id,
@@ -32,6 +39,8 @@ export class StatsService {
         pendingKyc: parseInt(pendingKycCount.rows[0].count),
         pendingFundings: parseInt(pendingFundingsCount.rows[0].count),
         pendingRedemptions: parseInt(pendingRedemptionsCount.rows[0].count),
+        totalUnits: parseFloat(financialTotals.rows[0].total_units),
+        totalInvestmentValue: parseFloat(financialTotals.rows[0].total_value),
         recentInvestors: recentInvestorsResult.rows.map(row => ({
           id: row.id,
           investorName: row.investor_name,

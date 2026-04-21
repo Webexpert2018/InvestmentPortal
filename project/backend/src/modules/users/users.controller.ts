@@ -192,7 +192,21 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
     return this.usersService.assignInvestorRelations(id, body.staffId, user.role);
   }
 
+  @Patch(':id/reset-password')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
+  async adminResetPassword(
+    @Param('id') id: string,
+    @Body() body: { password: string },
+    @CurrentUser() user: any
+  ) {
+    if (!body.password) {
+      throw new BadRequestException('Password is required');
+    }
+    return this.usersService.adminResetPassword(id, body.password, user.role);
+  }
+
   @Delete(':id')
+
   @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
   async deleteUser(@Param('id') id: string, @CurrentUser() user: any) {
     return this.usersService.deleteUser(id, user.role);

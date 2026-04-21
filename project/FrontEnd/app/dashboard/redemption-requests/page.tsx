@@ -257,7 +257,7 @@ export default function RedemptionRequestsPage() {
 
           {/* Pagination */}
           {!loading && filteredRequests.length > 0 && (
-            <div className="flex items-center justify-between px-6 py-6 bg-[#F8FAFC] border-t border-gray-100">
+            <div className="flex items-center justify-center px-6 py-6 bg-[#F8FAFC] border-t border-gray-100">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
