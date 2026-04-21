@@ -914,7 +914,7 @@ class ApiClient {
     });
   }
 
-  async updateInvestorPipelineDetails(investorId: string, details: { expectedFutureInvestment: number }) {
+  async updateInvestorPipelineDetails(investorId: string, details: { expectedFutureInvestment?: number, pipelineNote?: string }) {
     return this.request<any>(`/pipeline/investors/${investorId}/details`, {
       method: 'PATCH',
       body: JSON.stringify(details),
