@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { X, GripVertical, UserPlus, Mail, Phone, Loader2, ChevronDown } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -47,7 +47,6 @@ export default function PipelinePage() {
 
   // New states
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedInvestor, setSelectedInvestor] = useState<any>(null);
   const [expectedInvestment, setExpectedInvestment] = useState('');
   const [isUpdatingInvestment, setIsUpdatingInvestment] = useState(false);
@@ -55,6 +54,22 @@ export default function PipelinePage() {
   const [selectedIrStaff, setSelectedIrStaff] = useState('');
   const [isAssigning, setIsAssigning] = useState(false);
   const [isIrLoading, setIsIrLoading] = useState(false);
+  const [pipelineNote, setPipelineNote] = useState('');
+  
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const boardScrollRef = useRef<HTMLDivElement>(null);
+
+  const handleSyncBoardScroll = () => {
+    if (topScrollRef.current && boardScrollRef.current) {
+      boardScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+  };
+
+  const handleSyncTopScroll = () => {
+    if (topScrollRef.current && boardScrollRef.current) {
+      topScrollRef.current.scrollLeft = boardScrollRef.current.scrollLeft;
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && user && !isAdmin) {
@@ -145,7 +160,7 @@ export default function PipelinePage() {
 
     const sourceInvestors = Array.from(sourceStage.investors || []);
     if (source.index < 0 || source.index >= sourceInvestors.length) return;
-    
+
     const [movedInvestor] = sourceInvestors.splice(source.index, 1);
     if (!movedInvestor) return;
 
@@ -243,25 +258,41 @@ export default function PipelinePage() {
     }
   };
 
-  const handleUpdateInvestment = async () => {
+  const handleSaveChanges = async () => {
     if (!selectedInvestor) return;
     setIsUpdatingInvestment(true);
     try {
-      await apiClient.updateInvestorPipelineDetails(selectedInvestor.id, {
-        expectedFutureInvestment: parseFloat(expectedInvestment) || 0
-      });
-      toast({
-        title: 'Success',
-        description: 'Investment projection updated',
-        variant: 'success',
-      });
-      fetchData();
+      const amountChanged = parseFloat(expectedInvestment) !== selectedInvestor.expectedFutureInvestment;
+      const irChanged = selectedIrStaff !== (selectedInvestor.assignedIrId || '');
+      const noteChanged = pipelineNote !== (selectedInvestor.pipelineNote || '');
+      
+      const promises = [];
+      if (amountChanged || noteChanged) {
+        const details: any = {};
+        if (amountChanged) details.expectedFutureInvestment = parseFloat(expectedInvestment) || 0;
+        if (noteChanged) details.pipelineNote = pipelineNote;
+        
+        promises.push(apiClient.updateInvestorPipelineDetails(selectedInvestor.id, details));
+      }
+      if (irChanged) {
+        promises.push(apiClient.assignInvestorRelations(selectedInvestor.id, selectedIrStaff || null));
+      }
+
+      if (promises.length > 0) {
+        await Promise.all(promises);
+        toast({
+          title: 'Success',
+          description: 'Investor details updated successfully',
+          variant: 'success',
+        });
+        fetchData();
+      }
       setShowDetailModal(false);
     } catch (err) {
-      console.error('Failed to update investment:', err);
+      console.error('Failed to update investor:', err);
       toast({
         title: 'Error',
-        description: 'Failed to update projection',
+        description: 'Failed to update details',
         variant: 'destructive',
       });
     } finally {
@@ -280,30 +311,6 @@ export default function PipelinePage() {
       setIsIrLoading(false);
     }
   }, []);
-
-  const handleAssignIR = async () => {
-    if (!selectedInvestor) return;
-    setIsAssigning(true);
-    try {
-      await apiClient.assignInvestorRelations(selectedInvestor.id, selectedIrStaff || null);
-      toast({
-        title: 'Success',
-        description: 'Investor Relations assigned successfully',
-        variant: 'success',
-      });
-      fetchData();
-      setShowAssignModal(false);
-    } catch (err) {
-      console.error('Failed to assign IR:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to assign Investor Relations',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsAssigning(false);
-    }
-  };
 
   if (!isLoaded) return null;
 
@@ -331,11 +338,33 @@ export default function PipelinePage() {
           )}
         </div>
 
+        {/* Top Sync Scrollbar */}
+        <div 
+          ref={topScrollRef}
+          onScroll={handleSyncBoardScroll}
+          className="overflow-x-auto pipeline-scroll"
+          style={{ maxWidth: 'calc(-300px + 100vw)', marginBottom: '-10px' }}
+        >
+          <div style={{ width: 'max-content', height: '1px' }}>
+            <div className="flex flex-nowrap gap-4 lg:gap-6 opacity-0 pointer-events-none" style={{ minWidth: 'max-content' }}>
+              {stages.map((stage) => (
+                <div key={stage.id} style={{ width: '350px' }} className="flex-none" />
+              ))}
+              <div className="pr-4" />
+            </div>
+          </div>
+        </div>
+
         {/* Pipeline Board */}
         <DragDropContextComponent onDragEnd={onDragEnd}>
           <div
-            className="overflow-x-auto overflow-y-auto pb-2 pipeline-scroll"
-            style={{ maxHeight: 'calc(100vh - 160px)', maxWidth: 'calc(-300px + 100vw)' }}
+            ref={boardScrollRef}
+            onScroll={handleSyncTopScroll}
+            className="overflow-x-auto overflow-y-auto pt-2 pipeline-scroll"
+            style={{ 
+              maxHeight: 'calc(100vh - 160px)', 
+              maxWidth: 'calc(-300px + 100vw)',
+            }}
           >
             <DroppableComponent droppableId="board" type="column" direction="horizontal">
               {(providedBoard: any) => (
@@ -356,7 +385,7 @@ export default function PipelinePage() {
                         <div
                           ref={providedStage.innerRef}
                           {...providedStage.draggableProps}
-                          className="flex-none w-[320px]"
+                          className="flex-none w-[350px]"
                         >
                           <DroppableComponent droppableId={stage.id.toString()} type="investor">
                             {(provided: any, snapshot: any) => (
@@ -401,77 +430,100 @@ export default function PipelinePage() {
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
                                           onClick={() => {
-                                            setSelectedInvestor(investor);
-                                            setExpectedInvestment(investor.expectedFutureInvestment.toString());
-                                            setShowDetailModal(true);
+                                             setSelectedInvestor(investor);
+                                             setExpectedInvestment(investor.expectedFutureInvestment.toString());
+                                             setSelectedIrStaff(investor.assignedIrId || '');
+                                             setPipelineNote(investor.pipelineNote || '');
+                                             if (user?.role === 'admin' || user?.role === 'executive_admin') {
+                                                fetchIRStaff();
+                                             }
+                                             setShowDetailModal(true);
                                           }}
                                           className={`bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 group border border-transparent cursor-pointer ${snapshot.isDragging ? 'shadow-2xl scale-[1.02] border-[#FCD34D] rotate-1' : ''
                                             }`}
                                         >
                                           <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                                              <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-[#1F3B6E] text-xs font-bold text-white shadow-inner">
-                                                {investor.avatar || (investor.name || investor.fullName || '?').charAt(0).toUpperCase()}
-                                              </div>
-                                              <div className="flex flex-col flex-1 min-w-0">
-                                                <div className="flex items-center justify-between gap-2">
+                                            <div className="flex flex-col flex-1 min-w-0">
+
+                                              <div className="flex items-center gap-3">
+
+                                                <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-[#1F3B6E] text-xs font-bold text-white shadow-inner">
+
+                                                  {investor.avatar || (investor.name || investor.fullName || '?').charAt(0).toUpperCase()}
+
+                                                </div>
+
+                                                <div className="flex-1 flex items-center justify-between min-w-0 gap-2">
+
                                                   <div className="flex items-center gap-2 min-w-0">
+
                                                     <span className="text-sm font-semibold text-gray-800 truncate">
+
                                                       {investor.name || investor.fullName || 'Unnamed Investor'}
+
                                                     </span>
+
                                                     {user?.role !== 'investor_relations' && investor.assignedIrId === user?.id && (
+
                                                       <span className="flex-none px-1.5 py-0.5 bg-green-100 text-[10px] font-bold text-green-700 rounded-md uppercase tracking-tight">
+
                                                         Self
+
                                                       </span>
+
                                                     )}
+
                                                   </div>
+
                                                   <div className="flex flex-col items-end flex-none">
-                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Total</span>
-                                                    <span className="text-sm font-bold text-[#1F3B6E]">
-                                                      {formatCompactAmount(investor.totalInvestment || 0)}
-                                                    </span>
-                                                  </div>
-                                                </div>
-                                                
-                                                <div className="flex items-center justify-between mt-1.5">
-                                                  {user?.role !== 'investor_relations' ? (
-                                                    <div className="flex items-center gap-1.5 min-w-0 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
-                                                      <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">With</span>
-                                                      <span className={cn(
-                                                        "text-[10px] font-extrabold uppercase truncate leading-none",
-                                                        investor.assignedIrName ? "text-amber-600" : "text-gray-400 italic"
-                                                      )}>
-                                                        {investor.assignedIrName || 'Unassigned'}
-                                                      </span>
-                                                    </div>
-                                                  ) : <div />}
-                                                  
-                                                  <div className="flex flex-col items-end">
-                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Expected</span>
-                                                    <span className="text-xs font-bold text-green-600">
+
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Pledged Amount</span>
+
+                                                    <span className="text-sm font-bold text-green-600">
+
                                                       {formatCompactAmount(investor.expectedFutureInvestment || 0)}
+
                                                     </span>
+
                                                   </div>
+
                                                 </div>
+
                                               </div>
-                                            </div>
-                                            <div className="flex flex-col items-center gap-2 ml-3">
-                                              {isAdmin && (
-                                                <button
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSelectedInvestor(investor);
-                                                    setSelectedIrStaff(investor.assignedIrId || '');
-                                                    fetchIRStaff();
-                                                    setShowAssignModal(true);
-                                                  }}
-                                                  className="p-1.5 bg-gray-50 text-gray-400 hover:text-[#FCD34D] hover:bg-gray-100 rounded-lg transition-all"
-                                                >
-                                                  <UserPlus className="h-3.5 w-3.5" />
-                                                </button>
-                                              )}
-                                              <GripVertical className="h-4 w-4 text-gray-300 group-hover:text-gray-400 transition-colors" />
-                                            </div>
+
+                                              <div className="flex items-start mt-2">
+
+                                                <div className="w-10 flex-none" />
+
+                                                <div className="ml-3 flex-1 min-w-0">
+
+                                                  {user?.role !== 'investor_relations' ? (
+
+                                                    <div className="flex items-start gap-1.5 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
+
+                                                      <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 flex-none">With</span>
+
+                                                      <span className={cn(
+
+                                                        "text-[10px] font-extrabold uppercase leading-tight",
+
+                                                        investor.assignedIrName ? "text-amber-600" : "text-gray-400 italic"
+
+                                                      )}>
+
+                                                        {investor.assignedIrName || 'Unassigned'}
+
+                                                      </span>
+
+                                                    </div>
+
+                                                  ) : <div />}
+
+                                                </div>
+
+                                              </div>
+
+                                            </div><GripVertical className="h-4 w-4 text-gray-300 group-hover:text-gray-400 transition-colors" />
                                           </div>
                                         </div>
                                       )}
@@ -560,127 +612,115 @@ export default function PipelinePage() {
         {/* Investor Detail Modal */}
         {showDetailModal && selectedInvestor && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
+            <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-4xl shadow-2xl scale-in-95 animate-in overflow-y-auto max-h-[90vh]">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 line-clamp-1">{selectedInvestor.name || selectedInvestor.fullName}</h2>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-[#1F3B6E] text-xl font-bold text-white shadow-lg">
+                    {selectedInvestor.avatar}
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-900">{selectedInvestor.name || selectedInvestor.fullName}</h2>
+                </div>
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-3 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <X className="h-6 w-6 text-gray-400" />
+                  <X className="h-7 w-7 text-gray-400" />
                 </button>
               </div>
 
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-6 pb-6 border-b border-gray-100">
-                  <div className="flex items-center gap-4 group">
-                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center flex-none group-hover:bg-blue-100 transition-colors">
-                      <Mail className="h-6 w-6" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                {/* Left Column: Basic Info & Investment */}
+                <div className="space-y-8">
+                  <div className="bg-gray-50/50 rounded-3xl p-6 space-y-6 border border-gray-100">
+                    <div className="flex items-center gap-4 group">
+                      <div className="w-12 h-12 bg-blue-100/50 text-blue-600 rounded-2xl flex items-center justify-center flex-none">
+                        <Mail className="h-6 w-6" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email Address</p>
+                        <p className="text-sm font-bold text-gray-700 truncate">{selectedInvestor.email || 'N/A'}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email Address</p>
-                      <p className="text-sm font-bold text-gray-700 truncate">{selectedInvestor.email || 'N/A'}</p>
+
+                    <div className="flex items-center gap-4 group">
+                      <div className="w-12 h-12 bg-green-100/50 text-green-600 rounded-2xl flex items-center justify-center flex-none">
+                        <Phone className="h-6 w-6" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</p>
+                        <p className="text-sm font-bold text-gray-700 truncate">{selectedInvestor.phone || 'N/A'}</p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 group">
-                    <div className="w-12 h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center flex-none group-hover:bg-green-100 transition-colors">
-                      <Phone className="h-6 w-6" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</p>
-                      <p className="text-sm font-bold text-gray-700 truncate">{selectedInvestor.phone || 'N/A'}</p>
+                  <div className="space-y-4">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Pledged Amount ($)</label>
+                    <div className="relative">
+                      <span className="absolute left-5 top-1/2 -translate-y-1/2 text-lg font-bold text-gray-400">$</span>
+                      <input
+                        type="number"
+                        value={expectedInvestment}
+                        onChange={(e) => setExpectedInvestment(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full pl-10 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-lg font-black text-[#1F3B6E] placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                      />
                     </div>
                   </div>
+
+                  {(user?.role === 'admin' || user?.role === 'executive_admin') && (
+                    <div className="space-y-4">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Investor Relations Officer</label>
+                      <div className="relative group">
+                        <select
+                          value={selectedIrStaff}
+                          onChange={(e) => setSelectedIrStaff(e.target.value)}
+                          disabled={isIrLoading}
+                          className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
+                        >
+                          <option value="">{isIrLoading ? 'Loading staff...' : 'Unassigned / Select IR Officer'}</option>
+                          {irStaffList.map((staff: any) => (
+                            <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 transition-colors" />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Expected Future Investment ($)</label>
-                  <input
-                    type="number"
-                    value={expectedInvestment}
-                    onChange={(e) => setExpectedInvestment(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-lg font-bold text-[#1F3B6E] placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
-                  />
-                  <p className="text-[10px] text-gray-400 italic ml-1">* This projection is only visible to administrative staff.</p>
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button
-                    onClick={() => setShowDetailModal(false)}
-                    className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-all"
-                  >
-                    Close
-                  </button>
-                  <button
-                    onClick={handleUpdateInvestment}
-                    disabled={isUpdatingInvestment}
-                    className="flex-1 py-4 bg-[#FCD34D] text-gray-800 text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-xl shadow-yellow-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {isUpdatingInvestment ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Update Projection'}
-                  </button>
+                {/* Right Column: Internal Notes */}
+                <div className="flex flex-col h-full">
+                  <div className="space-y-4 flex-1 flex flex-col">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Internal Notes / Comments</label>
+                    <textarea
+                      value={pipelineNote}
+                      onChange={(e) => setPipelineNote(e.target.value)}
+                      placeholder="Add internal notes about this investor here..."
+                      className="w-full flex-1 p-5 bg-gray-50 border-none rounded-3xl text-base font-medium text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all resize-none min-h-[250px]"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* Assign IR Modal */}
-        {showAssignModal && selectedInvestor && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 leading-none">Assign IR</h2>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">Managing: {selectedInvestor.name}</p>
-                </div>
+              <div className="flex gap-4 pt-10 mt-6 border-t border-gray-100">
                 <button
-                  onClick={() => setShowAssignModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  onClick={() => setShowDetailModal(false)}
+                  className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-all"
                 >
-                  <X className="h-6 w-6 text-gray-400" />
+                  Close
                 </button>
-              </div>
-
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Investor Relations Officer</label>
-                  <div className="relative group">
-                    <select
-                      value={selectedIrStaff}
-                      onChange={(e) => setSelectedIrStaff(e.target.value)}
-                      disabled={isIrLoading}
-                      className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
-                    >
-                      <option value="">{isIrLoading ? 'Loading staff...' : 'Unassigned / Select IR Officer'}</option>
-                      {irStaffList.map((staff: any) => (
-                        <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 transition-colors" />
-                  </div>
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button
-                    onClick={() => setShowAssignModal(false)}
-                    className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAssignIR}
-                    disabled={isAssigning || isIrLoading}
-                    className="flex-1 py-4 bg-[#1F3B6E] text-white text-sm font-bold rounded-2xl hover:bg-[#162a4f] shadow-xl shadow-blue-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {isAssigning ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm Assignment'}
-                  </button>
-                </div>
+                <button
+                  onClick={handleSaveChanges}
+                  disabled={isUpdatingInvestment}
+                  className="flex-1 py-4 bg-[#FCD34D] text-gray-800 text-sm font-black rounded-2xl hover:bg-[#FBD24E] shadow-xl shadow-yellow-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isUpdatingInvestment ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save All Changes'}
+                </button>
               </div>
             </div>
           </div>
         )}
+
       </div>
     </DashboardLayout>
   );

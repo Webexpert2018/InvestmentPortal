@@ -27,7 +27,7 @@ export class PipelineController {
   @Patch('investors/:id/details')
   async updateInvestorDetails(
     @Param('id') id: string,
-    @Body() details: { expectedFutureInvestment?: number },
+    @Body() details: { expectedFutureInvestment?: number, pipelineNote?: string },
   ) {
     return this.pipelineService.updateInvestorDetails(id, details);
   }

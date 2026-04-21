@@ -34,6 +34,7 @@ export class PipelineService {
         i.pipeline_stage_id, 
         i.assigned_ir_id,
         i.expected_future_investment,
+        i.pipeline_note,
         s.full_name as assigned_ir_name,
         COALESCE(SUM(inv.investment_amount), 0) as total_investment
       FROM investors i
@@ -41,7 +42,7 @@ export class PipelineService {
       LEFT JOIN investments inv ON i.id = inv.user_id
       WHERE i.pipeline_stage_id IS NOT NULL
       ${isIR ? 'AND i.assigned_ir_id = $1' : ''}
-      GROUP BY i.id, i.email, i.phone, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, s.full_name, i.updated_at, i.expected_future_investment
+      GROUP BY i.id, i.email, i.phone, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, s.full_name, i.updated_at, i.expected_future_investment, i.pipeline_note
       ORDER BY i.updated_at DESC
     `;
 
@@ -63,6 +64,7 @@ export class PipelineService {
           assignedIrName: i.assigned_ir_name,
           totalInvestment: parseFloat(i.total_investment),
           expectedFutureInvestment: parseFloat(i.expected_future_investment || 0),
+          pipelineNote: i.pipeline_note || '',
           avatar: i.name
             .split(' ')
             .map((n: string) => n[0])
@@ -85,17 +87,43 @@ export class PipelineService {
     return result.rows[0];
   }
 
-  async updateInvestorDetails(investorId: string, details: { expectedFutureInvestment?: number }) {
-    const { expectedFutureInvestment } = details;
-    const result = await db.query(
-      'UPDATE investors SET expected_future_investment = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
-      [expectedFutureInvestment, investorId]
-    );
+  async updateInvestorDetails(investorId: string, details: { expectedFutureInvestment?: number, pipelineNote?: string }) {
+    const { expectedFutureInvestment, pipelineNote } = details;
+    
+    // Build update query dynamically based on provided fields
+    const updates: string[] = ['updated_at = CURRENT_TIMESTAMP'];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (expectedFutureInvestment !== undefined) {
+      updates.push(`expected_future_investment = $${paramIndex++}`);
+      values.push(expectedFutureInvestment);
+    }
+
+    if (pipelineNote !== undefined) {
+      updates.push(`pipeline_note = $${paramIndex++}`);
+      values.push(pipelineNote);
+    }
+
+    if (values.length === 0) {
+      return this.dbGetInvestor(investorId);
+    }
+
+    values.push(investorId);
+    const query = `UPDATE investors SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`;
+    
+    const result = await db.query(query, values);
 
     if (result.rows.length === 0) {
       throw new NotFoundException('Investor not found');
     }
 
+    return result.rows[0];
+  }
+
+  private async dbGetInvestor(id: string) {
+    const result = await db.query('SELECT * FROM investors WHERE id = $1', [id]);
+    if (result.rows.length === 0) throw new NotFoundException('Investor not found');
     return result.rows[0];
   }
 
