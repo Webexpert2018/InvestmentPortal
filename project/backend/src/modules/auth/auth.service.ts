@@ -306,7 +306,7 @@ export class AuthService {
     return null;
   }
 
-  async forgotPassword(email: string, role?: string) {
+  async forgotPassword(email: string, role?: string, isAdminTriggered: boolean = false) {
     const searchResult = await this.findUserAcrossTables(email);
 
     if (!searchResult) {
@@ -337,7 +337,7 @@ export class AuthService {
       );
     }
 
-    await this.emailService.sendPasswordResetOtp(email, otp);
+    await this.emailService.sendPasswordResetOtp(email, otp, !isAdminTriggered);
 
     return { message: 'Reset code sent successfully' };
   }

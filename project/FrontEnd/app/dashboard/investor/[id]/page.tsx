@@ -20,9 +20,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [selectedIrStaff, setSelectedIrStaff] = useState('');
   const [irStaffList, setIrStaffList] = useState<any[]>([]);
   const [irLoading, setIrLoading] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [noteText, setNoteText] = useState('');
@@ -35,8 +33,6 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [redemptionHistory, setRedemptionHistory] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({ totalValue: 0, totalUnits: 0, ytdReturn: 0 });
   const [loading, setLoading] = useState(true);
-  const [isSendingInvite, setIsSendingInvite] = useState(false);
-  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [isSuspending, setIsSuspending] = useState(false);
   const [showSuspendModal, setShowSuspendModal] = useState(false);
 
@@ -142,28 +138,18 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     }
   };
 
-  const handleForgotPassword = () => {
-    setShowResetModal(true);
-  };
-
-  const handleAdminResetPassword = async () => {
-    if (!newPassword || newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return;
-    }
+  const handleForgotPassword = async () => {
     try {
       setIsResetting(true);
-      await apiClient.adminResetPassword(params.id, newPassword);
-      toast.success('Password updated and email sent to investor');
-      setShowResetModal(false);
-      setNewPassword('');
-      setShowPassword(false);
+      await apiClient.forgotPassword(investorData.email, 'investor', true);
+      toast.success('Password reset link sent to investor');
     } catch (err: any) {
-      toast.error(err.message || 'Failed to update password');
+      toast.error(err.message || 'Failed to send reset code');
     } finally {
       setIsResetting(false);
     }
   };
+
 
   const handleSuspendAccount = async () => {
     const isSuspended = investorData.status === 'suspended';
@@ -312,7 +298,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                               <button
                                 onClick={handleForgotPassword}
                                 disabled={isResetting}
-                                className="px-4 py-2 bg-white text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-gray-50 transition-colors border border-gray-200 flex items-center gap-2 shadow-sm"
+                                className="px-4 py-2 bg-amber-50 text-amber-600 text-xs font-bold rounded-full hover:bg-amber-100 transition-colors border border-amber-200 flex items-center gap-2 shadow-sm"
                               >
                                 {isResetting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Shield className="h-3 w-3" />}
                                 Forgot Password
@@ -847,77 +833,6 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         </div>
       )}
 
-        {/* Password Reset Modal */}
-        {showResetModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300">
-              <div className="px-8 pt-8 pb-6 text-center">
-                <div className="w-16 h-16 bg-[#FCD34D]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Shield className="h-8 w-8 text-[#FCD34D]" />
-                </div>
-                <h2 className="text-2xl font-bold text-[#1F1F1F] mb-2 font-garamond text-center">Reset Investor Password</h2>
-                <p className="text-[#4B5563] text-sm leading-relaxed mb-8 text-center">
-                  Set a new password for <span className="font-bold text-[#1F1F1F] text-center">{investorData.firstName} {investorData.lastName}</span>. 
-                  A confirmation email will be sent with their new credentials.
-                </p>
-
-                <div className="space-y-6 text-left relative">
-                  <div>
-                    <label className="block text-xs font-bold text-[#4B5563] uppercase tracking-wider mb-2 ml-1">New Password</label>
-                    <div className="relative group">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-[#FCD34D]/20 focus:border-[#FCD34D] outline-none transition-all pr-12 group-hover:border-gray-200"
-                        autoFocus
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                      >
-                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                      </button>
-                    </div>
-                    <p className="mt-2 ml-1 text-[10px] text-gray-400 italic">Recommended: Use at least 8 characters with numbers and symbols.</p>
-                  </div>
-
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      onClick={() => {
-                        setShowResetModal(false);
-                        setNewPassword('');
-                        setShowPassword(false);
-                      }}
-                      className="flex-1 py-4 text-sm font-bold text-[#4B5563] hover:bg-gray-50 rounded-2xl transition-colors border border-gray-100 active:scale-[0.98]"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleAdminResetPassword}
-                      disabled={isResetting || !newPassword}
-                      className="flex-[2] py-4 bg-[#FCD34D] text-[#1F1F1F] text-sm font-bold rounded-2xl hover:bg-[#FBD24E] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#FCD34D]/20 disabled:opacity-50 disabled:shadow-none active:scale-[0.98]"
-                    >
-                      {isResetting ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        'Update Password'
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 px-8 py-4 text-center border-t border-gray-100">
-                <p className="text-[11px] text-[#9CA3AF] flex items-center justify-center gap-1.5 uppercase font-bold tracking-widest">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                  Secure Admin Action
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       {/* Suspend Account Confirmation Modal */}
       {showSuspendModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">

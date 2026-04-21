@@ -1,7 +1,7 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsDateString, IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class SignupDto {
   @ApiProperty({ example: 'test@example.com' })
@@ -101,6 +101,11 @@ export class ForgotPasswordDto {
   @IsOptional()
   @IsString()
   role?: string;
+
+  @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  isAdminTriggered?: boolean;
 }
 
 export class VerifyOtpDto {
@@ -250,7 +255,11 @@ export class AuthController {
     if (!forgotPasswordDto.email) {
       throw new BadRequestException('Email is required');
     }
-    return this.authService.forgotPassword(forgotPasswordDto.email, forgotPasswordDto.role);
+    return this.authService.forgotPassword(
+      forgotPasswordDto.email,
+      forgotPasswordDto.role,
+      forgotPasswordDto.isAdminTriggered,
+    );
   }
 
   @Post('verify-otp')
