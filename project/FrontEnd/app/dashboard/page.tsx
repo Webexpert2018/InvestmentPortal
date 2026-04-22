@@ -252,6 +252,7 @@ export default function DashboardPage() {
   });
   const [dynamicFundingRequests, setDynamicFundingRequests] = useState<any[]>([]);
   const [dynamicRedemptionRequests, setDynamicRedemptionRequests] = useState<any[]>([]);
+  const [dynamicReconciliationAlerts, setDynamicReconciliationAlerts] = useState<any[]>([]);
   const [iraAccounts, setIraAccounts] = useState<any[]>([]);
   const [allInvestments, setAllInvestments] = useState<any[]>([]);
 
@@ -341,6 +342,13 @@ export default function DashboardPage() {
             red.status === 'Pending'
           );
           setDynamicRedemptionRequests(pendingRedemptions);
+
+          // Filter pending reconciliations: is_reconciled is false
+          const pendingReconciliations = [
+            ...allInvestments.filter((inv: any) => !inv.is_reconciled).map((inv: any) => ({ ...inv, type: 'Funding' })),
+            ...allRedemptions.filter((red: any) => !red.is_reconciled).map((red: any) => ({ ...red, type: 'Redemption' }))
+          ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+          setDynamicReconciliationAlerts(pendingReconciliations);
         }
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
@@ -845,13 +853,13 @@ export default function DashboardPage() {
             </div>
 
             {/* KYC Review Queue */}
-            <div className="bg-white shadow-sm rounded-xl p-6 h-fit h-screen flex flex-col">
+            <div className="bg-white shadow-sm rounded-xl p-6 h-fit flex flex-col">
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-[#1F1F1F] ">
                   KYC Review Queue
                 </h3>
               </div>
-              <div className="space-y-6  h-[calc(100vh-100px)] overflow-y-auto pr-3">
+              <div className="space-y-6  h-[calc(50vh-100px)] overflow-y-auto pr-3">
                 {kycQueue.map((item, index) => (
                   <div key={item.id} className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
@@ -1078,15 +1086,38 @@ export default function DashboardPage() {
                 onClick={() => setAdminExpanded(prev => ({ ...prev, reconciliation: !prev.reconciliation }))}
               >
                 <div className="flex items-center space-x-4">
-                  <span className="text-lg font-bold text-red-500">5</span>
+                  <span className="text-lg font-bold text-red-500">{dynamicReconciliationAlerts.length}</span>
                   <span className="text-sm font-medium text-gray-700">Reconciliation Alerts</span>
                 </div>
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.reconciliation ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.reconciliation && (
-                <div className="px-6 pb-6 border-t border-gray-100 pt-6 text-center h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
-                  <p className="text-base font-semibold text-gray-900 mb-1">Nothing pending</p>
-                  <p className="text-sm text-gray-500">All are currently up to date</p>
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                  {dynamicReconciliationAlerts.length > 0 ? dynamicReconciliationAlerts.map((request, idx) => (
+                    <div key={request.id || idx} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{request.investor_name}</p>
+                        <p className="text-xs text-gray-500">
+                          {request.type === 'Funding' ? (
+                            `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.investment_amount)} - ${request.account_type}`
+                          ) : (
+                            `${request.units ? `${parseFloat(request.units).toFixed(2)} Units` : ''} (~${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.amount)})`
+                          )}
+                        </p>
+                      </div>
+                      <Link
+                        href="/dashboard/reconciliation"
+                        className="px-4 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-full hover:bg-blue-50 transition-colors"
+                      >
+                        Review Req
+                      </Link>
+                    </div>
+                  )) : (
+                    <div className="text-center pt-6">
+                      <p className="text-base font-semibold text-gray-900 mb-1">Nothing pending</p>
+                      <p className="text-sm text-gray-500">All are currently up to date</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
