@@ -967,6 +967,18 @@ class ApiClient {
   async getMessages() {
     return this.request<any[]>('/messages');
   }
+
+  // --- CRM & Bulk Ops ---
+  async getCrmInvestors() {
+    return this.request<any[]>('/crm/investors');
+  }
+
+  async sendBulkEmail(data: { investorIds: string[]; subject: string; message: string }) {
+    return this.request<any>('/crm/send-bulk-email', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 

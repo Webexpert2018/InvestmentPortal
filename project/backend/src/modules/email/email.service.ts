@@ -211,6 +211,24 @@ export class EmailService {
     await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
   }
 
+  async sendCustomEmail(email: string, fullName: string, subject: string, body: string) {
+    const title = subject;
+    const content = `
+      <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">${subject}</h1>
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
+        Hello ${fullName || 'Valued Investor'},
+      </p>
+      <div style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563; white-space: pre-wrap;">
+        ${body}
+      </div>
+      
+      <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 20px;">
+        Need help? Contact our support team at <a href="mailto:support@ovaliacapital.com" style="color: #2A4474; text-decoration: none;">support@ovaliacapital.com</a>
+      </p>
+    `;
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+  }
+
   private getHtmlTemplate(content: string, title: string) {
     return `
       <!DOCTYPE html>

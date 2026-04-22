@@ -24,6 +24,7 @@ import { BankAccountsModule } from './modules/bank-accounts/bank-accounts.module
 import { PipelineModule } from './modules/pipeline/pipeline.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { MessagesModule } from './modules/messages/messages.module';
+import { CrmModule } from './modules/crm/crm.module';
 
 @Module({
   imports: [
@@ -55,7 +56,8 @@ import { MessagesModule } from './modules/messages/messages.module';
     PipelineModule,
     NotificationsModule,
     MessagesModule,
+    CrmModule,
   ],
   controllers: [HealthController],
 })
-export class AppModule {}
+export class AppModule { }
