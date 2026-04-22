@@ -499,7 +499,7 @@ export default function PipelinePage() {
 
                                                   {user?.role !== 'investor_relations' ? (
 
-                                                    <div className="flex items-start gap-1.5 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
+                                                    <div className="flex items-start gap-1.5 px-2 py-1 rounded-md">
 
                                                       <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest flex-none">With</span>
 
@@ -662,7 +662,7 @@ export default function PipelinePage() {
                         value={expectedInvestment}
                         onChange={(e) => setExpectedInvestment(e.target.value)}
                         placeholder="0.00"
-                        className="w-full pl-10 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-lg font-black text-[#1F3B6E] placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                        className="w-full pl-10 pr-5 py-4 bg-gray-50 border rounded-2xl text-lg font-black text-[#1F3B6E] placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
                       />
                     </div>
                   </div>
