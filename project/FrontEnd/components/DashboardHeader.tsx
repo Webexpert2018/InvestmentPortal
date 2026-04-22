@@ -26,6 +26,7 @@ export function DashboardHeader({
   const accountLabel = iraAccount ? `${iraAccount.account_type} (${iraAccount.account_number})` : "No IRA Account";
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (user && user.role === 'investor' && !iraAccount) {
@@ -50,6 +51,21 @@ export function DashboardHeader({
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);
   }, [isProfileMenuOpen]);
+
+  useEffect(() => {
+    if (!user) return;
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations', 'accountant'];
+    if (!adminRoles.includes(user.role)) return;
+
+    const fetchUnread = () => {
+      apiClient.getUnreadNotificationsCount()
+        .then(res => setUnreadCount(res.count))
+        .catch(() => {});
+    };
+    fetchUnread();
+    const intervalId = setInterval(fetchUnread, 30000); // poll every 30s
+    return () => clearInterval(intervalId);
+  }, [user]);
 
   const handleSignOut = () => {
     logout();
@@ -93,12 +109,18 @@ export function DashboardHeader({
         <Link
           href="/notifications"
           className={cn(
-            "inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] transition hover:bg-[#EBEBEB]",
+            "relative inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] transition hover:bg-[#EBEBEB]",
             pathname === "/notifications" && "ring-2 ring-[#D9DEE7]",
           )}
           aria-label="Notifications"
+          onClick={() => setUnreadCount(0)}
         >
           <Bell className="h-[21px] w-[21px] text-[#555555]" strokeWidth={1.8} />
+          {unreadCount > 0 && (
+            <span className="absolute right-1 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </Link>
 
         <div className="h-[50px] w-px bg-[#EEEEEE]" />

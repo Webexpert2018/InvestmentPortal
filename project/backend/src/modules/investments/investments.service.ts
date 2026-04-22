@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { db } from '../../config/database';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class InvestmentsService {
+  constructor(private readonly notificationsService: NotificationsService) { }
   async createInvestment(userId: string, data: any) {
-    const { 
-      fundId, accountId, accountType, investmentAmount, unitPrice, status, 
-      documentSigned, awaitingFunding, fundsReceived, unitsIssued 
+    const {
+      fundId, accountId, accountType, investmentAmount, unitPrice, status,
+      documentSigned, awaitingFunding, fundsReceived, unitsIssued
     } = data;
 
     try {
@@ -42,9 +44,9 @@ export class InvestmentsService {
       `;
 
       const values = [
-        userId, fundId, accountId || null, accountType, 
-        investmentAmount, processingFee, totalAmount, 
-        unitPrice, estimatedUnits, 
+        userId, fundId, accountId || null, accountType,
+        investmentAmount, processingFee, totalAmount,
+        unitPrice, estimatedUnits,
         investmentAmount, // revised_amount initially matches investment_amount
         status || 'Subscription Submitted',
         documentSigned || false,
@@ -67,8 +69,8 @@ export class InvestmentsService {
             'CREATE_INVESTMENT',
             'investment',
             investment.id,
-            JSON.stringify({ 
-              amount: investmentAmount, 
+            JSON.stringify({
+              amount: investmentAmount,
               fund_id: fundId,
               status: status || 'Subscription Submitted'
             })
@@ -78,6 +80,15 @@ export class InvestmentsService {
         console.warn('⚠️ Failed to create audit log for investment:', auditError);
         // Don't fail the whole request if audit logging fails
       }
+
+      // Notify admin/staff about new fund request
+      this.notificationsService.createNotification({
+        targetRole: 'executive_admin',
+        title: 'New Fund Request Submitted',
+        description: `A new fund subscription of $${investmentAmount.toLocaleString()} has been submitted. Review and process it.`,
+        type: 'fund_request',
+        link: `/dashboard/investor/${userId}`
+      }).catch(err => console.error('Failed to create fund request notification:', err));
 
       return investment;
     } catch (error: any) {
@@ -106,7 +117,7 @@ export class InvestmentsService {
   async updateInvestmentStatus(userId: string, investmentId: string, data: any, role?: string) {
     const { status, documentSigned } = data;
     const isAdmin = ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant'].includes(role || '');
-    
+
     try {
       let query = 'UPDATE investments SET updated_at = CURRENT_TIMESTAMP';
       const values: any[] = [];
@@ -115,7 +126,7 @@ export class InvestmentsService {
       if (status !== undefined) {
         query += `, status = $${paramCount++}`;
         values.push(status);
-        
+
         // Auto-update tracking fields based on status
         if (status === 'Awaiting Funding') {
           query += `, awaiting_funding = TRUE, awaiting_funding_at = COALESCE(awaiting_funding_at, CURRENT_TIMESTAMP)`;
@@ -133,7 +144,7 @@ export class InvestmentsService {
           query += `, signed_at = COALESCE(signed_at, CURRENT_TIMESTAMP)`;
           // Moving to next step automatically
           if (status === undefined) {
-             query += `, status = 'Awaiting Funding', awaiting_funding = TRUE, awaiting_funding_at = COALESCE(awaiting_funding_at, CURRENT_TIMESTAMP)`;
+            query += `, status = 'Awaiting Funding', awaiting_funding = TRUE, awaiting_funding_at = COALESCE(awaiting_funding_at, CURRENT_TIMESTAMP)`;
           }
         }
       }
@@ -179,7 +190,7 @@ export class InvestmentsService {
       `;
       const params = isAdmin ? [investmentId] : [investmentId, userId];
       const result = await db.query(query, params);
-      
+
       if (result.rows.length === 0) {
         throw new NotFoundException('Investment not found');
       }

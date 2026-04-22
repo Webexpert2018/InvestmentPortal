@@ -940,7 +940,35 @@ class ApiClient {
       body: JSON.stringify({ stageIds }),
     });
   }
+
+  // --- Notifications ---
+  async getNotifications() {
+    return this.request<any[]>('/notifications');
+  }
+
+  async getUnreadNotificationsCount() {
+    return this.request<{ count: number }>('/notifications/unread-count');
+  }
+
+  async markNotificationAsRead(id: string) {
+    return this.request<any>(`/notifications/${id}/read`, {
+      method: 'PATCH',
+    });
+  }
+
+  // --- Messages ---
+  async sendMessage(data: { content: string; recipientId?: string; targetRole?: string }) {
+    return this.request<any>('/messages', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getMessages() {
+    return this.request<any[]>('/messages');
+  }
 }
+
 
 
 export const apiClient = new ApiClient();

@@ -3,12 +3,15 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { db } from '../../config/database';
 import { EmailService } from '../email/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private emailService: EmailService,
+    private notificationsService: NotificationsService,
   ) { }
 
   async signup(
@@ -130,6 +133,18 @@ export class AuthService {
     // Send welcome email asynchronously
     this.emailService.sendWelcomeEmail(newUser.email, newUser.firstName || 'User', newUser.role || targetRole, password)
       .catch(err => console.error(`Failed to send welcome email to ${newUser.email}:`, err));
+
+    // Trigger notification for all admin roles
+    if (targetRole === 'investor') {
+      this.notificationsService.createNotification({
+        // targetRoles: ['executive_admin', 'fund_admin', 'investor_relations', 'admin'],
+        targetRole: 'executive_admin',
+        title: 'New Investor Joined',
+        description: `A new investor, ${newUser.firstName} ${newUser.lastName}, has created an account and started the onboarding process. Review their profile.`,
+        type: 'new_investor',
+        link: `/dashboard/investor/${newUser.id}`
+      });
+    }
 
     return {
       user: {
