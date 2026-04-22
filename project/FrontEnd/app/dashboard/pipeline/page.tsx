@@ -258,6 +258,98 @@ export default function PipelinePage() {
     }
   };
 
+  const handleUpdateAmount = async () => {
+    if (!selectedInvestor) return;
+    setIsUpdatingInvestment(true);
+    try {
+      await apiClient.updateInvestorPipelineDetails(selectedInvestor.id, {
+        expectedFutureInvestment: parseFloat(expectedInvestment) || 0
+      });
+      toast({
+        title: 'Success',
+        description: 'Pledged amount updated successfully',
+        variant: 'success',
+      });
+      const updatedStages = stages.map(stage => ({
+        ...stage,
+        investors: stage.investors?.map((inv: any) =>
+          inv.id === selectedInvestor.id
+            ? { ...inv, expectedFutureInvestment: parseFloat(expectedInvestment) || 0 }
+            : inv
+        )
+      }));
+      setStages(updatedStages);
+      setShowDetailModal(false);
+    } catch (err) {
+      console.error('Failed to update amount:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to update amount',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdatingInvestment(false);
+    }
+  };
+
+  const handleAssignIR = async () => {
+    if (!selectedInvestor) return;
+    setIsAssigning(true);
+    try {
+      await apiClient.assignInvestorRelations(selectedInvestor.id, selectedIrStaff || null);
+      toast({
+        title: 'Success',
+        description: 'IR Officer assigned successfully',
+        variant: 'success',
+      });
+      fetchData();
+      setShowDetailModal(false);
+    } catch (err) {
+      console.error('Failed to assign IR:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to assign officer',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  const handleSaveNote = async () => {
+    if (!selectedInvestor) return;
+    setIsUpdatingInvestment(true);
+    try {
+      await apiClient.updateInvestorPipelineDetails(selectedInvestor.id, {
+        pipelineNote: pipelineNote
+      });
+      toast({
+        title: 'Success',
+        description: 'Internal note saved successfully',
+        variant: 'success',
+      });
+      const updatedStages = stages.map(stage => ({
+        ...stage,
+        investors: stage.investors?.map((inv: any) =>
+          inv.id === selectedInvestor.id
+            ? { ...inv, pipelineNote: pipelineNote }
+            : inv
+        )
+      }));
+      setStages(updatedStages);
+      setShowDetailModal(false);
+    } catch (err) {
+      console.error('Failed to save note:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to save note',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdatingInvestment(false);
+    }
+  };
+
   const handleSaveChanges = async () => {
     if (!selectedInvestor) return;
     setIsUpdatingInvestment(true);
@@ -570,7 +662,7 @@ export default function PipelinePage() {
                     value={newStageName}
                     onChange={(e) => setNewStageName(e.target.value)}
                     placeholder="e.g., Follow up"
-                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-full text-sm font-bold text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
                   />
                 </div>
 
@@ -592,14 +684,14 @@ export default function PipelinePage() {
                 <div className="flex gap-4 pt-2">
                   <button
                     onClick={() => setShowAddStage(false)}
-                    className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-all"
+                    className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-full transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleAddStage}
                     disabled={!newStageName.trim()}
-                    className="flex-1 py-4 bg-[#FCD34D] text-gray-800 text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-xl shadow-yellow-100 transition-all disabled:opacity-50"
+                    className="flex-1 py-4 bg-[#FCD34D] text-gray-800 text-sm font-bold rounded-full hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all disabled:opacity-50"
                   >
                     Create Stage
                   </button>
@@ -662,7 +754,7 @@ export default function PipelinePage() {
                         value={expectedInvestment}
                         onChange={(e) => setExpectedInvestment(e.target.value)}
                         placeholder="0.00"
-                        className="w-full pl-10 pr-5 py-4 bg-gray-50 border rounded-2xl text-lg font-black text-[#1F3B6E] placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                        className="w-full pl-10 pr-5 py-4 bg-gray-50 border rounded-full text-lg font-black text-[#1F3B6E] placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
                       />
                     </div>
                   </div>
@@ -675,7 +767,7 @@ export default function PipelinePage() {
                           value={selectedIrStaff}
                           onChange={(e) => setSelectedIrStaff(e.target.value)}
                           disabled={isIrLoading}
-                          className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
+                          className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
                         >
                           <option value="">{isIrLoading ? 'Loading staff...' : 'Unassigned / Select IR Officer'}</option>
                           {irStaffList.map((staff: any) => (
@@ -696,25 +788,39 @@ export default function PipelinePage() {
                       value={pipelineNote}
                       onChange={(e) => setPipelineNote(e.target.value)}
                       placeholder="Add internal notes about this investor here..."
-                      className="w-full flex-1 p-5 bg-gray-50 border-none rounded-3xl text-base font-medium text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all resize-none min-h-[250px]"
+                      className="w-full flex-1 p-5 bg-gray-50 border rounded-3xl text-base font-medium text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all resize-none min-h-[250px]"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-10 mt-6 border-t border-gray-100">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-10 mt-6 border-t border-gray-100">
                 <button
-                  onClick={() => setShowDetailModal(false)}
-                  className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-all"
+                  onClick={handleUpdateAmount}
+                  disabled={isUpdatingInvestment}
+                  className="py-4 bg-[#FCD34D]/10 text-amber-700 text-sm font-bold rounded-full hover:bg-[#FCD34D]/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  Close
+                  {isUpdatingInvestment ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Update Amount'}
                 </button>
                 <button
-                  onClick={handleSaveChanges}
-                  disabled={isUpdatingInvestment}
-                  className="flex-1 py-4 bg-[#FCD34D] text-gray-800 text-sm font-black rounded-2xl hover:bg-[#FBD24E] shadow-xl shadow-yellow-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  onClick={handleAssignIR}
+                  disabled={isAssigning || isIrLoading}
+                  className="py-4 bg-[#1F3B6E]/10 text-[#1F3B6E] text-sm font-bold rounded-full hover:bg-[#1F3B6E]/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {isUpdatingInvestment ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save All Changes'}
+                  {isAssigning ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Assign Relations'}
+                </button>
+                <button
+                  onClick={handleSaveNote}
+                  disabled={isUpdatingInvestment}
+                  className="py-4 bg-blue-50 text-blue-700 text-sm font-bold rounded-full hover:bg-blue-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isUpdatingInvestment ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Note'}
+                </button>
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="py-4 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-full transition-all border border-gray-200"
+                >
+                  Close
                 </button>
               </div>
             </div>
