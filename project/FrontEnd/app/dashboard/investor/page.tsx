@@ -737,7 +737,7 @@ export default function InvestorPage() {
                   <button
                     key={i + 1}
                     onClick={() => setCurrentPage(i + 1)}
-                    className={`w-9 h-9 rounded-full text-sm font-bold transition-all ${currentPage === i + 1
+                    className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${currentPage === i + 1
                       ? 'bg-[#1F3B6E] text-white shadow-md scale-105'
                       : 'text-[#4B5563] hover:bg-white'
                       }`}
