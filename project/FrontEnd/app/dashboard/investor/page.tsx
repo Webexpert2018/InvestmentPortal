@@ -23,6 +23,7 @@ interface Investor {
   createdAt: string;
   avatar: string;
   status: 'active' | 'pending' | 'suspended';
+  accountType?: string;
 }
 
 export default function InvestorPage() {
@@ -95,10 +96,22 @@ export default function InvestorPage() {
     const matchesKyc = !kycFilter || investor.kycStatus?.toLowerCase() === kycFilter.toLowerCase();
     const effectiveStatus = investor.status || 'active';
     const matchesStatus = !statusFilter || effectiveStatus === statusFilter;
-    return matchesSearch && matchesKyc && matchesStatus;
+
+    // Account Type Filter logic
+    const investorAccType = investor.accountType || 'Personal';
+    const matchesAccountType = !accountTypeFilter || (
+      accountTypeFilter === 'IRA'
+        ? investorAccType.toLowerCase().includes('ira')
+        : investorAccType.toLowerCase() === accountTypeFilter.toLowerCase()
+    );
+
+    return matchesSearch && matchesKyc && matchesStatus && matchesAccountType;
   });
 
-  const activeInvestors = filteredInvestors.filter(i => i.status === 'active' || !i.status);
+  const allActiveInvestors = filteredInvestors.filter(i => i.status === 'active' || !i.status);
+  const activeInvestors = allActiveInvestors.filter(i => !i.accountType || i.accountType.toLowerCase() === 'personal');
+  const activeIraInvestors = allActiveInvestors.filter(i => i.accountType && i.accountType.toLowerCase() !== 'personal');
+
   const pendingInvestors = filteredInvestors.filter(i => i.status === 'pending');
   const suspendedInvestors = filteredInvestors.filter(i => i.status === 'suspended');
 
@@ -175,7 +188,7 @@ export default function InvestorPage() {
   const handleCancelInvite = async (id: string) => {
     if (!confirm('Are you sure you want to cancel this invitation?')) return;
     try {
-      await apiClient.deleteUser(id); 
+      await apiClient.deleteUser(id);
       toast.success('Invitation cancelled');
       fetchInvestors();
     } catch (error: any) {
@@ -189,7 +202,7 @@ export default function InvestorPage() {
 
   return (
     <DashboardLayout>
-      <div 
+      <div
         className="space-y-8 font-sans max-w-xxl mx-auto"
         onClick={() => setSelectedInvestorId(null)}
       >
@@ -267,8 +280,13 @@ export default function InvestorPage() {
                 >
                   <option value="">Account Type</option>
                   <option value="Personal">Personal</option>
-                  <option value="IRA">IRA</option>
-                  <option value="Roth IRA">Roth IRA</option>
+                  <option value="Traditional">Traditional</option>
+                  <option value="Roth">Roth</option>
+                  <option value="Roth SEP">Roth SEP</option>
+                  <option value="SEP">SEP</option>
+                  <option value="Rollover">Rollover</option>
+                  <option value="DB Plan">DB Plan</option>
+                  <option value="IRA">Any IRA</option>
                 </select>
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] pointer-events-none" />
               </div>
@@ -300,12 +318,12 @@ export default function InvestorPage() {
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Email</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Account Type</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">KYC Status</th>
-                   <th className="px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize">Units</th>
-                   <th className="px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize">Invested</th>
-                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">DateJoined</th>
-                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Action</th>
-                 </tr>
-               </thead>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize">Units</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize">Invested</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">DateJoined</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Action</th>
+                </tr>
+              </thead>
               <tbody className="divide-y divide-[#F3F4F6]">
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
@@ -323,7 +341,7 @@ export default function InvestorPage() {
                         </td>
                       </tr>
                     )}
-                    
+
                     {activeInvestors.length === 0 && pendingInvestors.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
@@ -332,8 +350,8 @@ export default function InvestorPage() {
                       </tr>
                     ) : (
                       displayedActiveInvestors.map((investor) => (
-                        <tr 
-                          key={investor.id} 
+                        <tr
+                          key={investor.id}
                           className={`hover:bg-[#F9FAFB]/80 transition-colors group cursor-pointer ${selectedInvestorId === investor.id ? 'bg-amber-50/50' : ''}`}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -352,8 +370,8 @@ export default function InvestorPage() {
                               <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
                                 {investor.profileImageUrl ? (
                                   <Image
-                                    src={investor.profileImageUrl.startsWith('http') 
-                                      ? investor.profileImageUrl 
+                                    src={investor.profileImageUrl.startsWith('http')
+                                      ? investor.profileImageUrl
                                       : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
                                     alt={investor.firstName}
                                     fill
@@ -377,20 +395,20 @@ export default function InvestorPage() {
                             <span className="text-sm text-[#4B5563] font-medium">{investor.email}</span>
                           </td>
                           <td className="px-6 py-5">
-                            <span className="text-sm text-[#4B5563] font-medium">Personal</span>
+                            <span className="text-sm text-[#4B5563] font-medium">{investor.accountType || 'Personal'}</span>
                           </td>
                           <td className="px-6 py-5">
                             <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border ${getKycStatusStyle(investor.kycStatus)}`}>
                               {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
                             </span>
                           </td>
-                           <td className="px-6 py-5 text-right font-bold text-[#111827]">
-                             {investor.units || '0.00'}
-                           </td>
-                           <td className="px-6 py-5 text-right font-bold text-[#111827]">
-                             {investor.invested || '-'}
-                           </td>
-                           <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
+                          <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                            {investor.units || '0.00'}
+                          </td>
+                          <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                            {investor.invested || '-'}
+                          </td>
+                          <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
                             {new Date(investor.createdAt).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
@@ -420,6 +438,106 @@ export default function InvestorPage() {
                           </td>
                         </tr>
                       ))
+                    )}
+
+                    {/* IRA Accounts Heading */}
+                    {activeIraInvestors.length > 0 && (
+                      <>
+                        <tr className="bg-[#F9FAFB]/30">
+                          <td colSpan={8} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
+                            Active IRA Accounts ({activeIraInvestors.length})
+                          </td>
+                        </tr>
+                        {activeIraInvestors.map((investor) => (
+                          <tr
+                            key={`${investor.id}-${investor.accountType}`}
+                            className={`hover:bg-[#F9FAFB]/80 transition-colors group cursor-pointer ${selectedInvestorId === investor.id ? 'bg-amber-50/50' : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedInvestorId(selectedInvestorId === investor.id ? null : investor.id);
+                            }}
+                          >
+                            <td className="px-4 py-5">
+                              <div className="flex items-center justify-center">
+                                <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedInvestorId === investor.id ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                  {selectedInvestorId === investor.id && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-5">
+                              <div className="flex items-center gap-4">
+                                <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
+                                  {investor.profileImageUrl ? (
+                                    <Image
+                                      src={investor.profileImageUrl.startsWith('http')
+                                        ? investor.profileImageUrl
+                                        : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
+                                      alt={investor.firstName}
+                                      fill
+                                      className="object-cover"
+                                    />
+                                  ) : (
+                                    <Image
+                                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
+                                      alt={investor.firstName}
+                                      fill
+                                      className="object-cover"
+                                    />
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-[#111827]">{investor.firstName} {investor.lastName || '-'}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <span className="text-sm text-[#4B5563] font-medium">{investor.email}</span>
+                            </td>
+                            <td className="px-6 py-5">
+                              <span className="text-sm text-[#4B5563] font-medium">{investor.accountType}</span>
+                            </td>
+                            <td className="px-6 py-5">
+                              <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border ${getKycStatusStyle(investor.kycStatus)}`}>
+                                {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                              {investor.units || '0.00'}
+                            </td>
+                            <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                              {investor.invested || '-'}
+                            </td>
+                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
+                              {new Date(investor.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </td>
+                            <td className="px-8 py-5 text-center relative">
+                              <button
+                                onClick={() => setActiveDropdown(activeDropdown === investor.id ? null : investor.id)}
+                                className="p-2 text-[#9CA3AF] hover:text-[#111827] hover:bg-[#F3F4F6] rounded-full transition-all"
+                              >
+                                <MoreVertical className="h-5 w-5" />
+                              </button>
+
+                              {activeDropdown === investor.id && (
+                                <>
+                                  <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
+                                  <div className="absolute right-12 top-12 w-48 bg-white rounded-2xl shadow-xl border border-[#F3F4F6] py-2 z-20 overflow-hidden animate-in fade-in zoom-in duration-200">
+                                    <Link href={`/dashboard/investor/${investor.id}`}>
+                                      <button className="w-full px-5 py-3 text-left text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">
+                                        View Profile
+                                      </button>
+                                    </Link>
+                                  </div>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </>
                     )}
 
                     {/* Pending Invitations Heading */}
@@ -452,20 +570,20 @@ export default function InvestorPage() {
                               <span className="text-sm text-[#4B5563] font-medium">{investor.email}</span>
                             </td>
                             <td className="px-6 py-5">
-                              <span className="text-sm text-[#4B5563] font-medium">-</span>
+                              <span className="text-sm text-[#4B5563] font-medium">{investor.accountType || 'Personal'}</span>
                             </td>
                             <td className="px-6 py-5">
                               <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-200">
                                 Invited
                               </span>
                             </td>
-                             <td className="px-6 py-5 text-right font-bold text-[#111827]">
-                               0.00
-                             </td>
-                             <td className="px-6 py-5 text-right font-bold text-[#111827]">
-                               -
-                             </td>
-                             <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
+                            <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                              0.00
+                            </td>
+                            <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                              -
+                            </td>
+                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
                               {new Date(investor.createdAt).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
@@ -489,7 +607,7 @@ export default function InvestorPage() {
                                         View Profile
                                       </button>
                                     </Link>
-                                    <button 
+                                    <button
                                       onClick={() => handleCancelInvite(investor.id)}
                                       className="w-full px-5 py-3 text-left text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
                                     >
@@ -520,8 +638,8 @@ export default function InvestorPage() {
                                 <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB] grayscale">
                                   {investor.profileImageUrl ? (
                                     <Image
-                                      src={investor.profileImageUrl.startsWith('http') 
-                                        ? investor.profileImageUrl 
+                                      src={investor.profileImageUrl.startsWith('http')
+                                        ? investor.profileImageUrl
                                         : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
                                       alt={investor.firstName}
                                       fill
@@ -545,20 +663,20 @@ export default function InvestorPage() {
                               <span className="text-sm text-gray-400 font-medium">{investor.email}</span>
                             </td>
                             <td className="px-6 py-5">
-                              <span className="text-sm text-gray-400 font-medium">Personal</span>
+                              <span className="text-sm text-gray-400 font-medium">{investor.accountType}</span>
                             </td>
                             <td className="px-6 py-5">
                               <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-500 border border-red-100 italic">
                                 Suspended
                               </span>
                             </td>
-                             <td className="px-6 py-5 text-right font-bold text-gray-400">
-                               {investor.units || '0.00'}
-                             </td>
-                             <td className="px-6 py-5 text-right font-bold text-gray-400">
-                               {investor.invested || '-'}
-                             </td>
-                             <td className="px-6 py-5 text-sm text-gray-400 font-medium">
+                            <td className="px-6 py-5 text-right font-bold text-gray-400">
+                              {investor.units || '0.00'}
+                            </td>
+                            <td className="px-6 py-5 text-right font-bold text-gray-400">
+                              {investor.invested || '-'}
+                            </td>
+                            <td className="px-6 py-5 text-sm text-gray-400 font-medium">
                               {new Date(investor.createdAt).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
@@ -597,7 +715,7 @@ export default function InvestorPage() {
           </div>
 
           {/* Pagination */}
-          <div 
+          <div
             className="px-8 py-6 bg-white border-t border-[#F3F4F6] flex flex-col items-center justify-center gap-6"
             onClick={(e) => e.stopPropagation()}
           >
@@ -640,7 +758,7 @@ export default function InvestorPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Admin Add IRA Modal */}
       {showAdminIraModal && selectedInvestorId && (
         <AdminAddIraModal
@@ -705,9 +823,8 @@ export default function InvestorPage() {
                           setInviteForm({ ...inviteForm, email: e.target.value });
                           if (emailError) setEmailError('');
                         }}
-                        className={`w-full px-5 py-4 bg-[#F9FAFB] border rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 transition-all placeholder:text-[#9CA3AF] ${
-                          emailError ? 'border-red-300 ring-2 ring-red-100' : 'border-[#F3F4F6] focus:ring-[#FCD34D]'
-                        }`}
+                        className={`w-full px-5 py-4 bg-[#F9FAFB] border rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 transition-all placeholder:text-[#9CA3AF] ${emailError ? 'border-red-300 ring-2 ring-red-100' : 'border-[#F3F4F6] focus:ring-[#FCD34D]'
+                          }`}
                       />
                       {emailError && (
                         <p className="text-[11px] font-bold text-red-500 ml-1 mt-1 animate-in fade-in slide-in-from-top-1">
