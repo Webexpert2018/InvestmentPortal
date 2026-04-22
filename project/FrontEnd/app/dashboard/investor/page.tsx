@@ -320,7 +320,7 @@ export default function InvestorPage() {
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">KYC Status</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize">Units</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize">Invested</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">DateJoined</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Date Joined</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Action</th>
                 </tr>
               </thead>
