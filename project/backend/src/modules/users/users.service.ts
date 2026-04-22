@@ -222,19 +222,35 @@ export class UsersService {
     }
 
     const result = await db.query(`
+      WITH user_accounts AS (
+        SELECT id AS user_id, 'Personal' AS account_type FROM investors
+        UNION
+        SELECT user_id, CASE WHEN LOWER(account_type) = 'personal' THEN 'Personal' ELSE account_type END FROM investments WHERE account_type IS NOT NULL
+        UNION
+        SELECT user_id, CASE WHEN LOWER(account_type) = 'personal' THEN 'Personal' ELSE account_type END FROM ira_accounts
+      )
       SELECT 
-        id, email, role, full_name as "firstName", '' as "lastName", phone, status, created_at as "createdAt", 
-        kyc_status as "kycStatus", profile_image_url as "profileImageUrl",
-        (SELECT COALESCE(SUM(investment_amount), 0) FROM investments WHERE user_id = investors.id) as total_invested,
-        (SELECT COALESCE(SUM(estimated_units), 0) FROM investments WHERE user_id = investors.id) as total_units
-      FROM investors
+        i.id, i.email, i.role, i.full_name as "firstName", '' as "lastName", i.phone, i.status, i.created_at as "createdAt", 
+        i.kyc_status as "kycStatus", i.profile_image_url as "profileImageUrl",
+        ua.account_type as "accountType",
+        COALESCE(SUM(inv.investment_amount), 0) as total_invested,
+        COALESCE(SUM(inv.estimated_units), 0) as total_units
+      FROM user_accounts ua
+      JOIN investors i ON ua.user_id = i.id
+      LEFT JOIN investments inv ON ua.user_id = inv.user_id AND (
+        (ua.account_type = 'Personal' AND (LOWER(inv.account_type) = 'personal' OR inv.account_type IS NULL))
+        OR 
+        (ua.account_type != 'Personal' AND LOWER(inv.account_type) = LOWER(ua.account_type))
+      )
+      GROUP BY i.id, i.email, i.role, i.full_name, i.phone, i.status, i.created_at, i.kyc_status, i.profile_image_url, ua.account_type
       ORDER BY 
-        CASE WHEN status = 'pending' THEN 0 ELSE 1 END,
-        created_at DESC
+        CASE WHEN i.status = 'pending' THEN 0 ELSE 1 END,
+        i.created_at DESC
     `);
 
     return result.rows.map((user) => ({
       ...user,
+      accountType: user.accountType,
       firstName: user.firstName,
       lastName: user.lastName,
       invested: `$${parseFloat(user.total_invested).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
