@@ -845,13 +845,13 @@ export default function DashboardPage() {
             </div>
 
             {/* KYC Review Queue */}
-            <div className="bg-white shadow-sm rounded-xl p-6 h-fit h-screen flex flex-col">
+            <div className="bg-white shadow-sm rounded-xl p-6 h-fit flex flex-col">
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-[#1F1F1F] ">
                   KYC Review Queue
                 </h3>
               </div>
-              <div className="space-y-6  h-[calc(100vh-100px)] overflow-y-auto pr-3">
+              <div className="space-y-6  h-[calc(50vh-100px)] overflow-y-auto pr-3">
                 {kycQueue.map((item, index) => (
                   <div key={item.id} className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
