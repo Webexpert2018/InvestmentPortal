@@ -1,8 +1,11 @@
 import { Injectable, InternalServerErrorException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { db } from '../../config/database';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class RedemptionsService {
+  constructor(private readonly notificationsService: NotificationsService) { }
+
   async create(userId: string, data: any) {
     const { investment_id, amount, reason, bank_info } = data;
 
@@ -20,7 +23,7 @@ export class RedemptionsService {
       }
 
       const currentNav = parseFloat(navResult.rows[0].nav_per_unit);
-      
+
       // 2. Validate investment exists and belongs to user
       // Note: investments table still uses 'user_id' as the column name
       const invQuery = `
@@ -30,13 +33,13 @@ export class RedemptionsService {
         WHERE i.id = $1 AND i.user_id = $2
       `;
       const invResult = await db.query(invQuery, [investment_id, userId]);
-      
+
       if (invResult.rows.length === 0) {
         throw new NotFoundException('Investment not found');
       }
 
       const investment = invResult.rows[0];
-      
+
       // 3. Calculate units to be redeemed
       const units = parseFloat(amount) / currentNav;
 
@@ -47,7 +50,7 @@ export class RedemptionsService {
           `Insufficient units. requested: ${units.toFixed(4)}, available: ${availableUnits.toFixed(4)}`
         );
       }
-      
+
       // 4. Create redemption request
       // Note: redemptions table has been updated to use 'investor_id'
       const query = `
@@ -63,6 +66,15 @@ export class RedemptionsService {
         reason,
         bank_info ? JSON.stringify(bank_info) : null,
       ]);
+
+      // Notify admin/staff about new redemption request
+      this.notificationsService.createNotification({
+        targetRole: 'executive_admin',
+        title: 'New Redemption Request',
+        description: `A new redemption request of $${parseFloat(amount).toLocaleString()} has been submitted. Review and begin the verification process.`,
+        type: 'redemption',
+        link: `/dashboard/investor/${userId}`
+      }).catch(err => console.error('Failed to create redemption notification:', err));
 
       return result.rows[0];
     } catch (error) {

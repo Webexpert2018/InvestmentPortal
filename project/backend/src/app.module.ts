@@ -22,6 +22,8 @@ import { HealthController } from './health.controller';
 
 import { BankAccountsModule } from './modules/bank-accounts/bank-accounts.module';
 import { PipelineModule } from './modules/pipeline/pipeline.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { MessagesModule } from './modules/messages/messages.module';
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { PipelineModule } from './modules/pipeline/pipeline.module';
     StatsModule,
     BankAccountsModule,
     PipelineModule,
+    NotificationsModule,
+    MessagesModule,
   ],
   controllers: [HealthController],
 })
