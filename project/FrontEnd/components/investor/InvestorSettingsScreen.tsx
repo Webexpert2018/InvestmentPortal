@@ -72,7 +72,7 @@ const defaultProfile = {
   city: '',
   state: '',
   zipCode: '',
-  country: '',
+  country: 'US',
   ssn: '*** ** ***',
   profileImageUrl: '',
 };
@@ -307,7 +307,7 @@ export function InvestorSettingsScreen() {
             city: userData.city || '',
             state: stateIso,
             zipCode: userData.zipCode || '',
-            country: countryIso,
+            country: countryIso || 'US',
             ssn: userData.taxId || '*** ** ***',
             profileImageUrl: userData.profileImageUrl || '',
           });
@@ -1468,7 +1468,7 @@ export function InvestorSettingsScreen() {
                 className={`w-full rounded-[6px] border p-3 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] min-h-[80px] ${bankAddErrors.bank_description ? 'border-[#E05252]' : 'border-[#E5E5EA]'}`}
               />
               {bankAddErrors.bank_description && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.bank_description}</p>}
-            </div> 
+            </div>
           </div>
         </SectionCard>
 
@@ -1506,7 +1506,7 @@ export function InvestorSettingsScreen() {
                 const routingRegex = /^\d{9}$/;
                 if (!bankAdd.routing_number) {
                   errors.routing_number = 'Routing number is required';
-                } 
+                }
                 // else if (!routingRegex.test(bankAdd.routing_number)) {
                 //   errors.routing_number = 'Must be exactly 9 digits';
                 // }

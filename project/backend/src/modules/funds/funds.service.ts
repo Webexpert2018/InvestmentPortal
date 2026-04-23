@@ -17,6 +17,11 @@ export class FundsService {
                SELECT fund_id, user_id, amount FROM fund_flows
                UNION ALL
                SELECT fund_id, user_id, investment_amount as amount FROM investments
+               WHERE is_reconciled = true
+               UNION ALL
+               SELECT inv.fund_id, r.investor_id as user_id, -r.amount as amount FROM redemptions r
+               JOIN investments inv ON r.investment_id = inv.id
+               WHERE r.is_reconciled = true
            ) combined
            GROUP BY fund_id
        ) stats ON f.id = stats.fund_id
@@ -39,6 +44,11 @@ export class FundsService {
                SELECT fund_id, user_id, amount FROM fund_flows
                UNION ALL
                SELECT fund_id, user_id, investment_amount as amount FROM investments
+               WHERE is_reconciled = true
+               UNION ALL
+               SELECT inv.fund_id, r.investor_id as user_id, -r.amount as amount FROM redemptions r
+               JOIN investments inv ON r.investment_id = inv.id
+               WHERE r.is_reconciled = true
            ) combined
            GROUP BY fund_id
        ) stats ON f.id = stats.fund_id

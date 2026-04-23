@@ -228,21 +228,38 @@ export class UsersService {
         SELECT user_id, CASE WHEN LOWER(account_type) = 'personal' THEN 'Personal' ELSE account_type END FROM investments WHERE account_type IS NOT NULL
         UNION
         SELECT user_id, CASE WHEN LOWER(account_type) = 'personal' THEN 'Personal' ELSE account_type END FROM ira_accounts
+      ),
+      investment_sums AS (
+        SELECT 
+          user_id,
+          CASE WHEN LOWER(account_type) = 'personal' OR account_type IS NULL THEN 'Personal' ELSE account_type END as account_type,
+          SUM(investment_amount) as total_invested,
+          SUM(estimated_units) as total_units
+        FROM investments
+        WHERE is_reconciled = true
+        GROUP BY user_id, account_type
+      ),
+      redemption_sums AS (
+        SELECT 
+          r.investor_id as user_id,
+          CASE WHEN LOWER(inv.account_type) = 'personal' OR inv.account_type IS NULL THEN 'Personal' ELSE inv.account_type END as account_type,
+          SUM(r.amount) as total_redeemed_value,
+          SUM(r.units) as total_redeemed_units
+        FROM redemptions r
+        JOIN investments inv ON r.investment_id = inv.id
+        WHERE r.is_reconciled = true
+        GROUP BY r.investor_id, account_type
       )
       SELECT 
         i.id, i.email, i.role, i.full_name as "firstName", '' as "lastName", i.phone, i.status, i.created_at as "createdAt", 
         i.kyc_status as "kycStatus", i.profile_image_url as "profileImageUrl",
         ua.account_type as "accountType",
-        COALESCE(SUM(inv.investment_amount), 0) as total_invested,
-        COALESCE(SUM(inv.estimated_units), 0) as total_units
+        (COALESCE(inv_s.total_invested, 0) - COALESCE(red_s.total_redeemed_value, 0)) as total_invested,
+        (COALESCE(inv_s.total_units, 0) - COALESCE(red_s.total_redeemed_units, 0)) as total_units
       FROM user_accounts ua
       JOIN investors i ON ua.user_id = i.id
-      LEFT JOIN investments inv ON ua.user_id = inv.user_id AND (
-        (ua.account_type = 'Personal' AND (LOWER(inv.account_type) = 'personal' OR inv.account_type IS NULL))
-        OR 
-        (ua.account_type != 'Personal' AND LOWER(inv.account_type) = LOWER(ua.account_type))
-      )
-      GROUP BY i.id, i.email, i.role, i.full_name, i.phone, i.status, i.created_at, i.kyc_status, i.profile_image_url, ua.account_type
+      LEFT JOIN investment_sums inv_s ON ua.user_id = inv_s.user_id AND ua.account_type = inv_s.account_type
+      LEFT JOIN redemption_sums red_s ON ua.user_id = red_s.user_id AND ua.account_type = red_s.account_type
       ORDER BY 
         CASE WHEN i.status = 'pending' THEN 0 ELSE 1 END,
         i.created_at DESC

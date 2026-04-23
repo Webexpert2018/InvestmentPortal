@@ -14,7 +14,7 @@ interface ReconciliationRecord {
   internal: number;
   difference: number;
   status: 'Matched' | 'Mismatch';
-  isReconciled: boolean;
+  isReconciled: boolean | null;
   date: string;
 }
 
@@ -51,7 +51,7 @@ export default function ReconciliationPage() {
           internal,
           difference,
           status: Math.abs(difference) < 0.01 ? 'Matched' : 'Mismatch',
-          isReconciled: !!inv?.is_reconciled,
+          isReconciled: inv?.is_reconciled === undefined || inv?.is_reconciled === null ? null : !!inv?.is_reconciled,
           date: String(inv?.created_at || new Date().toISOString()),
         };
       });
@@ -68,7 +68,7 @@ export default function ReconciliationPage() {
           internal,
           difference,
           status: Math.abs(difference) < 0.01 ? 'Matched' : 'Mismatch',
-          isReconciled: !!red?.is_reconciled,
+          isReconciled: red?.is_reconciled === undefined || red?.is_reconciled === null ? null : !!red?.is_reconciled,
           date: String(red?.created_at || new Date().toISOString()),
         };
       });
@@ -324,54 +324,34 @@ export default function ReconciliationPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        {record.isReconciled ? (
-                          <div className="flex justify-center">
+                        <div className="flex justify-center">
+                          {record.isReconciled === true ? (
                             <CheckCircle2 className="h-6 w-6 text-green-500" />
-                          </div>
-                        ) : (
-                          <div className="flex justify-center">
-                            <div className="h-3 w-3 rounded-full bg-gray-200" />
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="relative">
-                          <button
-                            onClick={() => setActiveDropdown(activeDropdown === record.id ? null : record.id)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <MoreVertical className="h-5 w-5 text-gray-600" />
-                          </button>
-
-                          {activeDropdown === record.id && (
-                            <>
-                              <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
-                              <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
-                                <button
-                                  onClick={() => {
-                                    if (record.isReconciled || record.status === 'Matched') {
-                                      handleToggleReconcile(record.id, record.type, record.isReconciled);
-                                    }
-                                  }}
-                                  disabled={!record.isReconciled && record.status === 'Mismatch'}
-                                  className={`w-full px-4 py-2 text-left text-sm font-medium transition-colors ${record.isReconciled
-                                    ? 'text-orange-600 hover:bg-orange-50'
-                                    : record.status === 'Mismatch'
-                                      ? 'text-gray-400 cursor-not-allowed bg-gray-50'
-                                      : 'text-green-600 hover:bg-green-50'
-                                    }`}
-                                >
-                                  {record.isReconciled ? 'Mark as Incomplete' : 'Complete'}
-                                  {!record.isReconciled && record.status === 'Mismatch' && (
-                                    <span className="block text-[13px] font-normal text-gray-400 mt-0.5">
-                                      Resolve mismatch first
-                                    </span>
-                                  )}
-                                </button>
-                              </div>
-                            </>
+                          ) : record.isReconciled === false ? (
+                            <div className="h-6 w-6 rounded-full bg-red-500 flex items-center justify-center">
+                              <span className="text-white text-[10px] font-bold">!</span>
+                            </div>
+                          ) : (
+                            <div className="h-4 w-4 rounded-full bg-gray-200" />
                           )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {record.status === 'Matched' ? (
+                          <button
+                            onClick={() => handleToggleReconcile(record.id, record.type, false)}
+                            className="px-4 py-1.5 text-[11px] font-bold rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors border border-green-100 uppercase tracking-wider"
+                          >
+                            Complete
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleToggleReconcile(record.id, record.type, true)}
+                            className="px-4 py-1.5 text-[11px] font-bold rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-100 uppercase tracking-wider"
+                          >
+                            Incomplete
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))

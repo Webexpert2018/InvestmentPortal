@@ -39,7 +39,7 @@ export class PipelineService {
         COALESCE(SUM(inv.investment_amount), 0) as total_investment
       FROM investors i
       LEFT JOIN staff s ON i.assigned_ir_id = s.id
-      LEFT JOIN investments inv ON i.id = inv.user_id
+      LEFT JOIN investments inv ON i.id = inv.user_id AND inv.is_reconciled = true
       WHERE i.pipeline_stage_id IS NOT NULL
       ${isIR ? 'AND i.assigned_ir_id = $1' : ''}
       GROUP BY i.id, i.email, i.phone, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, s.full_name, i.updated_at, i.expected_future_investment, i.pipeline_note

@@ -11,6 +11,7 @@ export default function PortfolioPage() {
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [investments, setInvestments] = useState<any[]>([]);
+  const [redemptions, setRedemptions] = useState<any[]>([]);
   const [funds, setFunds] = useState<any[]>([]);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const [stats, setStats] = useState({
@@ -27,24 +28,40 @@ export default function PortfolioPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [investmentsData, navSummary, fundsData] = await Promise.all([
+      const [investmentsData, navSummary, fundsData, redemptionsData] = await Promise.all([
         apiClient.getMyInvestments(),
         apiClient.getNavSummary(),
         apiClient.getFunds(),
+        apiClient.getMyRedemptions(),
       ]);
 
       setInvestments(investmentsData);
+      setRedemptions(redemptionsData);
       setFunds(fundsData);
 
-      const totalInvested = investmentsData.reduce((sum: number, inv: any) => sum + parseFloat(inv.investment_amount), 0);
-      const totalUnits = investmentsData.reduce((sum: number, inv: any) => sum + parseFloat(inv.estimated_units), 0);
-      const currentValue = investmentsData.reduce((sum: number, inv: any) => sum + parseFloat(inv.revised_amount || inv.investment_amount), 0);
+      const totalInvested = investmentsData
+        .filter((inv: any) => inv.is_reconciled)
+        .reduce((sum: number, inv: any) => sum + parseFloat(inv.investment_amount), 0);
+      const totalUnits = investmentsData
+        .filter((inv: any) => inv.is_reconciled)
+        .reduce((sum: number, inv: any) => sum + parseFloat(inv.estimated_units), 0);
+      const currentValue = investmentsData
+        .filter((inv: any) => inv.is_reconciled)
+        .reduce((sum: number, inv: any) => sum + parseFloat(inv.revised_amount || inv.investment_amount), 0);
+
+      const totalRedeemedUnits = redemptionsData
+        .filter((r: any) => r.is_reconciled)
+        .reduce((sum: number, r: any) => sum + parseFloat(r.units || 0), 0);
+      
+      const totalRedeemedValue = redemptionsData
+        .filter((r: any) => r.is_reconciled)
+        .reduce((sum: number, r: any) => sum + parseFloat(r.amount || 0), 0);
 
       setStats({
-        totalInvested,
-        totalUnits,
+        totalInvested: Math.max(0, totalInvested - totalRedeemedValue), // Net invested
+        totalUnits: Math.max(0, totalUnits - totalRedeemedUnits),
         currentNav: navSummary.currentNav,
-        currentValue,
+        currentValue: Math.max(0, currentValue - totalRedeemedValue),
       });
     } catch (error) {
       console.error('Error fetching portfolio data:', error);
@@ -313,10 +330,20 @@ export default function PortfolioPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
                     {sortedInvestments.map((row) => {
-                      const units = parseFloat(row.estimated_units);
+                      // Get redemptions for this specific investment
+                      const rowRedemptions = redemptions || [];
+                      const redeemedUnits = rowRedemptions
+                        .filter((r: any) => r.investment_id === row.id && r.is_reconciled)
+                        .reduce((sum: number, r: any) => sum + parseFloat(r.units || 0), 0);
+                      
+                      const redeemedAmount = rowRedemptions
+                        .filter((r: any) => r.investment_id === row.id && r.is_reconciled)
+                        .reduce((sum: number, r: any) => sum + parseFloat(r.amount || 0), 0);
+
+                      const units = parseFloat(row.estimated_units) - redeemedUnits;
                       const currentNav = stats.currentNav;
-                      const currentValue = parseFloat(row.revised_amount || (units * currentNav));
-                      const costBasis = parseFloat(row.investment_amount);
+                      const currentValue = parseFloat(row.revised_amount || (parseFloat(row.estimated_units) * currentNav)) - redeemedAmount;
+                      const costBasis = parseFloat(row.investment_amount) - redeemedAmount;
                       const gainLoss = currentValue - costBasis;
                       const gainPositive = gainLoss >= 0;
                       const gainPercent = costBasis > 0 ? (gainLoss / costBasis) * 100 : 0;
@@ -335,8 +362,12 @@ export default function PortfolioPage() {
                             </span>
                           </td>
                           <td className="px-4 py-3">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                              Pending
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              row.is_reconciled 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {row.is_reconciled ? 'Completed' : 'Pending'}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right">

@@ -93,7 +93,7 @@ export function AccountantSettingsScreen() {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
-  const [country, setCountry] = useState('');
+  const [country, setCountry] = useState('US');
   const [taxId, setTaxId] = useState('');
 
   const imgRef = useRef<HTMLInputElement>(null);
@@ -156,7 +156,7 @@ export function AccountantSettingsScreen() {
 
           const foundCountry = countries.find(c => c.isoCode === userData.country || c.name === userData.country);
           const countryIso = foundCountry?.isoCode || userData.country || '';
-          setCountry(countryIso);
+          setCountry(countryIso || 'US');
 
           if (foundCountry) {
             const countryStates = State.getStatesOfCountry(foundCountry.isoCode);
