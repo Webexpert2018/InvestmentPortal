@@ -5,6 +5,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ChevronDown, MoreVertical, Search, Loader2 } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
 type VaultRow = {
@@ -53,6 +54,7 @@ const allDocuments: VaultRow[] = [
 
 export default function DocumentVaultPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [documents, setDocuments] = useState<VaultRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
@@ -95,7 +97,7 @@ export default function DocumentVaultPage() {
             day: 'numeric',
             year: 'numeric'
           }),
-          fileUrl: `${apiClient.getApiUrl()}/documents/${doc.id}/view`
+          fileUrl: `${apiClient.getApiUrl()}/documents/${doc.id}/download`
         }));
         setDocuments(mapped);
       } catch (err) {
@@ -134,13 +136,36 @@ export default function DocumentVaultPage() {
   const startIndex = (currentPage - 1) * pageSize;
   const rows = filtered.slice(startIndex, startIndex + pageSize);
 
-  const handleDownload = (fileUrl: string, fileName: string) => {
-    const anchor = document.createElement('a');
-    anchor.href = fileUrl;
-    anchor.download = fileName;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
+  const handleDownload = async (fileUrl: string, fileName: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(fileUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download: ${response.status} ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download failed:', err);
+      toast({
+        title: "Download Failed",
+        description: "Could not download document. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -204,7 +229,8 @@ export default function DocumentVaultPage() {
             </div>
           </div>
 
-          <div className="mt-4 overflow-x-auto">
+          <div className="mt-4 overflow-x-auto pb-20 custom-scrollbar">
+            <div className="min-h-[400px]">
             <table className="w-full min-w-[860px] border-separate border-spacing-0 text-[12px] text-[#4B4B4B]">
               <thead>
                 <tr className="bg-[#FAFAFA] text-left font-medium text-[#4B4B4B]">
@@ -273,12 +299,14 @@ export default function DocumentVaultPage() {
               </tbody>
             </table>
           </div>
+        </div>
 
-          <div className="mt-4 flex items-center justify-center gap-6 text-[12px] text-[#8E8E93]">
+          <div className="mt-5 flex items-center justify-center gap-6 text-[16px] text-[#8E8E93]">
             <button
               type="button"
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              className="px-1"
+              disabled={currentPage === 1}
+              className="px-1 hover:text-[#274583] transition-colors disabled:opacity-30 disabled:pointer-events-none"
             >
               &lt; Previous
             </button>
@@ -292,8 +320,8 @@ export default function DocumentVaultPage() {
                   key={page}
                   type="button"
                   onClick={() => setCurrentPage(page)}
-                  className={`inline-flex h-6 w-6 items-center justify-center rounded-[6px] ${
-                    isActive ? 'bg-[#274583] text-white' : 'text-[#8E8E93]'
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-[8px] transition-colors ${
+                    isActive ? 'bg-[#274583] text-white' : 'hover:bg-[#E9EDF4]'
                   }`}
                 >
                   {page}
@@ -304,7 +332,8 @@ export default function DocumentVaultPage() {
             <button
               type="button"
               onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-              className="px-1"
+              disabled={currentPage === totalPages}
+              className="px-1 hover:text-[#274583] transition-colors disabled:opacity-30 disabled:pointer-events-none"
             >
               Next &gt;
             </button>

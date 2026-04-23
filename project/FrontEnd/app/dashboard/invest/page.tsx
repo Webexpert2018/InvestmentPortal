@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { apiClient, BASE_URL } from '@/lib/api/client';
+import { useToast } from '@/hooks/use-toast';
 import {
   ChevronLeft,
   Download,
@@ -37,6 +38,7 @@ const getFullImageUrl = (imagePath: string | null | undefined): string | undefin
 };
 
 export default function InvestPage() {
+  const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>('fundingAccount');
@@ -287,19 +289,24 @@ export default function InvestPage() {
 
       // Handle authentication failures (e.g. Expired/Invalid Token)
       if (error.status === 401 || error.message?.includes('401') || (error.details?.errorCode === 'USER_AUTHENTICATION_FAILED')) {
-        const confirmed = window.confirm('Your DocuSign authorization has expired or is invalid. Would you like to reconnect now?');
-        if (confirmed) {
-          window.location.href = `${BASE_URL}/api/docusign/auth`;
-          return;
-        }
+        toast({
+          title: "Session Expired",
+          description: "Your DocuSign authorization has expired. Reconnecting...",
+          variant: "destructive"
+        });
+        window.location.href = `${BASE_URL}/api/docusign/auth`;
+        return;
       }
 
       if (error.details) {
         console.error('DocuSign Error Details:', error.details);
       }
       const msg = error.message || String(error);
-      const details = error.details ? `\n\nDetails: ${JSON.stringify(error.details, null, 2)}` : '';
-      alert(`Error: ${msg}${details}\n\nPlease check your authorization or connection.`);
+      toast({
+        title: "Error",
+        description: `Error: ${msg}. Please check your authorization or connection.`,
+        variant: "destructive"
+      });
     } finally {
       setIsSigning(false);
     }
@@ -330,7 +337,11 @@ export default function InvestPage() {
       setStep('fundingInstructions');
     } catch (error) {
       console.error('Bypass error:', error);
-      alert('Failed to bypass DocuSign: ' + (error instanceof Error ? error.message : String(error)));
+      toast({
+        title: "Bypass Failed",
+        description: 'Failed to bypass DocuSign: ' + (error instanceof Error ? error.message : String(error)),
+        variant: "destructive"
+      });
     } finally {
       setIsSigning(false);
     }

@@ -195,8 +195,8 @@ export default function IRAPage() {
     const e: { [k: string]: string } = {};
     if (!iraForm.accountType.trim()) e.accountType = 'Please enter account type.';
     if (!iraForm.accountNumber.trim()) e.accountNumber = 'Please enter account number.';
-    if (!iraForm.custodian.trim()) e.custodian = 'Please enter custodian name.';
-    if (!iraForm.beneficiary.trim()) e.beneficiary = 'Please enter beneficiary name.';
+    //if (!iraForm.custodian.trim()) e.custodian = 'Please enter custodian name.';
+    //if (!iraForm.beneficiary.trim()) e.beneficiary = 'Please enter beneficiary name.';
     if (!iraForm.maritalStatus) e.maritalStatus = 'Please select marital status.';
     if (!iraForm.username.trim()) e.username = 'Please enter username.';
 
@@ -208,9 +208,9 @@ export default function IRAPage() {
       if (!iraForm.mailingZipCode?.trim()) e.mailingZipCode = 'Please enter zip code.';
     }
 
-    const ssnDigits = iraForm.ssn.replace(/[^0-9]/g, '');
-    if (!iraForm.ssn.trim()) e.ssn = 'Please enter Social Security Number.';
-    else if (!(ssnDigits.length === 9)) e.ssn = 'SSN must contain 9 digits.';
+    // const ssnDigits = iraForm.ssn.replace(/[^0-9]/g, '');
+    // if (!iraForm.ssn.trim()) e.ssn = 'Please enter Social Security Number.';
+    // else if (!(ssnDigits.length === 9)) e.ssn = 'SSN must contain 9 digits.';
 
     setErrors(e);
     if (Object.keys(e).length > 0) {

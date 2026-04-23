@@ -22,9 +22,10 @@ const connectionString = getConnectionString();
 
 const pool = new Pool({
   connectionString,
-  ssl: connectionString.includes('sslmode=disable') ? false : {
-    rejectUnauthorized: false,
-  },
+  // ssl: connectionString.includes('sslmode=disable') ? false : {
+  //   rejectUnauthorized: false,
+  // },
+  ssl: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1' ? { rejectUnauthorized: false } : false,
 });
 
 async function runMigrations() {

@@ -26,8 +26,16 @@ const CustomPdfViewer = ({ url, title }: { url: string; title: string }) => {
       pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
       // Fetch as ArrayBuffer to avoid IDM interception
-      fetch(url)
-        .then(response => response.arrayBuffer())
+      const token = localStorage.getItem('token');
+      fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          return response.arrayBuffer();
+        })
         .then(arrayBuffer => {
           const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
           loadingTask.promise.then((pdf: any) => {
@@ -174,7 +182,12 @@ export default function DocumentDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [doc, setDoc] = useState<any>(null);
 
+  const [token, setToken] = useState<string | null>(null);
+
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setToken(localStorage.getItem('token'));
+    }
     if (params.docId) {
       fetchDocument();
     }
@@ -194,6 +207,35 @@ export default function DocumentDetailsPage() {
       router.back();
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!doc) return;
+    try {
+      const downloadUrl = apiClient.getDocumentDownloadUrl(doc.id);
+      const response = await fetch(downloadUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!response.ok) throw new Error('Download failed');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.file_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download failed:', err);
+      toast({
+        title: "Error",
+        description: "Failed to download document",
+        variant: "destructive",
+      });
     }
   };
 
@@ -226,9 +268,9 @@ export default function DocumentDetailsPage() {
 
   if (!doc) return null;
 
-  const fileUrl = `${BASE_URL}${doc.file_url}`;
-  const isImage = doc.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-  const isPDF = doc.file_url.match(/\.(pdf)$/i);
+  const fileUrl = (doc && token) ? `${apiClient.getApiUrl()}/documents/${doc.id}/view?token=${encodeURIComponent(token)}` : '';
+  const isImage = doc?.file_url?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+  const isPDF = doc?.file_url?.match(/\.(pdf)$/i);
   const isOffice = doc.file_url.match(/\.(doc|docx|xls|xlsx|ppt|pptx)$/i);
 
   return (
@@ -315,18 +357,19 @@ export default function DocumentDetailsPage() {
 
               <div className="flex gap-4 mt-12 pt-6 border-t border-gray-100">
                 <Button
-                  onClick={() => window.open(fileUrl, '_blank')}
+                  onClick={() => {
+                    if (fileUrl) window.open(fileUrl, '_blank');
+                  }}
                   className="px-10 py-2.5 bg-[#FEF3C7] hover:bg-[#FDE68A] text-[#92400E] h-auto rounded-full font-bold transition-all shadow-sm"
                 >
                   View Document
                 </Button>
-                <a href={apiClient.getDocumentDownloadUrl(doc.id)} download={doc.file_name}>
-                  <Button
-                    className="px-10 py-2.5 bg-[#FFFBEB] hover:bg-[#FEF3C7] text-[#92400E] h-auto rounded-full font-bold transition-all shadow-sm border border-[#FEF3C7]"
-                  >
-                    Download Doc
-                  </Button>
-                </a>
+                <Button
+                  onClick={handleDownload}
+                  className="px-10 py-2.5 bg-[#FFFBEB] hover:bg-[#FEF3C7] text-[#92400E] h-auto rounded-full font-bold transition-all shadow-sm border border-[#FEF3C7]"
+                >
+                  Download Doc
+                </Button>
               </div>
             </div>
           </div>

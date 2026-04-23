@@ -91,8 +91,8 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
     const e: { [k: string]: string } = {};
     if (!iraForm.accountType.trim()) e.accountType = 'Please enter account type.';
     if (!iraForm.accountNumber.trim()) e.accountNumber = 'Please enter account number.';
-    if (!iraForm.custodian.trim()) e.custodian = 'Please enter custodian name.';
-    if (!iraForm.beneficiary.trim()) e.beneficiary = 'Please enter beneficiary name.';
+    // if (!iraForm.custodian.trim()) e.custodian = 'Please enter custodian name.';
+    // if (!iraForm.beneficiary.trim()) e.beneficiary = 'Please enter beneficiary name.';
     if (!iraForm.maritalStatus) e.maritalStatus = 'Please select marital status.';
     if (!iraForm.username.trim()) e.username = 'Please enter username.';
 
@@ -104,9 +104,9 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
       if (!iraForm.mailingZipCode?.trim()) e.mailingZipCode = 'Please enter zip code.';
     }
 
-    const ssnDigits = iraForm.ssn.replace(/[^0-9]/g, '');
-    if (!iraForm.ssn.trim()) e.ssn = 'Please enter Social Security Number.';
-    else if (!(ssnDigits.length === 9)) e.ssn = 'SSN must contain 9 digits.';
+    // const ssnDigits = iraForm.ssn.replace(/[^0-9]/g, '');
+    // if (!iraForm.ssn.trim()) e.ssn = 'Please enter Social Security Number.';
+    // else if (!(ssnDigits.length === 9)) e.ssn = 'SSN must contain 9 digits.';
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -198,7 +198,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
         ) : (
           <div className="p-8">
             <div className="flex flex-col gap-8">
-              
+
               {/* SECTION: Investor Profile (Read-Only) */}
               <div className="rounded-[16px] border border-[#F0F0F0] bg-[#FAFAFA] p-6">
                 <div className="flex items-center gap-2 mb-4">
@@ -213,7 +213,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                   <ReadOnlyField label="Tax ID / SSN on Profile" value={investor.taxId || '-'} />
                   <ReadOnlyField label="Phone" value={investor.phone || '-'} />
                 </div>
-                
+
                 <div className="mt-6 border-t border-[#ECEDED] pt-6">
                   <div className="flex items-center gap-2 mb-4">
                     <MapPin className="h-4 w-4 text-[#D1A94C]" />
@@ -235,7 +235,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                   <FileText className="h-4 w-4 text-[#D1A94C]" />
                   <h3 className="text-[16px] font-bold text-[#1F1F1F] font-goudy border-b pb-1">IRA Account Details (Editable)</h3>
                 </div>
-                
+
                 <div className="grid gap-5 md:grid-cols-2">
                   <div>
                     <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Account Type</label>
@@ -305,41 +305,41 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                 </div>
 
                 <div className="grid gap-5 md:grid-cols-2 mt-4">
-                   <div>
-                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Middle Name</label>
-                      <input
-                        type="text"
-                        placeholder="Optional"
-                        value={iraForm.middleName}
-                        onChange={e => setIraForm({ ...iraForm, middleName: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Suffix</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Jr, Sr"
-                        value={iraForm.suffix}
-                        onChange={e => setIraForm({ ...iraForm, suffix: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C]"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Middle Name</label>
+                    <input
+                      type="text"
+                      placeholder="Optional"
+                      value={iraForm.middleName}
+                      onChange={e => setIraForm({ ...iraForm, middleName: e.target.value })}
+                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Suffix</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Jr, Sr"
+                      value={iraForm.suffix}
+                      onChange={e => setIraForm({ ...iraForm, suffix: e.target.value })}
+                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C]"
+                    />
+                  </div>
                 </div>
 
                 {/* Marital Status */}
                 <div className="mt-6">
                   <label className="block text-[12px] font-medium text-[#6B7280] mb-3 font-helvetica">Marital Status</label>
                   <div className="flex gap-8">
-                    <RadioOption 
-                      label="Single" 
-                      selected={iraForm.maritalStatus === 'single'} 
-                      onClick={() => setIraForm({ ...iraForm, maritalStatus: 'single' })} 
+                    <RadioOption
+                      label="Single"
+                      selected={iraForm.maritalStatus === 'single'}
+                      onClick={() => setIraForm({ ...iraForm, maritalStatus: 'single' })}
                     />
-                    <RadioOption 
-                      label="Married" 
-                      selected={iraForm.maritalStatus === 'married'} 
-                      onClick={() => setIraForm({ ...iraForm, maritalStatus: 'married' })} 
+                    <RadioOption
+                      label="Married"
+                      selected={iraForm.maritalStatus === 'married'}
+                      onClick={() => setIraForm({ ...iraForm, maritalStatus: 'married' })}
                     />
                   </div>
                 </div>
@@ -347,56 +347,56 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
 
               {/* Mailing Address Toggle */}
               <div>
-                 <div className="flex items-center justify-between mb-4">
-                    <p className="text-[14px] font-medium text-[#1F1F1F] font-helvetica">Mailing address same as physical address?</p>
-                    <div className="flex gap-4">
-                       <RadioOption label="Yes" selected={iraForm.mailingAddressSame === true} onClick={() => setIraForm({...iraForm, mailingAddressSame: true})} />
-                       <RadioOption label="No" selected={iraForm.mailingAddressSame === false} onClick={() => setIraForm({...iraForm, mailingAddressSame: false})} />
-                    </div>
-                 </div>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[14px] font-medium text-[#1F1F1F] font-helvetica">Mailing address same as physical address?</p>
+                  <div className="flex gap-4">
+                    <RadioOption label="Yes" selected={iraForm.mailingAddressSame === true} onClick={() => setIraForm({ ...iraForm, mailingAddressSame: true })} />
+                    <RadioOption label="No" selected={iraForm.mailingAddressSame === false} onClick={() => setIraForm({ ...iraForm, mailingAddressSame: false })} />
+                  </div>
+                </div>
 
-                 {!iraForm.mailingAddressSame && (
-                    <div className="mt-4 grid gap-4 p-5 rounded-[12px] border border-[#E5E7EB] bg-[#FAFAFA]">
-                        <div className="grid gap-4 md:grid-cols-2">
-                           <InputField label="Mailing Address 1" value={iraForm.mailingAddress1} onChange={v => setIraForm({...iraForm, mailingAddress1: v})} />
-                           <InputField label="Mailing Address 2" value={iraForm.mailingAddress2} onChange={v => setIraForm({...iraForm, mailingAddress2: v})} />
-                        </div>
-                        <div className="grid gap-4 md:grid-cols-2">
-                           <div>
-                              <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Country</label>
-                              <Combobox
-                                options={Country.getAllCountries().map(c => ({ label: c.name, value: c.isoCode }))}
-                                value={iraForm.mailingCountry}
-                                onChange={val => setIraForm({ ...iraForm, mailingCountry: val, mailingState: '', mailingCity: '' })}
-                                placeholder="Select Country"
-                              />
-                           </div>
-                           <div>
-                              <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">State / Province</label>
-                              <Combobox
-                                options={State.getStatesOfCountry(iraForm.mailingCountry).map(s => ({ label: s.name, value: s.isoCode }))}
-                                value={iraForm.mailingState}
-                                onChange={val => setIraForm({ ...iraForm, mailingState: val, mailingCity: '' })}
-                                placeholder="Select State"
-                                disabled={!iraForm.mailingCountry}
-                              />
-                           </div>
-                        </div>
-                        <div className="grid gap-4 md:grid-cols-2">
-                           <div>
-                              <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">City</label>
-                              <Combobox
-                                options={City.getCitiesOfState(iraForm.mailingCountry, iraForm.mailingState).map(c => ({ label: c.name, value: c.name }))}
-                                value={iraForm.mailingCity}
-                                onChange={val => setIraForm({ ...iraForm, mailingCity: val })}
-                                placeholder="Select City"
-                                disabled={!iraForm.mailingState}
-                              />
-                           </div>
-                           <InputField label="Zip Code" value={iraForm.mailingZipCode} onChange={v => setIraForm({...iraForm, mailingZipCode: v})} />
-                        </div>
+                {!iraForm.mailingAddressSame && (
+                  <div className="mt-4 grid gap-4 p-5 rounded-[12px] border border-[#E5E7EB] bg-[#FAFAFA]">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <InputField label="Mailing Address 1" value={iraForm.mailingAddress1} onChange={v => setIraForm({ ...iraForm, mailingAddress1: v })} />
+                      <InputField label="Mailing Address 2" value={iraForm.mailingAddress2} onChange={v => setIraForm({ ...iraForm, mailingAddress2: v })} />
                     </div>
-                 )}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Country</label>
+                        <Combobox
+                          options={Country.getAllCountries().map(c => ({ label: c.name, value: c.isoCode }))}
+                          value={iraForm.mailingCountry}
+                          onChange={val => setIraForm({ ...iraForm, mailingCountry: val, mailingState: '', mailingCity: '' })}
+                          placeholder="Select Country"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">State / Province</label>
+                        <Combobox
+                          options={State.getStatesOfCountry(iraForm.mailingCountry).map(s => ({ label: s.name, value: s.isoCode }))}
+                          value={iraForm.mailingState}
+                          onChange={val => setIraForm({ ...iraForm, mailingState: val, mailingCity: '' })}
+                          placeholder="Select State"
+                          disabled={!iraForm.mailingCountry}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">City</label>
+                        <Combobox
+                          options={City.getCitiesOfState(iraForm.mailingCountry, iraForm.mailingState).map(c => ({ label: c.name, value: c.name }))}
+                          value={iraForm.mailingCity}
+                          onChange={val => setIraForm({ ...iraForm, mailingCity: val })}
+                          placeholder="Select City"
+                          disabled={!iraForm.mailingState}
+                        />
+                      </div>
+                      <InputField label="Zip Code" value={iraForm.mailingZipCode} onChange={v => setIraForm({ ...iraForm, mailingZipCode: v })} />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Form Actions */}
@@ -435,18 +435,18 @@ function ReadOnlyField({ label, value }: { label: string; value: string }) {
 }
 
 function InputField({ label, value, onChange, placeholder = "" }: { label: string, value: string, onChange: (v: string) => void, placeholder?: string }) {
-   return (
-      <div>
-         <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">{label}</label>
-         <input
-            type="text"
-            placeholder={placeholder}
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm"
-         />
-      </div>
-   )
+  return (
+    <div>
+      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">{label}</label>
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm"
+      />
+    </div>
+  )
 }
 
 function RadioOption({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
