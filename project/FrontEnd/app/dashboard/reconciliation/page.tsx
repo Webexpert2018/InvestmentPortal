@@ -73,7 +73,7 @@ export default function ReconciliationPage() {
         };
       });
 
-      const merged = [...investmentRecords, ...redemptionRecords].sort((a, b) => 
+      const merged = [...investmentRecords, ...redemptionRecords].sort((a, b) =>
         new Date(b.date).getTime() - new Date(a.date).getTime()
       );
 
@@ -267,9 +267,9 @@ export default function ReconciliationPage() {
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">ID</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Type</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Custodian</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Custodian</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Internal</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Difference</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Difference</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Status</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Completed</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Action</th>
@@ -296,8 +296,8 @@ export default function ReconciliationPage() {
                     <tr key={record.id} className="hover:bg-gray-50 transition-colors group">
                       <td className="px-6 py-4 text-gray-900 font-medium">{record.recordId}</td>
                       <td className="px-6 py-4 text-gray-900">{record.type}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium">{formatCurrency(record.custodian)}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-gray-900 font-medium text-right">{formatCurrency(record.custodian)}</td>
+                      <td className="px-6 py-4 text-right">
                         <div className="flex items-center gap-2">
                           <input
                             type="number"
@@ -308,7 +308,7 @@ export default function ReconciliationPage() {
                                 handleUpdateInternal(record.id, record.type, newVal);
                               }
                             }}
-                            className="w-32 px-3 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#1F3B6E] font-medium"
+                            className="w-32 px-3 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#1F3B6E] font-medium text-right"
                           />
                           {savingId === record.id ? (
                             <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
@@ -317,7 +317,7 @@ export default function ReconciliationPage() {
                           ) : null}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-gray-900 font-medium">{formatCurrency(record.difference)}</td>
+                      <td className="px-6 py-4 text-gray-900 font-medium text-right">{formatCurrency(record.difference)}</td>
                       <td className="px-6 py-4 text-center">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(record.status)}`}>
                           {record.status}
