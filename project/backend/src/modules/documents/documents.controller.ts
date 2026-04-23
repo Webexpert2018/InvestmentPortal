@@ -35,15 +35,23 @@ export class DocumentsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() body: any,
   ) {
-    return this.documentsService.uploadFundDocument(fundId, {
-      file_name: file.originalname,
-      file_url: file.path, // Cloudinary URL
-      document_type: body.document_type,
-      tax_year: body.tax_year ? parseInt(body.tax_year) : undefined,
-      description: body.description,
-      note: body.note,
-      file_size: file.size,
-    });
+    try {
+      if (!file) {
+        throw new BadRequestException('File is required');
+      }
+      return await this.documentsService.uploadFundDocument(fundId, {
+        file_name: file.originalname,
+        file_url: file.path, // Cloudinary URL
+        document_type: body.document_type,
+        tax_year: body.tax_year ? parseInt(body.tax_year) : undefined,
+        description: body.description,
+        note: body.note,
+        file_size: file.size,
+      });
+    } catch (error: any) {
+      console.error('❌ Error uploading fund document:', error);
+      throw error;
+    }
   }
 
   @Post('vault/upload')
@@ -54,18 +62,29 @@ export class DocumentsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() body: any,
   ) {
-    if (!file) {
-      throw new BadRequestException('File is required');
+    try {
+      if (!file) {
+        console.error('❌ UploadVaultDocument: No file received in request');
+        throw new BadRequestException('File is required');
+      }
+      
+      console.log(`🚀 Uploading to vault: ${file.originalname} (${file.size} bytes)`);
+
+      return await this.documentsService.uploadFundDocument(null, {
+        file_name: file.originalname,
+        file_url: file.path, // Cloudinary URL
+        document_type: body.document_type,
+        tax_year: body.tax_year ? parseInt(body.tax_year) : undefined,
+        description: body.description,
+        note: body.note,
+        file_size: file.size,
+      });
+    } catch (error: any) {
+      console.error('❌ Error uploading vault document:', error);
+      // Re-throw as InternalServerError if not already an Http exception
+      if (error instanceof BadRequestException) throw error;
+      throw new BadRequestException(`Upload failed: ${error.message || 'Unknown error'}`);
     }
-    return this.documentsService.uploadFundDocument(null, {
-      file_name: file.originalname,
-      file_url: file.path, // Cloudinary URL
-      document_type: body.document_type,
-      tax_year: body.tax_year ? parseInt(body.tax_year) : undefined,
-      description: body.description,
-      note: body.note,
-      file_size: file.size,
-    });
   }
 
   @Get('my')
