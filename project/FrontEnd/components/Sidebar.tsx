@@ -304,7 +304,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
           {/* Footer Text */}
           {!isCollapsed && (
             <div className="mt-2 text-center font-bold text-[12px] text-[#4B4B4B] leading-relaxed font-helvetica">
-              © 2022 All Rights Reserved, by Ovalia Capital.
+              © {new Date().getFullYear()} All Rights Reserved, by Ovalia Capital.
             </div>
           )}
         </div>
