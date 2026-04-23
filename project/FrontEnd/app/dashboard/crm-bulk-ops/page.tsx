@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Search, Mail, Loader2, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Mail, MessageSquare, Loader2, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -115,19 +115,33 @@ export default function CRMBulkOpsPage() {
             <h1 className="font-goudy text-[34px] leading-tight text-[#1F1F1F]">CRM & Bulk Ops</h1>
             <p className="text-[#8E8E93] text-[14px] mt-1">Manage active investors and perform bulk operations like email outreach.</p>
           </div>
-          
-          <button
-            onClick={() => setIsEmailModalOpen(true)}
-            disabled={selectedIds.length === 0}
-            className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${
-              selectedIds.length > 0 
-                ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]' 
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-            }`}
-          >
-            <Mail className="h-4 w-4" />
-            <span>Send Email ({selectedIds.length})</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setIsEmailModalOpen(true)}
+              disabled={selectedIds.length === 0}
+              className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${
+                selectedIds.length > 0 
+                  ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]' 
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+              }`}
+            >
+              <Mail className="h-4 w-4" />
+              <span>Send Email ({selectedIds.length})</span>
+            </button>
+
+            <button
+              onClick={() => alert('The messaging module is coming soon! Our team is working hard to bring this feature to your CRM dashboard.')}
+              disabled={selectedIds.length === 0}
+              className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${
+                selectedIds.length > 0 
+                  ? 'bg-[#E5E7EB] hover:bg-[#D1D5DB] text-[#1F1F1F]' 
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+              }`}
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span>Send Message ({selectedIds.length})</span>
+            </button>
+          </div>
         </div>
 
         {/* Filters & Actions */}
