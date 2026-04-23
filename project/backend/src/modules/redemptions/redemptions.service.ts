@@ -54,8 +54,8 @@ export class RedemptionsService {
       // 4. Create redemption request
       // Note: redemptions table has been updated to use 'investor_id'
       const query = `
-        INSERT INTO redemptions (investor_id, investment_id, amount, units, reason, bank_info, status)
-        VALUES ($1, $2, $3, $4, $5, $6, 'Pending')
+        INSERT INTO redemptions (investor_id, investment_id, amount, units, reason, bank_info, status, is_reconciled)
+        VALUES ($1, $2, $3, $4, $5, $6, 'Pending', NULL)
         RETURNING *
       `;
       const result = await db.query(query, [

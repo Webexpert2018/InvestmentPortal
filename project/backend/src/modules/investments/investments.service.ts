@@ -38,8 +38,8 @@ export class InvestmentsService {
         investment_amount, processing_fee, total_amount, 
         unit_price, estimated_units, revised_amount, status, document_signed,
         awaiting_funding, funds_received, units_issued,
-        awaiting_funding_at, signed_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+        awaiting_funding_at, signed_at, is_reconciled
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NULL)
         RETURNING *
       `;
 
