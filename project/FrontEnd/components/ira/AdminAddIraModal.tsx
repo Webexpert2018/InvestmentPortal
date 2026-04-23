@@ -104,9 +104,9 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
       if (!iraForm.mailingZipCode?.trim()) e.mailingZipCode = 'Please enter zip code.';
     }
 
-    const ssnDigits = iraForm.ssn.replace(/[^0-9]/g, '');
-    if (!iraForm.ssn.trim()) e.ssn = 'Please enter Social Security Number.';
-    else if (!(ssnDigits.length === 9)) e.ssn = 'SSN must contain 9 digits.';
+    // const ssnDigits = iraForm.ssn.replace(/[^0-9]/g, '');
+    // if (!iraForm.ssn.trim()) e.ssn = 'Please enter Social Security Number.';
+    // else if (!(ssnDigits.length === 9)) e.ssn = 'SSN must contain 9 digits.';
 
     setErrors(e);
     return Object.keys(e).length === 0;
