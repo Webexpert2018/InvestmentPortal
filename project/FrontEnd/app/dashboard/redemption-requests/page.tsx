@@ -170,21 +170,27 @@ export default function RedemptionRequestsPage() {
                   currentRequests.map((request) => (
                     <tr key={request.id} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-6 py-4">
-                        <span className="text-sm font-bold text-gray-900 uppercase">
+                        <Link 
+                          href={`/dashboard/redemption-requests/${request.id}`}
+                          className="text-sm font-bold text-[#1F3B6E] uppercase hover:underline cursor-pointer"
+                        >
                           RED-{request.id.substring(0, 6).toUpperCase()}
-                        </span>
+                        </Link>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white text-sm font-bold shadow-sm overflow-hidden">
+                        <Link 
+                          href={`/dashboard/investor/${request.investor_id}`}
+                          className="flex items-center gap-3 group/name cursor-pointer"
+                        >
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white text-sm font-bold shadow-sm overflow-hidden group-hover/name:ring-2 group-hover/name:ring-[#1F3B6E]/20 transition-all">
                             {(request.avatar_url && request.avatar_url !== 'null') ? (
                               <img src={request.avatar_url} alt="" className="w-full h-full object-cover" />
                             ) : (
                               request.investor_name?.split(' ').map((n: string) => n[0]).join('')
                             )}
                           </div>
-                          <span className="font-semibold text-gray-900">{request.investor_name}</span>
-                        </div>
+                          <span className="font-semibold text-gray-900 group-hover/name:text-[#1F3B6E] group-hover/name:underline transition-colors">{request.investor_name}</span>
+                        </Link>
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-sm text-gray-600">{request.fund_name}</span>

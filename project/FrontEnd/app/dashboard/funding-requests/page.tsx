@@ -204,7 +204,7 @@ export default function FundingRequestsPage() {
                 {currentRequests.length > 0 ? (
                   currentRequests.map((request) => {
                     const investorName = request.investor_name || 'Unknown Investor';
-                    const requestId = `FUN-${request.id?.substring(0, 6) || request.id}`;
+                    const requestId = `FUN-${(request.id?.substring(0, 6) || '').toUpperCase()}`;
                     
                     // Initials for fallback
                     const initials = investorName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
