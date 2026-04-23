@@ -171,4 +171,17 @@ export class PipelineService {
     }
     return { message: 'Stages reordered successfully' };
   }
+
+  async updateStage(id: number, name: string, color: string) {
+    const result = await db.query(
+      'UPDATE pipeline_stages SET name = $1, color = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *',
+      [name, color, id]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundException('Stage not found');
+    }
+
+    return result.rows[0];
+  }
 }

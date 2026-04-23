@@ -928,6 +928,13 @@ class ApiClient {
     });
   }
 
+  async updatePipelineStage(stageId: number, data: { name: string, color: string }) {
+    return this.request<any>(`/pipeline/stages/${stageId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
   async deletePipelineStage(stageId: number) {
     return this.request<any>(`/pipeline/stages/${stageId}`, {
       method: 'DELETE'

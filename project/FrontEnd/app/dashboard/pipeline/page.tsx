@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { X, GripVertical, UserPlus, Mail, Phone, Loader2, ChevronDown } from 'lucide-react';
+import { X, GripVertical, UserPlus, Mail, Phone, Loader2, ChevronDown, Pencil } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -41,6 +41,10 @@ export default function PipelinePage() {
   const [stages, setStages] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showAddStage, setShowAddStage] = useState(false);
+  const [showEditStage, setShowEditStage] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editingStage, setEditingStage] = useState<any>(null);
+  const [stageToDelete, setStageToDelete] = useState<any>(null);
   const [newStageName, setNewStageName] = useState('');
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -238,18 +242,52 @@ export default function PipelinePage() {
       setIsSubmitting(false);
     }
   };
+  
+  const handleUpdateStage = async () => {
+    if (!newStageName.trim() || !editingStage) return;
 
-  const deleteStage = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this stage? Investors will be moved to the first stage.')) return;
-
+    setIsSubmitting(true);
     try {
-      await apiClient.deletePipelineStage(id);
+      await apiClient.updatePipelineStage(editingStage.id, {
+        name: newStageName,
+        color: selectedColor
+      });
+      toast({
+        title: 'Success',
+        description: 'Stage updated',
+        variant: 'success',
+      });
+      fetchData();
+      setShowEditStage(false);
+      setEditingStage(null);
+      setNewStageName('');
+      setSelectedColor(colorOptions[0]);
+    } catch (err) {
+      console.error('Failed to update stage:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to update stage',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const deleteStage = async () => {
+    if (!stageToDelete) return;
+
+    setIsSubmitting(true);
+    try {
+      await apiClient.deletePipelineStage(stageToDelete.id);
       toast({
         title: 'Success',
         description: 'Stage deleted',
         variant: 'success',
       });
       fetchData();
+      setShowDeleteConfirm(false);
+      setStageToDelete(null);
     } catch (err) {
       console.error('Failed to delete stage:', err);
       toast({
@@ -257,6 +295,8 @@ export default function PipelinePage() {
         description: 'Failed to delete stage',
         variant: 'destructive',
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -491,18 +531,38 @@ export default function PipelinePage() {
                                     canManageStages ? "cursor-grab active:cursor-grabbing" : "cursor-default"
                                   )}
                                 >
-                                  <div className="flex items-center gap-2 group">
+                                  <div className="flex items-center gap-2 group/header w-full">
                                     <h3 className="text-sm font-bold text-gray-900 truncate max-w-[150px] uppercase tracking-wider">{stage.name}</h3>
                                     {canManageStages && (
-                                      <button
-                                        onClick={() => deleteStage(stage.id)}
-                                        className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                      >
-                                        <X className="h-3.5 w-3.5" />
-                                      </button>
+                                      <div className="flex items-center gap-1 opacity-0 group-hover/header:opacity-100 transition-opacity">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingStage(stage);
+                                            setNewStageName(stage.name);
+                                            setSelectedColor(stage.color);
+                                            setShowEditStage(true);
+                                          }}
+                                          className="p-1 text-gray-400 hover:text-blue-600 hover:bg-white/50 rounded-md transition-colors"
+                                          title="Edit Stage"
+                                        >
+                                          <Pencil className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setStageToDelete(stage);
+                                            setShowDeleteConfirm(true);
+                                          }}
+                                          className="p-1 text-gray-400 hover:text-red-500 hover:bg-white/50 rounded-md transition-colors"
+                                          title="Delete Stage"
+                                        >
+                                          <X className="h-3.5 w-3.5" />
+                                        </button>
+                                      </div>
                                     )}
                                   </div>
-                                  <span className="text-[10px] font-bold text-gray-500 bg-white/50 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                  <span className="flex-none text-[10px] font-bold text-gray-500 bg-white/50 px-2 py-0.5 rounded-full uppercase tracking-tighter">
                                     {stage.count} {stage.count === 1 ? 'investor' : 'investors'}
                                   </span>
                                 </div>
@@ -653,14 +713,17 @@ export default function PipelinePage() {
           </div>
         </DragDropContextComponent>
 
-        {showAddStage && (
+        {/* Add/Edit Stage Modal */}
+        {(showAddStage || showEditStage) && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold text-gray-900">New Stage</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{showEditStage ? 'Edit Stage' : 'New Stage'}</h2>
                 <button
                   onClick={() => {
                     setShowAddStage(false);
+                    setShowEditStage(false);
+                    setEditingStage(null);
                     setNewStageName('');
                     setSelectedColor(colorOptions[0]);
                   }}
@@ -699,17 +762,63 @@ export default function PipelinePage() {
 
                 <div className="flex gap-4 pt-2">
                   <button
-                    onClick={() => setShowAddStage(false)}
+                    onClick={() => {
+                      setShowAddStage(false);
+                      setShowEditStage(false);
+                      setEditingStage(null);
+                      setNewStageName('');
+                      setSelectedColor(colorOptions[0]);
+                    }}
                     className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-full transition-all"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={handleAddStage}
-                    disabled={!newStageName.trim()}
+                    onClick={showEditStage ? handleUpdateStage : handleAddStage}
+                    disabled={!newStageName.trim() || isSubmitting}
                     className="flex-1 py-4 bg-[#FCD34D] text-gray-800 text-sm font-bold rounded-full hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all disabled:opacity-50"
                   >
-                    Create Stage
+                    {isSubmitting ? 'Processing...' : (showEditStage ? 'Save Changes' : 'Create Stage')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && stageToDelete && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
+              <div className="flex flex-col items-center text-center space-y-6">
+                <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
+                  <X className="h-8 w-8 text-red-500" />
+                </div>
+                
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold text-gray-900">Delete Stage?</h2>
+                  <p className="text-sm text-gray-500 font-medium px-4">
+                    Are you sure you want to delete <span className="font-bold text-gray-900">"{stageToDelete.name}"</span>? 
+                    Any investors currently in this stage will be moved to the first stage.
+                  </p>
+                </div>
+
+                <div className="flex gap-4 w-full pt-2">
+                  <button
+                    onClick={() => {
+                      setShowDeleteConfirm(false);
+                      setStageToDelete(null);
+                    }}
+                    className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-full transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={deleteStage}
+                    disabled={isSubmitting}
+                    className="flex-1 py-4 bg-red-500 text-white text-sm font-bold rounded-full hover:bg-red-600 shadow-lg shadow-red-100 transition-all disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Deleting...' : 'Delete Stage'}
                   </button>
                 </div>
               </div>
