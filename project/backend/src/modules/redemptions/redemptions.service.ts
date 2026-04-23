@@ -27,15 +27,24 @@ export class RedemptionsService {
       // 2. Validate investment exists and belongs to user
       // Note: investments table still uses 'user_id' as the column name
       const invQuery = `
-        SELECT i.*, f.name as fund_name
+        SELECT 
+          i.*, 
+          f.name as fund_name,
+          (i.estimated_units - COALESCE(red_sums.total_redeemed_units, 0)) as remaining_units
         FROM investments i
         JOIN funds f ON i.fund_id = f.id
-        WHERE i.id = $1 AND i.user_id = $2
+        LEFT JOIN (
+          SELECT investment_id, SUM(units) as total_redeemed_units
+          FROM redemptions
+          WHERE is_reconciled = true
+          GROUP BY investment_id
+        ) red_sums ON i.id = red_sums.investment_id
+        WHERE i.id = $1 AND i.user_id = $2 AND i.is_reconciled = true
       `;
       const invResult = await db.query(invQuery, [investment_id, userId]);
 
       if (invResult.rows.length === 0) {
-        throw new NotFoundException('Investment not found');
+        throw new NotFoundException('Investment not found or has not been reconciled yet.');
       }
 
       const investment = invResult.rows[0];
@@ -44,7 +53,7 @@ export class RedemptionsService {
       const units = parseFloat(amount) / currentNav;
 
       // 3. Validation: Check if user has enough units
-      const availableUnits = parseFloat(investment.revised_amount || investment.estimated_units);
+      const availableUnits = parseFloat(investment.remaining_units);
       if (units > availableUnits) {
         throw new BadRequestException(
           `Insufficient units. requested: ${units.toFixed(4)}, available: ${availableUnits.toFixed(4)}`
@@ -241,7 +250,9 @@ export class RedemptionsService {
     try {
       const query = `
         UPDATE redemptions 
-        SET is_reconciled = $1, updated_at = CURRENT_TIMESTAMP 
+        SET is_reconciled = $1, 
+            status = CASE WHEN $1 = true THEN 'Processed' ELSE status END,
+            updated_at = CURRENT_TIMESTAMP 
         WHERE id = $2 
         RETURNING *
       `;

@@ -11,11 +11,26 @@ export class StatsService {
         db.query("SELECT COUNT(*) FROM investments WHERE status IN ('Subscription Submitted', 'Awaiting Funding')"),
         db.query("SELECT COUNT(*) FROM redemptions WHERE status = 'Pending'"),
         db.query(`
+          WITH reconciled_investments AS (
+            SELECT 
+              SUM(estimated_units) as total_units,
+              SUM(COALESCE(revised_amount, investment_amount)) as total_value
+            FROM investments 
+            WHERE is_reconciled = true
+          ),
+          reconciled_redemptions AS (
+            SELECT 
+              SUM(units) as total_redeemed_units,
+              SUM(amount) as total_redeemed_value
+            FROM redemptions
+            WHERE is_reconciled = true
+          )
           SELECT 
-            COALESCE(SUM(estimated_units), 0) as total_units,
-            COALESCE(SUM(COALESCE(revised_amount, investment_amount)), 0) as total_value
-          FROM investments 
-          WHERE is_reconciled = true
+            (COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) as total_units,
+            (COALESCE(inv.total_value, 0) - COALESCE(red.total_redeemed_value, 0)) as total_value
+          FROM (SELECT 1) dummy
+          LEFT JOIN reconciled_investments inv ON true
+          LEFT JOIN reconciled_redemptions red ON true
         `),
         db.query(`
           SELECT 
@@ -35,12 +50,12 @@ export class StatsService {
       ]);
 
       return {
-        totalInvestors: parseInt(investorsCount.rows[0].count),
-        pendingKyc: parseInt(pendingKycCount.rows[0].count),
-        pendingFundings: parseInt(pendingFundingsCount.rows[0].count),
-        pendingRedemptions: parseInt(pendingRedemptionsCount.rows[0].count),
-        totalUnits: parseFloat(financialTotals.rows[0].total_units),
-        totalInvestmentValue: parseFloat(financialTotals.rows[0].total_value),
+        totalInvestors: parseInt(investorsCount.rows[0]?.count || '0'),
+        pendingKyc: parseInt(pendingKycCount.rows[0]?.count || '0'),
+        pendingFundings: parseInt(pendingFundingsCount.rows[0]?.count || '0'),
+        pendingRedemptions: parseInt(pendingRedemptionsCount.rows[0]?.count || '0'),
+        totalUnits: parseFloat(financialTotals.rows[0]?.total_units || '0'),
+        totalInvestmentValue: parseFloat(financialTotals.rows[0]?.total_value || '0'),
         recentInvestors: recentInvestorsResult.rows.map(row => ({
           id: row.id,
           investorName: row.investor_name,
@@ -59,12 +74,28 @@ export class StatsService {
   async getInvestorStats(userId: string) {
     try {
       const result = await db.query(`
+        WITH reconciled_investments AS (
+          SELECT 
+            SUM(COALESCE(revised_amount, investment_amount)) as total_value,
+            SUM(estimated_units) as total_units,
+            SUM(investment_amount) as total_invested
+          FROM investments
+          WHERE user_id = $1 AND is_reconciled = true
+        ),
+        reconciled_redemptions AS (
+          SELECT 
+            SUM(amount) as total_redeemed_value,
+            SUM(units) as total_redeemed_units
+          FROM redemptions
+          WHERE investor_id = $1 AND is_reconciled = true
+        )
         SELECT 
-          COALESCE(SUM(COALESCE(revised_amount, investment_amount)), 0) as total_value,
-          COALESCE(SUM(estimated_units), 0) as total_units,
-          COALESCE(SUM(investment_amount), 0) as total_invested
-        FROM investments
-        WHERE user_id = $1 AND status NOT IN ('Cancelled', 'Rejected', 'Declined')
+          (COALESCE(inv.total_value, 0) - COALESCE(red.total_redeemed_value, 0)) as total_value,
+          (COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) as total_units,
+          (COALESCE(inv.total_invested, 0) - COALESCE(red.total_redeemed_value, 0)) as total_invested
+        FROM (SELECT 1) dummy
+        LEFT JOIN reconciled_investments inv ON true
+        LEFT JOIN reconciled_redemptions red ON true
       `, [userId]);
 
       const { total_value, total_units, total_invested } = result.rows[0];

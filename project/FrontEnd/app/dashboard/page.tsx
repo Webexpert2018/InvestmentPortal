@@ -255,13 +255,14 @@ export default function DashboardPage() {
   const [dynamicReconciliationAlerts, setDynamicReconciliationAlerts] = useState<any[]>([]);
   const [iraAccounts, setIraAccounts] = useState<any[]>([]);
   const [allInvestments, setAllInvestments] = useState<any[]>([]);
+  const [allRedemptions, setAllRedemptions] = useState<any[]>([]);
 
   const investorAccountList = useMemo(() => {
     const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
     // Calculate personal value
     const personalValue = allInvestments
-      .filter(inv => !inv.account_id)
+      .filter(inv => !inv.account_id && inv.is_reconciled)
       .reduce((sum, inv) => sum + parseFloat(inv.revised_amount || (parseFloat(inv.estimated_units) * (investorStats.currentNav || 0))), 0);
 
     const list = [
@@ -274,7 +275,7 @@ export default function DashboardPage() {
 
     iraAccounts.forEach((acc, index) => {
       const accountValue = allInvestments
-        .filter(inv => inv.account_id === acc.id)
+        .filter(inv => inv.account_id === acc.id && inv.is_reconciled)
         .reduce((sum, inv) => sum + parseFloat(inv.revised_amount || (parseFloat(inv.estimated_units) * (investorStats.currentNav || 0))), 0);
 
       list.push({
@@ -298,38 +299,37 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         if (dashboardRole === 'investor' && user?.id) {
-          const [flows, investments, navSummary, dynamicStats, iraData] = await Promise.all([
+          const [flows, investments, navSummary, dynamicStats, iraData, redemptions] = await Promise.all([
             apiClient.getMyFundFlows(),
             apiClient.getMyInvestments(),
             apiClient.getNavSummary(),
             apiClient.getInvestorStats(user.id),
             apiClient.getMyIRAAccount(),
+            apiClient.getMyRedemptions(),
           ]);
 
           setAllInvestments(investments);
+          setAllRedemptions(redemptions);
           setActiveFundsCount(flows.length);
 
-          const totalInvested = investments.reduce((sum, inv) => sum + parseFloat(inv.investment_amount), 0);
-          const totalUnits = investments.reduce((sum, inv) => sum + parseFloat(inv.estimated_units), 0);
-          const currentNav = navSummary.currentNav;
-          const currentValue = investments.reduce((sum, inv) => sum + parseFloat(inv.revised_amount || (parseFloat(inv.estimated_units) * currentNav)), 0);
-
           setInvestorStats({
-            totalInvested,
-            totalUnits,
-            currentNav,
-            currentValue,
+            totalInvested: parseFloat(dynamicStats.totalInvested || 0),
+            totalUnits: parseFloat(dynamicStats.totalUnits || 0),
+            currentNav: navSummary.currentNav,
+            currentValue: parseFloat(dynamicStats.totalValue || 0),
             ytdReturn: dynamicStats.ytdReturn || 0,
           });
 
           setIraAccounts(Array.isArray(iraData) ? iraData : (iraData ? [iraData] : []));
-        } else if (dashboardRole === 'admin') {
-          const [stats, allInvestments, allRedemptions] = await Promise.all([
+        } else if (dashboardRole === 'admin' || dashboardRole === 'accountant') {
+          const [stats, investments, redemptions] = await Promise.all([
             apiClient.getAdminStats(),
             apiClient.getAllInvestments(),
             apiClient.getAllRedemptions(),
           ]);
           setAdminStats(stats);
+          setAllInvestments(investments);
+          setAllRedemptions(redemptions);
 
           // Filter pending fundings: Subscription Submitted or Awaiting Funding
           const pendingFundings = allInvestments.filter((inv: any) =>
@@ -368,15 +368,15 @@ export default function DashboardPage() {
     ],
     investor: [
       { name: 'My Active Funds', value: activeFundsCount.toString(), icon: Bitcoin, color: 'text-orange-500' },
-      { name: 'Pending KYC', value: '1', icon: TrendingUp, color: 'text-amber-500' },
-      { name: 'Pending Funding', value: '1', icon: Wallet, color: 'text-yellow-600' },
-      { name: 'Pending Redemption', value: '0', icon: TrendingUp, color: 'text-red-500' },
+      { name: 'KYC Status', value: investorKycStatus.charAt(0).toUpperCase() + investorKycStatus.slice(1), icon: TrendingUp, color: investorKycStatus === 'verified' ? 'text-emerald-500' : 'text-amber-500' },
+      { name: 'Pending Funding', value: allInvestments.filter(inv => ['Subscription Submitted', 'Awaiting Funding'].includes(inv.status)).length.toString(), icon: Wallet, color: 'text-yellow-600' },
+      { name: 'Pending Redemption', value: allRedemptions.filter(r => r.status === 'Pending').length.toString(), icon: TrendingUp, color: 'text-red-500' },
     ],
     accountant: [
-      { name: 'Assigned Investors', value: '3', icon: Users, color: 'text-gray-600' },
-      { name: 'Missing Docs', value: '7', icon: Layers, color: 'text-amber-600' },
-      { name: 'Unread Messages', value: '2', icon: CircleDollarSign, color: 'text-emerald-600' },
-      { name: 'Upcoming Meetings', value: '3', icon: TrendingUp, color: 'text-blue-500' },
+      { name: 'Assigned Investors', value: recentInvestors.length.toString(), icon: Users, color: 'text-gray-600' },
+      { name: 'Pending Reconciliation', value: dynamicReconciliationAlerts.length.toString(), icon: Layers, color: 'text-amber-600' },
+      { name: 'Unread Messages', value: investorUnreadMessages.reduce((sum, m) => sum + (m.count || 0), 0).toString(), icon: CircleDollarSign, color: 'text-emerald-600' },
+      { name: 'Notifications', value: notificationsAccountant.reduce((sum, s) => sum + s.items.length, 0).toString(), icon: TrendingUp, color: 'text-blue-500' },
     ],
   };
 

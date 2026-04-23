@@ -406,16 +406,23 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       <h3 className="text-sm font-bold text-gray-500">Linked Custodian Accounts</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                         {Object.entries(fundingHistory.reduce((acc: any, curr: any) => {
+                          if (!curr.is_reconciled) return acc;
                           const type = curr.account_type || 'Other';
                           const val = parseFloat(curr.revised_amount || curr.investment_amount || 0);
                           acc[type] = (acc[type] || 0) + val;
                           return acc;
-                        }, {})).map(([type, total]: [string, any]) => (
-                          <div key={type}>
-                            <span className="text-xs font-bold text-gray-400 block mb-1">{type} Account</span>
-                            <p className="text-sm font-bold text-gray-900">Total Value: <span className="text-gray-900">${total.toLocaleString()}</span></p>
-                          </div>
-                        ))}
+                        }, {})).map(([type, total]: [string, any]) => {
+                          const totalRedeemed = redemptionHistory
+                            .filter(r => r.is_reconciled && fundingHistory.find(inv => inv.id === r.investment_id)?.account_type === type)
+                            .reduce((sum, r) => sum + parseFloat(r.amount), 0);
+                          const netValue = total - totalRedeemed;
+                          return (
+                            <div key={type}>
+                              <span className="text-xs font-bold text-gray-400 block mb-1">{type} Account</span>
+                              <p className="text-sm font-bold text-gray-900">Total Value: <span className="text-gray-900">${netValue.toLocaleString()}</span></p>
+                            </div>
+                          );
+                        })}
                         {fundingHistory.length === 0 && (
                           <p className="text-sm text-gray-400 italic">No linked accounts found</p>
                         )}

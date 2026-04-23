@@ -281,7 +281,11 @@ export class InvestmentsService {
     try {
       const query = `
         UPDATE investments 
-        SET is_reconciled = $1, updated_at = CURRENT_TIMESTAMP 
+        SET is_reconciled = $1, 
+            status = CASE WHEN $1 = true THEN 'Units Issued' ELSE status END,
+            units_issued = CASE WHEN $1 = true THEN true ELSE units_issued END,
+            units_issued_at = CASE WHEN $1 = true THEN COALESCE(units_issued_at, CURRENT_TIMESTAMP) ELSE units_issued_at END,
+            updated_at = CURRENT_TIMESTAMP 
         WHERE id = $2 
         RETURNING *
       `;
