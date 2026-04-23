@@ -146,8 +146,10 @@ export class DocumentsController {
   @Get(':id/view')
   async viewDocument(@Param('id') id: string, @Res() res: Response) {
     const doc = await this.documentsService.getDocumentById(id);
-    const isPDF = doc.file_name.toLowerCase().endsWith('.pdf');
-    const contentType = isPDF ? 'application/pdf' : (doc.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? `image/${doc.file_url.split('.').pop()}` : 'application/octet-stream');
+    const cleanUrl = doc.file_url.split('?')[0];
+    const extension = cleanUrl.split('.').pop()?.toLowerCase();
+    const isPDF = extension === 'pdf';
+    const contentType = isPDF ? 'application/pdf' : (extension?.match(/^(jpg|jpeg|png|gif|webp)$/) ? `image/${extension}` : 'application/octet-stream');
 
     if (doc.file_url.startsWith('http')) {
       try {
@@ -170,38 +172,41 @@ export class DocumentsController {
           console.log('Direct fetch failed with 401/403, attempting signed URL fallback...');
         }
 
-        // 2. Fallback: Robust Multi-Pass Signed URL (for all Cloudinary storage types)
+        // 2. Fallback: Use Admin API to find exact asset details (Type/Resource_Type)
         if (doc.file_url.includes('cloudinary.com')) {
-          // Detect type and path from URL
-          const match = doc.file_url.match(/\/(upload|private|authenticated)\/(v\d+\/)?(.+)$/);
+          const match = doc.file_url.match(/\/(upload|private|authenticated)\/(v(\d+)\/)?(.+)$/);
           if (match) {
-            const originalType = match[1];
-            const pathWithExtension = match[3];
+            const pathWithExtension = match[4].split('?')[0];
             const pathWithoutExtension = pathWithExtension.replace(/\.[^/.]+$/, "");
+            
+            // We try to find the resource using Admin API to get the correct type and resource_type
+            const resourceTypes = ['image', 'raw', 'video'];
+            let assetInfo: any = null;
 
-            // Define multi-pass strategies (resource_type, type, public_id)
-            const strategies = [
-              // Strategy A: PDF/Image rendering (no extension in public_id)
-              { rType: isPDF ? 'image' : 'auto', dType: originalType, pId: pathWithoutExtension },
-              { rType: isPDF ? 'image' : 'auto', dType: 'private', pId: pathWithoutExtension },
-              { rType: isPDF ? 'image' : 'auto', dType: 'authenticated', pId: pathWithoutExtension },
-              // Strategy B: Raw file fetching (extension kept in public_id)
-              { rType: 'raw', dType: originalType, pId: pathWithExtension },
-              { rType: 'raw', dType: 'upload', pId: pathWithExtension },
-              { rType: 'raw', dType: 'private', pId: pathWithExtension }
-            ];
+            console.log(`[Admin API] Attempting to locate asset: ${pathWithoutExtension}`);
 
-            let lastError: any = null;
-            for (const strat of strategies) {
+            for (const rType of resourceTypes) {
               try {
-                const signedUrl = cloudinary.url(strat.pId, {
-                  sign_url: true,
-                  secure: true,
-                  resource_type: strat.rType as any,
-                  type: strat.dType as any,
-                  format: (strat.rType === 'image' && isPDF) ? 'pdf' : undefined
-                });
+                // Try both with and without extension
+                const pId = rType === 'raw' ? pathWithExtension : pathWithoutExtension;
+                assetInfo = await cloudinary.api.resource(pId, { resource_type: rType });
+                if (assetInfo) break;
+              } catch (e) {
+                continue;
+              }
+            }
 
+            if (assetInfo) {
+              console.log(`[Admin API] Found asset metadata:`, JSON.stringify(assetInfo, null, 2));
+              
+              const signedUrl = cloudinary.utils.private_download_url(assetInfo.public_id, assetInfo.format || 'pdf', {
+                resource_type: assetInfo.resource_type,
+                type: assetInfo.type,
+              });
+
+              console.log(`[Admin API] Generated Specialized Signed URL: ${signedUrl}`);
+
+              try {
                 const response = await axios.get(signedUrl, {
                   responseType: 'stream',
                   headers: { 'User-Agent': userAgent },
@@ -211,18 +216,26 @@ export class DocumentsController {
                 res.setHeader('Content-Type', contentType);
                 res.setHeader('Content-Disposition', `inline; filename="${doc.file_name}"`);
                 return response.data.pipe(res);
-              } catch (err: any) {
-                lastError = err;
-                continue; // failed, try next strategy
+              } catch (fetchError: any) {
+                console.error(`[Admin API] Fetch failed for signed URL. Status: ${fetchError.response?.status}`);
+                if (fetchError.response?.data) {
+                  // For streams, data might be a stream, so we might not be able to log it easily
+                  console.error(`[Admin API] Error data available`);
+                }
+                throw fetchError;
               }
             }
-            if (lastError) throw lastError;
           }
         }
 
-        return res.status(500).send('Error fetching document from storage.');
+        console.error(`[Proxy] Failed to resolve asset for fallback: ${doc.file_url}`);
+        return res.status(500).send('Error fetching document from storage: Asset resolution failed.');
       } catch (outerError: any) {
-        console.error('Document Proxy Error:', outerError.message, 'Status:', outerError.response?.status);
+        console.error('Document Proxy Error:', outerError.message);
+        if (outerError.response) {
+          console.error('Response Status:', outerError.response.status);
+          console.error('Response Headers:', outerError.response.headers);
+        }
         return res.status(500).send(`Error fetching document from storage: ${outerError.message}`);
       }
     }
@@ -245,17 +258,88 @@ export class DocumentsController {
   @Get(':id/download')
   async downloadDocument(@Param('id') id: string, @Res() res: Response) {
     const doc = await this.documentsService.getDocumentById(id);
+    const cleanUrl = doc.file_url.split('?')[0];
+    const extension = cleanUrl.split('.').pop()?.toLowerCase();
+    const isPDF = extension === 'pdf';
+    const contentType = isPDF ? 'application/pdf' : (extension?.match(/^(jpg|jpeg|png|gif|webp)$/) ? `image/${extension}` : 'application/octet-stream');
 
-    // If it's a Cloudinary URL, redirect to it
     if (doc.file_url.startsWith('http')) {
-      return res.redirect(doc.file_url);
+      try {
+        const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+        // 1. Try DIRECT fetch first
+        try {
+          const response = await axios.get(doc.file_url, {
+            responseType: 'stream',
+            headers: { 'User-Agent': userAgent },
+            timeout: 5000
+          });
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Content-Disposition', `attachment; filename="${doc.file_name}"`);
+          return response.data.pipe(res);
+        } catch (directError: any) {
+          if (directError.response?.status !== 401 && directError.response?.status !== 403) {
+            throw directError;
+          }
+          console.log('Direct download fetch failed with 401/403, attempting signed URL fallback...');
+        }
+
+        // 2. Fallback: Use Admin API to find exact asset details
+        if (doc.file_url.includes('cloudinary.com')) {
+          const match = doc.file_url.match(/\/(upload|private|authenticated)\/(v(\d+)\/)?(.+)$/);
+          if (match) {
+            const pathWithExtension = match[4].split('?')[0];
+            const pathWithoutExtension = pathWithExtension.replace(/\.[^/.]+$/, "");
+            
+            const resourceTypes = ['image', 'raw', 'video'];
+            let assetInfo: any = null;
+
+            for (const rType of resourceTypes) {
+              try {
+                const pId = rType === 'raw' ? pathWithExtension : pathWithoutExtension;
+                assetInfo = await cloudinary.api.resource(pId, { resource_type: rType });
+                if (assetInfo) break;
+              } catch (e) {
+                continue;
+              }
+            }
+
+            if (assetInfo) {
+              const signedUrl = cloudinary.utils.private_download_url(assetInfo.public_id, assetInfo.format || (isPDF ? 'pdf' : 'jpg'), {
+                resource_type: assetInfo.resource_type,
+                type: assetInfo.type,
+              });
+
+              const response = await axios.get(signedUrl, {
+                responseType: 'stream',
+                headers: { 'User-Agent': userAgent },
+                timeout: 10000
+              });
+
+              res.setHeader('Content-Type', contentType);
+              res.setHeader('Content-Disposition', `attachment; filename="${doc.file_name}"`);
+              return response.data.pipe(res);
+            }
+          }
+        }
+
+        return res.redirect(doc.file_url);
+      } catch (outerError: any) {
+        console.error('Download Proxy Error:', outerError.message);
+        return res.status(500).send(`Error downloading document: ${outerError.message}`);
+      }
     }
 
-    // Fallback for legacy local files
+    // Local file fallback
     const filePathInDB = doc.file_url.split('/').pop();
     const isVercel = process.env.VERCEL === '1';
     const uploadDir = isVercel ? '/tmp/uploads/documents' : join(process.cwd(), 'uploads', 'documents');
     const filePath = join(uploadDir, filePathInDB);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send('File not found');
+    }
+
     return res.download(filePath, doc.file_name);
   }
 

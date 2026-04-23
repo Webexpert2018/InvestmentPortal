@@ -221,13 +221,53 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                               </span>
                             </div>
                           </div>
-                          <a 
-                            href={`${BASE_URL}/documents/${doc.id}/download`} 
-                            download 
-                            className="p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-white rounded-lg transition-all"
-                          >
-                             <Download className="h-5 w-5" />
-                          </a>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={async () => {
+                                try {
+                                  const token = localStorage.getItem('token');
+                                  const viewUrl = `${apiClient.getApiUrl()}/documents/${doc.id}/view?token=${encodeURIComponent(token || '')}`;
+                                  window.open(viewUrl, '_blank');
+                                } catch (err) {
+                                  console.error('View error:', err);
+                                  toast.error('Failed to view document');
+                                }
+                              }}
+                              className="p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-white rounded-lg transition-all"
+                              title="View"
+                            >
+                               <FileText className="h-5 w-5" />
+                            </button>
+                            <button 
+                              onClick={async () => {
+                                try {
+                                  const token = localStorage.getItem('token');
+                                  const response = await fetch(`${apiClient.getApiUrl()}/documents/${doc.id}/download`, {
+                                    headers: {
+                                      'Authorization': `Bearer ${token}`
+                                    }
+                                  });
+                                  if (!response.ok) throw new Error('Download failed');
+                                  const blob = await response.blob();
+                                  const url = window.URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = doc.file_name;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  document.body.removeChild(a);
+                                  window.URL.revokeObjectURL(url);
+                                } catch (err) {
+                                  console.error('Download error:', err);
+                                  toast.error('Failed to download document');
+                                }
+                              }}
+                              className="p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-white rounded-lg transition-all"
+                              title="Download"
+                            >
+                               <Download className="h-5 w-5" />
+                            </button>
+                          </div>
                         </div>
                       ))
                     ) : (

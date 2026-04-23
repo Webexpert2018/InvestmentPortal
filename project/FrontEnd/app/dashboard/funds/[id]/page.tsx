@@ -142,6 +142,35 @@ export default function FundOverviewPage() {
     }
   };
 
+  const handleDownload = async (docId: string, fileName: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const downloadUrl = apiClient.getDocumentDownloadUrl(docId);
+      const response = await fetch(downloadUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download: ${response.status} ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download failed:', err);
+      toast.error('Could not download document. Please try again.');
+    }
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -470,9 +499,10 @@ export default function FundOverviewPage() {
         )}
 
         {activeTab === 'documents' && (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-visible">
-            <div className="overflow-visible min-w-full">
-              <table className="w-full">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto pb-20 custom-scrollbar">
+              <div className="min-h-[400px]">
+                <table className="w-full relative">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">File Name</th>
@@ -515,16 +545,20 @@ export default function FundOverviewPage() {
                                 <Link
                                   href={`/dashboard/funds/${params.id}/documents/${doc.id}`}
                                   className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                                  onClick={() => setActiveDocDropdown(null)}
                                 >
                                   View
                                 </Link>
-                                <a
-                                  href={getFullImageUrl(doc.file_url)}
-                                  download={doc.file_name}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleDownload(doc.id, doc.file_name);
+                                    setActiveDocDropdown(null);
+                                  }}
                                   className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
                                 >
                                   Download
-                                </a>
+                                </button>
                                 {!isInvestor && (
                                   <>
                                     <Link
@@ -563,34 +597,39 @@ export default function FundOverviewPage() {
               </table>
             </div>
           </div>
+        </div>
         )}
       </div>
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-xl w-full mx-4 relative">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[20px] p-8 max-w-[520px] w-full mx-4 relative shadow-2xl border-none">
             <button
               onClick={() => setShowDeleteModal(false)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600"
+              className="absolute top-6 right-6 text-[#9FA3A9] hover:text-gray-600 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Delete Fund</h2>
-            <p className="text-gray-600 mb-8 leading-relaxed">
-              Are you sure you want to delete this fund?<br />
-              This action cannot be undone and will permanently remove the fund from the platform.
-            </p>
-            <div className="flex justify-end gap-4">
+            <h2 className="font-goudy text-[28px] text-[#1F1F1F] font-normal mb-4">Delete Fund</h2>
+            <div className="space-y-3 mb-10">
+              <p className="text-[#4B4B4B] text-[16px] leading-relaxed font-goudy">
+                Are you sure you want to delete this fund?
+              </p>
+              <p className="text-[#4B4B4B] text-[16px] leading-relaxed font-goudy">
+                This action cannot be undone and will permanently remove the fund from the platform.
+              </p>
+            </div>
+            <div className="flex justify-end gap-3">
               <Button
                 onClick={() => setShowDeleteModal(false)}
-                className="bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-900 px-8 py-2 rounded-full font-medium"
+                className="h-[46px] min-w-[130px] rounded-full bg-[#FFF5E9] hover:bg-[#FFEBD4] text-[#4B4B4B] border-none text-[15px] font-semibold"
               >
                 Cancel
               </Button>
               <Button
                 onClick={confirmDelete}
-                className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-8 py-2 rounded-full font-medium"
+                className="h-[46px] min-w-[150px] rounded-full bg-[#FFD64B] hover:bg-[#FFCC21] text-[#4B4B4B] border-none shadow-sm text-[15px] font-bold"
               >
                 Yes, Delete
               </Button>
@@ -601,23 +640,27 @@ export default function FundOverviewPage() {
 
       {/* Document Delete Confirmation Modal */}
       {showDocDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-xl w-full mx-4 relative">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[20px] p-8 max-w-[520px] w-full mx-4 relative shadow-2xl border-none">
             <button
               onClick={() => setShowDocDeleteModal(false)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600"
+              className="absolute top-6 right-6 text-[#9FA3A9] hover:text-gray-600 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Delete Document</h2>
-            <p className="text-gray-600 mb-8 leading-relaxed">
-              Are you sure you want to delete <span className="font-semibold text-gray-900">&quot;{docToDelete?.file_name}&quot;</span>?<br />
-              This action cannot be undone and will permanently remove the document from the fund.
-            </p>
-            <div className="flex justify-end gap-4">
+            <h2 className="font-goudy text-[28px] text-[#1F1F1F] font-normal mb-4">Delete Document</h2>
+            <div className="space-y-3 mb-10">
+              <p className="text-[#4B4B4B] text-[16px] leading-relaxed font-goudy">
+                Are you sure you want to delete <span className="font-bold text-[#1F1F1F]">&quot;{docToDelete?.file_name}&quot;</span>?
+              </p>
+              <p className="text-[#4B4B4B] text-[16px] leading-relaxed font-goudy">
+                This action cannot be undone and will permanently remove the document from the fund.
+              </p>
+            </div>
+            <div className="flex justify-end gap-3">
               <Button
                 onClick={() => setShowDocDeleteModal(false)}
-                className="bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-900 px-8 py-2 rounded-full font-medium"
+                className="h-[46px] min-w-[130px] rounded-full bg-[#FFF5E9] hover:bg-[#FFEBD4] text-[#4B4B4B] border-none text-[15px] font-semibold"
               >
                 Cancel
               </Button>
@@ -633,7 +676,7 @@ export default function FundOverviewPage() {
                     setShowDocDeleteModal(false);
                   }
                 }}
-                className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-8 py-2 rounded-full font-medium"
+                className="h-[46px] min-w-[150px] rounded-full bg-[#FFD64B] hover:bg-[#FFCC21] text-[#4B4B4B] border-none shadow-sm text-[15px] font-bold"
               >
                 Yes, Delete
               </Button>

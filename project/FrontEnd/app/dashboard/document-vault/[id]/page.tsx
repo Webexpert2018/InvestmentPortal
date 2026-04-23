@@ -14,8 +14,11 @@ import {
   Printer,
   Search,
   Loader2,
+  RotateCw,
+  RefreshCw
 } from 'lucide-react';
-import { apiClient } from '@/lib/api/client';
+import { apiClient, BASE_URL } from '@/lib/api/client';
+import { useToast } from '@/hooks/use-toast';
 
 type DocumentDetailsPageProps = {
   params: {
@@ -24,79 +27,124 @@ type DocumentDetailsPageProps = {
 };
 
 export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPageProps) {
-  const viewerContainerRef = useRef<HTMLDivElement | null>(null);
+  const id = params.id;
+  const { toast } = useToast();
+
+  const [zoom, setZoom] = useState(100);
   const [doc, setDoc] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [zoom, setZoom] = useState(100);
+  const [error, setError] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchDoc = async () => {
-      try {
-        const data = await apiClient.getDocumentById(params.id);
-        setDoc(data);
-      } catch (err) {
-        console.error('Failed to fetch document:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDoc();
-  }, [params.id]);
-
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
-  const viewUrl = doc ? `${apiClient.getApiUrl()}/documents/${doc.id}/view?token=${token}` : '';
-  const isPDF = doc?.file_name?.toLowerCase().endsWith('.pdf');
-
-  const handleDownload = () => {
-    if (!doc) return;
-    const anchor = document.createElement('a');
-    anchor.href = `${apiClient.getApiUrl()}/documents/${doc.id}/download`;
-    anchor.download = doc.file_name;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-  };
-
-  const handleZoomOut = () => {
-    setZoom((prev) => Math.max(50, prev - 10));
-  };
-
-  const handleZoomIn = () => {
-    setZoom((prev) => Math.min(200, prev + 10));
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleToggleFullscreen = async () => {
-    const element = viewerContainerRef.current;
-    if (!element) return;
-
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
-      return;
+    if (typeof window !== 'undefined') {
+      setToken(localStorage.getItem('token'));
     }
+  }, []);
 
-    await element.requestFullscreen();
+  const getCategoryName = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'tax_return_y1': return 'Tax Return (Year 1)';
+      case 'tax_return_y2': return 'Tax Return (Year 2)';
+      case 'balance_sheet': return 'Balance Sheet / Net Worth';
+      case 'kyc_id': return 'Identity Document';
+      case 'kyc': return 'KYC Documents';
+      default: return type ? type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Other';
+    }
   };
+
+  useEffect(() => {
+    if (id) {
+      fetchDoc();
+    }
+  }, [id]);
+
+  const fetchDoc = async () => {
+    try {
+      setLoading(true);
+      const data = await apiClient.getDocumentById(id);
+      setDoc(data);
+      setError(null);
+    } catch (err: any) {
+      console.error('Failed to fetch document:', err);
+      setError('Could not load document details.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!doc) return;
+    try {
+      const token = localStorage.getItem('token');
+      const downloadUrl = apiClient.getDocumentDownloadUrl(id);
+      
+      const response = await fetch(downloadUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download: ${response.status} ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = doc.file_name || 'document';
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download failed:', err);
+      toast({
+        title: "Download Failed",
+        description: "Could not download document. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleView = () => {
+    if (viewUrl) {
+      window.open(viewUrl, '_blank');
+    } else {
+      toast({
+        title: "Error",
+        description: "Document URL not available.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const viewUrl = (doc && token) ? `${apiClient.getApiUrl()}/documents/${id}/view?token=${encodeURIComponent(token)}` : '';
+  const isPdf = doc?.file_name?.toLowerCase().endsWith('.pdf');
+  const formattedSize = doc ? (doc.file_size / (1024 * 1024)).toFixed(2) + ' MB' : '0 MB';
+  const formattedDate = doc?.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  }) : 'N/A';
 
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex h-[400px] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#274583]" />
+        <div className="flex h-[60vh] items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-[#274583]" />
         </div>
       </DashboardLayout>
     );
   }
 
-  if (!doc) {
+  if (error || !doc) {
     return (
       <DashboardLayout>
-        <div className="p-8 text-center bg-white rounded-xl shadow-sm">
-          <p className="text-gray-500">Document not found</p>
-          <Link href="/dashboard/document-vault" className="mt-4 inline-block text-[#274583] font-medium underline">
+        <div className="mx-auto max-w-[1400px] font-helvetica p-8 text-center">
+          <p className="text-red-500 text-lg">{error || 'Document not found.'}</p>
+          <Link href="/dashboard/document-vault" className="mt-4 inline-block text-[#274583] underline underline-offset-4">
             Back to Document Vault
           </Link>
         </div>
@@ -106,80 +154,133 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F]">
-        <div className="mb-4 flex items-center gap-2">
-          <Link href="/dashboard/document-vault" className="text-[#8E8E93]">
-            <ChevronLeft className="h-5 w-5" />
+      <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F]">
+        <div className="mb-6 flex items-center gap-3">
+          <Link href="/dashboard/document-vault" className="flex items-center gap-2 text-[#333333] hover:opacity-70 transition-opacity">
+            <ChevronLeft className="h-6 w-6" />
           </Link>
-          <h1 className="font-goudy text-[30px] leading-[34px]">Document Details</h1>
+          <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">Document Details</h1>
         </div>
 
-        <div className="rounded-[8px] bg-white px-4 py-3">
-          <div ref={viewerContainerRef} className="flex min-h-[700px] flex-col rounded-[6px] border border-[#E9EBEE] bg-[#F8F9FB]">
-            <div className="flex h-[44px] items-center justify-between border-b border-[#E2E5EA] bg-white px-4">
-              <div className="flex items-center gap-3 text-[12px] text-[#6B7280]">
-                <Link href="/dashboard/document-vault" className="inline-flex items-center gap-1 text-[#5E6B7F]">
-                  <ChevronLeft className="h-4 w-4" />
-                  Back
-                </Link>
-                <div>
-                  <p className="font-medium text-[#374151]">{doc.file_name}</p>
-                  <p className="text-[10px] text-[#9CA3AF]">
-                    Document Vault &gt; {doc.document_type?.replace(/_/g, ' ').toUpperCase() || 'GENERAL'}
-                  </p>
+        <div className="rounded-[12px] bg-white p-6 md:p-8 shadow-sm ring-1 ring-black/5">
+          <div className="grid gap-10 lg:grid-cols-[460px_1fr]">
+            {/* Left side: Document Viewer */}
+            <div className="flex flex-col overflow-hidden rounded-[8px] bg-[#525659] shadow-inner">
+              {/* Toolbar */}
+              <div className="flex h-[48px] items-center justify-between bg-[#323639] px-6 text-white">
+                <div className="flex items-center gap-4">
+                  <span className="text-[13px] font-medium opacity-90">1 / 1</span>
+                </div>
+
+                <div className="flex items-center">
+                  <div className="flex items-center border-l border-r border-white/10 px-6 gap-6">
+                    <button onClick={() => setZoom(z => Math.max(50, z - 10))} className="hover:text-amber-200 transition-colors">
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="min-w-[40px] text-center text-[13px] font-medium">{zoom}%</span>
+                    <button onClick={() => setZoom(z => Math.min(200, z + 10))} className="hover:text-amber-200 transition-colors">
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <button onClick={fetchDoc} className="hover:text-amber-200 transition-colors">
+                    <RefreshCw className="h-4 w-4" />
+                  </button>
+                  <button className="hover:text-amber-200 transition-colors">
+                    <RotateCw className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-[#6B7280]">
-                <button type="button" onClick={handleDownload} className="hover:text-[#374151]" title="Download">
-                  <Download className="h-3.5 w-3.5" />
-                </button>
-                <button type="button" onClick={handlePrint} className="hover:text-[#374151]" title="Print">
-                  <Printer className="h-3.5 w-3.5" />
-                </button>
-                <span className="text-[11px] text-[#6B7280]">{zoom}%</span>
-                <button type="button" onClick={handleZoomOut} className="hover:text-[#374151]" aria-label="Zoom out">
-                  <Minus className="h-3.5 w-3.5" />
-                </button>
-                <button type="button" onClick={handleZoomIn} className="hover:text-[#374151]" aria-label="Zoom in">
-                  <Plus className="h-3.5 w-3.5" />
-                </button>
-                <button type="button" onClick={handleToggleFullscreen} className="hover:text-[#374151]" aria-label="Toggle fullscreen">
-                  <Maximize2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex flex-1 overflow-hidden">
-              <div className="flex-1 relative bg-[#ECEDEF] p-4 flex items-center justify-center min-h-[600px]">
+              {/* Document Content Area */}
+              <div className="relative flex-1 bg-[#525659] p-6 flex justify-center overflow-auto min-h-[500px]">
                 <div
-                  className="w-full h-full border border-[#D9DDE3] bg-white shadow-sm flex items-center justify-center overflow-auto"
-                  style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center center' }}
+                  className="bg-white shadow-2xl transition-transform duration-200 origin-top w-full"
+                  style={{ transform: `scale(${zoom / 100})` }}
                 >
-                  {isPDF ? (
-                    <iframe
-                      src={`${viewUrl}&#toolbar=0&navpanes=0`}
-                      className="w-full h-full min-h-[650px]"
-                      title={doc.file_name}
-                    />
-                  ) : (
-                    <div className="relative w-full h-full min-h-[600px]">
-                      <Image
-                        src={viewUrl}
-                        alt={doc.file_name}
-                        fill
-                        className="object-contain"
-                        unoptimized // Cloudinary handles its own optimization
+                  {viewUrl ? (
+                    isPdf ? (
+                      <iframe
+                        src={`${viewUrl}${viewUrl.includes('#') ? '' : '#toolbar=0'}`}
+                        className="w-full h-[600px] border-none"
+                        title="PDF Preview"
                       />
+                    ) : (
+                      <div className="relative w-full h-[600px]">
+                        <Image
+                          src={viewUrl}
+                          alt="Document preview"
+                          fill
+                          className="object-contain"
+                          priority
+                          unoptimized
+                        />
+                      </div>
+                    )
+                  ) : (
+                    <div className="flex flex-col items-center justify-center min-h-[500px] gap-2">
+                      <Loader2 className="h-10 w-10 animate-spin text-white/50" />
+                      <p className="text-white/50 text-[13px]">Loading document viewer...</p>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="flex h-[30px] items-center justify-between border-t border-[#E2E5EA] bg-white px-4 text-[10px] text-[#98A1B2]">
-              <p>Uploaded on {new Date(doc.uploaded_at).toLocaleDateString()}</p>
-              <p>File size: {(doc.file_size / 1024).toFixed(1)} KB</p>
+            {/* Right side: File Information */}
+            <div className="flex flex-col pt-2">
+              <h2 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">File Information</h2>
+              <div className="mt-6 border-t border-[#F1F1F1] pt-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-10">
+                  <div>
+                    <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">Upload Date</span>
+                    <p className="mt-1.5 text-[18px] font-semibold text-[#1F1F1F]">{formattedDate}</p>
+                  </div>
+                  <div>
+                    <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">Document Type</span>
+                    <p className="mt-1.5 text-[18px] font-semibold text-[#1F1F1F]">{getCategoryName(doc.document_type || doc.category)}</p>
+                  </div>
+                  <div>
+                    <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">Tax Year</span>
+                    <p className="mt-1.5 text-[18px] font-semibold text-[#1F1F1F]">{doc.tax_year || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">File Size</span>
+                    <p className="mt-1.5 text-[18px] font-semibold text-[#1F1F1F]">{formattedSize}</p>
+                  </div>
+                </div>
+
+                <div className="mt-10">
+                  <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">Description</span>
+                  <p className="mt-2 text-[16px] leading-[1.6] text-[#4B4B4B]">{doc.description || 'No description provided'}</p>
+                </div>
+
+                <div className="mt-10">
+                  <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">Note</span>
+                  <p className="mt-2 text-[16px] leading-[1.6] text-[#4B4B4B]">
+                    {doc.note || 'No notes added.'}
+                  </p>
+                </div>
+
+                <div className="mt-12 flex flex-wrap items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={handleView}
+                    className="h-[52px] min-w-[160px] px-10 rounded-full bg-[#FEF3C7] text-[16px] font-bold text-[#92400E] transition-all hover:bg-[#FDE68A] hover:shadow-md active:scale-95"
+                  >
+                    View Document
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDownload}
+                    className="h-[52px] min-w-[160px] px-10 rounded-full bg-[#FFFBEB] text-[16px] font-bold text-[#92400E] transition-all hover:bg-[#FEF3C7] border border-[#FEF3C7] hover:shadow-md active:scale-95"
+                  >
+                    Download Doc
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

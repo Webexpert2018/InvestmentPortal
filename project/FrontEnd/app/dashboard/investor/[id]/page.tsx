@@ -457,23 +457,50 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                               <FileText className="w-6 h-6 text-red-500" />
                             </div>
                             <div className="flex gap-2">
-                              <a
-                                href={`${apiClient.getApiUrl()}/documents/${doc.id}/view`}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const token = localStorage.getItem('token');
+                                    const viewUrl = `${apiClient.getApiUrl()}/documents/${doc.id}/view?token=${encodeURIComponent(token || '')}`;
+                                    window.open(viewUrl, '_blank');
+                                  } catch (err) {
+                                    console.error('View error:', err);
+                                  }
+                                }}
                                 className="p-2 bg-gray-50 text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors"
                                 title="View"
                               >
                                 <FileText className="w-4 h-4" />
-                              </a>
-                              <a
-                                href={`${apiClient.getApiUrl()}/documents/${doc.id}/download`}
-                                download
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const token = localStorage.getItem('token');
+                                    const response = await fetch(`${apiClient.getApiUrl()}/documents/${doc.id}/download`, {
+                                      headers: {
+                                        'Authorization': `Bearer ${token}`
+                                      }
+                                    });
+                                    if (!response.ok) throw new Error('Download failed');
+                                    const blob = await response.blob();
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = doc.file_name;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    window.URL.revokeObjectURL(url);
+                                  } catch (err) {
+                                    console.error('Download error:', err);
+                                    toast.error('Failed to download document');
+                                  }
+                                }}
                                 className="p-2 bg-gray-50 text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors"
                                 title="Download"
                               >
                                 <Download className="w-4 h-4" />
-                              </a>
+                              </button>
                             </div>
                           </div>
                           <div className="space-y-1">
