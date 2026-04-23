@@ -602,17 +602,17 @@ export default function DashboardPage() {
                     Invest
                   </Link>
                   <Link
-                    href="/notifications"
+                    href="/messages"
                     className="block w-full rounded-full bg-[#FFF3D6] py-3 text-center text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF]"
                   >
                     Messages
                   </Link>
-                  <button
-                    type="button"
+                  <Link
+                    href="/dashboard/schedule-meeting"
                     className="block w-full rounded-full bg-[#FFF3D6] py-3 text-center text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF]"
                   >
                     Schedule Meeting
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
