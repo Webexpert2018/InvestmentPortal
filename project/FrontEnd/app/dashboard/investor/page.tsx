@@ -52,7 +52,7 @@ export default function InvestorPage() {
     city: '',
     state: '',
     zip_code: '',
-    country: '',
+    country: 'US',
     tax_id: ''
   });
 
