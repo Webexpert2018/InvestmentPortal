@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { 
-  ChevronLeft, X, ChevronDown, FileText, Download, Calendar, Mail, Phone, 
-  Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle 
+import {
+  ChevronLeft, X, ChevronDown, FileText, Download, Calendar, Mail, Phone,
+  Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle, Plus
 } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { AdminAddIraModal } from '@/components/ira/AdminAddIraModal';
 
 export default function InvestorProfilePage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [loading, setLoading] = useState(true);
   const [isSuspending, setIsSuspending] = useState(false);
   const [showSuspendModal, setShowSuspendModal] = useState(false);
+  const [showAdminIraModal, setShowAdminIraModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -265,56 +267,84 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             </p>
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          {investorData.status === 'pending' ? (
-                            <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-xl">
+                          {(() => {
+                            const isPending = investorData.status === 'pending';
+                            
+                            const inviteButtons = [
                               <button
+                                key="send"
                                 onClick={handleSendInvite}
-                                disabled={isSendingInvite}
-                                className="px-4 py-2 bg-[#FCD34D] text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-[#FBD24E] transition-colors border border-transparent flex items-center gap-2 shadow-sm"
+                                disabled={isSendingInvite || !isPending}
+                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center gap-2 shadow-sm ${
+                                  isPending
+                                    ? 'bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent'
+                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                                }`}
                               >
                                 {isSendingInvite ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
                                 Send Invite
-                              </button>
+                              </button>,
                               <button
+                                key="resend"
                                 onClick={handleSendInvite}
-                                disabled={isSendingInvite}
-                                className="px-4 py-2 bg-white text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-gray-50 transition-colors border border-gray-200 flex items-center gap-2 shadow-sm"
+                                disabled={isSendingInvite || !isPending}
+                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center gap-2 shadow-sm ${
+                                  isPending
+                                    ? 'bg-white text-[#1F1F1F] hover:bg-gray-50 border-gray-200'
+                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                                }`}
                               >
                                 {isSendingInvite ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
                                 Resend Invite
-                              </button>
+                              </button>,
                               <button
+                                key="cancel"
                                 onClick={handleCancelInvite}
-                                disabled={isSuspending}
-                                className="px-4 py-2 bg-red-50 text-red-700 text-xs font-bold rounded-full hover:bg-red-100 transition-colors border border-red-200 flex items-center gap-2 shadow-sm"
+                                disabled={isSuspending || !isPending}
+                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center gap-2 shadow-sm ${
+                                  isPending
+                                    ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
+                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                                }`}
                               >
                                 {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
                                 Cancel Invite
                               </button>
-                            </>
-                          ) : (
-                            <>
+                            ];
+
+                            const actionButtons = [
                               <button
+                                key="forgot"
                                 onClick={handleForgotPassword}
-                                disabled={isResetting}
-                                className="px-4 py-2 bg-amber-50 text-amber-600 text-xs font-bold rounded-full hover:bg-amber-100 transition-colors border border-amber-200 flex items-center gap-2 shadow-sm"
+                                disabled={isResetting || isPending}
+                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center gap-2 shadow-sm ${
+                                  !isPending
+                                    ? 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200'
+                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                                }`}
                               >
                                 {isResetting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Shield className="h-3 w-3" />}
                                 Forgot Password
-                              </button>
+                              </button>,
                               <button
+                                key="suspend"
                                 onClick={() => setShowSuspendModal(true)}
-                                disabled={isSuspending}
-                                className={`px-4 py-2 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 shadow-sm ${investorData.status === 'suspended'
-                                  ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                  : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                                  }`}
+                                disabled={isSuspending || isPending}
+                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center gap-2 shadow-sm ${
+                                  !isPending
+                                    ? (investorData.status === 'suspended'
+                                      ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                      : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                    )
+                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                                }`}
                               >
                                 {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
                                 {investorData.status === 'suspended' ? 'Activate Account' : 'Suspend Account'}
-                              </button>
+                              </button>,
                               <button
+                                key="assign"
                                 onClick={async () => {
                                   setShowAssignModal(true);
                                   setSelectedIrStaff(investorData.assignedIrId || '');
@@ -325,12 +355,19 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                   } catch (err) { console.error('Failed to fetch IR staff:', err); }
                                   finally { setIrLoading(false); }
                                 }}
-                                className="px-6 py-2 bg-[#FCD34D] text-[#1F1F1F] text-xs font-bold rounded-full hover:bg-[#FBD24E] transition-colors border border-transparent active:border-yellow-600 shadow-sm"
+                                disabled={isPending}
+                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center text-center shadow-sm ${
+                                  !isPending
+                                    ? 'bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent'
+                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                                }`}
                               >
                                 {investorData.assignedIrId ? 'Change Investor Relations' : 'Assign Investor Relations'}
                               </button>
-                            </>
-                          )}
+                            ];
+
+                            return isPending ? [...inviteButtons, ...actionButtons] : [...actionButtons, ...inviteButtons];
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -852,7 +889,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     {investorData.status === 'suspended' ? 'Activate Account?' : 'Suspend Account?'}
                   </h2>
                   <p className="text-gray-500 text-sm leading-relaxed max-w-[280px]">
-                    {investorData.status === 'suspended' 
+                    {investorData.status === 'suspended'
                       ? "Are you sure you want to activate this account? The investor will be able to log in again."
                       : "Are you sure you want to suspend this account? The investor will no longer be able to log in to the portal."}
                   </p>
@@ -864,11 +901,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 <button
                   disabled={isSuspending}
                   onClick={handleSuspendAccount}
-                  className={`w-full py-4 text-sm font-bold text-white rounded-2xl transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${
-                    investorData.status === 'suspended'
+                  className={`w-full py-4 text-sm font-bold text-white rounded-2xl transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${investorData.status === 'suspended'
                       ? 'bg-green-600 hover:bg-green-700 shadow-green-100'
                       : 'bg-red-600 hover:bg-red-700 shadow-red-100'
-                  }`}
+                    }`}
                 >
                   {isSuspending ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -887,6 +923,19 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
             </div>
           </div>
         </div>
+      )}
+      {/* Admin Add IRA Modal */}
+      {showAdminIraModal && (
+        <AdminAddIraModal
+          isOpen={showAdminIraModal}
+          targetInvestorId={params.id}
+          onClose={() => setShowAdminIraModal(false)}
+          onSuccess={async () => {
+            // Refresh data to show new account in history or stats if needed
+            const profile = await apiClient.getUserById(params.id);
+            setInvestorData(profile);
+          }}
+        />
       )}
     </DashboardLayout>
   );

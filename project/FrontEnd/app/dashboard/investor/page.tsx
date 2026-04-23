@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Search, ChevronDown, MoreVertical, X, Loader2, Send, Plus } from 'lucide-react';
+import { Search, ChevronDown, X, Loader2, Send, Plus } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import Image from 'next/image';
@@ -55,7 +55,7 @@ export default function InvestorPage() {
     country: '',
     tax_id: ''
   });
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+
 
   const itemsPerPage = 7;
 
@@ -415,26 +415,12 @@ export default function InvestorPage() {
                               year: 'numeric'
                             })}
                           </td>
-                          <td className="px-8 py-5 text-center relative">
-                            <button
-                              onClick={() => setActiveDropdown(activeDropdown === investor.id ? null : investor.id)}
-                              className="p-2 text-[#9CA3AF] hover:text-[#111827] hover:bg-[#F3F4F6] rounded-full transition-all"
-                            >
-                              <MoreVertical className="h-5 w-5" />
-                            </button>
-
-                            {activeDropdown === investor.id && (
-                              <>
-                                <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
-                                <div className="absolute right-12 top-12 w-48 bg-white rounded-2xl shadow-xl border border-[#F3F4F6] py-2 z-20 overflow-hidden animate-in fade-in zoom-in duration-200">
-                                  <Link href={`/dashboard/investor/${investor.id}`}>
-                                    <button className="w-full px-5 py-3 text-left text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">
-                                      View Profile
-                                    </button>
-                                  </Link>
-                                </div>
-                              </>
-                            )}
+                          <td className="px-6 py-5 text-left">
+                            <Link href={`/dashboard/investor/${investor.id}`}>
+                              <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                View Profile
+                              </button>
+                            </Link>
                           </td>
                         </tr>
                       ))
@@ -514,26 +500,12 @@ export default function InvestorPage() {
                                 year: 'numeric'
                               })}
                             </td>
-                            <td className="px-8 py-5 text-center relative">
-                              <button
-                                onClick={() => setActiveDropdown(activeDropdown === investor.id ? null : investor.id)}
-                                className="p-2 text-[#9CA3AF] hover:text-[#111827] hover:bg-[#F3F4F6] rounded-full transition-all"
-                              >
-                                <MoreVertical className="h-5 w-5" />
-                              </button>
-
-                              {activeDropdown === investor.id && (
-                                <>
-                                  <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
-                                  <div className="absolute right-12 top-12 w-48 bg-white rounded-2xl shadow-xl border border-[#F3F4F6] py-2 z-20 overflow-hidden animate-in fade-in zoom-in duration-200">
-                                    <Link href={`/dashboard/investor/${investor.id}`}>
-                                      <button className="w-full px-5 py-3 text-left text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">
-                                        View Profile
-                                      </button>
-                                    </Link>
-                                  </div>
-                                </>
-                              )}
+                            <td className="px-6 py-5 text-left">
+                              <Link href={`/dashboard/investor/${investor.id}`}>
+                                <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                  View Profile
+                                </button>
+                              </Link>
                             </td>
                           </tr>
                         ))}
@@ -590,32 +562,12 @@ export default function InvestorPage() {
                                 year: 'numeric'
                               })}
                             </td>
-                            <td className="px-8 py-5 text-center relative">
-                              <button
-                                onClick={() => setActiveDropdown(activeDropdown === investor.id ? null : investor.id)}
-                                className="p-2 text-[#9CA3AF] hover:text-[#111827] hover:bg-[#F3F4F6] rounded-full transition-all"
-                              >
-                                <MoreVertical className="h-5 w-5" />
-                              </button>
-
-                              {activeDropdown === investor.id && (
-                                <>
-                                  <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
-                                  <div className="absolute right-12 top-12 w-48 bg-white rounded-2xl shadow-xl border border-[#F3F4F6] py-2 z-20 overflow-hidden animate-in fade-in zoom-in duration-200">
-                                    <Link href={`/dashboard/investor/${investor.id}`}>
-                                      <button className="w-full px-5 py-3 text-left text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">
-                                        View Profile
-                                      </button>
-                                    </Link>
-                                    <button
-                                      onClick={() => handleCancelInvite(investor.id)}
-                                      className="w-full px-5 py-3 text-left text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
-                                    >
-                                      Cancel Invite
-                                    </button>
-                                  </div>
-                                </>
-                              )}
+                            <td className="px-6 py-5 text-left">
+                              <Link href={`/dashboard/investor/${investor.id}`}>
+                                <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                  View Profile
+                                </button>
+                              </Link>
                             </td>
                           </tr>
                         ))}
@@ -683,26 +635,12 @@ export default function InvestorPage() {
                                 year: 'numeric'
                               })}
                             </td>
-                            <td className="px-8 py-5 text-center relative">
-                              <button
-                                onClick={() => setActiveDropdown(activeDropdown === investor.id ? null : investor.id)}
-                                className="p-2 text-[#9CA3AF] hover:text-[#111827] hover:bg-[#F3F4F6] rounded-full transition-all"
-                              >
-                                <MoreVertical className="h-5 w-5" />
-                              </button>
-
-                              {activeDropdown === investor.id && (
-                                <>
-                                  <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
-                                  <div className="absolute right-12 top-12 w-48 bg-white rounded-2xl shadow-xl border border-[#F3F4F6] py-2 z-20 overflow-hidden animate-in fade-in zoom-in duration-200">
-                                    <Link href={`/dashboard/investor/${investor.id}`}>
-                                      <button className="w-full px-5 py-3 text-left text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">
-                                        View Profile
-                                      </button>
-                                    </Link>
-                                  </div>
-                                </>
-                              )}
+                            <td className="px-6 py-5 text-left">
+                              <Link href={`/dashboard/investor/${investor.id}`}>
+                                <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                  View Profile
+                                </button>
+                              </Link>
                             </td>
                           </tr>
                         ))}

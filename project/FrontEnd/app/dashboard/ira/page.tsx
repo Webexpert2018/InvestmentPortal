@@ -140,7 +140,7 @@ export default function IRAPage() {
   const { toast } = useToast();
   const [showAddModal, setShowAddModal] = useState(false);
   const [iraForm, setIraForm] = useState({
-    accountType: 'Traditional',
+    accountType: 'Traditional IRA',
     accountNumber: '',
     custodian: '',
     beneficiary: '',
@@ -621,7 +621,7 @@ export default function IRAPage() {
                   <div className="mt-4">
                     <label className="block text-[12px] font-medium text-[#6B7280] mb-2 font-helvetica">Marital Status</label>
                     <div className="flex gap-6">
-                      <div 
+                      <div
                         className="flex items-center gap-2 cursor-pointer group"
                         onClick={() => setIraForm({ ...iraForm, maritalStatus: 'single' })}
                       >
@@ -630,7 +630,7 @@ export default function IRAPage() {
                         </div>
                         <span className={`text-[13px] font-helvetica transition-colors ${iraForm.maritalStatus === 'single' ? 'text-[#1F1F1F]' : 'text-[#6B7280] group-hover:text-[#D1A94C]'}`}>Single</span>
                       </div>
-                      <div 
+                      <div
                         className="flex items-center gap-2 cursor-pointer group"
                         onClick={() => setIraForm({ ...iraForm, maritalStatus: 'married' })}
                       >
@@ -687,7 +687,7 @@ export default function IRAPage() {
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1F1F1F] mb-1 font-goudy">Address Details</h3>
                   <p className="text-[12px] italic text-[#8E8E93] mb-4 font-helvetica">Physical Address (from your profile)</p>
-                  
+
                   <div className="rounded-[12px] border border-[#F0F0F0] bg-[#FAFAFA] p-5">
                     <div className="grid grid-cols-2 gap-y-4 gap-x-8">
                       <div>
@@ -720,7 +720,7 @@ export default function IRAPage() {
                   <div className="mt-6">
                     <p className="text-[13px] font-medium text-[#1F1F1F] mb-3 font-helvetica">Is mailing address same as physical address?</p>
                     <div className="flex gap-6">
-                      <div 
+                      <div
                         className="flex items-center gap-2 cursor-pointer group"
                         onClick={() => setIraForm({ ...iraForm, mailingAddressSame: true })}
                       >
@@ -729,7 +729,7 @@ export default function IRAPage() {
                         </div>
                         <span className={`text-[13px] font-helvetica transition-colors ${iraForm.mailingAddressSame === true ? 'text-[#1F1F1F]' : 'text-[#6B7280] group-hover:text-[#D1A94C]'}`}>Yes</span>
                       </div>
-                      <div 
+                      <div
                         className="flex items-center gap-2 cursor-pointer group"
                         onClick={() => setIraForm({ ...iraForm, mailingAddressSame: false })}
                       >
@@ -746,22 +746,22 @@ export default function IRAPage() {
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
                           <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Mailing Address 1</label>
-                          <input 
-                            type="text" 
-                            placeholder="Address Line 1" 
-                            value={iraForm.mailingAddress1} 
-                            onChange={e => setIraForm({ ...iraForm, mailingAddress1: e.target.value })} 
-                            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white" 
+                          <input
+                            type="text"
+                            placeholder="Address Line 1"
+                            value={iraForm.mailingAddress1}
+                            onChange={e => setIraForm({ ...iraForm, mailingAddress1: e.target.value })}
+                            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
                           />
                         </div>
                         <div>
                           <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Mailing Address 2</label>
-                          <input 
-                            type="text" 
-                            placeholder="Address Line 2" 
-                            value={iraForm.mailingAddress2} 
-                            onChange={e => setIraForm({ ...iraForm, mailingAddress2: e.target.value })} 
-                            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white" 
+                          <input
+                            type="text"
+                            placeholder="Address Line 2"
+                            value={iraForm.mailingAddress2}
+                            onChange={e => setIraForm({ ...iraForm, mailingAddress2: e.target.value })}
+                            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
                           />
                         </div>
                       </div>
@@ -801,12 +801,12 @@ export default function IRAPage() {
                         </div>
                         <div>
                           <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Zip Code</label>
-                          <input 
-                            type="text" 
-                            placeholder="Zip Code" 
-                            value={iraForm.mailingZipCode} 
-                            onChange={e => setIraForm({ ...iraForm, mailingZipCode: e.target.value })} 
-                            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white" 
+                          <input
+                            type="text"
+                            placeholder="Zip Code"
+                            value={iraForm.mailingZipCode}
+                            onChange={e => setIraForm({ ...iraForm, mailingZipCode: e.target.value })}
+                            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
                           />
                         </div>
                       </div>
