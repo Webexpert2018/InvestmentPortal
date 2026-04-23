@@ -49,7 +49,7 @@ export default function KYCConsolePage() {
   const fetchInvestors = async () => {
     try {
       setLoading(true);
-      const data = await apiClient.getAllUsers();
+      const data = await apiClient.getKycReviewQueue();
       setInvestors(data);
     } catch (error) {
       console.error('Failed to fetch investors:', error);

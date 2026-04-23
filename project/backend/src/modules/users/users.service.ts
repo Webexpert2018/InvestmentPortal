@@ -276,6 +276,28 @@ export class UsersService {
     }));
   }
 
+  async getKycReviewQueue(requestingUserRole: string) {
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(requestingUserRole)) {
+      throw new ForbiddenException('Only admins can view KYC queue');
+    }
+
+    const result = await db.query(`
+      SELECT 
+        id, email, 'investor' as role, full_name as "firstName", '' as "lastName", phone, status, created_at as "createdAt", 
+        kyc_status as "kycStatus", profile_image_url as "profileImageUrl"
+      FROM investors
+      ORDER BY 
+        CASE WHEN kyc_status = 'pending' THEN 0 ELSE 1 END,
+        created_at DESC
+    `);
+
+    return result.rows.map((user) => ({
+      ...user,
+      avatar: (user.firstName && user.firstName.length > 0) ? user.firstName[0].toUpperCase() : '?',
+    }));
+  }
+
   async getUserById(targetUserId: string, requestingUserId: string, requestingUserRole: string) {
     const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
     if (!adminRoles.includes(requestingUserRole) && requestingUserId !== targetUserId) {

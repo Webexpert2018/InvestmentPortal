@@ -174,6 +174,10 @@ class ApiClient {
     return this.request<any[]>('/users');
   }
 
+  async getKycReviewQueue() {
+    return this.request<any[]>('/users/kyc-queue');
+  }
+
   async getUserById(id: string) {
     return this.request<any>(`/users/${id}`);
   }

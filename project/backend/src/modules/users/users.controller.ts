@@ -98,6 +98,12 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
     return this.usersService.getAllUsers(user.role);
   }
 
+  @Get('kyc-queue')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
+  async getKycReviewQueue(@CurrentUser() user: any) {
+    return this.usersService.getKycReviewQueue(user.role);
+  }
+
   @Get(':id')
   async getUserById(@Param('id') id: string, @CurrentUser() user: any) {
     return this.usersService.getUserById(id, user.userId, user.role);

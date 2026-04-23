@@ -242,7 +242,7 @@ export default function PipelinePage() {
       setIsSubmitting(false);
     }
   };
-  
+
   const handleUpdateStage = async () => {
     if (!newStageName.trim() || !editingStage) return;
 
@@ -645,7 +645,7 @@ export default function PipelinePage() {
 
                                                   <div className="flex flex-col items-end flex-none">
 
-                                                    <span className="text-[10px] font-bold text-gray-400 capital tracking-tighter leading-none">Amount</span>
+                                                    {/* <span className="text-[10px] font-bold text-gray-400 capital tracking-tighter leading-none">Amount</span> */}
 
                                                     <span className="text-[17px] font-extrabold text-green-600">
 
@@ -794,11 +794,11 @@ export default function PipelinePage() {
                 <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
                   <X className="h-8 w-8 text-red-500" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <h2 className="text-2xl font-bold text-gray-900">Delete Stage?</h2>
                   <p className="text-sm text-gray-500 font-medium px-4">
-                    Are you sure you want to delete <span className="font-bold text-gray-900">"{stageToDelete.name}"</span>? 
+                    Are you sure you want to delete <span className="font-bold text-gray-900">"{stageToDelete.name}"</span>?
                     Any investors currently in this stage will be moved to the first stage.
                   </p>
                 </div>
