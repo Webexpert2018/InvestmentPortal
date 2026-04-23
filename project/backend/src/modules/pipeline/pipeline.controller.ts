@@ -49,4 +49,13 @@ export class PipelineController {
   async reorderStages(@Body('stageIds') stageIds: number[]) {
     return this.pipelineService.reorderStages(stageIds);
   }
+
+  @Patch('stages/:id')
+  async updateStage(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('name') name: string,
+    @Body('color') color: string,
+  ) {
+    return this.pipelineService.updateStage(id, name, color);
+  }
 }

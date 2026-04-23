@@ -174,6 +174,10 @@ class ApiClient {
     return this.request<any[]>('/users');
   }
 
+  async getKycReviewQueue() {
+    return this.request<any[]>('/users/kyc-queue');
+  }
+
   async getUserById(id: string) {
     return this.request<any>(`/users/${id}`);
   }
@@ -924,6 +928,13 @@ class ApiClient {
   async createPipelineStage(data: { name: string, color: string }) {
     return this.request<any>('/pipeline/stages', {
       method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updatePipelineStage(stageId: number, data: { name: string, color: string }) {
+    return this.request<any>(`/pipeline/stages/${stageId}`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   }
