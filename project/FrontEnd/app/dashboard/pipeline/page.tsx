@@ -55,6 +55,8 @@ export default function PipelinePage() {
   const [isAssigning, setIsAssigning] = useState(false);
   const [isIrLoading, setIsIrLoading] = useState(false);
   const [pipelineNote, setPipelineNote] = useState('');
+  const [currentNewNote, setCurrentNewNote] = useState('');
+  const [notesList, setNotesList] = useState<any[]>([]);
 
   const topScrollRef = useRef<HTMLDivElement>(null);
   const boardScrollRef = useRef<HTMLDivElement>(null);
@@ -267,7 +269,7 @@ export default function PipelinePage() {
       });
       toast({
         title: 'Success',
-        description: 'Pledged amount updated successfully',
+        description: 'Amount updated successfully',
         variant: 'success',
       });
       const updatedStages = stages.map(stage => ({
@@ -316,38 +318,29 @@ export default function PipelinePage() {
     }
   };
 
-  const handleSaveNote = async () => {
-    if (!selectedInvestor) return;
-    setIsUpdatingInvestment(true);
-    try {
-      await apiClient.updateInvestorPipelineDetails(selectedInvestor.id, {
-        pipelineNote: pipelineNote
-      });
-      toast({
-        title: 'Success',
-        description: 'Internal note saved successfully',
-        variant: 'success',
-      });
-      const updatedStages = stages.map(stage => ({
-        ...stage,
-        investors: stage.investors?.map((inv: any) =>
-          inv.id === selectedInvestor.id
-            ? { ...inv, pipelineNote: pipelineNote }
-            : inv
-        )
-      }));
-      setStages(updatedStages);
-      setShowDetailModal(false);
-    } catch (err) {
-      console.error('Failed to save note:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to save note',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsUpdatingInvestment(false);
-    }
+  const handleAddNoteToList = () => {
+    if (!currentNewNote.trim()) return;
+
+    const newNote = {
+      id: Date.now(),
+      author: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : (user?.role || 'Staff'),
+      date: new Date().toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }),
+      text: currentNewNote.trim()
+    };
+
+    setNotesList(prev => [newNote, ...prev]);
+    setCurrentNewNote('');
+    toast({
+      title: 'Note added',
+      description: 'The note has been added to the list. Click "Save Changes" at the bottom to persist.',
+    });
   };
 
   const handleSaveChanges = async () => {
@@ -356,13 +349,15 @@ export default function PipelinePage() {
     try {
       const amountChanged = parseFloat(expectedInvestment) !== selectedInvestor.expectedFutureInvestment;
       const irChanged = selectedIrStaff !== (selectedInvestor.assignedIrId || '');
-      const noteChanged = pipelineNote !== (selectedInvestor.pipelineNote || '');
+
+      const serializedNotes = JSON.stringify(notesList);
+      const noteChanged = serializedNotes !== (selectedInvestor.pipelineNote || '[]');
 
       const promises = [];
       if (amountChanged || noteChanged) {
         const details: any = {};
         if (amountChanged) details.expectedFutureInvestment = parseFloat(expectedInvestment) || 0;
-        if (noteChanged) details.pipelineNote = pipelineNote;
+        if (noteChanged) details.pipelineNote = serializedNotes;
 
         promises.push(apiClient.updateInvestorPipelineDetails(selectedInvestor.id, details));
       }
@@ -525,7 +520,28 @@ export default function PipelinePage() {
                                             setSelectedInvestor(investor);
                                             setExpectedInvestment(investor.expectedFutureInvestment.toString());
                                             setSelectedIrStaff(investor.assignedIrId || '');
-                                            setPipelineNote(investor.pipelineNote || '');
+
+                                            // Handle notes parsing
+                                            let parsedNotes = [];
+                                            try {
+                                              const rawNote = investor.pipelineNote;
+                                              if (rawNote && (rawNote.startsWith('[') || rawNote.startsWith('{'))) {
+                                                parsedNotes = JSON.parse(rawNote);
+                                              } else if (rawNote) {
+                                                // Legacy support: convert single string note to first list item
+                                                parsedNotes = [{
+                                                  id: Date.now(),
+                                                  author: 'System',
+                                                  date: 'Legacy Note',
+                                                  text: rawNote
+                                                }];
+                                              }
+                                            } catch (e) {
+                                              console.error('Failed to parse notes:', e);
+                                            }
+                                            setNotesList(parsedNotes);
+                                            setCurrentNewNote('');
+
                                             if (user?.role === 'admin' || user?.role === 'executive_admin') {
                                               fetchIRStaff();
                                             }
@@ -549,7 +565,7 @@ export default function PipelinePage() {
 
                                                   <div className="flex items-center gap-2 min-w-0">
 
-                                                    <span className="text-sm font-semibold text-gray-800 truncate">
+                                                    <span className="text-[17px] font-bold text-gray-800 truncate">
 
                                                       {investor.name || investor.fullName || 'Unnamed Investor'}
 
@@ -569,9 +585,9 @@ export default function PipelinePage() {
 
                                                   <div className="flex flex-col items-end flex-none">
 
-                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Pledged Amount</span>
+                                                    <span className="text-[10px] font-bold text-gray-400 capital tracking-tighter leading-none">Amount</span>
 
-                                                    <span className="text-sm font-bold text-green-600">
+                                                    <span className="text-[17px] font-extrabold text-green-600">
 
                                                       {formatCompactAmount(investor.expectedFutureInvestment || 0)}
 
@@ -583,7 +599,7 @@ export default function PipelinePage() {
 
                                               </div>
 
-                                              <div className="flex items-start mt-2">
+                                              <div className="flex items-start mt-0.5">
 
                                                 <div className="w-10 flex-none" />
 
@@ -591,7 +607,7 @@ export default function PipelinePage() {
 
                                                   {user?.role !== 'investor_relations' ? (
 
-                                                    <div className="flex items-start gap-1.5 px-2 py-1 rounded-md">
+                                                    <div className="flex items-start gap-1.5 py-1 rounded-md">
 
                                                       <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest flex-none">With</span>
 
@@ -746,7 +762,7 @@ export default function PipelinePage() {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Pledged Amount ($)</label>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Amount ($)</label>
                     <div className="relative">
                       <span className="absolute left-5 top-1/2 -translate-y-1/2 text-lg font-bold text-gray-400">$</span>
                       <input
@@ -781,46 +797,84 @@ export default function PipelinePage() {
                 </div>
 
                 {/* Right Column: Internal Notes */}
-                <div className="flex flex-col h-full">
-                  <div className="space-y-4 flex-1 flex flex-col">
+                <div className="flex flex-col h-[500px]">
+                  <div className="flex flex-col h-full space-y-4">
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Internal Notes / Comments</label>
-                    <textarea
-                      value={pipelineNote}
-                      onChange={(e) => setPipelineNote(e.target.value)}
-                      placeholder="Add internal notes about this investor here..."
-                      className="w-full flex-1 p-5 bg-gray-50 border rounded-3xl text-base font-medium text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all resize-none min-h-[250px]"
-                    />
+
+                    {/* New Note Input Area */}
+                    <div className="space-y-2">
+                      <div className="relative border rounded-2xl bg-gray-50 overflow-hidden transition-all">
+                        <textarea
+                          value={currentNewNote}
+                          onChange={(e) => setCurrentNewNote(e.target.value)}
+                          placeholder="Add internal notes about this investor here..."
+                          className="w-full p-4 bg-transparent text-sm font-medium text-gray-700 placeholder:text-gray-300 resize-none min-h-[100px] border-none focus:ring-0"
+                        />
+                      </div>
+                      <button
+                        onClick={handleAddNoteToList}
+                        disabled={!currentNewNote.trim()}
+                        className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                      >
+                        Save Note
+                      </button>
+                    </div>
+
+                    {/* Notes List / Feed */}
+                    <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+                      {notesList.length === 0 ? (
+                        <div className="h-full flex items-center justify-center border-2 border-dashed border-gray-100 rounded-3xl">
+                          <p className="text-sm text-gray-300 font-medium">No notes yet</p>
+                        </div>
+                      ) : (
+                        notesList.map((note) => (
+                          <div key={note.id} className="space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white uppercase">
+                                  {note.author.charAt(0)}
+                                </div>
+                                <span className="text-xs font-bold text-gray-900">{note.author}</span>
+                                <span className="text-[10px] font-medium text-gray-400">{note.date}</span>
+                              </div>
+                              <button
+                                onClick={() => setNotesList(prev => prev.filter(n => n.id !== note.id))}
+                                className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                            <div className="p-3 bg-gray-50 rounded-2xl rounded-tl-none border border-gray-100">
+                              <p className="text-sm text-gray-700 leading-relaxed font-normal">{note.text}</p>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-10 mt-6 border-t border-gray-100">
-                <button
-                  onClick={handleUpdateAmount}
-                  disabled={isUpdatingInvestment}
-                  className="py-4 bg-[#FCD34D]/10 text-amber-700 text-sm font-bold rounded-full hover:bg-[#FCD34D]/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isUpdatingInvestment ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Update Amount'}
-                </button>
-                <button
-                  onClick={handleAssignIR}
-                  disabled={isAssigning || isIrLoading}
-                  className="py-4 bg-[#1F3B6E]/10 text-[#1F3B6E] text-sm font-bold rounded-full hover:bg-[#1F3B6E]/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isAssigning ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Assign Relations'}
-                </button>
-                <button
-                  onClick={handleSaveNote}
-                  disabled={isUpdatingInvestment}
-                  className="py-4 bg-blue-50 text-blue-700 text-sm font-bold rounded-full hover:bg-blue-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isUpdatingInvestment ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Note'}
-                </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-10 mt-6 border-t border-gray-100">
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="py-4 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-full transition-all border border-gray-200"
+                  className="w-full py-4 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-full transition-all"
                 >
-                  Close
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveChanges}
+                  disabled={isUpdatingInvestment}
+                  className="w-full py-4 bg-[#FCD34D] text-gray-800 text-sm font-bold rounded-full hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all disabled:opacity-50"
+                >
+                  {isUpdatingInvestment ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Saving...</span>
+                    </div>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </button>
               </div>
             </div>
