@@ -796,6 +796,94 @@ class ApiClient {
     return this.request<any[]>(`/staff/${id}/assigned-investors`);
   }
 
+  // Messaging Module
+  async getConversations() {
+    return this.request<any[]>('/messages/conversations');
+  }
+
+  async getConversationMessages(conversationId: string) {
+    return this.request<any[]>(`/messages/conversations/${conversationId}/messages`);
+  }
+
+  async sendMessage(data: {
+    content: string;
+    recipientId?: string;
+    conversationId?: string;
+    fileUrl?: string;
+    fileName?: string;
+    fileSize?: string;
+  }) {
+    return this.request<any>('/messages/send', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async sendBulkMessage(data: {
+    investorIds: string[];
+    content: string;
+  }) {
+    return this.request<{ success: boolean; sentCount: number; failedCount: number }>('/messages/bulk-send', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async uploadMessageAttachment(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers: HeadersInit = {};
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${API_URL}/messages/upload`, {
+      method: 'POST',
+      body: formData,
+      headers: headers,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'An error occurred during upload');
+    }
+    return data;
+  }
+
+  async getUnreadMessagesCount() {
+    return this.request<{ count: number }>('/messages/unread-count');
+  }
+
+  async markConversationAsRead(id: string) {
+    return this.request<{ success: boolean }>(`/messages/conversations/${id}/read`, {
+      method: 'POST'
+    });
+  }
+  
+  async editMessage(id: string, content: string) {
+    return this.request<any>(`/messages/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async deleteMessage(id: string) {
+    return this.request<any>(`/messages/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async reactMessage(id: string, emoji: string) {
+    return this.request<any>(`/messages/${id}/react`, {
+      method: 'POST',
+      body: JSON.stringify({ emoji }),
+    });
+  }
+
   async createStaff(data: any) {
     const isFormData = data instanceof FormData;
     return this.request<any>('/staff', {
@@ -965,18 +1053,6 @@ class ApiClient {
     return this.request<any>(`/notifications/${id}/read`, {
       method: 'PATCH',
     });
-  }
-
-  // --- Messages ---
-  async sendMessage(data: { content: string; recipientId?: string; targetRole?: string }) {
-    return this.request<any>('/messages', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async getMessages() {
-    return this.request<any[]>('/messages');
   }
 
   // --- CRM & Bulk Ops ---

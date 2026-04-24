@@ -52,7 +52,7 @@ export default function PortfolioPage() {
       const totalRedeemedUnits = redemptionsData
         .filter((r: any) => r.is_reconciled)
         .reduce((sum: number, r: any) => sum + parseFloat(r.units || 0), 0);
-      
+
       const totalRedeemedValue = redemptionsData
         .filter((r: any) => r.is_reconciled)
         .reduce((sum: number, r: any) => sum + parseFloat(r.amount || 0), 0);
@@ -112,7 +112,7 @@ export default function PortfolioPage() {
       sortableItems.sort((a, b) => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
-        
+
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
@@ -335,7 +335,7 @@ export default function PortfolioPage() {
                       const redeemedUnits = rowRedemptions
                         .filter((r: any) => r.investment_id === row.id && r.is_reconciled)
                         .reduce((sum: number, r: any) => sum + parseFloat(r.units || 0), 0);
-                      
+
                       const redeemedAmount = rowRedemptions
                         .filter((r: any) => r.investment_id === row.id && r.is_reconciled)
                         .reduce((sum: number, r: any) => sum + parseFloat(r.amount || 0), 0);
@@ -362,11 +362,10 @@ export default function PortfolioPage() {
                             </span>
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              row.is_reconciled 
-                                ? 'bg-green-100 text-green-800' 
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.is_reconciled
+                                ? 'bg-green-100 text-green-800'
                                 : 'bg-yellow-100 text-yellow-800'
-                            }`}>
+                              }`}>
                               {row.is_reconciled ? 'Completed' : 'Pending'}
                             </span>
                           </td>

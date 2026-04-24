@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { SendEmailModal } from '@/components/crm/SendEmailModal';
+import { SendMessageModal } from '@/components/crm/SendMessageModal';
 
 interface Investor {
   id: string;
@@ -27,6 +28,7 @@ export default function CRMBulkOpsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user && !isAdmin) {
@@ -79,9 +81,11 @@ export default function CRMBulkOpsPage() {
       });
 
       if (response.success) {
-        toast.success(`Email sent to ${response.sentCount} investors successfully!`);
+        if (response.sentCount > 0) {
+          toast.success(`Email sent to ${response.sentCount} investors successfully!`);
+        }
         if (response.failedCount > 0) {
-          toast.warning(`Failed to send to ${response.failedCount} investors.`);
+          toast.error(`Failed to send to ${response.failedCount} investors.`);
         }
         setSelectedIds([]);
       } else {
@@ -89,6 +93,28 @@ export default function CRMBulkOpsPage() {
       }
     } catch (error: any) {
       toast.error(error.message || 'An error occurred while sending emails');
+      throw error;
+    }
+  };
+
+  const handleSendBulkMessage = async (message: string) => {
+    try {
+      const response = await apiClient.sendBulkMessage({
+        investorIds: selectedIds,
+        content: message
+      });
+
+      if (response.success) {
+        if (response.sentCount > 0) {
+          toast.success(`Message sent to ${response.sentCount} investors successfully!`);
+        }
+        if (response.failedCount > 0) {
+          toast.error(`Failed to send to ${response.failedCount} investors.`);
+        }
+        setSelectedIds([]);
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred while sending messages');
       throw error;
     }
   };
@@ -113,7 +139,7 @@ export default function CRMBulkOpsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="font-goudy text-[34px] leading-tight text-[#1F1F1F]">CRM & Bulk Ops</h1>
-            <p className="text-[#8E8E93] text-[14px] mt-1">Manage active investors and perform bulk operations like email outreach.</p>
+            <p className="text-[#8E8E93] text-[14px] mt-1">Manage active investors and perform bulk operations like email or message outreach.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <button
@@ -130,7 +156,7 @@ export default function CRMBulkOpsPage() {
             </button>
 
             <button
-              onClick={() => alert('The messaging module is coming soon! Our team is working hard to bring this feature to your CRM dashboard.')}
+              onClick={() => setIsMessageModalOpen(true)}
               disabled={selectedIds.length === 0}
               className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${
                 selectedIds.length > 0 
@@ -253,6 +279,13 @@ export default function CRMBulkOpsPage() {
           isOpen={isEmailModalOpen}
           onClose={() => setIsEmailModalOpen(false)}
           onSend={handleSendBulkEmail}
+          selectedCount={selectedIds.length}
+        />
+
+        <SendMessageModal
+          isOpen={isMessageModalOpen}
+          onClose={() => setIsMessageModalOpen(false)}
+          onSend={handleSendBulkMessage}
           selectedCount={selectedIds.length}
         />
       </div>

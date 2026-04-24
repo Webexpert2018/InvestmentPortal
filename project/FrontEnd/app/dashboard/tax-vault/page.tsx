@@ -60,7 +60,7 @@ export default function TaxVaultPage() {
     try {
       setLoading(true);
       const data = await apiClient.getAllDocuments();
-      
+
       const mappedRows: TaxVaultRow[] = data.map((doc: any) => ({
         id: doc.id,
         accountant: 'System', // Placeholder since real data isn't in table yet
@@ -75,7 +75,7 @@ export default function TaxVaultPage() {
           year: 'numeric'
         }),
       }));
-      
+
       setDocuments(mappedRows);
       setError(null);
     } catch (err: any) {
@@ -88,23 +88,23 @@ export default function TaxVaultPage() {
 
   const handleDelete = async (id: string) => {
     try {
-       setIsDeleting(true);
-       await apiClient.deleteDocument(id);
-       setDocuments(prev => prev.filter(d => d.id !== id));
-       setActiveMenuId(null);
-       setDocToDelete(null);
-       toast({
-         title: "Success",
-         description: "Document deleted successfully.",
-       });
+      setIsDeleting(true);
+      await apiClient.deleteDocument(id);
+      setDocuments(prev => prev.filter(d => d.id !== id));
+      setActiveMenuId(null);
+      setDocToDelete(null);
+      toast({
+        title: "Success",
+        description: "Document deleted successfully.",
+      });
     } catch (err) {
-       toast({
-         title: "Error",
-         description: "Error deleting document.",
-         variant: "destructive"
-       });
+      toast({
+        title: "Error",
+        description: "Error deleting document.",
+        variant: "destructive"
+      });
     } finally {
-       setIsDeleting(false);
+      setIsDeleting(false);
     }
   };
 
@@ -112,7 +112,7 @@ export default function TaxVaultPage() {
     try {
       const token = localStorage.getItem('token');
       const downloadUrl = apiClient.getDocumentDownloadUrl(id);
-      
+
       const response = await fetch(downloadUrl, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -127,7 +127,7 @@ export default function TaxVaultPage() {
       const url = window.URL.createObjectURL(blob);
       const doc = documents.find(d => d.id === id);
       const fileName = doc ? doc.fileName : 'document';
-      
+
       const anchor = document.createElement('a');
       anchor.href = url;
       anchor.download = fileName;
@@ -135,7 +135,7 @@ export default function TaxVaultPage() {
       anchor.click();
       document.body.removeChild(anchor);
       window.URL.revokeObjectURL(url);
-      
+
       setActiveMenuId(null);
     } catch (err) {
       console.error('Download failed:', err);
