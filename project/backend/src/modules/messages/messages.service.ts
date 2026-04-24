@@ -118,29 +118,36 @@ export class MessagesService {
         );
 
         // Increment unread count for the recipient
-        // Check if recipient is investor or admin in this conversation
         const conv = (await db.query('SELECT investor_id, admin_id FROM conversations WHERE id = $1', [conversationId])).rows[0];
         if (conv) {
-          if (recipientId === conv.investor_id) {
+          // If recipientId is not provided, the other person in conversation is the recipient
+          const targetRecipientId = recipientId || (senderId === conv.investor_id ? conv.admin_id : conv.investor_id);
+          
+          if (targetRecipientId === conv.investor_id) {
             await db.query('UPDATE conversations SET unread_count_investor = unread_count_investor + 1 WHERE id = $1', [conversationId]);
-          } else if (recipientId === conv.admin_id) {
+          } else if (targetRecipientId === conv.admin_id || (!targetRecipientId && senderId === conv.investor_id)) {
+            // If targetRecipientId is null but sender is investor, it's an unassigned message for admins
             await db.query('UPDATE conversations SET unread_count_admin = unread_count_admin + 1 WHERE id = $1', [conversationId]);
           }
         }
       }
 
       // 4. Trigger notification
-      const senderResult = await db.query('SELECT full_name FROM investors WHERE id = $1 UNION SELECT full_name FROM staff WHERE id = $1', [senderId]);
-      const senderName = senderResult.rows[0]?.full_name || 'System User';
+      try {
+        const senderResult = await db.query('SELECT full_name FROM investors WHERE id = $1 UNION SELECT full_name FROM staff WHERE id = $1', [senderId]);
+        const senderName = senderResult.rows[0]?.full_name || 'System User';
 
-      await this.notificationsService.createNotification({
-        userId: recipientId,
-        targetRole: targetRole || 'executive_admin',
-        title: 'New Message',
-        description: `${senderName}: "${content ? content.substring(0, 50) : 'Sent a file'}${content && content.length > 50 ? '...' : ''}"`,
-        type: 'message',
-        link: `/dashboard/messages?conversationId=${conversationId}`
-      });
+        await this.notificationsService.createNotification({
+          userId: recipientId,
+          targetRole: targetRole || 'executive_admin',
+          title: 'New Message',
+          description: `${senderName}: "${content ? content.substring(0, 50) : 'Sent a file'}${content && content.length > 50 ? '...' : ''}"`,
+          type: 'message',
+          link: `/dashboard/messages?conversationId=${conversationId}`
+        });
+      } catch (notifError) {
+        console.error('⚠️ Failed to trigger notification for message, but message was sent:', notifError);
+      }
 
       return message;
     } catch (error) {
@@ -151,30 +158,30 @@ export class MessagesService {
 
   async getUnreadCount(userId: string) {
     try {
-      const query = `
-        SELECT SUM(unread_count_investor) as investor_unread,
-               SUM(unread_count_admin) as admin_unread
-        FROM conversations
-        WHERE investor_id = $1 OR admin_id = $1
-      `;
-      const result = await db.query(query, [userId]);
-      const row = result.rows[0];
+      // Check if user is staff/admin
+      const staffRes = await db.query('SELECT role FROM staff WHERE id = $1', [userId]);
+      const isAdmin = (staffRes.rowCount ?? 0) > 0;
       
-      // If user is investor for some and admin for others, they might want total
-      // But usually it's one or the other. Let's check which role they are in each row.
-      const detailedQuery = `
-        SELECT 
-          SUM(CASE WHEN investor_id = $1 THEN unread_count_investor ELSE 0 END) as investor_total,
-          SUM(CASE WHEN admin_id = $1 THEN unread_count_admin ELSE 0 END) as admin_total
-        FROM conversations
-        WHERE investor_id = $1 OR admin_id = $1
-      `;
-      const detailedRes = await db.query(detailedQuery, [userId]);
-      const d = detailedRes.rows[0];
-      
-      return { 
-        count: parseInt(d.investor_total || '0') + parseInt(d.admin_total || '0') 
-      };
+      if (isAdmin) {
+        // For admins, show total unread admin messages
+        // (Either strictly assigned to them, or all unread if they are executive_admin - simplifying to all unread admin msgs)
+        const query = `
+          SELECT SUM(unread_count_admin) as total
+          FROM conversations
+          WHERE admin_id = $1 OR admin_id IS NULL
+        `;
+        const result = await db.query(query, [userId]);
+        return { count: parseInt(result.rows[0].total || '0') };
+      } else {
+        // For investors, show unread investor messages
+        const query = `
+          SELECT SUM(unread_count_investor) as total
+          FROM conversations
+          WHERE investor_id = $1
+        `;
+        const result = await db.query(query, [userId]);
+        return { count: parseInt(result.rows[0].total || '0') };
+      }
     } catch (error) {
       console.error('❌ Error fetching unread count:', error);
       return { count: 0 };

@@ -410,19 +410,21 @@ export default function PortfolioPage() {
                 </table>
               </div>
 
-              <div className="mt-4 flex flex-col items-center justify-center gap-4 text-xs text-[#8E8E93]">
-                <span>Showing 1-{investments.length} of {investments.length}</span>
+              <div className="mt-4 flex flex-col items-center justify-center gap-6 text-sm text-[#8E8E93]">
+                <span className="font-medium text-[#6B7280]">Showing 1-{investments.length} of {investments.length}</span>
                 <div className="flex items-center gap-2">
-                  <button className="rounded-full px-3 py-1 text-[#8E8E93] hover:bg-gray-100">
+                  <button className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all">
                     Previous
                   </button>
-                  <button className="h-7 w-7 rounded-full bg-[#1F3B6E] text-xs font-semibold text-white">
-                    1
-                  </button>
-                  <button className="h-7 w-7 rounded-full text-xs text-[#8E8E93] hover:bg-gray-100">
-                    2
-                  </button>
-                  <button className="rounded-full px-3 py-1 text-[#8E8E93] hover:bg-gray-100">
+                  <div className="flex items-center gap-2 shadow-sm rounded-full bg-[#F9FAFB] p-1">
+                    <button className="w-9 h-9 rounded-lg bg-[#1F3B6E] text-sm font-bold text-white shadow-md scale-105 transition-all">
+                      1
+                    </button>
+                    <button className="w-9 h-9 rounded-lg text-sm font-bold text-[#4B5563] hover:bg-white transition-all">
+                      2
+                    </button>
+                  </div>
+                  <button className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all">
                     Next
                   </button>
                 </div>

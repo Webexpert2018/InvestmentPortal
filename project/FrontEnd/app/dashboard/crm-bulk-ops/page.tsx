@@ -82,10 +82,19 @@ export default function CRMBulkOpsPage() {
 
       if (response.success) {
         if (response.sentCount > 0) {
-          toast.success(`Email sent to ${response.sentCount} investors successfully!`);
+          if (response.sentCount === 1) {
+            toast.success('Email sent to investor successfully!');
+          } else {
+            toast.success(`Email sent to ${response.sentCount} investors successfully!`);
+          }
         }
+
         if (response.failedCount > 0) {
-          toast.error(`Failed to send to ${response.failedCount} investors.`);
+          if (response.failedCount === 1) {
+            toast.warning('Failed to send email to 1 investor.');
+          } else {
+            toast.warning(`Failed to send to ${response.failedCount} investors.`);
+          }
         }
         setSelectedIds([]);
       } else {
@@ -106,10 +115,19 @@ export default function CRMBulkOpsPage() {
 
       if (response.success) {
         if (response.sentCount > 0) {
-          toast.success(`Message sent to ${response.sentCount} investors successfully!`);
+          if (response.sentCount === 1) {
+            toast.success('Message sent to investor successfully!');
+          } else {
+            toast.success(`Message sent to ${response.sentCount} investors successfully!`);
+          }
         }
+
         if (response.failedCount > 0) {
-          toast.error(`Failed to send to ${response.failedCount} investors.`);
+          if (response.failedCount === 1) {
+            toast.warning('Failed to send message to 1 investor.');
+          } else {
+            toast.warning(`Failed to send to ${response.failedCount} investors.`);
+          }
         }
         setSelectedIds([]);
       }
@@ -119,7 +137,7 @@ export default function CRMBulkOpsPage() {
     }
   };
 
-  const filteredInvestors = investors.filter(investor => 
+  const filteredInvestors = investors.filter(investor =>
     investor.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     investor.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     investor.phone?.includes(searchQuery)
@@ -145,11 +163,10 @@ export default function CRMBulkOpsPage() {
             <button
               onClick={() => setIsEmailModalOpen(true)}
               disabled={selectedIds.length === 0}
-              className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${
-                selectedIds.length > 0 
-                  ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]' 
+              className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${selectedIds.length > 0
+                  ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-              }`}
+                }`}
             >
               <Mail className="h-4 w-4" />
               <span>Send Email ({selectedIds.length})</span>
@@ -158,11 +175,10 @@ export default function CRMBulkOpsPage() {
             <button
               onClick={() => setIsMessageModalOpen(true)}
               disabled={selectedIds.length === 0}
-              className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${
-                selectedIds.length > 0 
-                  ? 'bg-[#E5E7EB] hover:bg-[#D1D5DB] text-[#1F1F1F]' 
+              className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${selectedIds.length > 0
+                  ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-              }`}
+                }`}
             >
               <MessageSquare className="h-4 w-4" />
               <span>Send Message ({selectedIds.length})</span>
@@ -182,7 +198,7 @@ export default function CRMBulkOpsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          
+
           <div className="flex items-center gap-2 ml-auto text-[13px] text-[#8E8E93]">
             {selectedIds.length > 0 && (
               <span className="flex items-center gap-1.5 text-[#1F1F1F] font-medium bg-[#FFD66B]/10 px-4 py-1.5 rounded-full">
@@ -232,8 +248,8 @@ export default function CRMBulkOpsPage() {
                   </tr>
                 ) : (
                   filteredInvestors.map((investor) => (
-                    <tr 
-                      key={investor.id} 
+                    <tr
+                      key={investor.id}
                       className={`hover:bg-gray-50/50 transition-colors cursor-pointer ${selectedIds.includes(investor.id) ? 'bg-[#FFD66B]/5' : ''}`}
                       onClick={() => toggleSelect(investor.id)}
                     >

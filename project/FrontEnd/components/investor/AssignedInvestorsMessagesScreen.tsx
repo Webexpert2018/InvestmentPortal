@@ -46,6 +46,7 @@ type Thread = {
   unreadCount: number;
   preview: string;
   avatar: string;
+  isOnline?: boolean;
   messages?: ChatMessage[];
 };
 
@@ -103,6 +104,7 @@ export function AssignedInvestorsMessagesScreen() {
           unreadCount: isUserInvestor ? (conv.unread_count_investor || 0) : (conv.unread_count_admin || 0),
           preview: conv.last_message || 'No messages yet',
           avatar: isUserInvestor ? '/images/messages-person/Ellipse 12.png' : (conv.investor_avatar || '/images/messages-person/Ellipse 13.png'),
+          isOnline: true,
         };
       });
       setThreads((prev) => {
@@ -405,11 +407,17 @@ export function AssignedInvestorsMessagesScreen() {
                       selected ? "bg-[#F9FAFB] border-bottom border-[#F0F0F0]" : "border border-transparent"
                     )}
                   >
-                    <img
-                      src={thread.avatar}
-                      alt={thread.investorName}
-                      className="h-11 w-11 shrink-0 rounded-full object-cover shadow-sm"
-                    />
+                    <div className="relative">
+                      <img
+                        src={thread.avatar}
+                        alt={thread.investorName}
+                        className="h-11 w-11 shrink-0 rounded-full object-cover shadow-sm"
+                      />
+                      <div className={cn(
+                        "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white",
+                        thread.isOnline ? "bg-[#34C759]" : "bg-[#9CA1AA]"
+                      )}></div>
+                    </div>
                     <div className="flex flex-1 flex-col justify-between h-full min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
                         <p className="truncate text-[14px] font-bold text-[#1F1F1F]">{thread.investorName}</p>
@@ -452,7 +460,10 @@ export function AssignedInvestorsMessagesScreen() {
                     alt={activeThread.investorName}
                     className="h-10 w-10 rounded-full object-cover shadow-sm"
                   />
-                  <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#9CA1AA]"></div>
+                  <div className={cn(
+                    "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white",
+                    activeThread.isOnline ? "bg-[#34C759]" : "bg-[#9CA1AA]"
+                  )}></div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[15px] font-bold text-[#1F1F1F] leading-tight truncate">{activeThread.investorName}</p>
