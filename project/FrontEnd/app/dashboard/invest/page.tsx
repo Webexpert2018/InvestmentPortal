@@ -786,16 +786,16 @@ export default function InvestPage() {
               >
                 {isSigning ? 'Connecting to DocuSign...' : 'Start Signing'}
               </button>
-              {/* //////////////////////// */}
-              <button
+              {/* //////// Bypass DocuSign hide //////////////// */}
+              {/* <button
                 type="button"
                 onClick={handleBypass}
                 disabled={isSigning}
                 className="w-full rounded-full bg-red-50 py-3.5 text-sm font-bold text-red-600 hover:bg-neutral-100 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-red-200"
               >
                 {isSigning ? 'Processing...' : 'Bypass DocuSign (Testing)'}
-              </button>
-              {/* //////////////////////// */}
+              </button> */}
+              {/* ////////// Bypass DocuSign hide ////////////// */}
               <button
                 type="button"
                 onClick={handleDownload}
