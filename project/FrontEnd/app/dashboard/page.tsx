@@ -332,21 +332,21 @@ export default function DashboardPage() {
           setAllRedemptions(redemptions);
 
           // Filter pending fundings: Subscription Submitted or Awaiting Funding
-          const pendingFundings = allInvestments.filter((inv: any) =>
+          const pendingFundings = (investments || []).filter((inv: any) =>
             ['Subscription Submitted', 'Awaiting Funding'].includes(inv.status)
           );
           setDynamicFundingRequests(pendingFundings);
 
           // Filter pending redemptions: Pending
-          const pendingRedemptions = allRedemptions.filter((red: any) =>
+          const pendingRedemptions = (redemptions || []).filter((red: any) =>
             red.status === 'Pending'
           );
           setDynamicRedemptionRequests(pendingRedemptions);
 
           // Filter pending reconciliations: is_reconciled is false
           const pendingReconciliations = [
-            ...allInvestments.filter((inv: any) => !inv.is_reconciled).map((inv: any) => ({ ...inv, type: 'Funding' })),
-            ...allRedemptions.filter((red: any) => !red.is_reconciled).map((red: any) => ({ ...red, type: 'Redemption' }))
+            ...(investments || []).filter((inv: any) => !inv.is_reconciled).map((inv: any) => ({ ...inv, type: 'Funding' })),
+            ...(redemptions || []).filter((red: any) => !red.is_reconciled).map((red: any) => ({ ...red, type: 'Redemption' }))
           ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
           setDynamicReconciliationAlerts(pendingReconciliations);
         }
@@ -602,7 +602,7 @@ export default function DashboardPage() {
                     Invest
                   </Link>
                   <Link
-                    href="/messages"
+                    href="/dashboard/messages"
                     className="block w-full rounded-full bg-[#FFF3D6] py-3 text-center text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF]"
                   >
                     Messages

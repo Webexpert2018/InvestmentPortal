@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Search, Mail, Loader2, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Mail, MessageSquare, Loader2, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { SendEmailModal } from '@/components/crm/SendEmailModal';
+import { SendMessageModal } from '@/components/crm/SendMessageModal';
 
 interface Investor {
   id: string;
@@ -27,6 +28,7 @@ export default function CRMBulkOpsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user && !isAdmin) {
@@ -79,9 +81,20 @@ export default function CRMBulkOpsPage() {
       });
 
       if (response.success) {
-        toast.success(`Email sent to ${response.sentCount} investors successfully!`);
+        if (response.sentCount > 0) {
+          if (response.sentCount === 1) {
+            toast.success('Email sent to investor successfully!');
+          } else {
+            toast.success(`Email sent to ${response.sentCount} investors successfully!`);
+          }
+        }
+
         if (response.failedCount > 0) {
-          toast.warning(`Failed to send to ${response.failedCount} investors.`);
+          if (response.failedCount === 1) {
+            toast.warning('Failed to send email to 1 investor.');
+          } else {
+            toast.warning(`Failed to send to ${response.failedCount} investors.`);
+          }
         }
         setSelectedIds([]);
       } else {
@@ -93,7 +106,38 @@ export default function CRMBulkOpsPage() {
     }
   };
 
-  const filteredInvestors = investors.filter(investor => 
+  const handleSendBulkMessage = async (message: string) => {
+    try {
+      const response = await apiClient.sendBulkMessage({
+        investorIds: selectedIds,
+        content: message
+      });
+
+      if (response.success) {
+        if (response.sentCount > 0) {
+          if (response.sentCount === 1) {
+            toast.success('Message sent to investor successfully!');
+          } else {
+            toast.success(`Message sent to ${response.sentCount} investors successfully!`);
+          }
+        }
+
+        if (response.failedCount > 0) {
+          if (response.failedCount === 1) {
+            toast.warning('Failed to send message to 1 investor.');
+          } else {
+            toast.warning(`Failed to send to ${response.failedCount} investors.`);
+          }
+        }
+        setSelectedIds([]);
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred while sending messages');
+      throw error;
+    }
+  };
+
+  const filteredInvestors = investors.filter(investor =>
     investor.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     investor.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     investor.phone?.includes(searchQuery)
@@ -113,21 +157,33 @@ export default function CRMBulkOpsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="font-goudy text-[34px] leading-tight text-[#1F1F1F]">CRM & Bulk Ops</h1>
-            <p className="text-[#8E8E93] text-[14px] mt-1">Manage active investors and perform bulk operations like email outreach.</p>
+            <p className="text-[#8E8E93] text-[14px] mt-1">Manage active investors and perform bulk operations like email or message outreach.</p>
           </div>
-          
-          <button
-            onClick={() => setIsEmailModalOpen(true)}
-            disabled={selectedIds.length === 0}
-            className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${
-              selectedIds.length > 0 
-                ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]' 
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-            }`}
-          >
-            <Mail className="h-4 w-4" />
-            <span>Send Email ({selectedIds.length})</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setIsEmailModalOpen(true)}
+              disabled={selectedIds.length === 0}
+              className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${selectedIds.length > 0
+                  ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                }`}
+            >
+              <Mail className="h-4 w-4" />
+              <span>Send Email ({selectedIds.length})</span>
+            </button>
+
+            <button
+              onClick={() => setIsMessageModalOpen(true)}
+              disabled={selectedIds.length === 0}
+              className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${selectedIds.length > 0
+                  ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                }`}
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span>Send Message ({selectedIds.length})</span>
+            </button>
+          </div>
         </div>
 
         {/* Filters & Actions */}
@@ -142,7 +198,7 @@ export default function CRMBulkOpsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          
+
           <div className="flex items-center gap-2 ml-auto text-[13px] text-[#8E8E93]">
             {selectedIds.length > 0 && (
               <span className="flex items-center gap-1.5 text-[#1F1F1F] font-medium bg-[#FFD66B]/10 px-4 py-1.5 rounded-full">
@@ -192,8 +248,8 @@ export default function CRMBulkOpsPage() {
                   </tr>
                 ) : (
                   filteredInvestors.map((investor) => (
-                    <tr 
-                      key={investor.id} 
+                    <tr
+                      key={investor.id}
                       className={`hover:bg-gray-50/50 transition-colors cursor-pointer ${selectedIds.includes(investor.id) ? 'bg-[#FFD66B]/5' : ''}`}
                       onClick={() => toggleSelect(investor.id)}
                     >
@@ -239,6 +295,13 @@ export default function CRMBulkOpsPage() {
           isOpen={isEmailModalOpen}
           onClose={() => setIsEmailModalOpen(false)}
           onSend={handleSendBulkEmail}
+          selectedCount={selectedIds.length}
+        />
+
+        <SendMessageModal
+          isOpen={isMessageModalOpen}
+          onClose={() => setIsMessageModalOpen(false)}
+          onSend={handleSendBulkMessage}
           selectedCount={selectedIds.length}
         />
       </div>

@@ -52,7 +52,7 @@ export default function PortfolioPage() {
       const totalRedeemedUnits = redemptionsData
         .filter((r: any) => r.is_reconciled)
         .reduce((sum: number, r: any) => sum + parseFloat(r.units || 0), 0);
-      
+
       const totalRedeemedValue = redemptionsData
         .filter((r: any) => r.is_reconciled)
         .reduce((sum: number, r: any) => sum + parseFloat(r.amount || 0), 0);
@@ -112,7 +112,7 @@ export default function PortfolioPage() {
       sortableItems.sort((a, b) => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
-        
+
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
@@ -335,7 +335,7 @@ export default function PortfolioPage() {
                       const redeemedUnits = rowRedemptions
                         .filter((r: any) => r.investment_id === row.id && r.is_reconciled)
                         .reduce((sum: number, r: any) => sum + parseFloat(r.units || 0), 0);
-                      
+
                       const redeemedAmount = rowRedemptions
                         .filter((r: any) => r.investment_id === row.id && r.is_reconciled)
                         .reduce((sum: number, r: any) => sum + parseFloat(r.amount || 0), 0);
@@ -362,11 +362,10 @@ export default function PortfolioPage() {
                             </span>
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              row.is_reconciled 
-                                ? 'bg-green-100 text-green-800' 
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.is_reconciled
+                                ? 'bg-green-100 text-green-800'
                                 : 'bg-yellow-100 text-yellow-800'
-                            }`}>
+                              }`}>
                               {row.is_reconciled ? 'Completed' : 'Pending'}
                             </span>
                           </td>
@@ -411,19 +410,21 @@ export default function PortfolioPage() {
                 </table>
               </div>
 
-              <div className="mt-4 flex flex-col items-center justify-center gap-4 text-xs text-[#8E8E93]">
-                <span>Showing 1-{investments.length} of {investments.length}</span>
+              <div className="mt-4 flex flex-col items-center justify-center gap-6 text-sm text-[#8E8E93]">
+                <span className="font-medium text-[#6B7280]">Showing 1-{investments.length} of {investments.length}</span>
                 <div className="flex items-center gap-2">
-                  <button className="rounded-full px-3 py-1 text-[#8E8E93] hover:bg-gray-100">
+                  <button className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all">
                     Previous
                   </button>
-                  <button className="h-7 w-7 rounded-full bg-[#1F3B6E] text-xs font-semibold text-white">
-                    1
-                  </button>
-                  <button className="h-7 w-7 rounded-full text-xs text-[#8E8E93] hover:bg-gray-100">
-                    2
-                  </button>
-                  <button className="rounded-full px-3 py-1 text-[#8E8E93] hover:bg-gray-100">
+                  <div className="flex items-center gap-2 shadow-sm rounded-full bg-[#F9FAFB] p-1">
+                    <button className="w-9 h-9 rounded-lg bg-[#1F3B6E] text-sm font-bold text-white shadow-md scale-105 transition-all">
+                      1
+                    </button>
+                    <button className="w-9 h-9 rounded-lg text-sm font-bold text-[#4B5563] hover:bg-white transition-all">
+                      2
+                    </button>
+                  </div>
+                  <button className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all">
                     Next
                   </button>
                 </div>

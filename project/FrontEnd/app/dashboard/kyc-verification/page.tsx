@@ -105,7 +105,7 @@ export default function KycVerificationPage() {
 
           <div className="border-t border-[#ECECEC] pt-10">
             <h1 className="font-goudy text-[32px] font-bold leading-none text-[#1F2937]">KYC Verify</h1>
-            
+
             {view === 'landing' ? (
               <>
                 <p className="mt-6 max-w-[900px] font-helvetica text-[15px] leading-[1.6] text-[#6B7280]">
@@ -200,7 +200,7 @@ export default function KycVerificationPage() {
               <div className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-between">
                   <p className="font-helvetica text-[15px] text-[#6B7280]">Please upload the following required documents for manual verification.</p>
-                  <button 
+                  <button
                     onClick={() => setView('landing')}
                     className="text-sm font-bold text-[#1F3B6E] hover:underline"
                   >

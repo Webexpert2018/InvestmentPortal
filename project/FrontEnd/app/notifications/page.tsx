@@ -129,6 +129,11 @@ export default function NotificationsPage() {
   }, [fetchNotifications]);
 
   const handleMarkRead = async (id: string, link?: string) => {
+    // Redirect immediately for better UX
+    if (link) {
+      router.push(link);
+    }
+
     try {
       const notification = notifications.find(n => n.id === id);
       if (notification && !notification.is_read) {
@@ -137,11 +142,8 @@ export default function NotificationsPage() {
           prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
         );
       }
-      if (link) {
-        router.push(link);
-      }
     } catch (err) {
-      console.error('Failed to handle notification click:', err);
+      console.error('Failed to handle notification mark as read:', err);
     }
   };
 

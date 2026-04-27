@@ -82,7 +82,7 @@ export class RedemptionsService {
         title: 'New Redemption Request',
         description: `A new redemption request of $${parseFloat(amount).toLocaleString()} has been submitted. Review and begin the verification process.`,
         type: 'redemption',
-        link: `/dashboard/investor/${userId}`
+        link: `/dashboard/redemption-requests/${result.rows[0].id}`
       }).catch(err => console.error('Failed to create redemption notification:', err));
 
       return result.rows[0];

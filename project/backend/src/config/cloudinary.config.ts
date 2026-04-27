@@ -91,4 +91,17 @@ export const staffImageStorage = new CloudinaryStorage({
   } as any,
 });
 
+// Storage for Message Attachments
+export const messageAttachmentStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'investment-portal/messages',
+    resource_type: 'auto',
+    public_id: (req: any, file: any) => {
+      const randomName = Math.random().toString(36).substring(2, 15);
+      return `msg-${Date.now()}-${randomName}`;
+    },
+  } as any,
+});
+
 export { cloudinary };

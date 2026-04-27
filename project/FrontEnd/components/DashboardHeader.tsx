@@ -27,6 +27,7 @@ export function DashboardHeader({
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   useEffect(() => {
     if (user && user.role === 'investor' && !iraAccount) {
@@ -54,16 +55,21 @@ export function DashboardHeader({
 
   useEffect(() => {
     if (!user) return;
-    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations', 'accountant'];
-    if (!adminRoles.includes(user.role)) return;
 
     const fetchUnread = () => {
+      // Notifications (Bell) - fetch for everyone if they have such an endpoint
       apiClient.getUnreadNotificationsCount()
         .then(res => setUnreadCount(res.count))
-        .catch(() => {});
+        .catch(() => { });
+
+      // Messages (Chat)
+      apiClient.getUnreadMessagesCount()
+        .then(res => setUnreadMessagesCount(res.count))
+        .catch(() => { });
     };
+
     fetchUnread();
-    const intervalId = setInterval(fetchUnread, 30000); // poll every 30s
+    const intervalId = setInterval(fetchUnread, 10000); // poll every 10s
     return () => clearInterval(intervalId);
   }, [user]);
 
@@ -98,12 +104,17 @@ export function DashboardHeader({
         <Link
           href="/dashboard/messages"
           className={cn(
-            "inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] transition hover:bg-[#EBEBEB]",
+            "relative inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] transition hover:bg-[#EBEBEB]",
             pathname?.startsWith("/dashboard/messages") && "ring-2 ring-[#D9DEE7]",
           )}
           aria-label="Messages"
         >
           <MessageCircle className="h-[21px] w-[21px] text-[#555555]" strokeWidth={1.8} />
+          {unreadMessagesCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-[21px] min-w-[21px] items-center justify-center rounded-full bg-[#FF4D4F] px-1 text-[11px] font-bold leading-none text-white shadow-[0_2px_4px_rgba(255,77,79,0.3)] outline outline-2 outline-white">
+              {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+            </span>
+          )}
         </Link>
 
         <Link
@@ -117,7 +128,7 @@ export function DashboardHeader({
         >
           <Bell className="h-[21px] w-[21px] text-[#555555]" strokeWidth={1.8} />
           {unreadCount > 0 && (
-            <span className="absolute right-1 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+            <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#FF4D4F] px-1.5 text-[10px] font-bold text-white shadow-sm">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}

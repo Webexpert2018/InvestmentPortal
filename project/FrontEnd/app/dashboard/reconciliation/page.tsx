@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Search, ChevronDown, MoreVertical, Check, Loader2, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { apiClient } from '@/lib/api/client';
 import { useToast } from '@/hooks/use-toast';
@@ -45,7 +46,7 @@ export default function ReconciliationPage() {
         const difference = custodian - internal;
         return {
           id: String(inv?.id || ''),
-          recordId: String(inv?.id || '').substring(0, 8).toUpperCase(),
+          recordId: `FUN-${String(inv?.id || '').substring(0, 6).toUpperCase()}`,
           type: 'Funding',
           custodian,
           internal,
@@ -62,7 +63,7 @@ export default function ReconciliationPage() {
         const difference = custodian - internal;
         return {
           id: String(red?.id || ''),
-          recordId: String(red?.id || '').substring(0, 8).toUpperCase(),
+          recordId: `RED-${String(red?.id || '').substring(0, 6).toUpperCase()}`,
           type: 'Redemption',
           custodian,
           internal,
@@ -294,7 +295,14 @@ export default function ReconciliationPage() {
                 ) : (
                   currentRecords.map((record) => (
                     <tr key={record.id} className="hover:bg-gray-50 transition-colors group">
-                      <td className="px-6 py-4 text-gray-900 font-medium">{record.recordId}</td>
+                      <td className="px-6 py-4">
+                        <Link 
+                          href={`/dashboard/${record.type === 'Funding' ? 'funding' : 'redemption'}-requests/${record.id}`}
+                          className="font-medium text-[#1F3B6E] hover:underline"
+                        >
+                          {record.recordId}
+                        </Link>
+                      </td>
                       <td className="px-6 py-4 text-gray-900">{record.type}</td>
                       <td className="px-6 py-4 text-gray-900 font-medium text-right">{formatCurrency(record.custodian)}</td>
                       <td className="px-6 py-4 text-right">
