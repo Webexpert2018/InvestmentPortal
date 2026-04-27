@@ -71,9 +71,13 @@ const getInitials = (name: string) => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
 };
 
-const AvatarDisplay = ({ src, name, className }: { src?: string; name: string; className?: string }) => {
+export const AvatarDisplay = ({ src, name, className }: { src?: string; name: string; className?: string }) => {
   const [imgError, setImgError] = useState(false);
   const initials = getInitials(name);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [src]);
 
   const showInitials = !src || imgError;
 

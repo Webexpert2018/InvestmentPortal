@@ -252,29 +252,10 @@ export class MessagesService {
     let sentCount = 0;
     let failedCount = 0;
 
-    // Fetch names and emails for templating
-    const investorsRes = await db.query(
-      'SELECT id, full_name, email FROM investors WHERE id = ANY($1)',
-      [investorIds]
-    );
-    const investorMap = investorsRes.rows.reduce((acc: any, inv: any) => {
-      acc[inv.id] = inv;
-      return acc;
-    }, {});
-
     for (const investorId of investorIds) {
       try {
-        const inv = investorMap[investorId];
-        let personalizedContent = content;
-        
-        if (inv) {
-          personalizedContent = content
-            .replace(/{{name}}/g, inv.full_name || 'Valued Investor')
-            .replace(/{{email}}/g, inv.email || '');
-        }
-
         await this.sendMessage(senderId, {
-          content: personalizedContent,
+          content: content,
           recipientId: investorId,
         });
         sentCount++;

@@ -106,31 +106,33 @@ export default function CRMBulkOpsPage() {
     }
   };
 
-  const handleSendBulkMessage = async (message: string) => {
+  const handleSendBulkMessage = async (message: string, groupData?: { name: string; imageUrl?: string }) => {
     try {
-      const response = await apiClient.sendBulkMessage({
-        investorIds: selectedIds,
-        content: message
-      });
+      if (groupData && selectedIds.length > 1) {
+        // Create Group logic
+        const conversation = await apiClient.getOrCreateConversation(selectedIds, groupData.name, groupData.imageUrl);
+        await apiClient.sendMessage({
+          content: message,
+          conversationId: conversation.id
+        });
+        toast.success(`Group "${groupData.name}" created and message sent!`);
+      } else {
+        // Individual / Bulk Individual logic
+        const response = await apiClient.sendBulkMessage({
+          investorIds: selectedIds,
+          content: message
+        });
 
-      if (response.success) {
-        if (response.sentCount > 0) {
-          if (response.sentCount === 1) {
-            toast.success('Message sent to investor successfully!');
-          } else {
-            toast.success(`Message sent to ${response.sentCount} investors successfully!`);
+        if (response.success) {
+          if (response.sentCount > 0) {
+            toast.success(response.sentCount === 1 ? 'Message sent successfully!' : `Messages sent to ${response.sentCount} investors!`);
           }
-        }
-
-        if (response.failedCount > 0) {
-          if (response.failedCount === 1) {
-            toast.warning('Failed to send message to 1 investor.');
-          } else {
+          if (response.failedCount > 0) {
             toast.warning(`Failed to send to ${response.failedCount} investors.`);
           }
         }
-        setSelectedIds([]);
       }
+      setSelectedIds([]);
     } catch (error: any) {
       toast.error(error.message || 'An error occurred while sending messages');
       throw error;
