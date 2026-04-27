@@ -17,6 +17,12 @@ interface Investor {
   phone: string;
   dateJoined: string;
   status: string;
+  fundIds: string[];
+}
+
+interface Fund {
+  id: string;
+  name: string;
 }
 
 export default function CRMBulkOpsPage() {
@@ -24,8 +30,10 @@ export default function CRMBulkOpsPage() {
   const router = useRouter();
 
   const [investors, setInvestors] = useState<Investor[]>([]);
+  const [funds, setFunds] = useState<Fund[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFundId, setSelectedFundId] = useState<string>('all');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
@@ -46,11 +54,15 @@ export default function CRMBulkOpsPage() {
   const fetchInvestors = async () => {
     try {
       setLoading(true);
-      const data = await apiClient.getCrmInvestors();
-      setInvestors(data);
+      const [investorsData, fundsData] = await Promise.all([
+        apiClient.getCrmInvestors(),
+        apiClient.getCrmFunds()
+      ]);
+      setInvestors(investorsData);
+      setFunds(fundsData);
     } catch (error) {
-      console.error('Error fetching investors:', error);
-      toast.error('Failed to load investors');
+      console.error('Error fetching CRM data:', error);
+      toast.error('Failed to load CRM data');
     } finally {
       setLoading(false);
     }
@@ -139,11 +151,16 @@ export default function CRMBulkOpsPage() {
     }
   };
 
-  const filteredInvestors = investors.filter(investor =>
-    investor.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    investor.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    investor.phone?.includes(searchQuery)
-  );
+  const filteredInvestors = investors.filter(investor => {
+    const matchesSearch = 
+      investor.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      investor.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      investor.phone?.includes(searchQuery);
+    
+    const matchesFund = selectedFundId === 'all' || investor.fundIds?.includes(selectedFundId);
+    
+    return matchesSearch && matchesFund;
+  });
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return 'N/A';
@@ -199,6 +216,24 @@ export default function CRMBulkOpsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+          </div>
+
+          <div className="relative min-w-[200px]">
+            <select
+              className="w-full bg-[#f8f9fa] border-none rounded-full py-2.5 px-6 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer text-[#4B4B4B] font-medium"
+              value={selectedFundId}
+              onChange={(e) => setSelectedFundId(e.target.value)}
+            >
+              <option value="all">All Funds</option>
+              {funds.map(fund => (
+                <option key={fund.id} value={fund.id}>{fund.name}</option>
+              ))}
+            </select>
+            <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-[#8E8E93]">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 ml-auto text-[13px] text-[#8E8E93]">

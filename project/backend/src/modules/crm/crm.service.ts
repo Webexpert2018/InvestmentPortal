@@ -14,17 +14,28 @@ export class CrmService {
 
     const result = await db.query(`
       SELECT 
-        id, 
-        full_name as "fullName", 
-        email, 
-        phone, 
-        created_at as "dateJoined",
-        status
-      FROM investors
-      WHERE status = 'active'
-      ORDER BY created_at DESC
+        i.id, 
+        i.full_name as "fullName", 
+        i.email, 
+        i.phone, 
+        i.created_at as "dateJoined",
+        i.status,
+        COALESCE(
+          (SELECT json_agg(DISTINCT fund_id) FROM investments WHERE user_id = i.id),
+          '[]'
+        ) as "fundIds"
+      FROM investors i
+      WHERE i.status = 'active'
+      ORDER BY i.created_at DESC
     `);
 
+    return result.rows;
+  }
+
+  async getFunds() {
+    const result = await db.query(`
+      SELECT id, name FROM funds WHERE status ILIKE 'active' ORDER BY name ASC
+    `);
     return result.rows;
   }
 

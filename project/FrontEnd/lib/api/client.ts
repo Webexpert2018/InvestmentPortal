@@ -1099,6 +1099,10 @@ class ApiClient {
     return this.request<any[]>('/crm/investors');
   }
 
+  async getCrmFunds() {
+    return this.request<any[]>('/crm/funds');
+  }
+
   async sendBulkEmail(data: { investorIds: string[]; subject: string; message: string }) {
     return this.request<any>('/crm/send-bulk-email', {
       method: 'POST',

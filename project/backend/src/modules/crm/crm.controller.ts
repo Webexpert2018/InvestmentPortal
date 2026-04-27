@@ -16,6 +16,11 @@ export class CrmController {
     return this.crmService.getActiveInvestors(user.role);
   }
 
+  @Get('funds')
+  async getFunds() {
+    return this.crmService.getFunds();
+  }
+
   @Post('send-bulk-email')
   async sendBulkEmail(
     @CurrentUser() user: any,
