@@ -87,7 +87,9 @@ export class InvestmentsService {
         title: 'New Fund Request Submitted',
         description: `A new fund subscription of $${investmentAmount.toLocaleString()} has been submitted. Review and process it.`,
         type: 'fund_request',
-        link: `/dashboard/funding-requests/${investment.id}`
+        link: `/dashboard/funding-requests/${investment.id}`,
+        relatedId: investment.id,
+        relatedType: 'investment'
       }).catch(err => console.error('Failed to create fund request notification:', err));
 
       return investment;

@@ -15,28 +15,50 @@ export class NotificationsService {
     targetRole?: string;      // single role (legacy / convenience)
     title: string;
     description?: string;
+    message?: string;         // mapped to description if missing
     type: string;
     link?: string;
+    relatedId?: string;       // newly discovered NOT NULL column
+    relatedType?: string;     // newly discovered NOT NULL column
   }) {
-    const { userId, title, description, type, link } = data;
+    const { userId, title, description, message, type, link, relatedId, relatedType } = data;
 
     // Resolve the list of roles to insert for
     const roles: (string | null)[] = data.targetRoles
       ? data.targetRoles
       : data.targetRole
-      ? [data.targetRole]
-      : [null]; // null = no role filter (show to everyone)
+        ? [data.targetRole]
+        : [null]; // null = no role filter (show to everyone)
+    console.log(`[NotificationService] Creating notification: "${title}" for roles:`, roles);
+    
+    // Fallback for NOT NULL columns found in DB
+    const finalMessage = message || description || title;
+    const finalRelatedId = relatedId || '00000000-0000-0000-0000-000000000000'; // Dummy UUID if missing
+    const finalRelatedType = relatedType || type || 'general';
 
     try {
-      const insertPromises = roles.map((role) =>
-        db.query(
-          `INSERT INTO notifications (user_id, target_role, title, description, type, link)
-           VALUES ($1, $2, $3, $4, $5, $6)
+      const insertPromises = roles.map((role) => {
+        console.log(`[NotificationService] Inserting for role: ${role}`);
+        return db.query(
+          `INSERT INTO notifications (
+            user_id, target_role, title, description, message, type, link, related_id, related_type
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
            RETURNING *`,
-          [userId || null, role, title, description || null, type, link || null]
-        )
-      );
+          [
+            userId || null, 
+            role, 
+            title, 
+            description || null, 
+            finalMessage, 
+            type, 
+            link || null,
+            finalRelatedId,
+            finalRelatedType
+          ]
+        );
+      });
       const results = await Promise.all(insertPromises);
+      console.log(`[NotificationService] Successfully created ${results.length} notification rows.`);
       return results.map((r) => r.rows[0]);
     } catch (error) {
       console.error('❌ Error creating notifications:', error);
