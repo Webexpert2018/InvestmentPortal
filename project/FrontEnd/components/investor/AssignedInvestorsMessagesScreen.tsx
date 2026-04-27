@@ -81,20 +81,26 @@ export const AvatarDisplay = ({ src, name, className }: { src?: string; name: st
 
   const showInitials = !src || imgError;
 
-  return (
-    <div className={cn("relative overflow-hidden flex items-center justify-center shrink-0", className, showInitials && "bg-[#F3F4F6] text-[#6F7177] font-bold shadow-inner")}>
-      {showInitials ? (
-        <span className="text-current uppercase">{initials}</span>
-      ) : (
-        <img
-          src={src}
-          alt={name}
-          className="h-full w-full object-cover"
-          onError={() => setImgError(true)}
-        />
-      )}
-    </div>
-  );
+    const diceAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=FBCB4B,3B6FF0,34C759,FF9500&fontSize=40&fontWeight=700`;
+
+    return (
+      <div className={cn("relative overflow-hidden flex items-center justify-center shrink-0", className, showInitials && "bg-[#F3F4F6] shadow-inner")}>
+        {showInitials ? (
+          <img
+            src={diceAvatar}
+            alt={name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <img
+            src={src}
+            alt={name}
+            className="h-full w-full object-cover"
+            onError={() => setImgError(true)}
+          />
+        )}
+      </div>
+    );
 };
 
 export function AssignedInvestorsMessagesScreen() {
@@ -179,7 +185,7 @@ export function AssignedInvestorsMessagesScreen() {
       const mappedThreads: Thread[] = data.map((conv: any) => {
         const isGroup = conv.is_group;
         let displayName = conv.group_name || 'Group Chat';
-        let displayAvatar = '/images/messages-person/Ellipse 12.png';
+        let displayAvatar = ''; // Handle fallback dynamically
         if (isGroup) {
           displayAvatar = conv.group_image_url || '/images/messages-person/GroupIcon.png';
         } else if (conv.participants) {
@@ -241,6 +247,7 @@ export function AssignedInvestorsMessagesScreen() {
           attachmentName: msg.file_name,
           attachmentSize: msg.file_size,
           fileUrl: msg.file_url,
+          senderAvatar: msg.sender_avatar,
           updatedAt: msg.updated_at,
           createdAt: msg.created_at,
         };
@@ -751,35 +758,42 @@ export function AssignedInvestorsMessagesScreen() {
                             message.sender === 'investor' ? "justify-start" : "justify-end"
                           )}>
                             {message.sender === 'investor' ? (
-                              <div className="flex flex-col items-start max-w-[85%] sm:max-w-[80%]">
-                                {activeThread?.isGroup && (
-                                  <span className="text-[11px] font-bold text-[#6F7177] mb-1 ml-1 block">
-                                    {message.sender_name || 'Participant'}
-                                  </span>
-                                )}
-                                {message.isAttachment ? (
-                                  <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] border border-[#D9E6FC] shadow-sm">
-                                    <div className="flex items-center gap-3">
-                                      <div className="h-10 w-10 shrink-0 flex items-center justify-center">
-                                        <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8" />
-                                      </div>
-                                      <div className="min-w-0">
-                                        <p className="truncate text-[13px] font-bold">{message.attachmentName}</p>
-                                        <p className="text-[11px] opacity-70">{message.attachmentSize}</p>
-                                      </div>
-                                      <button onClick={() => downloadFile(message.fileUrl!, message.attachmentName!)} className="p-2 hover:bg-white/50 rounded-full transition-colors">
-                                        <Download className="h-4 w-4" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] leading-relaxed border border-[#D9E6FC] shadow-sm">
-                                    {message.text}
-                                  </div>
-                                )}
-                                <span className="text-[11px] text-[#A2A5AA] mt-1.5 ml-1">{message.time}</span>
-                              </div>
-                            ) : (
+                               <div className="flex items-start gap-2 max-w-[85%] sm:max-w-[80%]">
+                                 <AvatarDisplay 
+                                   src={message.senderAvatar} 
+                                   name={message.sender_name || 'Participant'} 
+                                   className="w-8 h-8 rounded-full mt-1" 
+                                 />
+                                 <div className="flex flex-col items-start flex-1">
+                                   {activeThread?.isGroup && (
+                                     <span className="text-[11px] font-bold text-[#6F7177] mb-1 ml-1 block">
+                                       {message.sender_name || 'Participant'}
+                                     </span>
+                                   )}
+                                   {message.isAttachment ? (
+                                     <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] border border-[#D9E6FC] shadow-sm">
+                                       <div className="flex items-center gap-3">
+                                         <div className="h-10 w-10 shrink-0 flex items-center justify-center">
+                                           <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8" />
+                                         </div>
+                                         <div className="min-w-0">
+                                           <p className="truncate text-[13px] font-bold">{message.attachmentName}</p>
+                                           <p className="text-[11px] opacity-70">{message.attachmentSize}</p>
+                                         </div>
+                                         <button onClick={() => downloadFile(message.fileUrl!, message.attachmentName!)} className="p-2 hover:bg-white/50 rounded-full transition-colors">
+                                           <Download className="h-4 w-4" />
+                                         </button>
+                                       </div>
+                                     </div>
+                                   ) : (
+                                     <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] leading-relaxed border border-[#D9E6FC] shadow-sm">
+                                       {message.text}
+                                     </div>
+                                   )}
+                                   <span className="text-[11px] text-[#A2A5AA] mt-1.5 ml-1">{message.time}</span>
+                                 </div>
+                               </div>
+                             ) : (
                               <div className="flex flex-col items-end max-w-[85%] sm:max-w-[80%]">
                                 <div className="flex items-start gap-2 relative">
                                   <div className={cn(

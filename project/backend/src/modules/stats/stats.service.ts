@@ -6,7 +6,7 @@ export class StatsService {
   async getAdminStats() {
     try {
       const [investorsCount, pendingKycCount, pendingFundingsCount, pendingRedemptionsCount, financialTotals, recentInvestorsResult] = await Promise.all([
-        db.query("SELECT COUNT(*) FROM investors"),
+        db.query("SELECT COUNT(*) FROM investors WHERE status = 'active'"),
         db.query("SELECT COUNT(*) FROM investors WHERE kyc_status = 'pending'"),
         db.query("SELECT COUNT(*) FROM investments WHERE status IN ('Subscription Submitted', 'Awaiting Funding')"),
         db.query("SELECT COUNT(*) FROM redemptions WHERE status = 'Pending'"),

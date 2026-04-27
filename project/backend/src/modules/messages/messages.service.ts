@@ -17,7 +17,7 @@ export class MessagesService {
             SELECT json_agg(json_build_object(
               'id', p_user.id,
               'name', COALESCE(p_inv.full_name, p_staff.full_name, p_users.first_name || ' ' || p_users.last_name),
-              'avatar', COALESCE(p_inv.profile_image_url, p_staff.profile_image_url)
+              'avatar', COALESCE(p_inv.profile_image_url, p_staff.profile_image_url, p_users.profile_image_url)
             ))
             FROM conversation_participants cp_inner
             LEFT JOIN investors p_inv ON cp_inner.user_id = p_inv.id
@@ -44,7 +44,7 @@ export class MessagesService {
       const query = `
         SELECT m.*, 
                COALESCE(i.full_name, s.full_name, u.first_name || ' ' || u.last_name, 'System User') as sender_name,
-               COALESCE(i.profile_image_url, s.profile_image_url) as sender_avatar
+               COALESCE(i.profile_image_url, s.profile_image_url, u.profile_image_url) as sender_avatar
         FROM messages m
         LEFT JOIN investors i ON m.sender_id = i.id
         LEFT JOIN staff s ON m.sender_id = s.id

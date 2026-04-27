@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { apiClient } from '@/lib/api/client';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 type NotificationItem = {
   id: string;
@@ -121,6 +122,7 @@ export default function NotificationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'unread' | 'viewed' | 'reminders'>('unread');
   const router = useRouter();
+  const { user } = useAuth();
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -172,8 +174,8 @@ export default function NotificationsPage() {
   const tabs = [
     { id: 'unread', label: 'Unread' },
     { id: 'viewed', label: 'Viewed' },
-    { id: 'reminders', label: 'Reminders' },
-  ] as const;
+    ...(user?.role !== 'investor' ? [{ id: 'reminders', label: 'Reminders' }] : []),
+  ] as any[];
 
   return (
     <DashboardLayout>
@@ -182,7 +184,9 @@ export default function NotificationsPage() {
           <div>
             <h1 className="font-goudy text-[24px] leading-7 text-[#1F1F1F]">Notifications</h1>
             <p className="mt-1 text-[14px] text-[#8E8E93]">
-              Stay updated on your account activity and scheduled reminders.
+              {user?.role === 'investor' 
+                ? 'Stay updated on your account activity, documents, and investments.' 
+                : 'Stay updated on account activity and scheduled reminders.'}
             </p>
           </div>
           {activeTab === 'unread' && notifications.some((n) => !n.is_read) && (
