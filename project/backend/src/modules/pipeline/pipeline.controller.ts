@@ -8,7 +8,7 @@ import { Roles } from '../../decorators/roles.decorator';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
 export class PipelineController {
-  constructor(private readonly pipelineService: PipelineService) {}
+  constructor(private readonly pipelineService: PipelineService) { }
 
   @Get()
   async getBoard(@Req() req: any) {

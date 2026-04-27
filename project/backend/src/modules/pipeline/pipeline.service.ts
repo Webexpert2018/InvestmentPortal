@@ -1,8 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { db } from '../../config/database';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class PipelineService {
+  constructor(private readonly notificationsService: NotificationsService) { }
+
   async findAll(userId?: string, role?: string) {
     // 1. Fetch all stages ordered by order_index
     const stagesResult = await db.query(
@@ -23,7 +26,7 @@ export class PipelineService {
     // 3. Fetch investors with role-based filtering
     const userRole = (role || '').toLowerCase();
     const isIR = userRole === 'investor_relations';
-    
+
     // Admins and other staff see everyone. IR staff only see assigned investors.
     const query = `
       SELECT 
@@ -89,7 +92,7 @@ export class PipelineService {
 
   async updateInvestorDetails(investorId: string, details: { expectedFutureInvestment?: number, pipelineNote?: string }) {
     const { expectedFutureInvestment, pipelineNote } = details;
-    
+
     // Build update query dynamically based on provided fields
     const updates: string[] = ['updated_at = CURRENT_TIMESTAMP'];
     const values: any[] = [];
@@ -111,7 +114,7 @@ export class PipelineService {
 
     values.push(investorId);
     const query = `UPDATE investors SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`;
-    
+
     const result = await db.query(query, values);
 
     if (result.rows.length === 0) {
@@ -153,7 +156,7 @@ export class PipelineService {
     }
 
     const result = await db.query('DELETE FROM pipeline_stages WHERE id = $1 RETURNING *', [id]);
-    
+
     if (result.rows.length === 0) {
       throw new NotFoundException('Stage not found');
     }
@@ -183,5 +186,63 @@ export class PipelineService {
     }
 
     return result.rows[0];
+  }
+
+  /**
+   * Called daily by the cron job.
+   * Finds all pipeline notes with `scheduledDate === today` that haven't
+   * already fired (`reminderSentDate !== today`), sends notifications to
+   * admin roles, then persists `reminderSentDate` so it won't fire again.
+   */
+  async fireScheduledReminders() {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+    // Fetch all investors with a non-empty pipeline_note
+    const result = await db.query(
+      `SELECT id, full_name, pipeline_note FROM investors
+       WHERE pipeline_note IS NOT NULL AND pipeline_note != '' AND pipeline_note != '[]'`
+    );
+
+    for (const investor of result.rows) {
+      let notes: any[];
+      try {
+        notes = JSON.parse(investor.pipeline_note);
+        if (!Array.isArray(notes)) continue;
+      } catch {
+        continue;
+      }
+
+      let changed = false;
+
+      const updatedNotes = notes.map((note: any) => {
+        // Only fire if scheduledDate is today and reminder hasn't been sent today yet
+        if (
+          note.scheduledDate === today &&
+          note.reminderSentDate !== today
+        ) {
+          changed = true;
+
+          // Fire notification (async, don't await in loop)
+          this.notificationsService.createNotification({
+            targetRoles: ['executive_admin', 'admin', 'investor_relations'],
+            title: `📅 Scheduled Reminder: ${investor.full_name}`,
+            description: `${note.text}${note.author ? ` — Set by ${note.author}` : ''}`,
+            type: 'pipeline_reminder',
+            link: '/dashboard/pipeline',
+          }).catch(err => console.error('Failed to fire pipeline reminder notification:', err));
+
+          // Mark note so it doesn't fire again
+          return { ...note, reminderSentDate: today };
+        }
+        return note;
+      });
+
+      if (changed) {
+        await db.query(
+          `UPDATE investors SET pipeline_note = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+          [JSON.stringify(updatedNotes), investor.id]
+        );
+      }
+    }
   }
 }

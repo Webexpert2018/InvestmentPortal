@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -34,6 +35,9 @@ import { CrmModule } from './modules/crm/crm.module';
       envFilePath: process.env.NODE_ENV === 'production' ? undefined : '.env',
       ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
+
+    // Enable cron jobs
+    ScheduleModule.forRoot(),
 
     AuthModule,
     UsersModule,

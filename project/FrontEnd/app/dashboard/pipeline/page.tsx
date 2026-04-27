@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { X, GripVertical, UserPlus, Mail, Phone, Loader2, ChevronDown, Pencil } from 'lucide-react';
+import { X, GripVertical, UserPlus, Mail, Phone, Loader2, ChevronDown, Pencil, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -61,6 +61,9 @@ export default function PipelinePage() {
   const [pipelineNote, setPipelineNote] = useState('');
   const [currentNewNote, setCurrentNewNote] = useState('');
   const [notesList, setNotesList] = useState<any[]>([]);
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [calendarDate, setCalendarDate] = useState(new Date());
 
   const topScrollRef = useRef<HTMLDivElement>(null);
   const boardScrollRef = useRef<HTMLDivElement>(null);
@@ -358,12 +361,27 @@ export default function PipelinePage() {
     }
   };
 
-  const handleAddNoteToList = () => {
-    if (!currentNewNote.trim()) return;
+  // Helper: sync updated notes into the stages array in-place so the board
+  // reflects changes immediately without a full re-fetch.
+  const syncNotesToStages = (investorId: any, serialized: string) => {
+    setStages((prev: any[]) =>
+      prev.map(stage => ({
+        ...stage,
+        investors: stage.investors?.map((inv: any) =>
+          inv.id === investorId ? { ...inv, pipelineNote: serialized } : inv
+        )
+      }))
+    );
+  };
+
+  const handleAddNoteToList = async () => {
+    if (!currentNewNote.trim() || !selectedInvestor) return;
 
     const newNote = {
       id: Date.now(),
       author: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : (user?.role || 'Staff'),
+      authorRole: user?.role || 'Staff',
+      investorName: selectedInvestor.name || selectedInvestor.fullName,
       date: new Date().toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
@@ -372,48 +390,96 @@ export default function PipelinePage() {
         minute: '2-digit',
         hour12: true
       }),
-      text: currentNewNote.trim()
+      text: currentNewNote.trim(),
+      scheduledDate: scheduledDate || null
     };
 
-    setNotesList(prev => [newNote, ...prev]);
+    const updatedNotes = [newNote, ...notesList];
+    setNotesList(updatedNotes);
     setCurrentNewNote('');
-    toast({
-      title: 'Note added',
-      description: 'The note has been added to the list. Click "Save Changes" at the bottom to persist.',
-    });
+    setScheduledDate('');
+    setShowDatePicker(false);
+
+    const serialized = JSON.stringify(updatedNotes);
+    try {
+      await apiClient.updateInvestorPipelineDetails(selectedInvestor.id, {
+        pipelineNote: serialized
+      });
+      toast({
+        title: 'Note saved',
+        description: 'Your note has been saved successfully.',
+        variant: 'success',
+      });
+      // Sync into selectedInvestor + board stages — no page refresh needed
+      setSelectedInvestor((prev: any) => ({ ...prev, pipelineNote: serialized }));
+      syncNotesToStages(selectedInvestor.id, serialized);
+    } catch (err) {
+      console.error('Failed to save note:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to save note. Please try again.',
+        variant: 'destructive',
+      });
+      // Rollback
+      setNotesList(notesList);
+      setCurrentNewNote(newNote.text);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: number) => {
+    if (!selectedInvestor) return;
+    const updatedNotes = notesList.filter((n: any) => n.id !== noteId);
+    setNotesList(updatedNotes); // optimistic UI
+
+    const serialized = JSON.stringify(updatedNotes);
+    try {
+      await apiClient.updateInvestorPipelineDetails(selectedInvestor.id, {
+        pipelineNote: serialized
+      });
+      toast({
+        title: 'Note deleted',
+        description: 'Note has been removed successfully.',
+        variant: 'success',
+      });
+      setSelectedInvestor((prev: any) => ({ ...prev, pipelineNote: serialized }));
+      syncNotesToStages(selectedInvestor.id, serialized);
+    } catch (err) {
+      console.error('Failed to delete note:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete note. Please try again.',
+        variant: 'destructive',
+      });
+      setNotesList(notesList); // rollback
+    }
   };
 
   const handleSaveChanges = async () => {
     if (!selectedInvestor) return;
     setIsUpdatingInvestment(true);
     try {
-      const amountChanged = parseFloat(expectedInvestment) !== selectedInvestor.expectedFutureInvestment;
-      const irChanged = selectedIrStaff !== (selectedInvestor.assignedIrId || '');
+      const promises: Promise<any>[] = [];
 
-      const serializedNotes = JSON.stringify(notesList);
-      const noteChanged = serializedNotes !== (selectedInvestor.pipelineNote || '[]');
+      // Always save amount and notes together
+      promises.push(
+        apiClient.updateInvestorPipelineDetails(selectedInvestor.id, {
+          expectedFutureInvestment: parseFloat(expectedInvestment) || 0,
+          pipelineNote: JSON.stringify(notesList),
+        })
+      );
 
-      const promises = [];
-      if (amountChanged || noteChanged) {
-        const details: any = {};
-        if (amountChanged) details.expectedFutureInvestment = parseFloat(expectedInvestment) || 0;
-        if (noteChanged) details.pipelineNote = serializedNotes;
+      // Always save IR assignment (backend handles no-op if unchanged)
+      promises.push(
+        apiClient.assignInvestorRelations(selectedInvestor.id, selectedIrStaff || null)
+      );
 
-        promises.push(apiClient.updateInvestorPipelineDetails(selectedInvestor.id, details));
-      }
-      if (irChanged) {
-        promises.push(apiClient.assignInvestorRelations(selectedInvestor.id, selectedIrStaff || null));
-      }
-
-      if (promises.length > 0) {
-        await Promise.all(promises);
-        toast({
-          title: 'Success',
-          description: 'Investor details updated successfully',
-          variant: 'success',
-        });
-        fetchData();
-      }
+      await Promise.all(promises);
+      toast({
+        title: 'Success',
+        description: 'Investor details updated successfully',
+        variant: 'success',
+      });
+      fetchData();
       setShowDetailModal(false);
     } catch (err) {
       console.error('Failed to update investor:', err);
@@ -425,6 +491,194 @@ export default function PipelinePage() {
     } finally {
       setIsUpdatingInvestment(false);
     }
+  };
+
+  const getScheduledNotes = () => {
+    const allNotes: any[] = [];
+    stages.forEach(stage => {
+      stage.investors?.forEach((inv: any) => {
+        if (inv.pipelineNote) {
+          try {
+            const notes = JSON.parse(inv.pipelineNote);
+            if (Array.isArray(notes)) {
+              notes.forEach(note => {
+                if (note.scheduledDate) {
+                  allNotes.push({
+                    ...note,
+                    investorId: inv.id,
+                    investorName: inv.name || inv.fullName,
+                    stageName: stage.name
+                  });
+                }
+              });
+            }
+          } catch (e) {
+            // silent fail for legacy strings
+          }
+        }
+      });
+    });
+    return allNotes;
+  };
+
+  const scheduledNotes = getScheduledNotes();
+
+  const renderCalendar = () => {
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+    
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const prevMonthDays = new Date(year, month, 0).getDate();
+    
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    const formatDateLocal = (date: Date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    };
+
+    const today = new Date();
+    const todayStr = formatDateLocal(today);
+
+    const days = [];
+    
+    // Previous month overlap
+    for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+      days.push({ day: prevMonthDays - i, currentMonth: false, date: new Date(year, month - 1, prevMonthDays - i) });
+    }
+    
+    // Current month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({ day: i, currentMonth: true, date: new Date(year, month, i) });
+    }
+    
+    // Next month overlap
+    const remaining = 42 - days.length;
+    for (let i = 1; i <= remaining; i++) {
+      days.push({ day: i, currentMonth: false, date: new Date(year, month + 1, i) });
+    }
+
+    return (
+      <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-12 mb-12">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+              <CalendarDays className="h-6 w-6" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">{monthNames[month]} {year}</h2>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Pipeline Schedule</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setCalendarDate(new Date(year, month - 1, 1))}
+              className="p-2 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100"
+            >
+              <ChevronLeft className="h-5 w-5 text-gray-500" />
+            </button>
+            <button 
+              onClick={() => setCalendarDate(new Date())}
+              className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100"
+            >
+              Today
+            </button>
+            <button 
+              onClick={() => setCalendarDate(new Date(year, month + 1, 1))}
+              className="p-2 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100"
+            >
+              <ChevronRight className="h-5 w-5 text-gray-500" />
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-7 gap-px bg-gray-100 rounded-2xl overflow-hidden border border-gray-100">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
+            <div key={d} className="bg-gray-50 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+              {d}
+            </div>
+          ))}
+          {days.map((d, i) => {
+            const dateStr = formatDateLocal(d.date);
+            const isToday = dateStr === todayStr;
+            const dayNotes = scheduledNotes.filter(n => n.scheduledDate === dateStr);
+            
+            return (
+              <div 
+                key={i} 
+                className={cn(
+                  "bg-white min-h-[100px] p-2 transition-all relative group/day",
+                  !d.currentMonth && "bg-gray-50/50"
+                )}
+              >
+                <div className={cn(
+                  "w-7 h-7 flex items-center justify-center text-sm font-bold rounded-lg mb-1",
+                  isToday ? "bg-yellow-400 text-white shadow-lg shadow-yellow-100" : d.currentMonth ? "text-gray-700" : "text-gray-300"
+                )}>
+                  {d.day}
+                </div>
+                
+                <div className="space-y-1">
+                  {dayNotes.map((note, idx) => (
+                    <div 
+                      key={idx}
+                      className="px-2 py-1 bg-red-50 border border-red-100 rounded-md cursor-help relative group/note"
+                    >
+                      <p className="text-[10px] font-bold text-red-600 truncate">{note.investorName}</p>
+                      
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-0 mb-2 w-72 bg-white text-gray-900 p-5 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 opacity-0 group-hover/note:opacity-100 pointer-events-none transition-all z-50 translate-y-2 group-hover/note:translate-y-0 backdrop-blur-xl">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between gap-2 border-b border-gray-50 pb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Scheduled Task</span>
+                            </div>
+                            <span className="text-[9px] text-gray-400 font-bold">{note.date}</span>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1">Investor</p>
+                            <p className="text-sm font-bold text-gray-900">{note.investorName}</p>
+                          </div>
+                          <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1.5">Note</p>
+                            <p className="text-xs font-medium text-gray-700 leading-relaxed italic">"{note.text}"</p>
+                          </div>
+                          <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-50">
+                            <div>
+                              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Assigned To</p>
+                              <div className="flex items-center gap-1.5">
+                                <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[8px] font-bold text-white uppercase">
+                                  {note.author?.charAt(0)}
+                                </div>
+                                <p className="text-[10px] font-bold text-blue-600">{note.author}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Stage</p>
+                              <span className="px-1.5 py-0.5 bg-green-50 text-[9px] font-bold text-green-600 rounded uppercase">
+                                {note.stageName}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="absolute top-full left-6 border-[10px] border-transparent border-t-white drop-shadow-[0_1px_0_rgba(0,0,0,0.05)]" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   const fetchIRStaff = useCallback(async () => {
@@ -713,6 +967,9 @@ export default function PipelinePage() {
           </div>
         </DragDropContextComponent>
 
+        {/* Pipeline Calendar */}
+        {renderCalendar()}
+
         {/* Add/Edit Stage Modal */}
         {(showAddStage || showEditStage) && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
@@ -908,10 +1165,41 @@ export default function PipelinePage() {
                 {/* Right Column: Internal Notes */}
                 <div className="flex flex-col h-[500px]">
                   <div className="flex flex-col h-full space-y-4">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Internal Notes / Comments</label>
+                    <div className="flex items-center justify-between ml-1">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Internal Notes / Comments</label>
+                      <button 
+                        onClick={() => setShowDatePicker(!showDatePicker)}
+                        className={cn(
+                          "p-1.5 rounded-lg transition-colors",
+                          showDatePicker ? "bg-blue-100 text-blue-600" : "text-gray-400 hover:bg-gray-100"
+                        )}
+                        title="Schedule a date"
+                      >
+                        <CalendarDays className="h-4 w-4" />
+                      </button>
+                    </div>
 
                     {/* New Note Input Area */}
-                    <div className="space-y-2">
+                    <div className="space-y-3">
+                      {showDatePicker && (
+                        <div className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-2xl border border-blue-100 animate-in slide-in-from-top-2 duration-200">
+                          <CalendarDays className="h-4 w-4 text-blue-600" />
+                          <input 
+                            type="date"
+                            value={scheduledDate}
+                            onChange={(e) => setScheduledDate(e.target.value)}
+                            className="bg-transparent text-sm font-bold text-blue-600 outline-none cursor-pointer"
+                          />
+                          {scheduledDate && (
+                            <button 
+                              onClick={() => setScheduledDate('')}
+                              className="text-[10px] font-bold text-blue-400 hover:text-blue-600"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                      )}
                       <div className="relative border rounded-2xl bg-gray-50 overflow-hidden transition-all">
                         <textarea
                           value={currentNewNote}
@@ -947,14 +1235,22 @@ export default function PipelinePage() {
                                 <span className="text-[10px] font-medium text-gray-400">{note.date}</span>
                               </div>
                               <button
-                                onClick={() => setNotesList(prev => prev.filter(n => n.id !== note.id))}
+                                onClick={() => handleDeleteNote(note.id)}
                                 className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors"
                               >
                                 Delete
                               </button>
                             </div>
-                            <div className="p-3 bg-gray-50 rounded-2xl rounded-tl-none border border-gray-100">
+                            <div className="p-3 bg-gray-50 rounded-2xl rounded-tl-none border border-gray-100 space-y-2">
                               <p className="text-sm text-gray-700 leading-relaxed font-normal">{note.text}</p>
+                              {note.scheduledDate && (
+                                <div className="flex items-center gap-1.5 px-2 py-1 bg-red-50 text-red-600 rounded-lg w-fit">
+                                  <CalendarDays className="h-3 w-3" />
+                                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                                    Scheduled: {new Date(note.scheduledDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))
