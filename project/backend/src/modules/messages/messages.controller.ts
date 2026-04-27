@@ -30,6 +30,35 @@ export class MessagesController {
     return this.messagesService.sendBulkMessage(user.userId, body);
   }
 
+  @Post('conversations/get-or-create')
+  async getOrCreateConversation(
+    @CurrentUser() user: any, 
+    @Body('participantIds') participantIds: string[], 
+    @Body('groupName') groupName?: string,
+    @Body('groupImageUrl') groupImageUrl?: string
+  ) {
+    return this.messagesService.getOrCreateConversation(user.userId, participantIds || [], groupName, groupImageUrl);
+  }
+
+  @Post('conversations/:id/leave')
+  async leaveGroup(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.messagesService.leaveConversation(id, user.userId);
+  }
+
+  @Delete('conversations/:id')
+  async deleteConversation(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.messagesService.deleteConversation(id, user.userId);
+  }
+
+  @Post('conversations/:id/remove-participant')
+  async removeParticipant(
+    @Param('id') id: string, 
+    @CurrentUser() user: any, 
+    @Body('targetUserId') targetUserId: string
+  ) {
+    return this.messagesService.removeParticipant(id, targetUserId, user.userId);
+  }
+
   @Get('unread-count')
   async getUnreadCount(@CurrentUser() user: any) {
     return this.messagesService.getUnreadCount(user.userId);
@@ -65,5 +94,9 @@ export class MessagesController {
   @Post(':id/react')
   async reactMessage(@Param('id') id: string, @CurrentUser() user: any, @Body('emoji') emoji: string) {
     return this.messagesService.reactMessage(id, user.userId, emoji);
+  }
+  @Get('available-users')
+  async getAvailableUsers(@CurrentUser() user: any) {
+    return this.messagesService.getAvailableUsers(user.userId);
   }
 }

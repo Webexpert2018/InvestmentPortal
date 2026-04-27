@@ -801,6 +801,32 @@ class ApiClient {
     return this.request<any[]>('/messages/conversations');
   }
 
+  async getOrCreateConversation(participantIds: string[], groupName?: string, groupImageUrl?: string) {
+    return this.request<{ id: string }>('/messages/conversations/get-or-create', {
+      method: 'POST',
+      body: JSON.stringify({ participantIds, groupName, groupImageUrl }),
+    });
+  }
+
+  async leaveConversation(id: string) {
+    return this.request<{ success: boolean }>(`/messages/conversations/${id}/leave`, {
+      method: 'POST'
+    });
+  }
+
+  async deleteConversation(id: string) {
+    return this.request<{ success: boolean }>(`/messages/conversations/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async removeParticipant(id: string, targetUserId: string) {
+    return this.request<{ success: boolean }>(`/messages/conversations/${id}/remove-participant`, {
+      method: 'POST',
+      body: JSON.stringify({ targetUserId })
+    });
+  }
+
   async getConversationMessages(conversationId: string) {
     return this.request<any[]>(`/messages/conversations/${conversationId}/messages`);
   }
@@ -829,6 +855,25 @@ class ApiClient {
     });
   }
 
+  async uploadMessageFile(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.request<{ file_url: string; file_name: string; file_size: string }>('/messages/upload', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  async getUnreadMessagesCount() {
+    return this.request<{ count: number }>('/messages/unread-count');
+  }
+
+  async markConversationAsRead(id: string) {
+    return this.request<{ success: boolean }>(`/messages/conversations/${id}/read`, {
+      method: 'POST'
+    });
+  }
+
   async uploadMessageAttachment(file: File) {
     const formData = new FormData();
     formData.append('file', file);
@@ -854,14 +899,8 @@ class ApiClient {
     return data;
   }
 
-  async getUnreadMessagesCount() {
-    return this.request<{ count: number }>('/messages/unread-count');
-  }
-
-  async markConversationAsRead(id: string) {
-    return this.request<{ success: boolean }>(`/messages/conversations/${id}/read`, {
-      method: 'POST'
-    });
+  async getAvailableUsers() {
+    return this.request<any[]>('/messages/available-users');
   }
   
   async editMessage(id: string, content: string) {

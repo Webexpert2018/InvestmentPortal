@@ -6,28 +6,34 @@ import { NotificationsService } from '../notifications/notifications.service';
 export class MessagesService {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  async getConversations(userId: string, targetRole?: string) {
+  async getConversations(userId: string) {
     try {
-      // Fetch conversations for the user
-      // If it's an investor, fetch conversations where they are the investor_id
-      // If it's an admin, fetch conversations where they are the admin_id OR fetch all for their role?
-      // For now, let's assume direct 1-on-1 between investor and staff
-      
       const query = `
-        SELECT c.*, 
-               inv.full_name as investor_name, 
-               inv.profile_image_url as investor_avatar,
-               COALESCE(s.full_name, admin_inv.full_name, 'Support Admin') as admin_name
+        SELECT 
+          c.*,
+          cp.unread_count,
+          cp.is_admin as is_creator,
+          (
+            SELECT json_agg(json_build_object(
+              'id', p_user.id,
+              'name', COALESCE(p_inv.full_name, p_staff.full_name, p_users.first_name || ' ' || p_users.last_name),
+              'avatar', COALESCE(p_inv.profile_image_url, p_staff.profile_image_url)
+            ))
+            FROM conversation_participants cp_inner
+            LEFT JOIN investors p_inv ON cp_inner.user_id = p_inv.id
+            LEFT JOIN staff p_staff ON cp_inner.user_id = p_staff.id
+            LEFT JOIN users p_users ON cp_inner.user_id = p_users.id
+            JOIN (SELECT id FROM users UNION SELECT id FROM investors UNION SELECT id FROM staff) p_user ON cp_inner.user_id = p_user.id
+            WHERE cp_inner.conversation_id = c.id
+          ) as participants
         FROM conversations c
-        JOIN investors inv ON c.investor_id = inv.id
-        LEFT JOIN staff s ON c.admin_id = s.id
-        LEFT JOIN investors admin_inv ON c.admin_id = admin_inv.id
-        WHERE c.investor_id = $1 OR c.admin_id = $1
-        ORDER BY c.last_message_at DESC
+        JOIN conversation_participants cp ON c.id = cp.conversation_id
+        WHERE cp.user_id = $1
+        ORDER BY c.updated_at DESC
       `;
       const result = await db.query(query, [userId]);
       return result.rows;
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error fetching conversations:', error);
       throw new InternalServerErrorException('Failed to fetch conversations');
     }
@@ -37,17 +43,18 @@ export class MessagesService {
     try {
       const query = `
         SELECT m.*, 
-               COALESCE(i.full_name, s.full_name, 'System User') as sender_name,
+               COALESCE(i.full_name, s.full_name, u.first_name || ' ' || u.last_name, 'System User') as sender_name,
                COALESCE(i.profile_image_url, s.profile_image_url) as sender_avatar
         FROM messages m
         LEFT JOIN investors i ON m.sender_id = i.id
         LEFT JOIN staff s ON m.sender_id = s.id
+        LEFT JOIN users u ON m.sender_id = u.id
         WHERE m.conversation_id = $1
         ORDER BY m.created_at ASC
       `;
       const result = await db.query(query, [conversationId]);
       return result.rows;
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error fetching messages:', error);
       throw new InternalServerErrorException('Failed to fetch messages');
     }
@@ -68,27 +75,12 @@ export class MessagesService {
     try {
       // 1. Ensure conversation exists
       if (!conversationId && recipientId) {
-        // Try to find existing conversation between these two
-        const convResult = await db.query(
-          'SELECT id FROM conversations WHERE (investor_id = $1 AND admin_id = $2) OR (investor_id = $2 AND admin_id = $1)',
-          [senderId, recipientId]
-        );
-        
-        if ((convResult.rowCount ?? 0) > 0) {
-          conversationId = convResult.rows[0].id;
-        } else {
-          // Create new conversation
-          const checkInvRes = await db.query('SELECT id FROM investors WHERE id = $1', [senderId]);
-          const isInvestor = (checkInvRes.rowCount ?? 0) > 0;
-          const investorId = isInvestor ? senderId : recipientId;
-          const adminId = isInvestor ? recipientId : senderId;
+        const conv = await this.getOrCreateConversation(senderId, [recipientId]);
+        conversationId = conv.id;
+      }
 
-          const newConv = await db.query(
-            'INSERT INTO conversations (investor_id, admin_id, last_message) VALUES ($1, $2, $3) RETURNING id',
-            [investorId, adminId, content || (fileUrl ? 'Sent a file' : '')]
-          );
-          conversationId = newConv.rows[0].id;
-        }
+      if (!conversationId) {
+        throw new InternalServerErrorException('Conversation ID is required');
       }
 
       // 2. Insert message
@@ -109,80 +101,83 @@ export class MessagesService {
       ]);
       const message = result.rows[0];
 
-      // 3. Update conversation last message and unread count
-      if (conversationId) {
-        // Update last message
-        await db.query(
-          'UPDATE conversations SET last_message = $1, last_message_at = NOW(), updated_at = NOW() WHERE id = $2',
-          [content || (fileUrl ? 'Sent a file' : ''), conversationId]
-        );
+      // 3. Update unread counts for ALL other participants
+      await db.query(`
+        UPDATE conversation_participants 
+        SET unread_count = unread_count + 1 
+        WHERE conversation_id = $1 AND user_id != $2
+      `, [conversationId, senderId]);
 
-        // Increment unread count for the recipient
-        const conv = (await db.query('SELECT investor_id, admin_id FROM conversations WHERE id = $1', [conversationId])).rows[0];
-        if (conv) {
-          // If recipientId is not provided, the other person in conversation is the recipient
-          const targetRecipientId = recipientId || (senderId === conv.investor_id ? conv.admin_id : conv.investor_id);
-          
-          if (targetRecipientId === conv.investor_id) {
-            await db.query('UPDATE conversations SET unread_count_investor = unread_count_investor + 1 WHERE id = $1', [conversationId]);
-          } else if (targetRecipientId === conv.admin_id || (!targetRecipientId && senderId === conv.investor_id)) {
-            // If targetRecipientId is null but sender is investor, it's an unassigned message for admins
-            await db.query('UPDATE conversations SET unread_count_admin = unread_count_admin + 1 WHERE id = $1', [conversationId]);
-          }
-        }
-      }
-
-      // 4. Trigger notification
-      try {
-        const senderResult = await db.query('SELECT full_name FROM investors WHERE id = $1 UNION SELECT full_name FROM staff WHERE id = $1', [senderId]);
-        const senderName = senderResult.rows[0]?.full_name || 'System User';
-
-        await this.notificationsService.createNotification({
-          userId: recipientId,
-          targetRole: targetRole || 'executive_admin',
-          title: 'New Message',
-          description: `${senderName}: "${content ? content.substring(0, 50) : 'Sent a file'}${content && content.length > 50 ? '...' : ''}"`,
-          type: 'message',
-          link: `/dashboard/messages?conversationId=${conversationId}`
-        });
-      } catch (notifError) {
-        console.error('⚠️ Failed to trigger notification for message, but message was sent:', notifError);
-      }
+      // 4. Update last message preview
+      await db.query('UPDATE conversations SET last_message = $1, updated_at = NOW() WHERE id = $2', [
+        content ? content.substring(0, 100) : 'Sent a file',
+        conversationId
+      ]);
 
       return message;
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error sending message:', error);
       throw new InternalServerErrorException('Failed to send message');
     }
   }
 
+  async getOrCreateConversation(senderId: string, participantIds: string[], groupName?: string, groupImageUrl?: string) {
+    try {
+      const allParticipants = Array.from(new Set([senderId, ...participantIds]));
+      const isGroup = allParticipants.length > 2 || !!groupName;
+
+      // 1. If not a group, try to find existing 1-on-1
+      if (!isGroup && allParticipants.length === 2) {
+        const p1 = allParticipants[0];
+        const p2 = allParticipants[1];
+        const existingConvRes = await db.query(`
+          SELECT c.id 
+          FROM conversations c
+          JOIN conversation_participants cp1 ON cp1.conversation_id = c.id
+          JOIN conversation_participants cp2 ON cp2.conversation_id = c.id
+          WHERE c.is_group = FALSE 
+            AND cp1.user_id = $1 
+            AND cp2.user_id = $2
+          LIMIT 1
+        `, [p1, p2]);
+
+        if ((existingConvRes.rowCount ?? 0) > 0) {
+          return existingConvRes.rows[0];
+        }
+      }
+
+      // 2. Create new conversation
+      const newConvRes = await db.query(
+        'INSERT INTO conversations (is_group, group_name, group_image_url, created_by, last_message) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+        [isGroup, groupName || null, groupImageUrl || null, senderId, 'New conversation started']
+      );
+      const conversationId = newConvRes.rows[0].id;
+
+      // 3. Add participants
+      const participantPromises = allParticipants.map(userId => 
+        db.query(
+          'INSERT INTO conversation_participants (conversation_id, user_id, is_admin) VALUES ($1, $2, $3)',
+          [conversationId, userId, userId === senderId]
+        )
+      );
+      await Promise.all(participantPromises);
+
+      return newConvRes.rows[0];
+    } catch (error: any) {
+      console.error('❌ Error creating conversation:', error);
+      throw new InternalServerErrorException('Failed to start conversation');
+    }
+  }
+
   async getUnreadCount(userId: string) {
     try {
-      // Check if user is staff/admin
-      const staffRes = await db.query('SELECT role FROM staff WHERE id = $1', [userId]);
-      const isAdmin = (staffRes.rowCount ?? 0) > 0;
-      
-      if (isAdmin) {
-        // For admins, show total unread admin messages
-        // (Either strictly assigned to them, or all unread if they are executive_admin - simplifying to all unread admin msgs)
-        const query = `
-          SELECT SUM(unread_count_admin) as total
-          FROM conversations
-          WHERE admin_id = $1 OR admin_id IS NULL
-        `;
-        const result = await db.query(query, [userId]);
-        return { count: parseInt(result.rows[0].total || '0') };
-      } else {
-        // For investors, show unread investor messages
-        const query = `
-          SELECT SUM(unread_count_investor) as total
-          FROM conversations
-          WHERE investor_id = $1
-        `;
-        const result = await db.query(query, [userId]);
-        return { count: parseInt(result.rows[0].total || '0') };
-      }
-    } catch (error) {
+      const result = await db.query(`
+        SELECT SUM(unread_count) as total
+        FROM conversation_participants
+        WHERE user_id = $1
+      `, [userId]);
+      return { count: parseInt(result.rows[0].total || '0') };
+    } catch (error: any) {
       console.error('❌ Error fetching unread count:', error);
       return { count: 0 };
     }
@@ -190,17 +185,65 @@ export class MessagesService {
 
   async markAsRead(conversationId: string, userId: string) {
     try {
-      // Clear unread count for this user in this conversation
       await db.query(`
-        UPDATE conversations 
-        SET unread_count_investor = CASE WHEN investor_id = $1 THEN 0 ELSE unread_count_investor END,
-            unread_count_admin = CASE WHEN admin_id = $1 THEN 0 ELSE unread_count_admin END
-        WHERE id = $2
-      `, [userId, conversationId]);
+        UPDATE conversation_participants 
+        SET unread_count = 0 
+        WHERE conversation_id = $1 AND user_id = $2
+      `, [conversationId, userId]);
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error marking messages as read:', error);
       throw new InternalServerErrorException('Failed to mark messages as read');
+    }
+  }
+
+  async deleteConversation(conversationId: string, userId: string) {
+    try {
+      // Check if user is the creator or an admin
+      const checkRes = await db.query(
+        'SELECT created_by FROM conversations WHERE id = $1',
+        [conversationId]
+      );
+      if (checkRes.rowCount === 0) throw new NotFoundException('Conversation not found');
+      
+      if (checkRes.rows[0].created_by !== userId) {
+        throw new Error('Unauthorized to delete this conversation');
+      }
+
+      await db.query('DELETE FROM conversations WHERE id = $1', [conversationId]);
+      return { success: true };
+    } catch (error: any) {
+      console.error('❌ Error deleting conversation:', error);
+      throw new InternalServerErrorException(error.message || 'Failed to delete conversation');
+    }
+  }
+
+  async leaveConversation(conversationId: string, userId: string) {
+    try {
+      await db.query('DELETE FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2', [conversationId, userId]);
+      return { success: true };
+    } catch (error: any) {
+      console.error('❌ Error leaving conversation:', error);
+      throw new InternalServerErrorException('Failed to leave conversation');
+    }
+  }
+
+  async removeParticipant(conversationId: string, targetUserId: string, requesterId: string) {
+    try {
+      // Check if requester is admin of the conversation
+      const checkRes = await db.query(
+        'SELECT is_admin FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2',
+        [conversationId, requesterId]
+      );
+      if (checkRes.rowCount === 0 || !checkRes.rows[0].is_admin) {
+        throw new Error('Unauthorized to remove members');
+      }
+
+      await db.query('DELETE FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2', [conversationId, targetUserId]);
+      return { success: true };
+    } catch (error: any) {
+      console.error('❌ Error removing participant:', error);
+      throw new InternalServerErrorException(error.message || 'Failed to remove participant');
     }
   }
 
@@ -235,7 +278,7 @@ export class MessagesService {
           recipientId: investorId,
         });
         sentCount++;
-      } catch (error) {
+      } catch (error: any) {
         console.error(`❌ Failed to send bulk message to ${investorId}:`, error);
         failedCount++;
       }
@@ -258,7 +301,7 @@ export class MessagesService {
 
       await db.query('DELETE FROM messages WHERE id = $1', [messageId]);
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error deleting message:', error);
       throw error instanceof NotFoundException ? error : new InternalServerErrorException('Failed to delete message');
     }
@@ -275,7 +318,7 @@ export class MessagesService {
 
       await db.query('UPDATE messages SET content = $1, updated_at = NOW() WHERE id = $2', [content, messageId]);
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error editing message:', error);
       throw new InternalServerErrorException('Failed to edit message');
     }
@@ -305,9 +348,56 @@ export class MessagesService {
 
       await db.query('UPDATE messages SET reactions = $1 WHERE id = $2', [JSON.stringify(reactions), messageId]);
       return { success: true, reactions };
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error reacting to message:', error);
       throw new InternalServerErrorException('Failed to react to message');
+    }
+  }
+  async getAvailableUsers(userId: string) {
+    try {
+      // 1. Identify requester role
+      const requesterRes = await db.query(`
+        SELECT role FROM investors WHERE id = $1
+        UNION
+        SELECT role FROM staff WHERE id = $1
+        UNION
+        SELECT role FROM users WHERE id = $1
+      `, [userId]);
+
+      if (requesterRes.rowCount === 0) return [];
+      const requesterRole = requesterRes.rows[0].role;
+      const isInvestor = requesterRole === 'investor';
+
+      let users: any[] = [];
+
+      if (isInvestor) {
+        // Investors can only talk to staff/admins
+        const staffRes = await db.query('SELECT id, full_name, role, profile_image_url FROM staff WHERE status = \'active\'');
+        const adminUsersRes = await db.query('SELECT id, first_name || \' \' || last_name as full_name, role, profile_image_url FROM users WHERE role IN (\'admin\', \'executive_admin\')');
+        
+        users = [
+          ...staffRes.rows.map(r => ({ ...r, type: 'staff' })),
+          ...adminUsersRes.rows.map(r => ({ ...r, type: 'admin' }))
+        ];
+      } else {
+        // Staff/Admins can talk to everyone
+        const investorsRes = await db.query('SELECT id, full_name, role, profile_image_url FROM investors WHERE status = \'active\'');
+        const staffRes = await db.query('SELECT id, full_name, role, profile_image_url FROM staff WHERE status = \'active\' AND id != $1', [userId]);
+        const adminUsersRes = await db.query('SELECT id, first_name || \' \' || last_name as full_name, role, profile_image_url FROM users WHERE id != $1', [userId]);
+
+        users = [
+          ...investorsRes.rows.map(r => ({ ...r, type: 'investor' })),
+          ...staffRes.rows.map(r => ({ ...r, type: 'staff' })),
+          ...adminUsersRes.rows.map(r => ({ ...r, type: 'admin' }))
+        ];
+      }
+
+      // De-duplicate by ID (just in case)
+      const uniqueUsers = Array.from(new Map(users.map(u => [u.id, u])).values());
+      return uniqueUsers;
+    } catch (error: any) {
+      console.error('❌ Error fetching available users:', error);
+      throw new InternalServerErrorException('Failed to fetch available users');
     }
   }
 }

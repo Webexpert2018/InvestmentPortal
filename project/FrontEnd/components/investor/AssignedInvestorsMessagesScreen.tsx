@@ -9,7 +9,12 @@ import {
   Trash2,
   X,
   Check,
-  ChevronLeft
+  ChevronLeft,
+  UserPlus,
+  Users,
+  LogOut,
+  UserMinus,
+  Plus
 } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +25,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type Sender = 'investor' | 'accountant';
@@ -27,6 +38,8 @@ type Sender = 'investor' | 'accountant';
 type ChatMessage = {
   id: string;
   sender: Sender;
+  sender_id?: string;
+  sender_name?: string;
   text: string;
   time: string;
   day: string;
@@ -48,6 +61,36 @@ type Thread = {
   avatar: string;
   isOnline?: boolean;
   messages?: ChatMessage[];
+  isGroup?: boolean;
+  createdBy?: string;
+  participants?: any[];
+};
+
+const getInitials = (name: string) => {
+  if (!name) return '??';
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+};
+
+const AvatarDisplay = ({ src, name, className }: { src?: string; name: string; className?: string }) => {
+  const [imgError, setImgError] = useState(false);
+  const initials = getInitials(name);
+
+  const showInitials = !src || imgError;
+
+  return (
+    <div className={cn("relative overflow-hidden flex items-center justify-center shrink-0", className, showInitials && "bg-[#F3F4F6] text-[#6F7177] font-bold shadow-inner")}>
+      {showInitials ? (
+        <span className="text-current uppercase">{initials}</span>
+      ) : (
+        <img
+          src={src}
+          alt={name}
+          className="h-full w-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      )}
+    </div>
+  );
 };
 
 export function AssignedInvestorsMessagesScreen() {
@@ -63,15 +106,54 @@ export function AssignedInvestorsMessagesScreen() {
   const [profile, setProfile] = useState<any>(null);
   const [selectedFile, setSelectedFile] = useState<{ url: string; originalName: string; size: string } | null>(null);
 
-  // Editing state
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editInput, setEditInput] = useState('');
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
+  const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [groupNameInput, setGroupNameInput] = useState('');
+  const [selectedGroupAvatar, setSelectedGroupAvatar] = useState('/images/messages-person/GroupIcon.png');
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchAvailableUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      const data = await apiClient.getAvailableUsers();
+      setAvailableUsers(data);
+    } catch (err) {
+      console.error('Failed to fetch available users:', err);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isNewChatModalOpen) {
+      fetchAvailableUsers();
+    }
+  }, [isNewChatModalOpen]);
 
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const documentInputRef = useRef<HTMLInputElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const prevMessagesCountRef = useRef<number>(0);
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    variant?: 'destructive' | 'default';
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -91,20 +173,31 @@ export function AssignedInvestorsMessagesScreen() {
       if (!quiet) setLoading(true);
       const data = await apiClient.getConversations();
       const mappedThreads: Thread[] = data.map((conv: any) => {
-        const isUserInvestor = conv.investor_id === profile?.id;
-        const otherPartyName = isUserInvestor
-          ? (conv.admin_name || 'Support Admin')
-          : (conv.investor_name || 'System User');
+        const isGroup = conv.is_group;
+        let displayName = conv.group_name || 'Group Chat';
+        let displayAvatar = '/images/messages-person/Ellipse 12.png';
+        if (isGroup) {
+          displayAvatar = conv.group_image_url || '/images/messages-person/GroupIcon.png';
+        } else if (conv.participants) {
+          const otherParticipant = conv.participants.find((p: any) => p.id !== profile?.id);
+          if (otherParticipant) {
+            displayName = otherParticipant.name;
+            displayAvatar = otherParticipant.avatar || displayAvatar;
+          }
+        }
 
         return {
           id: conv.id,
-          investorName: otherPartyName,
-          role: isUserInvestor ? 'Support' : (conv.investor_role || 'Investor'),
-          timeAgo: conv.last_message_at ? formatDistanceToNow(new Date(conv.last_message_at), { addSuffix: true }) : 'Just now',
-          unreadCount: isUserInvestor ? (conv.unread_count_investor || 0) : (conv.unread_count_admin || 0),
+          investorName: displayName,
+          role: isGroup ? 'Group' : 'Direct',
+          timeAgo: conv.updated_at ? formatDistanceToNow(new Date(conv.updated_at), { addSuffix: true }) : 'Just now',
+          unreadCount: conv.unread_count || 0,
           preview: conv.last_message || 'No messages yet',
-          avatar: isUserInvestor ? '/images/messages-person/Ellipse 12.png' : (conv.investor_avatar || '/images/messages-person/Ellipse 13.png'),
+          avatar: displayAvatar,
           isOnline: true,
+          isGroup: isGroup,
+          createdBy: conv.created_by,
+          participants: conv.participants
         };
       });
       setThreads((prev) => {
@@ -135,6 +228,8 @@ export function AssignedInvestorsMessagesScreen() {
         return {
           id: msg.id,
           sender: isFromUser ? 'accountant' : 'investor',
+          sender_id: msg.sender_id,
+          sender_name: msg.sender_name,
           text: msg.content || '',
           time: new Date(msg.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
           day: new Date(msg.created_at).toDateString() === new Date().toDateString() ? 'TODAY' : 'PAST',
@@ -184,6 +279,53 @@ export function AssignedInvestorsMessagesScreen() {
     setShowMenu(false);
     setEditingMessageId(null);
     setIsMobileChatOpen(true);
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingAvatar(true);
+      const res = await apiClient.uploadMessageFile(file);
+      setSelectedGroupAvatar(res.file_url);
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to upload avatar', variant: 'destructive' });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleStartChat = async () => {
+    if (selectedUserIds.length === 0) return;
+    
+    try {
+      setIsCreatingChat(true);
+      const isGroup = selectedUserIds.length > 1;
+      const res = await apiClient.getOrCreateConversation(
+        selectedUserIds, 
+        isGroup ? (groupNameInput || 'New Group') : undefined,
+        isGroup ? selectedGroupAvatar : undefined
+      );
+      setIsNewChatModalOpen(false);
+      setSelectedUserIds([]);
+      setGroupNameInput('');
+      await fetchConversations();
+      setActiveThreadId(res.id);
+      setIsMobileChatOpen(true);
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to start chat', variant: 'destructive' });
+    } finally {
+      setIsCreatingChat(false);
+    }
+  };
+
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUserIds(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId) 
+        : [...prev, userId]
+    );
   };
 
   useEffect(() => {
@@ -258,14 +400,73 @@ export function AssignedInvestorsMessagesScreen() {
     }
   };
 
+  const handleLeaveGroup = async (id: string) => {
+    const thread = threads.find(t => t.id === id);
+    if (!thread) return;
+
+    const isCreator = thread.createdBy === profile?.id;
+
+    setConfirmation({
+      isOpen: true,
+      title: isCreator ? 'Delete Group' : 'Leave Group',
+      description: isCreator 
+        ? 'As the creator, leaving will permanently delete this group for everyone. Are you sure?' 
+        : 'Are you sure you want to leave this group?',
+      confirmText: isCreator ? 'Delete Group' : 'Leave Group',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          if (isCreator) {
+            await apiClient.deleteConversation(id);
+            toast({ title: 'Success', description: 'Group deleted successfully' });
+          } else {
+            await apiClient.leaveConversation(id);
+            toast({ title: 'Success', description: 'You left the group' });
+          }
+          setActiveThreadId(null);
+          fetchConversations();
+        } catch (err) {
+          toast({ title: 'Error', description: 'Failed to complete action', variant: 'destructive' });
+        }
+      }
+    });
+  };
+
+  const handleRemoveParticipant = async (conversationId: string, userId: string) => {
+    setConfirmation({
+      isOpen: true,
+      title: 'Remove Participant',
+      description: 'Are you sure you want to remove this member from the group?',
+      confirmText: 'Remove',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          await apiClient.removeParticipant(conversationId, userId);
+          toast({ title: 'Success', description: 'Participant removed' });
+          fetchConversations(true);
+        } catch (err) {
+          toast({ title: 'Error', description: 'Failed to remove participant', variant: 'destructive' });
+        }
+      }
+    });
+  };
+
   const handleDeleteMessage = async (messageId: string) => {
-    if (!confirm('Are you sure you want to delete this message?')) return;
-    try {
-      await apiClient.deleteMessage(messageId);
-      if (activeThreadId) fetchMessages(activeThreadId);
-    } catch (err) {
-      toast({ title: 'Error', description: 'Failed to delete message', variant: 'destructive' });
-    }
+    setConfirmation({
+      isOpen: true,
+      title: 'Delete Message',
+      description: 'Are you sure you want to permanently delete this message?',
+      confirmText: 'Delete',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          await apiClient.deleteMessage(messageId);
+          if (activeThreadId) fetchMessages(activeThreadId);
+        } catch (err) {
+          toast({ title: 'Error', description: 'Failed to delete message', variant: 'destructive' });
+        }
+      }
+    });
   };
 
   const handleFilePicked = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -375,21 +576,29 @@ export function AssignedInvestorsMessagesScreen() {
       <h1 className="font-goudy font-bold text-[32px] leading-tight text-[#1F1F1F]">Messages</h1>
 
       <div className="mt-3 grid gap-3 md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr]">
-        {/* Threads List */}
         <section className={cn(
           "rounded-[12px] bg-white p-4 shadow-sm border border-[#F0F0F0] h-[700px] flex flex-col",
           isMobileChatOpen ? "hidden md:flex" : "flex"
         )}>
-          <label className="relative block mb-4 px-1">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
-            <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              type="text"
-              placeholder="Search messages here"
-              className="h-[42px] w-full rounded-full bg-[#F5F5F7] pl-11 pr-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] transition-all focus:ring-1 focus:ring-[#FBCB4B]"
-            />
-          </label>
+          <div className="flex items-center gap-2 mb-4 px-1">
+            <label className="relative flex-1 block">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                type="text"
+                placeholder="Search messages here"
+                className="h-[42px] w-full rounded-full bg-[#F5F5F7] pl-11 pr-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] transition-all focus:ring-1 focus:ring-[#FBCB4B]"
+              />
+            </label>
+            <button
+              onClick={() => setIsNewChatModalOpen(true)}
+              className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-[#F5F5F7] text-[#1F1F1F] hover:bg-[#FBCB4B] transition-all shadow-sm"
+              title="New Chat"
+            >
+              <UserPlus className="h-5 w-5" />
+            </button>
+          </div>
 
           <div className="flex-1 space-y-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200">
             {filteredThreads.length === 0 ? (
@@ -408,10 +617,10 @@ export function AssignedInvestorsMessagesScreen() {
                     )}
                   >
                     <div className="relative">
-                      <img
+                      <AvatarDisplay
                         src={thread.avatar}
-                        alt={thread.investorName}
-                        className="h-11 w-11 shrink-0 rounded-full object-cover shadow-sm"
+                        name={thread.investorName}
+                        className="h-11 w-11 shrink-0 rounded-full shadow-sm"
                       />
                       <div className={cn(
                         "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white",
@@ -423,6 +632,9 @@ export function AssignedInvestorsMessagesScreen() {
                         <p className="truncate text-[14px] font-bold text-[#1F1F1F]">{thread.investorName}</p>
                         <p className="text-[11px] text-[#A2A5AA] whitespace-nowrap ml-2">{thread.timeAgo}</p>
                       </div>
+                      {thread.isGroup && (
+                        <p className="text-[10px] font-bold text-[#FBCB4B] uppercase tracking-wider mb-0.5">Group</p>
+                      )}
                       <div className="flex items-center justify-between">
                         <p className="truncate text-[12px] text-[#6F7177] leading-tight flex-1">{thread.preview}</p>
                         {thread.unreadCount > 0 && (
@@ -439,14 +651,12 @@ export function AssignedInvestorsMessagesScreen() {
           </div>
         </section>
 
-        {/* Chat Area */}
         <section className={cn(
           "rounded-[12px] bg-white p-4 shadow-sm border border-[#F0F0F0] flex flex-col h-[700px]",
           !isMobileChatOpen ? "hidden md:flex" : "flex"
         )}>
           {activeThread ? (
             <>
-              {/* Chat Header */}
               <div className="flex items-center gap-3 border-b border-[#F0F0F0] pb-4 px-1 shrink-0">
                 <button
                   onClick={() => setIsMobileChatOpen(false)}
@@ -455,10 +665,10 @@ export function AssignedInvestorsMessagesScreen() {
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <div className="relative">
-                  <img
+                  <AvatarDisplay
                     src={activeThread.avatar}
-                    alt={activeThread.investorName}
-                    className="h-10 w-10 rounded-full object-cover shadow-sm"
+                    name={activeThread.investorName}
+                    className="h-10 w-10 rounded-full shadow-sm"
                   />
                   <div className={cn(
                     "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white",
@@ -467,11 +677,60 @@ export function AssignedInvestorsMessagesScreen() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[15px] font-bold text-[#1F1F1F] leading-tight truncate">{activeThread.investorName}</p>
-                  <p className="text-[12px] text-[#A2A5AA] mt-0.5">{activeThread.role}</p>
+                  <p className="text-[12px] text-[#A2A5AA] mt-0.5">
+                    {activeThread.isGroup ? `${activeThread.participants?.length || 0} participants` : activeThread.role}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-2 hover:bg-[#F5F5F7] rounded-full transition-colors text-[#6F7177]">
+                        <MoreHorizontal className="h-5 w-5" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-[200px] rounded-xl shadow-xl border-[#F0F0F0]">
+                      <div className="px-3 py-2 border-b border-[#F0F0F0] mb-1">
+                        <p className="text-[11px] font-bold text-[#A2A5AA] uppercase tracking-wider">Group Details</p>
+                      </div>
+                      
+                      {activeThread.participants?.map((p: any) => (
+                        <div key={p.id} className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#1F1F1F]">
+                          <AvatarDisplay 
+                            src={p.avatar} 
+                            name={p.name} 
+                            className="w-6 h-6 rounded-full text-[10px]" 
+                          />
+                          <span className="flex-1 truncate">{p.name} {p.id === profile?.id && '(You)'}</span>
+                          {activeThread.createdBy === profile?.id && p.id !== profile?.id && (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleRemoveParticipant(activeThread.id, p.id); }}
+                              className="text-red-500 hover:bg-red-50 p-1 rounded-md transition-colors"
+                              title="Remove Participant"
+                            >
+                              <UserMinus className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+
+                      {activeThread.isGroup && (
+                        <>
+                          <div className="h-[1px] bg-[#F0F0F0] my-1" />
+                          <DropdownMenuItem 
+                            onClick={() => handleLeaveGroup(activeThread.id)}
+                            className="text-red-500 focus:text-red-500 focus:bg-red-50 cursor-pointer flex items-center gap-2 px-3 py-2.5 rounded-lg"
+                          >
+                            <LogOut className="h-4 w-4" />
+                            <span>Leave Group</span>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
-              {/* Message List */}
               <div className="flex-1 overflow-y-auto mt-4 px-1 pr-4 space-y-6 scrollbar-thin scrollbar-thumb-gray-200">
                 {groupedMessages.YESTERDAY.length > 0 && (
                   <>
@@ -487,9 +746,13 @@ export function AssignedInvestorsMessagesScreen() {
                             "flex items-end mb-1",
                             message.sender === 'investor' ? "justify-start" : "justify-end"
                           )}>
-                            {/* Received Message (Left) */}
                             {message.sender === 'investor' ? (
                               <div className="flex flex-col items-start max-w-[85%] sm:max-w-[80%]">
+                                {activeThread?.isGroup && (
+                                  <span className="text-[11px] font-bold text-[#6F7177] mb-1 ml-1 block">
+                                    {message.sender_name || 'Participant'}
+                                  </span>
+                                )}
                                 {message.isAttachment ? (
                                   <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] border border-[#D9E6FC] shadow-sm">
                                     <div className="flex items-center gap-3">
@@ -513,10 +776,8 @@ export function AssignedInvestorsMessagesScreen() {
                                 <span className="text-[11px] text-[#A2A5AA] mt-1.5 ml-1">{message.time}</span>
                               </div>
                             ) : (
-                              /* Sent Message (Right) */
                               <div className="flex flex-col items-end max-w-[85%] sm:max-w-[80%]">
                                 <div className="flex items-start gap-2 relative">
-                                  {/* Action Menu - Positioning fixed logic to prevent shifting */}
                                   <div className={cn(
                                     "flex items-center gap-1 self-center transition-all duration-200",
                                     editingMessageId === message.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
@@ -609,8 +870,12 @@ export function AssignedInvestorsMessagesScreen() {
                       )}>
                         {message.sender === 'investor' ? (
                           <div className="flex flex-col items-start max-w-[85%] sm:max-w-[80%]">
+                            {activeThread?.isGroup && (
+                              <span className="text-[11px] font-bold text-[#6F7177] mb-1 ml-1 block">
+                                {message.sender_name || 'Participant'}
+                              </span>
+                            )}
                             {message.text.includes('Monday, 8 December') ? (
-                              /* Meeting Request Bubble Styling */
                               <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-3 text-[14px] text-[#1F1F1F] border border-[#D9E6FC] shadow-sm">
                                 <p className="mb-2 font-medium">{message.text.split('\n')[0]}</p>
                                 <div className="bg-white/50 rounded-xl p-3 space-y-1.5 border border-white/40">
@@ -723,7 +988,6 @@ export function AssignedInvestorsMessagesScreen() {
                 </div>
               </div>
 
-              {/* Chat Input Area */}
               <div className="mt-4 pt-4 border-t border-[#F0F0F0] shrink-0">
                 {selectedFile && (
                   <div className="mb-3 flex w-fit max-w-[95%] sm:max-w-[380px] items-center gap-3 rounded-2xl bg-[#F9FAFB] p-3 border border-[#F0F0F0] shadow-sm animate-in slide-in-from-bottom-2">
@@ -806,10 +1070,180 @@ export function AssignedInvestorsMessagesScreen() {
               </div>
               <p className="text-[16px] font-medium text-[#6F7177]">Select a conversation to start chatting</p>
               <p className="text-[13px] mt-1 opacity-60">Pick an investor from the sidebar</p>
+              <button 
+                onClick={() => setIsNewChatModalOpen(true)}
+                className="mt-4 px-4 py-2 bg-[#FBCB4B] text-[#1F1F1F] text-[13px] font-medium rounded-full shadow-sm hover:scale-105 transition-all"
+              >
+                New Chat
+              </button>
             </div>
           )}
         </section>
       </div>
+
+      <Dialog open={isNewChatModalOpen} onOpenChange={(open) => {
+        setIsNewChatModalOpen(open);
+        if (!open) {
+          setSelectedUserIds([]);
+          setGroupNameInput('');
+        }
+      }}>
+        <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden rounded-2xl flex flex-col h-[600px]">
+          <DialogHeader className="p-6 pb-2 shrink-0">
+            <DialogTitle className="font-goudy text-2xl">New Chat</DialogTitle>
+            <p className="text-[13px] text-[#8E8E93]">Select individuals or create a group</p>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto px-4 pb-4">
+            {loadingUsers ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-6 w-6 animate-spin text-[#FBCB4B]" />
+              </div>
+            ) : availableUsers.length === 0 ? (
+              <p className="text-center py-10 text-[13px] text-[#8E8E93]">No available users found</p>
+            ) : (
+              <div className="space-y-1">
+                {availableUsers.map((user) => {
+                  const isSelected = selectedUserIds.includes(user.id);
+                  return (
+                    <button
+                      key={user.id}
+                      onClick={() => toggleUserSelection(user.id)}
+                      className={cn(
+                        "flex w-full items-center gap-3 px-3 py-2.5 text-left rounded-xl transition-all group",
+                        isSelected ? "bg-[#FBCB4B]/10 border-[#FBCB4B] border" : "hover:bg-gray-50 border border-transparent"
+                      )}
+                    >
+                      <div className="relative">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2A4474] to-[#1F3B6E] flex items-center justify-center text-[12px] font-bold text-white uppercase overflow-hidden shadow-sm">
+                          {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : (user.full_name?.charAt(0) || '?')}
+                        </div>
+                        {isSelected && (
+                          <div className="absolute -top-1 -right-1 bg-[#FBCB4B] text-[#1F1F1F] rounded-full p-0.5 shadow-sm">
+                            <Check className="w-3 h-3 stroke-[3]" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[14px] font-bold text-[#1F1F1F] truncate group-hover:text-[#FBCB4B] transition-colors">{user.full_name}</p>
+                        <p className="text-[11px] text-[#8E8E93] uppercase tracking-wider">{user.role}</p>
+                      </div>
+                      <div className={cn(
+                        "w-5 h-5 rounded border transition-all flex items-center justify-center",
+                        isSelected ? "bg-[#FBCB4B] border-[#FBCB4B]" : "border-[#D1D1D6] group-hover:border-[#FBCB4B]"
+                      )}>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#1F1F1F] stroke-[3]" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="p-6 pt-2 border-t border-[#F0F0F0] bg-gray-50/50 shrink-0">
+            {selectedUserIds.length > 1 && (
+              <div className="space-y-3 pt-2">
+                <div>
+                  <label className="text-[12px] font-bold text-[#6F7177] uppercase tracking-wider mb-2 block">Group Name</label>
+                  <input
+                    placeholder="Enter group name..."
+                    value={groupNameInput}
+                    onChange={(e) => setGroupNameInput(e.target.value)}
+                    className="w-full h-11 px-4 bg-white border border-[#F0F0F0] rounded-xl text-[14px] outline-none focus:ring-1 focus:ring-[#FBCB4B] shadow-sm transition-all"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-[12px] font-bold text-[#6F7177] uppercase tracking-wider mb-2 block">Group Avatar</label>
+                  <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                    <input
+                      type="file"
+                      ref={avatarInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                    />
+                    <button
+                      onClick={() => avatarInputRef.current?.click()}
+                      disabled={isUploadingAvatar}
+                      className="h-12 w-12 rounded-xl shrink-0 border-2 border-dashed border-[#E5E7EB] flex items-center justify-center hover:border-[#FBCB4B] transition-all bg-white"
+                    >
+                      {isUploadingAvatar ? <Loader2 className="h-5 w-5 animate-spin text-[#FBCB4B]" /> : <Plus className="h-5 w-5 text-[#6F7177]" />}
+                    </button>
+
+                    {['/images/messages-person/GroupIcon.png'].map((avatar) => (
+                      <button
+                        key={avatar}
+                        onClick={() => setSelectedGroupAvatar(avatar)}
+                        className={cn(
+                          "h-12 w-12 rounded-xl shrink-0 border-2 transition-all overflow-hidden bg-gray-50",
+                          selectedGroupAvatar === avatar ? "border-[#FBCB4B] shadow-md scale-105" : "border-transparent opacity-60 hover:opacity-100"
+                        )}
+                      >
+                        <AvatarDisplay src={avatar} name="Group" className="w-full h-full" />
+                      </button>
+                    ))}
+
+                    {selectedGroupAvatar !== '/images/messages-person/GroupIcon.png' && !selectedGroupAvatar.startsWith('/images/') && (
+                      <div className="relative h-12 w-12 rounded-xl shrink-0 border-2 border-[#FBCB4B] shadow-md scale-105 overflow-hidden">
+                        <img src={selectedGroupAvatar} className="w-full h-full object-cover" alt="Custom Avatar" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            <button
+              onClick={handleStartChat}
+              disabled={selectedUserIds.length === 0 || isCreatingChat}
+              className="w-full h-12 bg-[#FBCB4B] text-[#1F1F1F] font-bold rounded-xl shadow-md hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale transition-all flex items-center justify-center gap-2"
+            >
+              {isCreatingChat ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                <>
+                  {selectedUserIds.length > 1 ? `Create Group (${selectedUserIds.length})` : 'Start Chat'}
+                </>
+              )}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmation.isOpen} onOpenChange={(open) => setConfirmation(prev => ({ ...prev, isOpen: open }))}>
+        <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden border-none shadow-2xl rounded-2xl">
+          <div className="p-6">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-[20px] font-bold text-[#1F1F1F]">{confirmation.title}</DialogTitle>
+            </DialogHeader>
+            <p className="text-[14px] text-[#6F7177] leading-relaxed">
+              {confirmation.description}
+            </p>
+          </div>
+          <div className="flex gap-3 p-4 bg-gray-50 border-t border-[#F0F0F0]">
+            <button
+              onClick={() => setConfirmation(prev => ({ ...prev, isOpen: false }))}
+              className="flex-1 h-11 rounded-xl text-[14px] font-bold text-[#6F7177] hover:bg-gray-200 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                setConfirmation(prev => ({ ...prev, isOpen: false }));
+                confirmation.onConfirm();
+              }}
+              className={cn(
+                "flex-1 h-11 rounded-xl text-[14px] font-bold transition-all shadow-sm active:scale-95",
+                confirmation.variant === 'destructive' 
+                  ? "bg-red-500 text-white hover:bg-red-600 shadow-red-100" 
+                  : "bg-[#FBCB4B] text-[#1F1F1F] hover:bg-[#F5B50A] shadow-yellow-100"
+              )}
+            >
+              {confirmation.confirmText || 'Confirm'}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
