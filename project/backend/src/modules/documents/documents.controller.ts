@@ -55,9 +55,7 @@ export class DocumentsController {
   }
 
   @Post('vault/upload')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: fundDocumentStorage,
-  }))
+  @UseInterceptors(FileInterceptor('file'))
   async uploadVaultDocument(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: any,
@@ -68,11 +66,35 @@ export class DocumentsController {
         throw new BadRequestException('File is required');
       }
       
-      console.log(`🚀 Uploading to vault: ${file.originalname} (${file.size} bytes)`);
+      if (file.size === 0) {
+        throw new BadRequestException('The uploaded file is empty (0 bytes). Please select a valid file.');
+      }
+      
+      console.log(`🚀 Uploading to vault via memory stream: ${file.originalname} (${file.size} bytes)`);
+
+      const cloudinaryUpload = () => {
+        return new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder: 'investment-portal/fund-documents',
+              resource_type: 'auto',
+              public_id: `vault-${Date.now()}-${file.originalname.replace(/\.[^/.]+$/, "")}`,
+            },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result);
+            }
+          );
+          uploadStream.end(file.buffer);
+        });
+      };
+
+      const uploadResult: any = await cloudinaryUpload();
+      const fileUrl = uploadResult.secure_url;
 
       return await this.documentsService.uploadFundDocument(null, {
         file_name: file.originalname,
-        file_url: file.path, // Cloudinary URL
+        file_url: fileUrl,
         document_type: body.document_type,
         tax_year: body.tax_year ? parseInt(body.tax_year) : undefined,
         description: body.description,
@@ -81,7 +103,6 @@ export class DocumentsController {
       });
     } catch (error: any) {
       console.error('❌ Error uploading vault document:', error);
-      // Re-throw as InternalServerError if not already an Http exception
       if (error instanceof BadRequestException) throw error;
       throw new BadRequestException(`Upload failed: ${error.message || 'Unknown error'}`);
     }

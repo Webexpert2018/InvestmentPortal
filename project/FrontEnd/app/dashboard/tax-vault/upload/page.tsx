@@ -47,6 +47,8 @@ export default function UploadTaxDocumentPage() {
 
     if (!selectedFile) {
       nextErrors.file = 'Please upload a file';
+    } else if (selectedFile.size === 0) {
+      nextErrors.file = 'The uploaded file is empty (0 bytes). Please select a valid file.';
     }
 
     setErrors(nextErrors);
@@ -82,6 +84,21 @@ export default function UploadTaxDocumentPage() {
   const handleCancel = () => {
     if (isUploading) return;
     router.push('/dashboard/tax-vault');
+  };
+
+  const [isDragging, setIsDragging] = useState(false);
+  
+  const handleDrop = (event: React.DragEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    if (isUploading) return;
+    
+    const file = event.dataTransfer.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setSelectedFileName(file.name);
+      setErrors((prev) => ({ ...prev, file: undefined }));
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,12 +218,18 @@ export default function UploadTaxDocumentPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => e.preventDefault()}
+                onDragEnter={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
                 disabled={isUploading}
-                className={`flex h-[103px] w-full flex-col items-center justify-center rounded-[8px] border border-dashed text-[#A2A5AA] ${
-                  errors.file ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                } ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                className={`flex h-[103px] w-full flex-col items-center justify-center rounded-[8px] border border-dashed ${
+                  selectedFileName ? 'text-[#1F1F1F] font-bold' : 'text-[#A2A5AA]'
+                } ${
+                  isDragging ? 'border-[#FBCB4B] bg-yellow-50' : errors.file ? 'border-[#E05252]' : 'border-[#E5E5EA]'
+                } ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#FAFBFC]'}`}
               >
-                <Plus className="h-6 w-6" />
+                <Plus className={`h-6 w-6 ${selectedFileName ? 'text-[#2BB673]' : 'text-[#A2A5AA]'}`} />
                 <p className="mt-2 text-[14px]">
                   {selectedFileName ? selectedFileName : 'Drag & drop files here'}
                 </p>
