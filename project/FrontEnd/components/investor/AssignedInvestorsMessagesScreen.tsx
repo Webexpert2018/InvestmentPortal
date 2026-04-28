@@ -127,6 +127,7 @@ export function AssignedInvestorsMessagesScreen() {
   const [selectedGroupAvatar, setSelectedGroupAvatar] = useState('/images/messages-person/GroupIcon.png');
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [isAddMode, setIsAddMode] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const fetchAvailableUsers = async () => {
@@ -312,20 +313,34 @@ export function AssignedInvestorsMessagesScreen() {
     
     try {
       setIsCreatingChat(true);
-      const isGroup = selectedUserIds.length > 1;
-      const res = await apiClient.getOrCreateConversation(
-        selectedUserIds, 
-        isGroup ? (groupNameInput || 'New Group') : undefined,
-        isGroup ? selectedGroupAvatar : undefined
-      );
-      setIsNewChatModalOpen(false);
-      setSelectedUserIds([]);
-      setGroupNameInput('');
-      await fetchConversations();
-      setActiveThreadId(res.id);
-      setIsMobileChatOpen(true);
+      if (isAddMode && activeThreadId) {
+        const currentParticipantIds = activeThread?.participants?.map((p: any) => p.id) || [];
+        const newIds = selectedUserIds.filter(id => !currentParticipantIds.includes(id));
+        
+        if (newIds.length > 0) {
+          await apiClient.addParticipants(activeThreadId, newIds);
+          toast({ title: 'Success', description: 'Members added successfully', variant: 'success' });
+        }
+        setIsNewChatModalOpen(false);
+        setSelectedUserIds([]);
+        setIsAddMode(false);
+        await fetchConversations();
+      } else {
+        const isGroup = selectedUserIds.length > 1;
+        const res = await apiClient.getOrCreateConversation(
+          selectedUserIds, 
+          isGroup ? (groupNameInput || 'New Group') : undefined,
+          isGroup ? selectedGroupAvatar : undefined
+        );
+        setIsNewChatModalOpen(false);
+        setSelectedUserIds([]);
+        setGroupNameInput('');
+        await fetchConversations();
+        setActiveThreadId(res.id);
+        setIsMobileChatOpen(true);
+      }
     } catch (err) {
-      toast({ title: 'Error', description: 'Failed to start chat', variant: 'destructive' });
+      toast({ title: 'Error', description: isAddMode ? 'Failed to add members' : 'Failed to start chat', variant: 'destructive' });
     } finally {
       setIsCreatingChat(false);
     }
@@ -429,10 +444,10 @@ export function AssignedInvestorsMessagesScreen() {
         try {
           if (isCreator) {
             await apiClient.deleteConversation(id);
-            toast({ title: 'Success', description: 'Group deleted successfully' });
+            toast({ title: 'Success', description: 'Group deleted successfully', variant: 'success' });
           } else {
             await apiClient.leaveConversation(id);
-            toast({ title: 'Success', description: 'You left the group' });
+            toast({ title: 'Success', description: 'You left the group', variant: 'success' });
           }
           setActiveThreadId(null);
           fetchConversations();
@@ -453,7 +468,7 @@ export function AssignedInvestorsMessagesScreen() {
       onConfirm: async () => {
         try {
           await apiClient.removeParticipant(conversationId, userId);
-          toast({ title: 'Success', description: 'Participant removed' });
+          toast({ title: 'Success', description: 'Participant removed', variant: 'success' });
           fetchConversations(true);
         } catch (err) {
           toast({ title: 'Error', description: 'Failed to remove participant', variant: 'destructive' });
@@ -713,7 +728,7 @@ export function AssignedInvestorsMessagesScreen() {
                             className="w-6 h-6 rounded-full text-[10px]" 
                           />
                           <span className="flex-1 truncate">{p.name} {p.id === profile?.id && '(You)'}</span>
-                          {activeThread.createdBy === profile?.id && p.id !== profile?.id && (
+                          {activeThread.isGroup && activeThread.createdBy === profile?.id && p.id !== profile?.id && (
                             <button 
                               onClick={(e) => { e.stopPropagation(); handleRemoveParticipant(activeThread.id, p.id); }}
                               className="text-red-500 hover:bg-red-50 p-1 rounded-md transition-colors"
@@ -725,6 +740,23 @@ export function AssignedInvestorsMessagesScreen() {
                         </div>
                       ))}
 
+                      {activeThread.isGroup && activeThread.createdBy === profile?.id && (
+                        <>
+                          <div className="h-[1px] bg-[#F0F0F0] my-1" />
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              setSelectedUserIds([]);
+                              setIsAddMode(true);
+                              setIsNewChatModalOpen(true);
+                            }}
+                            className="focus:bg-blue-50 focus:text-blue-600 cursor-pointer flex items-center gap-2 px-3 py-2.5 rounded-lg font-bold text-[#3B6FF0]"
+                          >
+                            <UserPlus className="h-4 w-4" />
+                            <span>Add Members</span>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      
                       {activeThread.isGroup && (
                         <>
                           <div className="h-[1px] bg-[#F0F0F0] my-1" />
@@ -1104,12 +1136,13 @@ export function AssignedInvestorsMessagesScreen() {
         if (!open) {
           setSelectedUserIds([]);
           setGroupNameInput('');
+          setIsAddMode(false);
         }
       }}>
         <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden rounded-2xl flex flex-col h-[600px]">
           <DialogHeader className="p-6 pb-2 shrink-0">
-            <DialogTitle className="font-goudy text-2xl">New Chat</DialogTitle>
-            <p className="text-[13px] text-[#8E8E93]">Select individuals or create a group</p>
+            <DialogTitle className="font-goudy text-2xl">{isAddMode ? 'Add Members' : 'New Chat'}</DialogTitle>
+            <p className="text-[13px] text-[#8E8E93]">{isAddMode ? 'Select participants to add to the group' : 'Select individuals or create a group'}</p>
           </DialogHeader>
           
           <div className="flex-1 overflow-y-auto px-4 pb-4">
@@ -1121,7 +1154,11 @@ export function AssignedInvestorsMessagesScreen() {
               <p className="text-center py-10 text-[13px] text-[#8E8E93]">No available users found</p>
             ) : (
               <div className="space-y-1">
-                {availableUsers.map((user) => {
+                {availableUsers.filter(user => {
+                  if (!isAddMode) return true;
+                  const currentParticipantIds = activeThread?.participants?.map((p: any) => p.id) || [];
+                  return !currentParticipantIds.includes(user.id);
+                }).map((user) => {
                   const isSelected = selectedUserIds.includes(user.id);
                   return (
                     <button
@@ -1160,7 +1197,7 @@ export function AssignedInvestorsMessagesScreen() {
           </div>
 
           <div className="p-6 pt-2 border-t border-[#F0F0F0] bg-gray-50/50 shrink-0">
-            {selectedUserIds.length > 1 && (
+            {!isAddMode && selectedUserIds.length > 1 && (
               <div className="space-y-3 pt-2">
                 <div>
                   <label className="text-[12px] font-bold text-[#6F7177] uppercase tracking-wider mb-2 block">Group Name</label>
@@ -1219,7 +1256,7 @@ export function AssignedInvestorsMessagesScreen() {
             >
               {isCreatingChat ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                 <>
-                  {selectedUserIds.length > 1 ? `Create Group (${selectedUserIds.length})` : 'Start Chat'}
+                  {isAddMode ? `Add Members (${selectedUserIds.length})` : selectedUserIds.length > 1 ? `Create Group (${selectedUserIds.length})` : 'Start Chat'}
                 </>
               )}
             </button>

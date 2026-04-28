@@ -827,6 +827,13 @@ class ApiClient {
     });
   }
 
+  async addParticipants(id: string, participantIds: string[]) {
+    return this.request<{ success: boolean }>(`/messages/conversations/${id}/add-participants`, {
+      method: 'POST',
+      body: JSON.stringify({ participantIds })
+    });
+  }
+
   async getConversationMessages(conversationId: string) {
     return this.request<any[]>(`/messages/conversations/${conversationId}/messages`);
   }

@@ -126,6 +126,28 @@ export class MessagesService {
       const allParticipants = Array.from(new Set([senderId, ...participantIds]));
       const isGroup = allParticipants.length > 2 || !!groupName;
 
+      // Identify investor_id and admin_id if possible
+      let investor_id: string | null = null;
+      let admin_id: string | null = null;
+      for (const pId of allParticipants) {
+        const userRes = await db.query(`
+          SELECT 'investor' as role FROM investors WHERE id = $1
+          UNION ALL
+          SELECT 'staff' as role FROM staff WHERE id = $1
+          UNION ALL
+          SELECT role FROM users WHERE id = $1
+        `, [pId]);
+        
+        if ((userRes.rowCount ?? 0) > 0) {
+          const role = userRes.rows[0].role;
+          if (role === 'investor') {
+            investor_id = pId;
+          } else if (['staff', 'admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant'].includes(role)) {
+            if (!admin_id) admin_id = pId;
+          }
+        }
+      }
+
       // 1. If not a group, try to find existing 1-on-1
       if (!isGroup && allParticipants.length === 2) {
         const p1 = allParticipants[0];
@@ -148,8 +170,8 @@ export class MessagesService {
 
       // 2. Create new conversation
       const newConvRes = await db.query(
-        'INSERT INTO conversations (is_group, group_name, group_image_url, created_by, last_message) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-        [isGroup, groupName || null, groupImageUrl || null, senderId, 'New conversation started']
+        'INSERT INTO conversations (is_group, group_name, group_image_url, created_by, last_message, investor_id, admin_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+        [isGroup, groupName || null, groupImageUrl || null, senderId, 'New conversation started', investor_id, admin_id]
       );
       const conversationId = newConvRes.rows[0].id;
 
@@ -164,8 +186,7 @@ export class MessagesService {
 
       return newConvRes.rows[0];
     } catch (error: any) {
-      console.error('❌ Error creating conversation:', error);
-      throw new InternalServerErrorException('Failed to start conversation');
+      throw new InternalServerErrorException('Failed to start conversation: ' + (error.message || error));
     }
   }
 
@@ -230,12 +251,26 @@ export class MessagesService {
 
   async removeParticipant(conversationId: string, targetUserId: string, requesterId: string) {
     try {
-      // Check if requester is admin of the conversation
-      const checkRes = await db.query(
+      // Check if it is a group chat
+      const convRes = await db.query(
+        'SELECT is_group, created_by FROM conversations WHERE id = $1',
+        [conversationId]
+      );
+      if (convRes.rowCount === 0) throw new NotFoundException('Conversation not found');
+      if (!convRes.rows[0].is_group) {
+        throw new Error('Cannot remove participants from a 1-on-1 conversation');
+      }
+
+      // Check if requester is admin of the conversation OR the creator
+      const checkAdminRes = await db.query(
         'SELECT is_admin FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2',
         [conversationId, requesterId]
       );
-      if (checkRes.rowCount === 0 || !checkRes.rows[0].is_admin) {
+      
+      const isCreator = convRes.rows[0].created_by === requesterId;
+      const isAdmin = (checkAdminRes.rowCount ?? 0) > 0 && checkAdminRes.rows[0].is_admin;
+
+      if (!isAdmin && !isCreator) {
         throw new Error('Unauthorized to remove members');
       }
 
@@ -244,6 +279,53 @@ export class MessagesService {
     } catch (error: any) {
       console.error('❌ Error removing participant:', error);
       throw new InternalServerErrorException(error.message || 'Failed to remove participant');
+    }
+  }
+
+  async addParticipants(conversationId: string, participantIds: string[], requesterId: string) {
+    try {
+      // Check if it is a group chat
+      const convRes = await db.query(
+        'SELECT is_group, created_by FROM conversations WHERE id = $1',
+        [conversationId]
+      );
+      if (convRes.rowCount === 0) throw new NotFoundException('Conversation not found');
+      if (!convRes.rows[0].is_group) {
+        throw new Error('Cannot add participants to a 1-on-1 conversation');
+      }
+
+      // Check if requester is admin of the conversation OR the creator
+      const checkAdminRes = await db.query(
+        'SELECT is_admin FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2',
+        [conversationId, requesterId]
+      );
+      
+      const isCreator = convRes.rows[0].created_by === requesterId;
+      const isAdmin = (checkAdminRes.rowCount ?? 0) > 0 && checkAdminRes.rows[0].is_admin;
+
+      if (!isAdmin && !isCreator) {
+        throw new Error('Unauthorized to add members');
+      }
+
+      const participantPromises = participantIds.map(async (userId) => {
+        const existingRes = await db.query(
+          'SELECT 1 FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2',
+          [conversationId, userId]
+        );
+        
+        if (existingRes.rowCount === 0) {
+          return db.query(
+            'INSERT INTO conversation_participants (conversation_id, user_id, is_admin) VALUES ($1, $2, $3)',
+            [conversationId, userId, false]
+          );
+        }
+      });
+      
+      await Promise.all(participantPromises);
+      return { success: true };
+    } catch (error: any) {
+      console.error('❌ Error adding participants:', error);
+      throw new InternalServerErrorException(error.message || 'Failed to add participants');
     }
   }
 
