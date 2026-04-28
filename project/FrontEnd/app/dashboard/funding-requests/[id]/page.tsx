@@ -7,7 +7,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/api/client';
 import { format } from 'date-fns';
-
+import { toast } from 'sonner';
 interface PageProps {
   params: {
     id: string;
@@ -24,6 +24,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [selectedRejectReason, setSelectedRejectReason] = useState('');
+  const [rejectError, setRejectError] = useState('');
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -282,9 +283,11 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                 onClick={async () => {
                   try {
                     await apiClient.updateInvestmentStatus(params.id, { status: 'Awaiting Funding' });
+                    toast.success('Funding request marked as reviewed');
                     setShowApproveModal(false);
-                    window.location.reload();
-                  } catch (err) {
+                    setTimeout(() => window.location.reload(), 1000);
+                  } catch (err: any) {
+                    toast.error(err.message || 'Failed to approve request');
                     console.error('Failed to approve:', err);
                   }
                 }}
@@ -302,7 +305,10 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
             <button
-              onClick={() => setShowRejectModal(false)}
+              onClick={() => {
+                setShowRejectModal(false);
+                setRejectError('');
+              }}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
             >
               <X className="h-5 w-5" />
@@ -317,16 +323,31 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
               <div className="relative">
                 <select
                   value={selectedRejectReason}
-                  onChange={(e) => setSelectedRejectReason(e.target.value)}
-                  className="w-full appearance-none px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white cursor-pointer text-gray-700"
+                  onChange={(e) => {
+                    setSelectedRejectReason(e.target.value);
+                    if (rejectError) setRejectError('');
+                  }}
+                  className={`w-full appearance-none px-4 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] ${rejectError && !selectedRejectReason ? 'border-red-500' : 'border-gray-300'
+                    } bg-white cursor-pointer text-gray-700`}
                 >
-                  <option value="">Select reason</option>
+                  <option value="0">
+                    Select reason
+                  </option>
+
                   {rejectReasons.map((reason) => (
                     <option key={reason} value={reason}>
                       {reason}
                     </option>
                   ))}
                 </select>
+
+                {/* Dropdown Error */}
+                {rejectError && !selectedRejectReason && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Please select a reason
+                  </p>
+                )}
+
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
               </div>
             </div>
@@ -335,34 +356,50 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
               <textarea
                 value={rejectReason}
                 onChange={(e) => {
+                  if (rejectError) setRejectError('');
                   if (e.target.value.length <= 1000) {
                     setRejectReason(e.target.value);
                   }
                 }}
                 placeholder="Please provide a reason for rejecting this funding request."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none h-24"
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] resize-none h-24 ${rejectError ? 'border-red-500' : 'border-gray-300 focus:border-transparent'
+                  }`}
               />
-              <div className="text-right text-sm text-gray-400 mt-1">
-                {rejectReason.length}/1000
+              <div className="flex justify-between items-start mt-1">
+                <div className="text-sm text-red-500 font-medium">
+                  {rejectError}
+                </div>
+                <div className="text-right text-sm text-gray-400">
+                  {rejectReason.length}/1000
+                </div>
               </div>
             </div>
 
             <div className="flex gap-3 justify-end">
               <Button
-                onClick={() => setShowRejectModal(false)}
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectError('');
+                }}
                 className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium shadow-none"
               >
                 No
               </Button>
               <Button
                 onClick={async () => {
+                  if (!rejectReason.trim()) {
+                    setRejectError('Please provide a reason for rejecting this funding request.');
+                    return;
+                  }
                   try {
                     await apiClient.updateInvestmentStatus(params.id, { status: 'Rejected' });
+                    toast.success('Funding request rejected successfully');
                     setShowRejectModal(false);
                     setRejectReason('');
                     setSelectedRejectReason('');
-                    window.location.reload();
-                  } catch (err) {
+                    setTimeout(() => window.location.reload(), 1000);
+                  } catch (err: any) {
+                    toast.error(err.message || 'Failed to reject request');
                     console.error('Failed to reject:', err);
                   }
                 }}

@@ -12,7 +12,7 @@ export default function FundingRequestsPage() {
   const [fundStatusFilter, setFundStatusFilter] = useState('all');
   const [paymentTypeFilter, setPaymentTypeFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeDropdown, setActiveDropdown] = useState<string | number | null>(null);
+
   const [investments, setInvestments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -258,30 +258,11 @@ export default function FundingRequestsPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="relative">
-                            <button
-                              onClick={() => setActiveDropdown(activeDropdown === request.id ? null : request.id)}
-                              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                              <MoreVertical className="h-5 w-5 text-gray-600" />
+                          <Link href={`/dashboard/funding-requests/${request.id}`}>
+                            <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                              View Request
                             </button>
-
-                            {activeDropdown === request.id && (
-                              <>
-                                <div
-                                  className="fixed inset-0 z-10"
-                                  onClick={() => setActiveDropdown(null)}
-                                />
-                                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
-                                  <Link href={`/dashboard/funding-requests/${request.id}`}>
-                                    <button className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors">
-                                      View Request
-                                    </button>
-                                  </Link>
-                                </div>
-                              </>
-                            )}
-                          </div>
+                          </Link>
                         </td>
                       </tr>
                     );
