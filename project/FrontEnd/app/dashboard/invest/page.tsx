@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +40,7 @@ const getFullImageUrl = (imagePath: string | null | undefined): string | undefin
 export default function InvestPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>('fundingAccount');
   const [funds, setFunds] = useState<any[]>([]);
@@ -93,36 +94,80 @@ export default function InvestPage() {
 
       // Restore state from localStorage
       const draftJson = localStorage.getItem('draft_investment');
+      if (!draftJson) return;
+
+      // Remove immediately to prevent duplicate triggers (e.g. React StrictMode)
+      localStorage.removeItem('draft_investment');
+
+      let draftAmount = amount;
+      let draftUnitPrice = unitPrice;
+      let draftSelectedFundId = selectedFundId;
+      let draftAccountId = selectedAccountId;
+      let draftAccountType = 'personal';
+
       if (draftJson) {
         try {
           const draft = JSON.parse(draftJson);
-          if (draft.fundId) setSelectedFundId(draft.fundId);
-          if (draft.accountId) setSelectedAccountId(draft.accountId);
-          if (draft.amount) setAmount(String(draft.amount));
-          if (draft.unitPrice) setUnitPrice(draft.unitPrice);
+          if (draft.fundId) {
+            setSelectedFundId(draft.fundId);
+            draftSelectedFundId = draft.fundId;
+          }
+          if (draft.accountId) {
+            setSelectedAccountId(draft.accountId);
+            draftAccountId = draft.accountId;
+          }
+          if (draft.amount) {
+            setAmount(String(draft.amount));
+            draftAmount = String(draft.amount);
+          }
+          if (draft.unitPrice) {
+            setUnitPrice(draft.unitPrice);
+            draftUnitPrice = draft.unitPrice;
+          }
+          if (draft.accountType) {
+            draftAccountType = draft.accountType;
+          }
         } catch (e) {
           console.error('Failed to parse draft investment:', e);
         }
       }
 
-      // Optimistic UI update: Mark as signed locally
-      setCurrentInvestment({
-        document_signed: true,
-        created_at: new Date().toISOString(),
-        signed_at: new Date().toISOString()
-      });
+      // SUBMIT INVESTMENT IMMEDIATELY
+      const submitInvestment = async () => {
+        try {
+          const cleanAmount = draftAmount.replace(/[^-0-9.]/g, '');
+          const numericAmount = Number.parseFloat(cleanAmount) || 0;
 
-      setStep('investmentStatus');
+          const investment = await apiClient.createInvestment({
+            fundId: draftSelectedFundId!,
+            accountId: draftAccountId !== 'personal' ? (draftAccountId ?? undefined) : undefined,
+            accountType: draftAccountType,
+            investmentAmount: numericAmount,
+            unitPrice: draftUnitPrice,
+            status: 'Subscription Submitted',
+            documentSigned: true
+          });
+
+          if (investment && investment.id) {
+            localStorage.setItem('last_investment_id', investment.id);
+            setCurrentInvestment(investment);
+          }
+          
+          // Go to Funding Instructions screen!
+          setStep('fundingInstructions');
+        } catch (error) {
+          console.error('Failed to submit investment on signing complete:', error);
+        }
+      };
+      submitInvestment();
 
       // Clean up URL parameters
       const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
       current.delete('signing');
       current.delete('event');
-      const search = current.toString();
-      const query = search ? `?${search}` : '';
-      router.replace(`/dashboard/invest${query}`);
+      router.replace(pathname + '?' + current.toString());
     }
-  }, [searchParams, router]);
+  }, [searchParams, pathname, router]);
 
   const selectedFund = useMemo(() => {
     return funds.find(f => f.id === selectedFundId);
@@ -182,12 +227,12 @@ export default function InvestPage() {
   const { investmentAmount, processingFee, total, estimatedUnits } = useMemo(() => {
     const cleanAmount = amount.replace(/[^-0-9.]/g, '');
     const numeric = Number.parseFloat(cleanAmount) || 0;
-    const fee = numeric * 0.005;
+    const fee = 0;
     const units = unitPrice > 0 ? numeric / unitPrice : 0;
     return {
       investmentAmount: numeric,
       processingFee: fee,
-      total: numeric + fee,
+      total: numeric,
       estimatedUnits: units,
     };
   }, [amount, unitPrice]);
@@ -351,44 +396,13 @@ export default function InvestPage() {
     }
 
     if (step === 'investmentStatus') {
-      setSaving(true);
-      try {
-        const isIra = selectedAccountId !== 'personal';
-        const selectedIra = userIraAccounts.find(a => a.id === selectedAccountId);
-        const finalAccountType = isIra ? (selectedIra?.account_type || 'ira') : 'personal';
-
-        // Create the investment record ONLY when the user clicks "Done"
-        const investment = await apiClient.createInvestment({
-          fundId: selectedFundId!,
-          accountId: isIra ? (selectedAccountId ?? undefined) : undefined,
-          accountType: finalAccountType,
-          investmentAmount: investmentAmount,
-          unitPrice: unitPrice,
-          status: 'Subscription Submitted',
-          documentSigned: true
-        });
-
-        if (investment && investment.id) {
-          localStorage.setItem('last_investment_id', investment.id);
-          setCurrentInvestment(investment);
-        }
-
-        localStorage.removeItem('draft_investment');
-        setShowSuccess(true);
-        setAmount('25000');
-        setSelectedAccountId('personal');
-      } catch (error) {
-        console.error('Failed to create investment on Done:', error);
-        toast({
-          title: "Investment Failed",
-          description: 'Failed to submit investment: ' + (error instanceof Error ? error.message : String(error)),
-          variant: "destructive"
-        });
-      } finally {
-        setSaving(false);
-      }
+      localStorage.removeItem('draft_investment');
+      setShowSuccess(true);
+      setAmount('25000');
+      setSelectedAccountId('personal');
       return;
     }
+
 
     setStep((current: Step) => {
       switch (current) {
@@ -626,7 +640,7 @@ export default function InvestPage() {
               </span>
             </div>
             <div className="flex items-center justify-between text-[#4B4B4B]">
-              <span className="font-medium">Processing Fee (0.5%):</span>
+              <span className="font-medium">Processing Fee (0%):</span>
               <span className="font-bold text-[#1F1F1F]">
                 $
                 {processingFee.toLocaleString('en-US', {

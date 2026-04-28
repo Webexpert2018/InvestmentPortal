@@ -364,9 +364,9 @@ export default function PortfolioFundDetailsPage() {
                 </span>
               </div>
             </div>
-            <button className="mt-6 w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF]">
+            {/* <button className="mt-6 w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF]">
               Contact Support
-            </button>
+            </button> */}
           </div>
         </div>
 

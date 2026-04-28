@@ -49,6 +49,7 @@ type ChatMessage = {
   fileUrl?: string;
   updatedAt?: string;
   createdAt?: string;
+  senderAvatar?: string;
 };
 
 type Thread = {
@@ -828,23 +829,6 @@ export function AssignedInvestorsMessagesScreen() {
                              ) : (
                               <div className="flex flex-col items-end max-w-[85%] sm:max-w-[80%]">
                                 <div className="flex items-start gap-2 relative">
-                                  <div className={cn(
-                                    "flex items-center gap-1 self-center transition-all duration-200",
-                                    editingMessageId === message.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                                  )}>
-                                    <button
-                                      onClick={() => { setEditingMessageId(message.id); setEditInput(message.text); }}
-                                      className="p-1.5 hover:bg-gray-100 rounded-full text-[#A2A5AA] hover:text-[#1F1F1F] transition-colors"
-                                    >
-                                      <Pencil className="h-3.5 w-3.5" />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteMessage(message.id)}
-                                      className="p-1.5 hover:bg-red-50 rounded-full text-[#A2A5AA] hover:text-red-500 transition-colors"
-                                    >
-                                      <Trash2 className="h-3.5 w-3.5" />
-                                    </button>
-                                  </div>
 
                                   {editingMessageId === message.id ? (
                                     <div className="flex flex-col bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] p-4 border border-[#EBEBEB] w-[260px] sm:w-[320px] shadow-sm relative overflow-hidden">
@@ -961,17 +945,6 @@ export function AssignedInvestorsMessagesScreen() {
                         ) : (
                           <div className="flex flex-col items-end max-w-[85%] sm:max-w-[80%]">
                             <div className="flex items-start gap-2 relative">
-                              <div className={cn(
-                                "flex items-center gap-1 self-center transition-all duration-200",
-                                editingMessageId === message.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                              )}>
-                                <button onClick={() => { setEditingMessageId(message.id); setEditInput(message.text); }} className="p-1.5 hover:bg-gray-100 rounded-full text-[#A2A5AA] hover:text-[#1F1F1F] transition-colors">
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </button>
-                                <button onClick={() => handleDeleteMessage(message.id)} className="p-1.5 hover:bg-red-50 rounded-full text-[#A2A5AA] hover:text-red-500 transition-colors">
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                              </div>
 
                               {editingMessageId === message.id ? (
                                 <div className="flex flex-col bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] p-4 border border-[#EBEBEB] w-[260px] sm:w-[320px] shadow-sm relative overflow-hidden">

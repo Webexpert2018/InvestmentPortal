@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bell, Search, MessageCircle } from "lucide-react";
+import { Bell, Search, MessageCircle, CalendarDays } from "lucide-react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { apiClient, BASE_URL } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
@@ -101,6 +101,17 @@ export function DashboardHeader({
             className="ml-3 w-full bg-transparent font-helvetica text-[14px] leading-none text-[#2A2A2A] outline-none placeholder:text-[#8D8D8D]"
           />
         </div> */}
+        <Link
+          href="/dashboard/schedule-meeting"
+          className={cn(
+            "relative inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] transition hover:bg-[#EBEBEB]",
+            pathname === "/dashboard/schedule-meeting" && "ring-2 ring-[#D9DEE7]",
+          )}
+          aria-label="Schedule Meeting"
+        >
+          <CalendarDays className="h-[21px] w-[21px] text-[#555555]" strokeWidth={1.8} />
+        </Link>
+
         <Link
           href="/dashboard/messages"
           className={cn(
