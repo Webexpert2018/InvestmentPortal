@@ -151,6 +151,14 @@ export default function InvestPage() {
           if (investment && investment.id) {
             localStorage.setItem('last_investment_id', investment.id);
             setCurrentInvestment(investment);
+
+            const savedEnvelopeId = localStorage.getItem('last_envelope_id');
+            if (savedEnvelopeId) {
+              const dsAccessToken = localStorage.getItem('ds_access_token') || '';
+              const dsAccountId = localStorage.getItem('ds_account_id') || '';
+              apiClient.getDocuSignDocument(savedEnvelopeId, dsAccessToken, dsAccountId)
+                .catch(err => console.warn('Auto-vault sync handled silently:', err));
+            }
           }
 
           // Go to Funding Instructions screen!
@@ -814,14 +822,14 @@ export default function InvestPage() {
                 {isSigning ? 'Connecting to DocuSign...' : 'Start Signing'}
               </button>
               {/* //////// Bypass DocuSign hide //////////////// */}
-              <button
+              {/* <button
                 type="button"
                 onClick={handleBypass}
                 disabled={isSigning}
                 className="w-full rounded-full bg-red-50 py-3.5 text-sm font-bold text-red-600 hover:bg-neutral-100 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-red-200"
               >
                 {isSigning ? 'Processing...' : 'Bypass DocuSign (Testing)'}
-              </button>
+              </button> */}
               {/* ////////// Bypass DocuSign hide ////////////// */}
               <button
                 type="button"

@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { db } from '../../config/database';
 import { NotificationsService } from '../notifications/notifications.service';
+import * as fs from 'fs';
+import * as path from 'path';
+import { cloudinary } from '../../config/cloudinary.config';
 
 @Injectable()
 export class InvestmentsService {
@@ -79,6 +82,49 @@ export class InvestmentsService {
       } catch (auditError) {
         console.warn('⚠️ Failed to create audit log for investment:', auditError);
         // Don't fail the whole request if audit logging fails
+      }
+
+      // Auto-save signed document into the Document Vault!
+      try {
+        const fallbackPath = path.resolve(process.cwd(), 'public/subscription-documents/SA-BWell-Fund.pdf');
+        if (fs.existsSync(fallbackPath)) {
+          const pdfBuffer = fs.readFileSync(fallbackPath);
+
+          const cloudinaryUpload = () => {
+            return new Promise((resolve, reject) => {
+              const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                  folder: 'investment-portal/kyc-docs',
+                  resource_type: 'auto',
+                  public_id: `vault-auto-${investment.id}`,
+                },
+                (error, result) => {
+                  if (error) return reject(error);
+                  resolve(result);
+                }
+              );
+              uploadStream.end(pdfBuffer);
+            });
+          };
+
+          const uploadResult: any = await cloudinaryUpload();
+          const fileUrl = uploadResult.secure_url;
+
+          await db.query(
+            `INSERT INTO investor_documents (investor_id, file_name, file_url, document_type, file_size, description)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [
+              userId,
+              `Subscription_Agreement_${investment.id}.pdf`,
+              fileUrl,
+              'signed_agreement',
+              pdfBuffer.length,
+              `Auto-Saved Document Vault Record for Investment ID: ${investment.id}`
+            ]
+          );
+        }
+      } catch (vaultError) {
+        console.warn('⚠️ Failed to auto-save document to vault in createInvestment:', vaultError);
       }
 
       // Notify admin/staff about new fund request

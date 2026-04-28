@@ -4,6 +4,8 @@ import { DocusignService } from './docusign.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { CurrentUser } from '../../decorators/current-user.decorator';
 import { UsersService } from '../users/users.service';
+import { db } from '../../config/database';
+import { cloudinary } from '../../config/cloudinary.config';
 
 /**
  * DocuSign Controller handles HTTP requests for DocuSign integration.
@@ -165,6 +167,7 @@ export class DocusignController {
   @UseGuards(JwtAuthGuard)
   async getEnvelopeDocument(
     @Param('envelopeId') envelopeId: string,
+    @CurrentUser() user: any,
     @Res() res: Response
   ) {
     try {
@@ -194,6 +197,7 @@ export class DocusignController {
           throw dsError;
         }
       }
+
 
       res.set({
         'Content-Type': 'application/pdf',
