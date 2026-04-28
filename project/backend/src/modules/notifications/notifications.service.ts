@@ -5,60 +5,80 @@ const ADMIN_ROLES = ['executive_admin', 'fund_admin', 'investor_relations', 'adm
 
 @Injectable()
 export class NotificationsService {
-  /**
-   * Creates one notification row per target role so each role
-   * has its own independent is_read state (separate blue dot).
-   */
+  private static columnCheck: { [key: string]: boolean } | null = null;
+
+  private async checkColumns(): Promise<{ [key: string]: boolean }> {
+    if (NotificationsService.columnCheck) return NotificationsService.columnCheck;
+
+    try {
+      const result = await db.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'notifications' 
+        AND column_name IN ('message', 'related_id', 'related_type')
+      `);
+      const existingColumns = result.rows.map(r => r.column_name);
+      NotificationsService.columnCheck = {
+        message: existingColumns.includes('message'),
+        related_id: existingColumns.includes('related_id'),
+        related_type: existingColumns.includes('related_type')
+      };
+      return NotificationsService.columnCheck;
+    } catch (err) {
+      console.warn('[NotificationService] Failed to check columns, assuming legacy schema:', err);
+      return { message: false, related_id: false, related_type: false };
+    }
+  }
+
   async createNotification(data: {
     userId?: string;
-    targetRoles?: string[];   // multiple roles → one row each
-    targetRole?: string;      // single role (legacy / convenience)
+    targetRoles?: string[];
+    targetRole?: string;
     title: string;
     description?: string;
-    message?: string;         // mapped to description if missing
+    message?: string;
     type: string;
     link?: string;
-    relatedId?: string;       // newly discovered NOT NULL column
-    relatedType?: string;     // newly discovered NOT NULL column
+    relatedId?: string;
+    relatedType?: string;
   }) {
     const { userId, title, description, message, type, link, relatedId, relatedType } = data;
+    const columns = await this.checkColumns();
 
-    // Resolve the list of roles to insert for
     const roles: (string | null)[] = data.targetRoles
       ? data.targetRoles
       : data.targetRole
         ? [data.targetRole]
-        : [null]; // null = no role filter (show to everyone)
-    console.log(`[NotificationService] Creating notification: "${title}" for roles:`, roles);
-    
-    // Fallback for NOT NULL columns found in DB
-    const finalMessage = message || description || title;
-    const finalRelatedId = relatedId || '00000000-0000-0000-0000-000000000000'; // Dummy UUID if missing
-    const finalRelatedType = relatedType || type || 'general';
+        : [null];
 
     try {
       const insertPromises = roles.map((role) => {
-        console.log(`[NotificationService] Inserting for role: ${role}`);
-        return db.query(
-          `INSERT INTO notifications (
-            user_id, target_role, title, description, message, type, link, related_id, related_type
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-           RETURNING *`,
-          [
-            userId || null, 
-            role, 
-            title, 
-            description || null, 
-            finalMessage, 
-            type, 
-            link || null,
-            finalRelatedId,
-            finalRelatedType
-          ]
-        );
+        // Build query dynamically based on existing columns
+        const fields = ['user_id', 'target_role', 'title', 'description', 'type', 'link'];
+        const placeholders = ['$1', '$2', '$3', '$4', '$5', '$6'];
+        const values = [userId || null, role, title, description || null, type, link || null];
+
+        if (columns.message) {
+          fields.push('message');
+          placeholders.push(`$${values.length + 1}`);
+          values.push(message || description || title);
+        }
+        if (columns.related_id) {
+          fields.push('related_id');
+          placeholders.push(`$${values.length + 1}`);
+          values.push(relatedId || '00000000-0000-0000-0000-000000000000');
+        }
+        if (columns.related_type) {
+          fields.push('related_type');
+          placeholders.push(`$${values.length + 1}`);
+          values.push(relatedType || type || 'general');
+        }
+
+        const query = `INSERT INTO notifications (${fields.join(', ')}) VALUES (${placeholders.join(', ')}) RETURNING *`;
+        return db.query(query, values);
       });
+
       const results = await Promise.all(insertPromises);
-      console.log(`[NotificationService] Successfully created ${results.length} notification rows.`);
       return results.map((r) => r.rows[0]);
     } catch (error) {
       console.error('❌ Error creating notifications:', error);
