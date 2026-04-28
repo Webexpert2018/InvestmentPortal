@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 type Sender = 'investor' | 'accountant';
 
 type ChatMessage = {
+  senderAvatar: string | undefined;
   id: string;
   sender: Sender;
   sender_id?: string;
@@ -81,26 +82,26 @@ export const AvatarDisplay = ({ src, name, className }: { src?: string; name: st
 
   const showInitials = !src || imgError;
 
-    const diceAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=FBCB4B,3B6FF0,34C759,FF9500&fontSize=40&fontWeight=700`;
+  const diceAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=FBCB4B,3B6FF0,34C759,FF9500&fontSize=40&fontWeight=700`;
 
-    return (
-      <div className={cn("relative overflow-hidden flex items-center justify-center shrink-0", className, showInitials && "bg-[#F3F4F6] shadow-inner")}>
-        {showInitials ? (
-          <img
-            src={diceAvatar}
-            alt={name}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <img
-            src={src}
-            alt={name}
-            className="h-full w-full object-cover"
-            onError={() => setImgError(true)}
-          />
-        )}
-      </div>
-    );
+  return (
+    <div className={cn("relative overflow-hidden flex items-center justify-center shrink-0", className, showInitials && "bg-[#F3F4F6] shadow-inner")}>
+      {showInitials ? (
+        <img
+          src={diceAvatar}
+          alt={name}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <img
+          src={src}
+          alt={name}
+          className="h-full w-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      )}
+    </div>
+  );
 };
 
 export function AssignedInvestorsMessagesScreen() {
@@ -162,7 +163,7 @@ export function AssignedInvestorsMessagesScreen() {
     isOpen: false,
     title: '',
     description: '',
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
@@ -309,12 +310,12 @@ export function AssignedInvestorsMessagesScreen() {
 
   const handleStartChat = async () => {
     if (selectedUserIds.length === 0) return;
-    
+
     try {
       setIsCreatingChat(true);
       const isGroup = selectedUserIds.length > 1;
       const res = await apiClient.getOrCreateConversation(
-        selectedUserIds, 
+        selectedUserIds,
         isGroup ? (groupNameInput || 'New Group') : undefined,
         isGroup ? selectedGroupAvatar : undefined
       );
@@ -332,9 +333,9 @@ export function AssignedInvestorsMessagesScreen() {
   };
 
   const toggleUserSelection = (userId: string) => {
-    setSelectedUserIds(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId) 
+    setSelectedUserIds(prev =>
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
         : [...prev, userId]
     );
   };
@@ -420,8 +421,8 @@ export function AssignedInvestorsMessagesScreen() {
     setConfirmation({
       isOpen: true,
       title: isCreator ? 'Delete Group' : 'Leave Group',
-      description: isCreator 
-        ? 'As the creator, leaving will permanently delete this group for everyone. Are you sure?' 
+      description: isCreator
+        ? 'As the creator, leaving will permanently delete this group for everyone. Are you sure?'
         : 'Are you sure you want to leave this group?',
       confirmText: isCreator ? 'Delete Group' : 'Leave Group',
       variant: 'destructive',
@@ -584,11 +585,11 @@ export function AssignedInvestorsMessagesScreen() {
 
   return (
     <div className="mx-auto max-w-8xl px-2 font-helvetica text-[#1F1F1F]">
-      <h1 className="font-goudy font-bold text-[32px] leading-tight text-[#1F1F1F]">Messages</h1>
+      <h1 className="font-goudy font-bold text-[24px] leading-tight text-[#1F1F1F]">Messages</h1>
 
       <div className="mt-3 grid gap-3 md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr]">
         <section className={cn(
-          "rounded-[12px] bg-white p-4 shadow-sm border border-[#F0F0F0] h-[700px] flex flex-col",
+          "rounded-[8px] bg-white p-4 shadow-sm border border-[#F0F0F0] h-[calc(100vh-160px)] min-h-[500px] flex flex-col",
           isMobileChatOpen ? "hidden md:flex" : "flex"
         )}>
           <div className="flex items-center gap-2 mb-4 px-1">
@@ -663,7 +664,7 @@ export function AssignedInvestorsMessagesScreen() {
         </section>
 
         <section className={cn(
-          "rounded-[12px] bg-white p-4 shadow-sm border border-[#F0F0F0] flex flex-col h-[700px]",
+          "rounded-[8px] bg-white p-4 shadow-sm border border-[#F0F0F0] flex flex-col h-[calc(100vh-160px)] min-h-[500px]",
           !isMobileChatOpen ? "hidden md:flex" : "flex"
         )}>
           {activeThread ? (
@@ -704,17 +705,17 @@ export function AssignedInvestorsMessagesScreen() {
                       <div className="px-3 py-2 border-b border-[#F0F0F0] mb-1">
                         <p className="text-[11px] font-bold text-[#A2A5AA] uppercase tracking-wider">Group Details</p>
                       </div>
-                      
+
                       {activeThread.participants?.map((p: any) => (
                         <div key={p.id} className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#1F1F1F]">
-                          <AvatarDisplay 
-                            src={p.avatar} 
-                            name={p.name} 
-                            className="w-6 h-6 rounded-full text-[10px]" 
+                          <AvatarDisplay
+                            src={p.avatar}
+                            name={p.name}
+                            className="w-6 h-6 rounded-full text-[10px]"
                           />
                           <span className="flex-1 truncate">{p.name} {p.id === profile?.id && '(You)'}</span>
                           {activeThread.createdBy === profile?.id && p.id !== profile?.id && (
-                            <button 
+                            <button
                               onClick={(e) => { e.stopPropagation(); handleRemoveParticipant(activeThread.id, p.id); }}
                               className="text-red-500 hover:bg-red-50 p-1 rounded-md transition-colors"
                               title="Remove Participant"
@@ -728,7 +729,7 @@ export function AssignedInvestorsMessagesScreen() {
                       {activeThread.isGroup && (
                         <>
                           <div className="h-[1px] bg-[#F0F0F0] my-1" />
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleLeaveGroup(activeThread.id)}
                             className="text-red-500 focus:text-red-500 focus:bg-red-50 cursor-pointer flex items-center gap-2 px-3 py-2.5 rounded-lg"
                           >
@@ -758,42 +759,42 @@ export function AssignedInvestorsMessagesScreen() {
                             message.sender === 'investor' ? "justify-start" : "justify-end"
                           )}>
                             {message.sender === 'investor' ? (
-                               <div className="flex items-start gap-2 max-w-[85%] sm:max-w-[80%]">
-                                 <AvatarDisplay 
-                                   src={message.senderAvatar} 
-                                   name={message.sender_name || 'Participant'} 
-                                   className="w-8 h-8 rounded-full mt-1" 
-                                 />
-                                 <div className="flex flex-col items-start flex-1">
-                                   {activeThread?.isGroup && (
-                                     <span className="text-[11px] font-bold text-[#6F7177] mb-1 ml-1 block">
-                                       {message.sender_name || 'Participant'}
-                                     </span>
-                                   )}
-                                   {message.isAttachment ? (
-                                     <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] border border-[#D9E6FC] shadow-sm">
-                                       <div className="flex items-center gap-3">
-                                         <div className="h-10 w-10 shrink-0 flex items-center justify-center">
-                                           <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8" />
-                                         </div>
-                                         <div className="min-w-0">
-                                           <p className="truncate text-[13px] font-bold">{message.attachmentName}</p>
-                                           <p className="text-[11px] opacity-70">{message.attachmentSize}</p>
-                                         </div>
-                                         <button onClick={() => downloadFile(message.fileUrl!, message.attachmentName!)} className="p-2 hover:bg-white/50 rounded-full transition-colors">
-                                           <Download className="h-4 w-4" />
-                                         </button>
-                                       </div>
-                                     </div>
-                                   ) : (
-                                     <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] leading-relaxed border border-[#D9E6FC] shadow-sm">
-                                       {message.text}
-                                     </div>
-                                   )}
-                                   <span className="text-[11px] text-[#A2A5AA] mt-1.5 ml-1">{message.time}</span>
-                                 </div>
-                               </div>
-                             ) : (
+                              <div className="flex items-start gap-2 max-w-[85%] sm:max-w-[80%]">
+                                <AvatarDisplay
+                                  src={message.senderAvatar}
+                                  name={message.sender_name || 'Participant'}
+                                  className="w-8 h-8 rounded-full mt-1"
+                                />
+                                <div className="flex flex-col items-start flex-1">
+                                  {activeThread?.isGroup && (
+                                    <span className="text-[11px] font-bold text-[#6F7177] mb-1 ml-1 block">
+                                      {message.sender_name || 'Participant'}
+                                    </span>
+                                  )}
+                                  {message.isAttachment ? (
+                                    <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] border border-[#D9E6FC] shadow-sm">
+                                      <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 shrink-0 flex items-center justify-center">
+                                          <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8" />
+                                        </div>
+                                        <div className="min-w-0">
+                                          <p className="truncate text-[13px] font-bold">{message.attachmentName}</p>
+                                          <p className="text-[11px] opacity-70">{message.attachmentSize}</p>
+                                        </div>
+                                        <button onClick={() => downloadFile(message.fileUrl!, message.attachmentName!)} className="p-2 hover:bg-white/50 rounded-full transition-colors">
+                                          <Download className="h-4 w-4" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] leading-relaxed border border-[#D9E6FC] shadow-sm">
+                                      {message.text}
+                                    </div>
+                                  )}
+                                  <span className="text-[11px] text-[#A2A5AA] mt-1.5 ml-1">{message.time}</span>
+                                </div>
+                              </div>
+                            ) : (
                               <div className="flex flex-col items-end max-w-[85%] sm:max-w-[80%]">
                                 <div className="flex items-start gap-2 relative">
                                   <div className={cn(
@@ -1088,7 +1089,7 @@ export function AssignedInvestorsMessagesScreen() {
               </div>
               <p className="text-[16px] font-medium text-[#6F7177]">Select a conversation to start chatting</p>
               <p className="text-[13px] mt-1 opacity-60">Pick an investor from the sidebar</p>
-              <button 
+              <button
                 onClick={() => setIsNewChatModalOpen(true)}
                 className="mt-4 px-4 py-2 bg-[#FBCB4B] text-[#1F1F1F] text-[13px] font-medium rounded-full shadow-sm hover:scale-105 transition-all"
               >
@@ -1106,12 +1107,12 @@ export function AssignedInvestorsMessagesScreen() {
           setGroupNameInput('');
         }
       }}>
-        <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden rounded-2xl flex flex-col h-[600px]">
+        <DialogContent className="w-[95%] max-w-[95%] sm:w-full sm:max-w-[425px] p-0 overflow-hidden rounded-2xl flex flex-col h-[600px] max-h-[90vh]">
           <DialogHeader className="p-6 pb-2 shrink-0">
             <DialogTitle className="font-goudy text-2xl">New Chat</DialogTitle>
             <p className="text-[13px] text-[#8E8E93]">Select individuals or create a group</p>
           </DialogHeader>
-          
+
           <div className="flex-1 overflow-y-auto px-4 pb-4">
             {loadingUsers ? (
               <div className="flex justify-center py-10">
@@ -1171,7 +1172,7 @@ export function AssignedInvestorsMessagesScreen() {
                     className="w-full h-11 px-4 bg-white border border-[#F0F0F0] rounded-xl text-[14px] outline-none focus:ring-1 focus:ring-[#FBCB4B] shadow-sm transition-all"
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-[12px] font-bold text-[#6F7177] uppercase tracking-wider mb-2 block">Group Avatar</label>
                   <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -1252,8 +1253,8 @@ export function AssignedInvestorsMessagesScreen() {
               }}
               className={cn(
                 "flex-1 h-11 rounded-xl text-[14px] font-bold transition-all shadow-sm active:scale-95",
-                confirmation.variant === 'destructive' 
-                  ? "bg-red-500 text-white hover:bg-red-600 shadow-red-100" 
+                confirmation.variant === 'destructive'
+                  ? "bg-red-500 text-white hover:bg-red-600 shadow-red-100"
                   : "bg-[#FBCB4B] text-[#1F1F1F] hover:bg-[#F5B50A] shadow-yellow-100"
               )}
             >
