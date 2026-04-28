@@ -272,7 +272,12 @@ export class DocusignService {
     const startNameTab = new ds.Text();
     startNameTab.anchorString = '(the "Investor Member"';
     startNameTab.anchorUnits = 'pixels';
-    startNameTab.anchorXOffset = '-200'; // Position on the blank line to the left
+    
+    // Dynamically center the name on the blank underline
+    const textWidth = (signerName || '').length * 6.5;
+    const calculatedOffset = Math.round(-200 + Math.max(0, (200 - textWidth) / 2));
+    startNameTab.anchorXOffset = calculatedOffset.toString();
+    
     startNameTab.anchorYOffset = '0';
     startNameTab.value = signerName;
     startNameTab.tabLabel = 'Initial Investor Name';

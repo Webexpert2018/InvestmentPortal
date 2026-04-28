@@ -70,7 +70,7 @@ export default function InvestPage() {
   useEffect(() => {
     const signingStatus = searchParams?.get('signing');
     const eventStatus = searchParams?.get('event');
-    
+
     if (signingStatus !== 'complete' && eventStatus !== 'signing_complete') {
       // Fresh start: clear old investment tracking
       localStorage.removeItem('last_investment_id');
@@ -90,7 +90,7 @@ export default function InvestPage() {
 
     if (signingStatus === 'complete' || eventStatus === 'signing_complete') {
       setJustFinishedSigning(true);
-      
+
       // Restore state from localStorage
       const draftJson = localStorage.getItem('draft_investment');
       if (draftJson) {
@@ -113,7 +113,7 @@ export default function InvestPage() {
       });
 
       setStep('investmentStatus');
-      
+
       // Clean up URL parameters
       const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
       current.delete('signing');
@@ -372,7 +372,7 @@ export default function InvestPage() {
           localStorage.setItem('last_investment_id', investment.id);
           setCurrentInvestment(investment);
         }
-        
+
         localStorage.removeItem('draft_investment');
         setShowSuccess(true);
         setAmount('25000');
@@ -800,14 +800,14 @@ export default function InvestPage() {
                 {isSigning ? 'Connecting to DocuSign...' : 'Start Signing'}
               </button>
               {/* //////// Bypass DocuSign hide //////////////// */}
-              <button
+              {/* <button
                 type="button"
                 onClick={handleBypass}
                 disabled={isSigning}
                 className="w-full rounded-full bg-red-50 py-3.5 text-sm font-bold text-red-600 hover:bg-neutral-100 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-red-200"
               >
                 {isSigning ? 'Processing...' : 'Bypass DocuSign (Testing)'}
-              </button>
+              </button> */}
               {/* ////////// Bypass DocuSign hide ////////////// */}
               <button
                 type="button"

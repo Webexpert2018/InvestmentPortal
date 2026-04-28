@@ -710,9 +710,10 @@ export default function DashboardPage() {
                       } catch (e) {}
                       
                       return (
-                        <div
+                        <Link
+                          href="/dashboard/messages"
                           key={conv.id}
-                          className="flex items-start justify-between gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0"
+                          className="flex items-start justify-between gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-[#F9FAFB] transition-colors"
                         >
                           <div className="flex flex-1 items-start gap-3">
                             <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[#2BB673]" />
@@ -722,7 +723,7 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           <span className="mt-1 text-[11px] text-[#C0C0C0]">{timeStr}</span>
-                        </div>
+                        </Link>
                       );
                     })}
                   {dynamicConversations.filter(c => (c.unread_count || 0) > 0).length === 0 && (
@@ -964,7 +965,11 @@ export default function DashboardPage() {
                 <div id="messages-panel" aria-hidden={!messagesOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${messagesOpen ? 'border-t border-[#EEEEEE] max-h-96' : 'max-h-0'}`}>
                   <div className="pt-0">
                     {investorUnreadMessages.map((m, idx) => (
-                      <div key={m.id} className="flex items-start justify-between gap-3 py-4 border-b border-[#EEEEEE] last:border-0">
+                      <Link
+                        href="/dashboard/messages"
+                        key={m.id}
+                        className="flex items-start justify-between gap-3 py-4 border-b border-[#EEEEEE] last:border-0 cursor-pointer hover:bg-[#F9FAFB] transition-colors"
+                      >
                         <div className="flex items-center gap-4">
                           <img src={userIcons[(idx + 1) % userIcons.length]} alt="avatar" className="h-10 w-10 rounded-full object-cover" />
                           <div>
@@ -976,7 +981,7 @@ export default function DashboardPage() {
                           <span className="text-xs text-[#C0C0C0]">{m.time}</span>
                           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ECFDF3] text-xs font-medium text-[#2BB673]">{m.count}</span>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 </div>
