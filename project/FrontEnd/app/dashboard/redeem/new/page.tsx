@@ -546,81 +546,85 @@ export default function RedemptionAmountPage() {
                 {newBankErrors.bank_description && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.bank_description}</p>}
               </div>
 
-              <div className="pt-4">
+              <div className="pt-4 flex justify-end">
                 <button
-                onClick={async () => {
-                      const errors: Record<string, string> = {};
+                  type="button"
+                  disabled={addingBank}
+                  className="rounded-full bg-[#FBCB4B] px-8 py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60 flex items-center gap-2"
+                  onClick={async () => {
+                    const errors: Record<string, string> = {};
 
-                      if (!newBank.beneficiary_name.trim()) errors.beneficiary_name = 'Required';
-                      if (!newBank.bank_name.trim()) errors.bank_name = 'Required';
+                    if (!newBank.beneficiary_name.trim()) errors.beneficiary_name = 'Required';
+                    if (!newBank.bank_name.trim()) errors.bank_name = 'Required';
 
-                      if (!newBank.account_number) {
-                        errors.account_number = 'Required';
-                      } else if (!/^\d{8,17}$/.test(newBank.account_number)) {
-                        errors.account_number = '8-17 digits';
+                    if (!newBank.account_number) {
+                      errors.account_number = 'Required';
+                    } else if (!/^\d{8,17}$/.test(newBank.account_number)) {
+                      errors.account_number = '8-17 digits';
+                    }
+
+                    if (!newBank.routing_number) {
+                      errors.routing_number = 'Required';
+                    } 
+                    // else if (!/^\d{9}$/.test(newBank.routing_number)) {
+                    //   errors.routing_number = '9 digits';
+                    // }
+
+                    if (!newBank.bank_address.trim()) errors.bank_address = 'Required';
+
+                    if (Object.keys(errors).length > 0) {
+                      setNewBankErrors(errors);
+                      return;
+                    }
+
+                    setAddingBank(true);
+
+                    try {
+                      const created = await apiClient.createBankAccount(newBank);
+
+                      await fetchBankAccounts();
+                      setSelectedBankId(created.id);
+
+                      setShowAddBankModal(false);
+                      setNewBank(defaultBankAdd);
+                      setNewBankErrors({}); // ✅ IMPORTANT FIX
+
+                      toast({
+                        title: 'Success',
+                        description: 'Bank account added successfully',
+                        variant: 'success'
+                      });
+
+                    } catch (err: any) {
+                      const msg = err?.message || '';
+
+                      const fieldErrors: Record<string, string> = {};
+
+                      if (msg.includes('Account number')) {
+                        fieldErrors.account_number = '8-17 digits required';
                       }
 
-                      if (!newBank.routing_number) {
-                        errors.routing_number = 'Required';
-                      } 
-                      // else if (!/^\d{9}$/.test(newBank.routing_number)) {
-                      //   errors.routing_number = '9 digits';
+                      // if (msg.includes('Routing number')) {
+                      //   fieldErrors.routing_number = '9 digits required';
                       // }
 
-                      if (!newBank.bank_address.trim()) errors.bank_address = 'Required';
-
-                      if (Object.keys(errors).length > 0) {
-                        setNewBankErrors(errors);
-                        return;
+                      if (Object.keys(fieldErrors).length > 0) {
+                        setNewBankErrors(fieldErrors);
+                        return; // ❌ STOP HERE (VERY IMPORTANT)
                       }
 
-                      setAddingBank(true);
+                      toast({
+                        title: 'Error',
+                        description: msg,
+                        variant: 'destructive'
+                      });
 
-                      try {
-                        const created = await apiClient.createBankAccount(newBank);
-
-                        await fetchBankAccounts();
-                        setSelectedBankId(created.id);
-
-                        setShowAddBankModal(false);
-                        setNewBank(defaultBankAdd);
-                        setNewBankErrors({}); // ✅ IMPORTANT FIX
-
-                        toast({
-                          title: 'Success',
-                          description: 'Bank account added successfully',
-                          variant: 'success'
-                        });
-
-                      } catch (err: any) {
-                        const msg = err?.message || '';
-
-                        const fieldErrors: Record<string, string> = {};
-
-                        if (msg.includes('Account number')) {
-                          fieldErrors.account_number = '8-17 digits required';
-                        }
-
-                        // if (msg.includes('Routing number')) {
-                        //   fieldErrors.routing_number = '9 digits required';
-                        // }
-
-                        if (Object.keys(fieldErrors).length > 0) {
-                          setNewBankErrors(fieldErrors);
-                          return; // ❌ STOP HERE (VERY IMPORTANT)
-                        }
-
-                        toast({
-                          title: 'Error',
-                          description: msg,
-                          variant: 'destructive'
-                        });
-
-                      } finally {
-                        setAddingBank(false);
-                      }
-                    }}
-                    >
+                    } finally {
+                      setAddingBank(false);
+                    }
+                  }}
+                >
+                  {addingBank && <Loader2 className="h-4 w-4 animate-spin" />}
                   {addingBank ? 'Adding...' : 'Add Account'}
                 </button>
               </div>
