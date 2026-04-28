@@ -9,6 +9,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { apiClient } from '@/lib/api/client';
+import { formatDistanceToNow } from 'date-fns';
 
 
 import { MoreVertical, ChevronDown, ChevronRight } from 'lucide-react';
@@ -256,6 +257,7 @@ export default function DashboardPage() {
   const [iraAccounts, setIraAccounts] = useState<any[]>([]);
   const [allInvestments, setAllInvestments] = useState<any[]>([]);
   const [allRedemptions, setAllRedemptions] = useState<any[]>([]);
+  const [dynamicConversations, setDynamicConversations] = useState<any[]>([]);
 
   const investorAccountList = useMemo(() => {
     const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -299,13 +301,14 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         if (dashboardRole === 'investor' && user?.id) {
-          const [flows, investments, navSummary, dynamicStats, iraData, redemptions] = await Promise.all([
+          const [flows, investments, navSummary, dynamicStats, iraData, redemptions, convs] = await Promise.all([
             apiClient.getMyFundFlows(),
             apiClient.getMyInvestments(),
             apiClient.getNavSummary(),
             apiClient.getInvestorStats(user.id),
             apiClient.getMyIRAAccount(),
             apiClient.getMyRedemptions(),
+            apiClient.getConversations(),
           ]);
 
           setAllInvestments(investments);
@@ -321,15 +324,18 @@ export default function DashboardPage() {
           });
 
           setIraAccounts(Array.isArray(iraData) ? iraData : (iraData ? [iraData] : []));
+          setDynamicConversations(convs || []);
         } else if (dashboardRole === 'admin' || dashboardRole === 'accountant') {
-          const [stats, investments, redemptions] = await Promise.all([
+          const [stats, investments, redemptions, convs] = await Promise.all([
             apiClient.getAdminStats(),
             apiClient.getAllInvestments(),
             apiClient.getAllRedemptions(),
+            apiClient.getConversations(),
           ]);
           setAdminStats(stats);
           setAllInvestments(investments);
           setAllRedemptions(redemptions);
+          setDynamicConversations(convs || []);
 
           // Filter pending fundings: Subscription Submitted or Awaiting Funding
           const pendingFundings = (investments || []).filter((inv: any) =>
@@ -354,7 +360,10 @@ export default function DashboardPage() {
         console.error('Failed to fetch dashboard stats:', error);
       }
     };
+
     fetchStats();
+    const intervalId = setInterval(fetchStats, 15000);
+    return () => clearInterval(intervalId);
   }, [dashboardRole, user?.kycStatus, user?.id]);
 
   const roleStats = {
@@ -375,7 +384,7 @@ export default function DashboardPage() {
     accountant: [
       { name: 'Assigned Investors', value: recentInvestors.length.toString(), icon: Users, color: 'text-gray-600' },
       { name: 'Pending Reconciliation', value: dynamicReconciliationAlerts.length.toString(), icon: Layers, color: 'text-amber-600' },
-      { name: 'Unread Messages', value: investorUnreadMessages.reduce((sum, m) => sum + (m.count || 0), 0).toString(), icon: CircleDollarSign, color: 'text-emerald-600' },
+      { name: 'Unread Messages', value: dynamicConversations.reduce((sum, m) => sum + (m.unread_count || 0), 0).toString(), icon: CircleDollarSign, color: 'text-emerald-600' },
       { name: 'Notifications', value: notificationsAccountant.reduce((sum, s) => sum + s.items.length, 0).toString(), icon: TrendingUp, color: 'text-blue-500' },
     ],
   };
@@ -675,7 +684,7 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center gap-3">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#E4F6F4] text-sm font-semibold text-[#2BB673]">
-                    5
+                    {dynamicConversations.filter(c => (c.unread_count || 0) > 0).length}
                   </span>
                   <p className="font-goudy text-sm">Unread Messages</p>
                 </div>
@@ -686,21 +695,39 @@ export default function DashboardPage() {
               </button>
               {investorExpanded.messages && (
                 <div className="mt-4 space-y-4 text-xs text-[#4B4B4B]">
-                  {investorUnreadMessages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className="flex items-start justify-between gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0"
-                    >
-                      <div className="flex flex-1 items-start gap-3">
-                        <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[#D2B48C]" />
-                        <div>
-                          <p className="text-[13px] font-medium text-[#1F1F1F]">{msg.name}</p>
-                          <p className="mt-1 text-[11px] text-[#8E8E93]">{msg.preview}</p>
+                  {dynamicConversations
+                    .filter(c => (c.unread_count || 0) > 0)
+                    .map((conv) => {
+                      const otherParticipant = conv.participants?.find((p: any) => p.id !== user?.id);
+                      const name = conv.is_group ? conv.group_name : (otherParticipant?.name || 'Admin Support');
+                      let timeStr = 'Just now';
+                      try {
+                        if (conv.updated_at) {
+                          timeStr = formatDistanceToNow(new Date(conv.updated_at), { addSuffix: true })
+                            .replace('about ', '')
+                            .replace('less than a minute ago', 'just now');
+                        }
+                      } catch (e) {}
+                      
+                      return (
+                        <div
+                          key={conv.id}
+                          className="flex items-start justify-between gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0"
+                        >
+                          <div className="flex flex-1 items-start gap-3">
+                            <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[#2BB673]" />
+                            <div>
+                              <p className="text-[13px] font-medium text-[#1F1F1F]">{name}</p>
+                              <p className="mt-1 text-[11px] text-[#8E8E93]">{conv.last_message || 'No messages'}</p>
+                            </div>
+                          </div>
+                          <span className="mt-1 text-[11px] text-[#C0C0C0]">{timeStr}</span>
                         </div>
-                      </div>
-                      <span className="mt-1 text-[11px] text-[#C0C0C0]">{msg.time}</span>
-                    </div>
-                  ))}
+                      );
+                    })}
+                  {dynamicConversations.filter(c => (c.unread_count || 0) > 0).length === 0 && (
+                    <p className="text-xs text-gray-400 text-center py-4">No unread messages</p>
+                  )}
                 </div>
               )}
             </div>
