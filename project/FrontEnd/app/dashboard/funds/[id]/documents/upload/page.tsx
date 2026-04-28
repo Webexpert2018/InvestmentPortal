@@ -33,10 +33,60 @@ export default function UploadDocumentPage() {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const droppedFile = e.dataTransfer.files[0];
+      
+      if (droppedFile.size === 0) {
+        toast({
+          title: "Error",
+          description: "The uploaded file is empty (0 bytes). Please select a valid file.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setFile(droppedFile);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      
+      if (selectedFile.size === 0) {
+        toast({
+          title: "Error",
+          description: "The uploaded file is empty (0 bytes). Please select a valid file.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setFile(selectedFile);
     }
   };
 
@@ -177,8 +227,12 @@ export default function UploadDocumentPage() {
             {/* Drag and Drop area */}
             <div
               onClick={() => fileInputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
               className={`border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center cursor-pointer transition-all ${
-                file ? "border-[#FCD34D] bg-[#FFFBEB]" : "border-gray-200 hover:border-[#FCD34D] hover:bg-gray-50"
+                file ? "border-[#FCD34D] bg-[#FFFBEB]" : isDragging ? "border-[#FCD34D] bg-[#FFFBEB]" : "border-gray-200 hover:border-[#FCD34D] hover:bg-gray-50"
               }`}
             >
               <input
