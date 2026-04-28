@@ -14,12 +14,12 @@ export class CreateAccountDto {
   accountNumber: string;
 
   @IsString()
-  @IsNotEmpty()
-  custodian: string;
+  @IsOptional()
+  custodian?: string;
 
   @IsString()
-  @IsNotEmpty()
-  beneficiary: string;
+  @IsOptional()
+  beneficiary?: string;
 
   @IsString()
   @IsOptional()

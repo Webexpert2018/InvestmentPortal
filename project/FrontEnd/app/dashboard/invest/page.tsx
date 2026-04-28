@@ -66,13 +66,23 @@ export default function InvestPage() {
   const [currentInvestment, setCurrentInvestment] = useState<any>(null);
   const [justFinishedSigning, setJustFinishedSigning] = useState(false);
 
-  // Check for DocuSign completion in URL
+  // Check for DocuSign completion and handle fresh start
   useEffect(() => {
+    const signingStatus = searchParams?.get('signing');
+    const eventStatus = searchParams?.get('event');
+    
+    if (signingStatus !== 'complete' && eventStatus !== 'signing_complete') {
+      // Fresh start: clear old investment tracking
+      localStorage.removeItem('last_investment_id');
+      localStorage.removeItem('draft_investment');
+      setCurrentInvestment(null);
+    }
+
     const savedEnvelopeId = localStorage.getItem('last_envelope_id');
     if (savedEnvelopeId) {
       setLastEnvelopeId(savedEnvelopeId);
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     const signingStatus = searchParams?.get('signing');
@@ -80,38 +90,30 @@ export default function InvestPage() {
 
     if (signingStatus === 'complete' || eventStatus === 'signing_complete') {
       setJustFinishedSigning(true);
-      const lastId = localStorage.getItem('last_investment_id');
-      if (lastId) {
-        // Optimistic UI update: Mark as signed and awaiting funding immediately
-        const optimisticData = {
-          id: lastId,
-          status: 'Awaiting Funding',
-          document_signed: true,
-          signed_at: new Date().toISOString()
-        };
-
-        setCurrentInvestment((prev: any) => prev ? { ...prev, ...optimisticData } : optimisticData);
-
-        apiClient.updateInvestmentStatus(lastId, {
-          status: 'Awaiting Funding',
-          documentSigned: true
-        })
-          .then((updatedInvestment) => {
-            // Use the returned updated object from the server
-            if (updatedInvestment) {
-              setCurrentInvestment(updatedInvestment);
-            }
-          })
-          .catch(err => {
-            console.error('Failed to update investment status:', err);
-            // Re-fetch only if update fails to ensure consistency
-            apiClient.getMyTransactions().then(investments => {
-              const updated = investments.find((i: any) => i.id === lastId);
-              if (updated) setCurrentInvestment(updated);
-            });
-          });
+      
+      // Restore state from localStorage
+      const draftJson = localStorage.getItem('draft_investment');
+      if (draftJson) {
+        try {
+          const draft = JSON.parse(draftJson);
+          if (draft.fundId) setSelectedFundId(draft.fundId);
+          if (draft.accountId) setSelectedAccountId(draft.accountId);
+          if (draft.amount) setAmount(String(draft.amount));
+          if (draft.unitPrice) setUnitPrice(draft.unitPrice);
+        } catch (e) {
+          console.error('Failed to parse draft investment:', e);
+        }
       }
+
+      // Optimistic UI update: Mark as signed locally
+      setCurrentInvestment({
+        document_signed: true,
+        created_at: new Date().toISOString(),
+        signed_at: new Date().toISOString()
+      });
+
       setStep('investmentStatus');
+      
       // Clean up URL parameters
       const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
       current.delete('signing');
@@ -236,36 +238,27 @@ export default function InvestPage() {
   const handleStartSigning = async () => {
     if (!selectedFundId || !selectedFund) return;
 
-    // Check locally if authorized
-    const dsAccessToken = localStorage.getItem('ds_access_token');
-    const dsAccountId = localStorage.getItem('ds_account_id');
-
     setIsSigning(true);
     try {
       const isIra = selectedAccountId !== 'personal';
       const selectedIra = userIraAccounts.find(a => a.id === selectedAccountId);
       const finalAccountType = isIra ? (selectedIra?.account_type || 'ira') : 'personal';
 
-      // 1. Create investment record first (Status: Pending Signature)
-      const investment = await apiClient.createInvestment({
+      // Save draft investment details to localStorage before leaving the page
+      const draftInvestment = {
         fundId: selectedFundId,
         accountId: isIra ? (selectedAccountId ?? undefined) : undefined,
         accountType: finalAccountType,
-        investmentAmount: investmentAmount,
+        amount: amount,
         unitPrice: unitPrice,
-        status: 'Subscription Submitted',
-        documentSigned: false
-      });
+      };
+      localStorage.setItem('draft_investment', JSON.stringify(draftInvestment));
+      localStorage.removeItem('last_investment_id');
 
-      if (investment && investment.id) {
-        localStorage.setItem('last_investment_id', investment.id);
-      }
-
-      // 2. Proceed to DocuSign
+      // Proceed to DocuSign
       const response = await apiClient.createDocuSignEnvelope({
         fundId: selectedFundId,
         fundName: selectedFund.name,
-        // No tokens needed, backend uses JWT
         investmentAmount: investmentAmount,
         accountType: finalAccountType,
         iraMetadata: isIra ? {
@@ -287,7 +280,6 @@ export default function InvestPage() {
     } catch (error: any) {
       console.error('DocuSign Flow Error:', error);
 
-      // Handle authentication failures (e.g. Expired/Invalid Token)
       if (error.status === 401 || error.message?.includes('401') || (error.details?.errorCode === 'USER_AUTHENTICATION_FAILED')) {
         toast({
           title: "Session Expired",
@@ -316,24 +308,13 @@ export default function InvestPage() {
     if (!selectedFundId || !selectedFund) return;
     setIsSigning(true);
     try {
-      const isIra = selectedAccountId !== 'personal';
-      const selectedIra = userIraAccounts.find(a => a.id === selectedAccountId);
-      const finalAccountType = isIra ? (selectedIra?.account_type || 'ira') : 'personal';
-
-      const investment = await apiClient.createInvestment({
-        fundId: selectedFundId,
-        accountId: isIra ? (selectedAccountId ?? undefined) : undefined,
-        accountType: finalAccountType,
-        investmentAmount: investmentAmount,
-        unitPrice: unitPrice,
-        status: 'Subscription Submitted',
-        documentSigned: true
+      // Optimistically update local state
+      setCurrentInvestment({
+        document_signed: true,
+        created_at: new Date().toISOString(),
+        signed_at: new Date().toISOString()
       });
-
-      if (investment && investment.id) {
-        localStorage.setItem('last_investment_id', investment.id);
-        setCurrentInvestment(investment);
-      }
+      localStorage.removeItem('last_investment_id');
       setStep('fundingInstructions');
     } catch (error) {
       console.error('Bypass error:', error);
@@ -370,10 +351,42 @@ export default function InvestPage() {
     }
 
     if (step === 'investmentStatus') {
-      setShowSuccess(true);
-      // Reset states for fresh start (but keep success view)
-      setAmount('25000');
-      setSelectedAccountId('personal');
+      setSaving(true);
+      try {
+        const isIra = selectedAccountId !== 'personal';
+        const selectedIra = userIraAccounts.find(a => a.id === selectedAccountId);
+        const finalAccountType = isIra ? (selectedIra?.account_type || 'ira') : 'personal';
+
+        // Create the investment record ONLY when the user clicks "Done"
+        const investment = await apiClient.createInvestment({
+          fundId: selectedFundId!,
+          accountId: isIra ? (selectedAccountId ?? undefined) : undefined,
+          accountType: finalAccountType,
+          investmentAmount: investmentAmount,
+          unitPrice: unitPrice,
+          status: 'Subscription Submitted',
+          documentSigned: true
+        });
+
+        if (investment && investment.id) {
+          localStorage.setItem('last_investment_id', investment.id);
+          setCurrentInvestment(investment);
+        }
+        
+        localStorage.removeItem('draft_investment');
+        setShowSuccess(true);
+        setAmount('25000');
+        setSelectedAccountId('personal');
+      } catch (error) {
+        console.error('Failed to create investment on Done:', error);
+        toast({
+          title: "Investment Failed",
+          description: 'Failed to submit investment: ' + (error instanceof Error ? error.message : String(error)),
+          variant: "destructive"
+        });
+      } finally {
+        setSaving(false);
+      }
       return;
     }
 
@@ -787,14 +800,14 @@ export default function InvestPage() {
                 {isSigning ? 'Connecting to DocuSign...' : 'Start Signing'}
               </button>
               {/* //////// Bypass DocuSign hide //////////////// */}
-              {/* <button
+              <button
                 type="button"
                 onClick={handleBypass}
                 disabled={isSigning}
                 className="w-full rounded-full bg-red-50 py-3.5 text-sm font-bold text-red-600 hover:bg-neutral-100 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-red-200"
               >
                 {isSigning ? 'Processing...' : 'Bypass DocuSign (Testing)'}
-              </button> */}
+              </button>
               {/* ////////// Bypass DocuSign hide ////////////// */}
               <button
                 type="button"
