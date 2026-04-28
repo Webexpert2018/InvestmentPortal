@@ -624,8 +624,8 @@ export function AssignedInvestorsMessagesScreen() {
                     type="button"
                     onClick={() => handleThreadSelect(thread.id)}
                     className={cn(
-                      "flex w-full items-start gap-3 px-3 py-3.5 text-left transition-all hover:bg-[#F9FAFB]",
-                      selected ? "bg-[#F9FAFB] border-bottom border-[#F0F0F0]" : "border border-transparent"
+                      "flex w-full items-start gap-3 px-3 py-3.5 text-left transition-all hover:bg-[#F9FAFB] border-b border-[#F0F0F0]",
+                      selected ? "bg-[#F9FAFB]" : ""
                     )}
                   >
                     <div className="relative">
@@ -1107,7 +1107,7 @@ export function AssignedInvestorsMessagesScreen() {
           setGroupNameInput('');
         }
       }}>
-        <DialogContent className="w-[95%] max-w-[95%] sm:w-full sm:max-w-[425px] p-0 overflow-hidden rounded-2xl flex flex-col h-[600px] max-h-[90vh]">
+        <DialogContent className="w-[95%] max-w-[95%] sm:w-full sm:max-w-[425px] p-0 overflow-hidden rounded-2xl flex flex-col h-[600px] max-h-[90vh] font-helvetica">
           <DialogHeader className="p-6 pb-2 shrink-0">
             <DialogTitle className="font-goudy text-2xl">New Chat</DialogTitle>
             <p className="text-[13px] text-[#8E8E93]">Select individuals or create a group</p>
@@ -1230,7 +1230,7 @@ export function AssignedInvestorsMessagesScreen() {
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmation.isOpen} onOpenChange={(open) => setConfirmation(prev => ({ ...prev, isOpen: open }))}>
-        <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden border-none shadow-2xl rounded-2xl">
+        <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden border-none shadow-2xl rounded-2xl font-helvetica">
           <div className="p-6">
             <DialogHeader className="mb-4">
               <DialogTitle className="text-[20px] font-bold text-[#1F1F1F]">{confirmation.title}</DialogTitle>
