@@ -152,7 +152,7 @@ export default function InvestPage() {
             localStorage.setItem('last_investment_id', investment.id);
             setCurrentInvestment(investment);
           }
-          
+
           // Go to Funding Instructions screen!
           setStep('fundingInstructions');
         } catch (error) {
@@ -814,14 +814,14 @@ export default function InvestPage() {
                 {isSigning ? 'Connecting to DocuSign...' : 'Start Signing'}
               </button>
               {/* //////// Bypass DocuSign hide //////////////// */}
-              {/* <button
+              <button
                 type="button"
                 onClick={handleBypass}
                 disabled={isSigning}
                 className="w-full rounded-full bg-red-50 py-3.5 text-sm font-bold text-red-600 hover:bg-neutral-100 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-red-200"
               >
                 {isSigning ? 'Processing...' : 'Bypass DocuSign (Testing)'}
-              </button> */}
+              </button>
               {/* ////////// Bypass DocuSign hide ////////////// */}
               <button
                 type="button"
@@ -968,12 +968,8 @@ export default function InvestPage() {
                   alert('No signed document found. Please complete signing first.');
                   return;
                 }
-                const dsAccessToken = localStorage.getItem('ds_access_token');
-                const dsAccountId = localStorage.getItem('ds_account_id');
-                if (!dsAccessToken || !dsAccountId) {
-                  alert('DocuSign session expired. Please re-authorize.');
-                  return;
-                }
+                const dsAccessToken = localStorage.getItem('ds_access_token') || '';
+                const dsAccountId = localStorage.getItem('ds_account_id') || '';
 
                 (async () => {
                   try {
@@ -995,9 +991,17 @@ export default function InvestPage() {
             </button>
             <button
               type="button"
+              onClick={() => router.push('/dashboard/messages')}
               className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF]"
             >
-              Contact Support
+              Message
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard/schedule-meeting')}
+              className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF]"
+            >
+              Schedule Meeting
             </button>
           </div>
         </div>
