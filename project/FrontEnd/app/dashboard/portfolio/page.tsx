@@ -363,8 +363,8 @@ export default function PortfolioPage() {
                           </td>
                           <td className="px-4 py-3">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.is_reconciled
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
                               }`}>
                               {row.is_reconciled ? 'Completed' : 'Pending'}
                             </span>
@@ -393,12 +393,12 @@ export default function PortfolioPage() {
                                   >
                                     View Fund Details
                                   </Link>
-                                  <button
+                                  {/* <button
                                     className="w-full block px-3 py-2 text-left text-[12px] text-[#5F5F5F] hover:bg-[#F8F8F8]"
                                     onClick={() => alert('Request sent!')}
                                   >
                                     Send Request
-                                  </button>
+                                  </button> */}
                                 </div>
                               )}
                             </div>

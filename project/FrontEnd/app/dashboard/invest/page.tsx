@@ -674,7 +674,7 @@ export default function InvestPage() {
             <div className="flex h-[44px] items-center justify-between border-b border-[#E2E5EA] bg-white px-4">
               <div className="flex items-center gap-3 text-[12px] text-[#6B7280]">
                 <button
-                  onClick={() => { setSelectedSubDoc(null); setSelectedPage(1); }}
+                  onClick={() => { setSelectedSubDoc(null); setSelectedPage(1); setStep('investmentAmount'); }}
                   className="inline-flex items-center gap-1 text-[#5E6B7F] hover:text-[#1F1F1F] transition-colors"
                 >
                   <ChevronLeft className="h-4 w-4" />
