@@ -1297,12 +1297,27 @@ export function InvestorSettingsScreen() {
                   <th className="py-2 pr-3">Bank Address</th>
                   <th className="py-2 pr-3">Description</th>
                   <th className="py-2 pr-3">Status</th>
-                  <th className="py-2 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {bankAccounts.map((item) => (
-                  <tr key={item.id} className="border-b border-[#F2F3F5]">
+                  <tr 
+                    key={item.id} 
+                    className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] transition-colors cursor-pointer"
+                    onClick={() => {
+                      setBankAdd({
+                        beneficiary_name: item.beneficiary_name,
+                        bank_name: item.bank_name,
+                        account_number: item.account_number,
+                        routing_number: item.routing_number,
+                        bank_address: item.bank_address || '',
+                        bank_description: item.bank_description || '',
+                      });
+                      setCurrentBankId(item.id);
+                      setBankAccountMode('view');
+                      setActiveTab('add-bank-account');
+                    }}
+                  >
                     <td className="py-2 pr-3 font-medium text-[#1F1F1F]">{item.bank_name}</td>
                     <td className="py-2 pr-3">{item.beneficiary_name}</td>
                     <td className="py-2 pr-3">****{item.account_number?.slice(-4) || 'N/A'}</td>
@@ -1313,72 +1328,6 @@ export function InvestorSettingsScreen() {
                       <span className={`rounded-full px-2 py-0.5 text-[9px] uppercase font-bold ${item.status === 'active' ? 'bg-[#E1F7E3] text-[#2D8A39]' : 'bg-[#FFF3D6] text-[#B7791F]'}`}>
                         {item.status || 'Active'}
                       </span>
-                    </td>
-                    <td className="relative py-2 text-right">
-                      <button
-                        onClick={() => setMenuOpenId(menuOpenId === item.id ? null : item.id)}
-                        className="p-1 text-[#8E8E93] hover:text-[#1F1F1F]"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </button>
-
-                      {menuOpenId === item.id && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-10"
-                            onClick={() => setMenuOpenId(null)}
-                          />
-                          <div className="absolute right-0 z-20 mt-1 w-28 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                            <button
-                              onClick={() => {
-                                setBankAdd({
-                                  beneficiary_name: item.beneficiary_name,
-                                  bank_name: item.bank_name,
-                                  account_number: item.account_number,
-                                  routing_number: item.routing_number,
-                                  bank_address: item.bank_address || '',
-                                  bank_description: item.bank_description || '',
-                                });
-                                setCurrentBankId(item.id);
-                                setBankAccountMode('view');
-                                setActiveTab('add-bank-account');
-                                setMenuOpenId(null);
-                              }}
-                              className="flex w-full px-4 py-2 text-left text-[11px] text-[#4B4B4B] hover:bg-gray-100"
-                            >
-                              View
-                            </button>
-                            <button
-                              onClick={() => {
-                                setBankAdd({
-                                  beneficiary_name: item.beneficiary_name,
-                                  bank_name: item.bank_name,
-                                  account_number: item.account_number,
-                                  routing_number: item.routing_number,
-                                  bank_address: item.bank_address || '',
-                                  bank_description: item.bank_description || '',
-                                });
-                                setCurrentBankId(item.id);
-                                setBankAccountMode('edit');
-                                setActiveTab('add-bank-account');
-                                setMenuOpenId(null);
-                              }}
-                              className="flex w-full px-4 py-2 text-left text-[11px] text-[#4B4B4B] hover:bg-gray-100"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => {
-                                setDeleteBankId(item.id);
-                                setMenuOpenId(null);
-                              }}
-                              className="flex w-full px-4 py-2 text-left text-[11px] text-[#E05252] hover:bg-gray-100"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </>
-                      )}
                     </td>
                   </tr>
                 ))}
@@ -1488,81 +1437,112 @@ export function InvestorSettingsScreen() {
         </SectionCard>
 
         <div className="mt-4 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setBankAdd(defaultBankAdd);
-              setBankAddErrors({});
-              setBankAccountMode('add');
-              setCurrentBankId(null);
-              setActiveTab('bank-accounts');
-            }}
-            className="h-[32px] min-w-[90px] rounded-full bg-[#FFF3D6] px-5 text-[12px] text-[#6A6A6A]"
-          >
-            {bankAccountMode === 'view' ? 'Close' : 'Cancel'}
-          </button>
-          {bankAccountMode !== 'view' && (
-            <button
-              type="button"
-              disabled={saving}
-              onClick={async () => {
-                const errors: Record<string, string> = {};
-                if (!bankAdd.bank_name.trim()) errors.bank_name = 'Bank name is required';
-
-                const accountRegex = /^\d{8,17}$/;
-                if (!bankAdd.account_number) {
-                  errors.account_number = 'Account number is required';
-                } else if (!accountRegex.test(bankAdd.account_number)) {
-                  errors.account_number = 'Must be between 8 and 17 digits';
-                }
-
-                const routingRegex = /^\d{9}$/;
-                if (!bankAdd.routing_number) {
-                  errors.routing_number = 'Routing number is required';
-                }
-                // else if (!routingRegex.test(bankAdd.routing_number)) {
-                //   errors.routing_number = 'Must be exactly 9 digits';
-                // }
-
-                if (!bankAdd.bank_address.trim()) {
-                  errors.bank_address = 'Bank address is required';
-                }
-
-                if (Object.keys(errors).length > 0) {
-                  setBankAddErrors(errors);
-                  toast({ title: 'Validation Error', description: 'Please fill in all required fields', variant: 'destructive' });
-                  return;
-                }
-
-                setSaving(true);
-                try {
-                  if (bankAccountMode === 'add') {
-                    const newAccount = await apiClient.createBankAccount(bankAdd);
-                    setBankAccounts(prev => [newAccount, ...prev]);
-                    toast({ title: 'Success', description: 'Bank account added successfully', variant: 'success' });
-                  } else if (bankAccountMode === 'edit' && currentBankId) {
-                    const updatedAccount = await apiClient.updateBankAccount(currentBankId, bankAdd);
-                    setBankAccounts(prev => prev.map(a => a.id === currentBankId ? updatedAccount : a));
-                    toast({ title: 'Success', description: 'Bank account updated successfully', variant: 'success' });
-                  }
-
+          {bankAccountMode === 'view' ? (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteBankId(currentBankId);
+                }}
+                className="h-[32px] min-w-[90px] rounded-full bg-[#FFEAEA] px-5 text-[12px] text-[#E05252] hover:bg-[#FFD6D6] transition-colors"
+              >
+                Remove
+              </button>
+              <button
+                type="button"
+                onClick={() => setBankAccountMode('edit')}
+                className="h-[32px] min-w-[90px] rounded-full bg-[#FFF3D6] px-5 text-[12px] text-[#B7791F] hover:bg-[#FFE7AF] transition-colors"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => {
                   setBankAdd(defaultBankAdd);
                   setBankAddErrors({});
                   setBankAccountMode('add');
                   setCurrentBankId(null);
                   setActiveTab('bank-accounts');
-                } catch (err: any) {
-                  const errorMsg = err.message || 'Failed to save bank account';
-                  console.error('❌ Bank account save error:', err);
-                  toast({ title: 'Error', description: errorMsg, variant: 'destructive' });
-                } finally {
-                  setSaving(false);
-                }
-              }}
-              className="h-[32px] min-w-[120px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] disabled:opacity-50"
-            >
-              {saving ? (bankAccountMode === 'add' ? 'Adding...' : 'Updating...') : (bankAccountMode === 'add' ? 'Add Account' : 'Update Account')}
-            </button>
+                }}
+                className="h-[32px] min-w-[90px] rounded-full bg-[#F4F5F7] px-5 text-[12px] text-[#6A6A6A] hover:bg-[#E5E7EB] transition-colors"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setBankAdd(defaultBankAdd);
+                  setBankAddErrors({});
+                  setBankAccountMode('add');
+                  setCurrentBankId(null);
+                  setActiveTab('bank-accounts');
+                }}
+                className="h-[32px] min-w-[90px] rounded-full bg-[#FFF3D6] px-5 text-[12px] text-[#6A6A6A]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={async () => {
+                  const errors: Record<string, string> = {};
+                  if (!bankAdd.bank_name.trim()) errors.bank_name = 'Bank name is required';
+
+                  const accountRegex = /^\d{8,17}$/;
+                  if (!bankAdd.account_number) {
+                    errors.account_number = 'Account number is required';
+                  } else if (!accountRegex.test(bankAdd.account_number)) {
+                    errors.account_number = 'Must be between 8 and 17 digits';
+                  }
+
+                  const routingRegex = /^\d{9}$/;
+                  if (!bankAdd.routing_number) {
+                    errors.routing_number = 'Routing number is required';
+                  }
+
+                  if (!bankAdd.bank_address.trim()) {
+                    errors.bank_address = 'Bank address is required';
+                  }
+
+                  if (Object.keys(errors).length > 0) {
+                    setBankAddErrors(errors);
+                    toast({ title: 'Validation Error', description: 'Please fill in all required fields', variant: 'destructive' });
+                    return;
+                  }
+
+                  setSaving(true);
+                  try {
+                    if (bankAccountMode === 'add') {
+                      const newAccount = await apiClient.createBankAccount(bankAdd);
+                      setBankAccounts(prev => [newAccount, ...prev]);
+                      toast({ title: 'Success', description: 'Bank account added successfully', variant: 'success' });
+                    } else if (bankAccountMode === 'edit' && currentBankId) {
+                      const updatedAccount = await apiClient.updateBankAccount(currentBankId, bankAdd);
+                      setBankAccounts(prev => prev.map(a => a.id === currentBankId ? updatedAccount : a));
+                      toast({ title: 'Success', description: 'Bank account updated successfully', variant: 'success' });
+                    }
+
+                    setBankAdd(defaultBankAdd);
+                    setBankAddErrors({});
+                    setBankAccountMode('add');
+                    setCurrentBankId(null);
+                    setActiveTab('bank-accounts');
+                  } catch (err: any) {
+                    const errorMsg = err.message || 'Failed to save bank account';
+                    console.error('❌ Bank account save error:', err);
+                    toast({ title: 'Error', description: errorMsg, variant: 'destructive' });
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                className="h-[32px] min-w-[120px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] disabled:opacity-50"
+              >
+                {saving ? (bankAccountMode === 'add' ? 'Adding...' : 'Updating...') : (bankAccountMode === 'add' ? 'Add Account' : 'Update Account')}
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -1829,6 +1809,7 @@ export function InvestorSettingsScreen() {
                     setBankAccounts(prev => prev.filter(a => a.id !== deleteBankId));
                     toast({ title: 'Deleted', description: 'Bank account removed successfully', variant: 'success' });
                     setDeleteBankId(null);
+                    setActiveTab('bank-accounts');
                   } catch (err: any) {
                     toast({ title: 'Error', description: err.message || 'Failed to remove bank account', variant: 'destructive' });
                   } finally {
