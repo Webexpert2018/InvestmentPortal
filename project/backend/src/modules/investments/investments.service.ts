@@ -86,8 +86,23 @@ export class InvestmentsService {
 
       // Auto-save signed document into the Document Vault!
       try {
-        const fallbackPath = path.resolve(process.cwd(), 'public/subscription-documents/SA-BWell-Fund.pdf');
-        if (fs.existsSync(fallbackPath)) {
+        const pathsToTry = [
+          path.resolve(process.cwd(), 'public/subscription-documents/SA-BWell-Fund.pdf'),
+          path.resolve(__dirname, '..', '..', '..', 'public/subscription-documents/SA-BWell-Fund.pdf')
+        ];
+
+        let fallbackPath = pathsToTry[0];
+        let found = false;
+
+        for (const p of pathsToTry) {
+          if (fs.existsSync(p)) {
+            fallbackPath = p;
+            found = true;
+            break;
+          }
+        }
+
+        if (found) {
           const pdfBuffer = fs.readFileSync(fallbackPath);
 
           const cloudinaryUpload = () => {
@@ -117,7 +132,7 @@ export class InvestmentsService {
               userId,
               `Subscription_Agreement_${investment.id}.pdf`,
               fileUrl,
-              'signed_agreement',
+              'subscription_agreement',
               pdfBuffer.length,
               `Auto-Saved Document Vault Record for Investment ID: ${investment.id}`
             ]

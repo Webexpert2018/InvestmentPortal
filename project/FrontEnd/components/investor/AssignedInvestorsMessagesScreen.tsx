@@ -153,6 +153,7 @@ export function AssignedInvestorsMessagesScreen() {
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const documentInputRef = useRef<HTMLInputElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement | null>(null);
   const prevMessagesCountRef = useRef<number>(0);
   const [confirmation, setConfirmation] = useState<{
     isOpen: boolean;
@@ -402,6 +403,9 @@ export function AssignedInvestorsMessagesScreen() {
         fileSize: selectedFile?.size,
       });
       setMessageInput('');
+      if (messageInputRef.current) {
+        messageInputRef.current.style.height = 'auto';
+      }
       setSelectedFile(null);
       fetchMessages(activeThreadId);
     } catch (err) {
@@ -719,7 +723,9 @@ export function AssignedInvestorsMessagesScreen() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-[200px] rounded-xl shadow-xl border-[#F0F0F0]">
                       <div className="px-3 py-2 border-b border-[#F0F0F0] mb-1">
-                        <p className="text-[11px] font-bold text-[#A2A5AA] uppercase tracking-wider">Group Details</p>
+                        <p className="text-[11px] font-bold text-[#A2A5AA] uppercase tracking-wider">
+                          {activeThread.isGroup ? 'Group Details' : 'Chat Details'}
+                        </p>
                       </div>
 
                       {activeThread.participants?.map((p: any) => (
@@ -1058,9 +1064,14 @@ export function AssignedInvestorsMessagesScreen() {
                     <img src="/images/message/attach_square.svg" alt="attach" className="h-7 w-7" />
                   </button>
 
-                  <input
+                  <textarea
+                    ref={messageInputRef}
                     value={messageInput}
-                    onChange={(event) => setMessageInput(event.target.value)}
+                    onChange={(event) => {
+                      setMessageInput(event.target.value);
+                      event.target.style.height = 'auto';
+                      event.target.style.height = `${event.target.scrollHeight}px`;
+                    }}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter' && !event.shiftKey) {
                         event.preventDefault();
@@ -1069,7 +1080,8 @@ export function AssignedInvestorsMessagesScreen() {
                     }}
                     placeholder={isUploading ? "Uploading file..." : "Type a message here ..."}
                     disabled={isUploading || isSending}
-                    className="flex-1 bg-transparent text-[14px] py-1.5 outline-none placeholder:text-[#B1B3B8] disabled:opacity-50"
+                    className="flex-1 bg-transparent text-[14px] py-1.5 outline-none placeholder:text-[#B1B3B8] disabled:opacity-50 resize-none"
+                    rows={1}
                   />
 
                   <button

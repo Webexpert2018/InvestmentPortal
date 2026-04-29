@@ -193,6 +193,9 @@ export class DocusignService {
   /**
    * Creates an envelope for a specific investment and returns the embedded signing URL.
    */
+  /**
+   * Creates an envelope for a specific investment and returns the embedded signing URL.
+   */
   async createEnvelopeForInvestment(
     accessToken: string | null,
     accountId: string | null,
@@ -210,6 +213,25 @@ export class DocusignService {
     }
 
     this.dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
+
+    // Parse names for IRA/Entity accounts
+    let documentName = signerName;
+    let signatureName = signerName;
+
+    if (signerName.toLowerCase().includes('fbo')) {
+      const fboIndex = signerName.toUpperCase().indexOf('FBO');
+      if (fboIndex !== -1) {
+        // 1. For the document: Replace everything before FBO with AET
+        documentName = 'AET ' + signerName.substring(fboIndex);
+        
+        // 2. For signature: Extract only the full name of the investor
+        let afterFbo = signerName.substring(fboIndex + 3).trim();
+        afterFbo = afterFbo.replace(/\s+(Defined Benefit Plan|DB Plan|Traditional IRA|Traditional|Roth IRA|Roth SEP|SEP IRA|Roth|SEP|IRA|401k|Account)$/i, '').trim();
+        signatureName = afterFbo;
+      }
+    } else {
+      signatureName = signerName.replace(/\s+(Defined Benefit Plan|DB Plan|Traditional IRA|Traditional|Roth IRA|Roth SEP|SEP IRA|Roth|SEP|IRA|401k|Account)$/i, '').trim();
+    }
 
     // Use any to avoid lint errors with mismatching @types/docusign-esign
     const ds = docusign as any;
@@ -274,12 +296,14 @@ export class DocusignService {
     startNameTab.anchorUnits = 'pixels';
     
     // Dynamically center the name on the blank underline
-    const textWidth = (signerName || '').length * 6.5;
+    const textWidth = (documentName || '').length * 6.5;
     const calculatedOffset = Math.round(-200 + Math.max(0, (200 - textWidth) / 2));
     startNameTab.anchorXOffset = calculatedOffset.toString();
     
-    startNameTab.anchorYOffset = '0';
-    startNameTab.value = signerName;
+    startNameTab.anchorYOffset = '-8'; // Moved up a bit
+    startNameTab.value = documentName;
+    startNameTab.font = 'TimesNewRoman';
+    startNameTab.fontSize = 'Size11';
     startNameTab.tabLabel = 'Initial Investor Name';
     startNameTab.locked = 'true';
     startNameTab.documentId = '1';
@@ -301,6 +325,8 @@ export class DocusignService {
     saAmount.anchorXOffset = '120';
     saAmount.anchorYOffset = '22'; // 1 line down
     saAmount.value = `$${investmentAmount.toLocaleString('en-US')}`;
+    saAmount.font = 'TimesNewRoman';
+    saAmount.fontSize = 'Size11';
     saAmount.tabLabel = 'Investment Amount';
     saAmount.locked = 'true';
     saAmount.documentId = '2';
@@ -309,19 +335,26 @@ export class DocusignService {
     const saName = new ds.Text();
     saName.anchorString = 'INVESTOR:';
     saName.anchorUnits = 'pixels';
-    saName.anchorXOffset = '80';
+    saName.anchorXOffset = '50';
     saName.anchorYOffset = '88'; // 3 lines down
-    saName.value = signerName;
+    saName.value = documentName;
+    saName.font = 'TimesNewRoman';
+    saName.fontSize = 'Size11';
     saName.tabLabel = 'SA Investor Name';
     saName.locked = 'true';
     saName.documentId = '2';
     saName.recipientId = '1';
 
-    const saDate = new ds.DateSigned();
+    const saDate = new ds.Text();
     saDate.anchorString = 'INVESTOR:';
     saDate.anchorUnits = 'pixels';
-    saDate.anchorXOffset = '80';
+    saDate.anchorXOffset = '50';
     saDate.anchorYOffset = '122'; // 4 lines down
+    saDate.value = new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+    saDate.font = 'TimesNewRoman';
+    saDate.fontSize = 'Size11';
+    saDate.tabLabel = 'SA Date';
+    saDate.locked = 'true';
     saDate.anchorMatchWholeWord = 'true';
     saDate.documentId = '2';
     saDate.recipientId = '1';
@@ -336,11 +369,16 @@ export class DocusignService {
     oaSignature.documentId = '1';
     oaSignature.recipientId = '1';
 
-    const oaDate = new ds.DateSigned();
+    const oaDate = new ds.Text();
     oaDate.anchorString = 'INVESTOR MEMBER:';
     oaDate.anchorUnits = 'pixels';
-    oaDate.anchorXOffset = '80';
+    oaDate.anchorXOffset = '50';
     oaDate.anchorYOffset = '65'; // 2 lines down
+    oaDate.value = new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+    oaDate.font = 'TimesNewRoman';
+    oaDate.fontSize = 'Size11';
+    oaDate.tabLabel = 'OA Date';
+    oaDate.locked = 'true';
     oaDate.anchorMatchWholeWord = 'true';
     oaDate.documentId = '1';
     oaDate.recipientId = '1';
@@ -348,9 +386,11 @@ export class DocusignService {
     const oaName = new ds.Text();
     oaName.anchorString = 'INVESTOR MEMBER:';
     oaName.anchorUnits = 'pixels';
-    oaName.anchorXOffset = '80';
+    oaName.anchorXOffset = '50';
     oaName.anchorYOffset = '105'; // 3 lines down
-    oaName.value = signerName;
+    oaName.value = documentName;
+    oaName.font = 'TimesNewRoman';
+    oaName.fontSize = 'Size11';
     oaName.tabLabel = 'OA Investor Name';
     oaName.locked = 'true';
     oaName.documentId = '1';
@@ -363,7 +403,7 @@ export class DocusignService {
 
     const signer = new ds.Signer();
     signer.email = signerEmail;
-    signer.name = signerName;
+    signer.name = signatureName; // Use signatureName
     signer.recipientId = '1';
     signer.clientUserId = '1001';
     signer.tabs = tabs;
@@ -383,7 +423,7 @@ export class DocusignService {
       viewRequest.returnUrl = returnUrl;
       viewRequest.authenticationMethod = 'none';
       viewRequest.email = signerEmail;
-      viewRequest.userName = signerName;
+      viewRequest.userName = signatureName; // Use signatureName
       viewRequest.clientUserId = '1001';
 
       const viewResults = await envelopesApi.createRecipientView(accountId, envelopeId, { recipientViewRequest: viewRequest });
