@@ -21,8 +21,6 @@ type TaxDocStatus = 'Clean' | 'Pending' | 'Flagged';
 
 type TaxVaultRow = {
   id: string;
-  accountant: string;
-  initials: string;
   fileName: string;
   documentType: string;
   taxYear: string;
@@ -63,8 +61,6 @@ export default function TaxVaultPage() {
 
       const mappedRows: TaxVaultRow[] = data.map((doc: any) => ({
         id: doc.id,
-        accountant: 'System', // Placeholder since real data isn't in table yet
-        initials: 'S',
         fileName: doc.file_name,
         documentType: doc.document_type,
         taxYear: doc.tax_year?.toString() || 'N/A',
@@ -283,11 +279,9 @@ export default function TaxVaultPage() {
                   <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
                     <thead>
                       <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
-                        <th className="rounded-l-[6px] px-4 py-3">Accountant</th>
-                        <th className="px-4 py-3">File Name</th>
+                        <th className="rounded-l-[6px] px-4 py-3">File Name</th>
                         <th className="px-4 py-3">Document Type</th>
                         <th className="px-4 py-3">Tax Year</th>
-                        <th className="px-4 py-3">AV Scan Status</th>
                         <th className="px-4 py-3">Uploaded Date</th>
                         <th className="rounded-r-[6px] px-4 py-3 text-center">Action</th>
                       </tr>
@@ -296,24 +290,9 @@ export default function TaxVaultPage() {
                     <tbody>
                       {currentDocuments.map((row) => (
                         <tr key={row.id} className="border-b border-[#F1F1F1] hover:bg-gray-50/50 transition-colors">
-                          <td className="px-4 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#E9EDF4] text-[12px] font-semibold text-[#274583]">
-                                {row.initials}
-                              </div>
-                              <span>{row.accountant}</span>
-                            </div>
-                          </td>
                           <td className="px-4 py-4 max-w-[200px] truncate" title={row.fileName}>{row.fileName}</td>
                           <td className="px-4 py-4">{row.documentType}</td>
                           <td className="px-4 py-4">{row.taxYear}</td>
-                          <td className="px-4 py-4">
-                            <span
-                              className={`inline-flex rounded-full px-3 py-1 text-[12px] font-medium animate-pulse-subtle ${statusClass[row.status]}`}
-                            >
-                              {row.status}
-                            </span>
-                          </td>
                           <td className="px-4 py-4">{row.uploadedDate}</td>
                           <td className="relative px-4 py-4 text-center">
                             <button
