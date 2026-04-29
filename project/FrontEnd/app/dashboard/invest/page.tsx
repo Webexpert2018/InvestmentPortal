@@ -849,39 +849,165 @@ export default function InvestPage() {
 
   const renderFundingInstructions = () => (
     <>
-      <div className="mb-6">
+      <div className="mb-8 animate-in fade-in zoom-in duration-500">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F8F0]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2BB673]">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+        </div>
         <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
-          Funding Instructions
+          Congratulations!
         </h1>
-        <p className="mt-2 text-sm text-[#8E8E93]">
-          Send funds via wire/ACH to complete your investment.
+        <p className="mt-2 text-base text-[#8E8E93]">
+          Your investment has been submitted. Your investor relations will reach out to you with wire instructions.
         </p>
       </div>
 
-      <div className="rounded-2xl bg-white px-8 py-6 shadow-sm text-sm text-[#4B4B4B]">
-        <p>
-          The PhysicianBTC Fund provides exposure to institutional-grade Bitcoin strategies designed
-          specifically for physicians and medical professionals.
-        </p>
-        <ul className="mt-4 list-disc pl-6">
-          <li>Long-term BTC exposure</li>
-          <li>Optimized for tax-advantaged accounts</li>
-          <li>Low operational friction</li>
-        </ul>
-        <p className="mt-4 font-semibold">Fees:</p>
-        <ul className="mt-1 list-disc pl-6">
-          <li>Management Fee: 2%</li>
-          <li>Performance Fee: 20%</li>
-        </ul>
-        <p className="mt-4 font-semibold">Documents:</p>
-        <ul className="mt-1 list-disc pl-6">
-          <li>PPM Download</li>
-          <li>Fact Sheet</li>
-          <li>Risk Disclosure</li>
-        </ul>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="rounded-2xl bg-white px-8 py-6 shadow-sm border border-[#E5E5EA]">
+          <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] mb-4">Investment Status</h2>
+          <div className="relative">
+            <div className="absolute left-2 top-4 bottom-4 w-px bg-[#E5E5EA]" />
+            <div className="space-y-4">
+              {[
+                {
+                  title: 'Subscription Submitted',
+                  subtitle: currentInvestment?.created_at
+                    ? `Completed on ${new Date(currentInvestment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : 'Completed',
+                  state: 'done',
+                },
+                {
+                  title: 'Document Signed',
+                  subtitle: (currentInvestment?.document_signed || justFinishedSigning) && currentInvestment?.signed_at
+                    ? `Completed on ${new Date(currentInvestment.signed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : (currentInvestment?.document_signed || justFinishedSigning ? 'Completed' : 'Awaiting signature'),
+                  state: (currentInvestment?.document_signed || justFinishedSigning) ? 'done' : 'active',
+                },
+                {
+                  title: 'Awaiting Funding',
+                  subtitle: currentInvestment?.awaiting_funding_at
+                    ? `Completed on ${new Date(currentInvestment.awaiting_funding_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : (currentInvestment?.document_signed || justFinishedSigning ? 'Action required: please provide funding to proceed.' : 'Pending'),
+                  state: currentInvestment?.awaiting_funding ? 'done' : ((currentInvestment?.document_signed || justFinishedSigning) ? 'active' : 'pending'),
+                },
+                {
+                  title: 'Funds Received',
+                  subtitle: currentInvestment?.funds_received_at
+                    ? `Completed on ${new Date(currentInvestment.funds_received_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : 'Pending',
+                  state: currentInvestment?.funds_received ? 'done' : (currentInvestment?.awaiting_funding ? 'active' : 'pending'),
+                },
+                {
+                  title: 'Units Issued',
+                  subtitle: currentInvestment?.units_issued_at
+                    ? `Completed on ${new Date(currentInvestment.units_issued_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : 'Pending',
+                  state: currentInvestment?.units_issued ? 'done' : (currentInvestment?.funds_received ? 'active' : 'pending'),
+                },
+              ].map((item) => {
+                const isDone = item.state === 'done';
+                const isActive = item.state === 'active';
+                return (
+                  <div key={item.title} className="flex items-start gap-4">
+                    <div className={`relative z-10 mt-1 flex h-4 w-4 items-center justify-center rounded-full border ${isDone ? 'border-[#2BB673] bg-[#2BB673]' :
+                      isActive ? 'border-[#FBCB4B] bg-[#FFF3D6]' :
+                        'border-[#E5E5EA] bg-white'
+                      }`}>
+                      {isDone && (
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      )}
+                      {isActive && <span className="h-2 w-2 rounded-full bg-[#FBCB4B]" />}
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDone ? 'text-[#1F1F1F]' : isActive ? 'text-[#1F1F1F]' : 'text-[#8E8E93]'}`}>
+                        {item.title}
+                      </p>
+                      <p className="mt-1 text-xs text-[#8E8E93]">{item.subtitle}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-[#E5E5EA] bg-white px-8 py-6 shadow-sm h-fit">
+          <div className="pb-3 border-b border-[#E5E5EA]">
+            <h2 className="font-goudy text-base text-[#1F1F1F]">Quick Actions</h2>
+          </div>
+          <div className="pt-4 space-y-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (!lastEnvelopeId) {
+                  alert('No signed document found. Please complete signing first.');
+                  return;
+                }
+                const dsAccessToken = localStorage.getItem('ds_access_token') || '';
+                const dsAccountId = localStorage.getItem('ds_account_id') || '';
+
+                (async () => {
+                  try {
+                    const blob = await apiClient.getDocuSignDocument(
+                      lastEnvelopeId,
+                      dsAccessToken,
+                      dsAccountId
+                    );
+                    const url = window.URL.createObjectURL(blob);
+                    window.open(url, '_blank');
+                  } catch (error: any) {
+                    alert('Failed to fetch document: ' + error.message);
+                  }
+                })();
+              }}
+              className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF] transition-all"
+            >
+              View Document
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard/messages')}
+              className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF] transition-all"
+            >
+              Message
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard/document-vault')}
+              className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF] transition-all"
+            >
+              Document Vault
+            </button>
+          </div>
+        </div>
       </div>
 
-      {renderFooter()}
+      <div className="mt-16 flex items-center justify-end border-t border-[#E5E5EA] pt-8">
+        <button
+          type="button"
+          onClick={() => {
+            localStorage.removeItem('draft_investment');
+            setStep('fundingAccount');
+          }}
+          className="rounded-full bg-[#FBCB4B] px-12 py-3.5 text-sm font-bold text-[#1F1F1F] hover:bg-[#F9B800] shadow-sm transition-all"
+        >
+          Done
+        </button>
+      </div>
     </>
   );
 
