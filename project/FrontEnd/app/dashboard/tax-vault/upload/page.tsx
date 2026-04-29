@@ -41,10 +41,6 @@ export default function UploadTaxDocumentPage() {
       nextErrors.taxYear = 'Tax Year is required';
     }
 
-    if (!description.trim()) {
-      nextErrors.description = 'Description is required';
-    }
-
     if (!selectedFile) {
       nextErrors.file = 'Please upload a file';
     } else if (selectedFile.size === 0) {

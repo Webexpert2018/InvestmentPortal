@@ -80,7 +80,7 @@ return this.bankAccountsService.update(user.userId, id, data, user);
         // else if (!isValidRouting(data.routing_number)) {
         //   errors.push('Routing number must be 9 digits');
         // }
-      if (!data.beneficiary_name || !data.beneficiary_name.trim()) errors.push('Beneficiary name is required');
+
       if (!data.bank_address || !data.bank_address.trim()) errors.push('Bank address is required');
     } else {
       if (data.bank_name !== undefined && !data.bank_name.trim()) errors.push('Bank name cannot be empty');
@@ -102,7 +102,7 @@ return this.bankAccountsService.update(user.userId, id, data, user);
         errors.push('Routing number must be 9 digits');
       }
     }
-      if (data.beneficiary_name !== undefined && !data.beneficiary_name.trim()) errors.push('Beneficiary name cannot be empty');
+
       if (data.bank_address !== undefined && !data.bank_address.trim()) errors.push('Bank address cannot be empty');
     }
     return errors;
