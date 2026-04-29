@@ -37,7 +37,6 @@ export class BankAccountsService {
       if (!bank_name?.trim()) throw new InternalServerErrorException('Bank name is required');
       if (!account_number?.trim()) throw new InternalServerErrorException('Account number is required');
       if (!routing_number?.trim()) throw new InternalServerErrorException('Routing number is required');
-      if (!beneficiary_name?.trim()) throw new InternalServerErrorException('Beneficiary name is required');
       if (!bank_address?.trim()) throw new InternalServerErrorException('Bank address is required');
 
       const query = `
@@ -52,7 +51,7 @@ export class BankAccountsService {
         bank_name.trim(),
         account_number.trim(),
         routing_number.trim(),
-        beneficiary_name.trim(),
+        beneficiary_name ? beneficiary_name.trim() : '',
         bank_address.trim(),
         bank_description?.trim() || null,
       ]);

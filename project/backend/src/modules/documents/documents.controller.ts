@@ -216,7 +216,7 @@ export class DocumentsController {
         if (doc.file_url.includes('cloudinary.com')) {
           const match = doc.file_url.match(/\/(upload|private|authenticated)\/(v(\d+)\/)?(.+)$/);
           if (match) {
-            const pathWithExtension = match[4].split('?')[0];
+            const pathWithExtension = decodeURIComponent(match[4].split('?')[0]);
             const pathWithoutExtension = pathWithExtension.replace(/\.[^/.]+$/, "");
             
             // We try to find the resource using Admin API to get the correct type and resource_type

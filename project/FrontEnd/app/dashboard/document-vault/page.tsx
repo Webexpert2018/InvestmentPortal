@@ -12,7 +12,6 @@ type VaultRow = {
   id: string;
   documentName: string;
   category: string;
-  taxYear: string;
   uploadedDate: string;
   fileUrl: string;
 };
@@ -22,7 +21,6 @@ const allDocuments: VaultRow[] = [
     id: 'k1-2025',
     documentName: 'k-1_2025.pdf',
     category: 'K-1',
-    taxYear: '2025',
     uploadedDate: 'Dec 26, 2025',
     fileUrl: '/images/document_details.jpg',
   },
@@ -30,7 +28,6 @@ const allDocuments: VaultRow[] = [
     id: 'w9-update',
     documentName: 'W-9_update8.pdf',
     category: 'W-9',
-    taxYear: '2025',
     uploadedDate: 'Dec 26, 2025',
     fileUrl: '/images/document_details.jpg',
   },
@@ -38,7 +35,6 @@ const allDocuments: VaultRow[] = [
     id: 'statement-q3-1',
     documentName: 'Statement_Q3.pdf',
     category: 'Statement',
-    taxYear: '2025',
     uploadedDate: 'Dec 26, 2025',
     fileUrl: '/images/document_details.jpg',
   },
@@ -46,7 +42,6 @@ const allDocuments: VaultRow[] = [
     id: 'statement-q3-2',
     documentName: 'Statement_Q3.pdf',
     category: 'Statement',
-    taxYear: '2025',
     uploadedDate: 'Dec 26, 2025',
     fileUrl: '/images/document_details.jpg',
   },
@@ -91,7 +86,6 @@ export default function DocumentVaultPage() {
           id: doc.id,
           documentName: doc.file_name,
           category: getCategoryName(doc.document_type || doc.category),
-          taxYear: doc.tax_year?.toString() || 'N/A',
           uploadedDate: new Date(doc.uploaded_at).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -114,23 +108,17 @@ export default function DocumentVaultPage() {
     return ['all', ...Array.from(cats)].sort();
   }, [documents]);
 
-  const years = useMemo(() => {
-    const yrs = new Set(documents.map(d => d.taxYear).filter(y => y !== 'N/A'));
-    return ['all', ...Array.from(yrs)].sort((a, b) => b.localeCompare(a));
-  }, [documents]);
-
   const filtered = useMemo(() => {
     return documents.filter((row) => {
       const typeMatch = docType === 'all' || row.category === docType;
-      const yearMatch = year === 'all' || row.taxYear === year;
       const searchMatch =
         query.trim().length === 0 ||
         row.documentName.toLowerCase().includes(query.toLowerCase()) ||
         row.category.toLowerCase().includes(query.toLowerCase());
 
-      return typeMatch && yearMatch && searchMatch;
+      return typeMatch && searchMatch;
     });
-  }, [documents, query, docType, year]);
+  }, [documents, query, docType]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
@@ -210,23 +198,6 @@ export default function DocumentVaultPage() {
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
             </div>
-
-            <div className="relative">
-              <select
-                value={year}
-                onChange={(event) => {
-                  setYear(event.target.value);
-                  setCurrentPage(1);
-                }}
-                className="h-[40px] min-w-[90px] appearance-none rounded-full bg-[#F5F5F5] px-4 pr-9 text-[13px] text-[#8E8E93] outline-none"
-              >
-                <option value="all">Year</option>
-                {years.filter(y => y !== 'all').map(yr => (
-                  <option key={yr} value={yr}>{yr}</option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
-            </div>
           </div>
 
           <div className="mt-4 overflow-x-auto pb-20 custom-scrollbar">
@@ -236,7 +207,6 @@ export default function DocumentVaultPage() {
                 <tr className="bg-[#FAFAFA] text-left font-medium text-[#4B4B4B]">
                   <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
                   <th className="px-3 py-3">Category</th>
-                  <th className="px-3 py-3">Tax Year</th>
                   <th className="px-3 py-3">Uploaded Date</th>
                   <th className="rounded-r-[6px] px-3 py-3 text-center">Action</th>
                 </tr>
@@ -246,7 +216,6 @@ export default function DocumentVaultPage() {
                   <tr key={row.id} className="border-b border-[#F1F1F1]">
                     <td className="px-3 py-4">{row.documentName}</td>
                     <td className="px-3 py-4">{row.category}</td>
-                    <td className="px-3 py-4">{row.taxYear}</td>
                     <td className="px-3 py-4">{row.uploadedDate}</td>
                     <td className="relative px-3 py-4 text-center">
                       <button
@@ -291,7 +260,7 @@ export default function DocumentVaultPage() {
                 ))}
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-3 py-8 text-center text-[13px] text-[#8E8E93]">
+                    <td colSpan={4} className="px-3 py-8 text-center text-[13px] text-[#8E8E93]">
                       No documents found.
                     </td>
                   </tr>

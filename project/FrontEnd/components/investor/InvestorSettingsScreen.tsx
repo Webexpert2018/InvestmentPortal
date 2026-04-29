@@ -218,6 +218,8 @@ export function InvestorSettingsScreen() {
   const [bankAccountMode, setBankAccountMode] = useState<'add' | 'edit' | 'view'>('add');
   const [currentBankId, setCurrentBankId] = useState<string | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [deleteBankId, setDeleteBankId] = useState<string | null>(null);
+  const [isDeletingBank, setIsDeletingBank] = useState(false);
 
   const countries = useMemo(() => {
     const allCountries = Country.getAllCountries();
@@ -786,7 +788,8 @@ export function InvestorSettingsScreen() {
                 value={profile.ssn}
                 maxLength={11}
                 onChange={(event) => {
-                  setProfile((prev) => ({ ...prev, ssn: event.target.value }));
+                  const val = event.target.value.replace(/[^\d-]/g, '');
+                  setProfile((prev) => ({ ...prev, ssn: val }));
                   setProfileErrors((prev) => ({ ...prev, ssn: undefined }));
                 }}
               />
@@ -1365,16 +1368,8 @@ export function InvestorSettingsScreen() {
                               Edit
                             </button>
                             <button
-                              onClick={async () => {
-                                if (confirm('Are you sure you want to remove this bank account?')) {
-                                  try {
-                                    await apiClient.deleteBankAccount(item.id);
-                                    setBankAccounts(prev => prev.filter(a => a.id !== item.id));
-                                    toast({ title: 'Deleted', description: 'Bank account removed successfully', variant: 'success' });
-                                  } catch (err: any) {
-                                    toast({ title: 'Error', description: err.message, variant: 'destructive' });
-                                  }
-                                }
+                              onClick={() => {
+                                setDeleteBankId(item.id);
                                 setMenuOpenId(null);
                               }}
                               className="flex w-full px-4 py-2 text-left text-[11px] text-[#E05252] hover:bg-gray-100"
@@ -1512,8 +1507,6 @@ export function InvestorSettingsScreen() {
               disabled={saving}
               onClick={async () => {
                 const errors: Record<string, string> = {};
-
-                if (!bankAdd.beneficiary_name.trim()) errors.beneficiary_name = 'Beneficiary name is required';
                 if (!bankAdd.bank_name.trim()) errors.bank_name = 'Bank name is required';
 
                 const accountRegex = /^\d{8,17}$/;
@@ -1809,6 +1802,48 @@ export function InvestorSettingsScreen() {
         {activeTab === 'add-account' && renderAddAccount()}
         {activeTab === 'add-bank-account' && renderAddBankAccount()}
       </div>
+
+      {deleteBankId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-[400px] rounded-[10px] bg-white p-6 shadow-xl">
+            <h3 className="mb-2 text-[16px] font-bold text-[#1F1F1F]">Remove Bank Account</h3>
+            <p className="mb-6 text-[14px] text-[#4B4B4B]">
+              Are you sure you want to remove this bank account? This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                disabled={isDeletingBank}
+                onClick={() => setDeleteBankId(null)}
+                className="h-[36px] rounded-full bg-[#FFF3D6] px-5 text-[12px] font-medium text-[#4B4B4B] hover:bg-[#FCEBAE]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingBank}
+                onClick={async () => {
+                  setIsDeletingBank(true);
+                  try {
+                    await apiClient.deleteBankAccount(deleteBankId);
+                    setBankAccounts(prev => prev.filter(a => a.id !== deleteBankId));
+                    toast({ title: 'Deleted', description: 'Bank account removed successfully', variant: 'success' });
+                    setDeleteBankId(null);
+                  } catch (err: any) {
+                    toast({ title: 'Error', description: err.message || 'Failed to remove bank account', variant: 'destructive' });
+                  } finally {
+                    setIsDeletingBank(false);
+                  }
+                }}
+                className="flex h-[36px] items-center justify-center gap-2 rounded-full bg-[#E05252] px-5 text-[12px] font-medium text-white hover:bg-[#C94A4A] disabled:opacity-70"
+              >
+                {isDeletingBank && <Loader2 className="h-4 w-4 animate-spin" />}
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
