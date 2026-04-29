@@ -13,8 +13,9 @@ export class PipelineCronService {
    * Finds all pipeline notes with today as the scheduled date and fires notifications.
    * Marks each fired note with reminderSentDate so it doesn't fire twice.
    */
-  @Cron('0 8 * * *')
+  @Cron('0 8 * * *', { timeZone: 'Asia/Kolkata' })
   async handleScheduledNoteReminders() {
+
     this.logger.log('⏰ Running scheduled note reminder check...');
     try {
       await this.pipelineService.fireScheduledReminders();
