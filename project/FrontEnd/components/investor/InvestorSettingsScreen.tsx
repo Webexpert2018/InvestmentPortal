@@ -253,10 +253,10 @@ export function InvestorSettingsScreen() {
       console.log('📋 Loading bank accounts from API...');
       const data = await apiClient.getBankAccounts();
       console.log('✅ Bank accounts loaded:', data?.length || 0, 'accounts');
-      
+
       const uniqueAccounts: any[] = [];
       const seen = new Set<string>();
-      
+
       if (data && Array.isArray(data)) {
         data.forEach(account => {
           const key = `${account.account_number}_${account.routing_number}`;

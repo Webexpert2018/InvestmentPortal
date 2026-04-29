@@ -365,13 +365,13 @@ export default function PortfolioFundDetailsPage() {
               </div>
             </div>
             <div className="mt-6 space-y-3">
-              <button 
+              <button
                 onClick={() => router.push('/dashboard/messages')}
                 className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF] transition-all shadow-sm"
               >
-                Message IR Team
+                Message
               </button>
-              <button 
+              <button
                 onClick={() => router.push('/dashboard/schedule-meeting')}
                 className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF] transition-all shadow-sm"
               >

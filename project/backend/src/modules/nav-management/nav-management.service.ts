@@ -18,8 +18,8 @@ export class NavManagementService {
     );
     const activeNav = navResult.rows[0];
 
-    // 2. Fetch total investors count
-    const investorResult = await db.query('SELECT COUNT(*) as count FROM investors');
+    // 2. Fetch total investors count (matching dashboard logic: status = 'active')
+    const investorResult = await db.query("SELECT COUNT(*) as count FROM investors WHERE status = 'active'");
     const investorCount = parseInt(investorResult.rows[0].count);
 
     return {
