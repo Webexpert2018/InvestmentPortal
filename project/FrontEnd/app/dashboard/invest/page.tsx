@@ -140,6 +140,8 @@ export default function InvestPage() {
           const cleanAmount = draftAmount.replace(/[^-0-9.]/g, '');
           const numericAmount = Number.parseFloat(cleanAmount) || 0;
 
+          const savedEnvelopeId = localStorage.getItem('last_envelope_id');
+
           const investment = await apiClient.createInvestment({
             fundId: draftSelectedFundId!,
             accountId: draftAccountId !== 'personal' ? (draftAccountId ?? undefined) : undefined,
@@ -147,8 +149,10 @@ export default function InvestPage() {
             investmentAmount: numericAmount,
             unitPrice: draftUnitPrice,
             status: 'Subscription Submitted',
-            documentSigned: true
+            documentSigned: true,
+            envelopeId: savedEnvelopeId || undefined
           });
+
 
           if (investment && investment.id) {
             localStorage.setItem('last_investment_id', investment.id);

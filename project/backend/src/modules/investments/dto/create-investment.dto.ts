@@ -40,7 +40,13 @@ export class CreateInvestmentDto {
   @ApiProperty({ description: 'Whether the document is signed', default: false })
   @IsOptional()
   documentSigned?: boolean;
+
+  @ApiProperty({ description: 'The DocuSign envelope ID', required: false })
+  @IsString()
+  @IsOptional()
+  envelopeId?: string;
 }
+
 
 export class UpdateInvestmentStatusDto {
   @ApiProperty({ description: 'The new status of the investment' })

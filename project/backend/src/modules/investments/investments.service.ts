@@ -1,17 +1,22 @@
 import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { db } from '../../config/database';
 import { NotificationsService } from '../notifications/notifications.service';
+import { DocusignService } from '../docusign/docusign.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { cloudinary } from '../../config/cloudinary.config';
 
 @Injectable()
 export class InvestmentsService {
-  constructor(private readonly notificationsService: NotificationsService) { }
+  constructor(
+    private readonly notificationsService: NotificationsService,
+    private readonly docusignService: DocusignService
+  ) { }
+
   async createInvestment(userId: string, data: any) {
     const {
       fundId, accountId, accountType, investmentAmount, unitPrice, status,
-      documentSigned, awaitingFunding, fundsReceived, unitsIssued
+      documentSigned, awaitingFunding, fundsReceived, unitsIssued, envelopeId
     } = data;
 
     try {
@@ -86,25 +91,54 @@ export class InvestmentsService {
 
       // Auto-save signed document into the Document Vault!
       try {
-        const pathsToTry = [
-          path.resolve(process.cwd(), 'public/subscription-documents/SA-BWell-Fund.pdf'),
-          path.resolve(__dirname, '..', '..', '..', 'public/subscription-documents/SA-BWell-Fund.pdf')
-        ];
+        let pdfBuffer: Buffer | null = null;
+        let fileName = `Signed_Subscription_Agreement_${investment.id}.pdf`;
 
-        let fallbackPath = pathsToTry[0];
-        let found = false;
+        if (envelopeId) {
+          try {
+            const tokenData = await this.docusignService.getAccessTokenJWT();
+            const pdfData = await this.docusignService.getEnvelopeDocument(
+              tokenData.accessToken, 
+              tokenData.accountId, 
+              envelopeId
+            );
 
-        for (const p of pathsToTry) {
-          if (fs.existsSync(p)) {
-            fallbackPath = p;
-            found = true;
-            break;
+            if (typeof pdfData === 'string') {
+              pdfBuffer = Buffer.from(pdfData, 'base64');
+            } else if (Buffer.isBuffer(pdfData)) {
+              pdfBuffer = pdfData;
+            } else {
+              pdfBuffer = Buffer.from(pdfData as any);
+            }
+          } catch (dsError) {
+            console.warn('⚠️ Failed to fetch signed document from DocuSign, falling back to template:', dsError);
           }
         }
 
-        if (found) {
-          const pdfBuffer = fs.readFileSync(fallbackPath);
+        if (!pdfBuffer) {
+          const pathsToTry = [
+            path.resolve(process.cwd(), 'public/subscription-documents/SA-BWell-Fund.pdf'),
+            path.resolve(__dirname, '..', '..', '..', 'public/subscription-documents/SA-BWell-Fund.pdf')
+          ];
 
+          let fallbackPath = pathsToTry[0];
+          let found = false;
+
+          for (const p of pathsToTry) {
+            if (fs.existsSync(p)) {
+              fallbackPath = p;
+              found = true;
+              break;
+            }
+          }
+
+          if (found) {
+            pdfBuffer = fs.readFileSync(fallbackPath);
+            fileName = `Subscription_Agreement_${investment.id}.pdf`;
+          }
+        }
+
+        if (pdfBuffer) {
           const cloudinaryUpload = () => {
             return new Promise((resolve, reject) => {
               const uploadStream = cloudinary.uploader.upload_stream(
@@ -130,7 +164,7 @@ export class InvestmentsService {
              VALUES ($1, $2, $3, $4, $5, $6)`,
             [
               userId,
-              `Subscription_Agreement_${investment.id}.pdf`,
+              fileName,
               fileUrl,
               'subscription_agreement',
               pdfBuffer.length,
@@ -141,6 +175,8 @@ export class InvestmentsService {
       } catch (vaultError) {
         console.warn('⚠️ Failed to auto-save document to vault in createInvestment:', vaultError);
       }
+
+
 
       // Notify admin/staff about new fund request
       this.notificationsService.createNotification({
