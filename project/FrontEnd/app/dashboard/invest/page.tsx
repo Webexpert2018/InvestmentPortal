@@ -66,6 +66,7 @@ export default function InvestPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [currentInvestment, setCurrentInvestment] = useState<any>(null);
   const [justFinishedSigning, setJustFinishedSigning] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
 
   // Check for DocuSign completion and handle fresh start
   useEffect(() => {
@@ -91,6 +92,7 @@ export default function InvestPage() {
 
     if (signingStatus === 'complete' || eventStatus === 'signing_complete') {
       setJustFinishedSigning(true);
+      setIsFinalizing(true);
 
       // Restore state from localStorage
       const draftJson = localStorage.getItem('draft_investment');
@@ -163,8 +165,10 @@ export default function InvestPage() {
 
           // Go to Funding Instructions screen!
           setStep('fundingInstructions');
+          setIsFinalizing(false);
         } catch (error) {
           console.error('Failed to submit investment on signing complete:', error);
+          setIsFinalizing(false);
         }
       };
       submitInvestment();
@@ -1168,6 +1172,18 @@ export default function InvestPage() {
       break;
     default:
       content = renderChooseFund();
+  }
+
+  if (isFinalizing) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[400px] py-20 text-center animate-in fade-in zoom-in duration-500">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2BB673] mb-6"></div>
+          <h3 className="font-goudy text-xl font-bold text-[#1F1F1F]">Finalizing Your Investment...</h3>
+          <p className="text-sm text-[#8E8E93] mt-2">Please wait while we secure your documents.</p>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   if (showSuccess) {
