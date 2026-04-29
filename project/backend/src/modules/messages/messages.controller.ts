@@ -59,6 +59,15 @@ export class MessagesController {
     return this.messagesService.removeParticipant(id, targetUserId, user.userId);
   }
 
+  @Post('conversations/:id/add-participants')
+  async addParticipants(
+    @Param('id') id: string, 
+    @CurrentUser() user: any, 
+    @Body('participantIds') participantIds: string[]
+  ) {
+    return this.messagesService.addParticipants(id, participantIds || [], user.userId);
+  }
+
   @Get('unread-count')
   async getUnreadCount(@CurrentUser() user: any) {
     return this.messagesService.getUnreadCount(user.userId);

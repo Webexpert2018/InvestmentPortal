@@ -7,6 +7,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import * as fs from 'fs';
+import { db } from './config/database';
 
 let cachedApp: NestExpressApplication;
 let isInitializing = false;
@@ -23,6 +24,16 @@ async function bootstrap() {
   initializationPromise = (async () => {
     try {
       const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+      // Ensure DB constraints are relaxed for conversations
+      try {
+        console.log('🛠️ Relaxing conversation table constraints...');
+        await db.query('ALTER TABLE conversations ALTER COLUMN investor_id DROP NOT NULL');
+        await db.query('ALTER TABLE conversations ALTER COLUMN staff_id DROP NOT NULL');
+        console.log('✅ Constraints relaxed successfully.');
+      } catch (err) {
+        console.warn('⚠️ Could not relax DB constraints:', err);
+      }
 
       const configService = app.get(ConfigService);
       const port = parseInt(

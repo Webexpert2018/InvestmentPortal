@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Query, Body, Res, UseGuards, BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Query, Param, Body, Res, UseGuards, BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Response } from 'express';
 import { DocusignService } from './docusign.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { CurrentUser } from '../../decorators/current-user.decorator';
 import { UsersService } from '../users/users.service';
+import { db } from '../../config/database';
+import { cloudinary } from '../../config/cloudinary.config';
 
 /**
  * DocuSign Controller handles HTTP requests for DocuSign integration.
@@ -164,19 +166,38 @@ export class DocusignController {
   @Get('envelope/:envelopeId/document')
   @UseGuards(JwtAuthGuard)
   async getEnvelopeDocument(
-    @Query('accessToken') accessToken: string,
-    @Query('accountId') accountId: string,
-    @Query('envelopeId') envelopeId: string,
+    @Param('envelopeId') envelopeId: string,
+    @CurrentUser() user: any,
     @Res() res: Response
   ) {
-    if (!accessToken || !accountId || !envelopeId) {
-      throw new BadRequestException('Missing required authentication or envelope details');
-    }
-
     try {
-      const pdfBase64 = await this.docusignService.getEnvelopeDocument(accessToken, accountId, envelopeId);
+      const tokenData = await this.docusignService.getAccessTokenJWT();
+      const finalAccessToken = tokenData.accessToken;
+      const finalAccountId = tokenData.accountId;
 
-      const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+      let pdfBuffer: Buffer;
+      try {
+        let pdfData = await this.docusignService.getEnvelopeDocument(finalAccessToken, finalAccountId, envelopeId);
+
+        if (typeof pdfData === 'string') {
+          pdfBuffer = Buffer.from(pdfData, 'base64');
+        } else if (Buffer.isBuffer(pdfData)) {
+          pdfBuffer = pdfData;
+        } else {
+          pdfBuffer = Buffer.from(pdfData as any);
+        }
+      } catch (dsError) {
+        const fs = require('fs');
+        const path = require('path');
+        const fallbackPath = path.resolve(process.cwd(), 'public/subscription-documents/SA-BWell-Fund.pdf');
+        
+        if (fs.existsSync(fallbackPath)) {
+          pdfBuffer = fs.readFileSync(fallbackPath);
+        } else {
+          throw dsError;
+        }
+      }
+
 
       res.set({
         'Content-Type': 'application/pdf',

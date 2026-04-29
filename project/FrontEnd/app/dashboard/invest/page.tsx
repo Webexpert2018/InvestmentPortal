@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +40,7 @@ const getFullImageUrl = (imagePath: string | null | undefined): string | undefin
 export default function InvestPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>('fundingAccount');
   const [funds, setFunds] = useState<any[]>([]);
@@ -66,13 +67,23 @@ export default function InvestPage() {
   const [currentInvestment, setCurrentInvestment] = useState<any>(null);
   const [justFinishedSigning, setJustFinishedSigning] = useState(false);
 
-  // Check for DocuSign completion in URL
+  // Check for DocuSign completion and handle fresh start
   useEffect(() => {
+    const signingStatus = searchParams?.get('signing');
+    const eventStatus = searchParams?.get('event');
+
+    if (signingStatus !== 'complete' && eventStatus !== 'signing_complete') {
+      // Fresh start: clear old investment tracking
+      localStorage.removeItem('last_investment_id');
+      localStorage.removeItem('draft_investment');
+      setCurrentInvestment(null);
+    }
+
     const savedEnvelopeId = localStorage.getItem('last_envelope_id');
     if (savedEnvelopeId) {
       setLastEnvelopeId(savedEnvelopeId);
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     const signingStatus = searchParams?.get('signing');
@@ -80,47 +91,91 @@ export default function InvestPage() {
 
     if (signingStatus === 'complete' || eventStatus === 'signing_complete') {
       setJustFinishedSigning(true);
-      const lastId = localStorage.getItem('last_investment_id');
-      if (lastId) {
-        // Optimistic UI update: Mark as signed and awaiting funding immediately
-        const optimisticData = {
-          id: lastId,
-          status: 'Awaiting Funding',
-          document_signed: true,
-          signed_at: new Date().toISOString()
-        };
 
-        setCurrentInvestment((prev: any) => prev ? { ...prev, ...optimisticData } : optimisticData);
+      // Restore state from localStorage
+      const draftJson = localStorage.getItem('draft_investment');
+      if (!draftJson) return;
 
-        apiClient.updateInvestmentStatus(lastId, {
-          status: 'Awaiting Funding',
-          documentSigned: true
-        })
-          .then((updatedInvestment) => {
-            // Use the returned updated object from the server
-            if (updatedInvestment) {
-              setCurrentInvestment(updatedInvestment);
-            }
-          })
-          .catch(err => {
-            console.error('Failed to update investment status:', err);
-            // Re-fetch only if update fails to ensure consistency
-            apiClient.getMyTransactions().then(investments => {
-              const updated = investments.find((i: any) => i.id === lastId);
-              if (updated) setCurrentInvestment(updated);
-            });
-          });
+      // Remove immediately to prevent duplicate triggers (e.g. React StrictMode)
+      localStorage.removeItem('draft_investment');
+
+      let draftAmount = amount;
+      let draftUnitPrice = unitPrice;
+      let draftSelectedFundId = selectedFundId;
+      let draftAccountId = selectedAccountId;
+      let draftAccountType = 'personal';
+
+      if (draftJson) {
+        try {
+          const draft = JSON.parse(draftJson);
+          if (draft.fundId) {
+            setSelectedFundId(draft.fundId);
+            draftSelectedFundId = draft.fundId;
+          }
+          if (draft.accountId) {
+            setSelectedAccountId(draft.accountId);
+            draftAccountId = draft.accountId;
+          }
+          if (draft.amount) {
+            setAmount(String(draft.amount));
+            draftAmount = String(draft.amount);
+          }
+          if (draft.unitPrice) {
+            setUnitPrice(draft.unitPrice);
+            draftUnitPrice = draft.unitPrice;
+          }
+          if (draft.accountType) {
+            draftAccountType = draft.accountType;
+          }
+        } catch (e) {
+          console.error('Failed to parse draft investment:', e);
+        }
       }
-      setStep('investmentStatus');
+
+      // SUBMIT INVESTMENT IMMEDIATELY
+      const submitInvestment = async () => {
+        try {
+          const cleanAmount = draftAmount.replace(/[^-0-9.]/g, '');
+          const numericAmount = Number.parseFloat(cleanAmount) || 0;
+
+          const investment = await apiClient.createInvestment({
+            fundId: draftSelectedFundId!,
+            accountId: draftAccountId !== 'personal' ? (draftAccountId ?? undefined) : undefined,
+            accountType: draftAccountType,
+            investmentAmount: numericAmount,
+            unitPrice: draftUnitPrice,
+            status: 'Subscription Submitted',
+            documentSigned: true
+          });
+
+          if (investment && investment.id) {
+            localStorage.setItem('last_investment_id', investment.id);
+            setCurrentInvestment(investment);
+
+            const savedEnvelopeId = localStorage.getItem('last_envelope_id');
+            if (savedEnvelopeId) {
+              const dsAccessToken = localStorage.getItem('ds_access_token') || '';
+              const dsAccountId = localStorage.getItem('ds_account_id') || '';
+              apiClient.getDocuSignDocument(savedEnvelopeId, dsAccessToken, dsAccountId)
+                .catch(err => console.warn('Auto-vault sync handled silently:', err));
+            }
+          }
+
+          // Go to Funding Instructions screen!
+          setStep('fundingInstructions');
+        } catch (error) {
+          console.error('Failed to submit investment on signing complete:', error);
+        }
+      };
+      submitInvestment();
+
       // Clean up URL parameters
       const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
       current.delete('signing');
       current.delete('event');
-      const search = current.toString();
-      const query = search ? `?${search}` : '';
-      router.replace(`/dashboard/invest${query}`);
+      router.replace(pathname + '?' + current.toString());
     }
-  }, [searchParams, router]);
+  }, [searchParams, pathname, router]);
 
   const selectedFund = useMemo(() => {
     return funds.find(f => f.id === selectedFundId);
@@ -180,12 +235,12 @@ export default function InvestPage() {
   const { investmentAmount, processingFee, total, estimatedUnits } = useMemo(() => {
     const cleanAmount = amount.replace(/[^-0-9.]/g, '');
     const numeric = Number.parseFloat(cleanAmount) || 0;
-    const fee = numeric * 0.005;
+    const fee = 0;
     const units = unitPrice > 0 ? numeric / unitPrice : 0;
     return {
       investmentAmount: numeric,
       processingFee: fee,
-      total: numeric + fee,
+      total: numeric,
       estimatedUnits: units,
     };
   }, [amount, unitPrice]);
@@ -236,36 +291,27 @@ export default function InvestPage() {
   const handleStartSigning = async () => {
     if (!selectedFundId || !selectedFund) return;
 
-    // Check locally if authorized
-    const dsAccessToken = localStorage.getItem('ds_access_token');
-    const dsAccountId = localStorage.getItem('ds_account_id');
-
     setIsSigning(true);
     try {
       const isIra = selectedAccountId !== 'personal';
       const selectedIra = userIraAccounts.find(a => a.id === selectedAccountId);
       const finalAccountType = isIra ? (selectedIra?.account_type || 'ira') : 'personal';
 
-      // 1. Create investment record first (Status: Pending Signature)
-      const investment = await apiClient.createInvestment({
+      // Save draft investment details to localStorage before leaving the page
+      const draftInvestment = {
         fundId: selectedFundId,
         accountId: isIra ? (selectedAccountId ?? undefined) : undefined,
         accountType: finalAccountType,
-        investmentAmount: investmentAmount,
+        amount: amount,
         unitPrice: unitPrice,
-        status: 'Subscription Submitted',
-        documentSigned: false
-      });
+      };
+      localStorage.setItem('draft_investment', JSON.stringify(draftInvestment));
+      localStorage.removeItem('last_investment_id');
 
-      if (investment && investment.id) {
-        localStorage.setItem('last_investment_id', investment.id);
-      }
-
-      // 2. Proceed to DocuSign
+      // Proceed to DocuSign
       const response = await apiClient.createDocuSignEnvelope({
         fundId: selectedFundId,
         fundName: selectedFund.name,
-        // No tokens needed, backend uses JWT
         investmentAmount: investmentAmount,
         accountType: finalAccountType,
         iraMetadata: isIra ? {
@@ -287,7 +333,6 @@ export default function InvestPage() {
     } catch (error: any) {
       console.error('DocuSign Flow Error:', error);
 
-      // Handle authentication failures (e.g. Expired/Invalid Token)
       if (error.status === 401 || error.message?.includes('401') || (error.details?.errorCode === 'USER_AUTHENTICATION_FAILED')) {
         toast({
           title: "Session Expired",
@@ -316,24 +361,13 @@ export default function InvestPage() {
     if (!selectedFundId || !selectedFund) return;
     setIsSigning(true);
     try {
-      const isIra = selectedAccountId !== 'personal';
-      const selectedIra = userIraAccounts.find(a => a.id === selectedAccountId);
-      const finalAccountType = isIra ? (selectedIra?.account_type || 'ira') : 'personal';
-
-      const investment = await apiClient.createInvestment({
-        fundId: selectedFundId,
-        accountId: isIra ? (selectedAccountId ?? undefined) : undefined,
-        accountType: finalAccountType,
-        investmentAmount: investmentAmount,
-        unitPrice: unitPrice,
-        status: 'Subscription Submitted',
-        documentSigned: true
+      // Optimistically update local state
+      setCurrentInvestment({
+        document_signed: true,
+        created_at: new Date().toISOString(),
+        signed_at: new Date().toISOString()
       });
-
-      if (investment && investment.id) {
-        localStorage.setItem('last_investment_id', investment.id);
-        setCurrentInvestment(investment);
-      }
+      localStorage.removeItem('last_investment_id');
       setStep('fundingInstructions');
     } catch (error) {
       console.error('Bypass error:', error);
@@ -370,12 +404,13 @@ export default function InvestPage() {
     }
 
     if (step === 'investmentStatus') {
+      localStorage.removeItem('draft_investment');
       setShowSuccess(true);
-      // Reset states for fresh start (but keep success view)
       setAmount('25000');
       setSelectedAccountId('personal');
       return;
     }
+
 
     setStep((current: Step) => {
       switch (current) {
@@ -613,7 +648,7 @@ export default function InvestPage() {
               </span>
             </div>
             <div className="flex items-center justify-between text-[#4B4B4B]">
-              <span className="font-medium">Processing Fee (0.5%):</span>
+              <span className="font-medium">Processing Fee (0%):</span>
               <span className="font-bold text-[#1F1F1F]">
                 $
                 {processingFee.toLocaleString('en-US', {
@@ -661,7 +696,7 @@ export default function InvestPage() {
             <div className="flex h-[44px] items-center justify-between border-b border-[#E2E5EA] bg-white px-4">
               <div className="flex items-center gap-3 text-[12px] text-[#6B7280]">
                 <button
-                  onClick={() => { setSelectedSubDoc(null); setSelectedPage(1); }}
+                  onClick={() => { setSelectedSubDoc(null); setSelectedPage(1); setStep('investmentAmount'); }}
                   className="inline-flex items-center gap-1 text-[#5E6B7F] hover:text-[#1F1F1F] transition-colors"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -941,12 +976,8 @@ export default function InvestPage() {
                   alert('No signed document found. Please complete signing first.');
                   return;
                 }
-                const dsAccessToken = localStorage.getItem('ds_access_token');
-                const dsAccountId = localStorage.getItem('ds_account_id');
-                if (!dsAccessToken || !dsAccountId) {
-                  alert('DocuSign session expired. Please re-authorize.');
-                  return;
-                }
+                const dsAccessToken = localStorage.getItem('ds_access_token') || '';
+                const dsAccountId = localStorage.getItem('ds_account_id') || '';
 
                 (async () => {
                   try {
@@ -968,9 +999,17 @@ export default function InvestPage() {
             </button>
             <button
               type="button"
+              onClick={() => router.push('/dashboard/messages')}
               className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF]"
             >
-              Contact Support
+              Message
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard/schedule-meeting')}
+              className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF]"
+            >
+              Schedule Meeting
             </button>
           </div>
         </div>

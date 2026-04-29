@@ -82,8 +82,8 @@ export class AccountsService {
         userId,
         dto.accountNumber,
         dto.accountType,
-        dto.custodian,
-        dto.beneficiary,
+        dto.custodian || '',
+        dto.beneficiary || '',
         dto.middleName,
         dto.suffix,
         dto.maritalStatus,
@@ -95,7 +95,7 @@ export class AccountsService {
         dto.mailingZipCode,
         dto.username,
         dto.referralSource,
-        dto.ssn,
+        dto.ssn || '',
         dto.mailingCountry
       ];
 
