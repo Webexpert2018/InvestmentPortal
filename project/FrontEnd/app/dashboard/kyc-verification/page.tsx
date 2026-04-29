@@ -21,6 +21,7 @@ export default function KycVerificationPage() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string>('');
   const [view, setView] = useState<'landing' | 'manual'>('landing');
+  const [activeDragType, setActiveDragType] = useState<string | null>(null);
 
   const [uploads, setUploads] = useState<{
     tax_return_y1: DocUploadState;
@@ -210,14 +211,30 @@ export default function KycVerificationPage() {
 
                 <div className="grid gap-4">
                   {(['tax_return_y1', 'tax_return_y2', 'balance_sheet'] as const).map((type) => (
-                    <div key={type} className="flex items-center justify-between p-5 bg-[#F9FAFB] rounded-2xl border border-[#F3F4F6] group transition-all hover:border-[#FCD34D] hover:bg-white hover:shadow-sm">
+                    <div 
+                      key={type} 
+                      className={`flex items-center justify-between p-5 rounded-2xl border group transition-all hover:border-[#FCD34D] hover:shadow-sm ${
+                        activeDragType === type 
+                          ? 'border-[#FCD34D] bg-yellow-50/50' 
+                          : 'bg-[#F9FAFB] border-[#F3F4F6] hover:bg-white'
+                      }`}
+                      onDragOver={(e) => { e.preventDefault(); setActiveDragType(type); }}
+                      onDragEnter={(e) => { e.preventDefault(); setActiveDragType(type); }}
+                      onDragLeave={() => setActiveDragType(null)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setActiveDragType(null);
+                        const file = e.dataTransfer.files?.[0];
+                        if (file) handleFileUpload(type, file);
+                      }}
+                    >
                       <div className="flex items-center gap-4">
                         <div className={`p-3 rounded-xl ${uploads[type].status === 'completed' ? 'bg-green-50' : 'bg-gray-50'}`}>
                           <FileText className={`h-6 w-6 ${uploads[type].status === 'completed' ? 'text-green-500' : 'text-gray-400'}`} />
                         </div>
                         <div>
                           <span className="block text-base font-bold text-[#1F2937]">{uploads[type].name}</span>
-                          <span className="text-xs text-gray-500">PDF or Images accepted (Max 10MB)</span>
+                          <span className="text-xs text-gray-500">PDF or Images accepted (Max 10MB) • Drag & drop here</span>
                         </div>
                       </div>
 

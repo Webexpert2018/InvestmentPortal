@@ -14,7 +14,8 @@ import {
   Users,
   LogOut,
   UserMinus,
-  Plus
+  Plus,
+  Upload
 } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { useToast } from '@/hooks/use-toast';
@@ -155,6 +156,7 @@ export function AssignedInvestorsMessagesScreen() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messageInputRef = useRef<HTMLTextAreaElement | null>(null);
   const prevMessagesCountRef = useRef<number>(0);
+  const [isDragging, setIsDragging] = useState(false);
   const [confirmation, setConfirmation] = useState<{
     isOpen: boolean;
     title: string;
@@ -540,6 +542,36 @@ export function AssignedInvestorsMessagesScreen() {
     }
   };
 
+  const handleDrop = async (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDragging(false);
+    if (!activeThreadId || isUploading) return;
+
+    const file = event.dataTransfer.files?.[0];
+    if (!file) return;
+
+    if (file.size === 0) {
+      toast({ title: 'Error', description: 'Cannot upload an empty file', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const localSize = formatFileSize(file.size);
+      const uploadRes = await apiClient.uploadMessageAttachment(file);
+      setSelectedFile({
+        url: uploadRes.file_url,
+        originalName: uploadRes.file_name || file.name,
+        size: localSize,
+      });
+      setShowMenu(false);
+    } catch (err) {
+      toast({ title: 'Upload Failed', description: 'Could not upload attachment', variant: 'destructive' });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleScheduleMeeting = () => {
     if (!activeThreadId) return;
     const meetingText =
@@ -683,10 +715,36 @@ export function AssignedInvestorsMessagesScreen() {
           </div>
         </section>
 
-        <section className={cn(
-          "rounded-[8px] bg-white p-4 shadow-sm border border-[#F0F0F0] flex flex-col h-[calc(100vh-160px)] min-h-[500px]",
-          !isMobileChatOpen ? "hidden md:flex" : "flex"
-        )}>
+        <section 
+          className={cn(
+            "rounded-[8px] bg-white p-4 shadow-sm border border-[#F0F0F0] flex flex-col h-[calc(100vh-160px)] min-h-[500px] relative",
+            !isMobileChatOpen ? "hidden md:flex" : "flex",
+            isDragging ? "border-[#FBCB4B] bg-yellow-50/30" : ""
+          )}
+          onDragOver={(e) => { e.preventDefault(); if (activeThreadId) setIsDragging(true); }}
+          onDragEnter={(e) => { e.preventDefault(); if (activeThreadId) setIsDragging(true); }}
+          onDragLeave={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            if (
+              e.clientX <= rect.left ||
+              e.clientX >= rect.right ||
+              e.clientY <= rect.top ||
+              e.clientY >= rect.bottom
+            ) {
+              setIsDragging(false);
+            }
+          }}
+          onDrop={handleDrop}
+        >
+          {isDragging && activeThreadId && (
+            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm border-2 border-dashed border-[#FBCB4B] rounded-[8px] animate-in fade-in duration-200">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FBCB4B]/20 text-[#FBCB4B] mb-4">
+                <Upload className="h-8 w-8 text-[#FBCB4B]" />
+              </div>
+              <p className="text-[16px] font-bold text-[#1F1F1F]">Drop files to attach</p>
+              <p className="text-[12px] text-[#8E8E93] mt-1">Images, PDFs, Docs up to 10MB</p>
+            </div>
+          )}
           {activeThread ? (
             <>
               <div className="flex items-center gap-3 border-b border-[#F0F0F0] pb-4 px-1 shrink-0">
@@ -1078,7 +1136,7 @@ export function AssignedInvestorsMessagesScreen() {
                         sendMessage();
                       }
                     }}
-                    placeholder={isUploading ? "Uploading file..." : "Type a message here ..."}
+                    placeholder={isUploading ? "Uploading file..." : "Type a message here (or drag & drop files) ..."}
                     disabled={isUploading || isSending}
                     className="flex-1 bg-transparent text-[14px] py-1.5 outline-none placeholder:text-[#B1B3B8] disabled:opacity-50 resize-none"
                     rows={1}

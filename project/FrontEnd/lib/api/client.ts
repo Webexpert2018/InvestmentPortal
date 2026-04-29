@@ -572,7 +572,9 @@ class ApiClient {
     unitPrice: number;
     status?: string;
     documentSigned?: boolean;
+    envelopeId?: string;
   }) {
+
     return this.request<any>('/investments', {
       method: 'POST',
       body: JSON.stringify(data),

@@ -19,6 +19,7 @@ export function SendMessageModal({ isOpen, onClose, onSend, selectedCount }: Sen
   const [groupAvatar, setGroupAvatar] = useState('/images/messages-person/GroupIcon.png');
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isDraggingAvatar, setIsDraggingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -27,6 +28,23 @@ export function SendMessageModal({ isOpen, onClose, onSend, selectedCount }: Sen
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingAvatar(true);
+      const res = await apiClient.uploadMessageFile(file);
+      setGroupAvatar(res.file_url);
+    } catch (err) {
+      console.error('Failed to upload avatar:', err);
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleAvatarDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingAvatar(false);
+    const file = e.dataTransfer.files?.[0];
     if (!file) return;
 
     try {
@@ -108,8 +126,16 @@ export function SendMessageModal({ isOpen, onClose, onSend, selectedCount }: Sen
                   <button
                     type="button"
                     onClick={() => avatarInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setIsDraggingAvatar(true); }}
+                    onDragEnter={(e) => { e.preventDefault(); setIsDraggingAvatar(true); }}
+                    onDragLeave={() => setIsDraggingAvatar(false)}
+                    onDrop={handleAvatarDrop}
                     disabled={isUploadingAvatar}
-                    className="h-10 w-10 rounded-xl shrink-0 border-2 border-dashed border-[#E5E7EB] flex items-center justify-center hover:border-[#FFD66B] transition-all bg-white"
+                    className={cn(
+                      "h-10 w-10 rounded-xl shrink-0 border-2 border-dashed flex items-center justify-center transition-all bg-white",
+                      isDraggingAvatar ? "border-[#FFD66B] bg-yellow-50" : "border-[#E5E7EB] hover:border-[#FFD66B]"
+                    )}
+                    title="Click or Drag & Drop to upload avatar"
                   >
                     {isUploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin text-[#FFD66B]" /> : <Plus className="h-4 w-4 text-[#6F7177]" />}
                   </button>

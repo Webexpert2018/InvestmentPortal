@@ -115,28 +115,7 @@ const investorSummaryCards = [
   },
 ];
 
-const investorPendingActions = [
-  {
-    id: 1,
-    title: 'KYC Verification',
-    description: 'Your identity verification is still pending.',
-  },
-  {
-    id: 2,
-    title: 'Upload Funding Proof',
-    description: 'Upload documents to confirm your latest investment.',
-  },
-  {
-    id: 3,
-    title: 'Sign Documents',
-    description: 'Review and e-sign the updated investment documents.',
-  },
-  {
-    id: 4,
-    title: 'Update Funding Proof',
-    description: 'Provide an updated proof for your latest subscription.',
-  },
-];
+// Hardcoded actions removed for dynamic evaluation
 
 const investorUnreadMessages = [
   { id: 1, name: 'Talan Gouse', preview: "We’ve reviewed your document…", time: '2s ago', count: 5 },
@@ -289,6 +268,20 @@ export default function DashboardPage() {
 
     return list;
   }, [allInvestments, iraAccounts, investorStats.currentNav]);
+
+  const filteredPendingActions = useMemo(() => {
+    const actions = [];
+    
+    if (investorKycStatus === 'unverified' || !investorKycStatus || investorKycStatus === 'rejected') {
+      actions.push({
+        id: 1,
+        title: 'KYC Verification',
+        description: 'Your identity verification is still pending.',
+      });
+    }
+    
+    return actions;
+  }, [investorKycStatus]);
 
   const dashboardRole = normalizeDashboardRole(user?.role);
   const welcomeName = user?.firstName ? user.firstName : dashboardRole[0].toUpperCase() + dashboardRole.slice(1);
@@ -643,7 +636,7 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center gap-3">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF3D6] text-sm font-semibold text-[#E29F3A]">
-                    4
+                    {filteredPendingActions.length}
                   </span>
                   <p className="font-goudy text-sm">Pending Actions</p>
                 </div>
@@ -654,18 +647,22 @@ export default function DashboardPage() {
               </button>
               {investorExpanded.pending && (
                 <div className="mt-4 space-y-4 text-xs text-[#4B4B4B]">
-                  {investorPendingActions.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-start justify-between gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0"
-                    >
-                      <div>
-                        <p className="text-[13px] font-medium text-[#1F1F1F]">{item.title}</p>
-                        <p className="mt-1 text-[11px] text-[#8E8E93]">{item.description}</p>
-                      </div>
-                      <ChevronRight className="mt-1 h-3 w-3 text-gray-300" />
-                    </div>
-                  ))}
+                  {filteredPendingActions.map((item) => {
+                    const href = item.title === 'KYC Verification' ? '/dashboard/kyc-verification' : '/dashboard/invest';
+                    return (
+                      <Link
+                        href={href}
+                        key={item.id}
+                        className="flex items-start justify-between gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-[#F9FAFB] p-1 rounded-md transition-colors"
+                      >
+                        <div>
+                          <p className="text-[13px] font-medium text-[#1F1F1F]">{item.title}</p>
+                          <p className="mt-1 text-[11px] text-[#8E8E93]">{item.description}</p>
+                        </div>
+                        <ChevronRight className="mt-1 h-3 w-3 text-gray-300" />
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </div>
