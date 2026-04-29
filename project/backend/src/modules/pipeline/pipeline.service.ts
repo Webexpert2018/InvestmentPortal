@@ -38,14 +38,15 @@ export class PipelineService {
         i.assigned_ir_id,
         i.expected_future_investment,
         i.pipeline_note,
+        i.status,
         s.full_name as assigned_ir_name,
         COALESCE(SUM(inv.investment_amount), 0) as total_investment
       FROM investors i
       LEFT JOIN staff s ON i.assigned_ir_id = s.id
       LEFT JOIN investments inv ON i.id = inv.user_id AND inv.is_reconciled = true
-      WHERE i.pipeline_stage_id IS NOT NULL
+      WHERE (i.pipeline_stage_id IS NOT NULL OR i.status = 'pending')
       ${isIR ? 'AND i.assigned_ir_id = $1' : ''}
-      GROUP BY i.id, i.email, i.phone, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, s.full_name, i.updated_at, i.expected_future_investment, i.pipeline_note
+      GROUP BY i.id, i.email, i.phone, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, s.full_name, i.updated_at, i.expected_future_investment, i.pipeline_note, i.status
       ORDER BY i.updated_at DESC
     `;
 
@@ -53,14 +54,14 @@ export class PipelineService {
     const investors = investorsResult.rows;
 
     // 4. Group investors by stage
-    return stages.map(stage => ({
+    return stages.map((stage, index) => ({
       ...stage,
-      count: investors.filter(i => i.pipeline_stage_id === stage.id).length,
+      count: investors.filter(i => i.pipeline_stage_id === stage.id || (index === 0 && (i.pipeline_stage_id === null || i.pipeline_stage_id === undefined) && i.status === 'pending')).length,
       investors: investors
-        .filter(i => i.pipeline_stage_id === stage.id)
+        .filter(i => i.pipeline_stage_id === stage.id || (index === 0 && (i.pipeline_stage_id === null || i.pipeline_stage_id === undefined) && i.status === 'pending'))
         .map(i => ({
           id: i.id,
-          name: i.name,
+          name: i.name || 'Invited Investor',
           email: i.email,
           phone: i.phone,
           assignedIrId: i.assigned_ir_id,
@@ -68,13 +69,15 @@ export class PipelineService {
           totalInvestment: parseFloat(i.total_investment),
           expectedFutureInvestment: parseFloat(i.expected_future_investment || 0),
           pipelineNote: i.pipeline_note || '',
-          avatar: i.name
+          avatar: (i.name || 'Invited Investor')
             .split(' ')
+            .filter((n: string) => !!n)
             .map((n: string) => n[0])
             .join('')
-            .toUpperCase()
+            .toUpperCase() || 'I'
         }))
     }));
+
   }
 
   async updateInvestorStage(investorId: string, stageId: number) {

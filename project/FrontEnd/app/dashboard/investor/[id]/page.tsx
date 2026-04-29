@@ -355,12 +355,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                   } catch (err) { console.error('Failed to fetch IR staff:', err); }
                                   finally { setIrLoading(false); }
                                 }}
-                                disabled={isPending}
-                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center text-center shadow-sm ${
-                                  !isPending
-                                    ? 'bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent'
-                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
-                                }`}
+                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center text-center shadow-sm bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent`}
                               >
                                 {investorData.assignedIrId ? 'Change Investor Relations' : 'Assign Investor Relations'}
                               </button>
