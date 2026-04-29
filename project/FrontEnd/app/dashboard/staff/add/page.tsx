@@ -23,6 +23,7 @@ export default function AddStaffPage() {
     full_name: '',
     email: '',
     phone: '',
+    phone_code: '+1',
     password: '',
   });
 
@@ -33,6 +34,8 @@ export default function AddStaffPage() {
     if (!formData.role) newErrors.role = 'Role is required';
     if (!formData.full_name || formData.full_name.trim().length < 2) {
       newErrors.full_name = 'Full name is required (min 2 characters)';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.full_name)) {
+      newErrors.full_name = 'Full name must contain only letters';
     }
     if (!formData.email) {
       newErrors.email = 'Email is required';
@@ -41,6 +44,8 @@ export default function AddStaffPage() {
     }
     if (!formData.phone || formData.phone.trim().length < 5) {
       newErrors.phone = 'Valid phone number is required';
+    } else if (!/^\d+$/.test(formData.phone.trim())) {
+      newErrors.phone = 'Phone number must contain only digits';
     }
     if (!formData.password) {
       newErrors.password = 'Password is required';
@@ -98,7 +103,7 @@ export default function AddStaffPage() {
       submitData.append('role', formData.role);
       submitData.append('full_name', formData.full_name);
       submitData.append('email', formData.email);
-      submitData.append('phone', formData.phone);
+      submitData.append('phone', formData.phone ? `${formData.phone_code} ${formData.phone}` : '');
       submitData.append('password', formData.password);
       
       if ((formData.role === 'partnership' || formData.role === 'fund_admin') && formData.associated_fund_id) {
@@ -265,15 +270,20 @@ export default function AddStaffPage() {
               </label>
               <div className="flex gap-3">
                 <div className="relative">
-                  <select className="h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border-none text-[15px] outline-none appearance-none cursor-pointer w-[120px]">
-                    <option>+1 USA</option>
-                    <option>+91 IND</option>
+                  <select 
+                    value={formData.phone_code}
+                    onChange={(e) => setFormData({ ...formData, phone_code: e.target.value })}
+                    className="h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border-none text-[15px] outline-none appearance-none cursor-pointer w-[120px]"
+                  >
+                    <option value="+1">+1 (USA)</option>
+                    <option value="+44">+44 (UK)</option>
+                    <option value="+91">+91 (IN)</option>
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8E8E93] h-4 w-4 pointer-events-none" />
                 </div>
                 <input
                   type="tel"
-                  placeholder="admin_user@gmail.com"
+                  placeholder="Enter phone number"
                   value={formData.phone}
                   onChange={(e) => {
                     setFormData({ ...formData, phone: e.target.value });
