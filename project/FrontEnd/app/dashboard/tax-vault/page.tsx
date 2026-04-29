@@ -40,6 +40,7 @@ export default function TaxVaultPage() {
   const [documents, setDocuments] = useState<TaxVaultRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [assignedIrName, setAssignedIrName] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('All');
@@ -52,7 +53,23 @@ export default function TaxVaultPage() {
 
   useEffect(() => {
     fetchDocuments();
+    fetchUserProfile();
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const profile = await apiClient.getProfile();
+      if (profile && profile.id) {
+        const fullUser = await apiClient.getUserById(profile.id);
+        if (fullUser && fullUser.assignedIrName) {
+          setAssignedIrName(fullUser.assignedIrName);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch user profile for assigned IR:', err);
+    }
+  };
+
 
   const fetchDocuments = async () => {
     try {
@@ -172,12 +189,34 @@ export default function TaxVaultPage() {
               </p>
             </div>
 
-            <Link
-              href="/dashboard/tax-vault/upload"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 py-2 rounded-full text-sm font-medium shadow-md transition-all hover:shadow-lg active:scale-95"
-            >
-              Upload Document
-            </Link>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 text-xs">
+                <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+                  <div className={`h-2.5 w-2.5 rounded-full ${assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+                  <div>
+                    <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+                    <p className="text-[13px] font-bold text-[#1F1F1F]">{assignedIrName || 'Unassigned'}</p>
+                  </div>
+                </div>
+                
+                <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+                  <div className="h-2.5 w-2.5 rounded-full bg-[#8E8E93]"></div>
+                  <div>
+                    <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
+                    <p className="text-[13px] font-bold text-[#1F1F1F]">Not Assigned</p>
+                  </div>
+                </div>
+
+              </div>
+
+              <Link
+                href="/dashboard/tax-vault/upload"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 py-3 rounded-full text-[15px] font-bold shadow-md transition-all hover:shadow-lg active:scale-95"
+              >
+                Upload Document
+              </Link>
+
+            </div>
           </div>
 
           <div className="mt-6 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm">
