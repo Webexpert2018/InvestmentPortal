@@ -296,7 +296,7 @@ export default function HomePage() {
           <video
             className={`absolute inset-0 w-full h-full object-cover  z-0 transition-opacity duration-1000 ${videoLoaded ? 'opacity-700' : 'opacity-0'
               }`}
-            src="/video/banner_video.mp4"
+            src="/video/intro_video.mp4"
             autoPlay
             loop
             muted
