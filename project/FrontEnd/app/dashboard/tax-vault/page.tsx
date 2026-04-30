@@ -28,6 +28,7 @@ type TaxVaultRow = {
   taxYear: string;
   status: TaxDocStatus;
   uploadedDate: string;
+  investorName: string;
 };
 
 const statusClass: Record<TaxDocStatus, string> = {
@@ -77,6 +78,7 @@ export default function TaxVaultPage() {
           day: 'numeric',
           year: 'numeric'
         }),
+        investorName: doc.investorName || 'N/A',
       }));
 
       setDocuments(mappedRows);
@@ -180,23 +182,25 @@ export default function TaxVaultPage() {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-4 text-xs">
-                <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-                  <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-                  <div>
-                    <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
-                    <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
+              {user?.role !== 'accountant' && (
+                <div className="hidden md:flex items-center gap-4 text-xs">
+                  <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+                    <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+                    <div>
+                      <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
+                      <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-                  <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-                  <div>
-                    <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-                    <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
+                  <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+                    <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+                    <div>
+                      <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+                      <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <Link
                 href="/dashboard/tax-vault/upload"
@@ -307,7 +311,8 @@ export default function TaxVaultPage() {
                   <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
                     <thead>
                       <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
-                        <th className="rounded-l-[6px] px-4 py-3">File Name</th>
+                        <th className="rounded-l-[6px] px-4 py-3">Investor</th>
+                        <th className="px-4 py-3">File Name</th>
                         <th className="px-4 py-3">Document Type</th>
                         <th className="px-4 py-3">Tax Year</th>
                         <th className="px-4 py-3">Uploaded Date</th>
@@ -322,6 +327,7 @@ export default function TaxVaultPage() {
                           onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
                           className="border-b border-[#F1F1F1] hover:bg-gray-50/50 cursor-pointer transition-colors"
                         >
+                          <td className="px-4 py-4 font-bold text-[#1F1F1F]">{row.investorName}</td>
                           <td className="px-4 py-4 max-w-[200px] truncate" title={row.fileName}>{row.fileName}</td>
                           <td className="px-4 py-4">{row.documentType}</td>
                           <td className="px-4 py-4">{row.taxYear}</td>
