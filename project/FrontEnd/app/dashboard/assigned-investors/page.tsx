@@ -79,10 +79,10 @@ export default function AdminAssignedInvestorsPage() {
         ])
 
         const mapped: Investor[] = (assignedData || []).map((inv: any, idx: number) => {
-          const conv = conversations.find((c: any) => 
+          const conv = conversations.find((c: any) =>
             !c.is_group && c.participants.some((p: any) => p.id === inv.id)
           )
-          
+
           return {
             id: inv.id,
             name: inv.full_name,
@@ -108,7 +108,7 @@ export default function AdminAssignedInvestorsPage() {
     if (user) fetchData()
   }, [user])
 
-  const { active, pending } = useMemo(() => {
+  const { active, ira, pending, suspended } = useMemo(() => {
     const filtered = investors.filter((inv) => {
       const matchesQuery = `${inv.name} ${inv.email}`.toLowerCase().includes(query.toLowerCase())
       const matchesKyc = kycFilter === "All" || inv.kyc === kycFilter
@@ -117,8 +117,10 @@ export default function AdminAssignedInvestorsPage() {
     })
 
     return {
-      active: filtered.filter(i => i.status !== 'pending' && i.kyc_status !== 'pending'),
-      pending: filtered.filter(i => i.status === 'pending' || i.kyc_status === 'pending')
+      active: filtered.filter(i => i.status !== 'pending' && i.status !== 'suspended' && !i.accountType.toUpperCase().includes('IRA')),
+      ira: filtered.filter(i => i.status !== 'pending' && i.status !== 'suspended' && i.accountType.toUpperCase().includes('IRA')),
+      pending: filtered.filter(i => i.status === 'pending'),
+      suspended: filtered.filter(i => i.status === 'suspended')
     }
   }, [investors, query, kycFilter, typeFilter])
 
@@ -140,7 +142,7 @@ export default function AdminAssignedInvestorsPage() {
             <p className="mt-1 text-[13px] text-[#8E8E93] font-helvetica">View and manage assigned investor accounts.</p>
           </div>
           <button
-            onClick={() => exportCsv([...active, ...pending])}
+            onClick={() => exportCsv([...active, ...ira, ...pending, ...suspended])}
             className="h-[40px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] shadow-sm hover:shadow-md transition-shadow font-helvetica"
           >
             Export List
@@ -186,7 +188,6 @@ export default function AdminAssignedInvestorsPage() {
             </div>
           </div>
 
-          {/* Single Table for both groups to ensure alignment */}
           <div className="overflow-x-auto min-h-[400px]">
             <table className="w-full text-left border-separate border-spacing-0">
               <thead>
@@ -210,21 +211,19 @@ export default function AdminAssignedInvestorsPage() {
                 </tr>
               </thead>
               <tbody>
-                {/* Active Group Header */}
                 <tr className="bg-white">
                   <td colSpan={7} className="px-4 py-6">
                     <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Active Investors</h2>
                   </td>
                 </tr>
-
                 {loading ? (
-                   Array.from({ length: 3 }).map((_, i) => (
-                    <tr key={`loading-active-${i}`} className="animate-pulse">
+                  Array.from({ length: 2 }).map((_, i) => (
+                    <tr key={`l-act-${i}`} className="animate-pulse">
                       <td colSpan={7} className="px-4 py-4 border-b border-[#F5F5F5]"><div className="h-4 bg-gray-100 rounded w-full"></div></td>
                     </tr>
                   ))
                 ) : active.length > 0 ? (
-                  paginatedActive.map((inv) => (
+                  active.map((inv) => (
                     <tr key={inv.id} className="group hover:bg-[#FAFAFA] transition-colors">
                       <td className="px-4 py-4 border-b border-[#F5F5F5]">
                         <div className="flex items-center gap-3">
@@ -248,41 +247,70 @@ export default function AdminAssignedInvestorsPage() {
                       <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.missingDocs}</td>
                       <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.date}</td>
                       <td className="px-4 py-4 border-b border-[#F5F5F5]">
-                        <Link
-                          href={`/dashboard/messages?userId=${inv.id}`}
-                          className="relative p-1.5 text-[#9CA3AF] hover:text-[#6B7280] transition-colors inline-block"
-                          title="Message investor"
-                        >
+                        <Link href={`/dashboard/messages?userId=${inv.id}`} className="relative p-1.5 text-[#9CA3AF] hover:text-[#6B7280] transition-colors inline-block" title="Message">
                           <MessageSquare className="h-[18px] w-[18px]" />
-                          {inv.hasNewMessage && (
-                            <span className="absolute -top-0.5 -right-0.5 h-[8px] w-[8px] rounded-full bg-[#16A66A] border border-white" />
-                          )}
+                          {inv.hasNewMessage && <span className="absolute -top-0.5 -right-0.5 h-[8px] w-[8px] rounded-full bg-[#16A66A] border border-white" />}
                         </Link>
                       </td>
                     </tr>
                   ))
                 ) : !loading && (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-gray-400 font-helvetica border-b border-[#F5F5F5]">
-                      No active assigned investors found.
-                    </td>
-                  </tr>
+                  <tr><td colSpan={7} className="px-4 py-6 text-center text-gray-400 text-sm border-b border-[#F5F5F5]">No active personal investors found.</td></tr>
                 )}
 
-                {/* Pending Group Header */}
                 <tr className="bg-white">
-                  <td colSpan={7} className="px-4 py-8 pt-12">
-                    <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Pending Investors</h2>
+                  <td colSpan={7} className="px-4 py-8 pt-10">
+                    <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Active IRA Accounts</h2>
                   </td>
                 </tr>
-
                 {loading ? (
-                   Array.from({ length: 2 }).map((_, i) => (
-                    <tr key={`loading-pending-${i}`} className="animate-pulse">
+                  Array.from({ length: 1 }).map((_, i) => (
+                    <tr key={`l-ira-${i}`} className="animate-pulse">
                       <td colSpan={7} className="px-4 py-4 border-b border-[#F5F5F5]"><div className="h-4 bg-gray-100 rounded w-full"></div></td>
                     </tr>
                   ))
-                ) : pending.length > 0 ? (
+                ) : ira.length > 0 ? (
+                  ira.map((inv) => (
+                    <tr key={inv.id} className="group hover:bg-[#FAFAFA] transition-colors">
+                      <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                        <div className="flex items-center gap-3">
+                          {inv.avatar ? (
+                            <img src={inv.avatar} alt={inv.name} className="w-[34px] h-[34px] rounded-full object-cover" />
+                          ) : (
+                            <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[12px] font-semibold font-helvetica border border-[#E5E7EB]">
+                              {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                            </div>
+                          )}
+                          <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{inv.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate">{inv.email}</td>
+                      <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.accountType}</td>
+                      <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                        <span className={`text-[13px] font-semibold font-helvetica whitespace-nowrap ${kycColor(inv.kyc)}`}>
+                          {inv.kyc}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.missingDocs}</td>
+                      <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.date}</td>
+                      <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                        <Link href={`/dashboard/messages?userId=${inv.id}`} className="relative p-1.5 text-[#9CA3AF] hover:text-[#6B7280] transition-colors inline-block" title="Message">
+                          <MessageSquare className="h-[18px] w-[18px]" />
+                          {inv.hasNewMessage && <span className="absolute -top-0.5 -right-0.5 h-[8px] w-[8px] rounded-full bg-[#16A66A] border border-white" />}
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                ) : !loading && (
+                  <tr><td colSpan={7} className="px-4 py-6 text-center text-gray-400 text-sm border-b border-[#F5F5F5]">No active IRA investors found.</td></tr>
+                )}
+
+                <tr className="bg-white">
+                  <td colSpan={7} className="px-4 py-8 pt-10">
+                    <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Pending Investors</h2>
+                  </td>
+                </tr>
+                {!loading && pending.length > 0 ? (
                   pending.map((inv) => (
                     <tr key={inv.id} className="group hover:bg-[#FAFAFA] transition-colors">
                       <td className="px-4 py-4 border-b border-[#F5F5F5]">
@@ -307,53 +335,86 @@ export default function AdminAssignedInvestorsPage() {
                       <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-60">{inv.missingDocs}</td>
                       <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-60">{inv.date}</td>
                       <td className="px-4 py-4 border-b border-[#F5F5F5]">
-                        <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Account setup in progress">
+                        <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Setup in progress">
                           <MessageSquare className="h-[18px] w-[18px]" />
                         </div>
                       </td>
                     </tr>
                   ))
                 ) : !loading && (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-gray-400 font-helvetica">
-                      No pending assigned investors.
-                    </td>
-                  </tr>
+                  <tr><td colSpan={7} className="px-4 py-6 text-center text-gray-400 text-sm border-b border-[#F5F5F5]">No pending investors found.</td></tr>
+                )}
+
+                <tr className="bg-white">
+                  <td colSpan={7} className="px-4 py-8 pt-10">
+                    <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Suspended Accounts</h2>
+                  </td>
+                </tr>
+                {!loading && suspended.length > 0 ? (
+                  suspended.map((inv) => (
+                    <tr key={inv.id} className="group hover:bg-[#FAFAFA] transition-colors">
+                      <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                        <div className="flex items-center gap-3 opacity-50">
+                          {inv.avatar ? (
+                            <img src={inv.avatar} alt={inv.name} className="w-[34px] h-[34px] rounded-full object-cover" />
+                          ) : (
+                            <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[12px] font-semibold font-helvetica border border-[#E5E7EB]">
+                              {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                            </div>
+                          )}
+                          <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{inv.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate opacity-50">{inv.email}</td>
+                      <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">{inv.accountType}</td>
+                      <td className="px-4 py-4 border-b border-[#F5F5F5] opacity-50">
+                        <span className={`text-[13px] font-semibold font-helvetica whitespace-nowrap text-red-500`}>
+                          Suspended
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">-</td>
+                      <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">{inv.date}</td>
+                      <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                        <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Account suspended">
+                          <MessageSquare className="h-[18px] w-[18px]" />
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : !loading && (
+                  <tr><td colSpan={7} className="px-4 py-6 text-center text-gray-400 text-sm">No suspended accounts found.</td></tr>
                 )}
               </tbody>
             </table>
           </div>
-
-          {totalPages > 1 && (
-            <div className="mt-5 flex items-center justify-end gap-2">
+          <div className="mt-5 flex items-center justify-end gap-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="inline-flex items-center gap-1 px-2 py-1.5 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" /> Previous
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
               <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="inline-flex items-center gap-1 px-2 py-1.5 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors"
+                key={p}
+                onClick={() => setCurrentPage(p)}
+                className={`h-[30px] w-[30px] rounded-full text-[13px] font-medium transition-colors font-helvetica ${currentPage === p
+                  ? "bg-[#2D3748] text-white"
+                  : "text-[#6B7280] hover:bg-[#F3F4F6]"
+                  }`}
               >
-                <ChevronLeft className="h-3.5 w-3.5" /> Previous
+                {p}
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setCurrentPage(p)}
-                  className={`h-[30px] w-[30px] rounded-full text-[13px] font-medium transition-colors font-helvetica ${currentPage === p
-                    ? "bg-[#2D3748] text-white"
-                    : "text-[#6B7280] hover:bg-[#F3F4F6]"
-                    }`}
-                >
-                  {p}
-                </button>
-              ))}
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="inline-flex items-center gap-1 px-2 py-1.5 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors"
-              >
-                Next <ChevronRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          )}
+            ))}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="inline-flex items-center gap-1 px-2 py-1.5 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors"
+            >
+              Next <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </DashboardLayout>

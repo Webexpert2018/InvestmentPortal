@@ -218,10 +218,24 @@ export class UsersService {
   async getAssignedInvestors(staffId: string) {
     // This fetches investors assigned to this staff member as either IR or Accountant
     const result = await db.query(`
+      WITH user_accounts AS (
+        SELECT id AS user_id, 'Personal' AS account_type FROM investors
+        UNION
+        SELECT user_id, CASE WHEN LOWER(account_type) = 'personal' THEN 'Personal' ELSE account_type END FROM investments WHERE account_type IS NOT NULL
+        UNION
+        SELECT user_id, 
+          CASE 
+            WHEN account_type ILIKE '%IRA%' THEN account_type 
+            ELSE account_type || ' IRA' 
+          END AS account_type 
+        FROM ira_accounts
+      )
       SELECT 
         i.id, i.full_name, i.email, i.phone, i.status, i.kyc_status,
-        i.profile_image_url, i.created_at
-      FROM investors i
+        i.profile_image_url, i.created_at,
+        ua.account_type
+      FROM user_accounts ua
+      JOIN investors i ON ua.user_id = i.id
       WHERE i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1
       ORDER BY i.created_at DESC
     `, [staffId]);

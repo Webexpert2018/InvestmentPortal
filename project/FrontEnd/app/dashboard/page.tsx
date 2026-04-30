@@ -961,7 +961,6 @@ export default function DashboardPage() {
                         </div>
                         <div className="min-w-0">
                           <p className="text-[16px] font-goudy leading-none text-[#2E2E2E] truncate">{inv.full_name}</p>
-                          <p className="text-xs font-helvetica text-[#8E8E93] mt-1">{inv.account_type || 'Personal Account'}</p>
                         </div>
                       </div>
                     ))}
