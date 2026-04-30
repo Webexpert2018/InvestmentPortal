@@ -12,8 +12,11 @@ import {
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { AdminAddIraModal } from '@/components/ira/AdminAddIraModal';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 export default function InvestorProfilePage({ params }: { params: { id: string } }) {
+  const { user } = useAuth();
+  const isAdmin = user?.role && ['admin', 'executive_admin', 'fund_admin', 'investor_relations'].includes(user.role.trim().toLowerCase());
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('basic');
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -183,7 +186,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       setIsSuspending(true); // Using this as a general loading state for buttons
       await apiClient.deleteUser(params.id);
       toast.success('Invitation cancelled');
-      router.push('/dashboard/investor');
+      router.push(isAdmin ? '/dashboard/investor' : '/dashboard/assigned-investors');
     } catch (err: any) {
       toast.error(err.message || 'Failed to cancel invitation');
     } finally {
@@ -197,7 +200,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         {/* Header with Back Button */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push('/dashboard/investor')}
+            onClick={() => router.push(isAdmin ? '/dashboard/investor' : '/dashboard/assigned-investors')}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <ChevronLeft className="h-5 w-5 text-gray-600" />
@@ -279,6 +282,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           {(() => {
                             const isPending = investorData.status === 'pending';
                             
+                            if (!isAdmin) return null;
+
                             const inviteButtons = [
                               <button
                                 key="send"

@@ -114,7 +114,7 @@ export class DocumentsController {
   }
 
   @Get('investor/:investorId')
-  @Roles('admin')
+  @Roles('admin', 'accountant')
   async getInvestorDocuments(@Param('investorId') investorId: string) {
     return this.documentsService.getInvestorDocuments(investorId);
   }
