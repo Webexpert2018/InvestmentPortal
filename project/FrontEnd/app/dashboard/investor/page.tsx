@@ -24,6 +24,8 @@ interface Investor {
   avatar: string;
   status: 'active' | 'pending' | 'suspended';
   accountType?: string;
+  assigned_ir_name?: string;
+  assigned_accountant_name?: string;
 }
 
 export default function InvestorPage() {
@@ -313,13 +315,14 @@ export default function InvestorPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="text-[#6B7280] text-[13px] font-semibold uppercase tracking-wider bg-[#F9FAFB]/50">
-                  <th className="px-4 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize w-10">Select</th>
-                  <th className="px-4 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Investor Name</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize w-20">Select</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Investor Name</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Email</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Account Type</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">KYC Status</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize">Units</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize">Invested</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Units</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Invested</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Assigned To</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Date Joined</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Action</th>
                 </tr>
@@ -336,7 +339,7 @@ export default function InvestorPage() {
                     {/* Active Investors Heading */}
                     {activeInvestors.length > 0 && (
                       <tr className="bg-[#F9FAFB]/30">
-                        <td colSpan={7} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+                        <td colSpan={10} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
                           Active Investors ({activeInvestors.length})
                         </td>
                       </tr>
@@ -344,7 +347,7 @@ export default function InvestorPage() {
 
                     {activeInvestors.length === 0 && pendingInvestors.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
+                        <td colSpan={10} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
                           No investors found matching your search.
                         </td>
                       </tr>
@@ -358,14 +361,14 @@ export default function InvestorPage() {
                             setSelectedInvestorId(selectedInvestorId === investor.id ? null : investor.id);
                           }}
                         >
-                          <td className="px-4 py-5">
+                          <td className="px-6 py-5">
                             <div className="flex items-center justify-center">
                               <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedInvestorId === investor.id ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
                                 {selectedInvestorId === investor.id && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-5">
+                          <td className="px-6 py-5">
                             <div className="flex items-center gap-4">
                               <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
                                 {investor.profileImageUrl ? (
@@ -392,23 +395,40 @@ export default function InvestorPage() {
                             </div>
                           </td>
                           <td className="px-6 py-5">
-                            <span className="text-sm text-[#4B5563] font-medium">{investor.email}</span>
+                            <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
                           </td>
                           <td className="px-6 py-5">
-                            <span className="text-sm text-[#4B5563] font-medium">{investor.accountType || 'Personal'}</span>
+                            <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType || 'Personal'}</span>
                           </td>
                           <td className="px-6 py-5">
-                            <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border ${getKycStatusStyle(investor.kycStatus)}`}>
+                            <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
                               {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
                             </span>
                           </td>
-                          <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                          <td className="px-6 py-5 text-left font-bold text-[#111827] whitespace-nowrap">
                             {investor.units || '0.00'}
                           </td>
-                          <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                          <td className="px-6 py-5 text-left font-bold text-[#111827] whitespace-nowrap">
                             {investor.invested || '-'}
                           </td>
-                          <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
+                          <td className="px-6 py-5 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                            <div className="flex flex-col gap-0.5">
+                              {investor.assigned_ir_name && (
+                                <span className="text-sm text-[#4B5563] font-medium">
+                                  IR: {investor.assigned_ir_name}
+                                </span>
+                              )}
+                              {investor.assigned_accountant_name && (
+                                <span className="text-sm text-[#4B5563] font-medium">
+                                  Acc: {investor.assigned_accountant_name}
+                                </span>
+                              )}
+                              {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-5 text-sm text-[#4B5563] font-medium whitespace-nowrap">
                             {new Date(investor.createdAt).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
@@ -430,7 +450,7 @@ export default function InvestorPage() {
                     {activeIraInvestors.length > 0 && (
                       <>
                         <tr className="bg-[#F9FAFB]/30">
-                          <td colSpan={8} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
+                          <td colSpan={10} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
                             Active IRA Accounts ({activeIraInvestors.length})
                           </td>
                         </tr>
@@ -443,14 +463,14 @@ export default function InvestorPage() {
                               setSelectedInvestorId(selectedInvestorId === investor.id ? null : investor.id);
                             }}
                           >
-                            <td className="px-4 py-5">
+                            <td className="px-6 py-5">
                               <div className="flex items-center justify-center">
                                 <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedInvestorId === investor.id ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
                                   {selectedInvestorId === investor.id && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
                                 </div>
                               </div>
                             </td>
-                            <td className="px-4 py-5">
+                            <td className="px-6 py-5">
                               <div className="flex items-center gap-4">
                                 <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
                                   {investor.profileImageUrl ? (
@@ -477,23 +497,40 @@ export default function InvestorPage() {
                               </div>
                             </td>
                             <td className="px-6 py-5">
-                              <span className="text-sm text-[#4B5563] font-medium">{investor.email}</span>
+                              <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
                             </td>
                             <td className="px-6 py-5">
-                              <span className="text-sm text-[#4B5563] font-medium">{investor.accountType}</span>
+                              <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType}</span>
                             </td>
                             <td className="px-6 py-5">
-                              <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border ${getKycStatusStyle(investor.kycStatus)}`}>
+                              <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
                                 {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
                               </span>
                             </td>
-                            <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                            <td className="px-6 py-5 text-left font-bold text-[#111827] whitespace-nowrap">
                               {investor.units || '0.00'}
                             </td>
-                            <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                            <td className="px-6 py-5 text-left font-bold text-[#111827] whitespace-nowrap">
                               {investor.invested || '-'}
                             </td>
-                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
+                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                              <div className="flex flex-col gap-0.5">
+                                {investor.assigned_ir_name && (
+                                  <span className="text-sm text-[#4B5563] font-medium">
+                                    IR: {investor.assigned_ir_name}
+                                  </span>
+                                )}
+                                {investor.assigned_accountant_name && (
+                                  <span className="text-sm text-[#4B5563] font-medium">
+                                    Acc: {investor.assigned_accountant_name}
+                                  </span>
+                                )}
+                                {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                  <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium whitespace-nowrap">
                               {new Date(investor.createdAt).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
@@ -516,14 +553,14 @@ export default function InvestorPage() {
                     {pendingInvestors.length > 0 && (
                       <>
                         <tr className="bg-[#F9FAFB]/30">
-                          <td colSpan={8} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
+                          <td colSpan={10} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
                             Pending Invitations ({pendingInvestors.length})
                           </td>
                         </tr>
                         {pendingInvestors.map((investor) => (
                           <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group">
-                            <td className="px-4 py-5"></td>
-                            <td className="px-4 py-5">
+                            <td className="px-6 py-5"></td>
+                            <td className="px-6 py-5">
                               <div className="flex items-center gap-4">
                                 <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
                                   <Image
@@ -539,23 +576,40 @@ export default function InvestorPage() {
                               </div>
                             </td>
                             <td className="px-6 py-5">
-                              <span className="text-sm text-[#4B5563] font-medium">{investor.email}</span>
+                              <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
                             </td>
                             <td className="px-6 py-5">
-                              <span className="text-sm text-[#4B5563] font-medium">{investor.accountType || 'Personal'}</span>
+                              <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType || 'Personal'}</span>
                             </td>
                             <td className="px-6 py-5">
-                              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-200">
+                              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-200 whitespace-nowrap">
                                 Invited
                               </span>
                             </td>
-                            <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                            <td className="px-6 py-5 text-left font-bold text-[#111827] whitespace-nowrap">
                               0.00
                             </td>
-                            <td className="px-6 py-5 text-right font-bold text-[#111827]">
+                            <td className="px-6 py-5 text-left font-bold text-[#111827] whitespace-nowrap">
                               -
                             </td>
-                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
+                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                              <div className="flex flex-col gap-0.5">
+                                {investor.assigned_ir_name && (
+                                  <span className="text-sm text-[#4B5563] font-medium">
+                                    IR: {investor.assigned_ir_name}
+                                  </span>
+                                )}
+                                {investor.assigned_accountant_name && (
+                                  <span className="text-sm text-[#4B5563] font-medium">
+                                    Acc: {investor.assigned_accountant_name}
+                                  </span>
+                                )}
+                                {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                  <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium whitespace-nowrap">
                               {new Date(investor.createdAt).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
@@ -578,14 +632,14 @@ export default function InvestorPage() {
                     {suspendedInvestors.length > 0 && (
                       <>
                         <tr className="bg-[#F9FAFB]/30">
-                          <td colSpan={8} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
+                          <td colSpan={10} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
                             Suspended Accounts ({suspendedInvestors.length})
                           </td>
                         </tr>
                         {suspendedInvestors.map((investor) => (
                           <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group opacity-80">
-                            <td className="px-4 py-5"></td>
-                            <td className="px-4 py-5">
+                            <td className="px-6 py-5"></td>
+                            <td className="px-6 py-5">
                               <div className="flex items-center gap-4">
                                 <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB] grayscale">
                                   {investor.profileImageUrl ? (
@@ -622,11 +676,28 @@ export default function InvestorPage() {
                                 Suspended
                               </span>
                             </td>
-                            <td className="px-6 py-5 text-right font-bold text-gray-400">
+                            <td className="px-6 py-5 text-left font-bold text-gray-400">
                               {investor.units || '0.00'}
                             </td>
-                            <td className="px-6 py-5 text-right font-bold text-gray-400">
+                            <td className="px-6 py-5 text-left font-bold text-gray-400">
                               {investor.invested || '-'}
+                            </td>
+                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
+                              <div className="flex flex-col gap-0.5">
+                                {investor.assigned_ir_name && (
+                                  <span className="text-sm text-[#4B5563] font-medium">
+                                    IR: {investor.assigned_ir_name}
+                                  </span>
+                                )}
+                                {investor.assigned_accountant_name && (
+                                  <span className="text-sm text-[#4B5563] font-medium">
+                                    Acc: {investor.assigned_accountant_name}
+                                  </span>
+                                )}
+                                {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                  <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-6 py-5 text-sm text-gray-400 font-medium">
                               {new Date(investor.createdAt).toLocaleDateString('en-US', {

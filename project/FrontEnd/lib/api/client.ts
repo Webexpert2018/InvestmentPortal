@@ -215,6 +215,13 @@ class ApiClient {
     });
   }
 
+  async assignAccountant(investorId: string, staffId: string | null) {
+    return this.request<any>(`/users/${investorId}/assign-accountant`, {
+      method: 'PATCH',
+      body: JSON.stringify({ staffId }),
+    });
+  }
+
   async updateKycStatus(userId: string, kycStatus: string) {
     return this.request<any>(`/users/${userId}/kyc-status`, {
       method: 'PATCH',
