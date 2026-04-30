@@ -368,7 +368,18 @@ export default function DashboardPage() {
               apiClient.getAssignedInvestors(),
               apiClient.getNotifications()
             ]);
-            setAssignedInvestors(assigned || []);
+            
+            // Deduplicate assigned investors by ID for the dashboard widget
+            const uniqueAssigned = [];
+            const seenIds = new Set();
+            for (const inv of (assigned || [])) {
+              if (!seenIds.has(inv.id)) {
+                seenIds.add(inv.id);
+                uniqueAssigned.push(inv);
+              }
+            }
+            
+            setAssignedInvestors(uniqueAssigned);
             setDynamicNotifications(notifs);
           }
         }
