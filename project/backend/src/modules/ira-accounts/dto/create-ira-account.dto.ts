@@ -65,13 +65,6 @@ export class CreateAccountDto {
   @IsOptional()
   mailingCountry?: string;
 
-  @IsString()
-  @IsOptional()
-  username?: string;
-
-  @IsString()
-  @IsOptional()
-  referralSource?: string;
 
   // Added user profile fields (for profile sync)
   @IsString()
