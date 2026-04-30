@@ -581,7 +581,9 @@ export class UsersService {
       state,
       zip_code,
       country,
-      tax_id
+      tax_id,
+      assigned_ir_id,
+      assigned_accountant_id
     } = data;
 
     // Check if user already exists in ANY table
@@ -606,13 +608,15 @@ export class UsersService {
     await db.query(
       `INSERT INTO investors (
         id, email, full_name, password_hash, status, kyc_status, 
-        phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id
+        phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id,
+        assigned_ir_id, assigned_accountant_id
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
       [
         investorId, email, full_name, dummyPasswordHash, 'pending', 'unverified',
         phone || null, dob || null, address_line1 || null, address_line2 || null, 
-        city || null, state || null, zip_code || null, country || null, tax_id || null
+        city || null, state || null, zip_code || null, country || null, tax_id || null,
+        assigned_ir_id || null, assigned_accountant_id || null
       ]
     );
 

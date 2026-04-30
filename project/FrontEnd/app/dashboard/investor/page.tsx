@@ -55,8 +55,13 @@ export default function InvestorPage() {
     state: '',
     zip_code: '',
     country: 'US',
-    tax_id: ''
+    tax_id: '',
+    assigned_ir_id: '',
+    assigned_accountant_id: ''
   });
+
+  const [irStaff, setIrStaff] = useState<any[]>([]);
+  const [accountantStaff, setAccountantStaff] = useState<any[]>([]);
 
 
   const itemsPerPage = 7;
@@ -74,8 +79,24 @@ export default function InvestorPage() {
     }
   };
 
+  const fetchStaff = async () => {
+    try {
+      const [irRes, accountantRes] = await Promise.all([
+        apiClient.getStaffMembers('investor_relations'),
+        apiClient.getStaffMembers('accountant')
+      ]);
+      setIrStaff(irRes?.data || []);
+      setAccountantStaff(accountantRes?.data || []);
+    } catch (error) {
+      console.error('Failed to fetch staff:', error);
+      setIrStaff([]);
+      setAccountantStaff([]);
+    }
+  };
+
   useEffect(() => {
     fetchInvestors();
+    fetchStaff();
   }, []);
 
   const getKycStatusStyle = (status: string) => {
@@ -143,7 +164,9 @@ export default function InvestorPage() {
         state: inviteForm.state,
         zip_code: inviteForm.zip_code,
         country: inviteForm.country,
-        tax_id: inviteForm.tax_id
+        tax_id: inviteForm.tax_id,
+        assigned_ir_id: inviteForm.assigned_ir_id || null,
+        assigned_accountant_id: inviteForm.assigned_accountant_id || null
       });
       toast.success('Investor profile saved successfully');
       setShowInviteModal(false);
@@ -160,7 +183,9 @@ export default function InvestorPage() {
         state: '',
         zip_code: '',
         country: '',
-        tax_id: ''
+        tax_id: '',
+        assigned_ir_id: '',
+        assigned_accountant_id: ''
       });
       fetchInvestors();
     } catch (error: any) {
@@ -783,7 +808,7 @@ export default function InvestorPage() {
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-[#000000]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-2xl relative overflow-hidden animate-in fade-in zoom-in duration-300">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-4xl shadow-2xl relative overflow-hidden animate-in fade-in zoom-in duration-300">
             <div className="p-10 max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setShowInviteModal(false)}
@@ -792,87 +817,135 @@ export default function InvestorPage() {
                 <X className="h-6 w-6" />
               </button>
 
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold text-[#111827] font-goudy mb-2">Invite New Investor</h3>
+              <div className="mb-8 text-center md:text-left">
+                <h3 className="text-3xl font-bold text-[#111827] font-goudy mb-2">Invite New Investor</h3>
                 <p className="text-[#6B7280] font-medium">Pre-fill investor profile for a seamless onboarding experience.</p>
               </div>
 
-              <div className="space-y-8">
-                {/* General Info */}
-                <section>
-                  <h4 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-widest mb-4">General Information</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-[#4B5563] ml-1">First Name</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. John"
-                        value={inviteForm.first_name}
-                        onChange={(e) => setInviteForm({ ...inviteForm, first_name: e.target.value })}
-                        className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-[#4B5563] ml-1">Last Name</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Doe"
-                        value={inviteForm.last_name}
-                        onChange={(e) => setInviteForm({ ...inviteForm, last_name: e.target.value })}
-                        className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-[#4B5563] ml-1">Email (Required)</label>
-                      <input
-                        type="email"
-                        placeholder="e.g. john@example.com"
-                        value={inviteForm.email}
-                        onChange={(e) => {
-                          setInviteForm({ ...inviteForm, email: e.target.value });
-                          if (emailError) setEmailError('');
-                        }}
-                        className={`w-full px-5 py-4 bg-[#F9FAFB] border rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 transition-all placeholder:text-[#9CA3AF] ${emailError ? 'border-red-300 ring-2 ring-red-100' : 'border-[#F3F4F6] focus:ring-[#FCD34D]'
-                          }`}
-                      />
-                      {emailError && (
-                        <p className="text-[11px] font-bold text-red-500 ml-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                          {emailError}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-[#4B5563] ml-1">Phone</label>
-                      <div className="flex gap-2">
-                        <select
-                          value={inviteForm.phone_code}
-                          onChange={(e) => setInviteForm({ ...inviteForm, phone_code: e.target.value })}
-                          className="px-3 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all"
-                        >
-                          <option value="+1">+1 (USA)</option>
-                          <option value="+44">+44 (UK)</option>
-                          <option value="+91">+91 (IN)</option>
-                        </select>
-                        <input
-                          type="tel"
-                          placeholder="555 000 0000"
-                          value={inviteForm.phone}
-                          onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value.replace(/\D/g, '').slice(0, 15) })}
-                          className="flex-1 px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
-                        />
+              <div className="space-y-10">
+                {/* General Info & Assignments */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                  <div className="lg:col-span-2 space-y-8">
+                    <section>
+                      <h4 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-widest mb-4">General Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">First Name</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. John"
+                            value={inviteForm.first_name}
+                            onChange={(e) => setInviteForm({ ...inviteForm, first_name: e.target.value })}
+                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">Last Name</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Doe"
+                            value={inviteForm.last_name}
+                            onChange={(e) => setInviteForm({ ...inviteForm, last_name: e.target.value })}
+                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">Email (Required)</label>
+                          <input
+                            type="email"
+                            placeholder="e.g. john@example.com"
+                            value={inviteForm.email}
+                            onChange={(e) => {
+                              setInviteForm({ ...inviteForm, email: e.target.value });
+                              if (emailError) setEmailError('');
+                            }}
+                            className={`w-full px-5 py-4 bg-[#F9FAFB] border rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 transition-all placeholder:text-[#9CA3AF] ${emailError ? 'border-red-300 ring-2 ring-red-100' : 'border-[#F3F4F6] focus:ring-[#FCD34D]'}`}
+                          />
+                          {emailError && <p className="text-[11px] font-bold text-red-500 ml-1 mt-1">{emailError}</p>}
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">Phone</label>
+                          <div className="flex gap-2">
+                            <select
+                              value={inviteForm.phone_code}
+                              onChange={(e) => setInviteForm({ ...inviteForm, phone_code: e.target.value })}
+                              className="px-3 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none"
+                            >
+                              <option value="+1">+1</option>
+                              <option value="+44">+44</option>
+                              <option value="+91">+91</option>
+                            </select>
+                            <input
+                              type="tel"
+                              placeholder="555 000 0000"
+                              value={inviteForm.phone}
+                              onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value.replace(/\D/g, '').slice(0, 15) })}
+                              className="flex-1 px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">Date of Birth</label>
+                          <input
+                            type="date"
+                            value={inviteForm.dob}
+                            onChange={(e) => setInviteForm({ ...inviteForm, dob: e.target.value })}
+                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">Tax ID / SSN</label>
+                          <input
+                            type="text"
+                            placeholder="SSN or TaxID"
+                            value={inviteForm.tax_id}
+                            onChange={(e) => setInviteForm({ ...inviteForm, tax_id: e.target.value })}
+                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-[#4B5563] ml-1">Date of Birth</label>
-                      <input
-                        type="date"
-                        value={inviteForm.dob}
-                        onChange={(e) => setInviteForm({ ...inviteForm, dob: e.target.value })}
-                        className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all"
-                      />
-                    </div>
+                    </section>
                   </div>
-                </section>
+
+                  <div className="space-y-8">
+                    <section>
+                      <h4 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-widest mb-4">Internal Assignment</h4>
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">Investor Relation</label>
+                          <select
+                            value={inviteForm.assigned_ir_id}
+                            onChange={(e) => setInviteForm({ ...inviteForm, assigned_ir_id: e.target.value })}
+                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                          >
+                            <option value="">Select IR Staff</option>
+                            {irStaff?.map((staff) => (
+                              <option key={staff.id} value={staff.id}>{staff.full_name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">Accountant</label>
+                          <select
+                            value={inviteForm.assigned_accountant_id}
+                            onChange={(e) => setInviteForm({ ...inviteForm, assigned_accountant_id: e.target.value })}
+                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                          >
+                            <option value="">Select Accountant</option>
+                            {accountantStaff?.map((staff) => (
+                              <option key={staff.id} value={staff.id}>{staff.full_name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      {/* <div className="mt-6 p-4 bg-yellow-50 rounded-2xl border border-yellow-100">
+                        <p className="text-[11px] text-yellow-800 font-medium leading-relaxed">
+                          Assigned staff will receive notifications regarding this investor's activity.
+                        </p>
+                      </div> */}
+                    </section>
+                  </div>
+                </div>
 
                 {/* Address */}
                 <section>
@@ -887,7 +960,7 @@ export default function InvestorPage() {
                     const availableCities = (inviteForm.country && inviteForm.state) ? City.getCitiesOfState(inviteForm.country, inviteForm.state) : [];
 
                     return (
-                      <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-[#4B5563] ml-1">Address Line 1</label>
                           <input
@@ -895,76 +968,60 @@ export default function InvestorPage() {
                             placeholder="Street Address"
                             value={inviteForm.address_line1}
                             onChange={(e) => setInviteForm({ ...inviteForm, address_line1: e.target.value })}
-                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
+                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">Address Line 2</label>
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">Address Line 2 (Optional)</label>
                           <input
                             type="text"
-                            placeholder="Apt, Suite, Unit, etc. (optional)"
+                            placeholder="Apt, Suite, etc."
                             value={inviteForm.address_line2}
                             onChange={(e) => setInviteForm({ ...inviteForm, address_line2: e.target.value })}
-                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
+                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
                           />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-[#4B5563] ml-1">Country</label>
-                            <Combobox
-                              options={allCountries.map(c => ({ label: c.name, value: c.isoCode }))}
-                              value={inviteForm.country}
-                              onChange={(val) => setInviteForm({ ...inviteForm, country: val, state: '', city: '' })}
-                              placeholder="Select country"
-                              className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-[#4B5563] ml-1">State / Province</label>
-                            <Combobox
-                              options={availableStates.map(s => ({ label: s.name, value: s.isoCode }))}
-                              value={inviteForm.state}
-                              onChange={(val) => setInviteForm({ ...inviteForm, state: val, city: '' })}
-                              placeholder="Select state"
-                              disabled={!inviteForm.country}
-                              className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
-                            />
-                          </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">Country</label>
+                          <Combobox
+                            options={allCountries.map(c => ({ label: c.name, value: c.isoCode }))}
+                            value={inviteForm.country}
+                            onChange={(val) => setInviteForm({ ...inviteForm, country: val, state: '', city: '' })}
+                            placeholder="Select country"
+                            className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
+                          />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-[#4B5563] ml-1">City</label>
-                            <Combobox
-                              options={availableCities.map(city => ({ label: city.name, value: city.name }))}
-                              value={inviteForm.city}
-                              onChange={(val) => setInviteForm({ ...inviteForm, city: val })}
-                              placeholder="Select city"
-                              disabled={!inviteForm.state}
-                              className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-[#4B5563] ml-1">ZIP Code</label>
-                            <input
-                              type="text"
-                              placeholder="e.g. 10001"
-                              value={inviteForm.zip_code}
-                              onChange={(e) => setInviteForm({ ...inviteForm, zip_code: e.target.value })}
-                              className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
-                            />
-                          </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">State / Province</label>
+                          <Combobox
+                            options={availableStates.map(s => ({ label: s.name, value: s.isoCode }))}
+                            value={inviteForm.state}
+                            onChange={(val) => setInviteForm({ ...inviteForm, state: val, city: '' })}
+                            placeholder="Select state"
+                            disabled={!inviteForm.country}
+                            className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
+                          />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-[#4B5563] ml-1">Tax ID / SSN</label>
-                            <input
-                              type="text"
-                              placeholder="SSN or TaxID"
-                              value={inviteForm.tax_id}
-                              onChange={(e) => setInviteForm({ ...inviteForm, tax_id: e.target.value })}
-                              className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
-                            />
-                          </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">City</label>
+                          <Combobox
+                            options={availableCities.map(city => ({ label: city.name, value: city.name }))}
+                            value={inviteForm.city}
+                            onChange={(val) => setInviteForm({ ...inviteForm, city: val })}
+                            placeholder="Select city"
+                            disabled={!inviteForm.state}
+                            className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-[#4B5563] ml-1">ZIP Code</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 10001"
+                            value={inviteForm.zip_code}
+                            onChange={(e) => setInviteForm({ ...inviteForm, zip_code: e.target.value })}
+                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
+                          />
                         </div>
                       </div>
                     );
@@ -972,7 +1029,7 @@ export default function InvestorPage() {
                 </section>
               </div>
 
-              <div className="flex gap-4 mt-10">
+              <div className="flex gap-4 mt-12">
                 <button
                   onClick={() => setShowInviteModal(false)}
                   className="flex-1 py-4 bg-[#F9FAFB] text-[#4B5563] text-sm font-bold rounded-2xl hover:bg-[#F3F4F6] transition-all"

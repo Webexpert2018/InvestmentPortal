@@ -1125,6 +1125,13 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  async getStaffMembers(role?: string) {
+    const roleParam = role ? `role=${role}` : '';
+    const limitParam = 'limit=100';
+    const query = [roleParam, limitParam].filter(Boolean).join('&');
+    return this.request<any>(`/staff${query ? '?' + query : ''}`);
+  }
 }
 
 
