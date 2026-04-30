@@ -422,11 +422,31 @@ export default function DashboardPage() {
     return (
       <DashboardLayout>
         <div className="space-y-8 font-helvetica text-[#1F1F1F]">
-          <div className="flex flex-col gap-1">
-            <h1 className="font-goudy text-2xl text-[#1F1F1F]">Dashboard</h1>
-            <p className="text-sm text-[#8E8E93]">
-              Here&apos;s your latest investment overview and updates from Ovalia Capital.
-            </p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <h1 className="font-goudy text-2xl text-[#1F1F1F]">Dashboard</h1>
+              <p className="text-sm text-[#8E8E93]">
+                Here&apos;s your latest investment overview and updates from Ovalia Capital.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+                <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+                <div>
+                  <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
+                  <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
+                </div>
+              </div>
+
+              <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+                <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+                <div>
+                  <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+                  <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {(investorKycStatus === 'unverified' || !investorKycStatus) && (
