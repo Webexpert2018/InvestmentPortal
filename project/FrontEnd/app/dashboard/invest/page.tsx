@@ -50,6 +50,7 @@ export default function InvestPage() {
   const [amount, setAmount] = useState<string>('25000');
   const [unitPrice, setUnitPrice] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [assignedIrName, setAssignedIrName] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [userIraAccounts, setUserIraAccounts] = useState<any[]>([]);
@@ -236,7 +237,22 @@ export default function InvestPage() {
       }
     };
     fetchData();
+    fetchUserProfile();
   }, [selectedFundId]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const profile = await apiClient.getProfile();
+      if (profile && profile.id) {
+        const fullUser = await apiClient.getUserById(profile.id);
+        if (fullUser && fullUser.assignedIrName) {
+          setAssignedIrName(fullUser.assignedIrName);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch user profile for assigned IR:', err);
+    }
+  };
 
   // Fixed documents are now initialized directly in state
 
@@ -480,14 +496,27 @@ export default function InvestPage() {
   const renderChooseFund = () => (
     <>
 
-      <div className="mb-6">
-        <h1 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F]">
-          Choose a Fund
-        </h1>
-        <p className="mt-2 text-sm text-[#8E8E93]">
-          Select the fund you would like to invest in.
-          You will complete your investment steps on text next screens.
-        </p>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F]">
+            Choose a Fund
+          </h1>
+          <p className="mt-2 text-sm text-[#8E8E93]">
+            Select the fund you would like to invest in.
+            You will complete your investment steps on text next screens.
+          </p>
+        </div>
+
+        <div className="hidden md:flex items-center gap-4 text-xs">
+          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+            <div className={`h-2.5 w-2.5 rounded-full ${assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+            <div>
+              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+              <p className="text-[13px] font-bold text-[#1F1F1F]">{assignedIrName || 'Unassigned'}</p>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <div className="rounded-2xl bg-white px-6 py-6 shadow-sm">
@@ -555,13 +584,26 @@ export default function InvestPage() {
 
   const renderFundingAccount = () => (
     <>
-      <div className="mb-6">
-        <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
-          Select Funding Account
-        </h1>
-        <p className="mt-2 text-sm text-[#8E8E93]">
-          Choose the account you want to invest from.
-        </p>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+            Select Funding Account
+          </h1>
+          <p className="mt-2 text-sm text-[#8E8E93]">
+            Choose the account you want to invest from.
+          </p>
+        </div>
+
+        <div className="hidden md:flex items-center gap-4 text-xs">
+          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+            <div className={`h-2.5 w-2.5 rounded-full ${assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+            <div>
+              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+              <p className="text-[13px] font-bold text-[#1F1F1F]">{assignedIrName || 'Unassigned'}</p>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -598,11 +640,24 @@ export default function InvestPage() {
 
   const renderInvestmentAmount = () => (
     <>
-      <div className="mb-8">
-        <h1 className="font-goudy text-xl sm:text-[28px] font-bold leading-[38px] text-[#1F1F1F]">
-          Investment Amount
-        </h1>
-        <p className="mt-1 text-sm text-[#8E8E93]">Specify how much you&apos;d like to invest.</p>
+      <div className="mb-8 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="font-goudy text-xl sm:text-[28px] font-bold leading-[38px] text-[#1F1F1F]">
+            Investment Amount
+          </h1>
+          <p className="mt-1 text-sm text-[#8E8E93]">Specify how much you&apos;d like to invest.</p>
+        </div>
+
+        <div className="hidden md:flex items-center gap-4 text-xs">
+          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+            <div className={`h-2.5 w-2.5 rounded-full ${assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+            <div>
+              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+              <p className="text-[13px] font-bold text-[#1F1F1F]">{assignedIrName || 'Unassigned'}</p>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
@@ -687,13 +742,26 @@ export default function InvestPage() {
 
   const renderSignDocuments = () => (
     <>
-      <div className="mb-6">
-        <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
-          Sign Subscription Documents
-        </h1>
-        <p className="mt-1 text-sm text-[#8E8E93]">
-          Review and e-sign required documents.
-        </p>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+            Sign Subscription Documents
+          </h1>
+          <p className="mt-1 text-sm text-[#8E8E93]">
+            Review and e-sign required documents.
+          </p>
+        </div>
+
+        <div className="hidden md:flex items-center gap-4 text-xs">
+          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+            <div className={`h-2.5 w-2.5 rounded-full ${assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+            <div>
+              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+              <p className="text-[13px] font-bold text-[#1F1F1F]">{assignedIrName || 'Unassigned'}</p>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -857,29 +925,42 @@ export default function InvestPage() {
 
   const renderFundingInstructions = () => (
     <>
-      <div className="mb-8 animate-in fade-in zoom-in duration-500">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F8F0]">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2BB673]">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
+      <div className="mb-8 flex items-center justify-between gap-4 animate-in fade-in zoom-in duration-500">
+        <div>
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F8F0]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2BB673]">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
           </div>
+          <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+            Congratulations!
+          </h1>
+          <p className="mt-2 text-base text-[#8E8E93]">
+            Your investment has been submitted. Your investor relations will reach out to you with wire instructions.
+          </p>
         </div>
-        <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
-          Congratulations!
-        </h1>
-        <p className="mt-2 text-base text-[#8E8E93]">
-          Your investment has been submitted. Your investor relations will reach out to you with wire instructions.
-        </p>
+
+        <div className="hidden md:flex items-center gap-4 text-xs">
+          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+            <div className={`h-2.5 w-2.5 rounded-full ${assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+            <div>
+              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+              <p className="text-[13px] font-bold text-[#1F1F1F]">{assignedIrName || 'Unassigned'}</p>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -1021,11 +1102,24 @@ export default function InvestPage() {
 
   const renderInvestmentStatus = () => (
     <>
-      <div className="mb-6">
-        <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
-          Investment Status
-        </h1>
-        <p className="mt-2 text-sm text-[#8E8E93]">Track your investment through each stage.</p>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+            Investment Status
+          </h1>
+          <p className="mt-2 text-sm text-[#8E8E93]">Track your investment through each stage.</p>
+        </div>
+
+        <div className="hidden md:flex items-center gap-4 text-xs">
+          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+            <div className={`h-2.5 w-2.5 rounded-full ${assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+            <div>
+              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+              <p className="text-[13px] font-bold text-[#1F1F1F]">{assignedIrName || 'Unassigned'}</p>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">

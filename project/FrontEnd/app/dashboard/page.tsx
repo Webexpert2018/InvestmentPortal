@@ -14,6 +14,14 @@ import { formatDistanceToNow } from 'date-fns';
 
 import { MoreVertical, ChevronDown, ChevronRight } from 'lucide-react';
 import { setInvestorKycStatus } from '@/lib/mock/kycStatus';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const stats = [
   { name: 'Total Investors', value: '38' },
@@ -237,6 +245,8 @@ export default function DashboardPage() {
   const [allInvestments, setAllInvestments] = useState<any[]>([]);
   const [allRedemptions, setAllRedemptions] = useState<any[]>([]);
   const [dynamicConversations, setDynamicConversations] = useState<any[]>([]);
+  const [performanceData, setPerformanceData] = useState<any[]>([]);
+  const [timeRange, setTimeRange] = useState('12');
 
   const investorAccountList = useMemo(() => {
     const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -294,7 +304,7 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         if (dashboardRole === 'investor' && user?.id) {
-          const [flows, investments, navSummary, dynamicStats, iraData, redemptions, convs] = await Promise.all([
+          const [flows, investments, navSummary, dynamicStats, iraData, redemptions, convs, performance] = await Promise.all([
             apiClient.getMyFundFlows(),
             apiClient.getMyInvestments(),
             apiClient.getNavSummary(),
@@ -302,6 +312,7 @@ export default function DashboardPage() {
             apiClient.getMyIRAAccount(),
             apiClient.getMyRedemptions(),
             apiClient.getConversations(),
+            apiClient.getInvestorPerformance(user.id, parseInt(timeRange)),
           ]);
 
           setAllInvestments(investments);
@@ -318,6 +329,7 @@ export default function DashboardPage() {
 
           setIraAccounts(Array.isArray(iraData) ? iraData : (iraData ? [iraData] : []));
           setDynamicConversations(convs || []);
+          setPerformanceData(performance);
         } else if (dashboardRole === 'admin' || dashboardRole === 'accountant') {
           const [stats, investments, redemptions, convs] = await Promise.all([
             apiClient.getAdminStats(),
@@ -357,7 +369,7 @@ export default function DashboardPage() {
     fetchStats();
     const intervalId = setInterval(fetchStats, 15000);
     return () => clearInterval(intervalId);
-  }, [dashboardRole, user?.kycStatus, user?.id]);
+  }, [dashboardRole, user?.kycStatus, user?.id, timeRange]);
 
   const roleStats = {
     admin: [
@@ -540,49 +552,100 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="font-goudy text-base">Performance Overview</h2>
-                  <p className="mt-1 text-xs text-[#8E8E93]">$2,500.00</p>
-                  <p className="text-[11px] text-[#C0C0C0]">Price</p>
+                  <p className="mt-1 text-xs text-[#8E8E93]">
+                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue)}
+                  </p>
+                  <p className="text-[11px] text-[#C0C0C0]">Current Value</p>
                 </div>
-                <button className="flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs text-[#4B4B4B]">
-                  Last year
-                  <ChevronDown className="h-3 w-3" />
-                </button>
+                <Select value={timeRange} onValueChange={setTimeRange}>
+                  <SelectTrigger className="w-[120px] rounded-full border-gray-200 h-8 text-xs">
+                    <SelectValue placeholder="Time Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Last month</SelectItem>
+                    <SelectItem value="3">Last 3 months</SelectItem>
+                    <SelectItem value="6">Last 6 months</SelectItem>
+                    <SelectItem value="12">Last year</SelectItem>
+                    <SelectItem value="24">Last 2 years</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-                <div className="flex items-end">
-                  {/* Simple static performance line chart */}
-                  <svg
-                    viewBox="0 0 300 120"
-                    className="h-32 w-full rounded-2xl bg-[#FFF9EE] p-3"
-                    preserveAspectRatio="none"
-                  >
-                    <path
-                      d="M0 100 L40 80 L80 90 L120 50 L160 70 L200 40 L240 75 L280 55 L300 60"
-                      fill="none"
-                      stroke="#F3C046"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                    />
-                  </svg>
+                <div className="h-32 w-full rounded-2xl bg-[#FFF9EE] p-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={performanceData}>
+                      <defs>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#F3C046" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#F3C046" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <XAxis 
+                        dataKey="date" 
+                        fontSize={8}
+                        tickFormatter={(str) => {
+                          const date = new Date(str);
+                          if (parseInt(timeRange) <= 1) return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+                          return date.toLocaleDateString([], { month: 'short', year: '2-digit' });
+                        }}
+                        axisLine={false}
+                        tickLine={false}
+                        minTickGap={30}
+                        stroke="#A0A0A0"
+                      />
+                      <Tooltip 
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-white p-2 border border-gray-100 shadow-sm rounded-lg text-[10px]">
+                                <p className="font-medium">{new Date(payload[0].payload.date).toLocaleDateString()}</p>
+                                <p className="text-[#F3C046] font-semibold">Value: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payload[0].value as number)}</p>
+                                <p className="text-gray-400">Invested: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payload[0].payload.totalInvested)}</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="currentValue" 
+                        stroke="#F3C046" 
+                        fillOpacity={1} 
+                        fill="url(#colorValue)" 
+                        strokeWidth={2}
+                      />
+                      <Area 
+                        type="stepAfter" 
+                        dataKey="totalInvested" 
+                        stroke="#A0A0A0" 
+                        fill="none" 
+                        strokeWidth={1}
+                        strokeDasharray="3 3"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
                 <div className="space-y-3 text-sm text-[#4B4B4B]">
                   <div>
-                    <p className="text-xs text-[#A0A0A0]">24h% change</p>
-                    <p className="mt-1 text-sm font-semibold text-[#2BB673]">1.64% ↑</p>
+                    <p className="text-xs text-[#A0A0A0]">Total Return %</p>
+                    <p className={`mt-1 text-sm font-semibold ${investorStats.ytdReturn >= 0 ? 'text-[#2BB673]' : 'text-red-500'}`}>
+                      {investorStats.ytdReturn >= 0 ? '↑' : '↓'} {Math.abs(investorStats.ytdReturn).toFixed(2)}%
+                    </p>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
-                      <p className="text-[#A0A0A0]">Price</p>
-                      <p className="mt-1 font-medium text-[#1F1F1F]">$2,500.00</p>
+                      <p className="text-[#A0A0A0]">Total Invested</p>
+                      <p className="mt-1 font-medium text-[#1F1F1F]">
+                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.totalInvested)}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-[#A0A0A0]">Volume (24h)</p>
-                      <p className="mt-1 font-medium text-[#1F1F1F]">$25</p>
-                    </div>
-                    <div>
-                      <p className="text-[#A0A0A0]">Market cap</p>
-                      <p className="mt-1 font-medium text-[#1F1F1F]">$219</p>
+                      <p className="text-[#A0A0A0]">Current NAV</p>
+                      <p className="mt-1 font-medium text-[#1F1F1F]">
+                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentNav)}
+                      </p>
                     </div>
                   </div>
                 </div>
