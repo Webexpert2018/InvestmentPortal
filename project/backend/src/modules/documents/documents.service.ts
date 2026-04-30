@@ -11,10 +11,22 @@ export class DocumentsService {
     return result.rows;
   }
 
-  async getAllDocuments() {
-    const result = await db.query(
-      'SELECT * FROM fund_documents ORDER BY uploaded_at DESC'
-    );
+  async getAllDocuments(userId?: string, role?: string) {
+    let query = `
+      SELECT d.*, i.full_name as "investorName"
+      FROM investor_documents d
+      JOIN investors i ON d.investor_id = i.id
+    `;
+    const params = [];
+    
+    if (role === 'accountant' && userId) {
+      query += ` WHERE i.assigned_accountant_id = $1 `;
+      params.push(userId);
+    }
+    
+    query += ` ORDER BY d.uploaded_at DESC`;
+    
+    const result = await db.query(query, params);
     return result.rows;
   }
 
@@ -51,10 +63,11 @@ export class DocumentsService {
     document_type: string;
     file_size?: number;
     description?: string;
+    tax_year?: number;
   }) {
     const result = await db.query(
-      `INSERT INTO investor_documents (investor_id, file_name, file_url, document_type, file_size, description)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO investor_documents (investor_id, file_name, file_url, document_type, file_size, description, tax_year)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
       [
         investorId,
@@ -62,7 +75,8 @@ export class DocumentsService {
         data.file_url,
         data.document_type,
         data.file_size,
-        data.description
+        data.description,
+        data.tax_year
       ]
     );
     return result.rows[0];

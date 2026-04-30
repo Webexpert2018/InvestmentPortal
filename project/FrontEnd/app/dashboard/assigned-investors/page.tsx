@@ -87,7 +87,7 @@ export default function AdminAssignedInvestorsPage() {
             id: inv.id,
             name: inv.full_name,
             email: inv.email,
-            accountType: inv.account_type || "Personal Account",
+            accountType: inv.account_type || "Personal",
             kyc: (inv.kyc_status?.charAt(0).toUpperCase() + inv.kyc_status?.slice(1)) || "Approved",
             missingDocs: "-",
             date: inv.created_at ? format(new Date(inv.created_at), "MMM d, yyyy") : "N/A",
@@ -180,9 +180,12 @@ export default function AdminAssignedInvestorsPage() {
                 className="h-[38px] appearance-none rounded-full border border-[#ECEDEF] bg-white pl-4 pr-8 text-[13px] text-[#6B7280] outline-none font-helvetica cursor-pointer"
               >
                 <option value="All">Account Type</option>
-                <option>Personal Account</option>
-                <option>IRA</option>
-                <option>Roth IRA</option>
+                <option value="Personal">Personal</option>
+                <option value="SEP IRA">SEP IRA</option>
+                <option value="Roth SEP IRA">Roth SEP IRA</option>
+                <option value="DB Plan IRA">DB Plan IRA</option>
+                <option value="Roth IRA">Roth IRA</option>
+                <option value="Traditional IRA">Traditional IRA</option>
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9CA3AF]" />
             </div>
@@ -224,7 +227,15 @@ export default function AdminAssignedInvestorsPage() {
                   ))
                 ) : active.length > 0 ? (
                   active.map((inv) => (
-                    <tr key={inv.id} className="group hover:bg-[#FAFAFA] transition-colors">
+                    <tr 
+                      key={inv.id} 
+                      onClick={(e) => {
+                        if (!(e.target as Element).closest('a')) {
+                          router.push(`/dashboard/investor/${inv.id}`);
+                        }
+                      }}
+                      className="group hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                    >
                       <td className="px-4 py-4 border-b border-[#F5F5F5]">
                         <div className="flex items-center gap-3">
                           {inv.avatar ? (
@@ -271,7 +282,15 @@ export default function AdminAssignedInvestorsPage() {
                   ))
                 ) : ira.length > 0 ? (
                   ira.map((inv) => (
-                    <tr key={inv.id} className="group hover:bg-[#FAFAFA] transition-colors">
+                    <tr 
+                      key={inv.id} 
+                      onClick={(e) => {
+                        if (!(e.target as Element).closest('a')) {
+                          router.push(`/dashboard/investor/${inv.id}`);
+                        }
+                      }}
+                      className="group hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                    >
                       <td className="px-4 py-4 border-b border-[#F5F5F5]">
                         <div className="flex items-center gap-3">
                           {inv.avatar ? (
@@ -312,7 +331,15 @@ export default function AdminAssignedInvestorsPage() {
                 </tr>
                 {!loading && pending.length > 0 ? (
                   pending.map((inv) => (
-                    <tr key={inv.id} className="group hover:bg-[#FAFAFA] transition-colors">
+                    <tr 
+                      key={inv.id} 
+                      onClick={(e) => {
+                        if (!(e.target as Element).closest('a') && !(e.target as Element).closest('button')) {
+                          router.push(`/dashboard/investor/${inv.id}`);
+                        }
+                      }}
+                      className="group hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                    >
                       <td className="px-4 py-4 border-b border-[#F5F5F5]">
                         <div className="flex items-center gap-3 opacity-60">
                           {inv.avatar ? (
@@ -352,7 +379,15 @@ export default function AdminAssignedInvestorsPage() {
                 </tr>
                 {!loading && suspended.length > 0 ? (
                   suspended.map((inv) => (
-                    <tr key={inv.id} className="group hover:bg-[#FAFAFA] transition-colors">
+                    <tr 
+                      key={inv.id} 
+                      onClick={(e) => {
+                        if (!(e.target as Element).closest('a') && !(e.target as Element).closest('button')) {
+                          router.push(`/dashboard/investor/${inv.id}`);
+                        }
+                      }}
+                      className="group hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                    >
                       <td className="px-4 py-4 border-b border-[#F5F5F5]">
                         <div className="flex items-center gap-3 opacity-50">
                           {inv.avatar ? (

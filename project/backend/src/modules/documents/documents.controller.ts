@@ -17,8 +17,8 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) { }
 
   @Get('all')
-  async getAllDocuments() {
-    return this.documentsService.getAllDocuments();
+  async getAllDocuments(@CurrentUser() user: any) {
+    return this.documentsService.getAllDocuments(user.userId, user.role);
   }
 
   @Get('fund/:fundId')
@@ -114,7 +114,7 @@ export class DocumentsController {
   }
 
   @Get('investor/:investorId')
-  @Roles('admin')
+  @Roles('admin', 'accountant')
   async getInvestorDocuments(@Param('investorId') investorId: string) {
     return this.documentsService.getInvestorDocuments(investorId);
   }

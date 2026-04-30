@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { apiClient } from '@/lib/api/client';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface ReconciliationRecord {
   id: string;
@@ -269,7 +270,7 @@ export default function ReconciliationPage() {
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">ID</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Type</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Custodian</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Internal</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Internal</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Difference</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Status</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Completed</th>
@@ -306,18 +307,30 @@ export default function ReconciliationPage() {
                       <td className="px-6 py-4 text-gray-900">{record.type}</td>
                       <td className="px-6 py-4 text-gray-900 font-medium text-right">{formatCurrency(record.custodian)}</td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-end gap-2">
                           <input
                             type="number"
-                            defaultValue={record.internal}
+                            defaultValue={record.internal === 0 ? '' : record.internal}
+                            disabled={record.isReconciled === true}
                             onBlur={(e) => {
                               const newVal = parseFloat(e.target.value);
                               if (newVal !== record.internal && !isNaN(newVal)) {
                                 handleUpdateInternal(record.id, record.type, newVal);
                               }
                             }}
-                            className="w-32 px-3 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#1F3B6E] font-medium text-right"
+                            className={cn(
+                              "w-32 px-3 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#1F3B6E] font-medium text-right transition-all",
+                              record.isReconciled === true ? "bg-gray-50 text-gray-400 border-transparent cursor-not-allowed" : "bg-white text-gray-900"
+                            )}
+                            style={{ MozAppearance: 'textfield' }}
                           />
+                          <style jsx>{`
+                            input::-webkit-outer-spin-button,
+                            input::-webkit-inner-spin-button {
+                              -webkit-appearance: none;
+                              margin: 0;
+                            }
+                          `}</style>
                           {savingId === record.id ? (
                             <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                           ) : savedId === record.id ? (
@@ -345,19 +358,25 @@ export default function ReconciliationPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        {record.status === 'Matched' ? (
+                        {record.isReconciled === true ? (
                           <button
-                            onClick={() => handleToggleReconcile(record.id, record.type, false)}
-                            className="px-4 py-1.5 text-[11px] font-bold rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors border border-green-100 uppercase tracking-wider"
+                            disabled
+                            className="px-4 py-1.5 text-[11px] font-bold rounded-full bg-[#2BB673] text-white cursor-default uppercase tracking-wider shadow-sm"
                           >
                             Complete
                           </button>
                         ) : (
                           <button
-                            onClick={() => handleToggleReconcile(record.id, record.type, true)}
-                            className="px-4 py-1.5 text-[11px] font-bold rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-100 uppercase tracking-wider"
+                            onClick={() => handleToggleReconcile(record.id, record.type, false)}
+                            disabled={record.status !== 'Matched'}
+                            className={cn(
+                              "px-4 py-1.5 text-[11px] font-bold rounded-full uppercase tracking-wider transition-all shadow-sm",
+                              record.status === 'Matched'
+                                ? "bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#fbbf24] active:scale-95"
+                                : "bg-[#FCD34D] text-[#1F1F1F] opacity-50 cursor-not-allowed grayscale"
+                            )}
                           >
-                            Incomplete
+                            Mark as Complete
                           </button>
                         )}
                       </td>

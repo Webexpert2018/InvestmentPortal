@@ -58,6 +58,9 @@ export default function PipelinePage() {
   const [selectedIrStaff, setSelectedIrStaff] = useState('');
   const [isAssigning, setIsAssigning] = useState(false);
   const [isIrLoading, setIsIrLoading] = useState(false);
+  const [accountantStaffList, setAccountantStaffList] = useState<any[]>([]);
+  const [selectedAccountant, setSelectedAccountant] = useState('');
+  const [isAccountantLoading, setIsAccountantLoading] = useState(false);
   const [pipelineNote, setPipelineNote] = useState('');
   const [currentNewNote, setCurrentNewNote] = useState('');
   const [notesList, setNotesList] = useState<any[]>([]);
@@ -468,9 +471,12 @@ export default function PipelinePage() {
         })
       );
 
-      // Always save IR assignment (backend handles no-op if unchanged)
+      // Always save IR and Accountant assignment (backend handles no-op if unchanged)
       promises.push(
         apiClient.assignInvestorRelations(selectedInvestor.id, selectedIrStaff || null)
+      );
+      promises.push(
+        apiClient.assignAccountant(selectedInvestor.id, selectedAccountant || null)
       );
 
       await Promise.all(promises);
@@ -693,6 +699,18 @@ export default function PipelinePage() {
     }
   }, []);
 
+  const fetchAccountantStaff = useCallback(async () => {
+    setIsAccountantLoading(true);
+    try {
+      const res = await apiClient.getStaff('accountant', 1, 100);
+      setAccountantStaffList(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch accountant staff:', err);
+    } finally {
+      setIsAccountantLoading(false);
+    }
+  }, []);
+
   if (!isLoaded) return null;
 
   const DroppableComponent = Droppable as any;
@@ -834,6 +852,7 @@ export default function PipelinePage() {
                                             setSelectedInvestor(investor);
                                             setExpectedInvestment(investor.expectedFutureInvestment.toString());
                                             setSelectedIrStaff(investor.assignedIrId || '');
+                                            setSelectedAccountant(investor.assignedAccountantId || '');
 
                                             // Handle notes parsing
                                             let parsedNotes = [];
@@ -1141,22 +1160,42 @@ export default function PipelinePage() {
                     </div>
                   </div>
 
-                  {(user?.role === 'admin' || user?.role === 'executive_admin') && (
-                    <div className="space-y-4">
-                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Investor Relations Officer</label>
-                      <div className="relative group">
-                        <select
-                          value={selectedIrStaff}
-                          onChange={(e) => setSelectedIrStaff(e.target.value)}
-                          disabled={isIrLoading}
-                          className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
-                        >
-                          <option value="">{isIrLoading ? 'Loading staff...' : 'Unassigned / Select IR Officer'}</option>
-                          {irStaffList.map((staff: any) => (
-                            <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 transition-colors" />
+                   {(user?.role === 'admin' || user?.role === 'executive_admin') && (
+                    <div className="space-y-6">
+                      <div className="space-y-4">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Investor Relations Officer</label>
+                        <div className="relative group">
+                          <select
+                            value={selectedIrStaff}
+                            onChange={(e) => setSelectedIrStaff(e.target.value)}
+                            disabled={isIrLoading}
+                            className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
+                          >
+                            <option value="">{isIrLoading ? 'Loading staff...' : 'Unassigned / Select IR Officer'}</option>
+                            {irStaffList.map((staff: any) => (
+                              <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 transition-colors" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Assigned Accountant</label>
+                        <div className="relative group">
+                          <select
+                            value={selectedAccountant}
+                            onChange={(e) => setSelectedAccountant(e.target.value)}
+                            disabled={isAccountantLoading}
+                            className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
+                          >
+                            <option value="">{isAccountantLoading ? 'Loading staff...' : 'Unassigned / Select Accountant'}</option>
+                            {accountantStaffList.map((staff: any) => (
+                              <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 transition-colors" />
+                        </div>
                       </div>
                     </div>
                   )}

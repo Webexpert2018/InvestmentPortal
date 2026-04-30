@@ -336,7 +336,7 @@ export class UsersService {
   }
 
   async getUserById(targetUserId: string, requestingUserId: string, requestingUserRole: string) {
-    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations', 'accountant'];
     if (!adminRoles.includes(requestingUserRole) && requestingUserId !== targetUserId) {
       throw new ForbiddenException('You can only view your own profile');
     }
