@@ -150,18 +150,29 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
               <p className="text-gray-600">Submitted Date: {requestData.submittedDate}</p>
             </div>
             <div className="flex gap-3">
-              <Button
-                onClick={() => setShowRejectModal(true)}
-                className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium shadow-none h-auto"
-              >
-                Reject
-              </Button>
-              <Button
-                onClick={() => setShowApproveModal(true)}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium shadow-none h-auto"
-              >
-                Received
-              </Button>
+              {requestData.status !== 'Units Issued' ? (
+                <>
+                  <Button
+                    onClick={() => setShowApproveModal(true)}
+                    className="bg-[#2BB673] hover:bg-[#23915b] text-white px-6 py-2 rounded-lg font-bold shadow-none h-auto transition-all active:scale-95"
+                  >
+                    Wire Instructions Sent
+                  </Button>
+                  <Button
+                    onClick={() => setShowRejectModal(true)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-bold shadow-none h-auto transition-all active:scale-95"
+                  >
+                    Reject
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  disabled
+                  className="bg-[#E5E5EA] text-[#8E8E93] px-8 py-2 rounded-lg font-bold shadow-none h-auto cursor-default opacity-100 border border-[#D1D1D6]"
+                >
+                  Complete
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -267,9 +278,9 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
               <X className="h-5 w-5" />
             </button>
 
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Reviewed Request</h2>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to mark this funding request as reviewed?
+            <h2 className="text-xl font-bold text-gray-900 mb-4 font-goudy">Wire Instructions Sent</h2>
+            <p className="text-gray-600 mb-6 font-helvetica">
+              Are you sure you want to mark these wire instructions as sent and move this request to awaiting funding?
             </p>
 
             <div className="flex gap-3 justify-end">
@@ -283,9 +294,9 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                 onClick={async () => {
                   try {
                     await apiClient.updateInvestmentStatus(params.id, { status: 'Awaiting Funding' });
-                    toast.success('Funding request marked as reviewed');
+                    toast.success('Status updated to Awaiting Funding');
                     setShowApproveModal(false);
-                    setTimeout(() => window.location.reload(), 1000);
+                    router.push('/dashboard/funding-requests');
                   } catch (err: any) {
                     toast.error(err.message || 'Failed to approve request');
                     console.error('Failed to approve:', err);
