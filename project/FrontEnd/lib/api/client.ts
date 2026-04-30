@@ -215,6 +215,13 @@ class ApiClient {
     });
   }
 
+  async assignAccountant(investorId: string, staffId: string | null) {
+    return this.request<any>(`/users/${investorId}/assign-accountant`, {
+      method: 'PATCH',
+      body: JSON.stringify({ staffId }),
+    });
+  }
+
   async updateKycStatus(userId: string, kycStatus: string) {
     return this.request<any>(`/users/${userId}/kyc-status`, {
       method: 'PATCH',
@@ -1121,6 +1128,17 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  }
+
+  async getStaffMembers(role?: string) {
+    const roleParam = role ? `role=${role}` : '';
+    const limitParam = 'limit=100';
+    const query = [roleParam, limitParam].filter(Boolean).join('&');
+    return this.request<any>(`/staff${query ? '?' + query : ''}`);
+  }
+
+  async getAssignedInvestors() {
+    return this.request<any[]>('/users/assigned-investors');
   }
 }
 

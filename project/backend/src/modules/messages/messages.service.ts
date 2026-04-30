@@ -126,20 +126,41 @@ export class MessagesService {
       const allParticipants = Array.from(new Set([senderId, ...participantIds]));
       const isGroup = allParticipants.length > 2 || !!groupName;
 
+      // 0. Identify sender role
+      const senderRoleRes = await db.query(`
+        SELECT role FROM staff WHERE id = $1
+        UNION ALL
+        SELECT role FROM users WHERE id = $1
+        UNION ALL
+        SELECT role FROM investors WHERE id = $1
+      `, [senderId]);
+      const senderRole = senderRoleRes.rows[0]?.role;
+
       // Identify investor_id and admin_id if possible
       let investor_id: string | null = null;
       let admin_id: string | null = null;
       for (const pId of allParticipants) {
+        if (pId === senderId) continue; // Skip self for restriction check
+
         const userRes = await db.query(`
-          SELECT 'investor' as role FROM investors WHERE id = $1
+          SELECT 'investor' as role, assigned_accountant_id FROM investors WHERE id = $1
           UNION ALL
-          SELECT 'staff' as role FROM staff WHERE id = $1
+          SELECT role, null as assigned_accountant_id FROM staff WHERE id = $1
           UNION ALL
-          SELECT role FROM users WHERE id = $1
+          SELECT role, null as assigned_accountant_id FROM users WHERE id = $1
         `, [pId]);
         
         if ((userRes.rowCount ?? 0) > 0) {
-          const role = userRes.rows[0].role;
+          const { role, assigned_accountant_id } = userRes.rows[0];
+          
+          // --- Accountant Restriction ---
+          if (senderRole === 'accountant') {
+            if (role !== 'investor' || assigned_accountant_id !== senderId) {
+              throw new Error('Accountants can only message their assigned investors');
+            }
+          }
+          // ------------------------------
+
           if (role === 'investor') {
             investor_id = pId;
           } else if (['staff', 'admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant'].includes(role)) {
@@ -443,16 +464,32 @@ export class MessagesService {
           ...adminUsersRes.rows.map(r => ({ ...r, type: 'admin' }))
         ];
       } else {
-        // Staff/Admins can talk to everyone
-        const investorsRes = await db.query('SELECT id, full_name, role, profile_image_url FROM investors WHERE status = \'active\'');
-        const staffRes = await db.query('SELECT id, full_name, role, profile_image_url FROM staff WHERE status = \'active\' AND id != $1', [userId]);
-        const adminUsersRes = await db.query('SELECT id, first_name || \' \' || last_name as full_name, role, profile_image_url FROM users WHERE id != $1', [userId]);
+        // Staff/Admins branch
+        let investorsRes;
+        
+        if (requesterRole === 'accountant') {
+          // Accountants can only message their assigned investors
+          investorsRes = await db.query(
+            'SELECT id, full_name, role, profile_image_url FROM investors WHERE status = \'active\' AND assigned_accountant_id = $1',
+            [userId]
+          );
+          
+          // Per request "only message their assigned investors", we omit other staff/admins for accountants
+          users = [
+            ...investorsRes.rows.map(r => ({ ...r, type: 'investor' }))
+          ];
+        } else {
+          // Other staff/admins can talk to everyone
+          investorsRes = await db.query('SELECT id, full_name, role, profile_image_url FROM investors WHERE status = \'active\'');
+          const staffRes = await db.query('SELECT id, full_name, role, profile_image_url FROM staff WHERE status = \'active\' AND id != $1', [userId]);
+          const adminUsersRes = await db.query('SELECT id, first_name || \' \' || last_name as full_name, role, profile_image_url FROM users WHERE id != $1', [userId]);
 
-        users = [
-          ...investorsRes.rows.map(r => ({ ...r, type: 'investor' })),
-          ...staffRes.rows.map(r => ({ ...r, type: 'staff' })),
-          ...adminUsersRes.rows.map(r => ({ ...r, type: 'admin' }))
-        ];
+          users = [
+            ...investorsRes.rows.map(r => ({ ...r, type: 'investor' })),
+            ...staffRes.rows.map(r => ({ ...r, type: 'staff' })),
+            ...adminUsersRes.rows.map(r => ({ ...r, type: 'admin' }))
+          ];
+        }
       }
 
       // De-duplicate by ID (just in case)

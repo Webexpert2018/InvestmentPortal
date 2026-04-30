@@ -88,13 +88,25 @@ export class NotificationsService {
 
   async getNotifications(userId: string, role: string) {
     try {
-      const result = await db.query(
-        `SELECT * FROM notifications
-         WHERE (user_id = $1 OR target_role = $2)
-         ORDER BY created_at DESC
-         LIMIT 50`,
-        [userId, role]
-      );
+      let query = `
+        SELECT * FROM notifications
+        WHERE (user_id = $1 OR target_role = $2)
+      `;
+      const params: any[] = [userId, role];
+
+      // Temporarily disable notifications for accountants as requested
+      const userRole = (role || '').toLowerCase();
+      if (userRole === 'accountant') {
+        query = `
+          SELECT * FROM notifications
+          WHERE FALSE
+        `;
+        params.length = 0; // Clear params to avoid binding error
+      }
+
+      query += ' ORDER BY created_at DESC LIMIT 50';
+      
+      const result = await db.query(query, params);
       return result.rows;
     } catch (error) {
       console.error('❌ Error fetching notifications:', error);
@@ -135,6 +147,9 @@ export class NotificationsService {
 
   async getUnreadCount(userId: string, role: string) {
     try {
+      const userRole = (role || '').toLowerCase();
+      if (userRole === 'accountant') return 0;
+
       const result = await db.query(
         `SELECT COUNT(*) FROM notifications
          WHERE is_read = FALSE AND (user_id = $1 OR target_role = $2)`,

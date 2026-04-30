@@ -104,6 +104,11 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
     return this.usersService.getKycReviewQueue(user.role);
   }
 
+  @Get('assigned-investors')
+  async getAssignedInvestors(@CurrentUser() user: any) {
+    return this.usersService.getAssignedInvestors(user.userId);
+  }
+
   @Get(':id')
   async getUserById(@Param('id') id: string, @CurrentUser() user: any) {
     return this.usersService.getUserById(id, user.userId, user.role);
@@ -196,6 +201,16 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
     @CurrentUser() user: any
   ) {
     return this.usersService.assignInvestorRelations(id, body.staffId, user.role);
+  }
+
+  @Patch(':id/assign-accountant')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
+  async assignAccountant(
+    @Param('id') id: string,
+    @Body() body: { staffId: string | null },
+    @CurrentUser() user: any
+  ) {
+    return this.usersService.assignAccountant(id, body.staffId, user.role);
   }
 
   @Patch(':id/reset-password')

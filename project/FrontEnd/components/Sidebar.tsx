@@ -172,7 +172,6 @@ const menuItems: MenuItem[] = [
 const accountantMenu: MenuItem[] = [
   { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['accountant'] },
   { title: 'Assigned Investors', href: '/dashboard/assigned-investors', icon: Users, roles: ['accountant'] },
-  { title: 'Messages', href: '/dashboard/messages', icon: FileText, roles: ['accountant'] },
   { title: 'Tax Vault', href: '/dashboard/tax-vault', icon: FileText, roles: ['accountant'] },
   { title: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['accountant'] },
 ];

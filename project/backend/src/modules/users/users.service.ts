@@ -215,6 +215,20 @@ export class UsersService {
     };
   }
 
+  async getAssignedInvestors(staffId: string) {
+    // This fetches investors assigned to this staff member as either IR or Accountant
+    const result = await db.query(`
+      SELECT 
+        i.id, i.full_name, i.email, i.phone, i.status, i.kyc_status,
+        i.profile_image_url, i.created_at
+      FROM investors i
+      WHERE i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1
+      ORDER BY i.created_at DESC
+    `, [staffId]);
+
+    return result.rows;
+  }
+
   async getAllUsers(requestingUserRole: string) {
     const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
     if (!adminRoles.includes(requestingUserRole)) {
@@ -255,11 +269,15 @@ export class UsersService {
         i.kyc_status as "kycStatus", i.profile_image_url as "profileImageUrl",
         ua.account_type as "accountType",
         (COALESCE(inv_s.total_invested, 0) - COALESCE(red_s.total_redeemed_value, 0)) as total_invested,
-        (COALESCE(inv_s.total_units, 0) - COALESCE(red_s.total_redeemed_units, 0)) as total_units
+        (COALESCE(inv_s.total_units, 0) - COALESCE(red_s.total_redeemed_units, 0)) as total_units,
+        i.assigned_ir_id, s.full_name as assigned_ir_name,
+        i.assigned_accountant_id, acc.full_name as assigned_accountant_name
       FROM user_accounts ua
       JOIN investors i ON ua.user_id = i.id
       LEFT JOIN investment_sums inv_s ON ua.user_id = inv_s.user_id AND ua.account_type = inv_s.account_type
       LEFT JOIN redemption_sums red_s ON ua.user_id = red_s.user_id AND ua.account_type = red_s.account_type
+      LEFT JOIN staff s ON i.assigned_ir_id = s.id
+      LEFT JOIN staff acc ON i.assigned_accountant_id = acc.id
       ORDER BY 
         CASE WHEN i.status = 'pending' THEN 0 ELSE 1 END,
         i.created_at DESC
@@ -340,9 +358,12 @@ export class UsersService {
           i.dob, i.address_line1 as "addressLine1", i.address_line2 as "addressLine2", 
           i.city, i.state, i.zip_code as "zipCode", i.country, 
           i.tax_id as "taxId", i.profile_image_url as "profileImageUrl", i.kyc_status as "kycStatus", i.assigned_ir_id,
-          s.full_name as assigned_ir_name, s.email as assigned_ir_email
+          i.assigned_accountant_id,
+          s.full_name as assigned_ir_name, s.email as assigned_ir_email,
+          acc.full_name as assigned_accountant_name, acc.email as assigned_accountant_email
         FROM investors i
         LEFT JOIN staff s ON i.assigned_ir_id = s.id
+        LEFT JOIN staff acc ON i.assigned_accountant_id = acc.id
         WHERE i.id = $1`,
         [targetUserId]
       );
@@ -381,7 +402,10 @@ export class UsersService {
       kycStatus: user.kycStatus || 'pending',
       assignedIrId: user.assigned_ir_id,
       assignedIrName: user.assigned_ir_name,
-      assignedIrEmail: user.assigned_ir_email
+      assignedIrEmail: user.assigned_ir_email,
+      assignedAccountantId: user.assigned_accountant_id,
+      assignedAccountantName: user.assigned_accountant_name,
+      assignedAccountantEmail: user.assigned_accountant_email
     };
   }
 
@@ -571,7 +595,9 @@ export class UsersService {
       state,
       zip_code,
       country,
-      tax_id
+      tax_id,
+      assigned_ir_id,
+      assigned_accountant_id
     } = data;
 
     // Check if user already exists in ANY table
@@ -596,13 +622,15 @@ export class UsersService {
     await db.query(
       `INSERT INTO investors (
         id, email, full_name, password_hash, status, kyc_status, 
-        phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id
+        phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id,
+        assigned_ir_id, assigned_accountant_id
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
       [
         investorId, email, full_name, dummyPasswordHash, 'pending', 'unverified',
         phone || null, dob || null, address_line1 || null, address_line2 || null, 
-        city || null, state || null, zip_code || null, country || null, tax_id || null
+        city || null, state || null, zip_code || null, country || null, tax_id || null,
+        assigned_ir_id || null, assigned_accountant_id || null
       ]
     );
 
@@ -735,5 +763,36 @@ export class UsersService {
     );
 
     return { id: result.rows[0].id, assignedIrId: result.rows[0].assigned_ir_id };
+  }
+
+  async assignAccountant(investorId: string, staffId: string | null, requestingUserRole: string) {
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(requestingUserRole)) {
+      throw new ForbiddenException('Only admins can assign accountants');
+    }
+
+    // Verify investor exists
+    const investorCheck = await db.query('SELECT id FROM investors WHERE id = $1', [investorId]);
+    if (investorCheck.rows.length === 0) {
+      throw new NotFoundException('Investor not found');
+    }
+
+    // If staffId provided, verify it's a valid accountant staff
+    if (staffId) {
+      const staffCheck = await db.query(
+        "SELECT id, full_name FROM staff WHERE id = $1 AND role = 'accountant'",
+        [staffId]
+      );
+      if (staffCheck.rows.length === 0) {
+        throw new NotFoundException('Accountant staff member not found');
+      }
+    }
+
+    const result = await db.query(
+      'UPDATE investors SET assigned_accountant_id = $1, updated_at = NOW() WHERE id = $2 RETURNING id, assigned_accountant_id',
+      [staffId, investorId]
+    );
+
+    return { id: result.rows[0].id, assignedAccountantId: result.rows[0].assigned_accountant_id };
   }
 }

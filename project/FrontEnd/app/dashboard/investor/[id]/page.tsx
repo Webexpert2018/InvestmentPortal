@@ -17,10 +17,14 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('basic');
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showAccountantModal, setShowAccountantModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [selectedIrStaff, setSelectedIrStaff] = useState('');
+  const [selectedAccountant, setSelectedAccountant] = useState('');
   const [irStaffList, setIrStaffList] = useState<any[]>([]);
+  const [accountantList, setAccountantList] = useState<any[]>([]);
   const [irLoading, setIrLoading] = useState(false);
+  const [accountantLoading, setAccountantLoading] = useState(false);
   const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [assigning, setAssigning] = useState(false);
@@ -265,6 +269,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                               <User className="h-4 w-4" />
                               Investor Relations: <span className="text-gray-900 font-bold">{investorData.assignedIrName || 'Not assigned'}</span>
                             </p>
+                            <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
+                              <Shield className="h-4 w-4" />
+                              Accountant: <span className="text-gray-900 font-bold">{investorData.assignedAccountantName || 'Not assigned'}</span>
+                            </p>
                           </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-xl">
@@ -283,20 +291,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 }`}
                               >
                                 {isSendingInvite ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
-                                Send Invite
-                              </button>,
-                              <button
-                                key="resend"
-                                onClick={handleSendInvite}
-                                disabled={isSendingInvite || !isPending}
-                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center gap-2 shadow-sm ${
-                                  isPending
-                                    ? 'bg-white text-[#1F1F1F] hover:bg-gray-50 border-gray-200'
-                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
-                                }`}
-                              >
-                                {isSendingInvite ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
-                                Resend Invite
+                                Send/Resend Invite
                               </button>,
                               <button
                                 key="cancel"
@@ -358,6 +353,22 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center text-center shadow-sm bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent`}
                               >
                                 {investorData.assignedIrId ? 'Change Investor Relations' : 'Assign Investor Relations'}
+                              </button>,
+                              <button
+                                key="assign-accountant"
+                                onClick={async () => {
+                                  setShowAccountantModal(true);
+                                  setSelectedAccountant(investorData.assignedAccountantId || '');
+                                  setAccountantLoading(true);
+                                  try {
+                                    const res = await apiClient.getStaff('accountant', 1, 100);
+                                    setAccountantList(res.data || []);
+                                  } catch (err) { console.error('Failed to fetch accountants:', err); }
+                                  finally { setAccountantLoading(false); }
+                                }}
+                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center text-center shadow-sm bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent`}
+                              >
+                                {investorData.assignedAccountantId ? 'Change Accountant' : 'Assign Accountant'}
                               </button>
                             ];
 
@@ -432,6 +443,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       <div className="space-y-1">
                         <span className="text-xs font-bold text-gray-400">Assigned Investor Relations</span>
                         <p className="text-sm font-bold text-gray-900">{investorData.assignedIrName || <span className="text-gray-400 italic">Not assigned</span>}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold text-gray-400">Assigned Accountant</span>
+                        <p className="text-sm font-bold text-gray-900">{investorData.assignedAccountantName || <span className="text-gray-400 italic">Not assigned</span>}</p>
                       </div>
                       <div className="space-y-1 text-right sm:text-left">
                         <span className="text-xs font-bold text-gray-400">Last Login</span>
@@ -798,35 +813,104 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
               {/* Buttons */}
               <div className="flex justify-end gap-4 pt-4">
                 <button
-                  onClick={() => {
-                    setShowAssignModal(false);
-                    setSelectedIrStaff('');
-                  }}
-                  className="flex-1 py-4 text-sm font-bold text-[#6B7280] hover:bg-[#F9FAFB] rounded-2xl transition-all"
+                  onClick={() => setShowAssignModal(false)}
+                  className="px-6 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   disabled={assigning}
                   onClick={async () => {
+                    setAssigning(true);
                     try {
-                      setAssigning(true);
                       await apiClient.assignInvestorRelations(params.id, selectedIrStaff || null);
                       toast.success('Investor Relations assigned successfully');
-                      // Refresh investor data to show updated assignment
                       const profile = await apiClient.getUserById(params.id);
                       setInvestorData(profile);
                       setShowAssignModal(false);
-                      setSelectedIrStaff('');
-                    } catch (err: any) {
-                      toast.error(err.message || 'Failed to assign');
+                    } catch (err) {
+                      toast.error('Failed to assign Investor Relations');
                     } finally {
                       setAssigning(false);
                     }
                   }}
-                  className="flex-1 py-4 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-2xl hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all disabled:opacity-70"
+                  className="px-6 py-2.5 bg-[#FCD34D] text-[#1F1F1F] text-sm font-bold rounded-xl hover:bg-[#FBD24E] transition-all shadow-lg shadow-amber-100 active:scale-95 disabled:opacity-50"
                 >
-                  {assigning ? 'Assigning...' : 'Assign'}
+                  {assigning ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Assign'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Accountant Modal */}
+      {showAccountantModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
+            <div className="p-6 space-y-4">
+              {/* Header */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-[#1F1F1F]">Assign Accountant</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Select an accountant to manage this investor's financial records.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowAccountantModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Dropdown */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-700">Accountant</label>
+                <div className="relative">
+                  <select
+                    value={selectedAccountant}
+                    onChange={(e) => setSelectedAccountant(e.target.value)}
+                    disabled={accountantLoading}
+                    className="w-full px-5 py-4 bg-[#F9FAFB] border-none rounded-2xl text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#FCD34D] cursor-pointer font-medium disabled:opacity-50"
+                  >
+                    <option value="">{accountantLoading ? 'Loading...' : 'Select accountant'}</option>
+                    {accountantList.map((staff: any) => (
+                      <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end gap-4 pt-4">
+                <button
+                  onClick={() => setShowAccountantModal(false)}
+                  className="px-6 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={assigning}
+                  onClick={async () => {
+                    setAssigning(true);
+                    try {
+                      await apiClient.assignAccountant(params.id, selectedAccountant || null);
+                      toast.success('Accountant assigned successfully');
+                      const profile = await apiClient.getUserById(params.id);
+                      setInvestorData(profile);
+                      setShowAccountantModal(false);
+                    } catch (err) {
+                      toast.error('Failed to assign accountant');
+                    } finally {
+                      setAssigning(false);
+                    }
+                  }}
+                  className="px-6 py-2.5 bg-[#FCD34D] text-[#1F1F1F] text-sm font-bold rounded-xl hover:bg-[#FBD24E] transition-all shadow-lg shadow-amber-100 active:scale-95 disabled:opacity-50"
+                >
+                  {assigning ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Assign'}
                 </button>
               </div>
             </div>

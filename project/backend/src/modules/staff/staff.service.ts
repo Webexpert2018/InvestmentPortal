@@ -25,10 +25,13 @@ export class StaffService {
            
            UNION ALL
            
-           SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
-                  (SELECT COUNT(*) FROM investors i WHERE i.assigned_ir_id = s.id)::int as assigned_investors_count,
-                  s.profile_image_url, s.created_at, s.updated_at,
-                  f.name as associated_fund_name, f.id as associated_fund_id
+            SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
+                   CASE 
+                     WHEN s.role = 'accountant' THEN (SELECT COUNT(*) FROM investors i WHERE i.assigned_accountant_id = s.id)::int
+                     ELSE (SELECT COUNT(*) FROM investors i WHERE i.assigned_ir_id = s.id)::int
+                   END as assigned_investors_count,
+                   s.profile_image_url, s.created_at, s.updated_at,
+                   f.name as associated_fund_name, f.id as associated_fund_id
            FROM staff s
            LEFT JOIN funds f ON s.associated_fund_id = f.id
         )
@@ -58,11 +61,11 @@ export class StaffService {
       total = data.length > 0 ? parseInt(data[0].total_count) : 0;
     } else {
       let query = `
-        SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
-               (SELECT COUNT(*) FROM investors i WHERE i.assigned_ir_id = s.id)::int as assigned_investors_count,
-               s.profile_image_url, s.created_at, s.updated_at,
-               f.name as associated_fund_name, f.id as associated_fund_id,
-               COUNT(*) OVER() AS total_count
+       SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
+              (SELECT COUNT(*) FROM investors i WHERE i.assigned_accountant_id = s.id OR i.assigned_ir_id = s.id)::int as assigned_investors_count,
+              s.profile_image_url, s.created_at, s.updated_at,
+              f.name as associated_fund_name, f.id as associated_fund_id,
+              COUNT(*) OVER() AS total_count
         FROM staff s
         LEFT JOIN funds f ON s.associated_fund_id = f.id
         WHERE s.role = $1
@@ -92,9 +95,9 @@ export class StaffService {
 
   async findOne(id: string) {
     // 1. Try staff table
-    const staffResult = await db.query(
+     const staffResult = await db.query(
       `SELECT s.*, f.name as associated_fund_name,
-              (SELECT COUNT(*) FROM investors i WHERE i.assigned_ir_id = s.id)::int as assigned_investors_count
+              (SELECT COUNT(*) FROM investors i WHERE i.assigned_accountant_id = s.id OR i.assigned_ir_id = s.id)::int as assigned_investors_count
        FROM staff s 
        LEFT JOIN funds f ON s.associated_fund_id = f.id 
        WHERE s.id = $1`,
@@ -122,7 +125,7 @@ export class StaffService {
     const result = await db.query(
       `SELECT i.id, i.full_name, i.email, i.phone, i.status, i.kyc_status, i.created_at, i.updated_at
        FROM investors i
-       WHERE i.assigned_ir_id = $1
+       WHERE i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1
        ORDER BY i.updated_at DESC`,
       [staffId]
     );
