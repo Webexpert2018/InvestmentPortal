@@ -130,6 +130,7 @@ export function AssignedInvestorsMessagesScreen() {
   const [selectedGroupAvatar, setSelectedGroupAvatar] = useState('/images/messages-person/GroupIcon.png');
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
   const [isAddMode, setIsAddMode] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
@@ -1180,6 +1181,7 @@ export function AssignedInvestorsMessagesScreen() {
         if (!open) {
           setSelectedUserIds([]);
           setGroupNameInput('');
+          setUserSearch('');
           setIsAddMode(false);
         }
       }}>
@@ -1188,6 +1190,19 @@ export function AssignedInvestorsMessagesScreen() {
             <DialogTitle className="font-goudy text-2xl">{isAddMode ? 'Add Members' : 'New Chat'}</DialogTitle>
             <p className="text-[13px] text-[#8E8E93]">{isAddMode ? 'Select participants to add to the group' : 'Select individuals or create a group'}</p>
           </DialogHeader>
+
+          <div className="px-6 py-2 shrink-0">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#A2A5AA]" />
+              <input
+                type="text"
+                placeholder="Search by name..."
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                className="w-full h-10 pl-10 pr-4 bg-[#F5F5F7] border border-transparent rounded-xl text-[13px] outline-none focus:bg-white focus:border-[#FBCB4B] focus:ring-1 focus:ring-[#FBCB4B] transition-all placeholder:text-[#A2A5AA]"
+              />
+            </div>
+          </div>
 
           <div className="flex-1 overflow-y-auto px-4 pb-4">
             {loadingUsers ? (
@@ -1198,44 +1213,54 @@ export function AssignedInvestorsMessagesScreen() {
               <p className="text-center py-10 text-[13px] text-[#8E8E93]">No available users found</p>
             ) : (
               <div className="space-y-1">
-                {availableUsers.filter(user => {
-                  if (!isAddMode) return true;
-                  const currentParticipantIds = activeThread?.participants?.map((p: any) => p.id) || [];
-                  return !currentParticipantIds.includes(user.id);
-                }).map((user) => {
-                  const isSelected = selectedUserIds.includes(user.id);
-                  return (
-                    <button
-                      key={user.id}
-                      onClick={() => toggleUserSelection(user.id)}
-                      className={cn(
-                        "flex w-full items-center gap-3 px-3 py-2.5 text-left rounded-xl transition-all group",
-                        isSelected ? "bg-[#FBCB4B]/10 border-[#FBCB4B] border" : "hover:bg-gray-50 border border-transparent"
-                      )}
-                    >
-                      <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2A4474] to-[#1F3B6E] flex items-center justify-center text-[12px] font-bold text-white uppercase overflow-hidden shadow-sm">
-                          {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : (user.full_name?.charAt(0) || '?')}
-                        </div>
-                        {isSelected && (
-                          <div className="absolute -top-1 -right-1 bg-[#FBCB4B] text-[#1F1F1F] rounded-full p-0.5 shadow-sm">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
+                {(() => {
+                  const filtered = availableUsers.filter(user => {
+                    const matchesSearch = user.full_name?.toLowerCase().includes(userSearch.toLowerCase());
+                    if (!matchesSearch) return false;
+                    if (!isAddMode) return true;
+                    const currentParticipantIds = activeThread?.participants?.map((p: any) => p.id) || [];
+                    return !currentParticipantIds.includes(user.id);
+                  });
+
+                  if (filtered.length === 0) {
+                    return <p className="text-center py-10 text-[13px] text-[#8E8E93]">No results found for "{userSearch}"</p>;
+                  }
+
+                  return filtered.map((user) => {
+                    const isSelected = selectedUserIds.includes(user.id);
+                    return (
+                      <button
+                        key={user.id}
+                        onClick={() => toggleUserSelection(user.id)}
+                        className={cn(
+                          "flex w-full items-center gap-3 px-3 py-2.5 text-left rounded-xl transition-all group",
+                          isSelected ? "bg-[#FBCB4B]/10 border-[#FBCB4B] border" : "hover:bg-gray-50 border border-transparent"
                         )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[14px] font-bold text-[#1F1F1F] truncate group-hover:text-[#FBCB4B] transition-colors">{user.full_name}</p>
-                        <p className="text-[11px] text-[#8E8E93] uppercase tracking-wider">{user.role}</p>
-                      </div>
-                      <div className={cn(
-                        "w-5 h-5 rounded border transition-all flex items-center justify-center",
-                        isSelected ? "bg-[#FBCB4B] border-[#FBCB4B]" : "border-[#D1D1D6] group-hover:border-[#FBCB4B]"
-                      )}>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-[#1F1F1F] stroke-[3]" />}
-                      </div>
-                    </button>
-                  );
-                })}
+                      >
+                        <div className="relative">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2A4474] to-[#1F3B6E] flex items-center justify-center text-[12px] font-bold text-white uppercase overflow-hidden shadow-sm">
+                            {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : (user.full_name?.charAt(0) || '?')}
+                          </div>
+                          {isSelected && (
+                            <div className="absolute -top-1 -right-1 bg-[#FBCB4B] text-[#1F1F1F] rounded-full p-0.5 shadow-sm">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[14px] font-bold text-[#1F1F1F] truncate group-hover:text-[#FBCB4B] transition-colors">{user.full_name}</p>
+                          <p className="text-[11px] text-[#8E8E93] uppercase tracking-wider">{user.role}</p>
+                        </div>
+                        <div className={cn(
+                          "w-5 h-5 rounded border transition-all flex items-center justify-center",
+                          isSelected ? "bg-[#FBCB4B] border-[#FBCB4B]" : "border-[#D1D1D6] group-hover:border-[#FBCB4B]"
+                        )}>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-[#1F1F1F] stroke-[3]" />}
+                        </div>
+                      </button>
+                    );
+                  });
+                })()}
               </div>
             )}
           </div>
