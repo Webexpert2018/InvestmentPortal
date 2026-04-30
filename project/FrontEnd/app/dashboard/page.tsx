@@ -237,6 +237,8 @@ export default function DashboardPage() {
   const [allInvestments, setAllInvestments] = useState<any[]>([]);
   const [allRedemptions, setAllRedemptions] = useState<any[]>([]);
   const [dynamicConversations, setDynamicConversations] = useState<any[]>([]);
+  const [assignedInvestors, setAssignedInvestors] = useState<any[]>([]);
+  const [dynamicNotifications, setDynamicNotifications] = useState<any[]>([]);
 
   const investorAccountList = useMemo(() => {
     const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -348,6 +350,15 @@ export default function DashboardPage() {
             ...(redemptions || []).filter((red: any) => !red.is_reconciled).map((red: any) => ({ ...red, type: 'Redemption' }))
           ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
           setDynamicReconciliationAlerts(pendingReconciliations);
+
+          if (dashboardRole === 'accountant') {
+            const [assigned, notifs] = await Promise.all([
+              apiClient.getAssignedInvestors(),
+              apiClient.getNotifications()
+            ]);
+            setAssignedInvestors(assigned);
+            setDynamicNotifications(notifs);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
@@ -375,10 +386,10 @@ export default function DashboardPage() {
       { name: 'Pending Redemption', value: allRedemptions.filter(r => r.status === 'Pending').length.toString(), icon: TrendingUp, color: 'text-red-500' },
     ],
     accountant: [
-      { name: 'Assigned Investors', value: recentInvestors.length.toString(), icon: Users, color: 'text-gray-600' },
+      { name: 'Assigned Investors', value: assignedInvestors.length.toString(), icon: Users, color: 'text-gray-600' },
       { name: 'Pending Reconciliation', value: dynamicReconciliationAlerts.length.toString(), icon: Layers, color: 'text-amber-600' },
       { name: 'Unread Messages', value: dynamicConversations.reduce((sum, m) => sum + (m.unread_count || 0), 0).toString(), icon: CircleDollarSign, color: 'text-emerald-600' },
-      { name: 'Notifications', value: notificationsAccountant.reduce((sum, s) => sum + s.items.length, 0).toString(), icon: TrendingUp, color: 'text-blue-500' },
+      { name: 'Notifications', value: dynamicNotifications.filter(n => !n.is_read).length.toString(), icon: TrendingUp, color: 'text-blue-500' },
     ],
   };
 
@@ -922,23 +933,35 @@ export default function DashboardPage() {
                   aria-controls="assigned-panel"
                 >
                   <div className="flex items-center gap-4">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF9EE] text-lg font-goudy leading-none text-[#E7A324]">4</span>
-                    <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E]">New Assigned Investor</h3>
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF9EE] text-lg font-goudy leading-none text-[#E7A324]">
+                      {assignedInvestors.length}
+                    </span>
+                    <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E]">Assigned Investors</h3>
                   </div>
                   <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${assignedOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 <div id="assigned-panel" aria-hidden={!assignedOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${assignedOpen ? 'border-t border-[#EEEEEE] max-h-96' : 'max-h-0'}`}>
-                  <div className="pt-0">
-                    {recentInvestors.slice(0, 4).map((inv, idx) => (
+                  <div className="pt-0 overflow-y-auto max-h-[300px]">
+                    {assignedInvestors.map((inv, idx) => (
                       <div key={inv.id} className="flex items-center gap-4 py-3 border-b border-[#EEEEEE] last:border-0">
-                        <img src={userIcons[idx % userIcons.length]} alt="avatar" className="h-10 w-10 rounded-full object-cover" />
-                        <div>
-                          <p className="text-[16px] font-goudy leading-none text-[#2E2E2E]">{inv.fundName}</p>
-                          <p className="text-sm font-helvetica text-[#8E8E93]">{inv.accountType}</p>
+                        <div className="relative shrink-0">
+                          <img 
+                            src={inv.profile_image_url || userIcons[idx % userIcons.length]} 
+                            alt="avatar" 
+                            className="h-10 w-10 rounded-full object-cover border border-gray-100" 
+                          />
+                          <div className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white ${inv.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[16px] font-goudy leading-none text-[#2E2E2E] truncate">{inv.full_name}</p>
+                          <p className="text-xs font-helvetica text-[#8E8E93] mt-1">{inv.account_type || 'Personal Account'}</p>
                         </div>
                       </div>
                     ))}
+                    {assignedInvestors.length === 0 && (
+                      <p className="text-center py-6 text-gray-400 text-sm">No investors assigned yet.</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -953,33 +976,46 @@ export default function DashboardPage() {
                   aria-controls="messages-panel"
                 >
                   <div className="flex items-center gap-4">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#E4F6F4] text-lg font-goudy leading-none text-[#2BB673]">5</span>
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#E4F6F4] text-lg font-goudy leading-none text-[#2BB673]">
+                      {dynamicConversations.reduce((sum, m) => sum + (m.unread_count || 0), 0)}
+                    </span>
                     <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E]">Unread Messages</h3>
                   </div>
                   <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${messagesOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 <div id="messages-panel" aria-hidden={!messagesOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${messagesOpen ? 'border-t border-[#EEEEEE] max-h-96' : 'max-h-0'}`}>
-                  <div className="pt-0">
-                    {investorUnreadMessages.map((m, idx) => (
-                      <Link
-                        href="/dashboard/messages"
-                        key={m.id}
-                        className="flex items-start justify-between gap-3 py-4 border-b border-[#EEEEEE] last:border-0 cursor-pointer hover:bg-[#F9FAFB] transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          <img src={userIcons[(idx + 1) % userIcons.length]} alt="avatar" className="h-10 w-10 rounded-full object-cover" />
-                          <div>
-                            <p className="text-[16px] font-goudy leading-none text-[#2E2E2E]">{m.name}</p>
-                            <p className="mt-1 text-sm font-helvetica text-[#8E8E93] max-w-[260px] truncate">{m.preview}</p>
+                  <div className="pt-0 overflow-y-auto max-h-[300px]">
+                    {dynamicConversations.filter(c => (c.unread_count || 0) > 0).map((m, idx) => {
+                      const otherParticipant = m.participants?.find((p: any) => p.id !== user?.id);
+                      const name = m.is_group ? m.group_name : (otherParticipant?.name || 'Investor');
+                      const avatar = m.is_group ? m.group_image_url : otherParticipant?.avatar;
+                      
+                      return (
+                        <Link
+                          href="/dashboard/messages"
+                          key={m.id}
+                          className="flex items-start justify-between gap-3 py-4 border-b border-[#EEEEEE] last:border-0 cursor-pointer hover:bg-[#F9FAFB] transition-colors"
+                        >
+                          <div className="flex items-center gap-4">
+                            <img src={avatar || userIcons[(idx + 1) % userIcons.length]} alt="avatar" className="h-10 w-10 rounded-full object-cover shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-[16px] font-goudy leading-none text-[#2E2E2E] truncate">{name}</p>
+                              <p className="mt-2 text-sm font-helvetica text-[#8E8E93] max-w-[200px] truncate">{m.last_message || 'New conversation'}</p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <span className="text-xs text-[#C0C0C0]">{m.time}</span>
-                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ECFDF3] text-xs font-medium text-[#2BB673]">{m.count}</span>
-                        </div>
-                      </Link>
-                    ))}
+                          <div className="flex flex-col items-end gap-2 shrink-0">
+                            <span className="text-[11px] text-[#C0C0C0]">
+                              {m.updated_at ? formatDistanceToNow(new Date(m.updated_at), { addSuffix: true }).replace('about ', '') : 'Now'}
+                            </span>
+                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ECFDF3] text-xs font-medium text-[#2BB673]">{m.unread_count}</span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                    {dynamicConversations.filter(c => (c.unread_count || 0) > 0).length === 0 && (
+                      <p className="text-center py-6 text-gray-400 text-sm">No unread messages.</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -994,25 +1030,30 @@ export default function DashboardPage() {
                   aria-controls="notifications-panel"
                 >
                   <div className="flex items-center gap-4">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#EEF2FF] text-lg font-goudy leading-none text-[#6366F1]">3</span>
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#EEF2FF] text-lg font-goudy leading-none text-[#6366F1]">
+                      {dynamicNotifications.filter(n => !n.is_read).length}
+                    </span>
                     <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E]">Notifications</h3>
                   </div>
                   <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${notificationsOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 <div id="notifications-panel" aria-hidden={!notificationsOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${notificationsOpen ? 'border-t border-[#EEEEEE] max-h-96' : 'max-h-0'}`}>
-                  <div className="pt-0">
-                    {notificationsAccountant.map((section) => (
-                      <div key={section.day} className="mb-4">
-                        <p className="text-xs font-semibold text-[#8E8E93] mb-2">{section.day}</p>
-                        {section.items.map((n) => (
-                          <div key={n.id} className="text-sm text-[#4B4B4B] border-b border-[#EEEEEE] py-3 last:border-0">
-                            <p className="font-medium text-[#1F1F1F]">{n.title} <span className="text-xs text-[#C0C0C0]">• {n.time}</span></p>
-                            <p className="mt-1 text-xs font-helvetica text-[#8E8E93]">{n.subtitle}</p>
-                          </div>
-                        ))}
+                  <div className="pt-0 overflow-y-auto max-h-[300px]">
+                    {dynamicNotifications.map((n) => (
+                      <div key={n.id} className={`text-sm text-[#4B4B4B] border-b border-[#EEEEEE] py-4 last:border-0 hover:bg-[#F9FAFB] transition-colors px-2 rounded-lg ${!n.is_read ? 'bg-indigo-50/30' : ''}`}>
+                        <div className="flex justify-between items-start">
+                          <p className="font-medium text-[#1F1F1F] flex-1">{n.title}</p>
+                          <span className="text-[10px] text-[#A2A5AA] shrink-0 ml-2">
+                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true }).replace('about ', '')}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs font-helvetica text-[#8E8E93] leading-relaxed">{n.description || n.message}</p>
                       </div>
                     ))}
+                    {dynamicNotifications.length === 0 && (
+                      <p className="text-center py-6 text-gray-400 text-sm">No notifications found.</p>
+                    )}
                   </div>
                 </div>
               </div>

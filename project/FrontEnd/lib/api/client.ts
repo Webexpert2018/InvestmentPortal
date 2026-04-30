@@ -1132,6 +1132,10 @@ class ApiClient {
     const query = [roleParam, limitParam].filter(Boolean).join('&');
     return this.request<any>(`/staff${query ? '?' + query : ''}`);
   }
+
+  async getAssignedInvestors() {
+    return this.request<any[]>('/users/assigned-investors');
+  }
 }
 
 

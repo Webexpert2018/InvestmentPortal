@@ -215,6 +215,20 @@ export class UsersService {
     };
   }
 
+  async getAssignedInvestors(staffId: string) {
+    // This fetches investors assigned to this staff member as either IR or Accountant
+    const result = await db.query(`
+      SELECT 
+        i.id, i.full_name, i.email, i.phone, i.status, i.kyc_status,
+        i.profile_image_url, i.created_at
+      FROM investors i
+      WHERE i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1
+      ORDER BY i.created_at DESC
+    `, [staffId]);
+
+    return result.rows;
+  }
+
   async getAllUsers(requestingUserRole: string) {
     const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
     if (!adminRoles.includes(requestingUserRole)) {
