@@ -284,14 +284,8 @@ export default function HomePage() {
 
           {/* 🔹 Background Image (initial load) */}
           <div className="absolute inset-0 z-0">
-            {/* <img
-              src="/banner_image.jpg" // your image
-              alt="background"
-              className={`w-full h-full object-cover transition-opacity duration-3000 ${videoLoaded ? 'opacity-0' : 'opacity-700'
-                }`}
-            /> */}
             <img
-              src="./investor_meeting.png" // your image
+              src="/images/investor_meeting.jpg" // your image
               alt="background"
               className={`w-full h-full object-cover transition-opacity duration-3000 ${videoLoaded ? 'opacity-0' : 'opacity-700'
                 }`}
@@ -302,7 +296,7 @@ export default function HomePage() {
           <video
             className={`absolute inset-0 w-full h-full object-cover  z-0 transition-opacity duration-1000 ${videoLoaded ? 'opacity-700' : 'opacity-0'
               }`}
-            src="/banner_video.mp4"
+            src="/video/banner_video.mp4"
             autoPlay
             loop
             muted
@@ -310,7 +304,7 @@ export default function HomePage() {
             preload="auto"
             poster="/banner_image.mp4"
             onCanPlay={() => {
-              setTimeout(() => setVideoLoaded(true), 1200);
+              setTimeout(() => setVideoLoaded(true), 1500);
             }}
           />
 
