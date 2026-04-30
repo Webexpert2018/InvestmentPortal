@@ -194,7 +194,7 @@ export default function HomePage() {
                       Sign In
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-44 p-1 bg-[#0B132B]/95 backdrop-blur-md border border-white/10 text-white shadow-2xl">
+                  <DropdownMenuContent align="end" className="w-44 p-1 bg-[#0B132B]/95 backdrop-blur-md border border-white/10 text-white shadow-2xl font-sans">
                     <DropdownMenuItem
                       className="cursor-pointer text-white hover:text-white focus:text-white hover:bg-white/10 focus:bg-white/10 transition-colors px-3 py-2 rounded-md"
                       onSelect={() => router.push('/auth/login?flow=admin')}
@@ -261,7 +261,7 @@ export default function HomePage() {
                     Sign In
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-full p-1 bg-[#0B132B]/95 backdrop-blur-md border border-white/10 text-white">
+                <DropdownMenuContent align="center" className="w-full p-1 bg-[#0B132B]/95 backdrop-blur-md border border-white/10 text-white font-sans">
                   <DropdownMenuItem className="text-white hover:text-white focus:text-white cursor-pointer" onSelect={() => router.push('/auth/login?flow=admin')}>Admin login</DropdownMenuItem>
                   <DropdownMenuItem className="text-white hover:text-white focus:text-white cursor-pointer" onSelect={() => router.push('/auth/login?flow=account')}>Accountant login</DropdownMenuItem>
                   <DropdownMenuItem className="text-white hover:text-white focus:text-white cursor-pointer" onSelect={() => router.push('/auth/login?flow=investor')}>Investor login</DropdownMenuItem>
