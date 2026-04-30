@@ -258,29 +258,31 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
                   {/* Right: Detailed Info */}
                   <div className="flex-1 space-y-8">
-                    {/* Name and Joined Date */}
-                    <div className="space-y-1">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div>
-                          <h2 className="text-3xl font-bold text-[#1F1F1F] leading-tight">{investorData.firstName} {investorData.lastName}</h2>
-                          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-1">
-                            <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
-                              <Calendar className="h-4 w-4" />
-                              Joined date: {new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </p>
-                            <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
-                              <User className="h-4 w-4" />
-                              Investor Relations: <span className="text-gray-900 font-bold">{investorData.assignedIrName || 'Not assigned'}</span>
-                            </p>
-                            <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
-                              <Shield className="h-4 w-4" />
-                              Accountant: <span className="text-gray-900 font-bold">{investorData.assignedAccountantName || 'Not assigned'}</span>
-                            </p>
-                          </div>
+                    {/* Name, Info, and Action Buttons */}
+                    <div className="space-y-4">
+                      {/* Name and Meta Info */}
+                      <div>
+                        <h2 className="text-3xl font-bold text-[#1F1F1F] leading-tight">{investorData.firstName} {investorData.lastName}</h2>
+                        <div className="flex flex-col gap-2 mt-2">
+                          <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
+                            <Calendar className="h-4 w-4 shrink-0" />
+                            Joined date: {new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                          <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
+                            <Shield className="h-4 w-4 shrink-0" />
+                            Accountant: <span className="text-gray-900 font-bold">{investorData.assignedAccountantName || 'Not assigned'}</span>
+                          </p>
+                          <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
+                            <User className="h-4 w-4 shrink-0" />
+                            Investor Relations: <span className="text-gray-900 font-bold">{investorData.assignedIrName || 'Not assigned'}</span>
+                          </p>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-xl">
-                          {(() => {
-                            const isPending = investorData.status === 'pending';
+                      </div>
+
+                      {/* Action Buttons — full width, wrapping */}
+                      <div className="flex flex-wrap gap-2">
+                        {(() => {
+                          const isPending = investorData.status === 'pending';
                             
                             if (!isAdmin) return null;
 
@@ -289,7 +291,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 key="send"
                                 onClick={handleSendInvite}
                                 disabled={isSendingInvite || !isPending}
-                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center gap-2 shadow-sm ${
+                                className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${
                                   isPending
                                     ? 'bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent'
                                     : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
@@ -302,7 +304,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 key="cancel"
                                 onClick={handleCancelInvite}
                                 disabled={isSuspending || !isPending}
-                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center gap-2 shadow-sm ${
+                                className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${
                                   isPending
                                     ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
                                     : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
@@ -318,7 +320,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 key="forgot"
                                 onClick={handleForgotPassword}
                                 disabled={isResetting || isPending}
-                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center gap-2 shadow-sm ${
+                                className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${
                                   !isPending
                                     ? 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200'
                                     : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
@@ -331,7 +333,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 key="suspend"
                                 onClick={() => setShowSuspendModal(true)}
                                 disabled={isSuspending || isPending}
-                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center gap-2 shadow-sm ${
+                                className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${
                                   !isPending
                                     ? (investorData.status === 'suspended'
                                       ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
@@ -355,7 +357,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                   } catch (err) { console.error('Failed to fetch IR staff:', err); }
                                   finally { setIrLoading(false); }
                                 }}
-                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center text-center shadow-sm bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent`}
+                                className="h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
                               >
                                 {investorData.assignedIrId ? 'Change Investor Relations' : 'Assign Investor Relations'}
                               </button>,
@@ -371,7 +373,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                   } catch (err) { console.error('Failed to fetch accountants:', err); }
                                   finally { setAccountantLoading(false); }
                                 }}
-                                className={`w-full h-11 px-4 text-xs font-bold rounded-full transition-colors border flex items-center justify-center text-center shadow-sm bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent`}
+                                className="h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
                               >
                                 {investorData.assignedAccountantId ? 'Change Accountant' : 'Assign Accountant'}
                               </button>
@@ -381,7 +383,6 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           })()}
                         </div>
                       </div>
-                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 py-6 border-y border-gray-100">
                       <div className="space-y-1.5">

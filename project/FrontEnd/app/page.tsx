@@ -284,14 +284,8 @@ export default function HomePage() {
 
           {/* 🔹 Background Image (initial load) */}
           <div className="absolute inset-0 z-0">
-            {/* <img
-              src="/banner_image.jpg" // your image
-              alt="background"
-              className={`w-full h-full object-cover transition-opacity duration-3000 ${videoLoaded ? 'opacity-0' : 'opacity-700'
-                }`}
-            /> */}
             <img
-              src="/investor_meeting.png" // your image
+              src="/images/investor_meeting.jpg" // your image
               alt="background"
               className={`w-full h-full object-cover transition-opacity duration-3000 ${videoLoaded ? 'opacity-0' : 'opacity-700'
                 }`}
@@ -302,7 +296,7 @@ export default function HomePage() {
           <video
             className={`absolute inset-0 w-full h-full object-cover  z-0 transition-opacity duration-1000 ${videoLoaded ? 'opacity-700' : 'opacity-0'
               }`}
-            src="/banner_video.mp4"
+            src="/video/intro_video.mp4"
             autoPlay
             loop
             muted
@@ -310,7 +304,7 @@ export default function HomePage() {
             preload="auto"
             poster="/banner_image.mp4"
             onCanPlay={() => {
-              setTimeout(() => setVideoLoaded(true), 1200);
+              setTimeout(() => setVideoLoaded(true), 1500);
             }}
           />
 
@@ -452,10 +446,10 @@ export default function HomePage() {
               </div>
               <div className="relative">
                 <div className="relative bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-[4/3]">
-                  <Image 
-                    src="/images/financial-goals-investment.jpg" 
-                    alt="Financial Goals" 
-                    fill 
+                  <Image
+                    src="/images/financial-goals-investment.jpg"
+                    alt="Financial Goals"
+                    fill
                     className="object-cover"
                   />
                 </div>
@@ -517,10 +511,13 @@ export default function HomePage() {
                     </p>
                   </div>
                 </div>
-                <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video">
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1e3a8a]/10 to-transparent">
-                    <Users className="h-20 w-20 text-white/10" />
-                  </div>
+                <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video relative">
+                  <Image
+                    src="/images/group_investment_meeting.jpg"
+                    alt="Multiple investors pooling funds"
+                    fill
+                    className="object-cover"
+                  />
                 </div>
               </motion.div>
 
@@ -533,8 +530,13 @@ export default function HomePage() {
                 className="grid md:grid-cols-2 gap-12 items-center"
               >
                 <div className="order-2 md:order-1 bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video">
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#D4AF37]/5 to-transparent">
-                    <Building2 className="h-20 w-20 text-white/10" />
+                  <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video relative">
+                    <Image
+                      src="/images/property_renovated_increased.jpg"
+                      alt="Property is Renovated"
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                 </div>
                 <div className="order-1 md:order-2 relative pl-8">
@@ -569,8 +571,13 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video">
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1e3a8a]/10 to-transparent">
-                    <BarChart2 className="h-20 w-20 text-white/10" />
+                  <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video relative">
+                    <Image
+                      src="/images/investors_receive_quarterly.jpg"
+                      alt="Investors Receive Quarterly"
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                 </div>
               </motion.div>
@@ -723,8 +730,14 @@ export default function HomePage() {
                     ))}
                   </ul>
                 </div>
-                <div className="h-56 bg-gradient-to-br from-[#1e3a8a]/20 to-[#020817] flex items-center justify-center border-t border-white/5">
-                  <Building2 className="h-24 w-24 text-white/10" />
+
+                <div className="bg-white/[0.02] overflow-hidden aspect-video relative">
+                  <Image
+                    src="/images/growth_plan.jpg"
+                    alt="Growth plan"
+                    fill
+                    className="object-cover"
+                  />
                 </div>
               </motion.div>
 
@@ -736,8 +749,13 @@ export default function HomePage() {
                 transition={{ duration: 0.8 }}
                 className="invest-card rounded-3xl overflow-hidden transition-all duration-500 group"
               >
-                <div className="h-56 bg-gradient-to-br from-[#D4AF37]/10 to-[#020817] flex items-center justify-center border-b border-white/5">
-                  <TrendingUp className="h-24 w-24 text-white/10" />
+                <div className="bg-white/[0.02] overflow-hidden aspect-video relative">
+                  <Image
+                    src="/images/steady_returns.jpg"
+                    alt="Steady returns"
+                    fill
+                    className="object-cover"
+                  />
                 </div>
                 <div className="p-10">
                   <div className="flex items-center gap-4 mb-8">
