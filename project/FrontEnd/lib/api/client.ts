@@ -236,6 +236,10 @@ class ApiClient {
     });
   }
 
+  async getInvestorPerformance(userId: string, months: number = 12) {
+    return this.request<any[]>(`/stats/investor/${userId}/performance?months=${months}`);
+  }
+
   async updateUserStatus(userId: string, status: string) {
     return this.request<any>(`/users/${userId}/status`, {
       method: 'PATCH',

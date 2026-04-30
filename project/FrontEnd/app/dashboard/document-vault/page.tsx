@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ChevronDown, MoreVertical, Search, Loader2 } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
@@ -48,6 +49,7 @@ const allDocuments: VaultRow[] = [
 ];
 
 export default function DocumentVaultPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();
   const [documents, setDocuments] = useState<VaultRow[]>([]);
@@ -79,7 +81,7 @@ export default function DocumentVaultPage() {
           apiClient.getMyDocuments(),
           apiClient.getAllDocuments()
         ]);
-        
+
         const combined = [...myDocs, ...allDocs];
 
         const mapped = combined.map((doc: any) => ({
@@ -159,14 +161,36 @@ export default function DocumentVaultPage() {
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-8xl px-2 font-helvetica text-[#1F1F1F]">
-        <div>
-          <h1 className="font-goudy font-bold text-lg md:text-2xl text-[#1F1F1F]">Document Vault</h1>
-          <p className="mt-1 text-[14px] leading-6 text-[#8E8E93]">
-            Access your K-1 forms, tax documents, statements, and fund reports.
-          </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="font-goudy font-bold text-lg md:text-2xl text-[#1F1F1F]">Document Vault</h1>
+            <p className="mt-1 text-[14px] leading-6 text-[#8E8E93]">
+              Access your K-1 forms, tax documents, statements, and fund reports.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-4 text-xs">
+              <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+                <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+                <div>
+                  <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
+                  <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
+                </div>
+              </div>
+
+              <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+                <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+                <div>
+                  <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+                  <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-4 rounded-[8px] bg-white px-4 py-4 sm:px-6 sm:py-5">
+        <div className="mt-4 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm">
           <div className="flex flex-wrap items-center gap-3">
             <label className="relative block w-full max-w-[360px]">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A7ABB2]" />
@@ -178,7 +202,7 @@ export default function DocumentVaultPage() {
                 }}
                 type="text"
                 placeholder="Find something here..."
-                className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA]"
+                className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA]"
               />
             </label>
 
@@ -189,7 +213,7 @@ export default function DocumentVaultPage() {
                   setDocType(event.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-[40px] min-w-[145px] appearance-none rounded-full bg-[#F5F5F5] px-4 pr-9 text-[13px] text-[#8E8E93] outline-none"
+                className="h-[40px] min-w-[145px] appearance-none rounded-full bg-[#F5F5F5] px-4 pr-9 text-[14px] text-[#8E8E93] outline-none"
               >
                 <option value="all">Document Type</option>
                 {categories.filter(c => c !== 'all').map(cat => (
@@ -202,73 +226,80 @@ export default function DocumentVaultPage() {
 
           <div className="mt-4 overflow-x-auto pb-20 custom-scrollbar">
             <div className="min-h-[400px]">
-            <table className="w-full min-w-[860px] border-separate border-spacing-0 text-[12px] text-[#4B4B4B]">
-              <thead>
-                <tr className="bg-[#FAFAFA] text-left font-medium text-[#4B4B4B]">
-                  <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
-                  <th className="px-3 py-3">Category</th>
-                  <th className="px-3 py-3">Uploaded Date</th>
-                  <th className="rounded-r-[6px] px-3 py-3 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id} className="border-b border-[#F1F1F1]">
-                    <td className="px-3 py-4">{row.documentName}</td>
-                    <td className="px-3 py-4">{row.category}</td>
-                    <td className="px-3 py-4">{row.uploadedDate}</td>
-                    <td className="relative px-3 py-4 text-center">
-                      <button
-                        type="button"
-                        onClick={() => setActiveMenuId((prev) => (prev === row.id ? null : row.id))}
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5]"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
+              <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
+                <thead>
+                  <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
+                    <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
+                    <th className="px-3 py-3">Category</th>
+                    <th className="px-3 py-3">Uploaded Date</th>
+                    <th className="rounded-r-[6px] px-3 py-3 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr
+                      key={row.id}
+                      onClick={() => router.push(`/dashboard/document-vault/${row.id}`)}
+                      className="border-b border-[#F1F1F1] hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <td className="px-3 py-4">{row.documentName}</td>
+                      <td className="px-3 py-4">{row.category}</td>
+                      <td className="px-3 py-4">{row.uploadedDate}</td>
+                      <td className="relative px-3 py-4 text-center">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuId((prev) => (prev === row.id ? null : row.id));
+                          }}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5]"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </button>
 
-                      {activeMenuId === row.id && (
-                        <>
-                          <button
-                            type="button"
-                            aria-label="Close menu"
-                            className="fixed inset-0 z-10"
-                            onClick={() => setActiveMenuId(null)}
-                          />
-                          <div className="absolute right-6 top-11 z-20 w-[122px] rounded-[4px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)]">
-                            <Link
-                              href={`/dashboard/document-vault/${row.id}`}
-                              onClick={() => setActiveMenuId(null)}
-                              className="block px-3 py-2 text-[12px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
-                            >
-                              View Document
-                            </Link>
+                        {activeMenuId === row.id && (
+                          <>
                             <button
                               type="button"
-                              onClick={() => {
-                                handleDownload(row.fileUrl, row.documentName);
-                                setActiveMenuId(null);
-                              }}
-                              className="block w-full px-3 py-2 text-left text-[12px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
-                            >
-                              Download
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {rows.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-3 py-8 text-center text-[13px] text-[#8E8E93]">
-                      No documents found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                              aria-label="Close menu"
+                              className="fixed inset-0 z-10"
+                              onClick={() => setActiveMenuId(null)}
+                            />
+                            <div className="absolute right-6 top-11 z-20 w-[122px] rounded-[4px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)]">
+                              <Link
+                                href={`/dashboard/document-vault/${row.id}`}
+                                onClick={() => setActiveMenuId(null)}
+                                className="block px-3 py-2 text-[12px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
+                              >
+                                View Document
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleDownload(row.fileUrl, row.documentName);
+                                  setActiveMenuId(null);
+                                }}
+                                className="block w-full px-3 py-2 text-left text-[12px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
+                              >
+                                Download
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {rows.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-8 text-center text-[13px] text-[#8E8E93]">
+                        No documents found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
           <div className="mt-5 flex items-center justify-center gap-6 text-[16px] text-[#8E8E93]">
             <button
@@ -289,9 +320,8 @@ export default function DocumentVaultPage() {
                   key={page}
                   type="button"
                   onClick={() => setCurrentPage(page)}
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-[8px] transition-colors ${
-                    isActive ? 'bg-[#274583] text-white' : 'hover:bg-[#E9EDF4]'
-                  }`}
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-[8px] transition-colors ${isActive ? 'bg-[#274583] text-white' : 'hover:bg-[#E9EDF4]'
+                    }`}
                 >
                   {page}
                 </button>

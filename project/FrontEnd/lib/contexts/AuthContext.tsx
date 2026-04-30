@@ -23,6 +23,8 @@ interface User {
   status?: string;
   profileImageUrl?: string;
   kycStatus?: string;
+  assignedIrName?: string;
+  assignedAccountantName?: string;
 }
 
 interface AuthContextType {

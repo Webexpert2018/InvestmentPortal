@@ -38,8 +38,6 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
     mailingState: '',
     mailingZipCode: '',
     mailingCountry: '',
-    username: '',
-    referralSource: '',
   });
 
   useEffect(() => {
@@ -66,7 +64,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
       // Pre-fill some defaults based on investor name
       setIraForm(prev => ({
         ...prev,
-        username: `${data.firstName.toLowerCase()}_${Math.floor(100 + Math.random() * 900)}`,
+        // username: `${data.firstName.toLowerCase()}_${Math.floor(100 + Math.random() * 900)}`,
         mailingAddress1: data.addressLine1 || '',
         mailingAddress2: data.addressLine2 || '',
         mailingCity: data.city || '',
@@ -94,7 +92,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
     // if (!iraForm.custodian.trim()) e.custodian = 'Please enter custodian name.';
     // if (!iraForm.beneficiary.trim()) e.beneficiary = 'Please enter beneficiary name.';
     if (!iraForm.maritalStatus) e.maritalStatus = 'Please select marital status.';
-    if (!iraForm.username.trim()) e.username = 'Please enter username.';
+    // if (!iraForm.beneficiary.trim()) e.beneficiary = 'Please enter beneficiary name.';
 
     if (!iraForm.mailingAddressSame) {
       if (!iraForm.mailingAddress1?.trim()) e.mailingAddress1 = 'Please enter mailing address.';
@@ -132,8 +130,6 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
         mailingState: State.getStateByCodeAndCountry(iraForm.mailingState, iraForm.mailingCountry)?.name || iraForm.mailingState,
         mailingZipCode: iraForm.mailingZipCode,
         mailingCountry: Country.getCountryByCode(iraForm.mailingCountry)?.name || iraForm.mailingCountry,
-        username: iraForm.username,
-        referralSource: iraForm.referralSource,
         ssn: iraForm.ssn,
         // Sync profile fields
         firstName: investor.firstName,
@@ -290,17 +286,6 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                       className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm"
                     />
                     {errors.ssn && <p className="mt-1 text-[11px] text-red-500">{errors.ssn}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Username</label>
-                    <input
-                      type="text"
-                      placeholder="Enter username"
-                      value={iraForm.username}
-                      onChange={e => setIraForm({ ...iraForm, username: e.target.value })}
-                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white shadow-sm"
-                    />
-                    {errors.username && <p className="mt-1 text-[11px] text-red-500">{errors.username}</p>}
                   </div>
                 </div>
 

@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ChevronDown, MoreVertical, Search, Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -35,12 +37,13 @@ const statusClass: Record<TaxDocStatus, string> = {
 };
 
 export default function TaxVaultPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [documents, setDocuments] = useState<TaxVaultRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [assignedIrName, setAssignedIrName] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('All');
@@ -53,22 +56,9 @@ export default function TaxVaultPage() {
 
   useEffect(() => {
     fetchDocuments();
-    fetchUserProfile();
   }, []);
 
-  const fetchUserProfile = async () => {
-    try {
-      const profile = await apiClient.getProfile();
-      if (profile && profile.id) {
-        const fullUser = await apiClient.getUserById(profile.id);
-        if (fullUser && fullUser.assignedIrName) {
-          setAssignedIrName(fullUser.assignedIrName);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch user profile for assigned IR:', err);
-    }
-  };
+
 
 
   const fetchDocuments = async () => {
@@ -183,30 +173,29 @@ export default function TaxVaultPage() {
         <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F]">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="font-goudy font-bol text-lg md:text-2xl text-[#1F1F1F]">Tax Vault</h1>
+              <h1 className="font-goudy font-bold text-lg md:text-2xl text-[#1F1F1F]">Tax Vault</h1>
               <p className="mt-1 text-[14px] leading-6 text-[#8E8E93]">
                 Securely manage and review investor tax documents.
               </p>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-4 text-xs">
+              <div className="hidden md:flex items-center gap-4 text-xs">
                 <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-                  <div className={`h-2.5 w-2.5 rounded-full ${assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-                  <div>
-                    <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-                    <p className="text-[13px] font-bold text-[#1F1F1F]">{assignedIrName || 'Unassigned'}</p>
-                  </div>
-                </div>
-                
-                <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-                  <div className="h-2.5 w-2.5 rounded-full bg-[#8E8E93]"></div>
+                  <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
                   <div>
                     <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
-                    <p className="text-[13px] font-bold text-[#1F1F1F]">Not Assigned</p>
+                    <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
                   </div>
                 </div>
 
+                <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+                  <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+                  <div>
+                    <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+                    <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
+                  </div>
+                </div>
               </div>
 
               <Link
@@ -219,7 +208,7 @@ export default function TaxVaultPage() {
             </div>
           </div>
 
-          <div className="mt-6 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm">
+          <div className="mt-4 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm">
             <div className="flex flex-wrap items-center gap-4">
               <label className="relative block w-full max-w-[417px]">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#9FA3A9]" />
@@ -231,7 +220,7 @@ export default function TaxVaultPage() {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="h-[50px] w-full rounded-[26px] bg-[#F5F5F5] pl-12 pr-4 text-[16px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] ring-1 ring-transparent focus:ring-amber-200 transition-all"
+                  className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA]"
                 />
               </label>
 
@@ -242,7 +231,7 @@ export default function TaxVaultPage() {
                     setIsTypeOpen(!isTypeOpen);
                     setIsYearOpen(false);
                   }}
-                  className="inline-flex h-[50px] min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[16px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+                  className="inline-flex h-[40px] min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
                 >
                   {selectedType === 'All' ? 'Document Type' : selectedType}
                   <ChevronDown className={`ml-3 h-5 w-5 transition-transform ${isTypeOpen ? 'rotate-180' : ''}`} />
@@ -276,7 +265,7 @@ export default function TaxVaultPage() {
                     setIsYearOpen(!isYearOpen);
                     setIsTypeOpen(false);
                   }}
-                  className="inline-flex h-[50px] min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[16px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+                  className="inline-flex h-[40px] min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
                 >
                   {selectedYear === 'All' ? 'Year' : selectedYear}
                   <ChevronDown className={`ml-3 h-5 w-5 transition-transform ${isYearOpen ? 'rotate-180' : ''}`} />
@@ -328,7 +317,11 @@ export default function TaxVaultPage() {
 
                     <tbody>
                       {currentDocuments.map((row) => (
-                        <tr key={row.id} className="border-b border-[#F1F1F1] hover:bg-gray-50/50 transition-colors">
+                        <tr
+                          key={row.id}
+                          onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
+                          className="border-b border-[#F1F1F1] hover:bg-gray-50/50 cursor-pointer transition-colors"
+                        >
                           <td className="px-4 py-4 max-w-[200px] truncate" title={row.fileName}>{row.fileName}</td>
                           <td className="px-4 py-4">{row.documentType}</td>
                           <td className="px-4 py-4">{row.taxYear}</td>
@@ -337,7 +330,10 @@ export default function TaxVaultPage() {
                             <button
                               type="button"
                               className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"
-                              onClick={() => setActiveMenuId((prev) => (prev === row.id ? null : row.id))}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMenuId((prev) => (prev === row.id ? null : row.id));
+                              }}
                             >
                               <MoreVertical className="h-4 w-4" />
                             </button>

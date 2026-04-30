@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, Req, Query } from '@nestjs/common';
 import { StatsService } from './stats.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { RolesGuard } from '../../guards/roles.guard';
@@ -19,5 +19,12 @@ export class StatsController {
   @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant', 'staff', 'investor')
   async getInvestorStats(@Param('id') id: string) {
     return this.statsService.getInvestorStats(id);
+  }
+
+  @Get('investor/:id/performance')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant', 'staff', 'investor')
+  async getInvestorPerformance(@Param('id') id: string, @Query('months') months: string) {
+    const monthsNum = parseInt(months) || 12;
+    return this.statsService.getInvestorPerformance(id, monthsNum);
   }
 }

@@ -53,9 +53,9 @@ export class AccountsService {
           user_id, account_number, account_type, custodian_name, beneficiary,
           middle_name, suffix, marital_status, mailing_address_same,
           mailing_address_1, mailing_address_2, mailing_city, mailing_state,
-          mailing_zip_code, username, referral_source, ssn, mailing_country
+          mailing_zip_code, ssn, mailing_country
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
         )
         ON CONFLICT (account_number) DO UPDATE SET
           account_type = EXCLUDED.account_type,
@@ -70,8 +70,6 @@ export class AccountsService {
           mailing_city = EXCLUDED.mailing_city,
           mailing_state = EXCLUDED.mailing_state,
           mailing_zip_code = EXCLUDED.mailing_zip_code,
-          username = EXCLUDED.username,
-          referral_source = EXCLUDED.referral_source,
           ssn = EXCLUDED.ssn,
           mailing_country = EXCLUDED.mailing_country,
           updated_at = CURRENT_TIMESTAMP
@@ -93,8 +91,6 @@ export class AccountsService {
         dto.mailingCity,
         dto.mailingState,
         dto.mailingZipCode,
-        dto.username,
-        dto.referralSource,
         dto.ssn || '',
         dto.mailingCountry
       ];

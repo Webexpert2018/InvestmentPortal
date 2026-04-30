@@ -2,21 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import {
-  ChevronLeft,
-  Download,
-  FileText,
-  Maximize2,
-  Minus,
-  Plus,
-  Printer,
-  Search,
-  Loader2,
-  RotateCw,
-  RefreshCw
-} from 'lucide-react';
+import { ChevronLeft, Minus, Plus, RotateCw, RefreshCw, Loader2 } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -121,7 +109,7 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
   };
 
   const viewUrl = (doc && token) ? `${apiClient.getApiUrl()}/documents/${id}/view?token=${encodeURIComponent(token)}` : '';
-  const isPdf = doc?.file_name?.toLowerCase().endsWith('.pdf');
+  const isPdf = doc?.file_name?.toLowerCase().endsWith('.pdf') || doc?.file_url?.toLowerCase().endsWith('.pdf');
   const formattedSize = doc ? (doc.file_size / (1024 * 1024)).toFixed(2) + ' MB' : '0 MB';
   const formattedDate = doc?.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString('en-US', {
     month: 'short',
@@ -155,17 +143,35 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F]">
-        <div className="mb-6 flex items-center gap-3">
-          <Link href="/dashboard/document-vault" className="flex items-center gap-2 text-[#333333] hover:opacity-70 transition-opacity">
-            <ChevronLeft className="h-6 w-6" />
-          </Link>
-          <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">Document Details</h1>
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard/document-vault" className="flex items-center gap-2 text-[#333333] hover:opacity-70 transition-opacity">
+              <ChevronLeft className="h-6 w-6" />
+            </Link>
+            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">Document Details</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleView}
+              className="h-[44px] px-6 rounded-full bg-[#FEF3C7] text-[14px] font-bold text-[#92400E] transition-all hover:bg-[#FDE68A] hover:shadow-md active:scale-95"
+            >
+              View Document
+            </button>
+            <button
+              type="button"
+              onClick={handleDownload}
+              className="h-[44px] px-6 rounded-full bg-[#FFFBEB] text-[14px] font-bold text-[#92400E] transition-all hover:bg-[#FEF3C7] border border-[#FEF3C7] hover:shadow-md active:scale-95"
+            >
+              Download Doc
+            </button>
+          </div>
         </div>
 
         <div className="rounded-[12px] bg-white p-6 md:p-8 shadow-sm ring-1 ring-black/5">
-          <div className="grid gap-10 lg:grid-cols-[460px_1fr]">
-            {/* Left side: Document Viewer */}
-            <div className="flex flex-col overflow-hidden rounded-[8px] bg-[#525659] shadow-inner">
+          <div className="grid grid-cols-1 lg:grid-cols-[6fr_4fr] gap-8 md:gap-12">
+            {/* Left side: Document Viewer (60% on desktop) */}
+            <div className="flex flex-col overflow-hidden rounded-[8px] bg-[#525659] shadow-inner h-fit">
               {/* Toolbar */}
               <div className="flex h-[48px] items-center justify-between bg-[#323639] px-6 text-white">
                 <div className="flex items-center gap-4">
@@ -208,16 +214,15 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
                         title="PDF Preview"
                       />
                     ) : (
-                      <div className="relative w-full h-[600px]">
-                        <Image
-                          src={viewUrl}
-                          alt="Document preview"
-                          fill
-                          className="object-contain"
-                          priority
-                          unoptimized
-                        />
-                      </div>
+                      <Image
+                        src={viewUrl}
+                        alt="Document preview"
+                        width={1200}
+                        height={1600}
+                        className="h-auto w-full max-w-4xl mx-auto"
+                        priority
+                        unoptimized
+                      />
                     )
                   ) : (
                     <div className="flex flex-col items-center justify-center min-h-[500px] gap-2">
@@ -229,56 +234,43 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
               </div>
             </div>
 
-            {/* Right side: File Information */}
-            <div className="flex flex-col pt-2">
-              <h2 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">File Information</h2>
-              <div className="mt-6 border-t border-[#F1F1F1] pt-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-10">
-                  <div>
-                    <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">Upload Date</span>
-                    <p className="mt-1.5 text-[18px] font-semibold text-[#1F1F1F]">{formattedDate}</p>
+            {/* Right side: File Information (40% on desktop) */}
+            <div className="flex flex-col">
+              <div className="pt-0">
+                <h2 className="font-goudy text-[28px] leading-tight text-[#1F1F1F] mb-4">File Information</h2>
+                <div className="border-t border-[#F1F1F1] pt-8 space-y-8">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Upload Date</span>
+                      <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F]">{formattedDate}</p>
+                    </div>
+                    <div>
+                      <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Tax Year</span>
+                      <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F]">{doc.tax_year || 'N/A'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">Document Type</span>
-                    <p className="mt-1.5 text-[18px] font-semibold text-[#1F1F1F]">{getCategoryName(doc.document_type || doc.category)}</p>
-                  </div>
-                  <div>
-                    <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">Tax Year</span>
-                    <p className="mt-1.5 text-[18px] font-semibold text-[#1F1F1F]">{doc.tax_year || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">File Size</span>
-                    <p className="mt-1.5 text-[18px] font-semibold text-[#1F1F1F]">{formattedSize}</p>
-                  </div>
-                </div>
 
-                <div className="mt-10">
-                  <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">Description</span>
-                  <p className="mt-2 text-[16px] leading-[1.6] text-[#4B4B4B]">{doc.description || 'No description provided'}</p>
-                </div>
+                  <div>
+                    <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Document Type</span>
+                    <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F]">{getCategoryName(doc.document_type || doc.category)}</p>
+                  </div>
 
-                <div className="mt-10">
-                  <span className="text-[14px] font-medium text-[#8E8E93] uppercase tracking-wide">Note</span>
-                  <p className="mt-2 text-[16px] leading-[1.6] text-[#4B4B4B]">
-                    {doc.note || 'No notes added.'}
-                  </p>
-                </div>
+                  <div>
+                    <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">File Size</span>
+                    <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F]">{formattedSize}</p>
+                  </div>
 
-                <div className="mt-12 flex flex-wrap items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={handleView}
-                    className="h-[52px] min-w-[160px] px-10 rounded-full bg-[#FEF3C7] text-[16px] font-bold text-[#92400E] transition-all hover:bg-[#FDE68A] hover:shadow-md active:scale-95"
-                  >
-                    View Document
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDownload}
-                    className="h-[52px] min-w-[160px] px-10 rounded-full bg-[#FFFBEB] text-[16px] font-bold text-[#92400E] transition-all hover:bg-[#FEF3C7] border border-[#FEF3C7] hover:shadow-md active:scale-95"
-                  >
-                    Download Doc
-                  </button>
+                  <div>
+                    <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Description</span>
+                    <p className="mt-1 text-[15px] leading-relaxed text-[#4B4B4B]">{doc.description || 'No description provided'}</p>
+                  </div>
+
+                  <div>
+                    <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Note</span>
+                    <p className="mt-1 text-[15px] leading-relaxed text-[#4B4B4B]">
+                      {doc.note || 'No notes added.'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

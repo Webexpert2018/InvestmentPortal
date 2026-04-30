@@ -129,8 +129,6 @@ export default function IRAPage() {
     mailingState: selectedIra?.mailing_address_same !== false ? (user?.state || '-') : (selectedIra?.mailing_state || '-'),
     mailingZipCode: selectedIra?.mailing_address_same !== false ? (user?.zipCode || '-') : (selectedIra?.mailing_zip_code || '-'),
     mailingCountry: selectedIra?.mailing_address_same !== false ? (user?.country || '-') : (selectedIra?.mailing_country || selectedIra?.mailing_country_name || '-'),
-    username: selectedIra?.username || '-',
-    referralSource: selectedIra?.referral_source || '-',
 
     profileCompleted: !!(user?.firstName && user?.lastName && user?.email && user?.phone && user?.dob),
     addressCompleted: !!(user?.addressLine1 && user?.city && user?.state && user?.zipCode && user?.country),
@@ -156,8 +154,6 @@ export default function IRAPage() {
     mailingState: '',
     mailingZipCode: '',
     mailingCountry: '',
-    username: '',
-    referralSource: '',
   });
 
   useEffect(() => {
@@ -181,12 +177,6 @@ export default function IRAPage() {
         accountHolderName: `${user.firstName} ${user.lastName}`
       }));
     }
-    if (showAddModal && user && !iraForm.username) {
-      setIraForm(prev => ({
-        ...prev,
-        username: `${user.firstName.toLowerCase()}_${Math.floor(100 + Math.random() * 900)}`
-      }));
-    }
   }, [user, showAddModal]);
 
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
@@ -198,7 +188,7 @@ export default function IRAPage() {
     //if (!iraForm.custodian.trim()) e.custodian = 'Please enter custodian name.';
     //if (!iraForm.beneficiary.trim()) e.beneficiary = 'Please enter beneficiary name.';
     if (!iraForm.maritalStatus) e.maritalStatus = 'Please select marital status.';
-    if (!iraForm.username.trim()) e.username = 'Please enter username.';
+    // if (!iraForm.custodian.trim()) e.custodian = 'Please enter custodian name.';
 
     if (!iraForm.mailingAddressSame) {
       if (!iraForm.mailingAddress1?.trim()) e.mailingAddress1 = 'Please enter mailing address.';
@@ -244,8 +234,6 @@ export default function IRAPage() {
         mailingState: State.getStateByCodeAndCountry(iraForm.mailingState, iraForm.mailingCountry)?.name || iraForm.mailingState,
         mailingZipCode: iraForm.mailingZipCode,
         mailingCountry: Country.getCountryByCode(iraForm.mailingCountry)?.name || iraForm.mailingCountry,
-        username: iraForm.username,
-        referralSource: iraForm.referralSource,
         ssn: iraForm.ssn,
         firstName: user?.firstName,
         lastName: user?.lastName,
@@ -278,7 +266,6 @@ export default function IRAPage() {
         accountType: 'Traditional', accountNumber: '', custodian: '', beneficiary: '', accountHolderName: user ? `${user.firstName} ${user.lastName}` : '', ssn: '',
         middleName: '', suffix: '', maritalStatus: 'single', mailingAddressSame: true,
         mailingAddress1: '', mailingAddress2: '', mailingCity: '', mailingState: '', mailingZipCode: '', mailingCountry: '',
-        username: '', referralSource: ''
       });
       setErrors({});
     } catch (error: any) {
@@ -356,8 +343,6 @@ export default function IRAPage() {
               <Field label="Annual Contribution Limit" value={d.contributionLimit} />
               <Field label="Account Balance" value={d.accountBalance} />
               <Field label="Marital Status" value={d.maritalStatus} />
-              <Field label="Username" value={d.username} />
-              <Field label="How did you hear about us?" value={d.referralSource} />
             </div>
           </div>
 
@@ -814,33 +799,6 @@ export default function IRAPage() {
                   )}
                 </div>
 
-                {/* Section 4: Final Details */}
-                <div>
-                  <h3 className="text-[16px] font-bold text-[#1F1F1F] mb-4 font-goudy">Final Details</h3>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Username</label>
-                      <input
-                        type="text"
-                        placeholder="Enter username"
-                        value={iraForm.username}
-                        onChange={e => setIraForm({ ...iraForm, username: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
-                      />
-                      {errors.username && <p className="mt-1 text-[11px] text-red-500">{errors.username}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Where did you hear about us? (Optional)</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Google, Friend"
-                        value={iraForm.referralSource}
-                        onChange={e => setIraForm({ ...iraForm, referralSource: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
-                      />
-                    </div>
-                  </div>
-                </div>
 
                 <div className="flex justify-end gap-3 pt-6 border-t font-helvetica">
                   <button

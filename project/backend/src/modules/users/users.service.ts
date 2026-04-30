@@ -40,12 +40,15 @@ export class UsersService {
     if (!user) {
       result = await db.query(`
         SELECT 
-          id, email, 'investor' as role, full_name, phone, status, created_at as "createdAt",
-          dob, address_line1 as "addressLine1", address_line2 as "addressLine2", 
-          city, state, zip_code as "zipCode", country, tax_id as "taxId", 
-          profile_image_url as "profileImageUrl", kyc_status as "kycStatus" 
-        FROM investors
-        WHERE id = $1`,
+          i.id, i.email, 'investor' as role, i.full_name, i.phone, i.status, i.created_at as "createdAt",
+          i.dob, i.address_line1 as "addressLine1", i.address_line2 as "addressLine2", 
+          i.city, i.state, i.zip_code as "zipCode", i.country, i.tax_id as "taxId", 
+          i.profile_image_url as "profileImageUrl", i.kyc_status as "kycStatus",
+          ir.full_name as "assignedIrName", acc.full_name as "assignedAccountantName"
+        FROM investors i
+        LEFT JOIN staff ir ON i.assigned_ir_id = ir.id
+        LEFT JOIN staff acc ON i.assigned_accountant_id = acc.id
+        WHERE i.id = $1`,
         [userId]
       );
       user = result.rows[0];
@@ -80,7 +83,9 @@ export class UsersService {
       country: user.country || '',
       taxId: user.taxId || '',
       profileImageUrl: user.profileImageUrl || '',
-      kycStatus: user.kycStatus || 'pending'
+      kycStatus: user.kycStatus || 'pending',
+      assignedIrName: user.assignedIrName,
+      assignedAccountantName: user.assignedAccountantName
     };
   }
 

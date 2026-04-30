@@ -83,12 +83,12 @@ export default function UploadTaxDocumentPage() {
   };
 
   const [isDragging, setIsDragging] = useState(false);
-  
+
   const handleDrop = (event: React.DragEvent<HTMLButtonElement>) => {
     event.preventDefault();
     setIsDragging(false);
     if (isUploading) return;
-    
+
     const file = event.dataTransfer.files?.[0];
     if (file) {
       setSelectedFile(file);
@@ -128,9 +128,8 @@ export default function UploadTaxDocumentPage() {
                       setDocumentType(event.target.value);
                       setErrors((prev) => ({ ...prev, documentType: undefined }));
                     }}
-                    className={`h-[48px] w-full appearance-none rounded-[8px] border px-4 text-left text-[14px] outline-none ${
-                      errors.documentType ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                    } ${documentType ? 'text-[#1F1F1F]' : 'text-[#A2A5AA]'}`}
+                    className={`h-[48px] w-full appearance-none rounded-[8px] border px-4 text-left text-[14px] outline-none ${errors.documentType ? 'border-[#E05252]' : 'border-[#E5E5EA]'
+                      } ${documentType ? 'text-[#1F1F1F]' : 'text-[#A2A5AA]'}`}
                   >
                     <option value="">Select document type</option>
                     <option value="K-1">K-1</option>
@@ -151,9 +150,8 @@ export default function UploadTaxDocumentPage() {
                       setTaxYear(event.target.value);
                       setErrors((prev) => ({ ...prev, taxYear: undefined }));
                     }}
-                    className={`h-[48px] w-full appearance-none rounded-[8px] border px-4 text-left text-[14px] outline-none ${
-                      errors.taxYear ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                    } ${taxYear ? 'text-[#1F1F1F]' : 'text-[#A2A5AA]'}`}
+                    className={`h-[48px] w-full appearance-none rounded-[8px] border px-4 text-left text-[14px] outline-none ${errors.taxYear ? 'border-[#E05252]' : 'border-[#E5E5EA]'
+                      } ${taxYear ? 'text-[#1F1F1F]' : 'text-[#A2A5AA]'}`}
                   >
                     <option value="">Select tax year</option>
                     <option value="2026">2026</option>
@@ -176,9 +174,8 @@ export default function UploadTaxDocumentPage() {
                       setErrors((prev) => ({ ...prev, description: undefined }));
                     }}
                     placeholder="Enter description"
-                    className={`h-[91px] w-full resize-none rounded-[8px] border px-4 py-3 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] ${
-                      errors.description ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                    }`}
+                    className={`h-[91px] w-full resize-none rounded-[8px] border px-4 py-3 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] ${errors.description ? 'border-[#E05252]' : 'border-[#E5E5EA]'
+                      }`}
                   />
                   <span className="absolute bottom-2 right-3 text-[10px] text-[#D1D1D6]">
                     {description.length}/1000
@@ -219,11 +216,9 @@ export default function UploadTaxDocumentPage() {
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={handleDrop}
                 disabled={isUploading}
-                className={`flex h-[103px] w-full flex-col items-center justify-center rounded-[8px] border border-dashed ${
-                  selectedFileName ? 'text-[#1F1F1F] font-bold' : 'text-[#A2A5AA]'
-                } ${
-                  isDragging ? 'border-[#FBCB4B] bg-yellow-50' : errors.file ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                } ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#FAFBFC]'}`}
+                className={`flex h-[103px] w-full flex-col items-center justify-center rounded-[8px] border border-dashed ${selectedFileName ? 'text-[#1F1F1F] font-bold' : 'text-[#A2A5AA]'
+                  } ${isDragging ? 'border-[#FBCB4B] bg-yellow-50' : errors.file ? 'border-[#E05252]' : 'border-[#E5E5EA]'
+                  } ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#FAFBFC]'}`}
               >
                 <Plus className={`h-6 w-6 ${selectedFileName ? 'text-[#2BB673]' : 'text-[#A2A5AA]'}`} />
                 <p className="mt-2 text-[14px]">
@@ -245,7 +240,7 @@ export default function UploadTaxDocumentPage() {
                 onClick={handleCancel}
                 disabled={isUploading}
                 className="h-[42px] min-w-[112px] rounded-full bg-[#FFF3D6] px-6 text-[16px] text-[#4B4B4B] disabled:opacity-50"
-                >
+              >
                 Cancel
               </button>
               <button
