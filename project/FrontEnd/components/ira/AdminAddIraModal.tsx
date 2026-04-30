@@ -315,7 +315,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                 {/* Marital Status */}
                 <div className="mt-6">
                   <label className="block text-[12px] font-medium text-[#6B7280] mb-3 font-helvetica">Marital Status</label>
-                  <div className="flex gap-8">
+                  <div className="flex gap-5">
                     <RadioOption
                       label="Single"
                       selected={iraForm.maritalStatus === 'single'}
@@ -332,9 +332,9 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
 
               {/* Mailing Address Toggle */}
               <div>
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-4">
                   <p className="text-[14px] font-medium text-[#1F1F1F] font-helvetica">Mailing address same as physical address?</p>
-                  <div className="flex gap-4">
+                  <div className="flex gap-3">
                     <RadioOption label="Yes" selected={iraForm.mailingAddressSame === true} onClick={() => setIraForm({ ...iraForm, mailingAddressSame: true })} />
                     <RadioOption label="No" selected={iraForm.mailingAddressSame === false} onClick={() => setIraForm({ ...iraForm, mailingAddressSame: false })} />
                   </div>
