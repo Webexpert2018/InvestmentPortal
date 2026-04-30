@@ -368,7 +368,18 @@ export default function DashboardPage() {
               apiClient.getAssignedInvestors(),
               apiClient.getNotifications()
             ]);
-            setAssignedInvestors(assigned);
+            
+            // Deduplicate assigned investors by ID for the dashboard widget
+            const uniqueAssigned = [];
+            const seenIds = new Set();
+            for (const inv of (assigned || [])) {
+              if (!seenIds.has(inv.id)) {
+                seenIds.add(inv.id);
+                uniqueAssigned.push(inv);
+              }
+            }
+            
+            setAssignedInvestors(uniqueAssigned);
             setDynamicNotifications(notifs);
           }
         }
@@ -1029,16 +1040,21 @@ export default function DashboardPage() {
                     {assignedInvestors.map((inv, idx) => (
                       <div key={inv.id} className="flex items-center gap-4 py-3 border-b border-[#EEEEEE] last:border-0">
                         <div className="relative shrink-0">
-                          <img 
-                            src={inv.profile_image_url || userIcons[idx % userIcons.length]} 
-                            alt="avatar" 
-                            className="h-10 w-10 rounded-full object-cover border border-gray-100" 
-                          />
+                          {inv.profile_image_url ? (
+                            <img 
+                              src={inv.profile_image_url} 
+                              alt="avatar" 
+                              className="h-10 w-10 rounded-full object-cover border border-gray-100" 
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[13px] font-semibold font-helvetica border border-[#E5E7EB]">
+                              {inv.full_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+                            </div>
+                          )}
                           <div className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white ${inv.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                         </div>
                         <div className="min-w-0">
                           <p className="text-[16px] font-goudy leading-none text-[#2E2E2E] truncate">{inv.full_name}</p>
-                          <p className="text-xs font-helvetica text-[#8E8E93] mt-1">{inv.account_type || 'Personal Account'}</p>
                         </div>
                       </div>
                     ))}
@@ -1081,7 +1097,13 @@ export default function DashboardPage() {
                           className="flex items-start justify-between gap-3 py-4 border-b border-[#EEEEEE] last:border-0 cursor-pointer hover:bg-[#F9FAFB] transition-colors"
                         >
                           <div className="flex items-center gap-4">
-                            <img src={avatar || userIcons[(idx + 1) % userIcons.length]} alt="avatar" className="h-10 w-10 rounded-full object-cover shrink-0" />
+                            {avatar ? (
+                              <img src={avatar} alt="avatar" className="h-10 w-10 rounded-full object-cover shrink-0" />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[13px] font-semibold font-helvetica border border-[#E5E7EB] shrink-0">
+                                {name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+                              </div>
+                            )}
                             <div className="min-w-0">
                               <p className="text-[16px] font-goudy leading-none text-[#2E2E2E] truncate">{name}</p>
                               <p className="mt-2 text-sm font-helvetica text-[#8E8E93] max-w-[200px] truncate">{m.last_message || 'New conversation'}</p>

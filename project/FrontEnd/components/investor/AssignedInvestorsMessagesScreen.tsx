@@ -1,4 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Search,
   SendHorizontal,
@@ -108,7 +109,10 @@ export const AvatarDisplay = ({ src, name, className }: { src?: string; name: st
 
 export function AssignedInvestorsMessagesScreen() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const targetUserId = searchParams.get('userId');
   const [threads, setThreads] = useState<Thread[]>([]);
+  // ... rest of state
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [messageInput, setMessageInput] = useState('');
@@ -157,6 +161,7 @@ export function AssignedInvestorsMessagesScreen() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messageInputRef = useRef<HTMLTextAreaElement | null>(null);
   const prevMessagesCountRef = useRef<number>(0);
+  const initializingRef = useRef(false);
   const [isDragging, setIsDragging] = useState(false);
   const [confirmation, setConfirmation] = useState<{
     isOpen: boolean;
@@ -227,15 +232,43 @@ export function AssignedInvestorsMessagesScreen() {
           };
         });
       });
-      if (!activeThreadId && mappedThreads.length > 0) {
-        setActiveThreadId(mappedThreads[0].id);
+
+      // Handle auto-selection via targetUserId or default to first thread
+      if (!activeThreadId && mappedThreads.length > 0 && !initializingRef.current) {
+        if (targetUserId) {
+          const targetThread = mappedThreads.find(t => 
+            !t.isGroup && t.participants?.some((p: any) => p.id === targetUserId)
+          );
+          if (targetThread) {
+            setActiveThreadId(targetThread.id);
+            setIsMobileChatOpen(true);
+          } else {
+            // Auto-create conversation if it doesn't exist
+            initializingRef.current = true;
+            const autoCreate = async () => {
+              try {
+                const res = await apiClient.getOrCreateConversation([targetUserId]);
+                await fetchConversations(true);
+                setActiveThreadId(res.id);
+                setIsMobileChatOpen(true);
+              } catch (err) {
+                setActiveThreadId(mappedThreads[0].id);
+              } finally {
+                initializingRef.current = false;
+              }
+            };
+            autoCreate();
+          }
+        } else {
+          setActiveThreadId(mappedThreads[0].id);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch conversations:', err);
     } finally {
       if (!quiet) setLoading(false);
     }
-  }, [activeThreadId, profile]);
+  }, [activeThreadId, profile, targetUserId]);
 
   const fetchMessages = useCallback(async (conversationId: string) => {
     try {
