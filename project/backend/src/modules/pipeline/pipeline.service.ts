@@ -36,17 +36,20 @@ export class PipelineService {
         i.full_name as name, 
         i.pipeline_stage_id, 
         i.assigned_ir_id,
+        i.assigned_accountant_id,
         i.expected_future_investment,
         i.pipeline_note,
         i.status,
         s.full_name as assigned_ir_name,
+        (acc.first_name || ' ' || acc.last_name) as assigned_accountant_name,
         COALESCE(SUM(inv.investment_amount), 0) as total_investment
       FROM investors i
       LEFT JOIN staff s ON i.assigned_ir_id = s.id
+      LEFT JOIN users acc ON i.assigned_accountant_id = acc.id
       LEFT JOIN investments inv ON i.id = inv.user_id AND inv.is_reconciled = true
       WHERE (i.pipeline_stage_id IS NOT NULL OR i.status = 'pending')
       ${isIR ? 'AND i.assigned_ir_id = $1' : ''}
-      GROUP BY i.id, i.email, i.phone, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, s.full_name, i.updated_at, i.expected_future_investment, i.pipeline_note, i.status
+      GROUP BY i.id, i.email, i.phone, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, i.assigned_accountant_id, s.full_name, acc.first_name, acc.last_name, i.updated_at, i.expected_future_investment, i.pipeline_note, i.status
       ORDER BY i.updated_at DESC
     `;
 
@@ -66,6 +69,8 @@ export class PipelineService {
           phone: i.phone,
           assignedIrId: i.assigned_ir_id,
           assignedIrName: i.assigned_ir_name,
+          assignedAccountantId: i.assigned_accountant_id,
+          assignedAccountantName: i.assigned_accountant_name,
           totalInvestment: parseFloat(i.total_investment),
           expectedFutureInvestment: parseFloat(i.expected_future_investment || 0),
           pipelineNote: i.pipeline_note || '',

@@ -70,7 +70,7 @@ export class StaffService {
                     profile_image_url, created_at, updated_at,
                     null as associated_fund_name, null as associated_fund_id
             FROM users 
-            WHERE role = $1
+            WHERE role ILIKE $1
             
             UNION ALL
             
@@ -79,7 +79,7 @@ export class StaffService {
                    f.name as associated_fund_name, f.id as associated_fund_id
             FROM staff s
             LEFT JOIN funds f ON s.associated_fund_id = f.id
-            WHERE s.role = $1
+            WHERE s.role ILIKE $1
           )
           SELECT *, 
                  CASE 

@@ -106,9 +106,6 @@ export default function PipelinePage() {
     }
   }, [toast]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
   const onDragEnd = async (result: DropResult) => {
     const { source, destination, draggableId, type } = result;
@@ -711,6 +708,14 @@ export default function PipelinePage() {
     }
   }, []);
 
+  useEffect(() => {
+    fetchData();
+    if (isAdmin) {
+      fetchIRStaff();
+      fetchAccountantStaff();
+    }
+  }, [fetchData, isAdmin, fetchIRStaff, fetchAccountantStaff]);
+
   if (!isLoaded) return null;
 
   const DroppableComponent = Droppable as any;
@@ -875,8 +880,9 @@ export default function PipelinePage() {
                                             setNotesList(parsedNotes);
                                             setCurrentNewNote('');
 
-                                            if (user?.role === 'admin' || user?.role === 'executive_admin') {
-                                              fetchIRStaff();
+                                            if (user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'executive_admin') {
+                                              if (irStaffList.length === 0) fetchIRStaff();
+                                              if (accountantStaffList.length === 0) fetchAccountantStaff();
                                             }
                                             setShowDetailModal(true);
                                           }}
