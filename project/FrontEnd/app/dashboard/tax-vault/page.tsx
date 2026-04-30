@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ChevronDown, MoreVertical, Search, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -35,6 +36,7 @@ const statusClass: Record<TaxDocStatus, string> = {
 };
 
 export default function TaxVaultPage() {
+  const router = useRouter();
   const { toast } = useToast();
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [documents, setDocuments] = useState<TaxVaultRow[]>([]);
@@ -183,7 +185,7 @@ export default function TaxVaultPage() {
         <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F]">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="font-goudy font-bol text-lg md:text-2xl text-[#1F1F1F]">Tax Vault</h1>
+              <h1 className="font-goudy font-bold text-lg md:text-2xl text-[#1F1F1F]">Tax Vault</h1>
               <p className="mt-1 text-[14px] leading-6 text-[#8E8E93]">
                 Securely manage and review investor tax documents.
               </p>
@@ -210,7 +212,7 @@ export default function TaxVaultPage() {
             </div>
           </div>
 
-          <div className="mt-6 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm">
+          <div className="mt-4 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm">
             <div className="flex flex-wrap items-center gap-4">
               <label className="relative block w-full max-w-[417px]">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#9FA3A9]" />
@@ -222,7 +224,7 @@ export default function TaxVaultPage() {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="h-[50px] w-full rounded-[26px] bg-[#F5F5F5] pl-12 pr-4 text-[16px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] ring-1 ring-transparent focus:ring-amber-200 transition-all"
+                  className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA]"
                 />
               </label>
 
@@ -233,7 +235,7 @@ export default function TaxVaultPage() {
                     setIsTypeOpen(!isTypeOpen);
                     setIsYearOpen(false);
                   }}
-                  className="inline-flex h-[50px] min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[16px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+                  className="inline-flex h-[40px] min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
                 >
                   {selectedType === 'All' ? 'Document Type' : selectedType}
                   <ChevronDown className={`ml-3 h-5 w-5 transition-transform ${isTypeOpen ? 'rotate-180' : ''}`} />
@@ -267,7 +269,7 @@ export default function TaxVaultPage() {
                     setIsYearOpen(!isYearOpen);
                     setIsTypeOpen(false);
                   }}
-                  className="inline-flex h-[50px] min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[16px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+                  className="inline-flex h-[40px] min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
                 >
                   {selectedYear === 'All' ? 'Year' : selectedYear}
                   <ChevronDown className={`ml-3 h-5 w-5 transition-transform ${isYearOpen ? 'rotate-180' : ''}`} />
@@ -319,7 +321,11 @@ export default function TaxVaultPage() {
 
                     <tbody>
                       {currentDocuments.map((row) => (
-                        <tr key={row.id} className="border-b border-[#F1F1F1] hover:bg-gray-50/50 transition-colors">
+                        <tr
+                          key={row.id}
+                          onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
+                          className="border-b border-[#F1F1F1] hover:bg-gray-50/50 cursor-pointer transition-colors"
+                        >
                           <td className="px-4 py-4 max-w-[200px] truncate" title={row.fileName}>{row.fileName}</td>
                           <td className="px-4 py-4">{row.documentType}</td>
                           <td className="px-4 py-4">{row.taxYear}</td>
@@ -328,7 +334,10 @@ export default function TaxVaultPage() {
                             <button
                               type="button"
                               className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"
-                              onClick={() => setActiveMenuId((prev) => (prev === row.id ? null : row.id))}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMenuId((prev) => (prev === row.id ? null : row.id));
+                              }}
                             >
                               <MoreVertical className="h-4 w-4" />
                             </button>

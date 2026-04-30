@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ChevronLeft, Minus, Plus, RotateCw, RefreshCw, Loader2 } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
@@ -15,15 +15,16 @@ export default function TaxVaultDocumentDetailsPage() {
   const { toast } = useToast();
 
   const [zoom, setZoom] = useState(100);
-  const [documentData, setDocumentData] = useState<any>(null);
+  const [doc, setDoc] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
-      fetchDocument();
+    if (typeof window !== 'undefined') {
+      setToken(localStorage.getItem('token'));
     }
-  }, [id]);
+  }, []);
 
   const getCategoryName = (type: string) => {
     switch (type?.toLowerCase()) {
@@ -36,42 +37,28 @@ export default function TaxVaultDocumentDetailsPage() {
     }
   };
 
-  const fetchDocument = async () => {
+  useEffect(() => {
+    if (id) {
+      fetchDoc();
+    }
+  }, [id]);
+
+  const fetchDoc = async () => {
     try {
       setLoading(true);
       const data = await apiClient.getDocumentById(id);
-      setDocumentData(data);
+      setDoc(data);
       setError(null);
     } catch (err: any) {
-      console.error('Error fetching document:', err);
+      console.error('Failed to fetch document:', err);
       setError('Could not load document details.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleViewDocument = () => {
-    if (fileUrl) {
-      window.open(fileUrl, '_blank');
-    } else {
-      toast({
-        title: "Error",
-        description: "Document URL not available.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setToken(localStorage.getItem('token'));
-    }
-  }, []);
-
-  const handleDownloadDocument = async () => {
-    if (!documentData) return;
+  const handleDownload = async () => {
+    if (!doc) return;
     try {
       const token = localStorage.getItem('token');
       const downloadUrl = apiClient.getDocumentDownloadUrl(id);
@@ -90,7 +77,7 @@ export default function TaxVaultDocumentDetailsPage() {
       const url = window.URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.download = documentData.file_name || 'document';
+      anchor.download = doc.file_name || 'document';
       document.body.appendChild(anchor);
       anchor.click();
       document.body.removeChild(anchor);
@@ -105,6 +92,27 @@ export default function TaxVaultDocumentDetailsPage() {
     }
   };
 
+  const handleView = () => {
+    if (viewUrl) {
+      window.open(viewUrl, '_blank');
+    } else {
+      toast({
+        title: "Error",
+        description: "Document URL not available.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const viewUrl = (doc && token) ? `${apiClient.getApiUrl()}/documents/${id}/view?token=${encodeURIComponent(token)}` : '';
+  const isPdf = doc?.file_name?.toLowerCase().endsWith('.pdf') || doc?.file_url?.toLowerCase().endsWith('.pdf');
+  const formattedSize = doc ? (doc.file_size / (1024 * 1024)).toFixed(2) + ' MB' : '0 MB';
+  const formattedDate = doc?.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  }) : 'N/A';
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -115,7 +123,7 @@ export default function TaxVaultDocumentDetailsPage() {
     );
   }
 
-  if (error || !documentData) {
+  if (error || !doc) {
     return (
       <DashboardLayout>
         <div className="mx-auto max-w-[1400px] font-helvetica p-8 text-center">
@@ -127,21 +135,6 @@ export default function TaxVaultDocumentDetailsPage() {
       </DashboardLayout>
     );
   }
-
-  const getFullFileUrl = (path: string) => {
-    if (path.startsWith('http')) return path;
-    if (path.startsWith('/images/') || path.startsWith('/documents/')) return path;
-    return `${BASE_URL}${path}`;
-  };
-
-  const fileUrl = (documentData && token) ? `${apiClient.getApiUrl()}/documents/${id}/view?token=${encodeURIComponent(token)}` : '';
-  const isPdf = documentData?.file_url?.toLowerCase().endsWith('.pdf');
-  const formattedSize = (documentData.file_size / (1024 * 1024)).toFixed(2) + ' MB';
-  const formattedDate = documentData.uploaded_at ? new Date(documentData.uploaded_at).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  }) : 'N/A';
 
   return (
     <DashboardLayout>
@@ -156,14 +149,14 @@ export default function TaxVaultDocumentDetailsPage() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={handleViewDocument}
+              onClick={handleView}
               className="h-[44px] px-6 rounded-full bg-[#FEF3C7] text-[14px] font-bold text-[#92400E] transition-all hover:bg-[#FDE68A] hover:shadow-md active:scale-95"
             >
               View Document
             </button>
             <button
               type="button"
-              onClick={handleDownloadDocument}
+              onClick={handleDownload}
               className="h-[44px] px-6 rounded-full bg-[#FFFBEB] text-[14px] font-bold text-[#92400E] transition-all hover:bg-[#FEF3C7] border border-[#FEF3C7] hover:shadow-md active:scale-95"
             >
               Download Doc
@@ -194,7 +187,7 @@ export default function TaxVaultDocumentDetailsPage() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <button onClick={fetchDocument} className="hover:text-amber-200 transition-colors">
+                  <button onClick={fetchDoc} className="hover:text-amber-200 transition-colors">
                     <RefreshCw className="h-4 w-4" />
                   </button>
                   <button className="hover:text-amber-200 transition-colors">
@@ -209,16 +202,16 @@ export default function TaxVaultDocumentDetailsPage() {
                   className="bg-white shadow-2xl transition-transform duration-200 origin-top w-full"
                   style={{ transform: `scale(${zoom / 100})` }}
                 >
-                  {fileUrl ? (
+                  {viewUrl ? (
                     isPdf ? (
                       <iframe
-                        src={`${fileUrl}${fileUrl.includes('#') ? '' : '#toolbar=0'}`}
+                        src={`${viewUrl}${viewUrl.includes('#') ? '' : '#toolbar=0'}`}
                         className="w-full h-[600px] border-none"
                         title="PDF Preview"
                       />
                     ) : (
                       <Image
-                        src={fileUrl}
+                        src={viewUrl}
                         alt="Document preview"
                         width={1200}
                         height={1600}
@@ -249,13 +242,13 @@ export default function TaxVaultDocumentDetailsPage() {
                     </div>
                     <div>
                       <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Tax Year</span>
-                      <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F]">{documentData.tax_year || 'N/A'}</p>
+                      <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F]">{doc.tax_year || 'N/A'}</p>
                     </div>
                   </div>
 
                   <div>
                     <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Document Type</span>
-                    <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F]">{getCategoryName(documentData.document_type || documentData.category)}</p>
+                    <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F]">{getCategoryName(doc.document_type || doc.category)}</p>
                   </div>
 
                   <div>
@@ -265,13 +258,13 @@ export default function TaxVaultDocumentDetailsPage() {
 
                   <div>
                     <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Description</span>
-                    <p className="mt-1 text-[15px] leading-relaxed text-[#4B4B4B]">{documentData.description || 'No description provided'}</p>
+                    <p className="mt-1 text-[15px] leading-relaxed text-[#4B4B4B]">{doc.description || 'No description provided'}</p>
                   </div>
 
                   <div>
                     <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Note</span>
                     <p className="mt-1 text-[15px] leading-relaxed text-[#4B4B4B]">
-                      {documentData.note || 'No notes added.'}
+                      {doc.note || 'No notes added.'}
                     </p>
                   </div>
                 </div>
