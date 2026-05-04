@@ -283,7 +283,7 @@ export default function DashboardPage() {
 
   const filteredPendingActions = useMemo(() => {
     const actions = [];
-    
+
     if (investorKycStatus === 'unverified' || !investorKycStatus || investorKycStatus === 'rejected') {
       actions.push({
         id: 1,
@@ -291,7 +291,7 @@ export default function DashboardPage() {
         description: 'Your identity verification is still pending.',
       });
     }
-    
+
     return actions;
   }, [investorKycStatus]);
 
@@ -368,7 +368,7 @@ export default function DashboardPage() {
               apiClient.getAssignedInvestors(),
               apiClient.getNotifications()
             ]);
-            
+
             // Deduplicate assigned investors by ID for the dashboard widget
             const uniqueAssigned = [];
             const seenIds = new Set();
@@ -378,7 +378,7 @@ export default function DashboardPage() {
                 uniqueAssigned.push(inv);
               }
             }
-            
+
             setAssignedInvestors(uniqueAssigned);
             setDynamicNotifications(notifs);
           }
@@ -619,12 +619,12 @@ export default function DashboardPage() {
                     <AreaChart data={performanceData}>
                       <defs>
                         <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#F3C046" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#F3C046" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#F3C046" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#F3C046" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <XAxis 
-                        dataKey="date" 
+                      <XAxis
+                        dataKey="date"
                         fontSize={8}
                         tickFormatter={(str) => {
                           const date = new Date(str);
@@ -636,7 +636,7 @@ export default function DashboardPage() {
                         minTickGap={30}
                         stroke="#A0A0A0"
                       />
-                      <Tooltip 
+                      <Tooltip
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             return (
@@ -650,19 +650,19 @@ export default function DashboardPage() {
                           return null;
                         }}
                       />
-                      <Area 
-                        type="monotone" 
-                        dataKey="currentValue" 
-                        stroke="#F3C046" 
-                        fillOpacity={1} 
-                        fill="url(#colorValue)" 
+                      <Area
+                        type="monotone"
+                        dataKey="currentValue"
+                        stroke="#F3C046"
+                        fillOpacity={1}
+                        fill="url(#colorValue)"
                         strokeWidth={2}
                       />
-                      <Area 
-                        type="stepAfter" 
-                        dataKey="totalInvested" 
-                        stroke="#A0A0A0" 
-                        fill="none" 
+                      <Area
+                        type="stepAfter"
+                        dataKey="totalInvested"
+                        stroke="#A0A0A0"
+                        fill="none"
                         strokeWidth={1}
                         strokeDasharray="3 3"
                       />
@@ -809,8 +809,8 @@ export default function DashboardPage() {
                             .replace('about ', '')
                             .replace('less than a minute ago', 'just now');
                         }
-                      } catch (e) {}
-                      
+                      } catch (e) { }
+
                       return (
                         <Link
                           href="/dashboard/messages"
@@ -895,7 +895,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {roleStats[dashboardRole].map((item: any) => (
             <div
               key={item.name}
@@ -1041,10 +1041,10 @@ export default function DashboardPage() {
                       <div key={inv.id} className="flex items-center gap-4 py-3 border-b border-[#EEEEEE] last:border-0">
                         <div className="relative shrink-0">
                           {inv.profile_image_url ? (
-                            <img 
-                              src={inv.profile_image_url} 
-                              alt="avatar" 
-                              className="h-10 w-10 rounded-full object-cover border border-gray-100" 
+                            <img
+                              src={inv.profile_image_url}
+                              alt="avatar"
+                              className="h-10 w-10 rounded-full object-cover border border-gray-100"
                             />
                           ) : (
                             <div className="h-10 w-10 rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[13px] font-semibold font-helvetica border border-[#E5E7EB]">
@@ -1089,7 +1089,7 @@ export default function DashboardPage() {
                       const otherParticipant = m.participants?.find((p: any) => p.id !== user?.id);
                       const name = m.is_group ? m.group_name : (otherParticipant?.name || 'Investor');
                       const avatar = m.is_group ? m.group_image_url : otherParticipant?.avatar;
-                      
+
                       return (
                         <Link
                           href="/dashboard/messages"
