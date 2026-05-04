@@ -102,9 +102,9 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
       if (!iraForm.mailingZipCode?.trim()) e.mailingZipCode = 'Please enter zip code.';
     }
 
-    // const ssnDigits = iraForm.ssn.replace(/[^0-9]/g, '');
-    // if (!iraForm.ssn.trim()) e.ssn = 'Please enter Social Security Number.';
-    // else if (!(ssnDigits.length === 9)) e.ssn = 'SSN must contain 9 digits.';
+    const ssnDigits = iraForm.ssn.replace(/[^0-9]/g, '');
+    if (!iraForm.ssn.trim()) e.ssn = 'Please enter Social Security Number.';
+    else if (ssnDigits.length !== 9) e.ssn = 'SSN must contain 9 digits.';
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -282,7 +282,28 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                       type="text"
                       placeholder="XXX-XX-XXXX"
                       value={iraForm.ssn}
-                      onChange={e => setIraForm({ ...iraForm, ssn: e.target.value })}
+                      maxLength={11}
+                      onChange={e => {
+                        let val = e.target.value.replace(/\D/g, '');
+                        if (val.length > 9) val = val.slice(0, 9);
+                        
+                        // Format: XXX-XX-XXXX
+                        let formatted = val;
+                        if (val.length > 3 && val.length <= 5) {
+                          formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                        } else if (val.length > 5) {
+                          formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+                        }
+                        
+                        setIraForm({ ...iraForm, ssn: formatted });
+                        if (val.length === 9) {
+                          setErrors((prev: any) => {
+                            const newErrors = { ...prev };
+                            delete newErrors.ssn;
+                            return newErrors;
+                          });
+                        }
+                      }}
                       className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm"
                     />
                     {errors.ssn && <p className="mt-1 text-[11px] text-red-500">{errors.ssn}</p>}
