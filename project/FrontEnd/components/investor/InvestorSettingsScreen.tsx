@@ -788,8 +788,17 @@ export function InvestorSettingsScreen() {
                 value={profile.ssn}
                 maxLength={11}
                 onChange={(event) => {
-                  const val = event.target.value.replace(/[^\d-]/g, '');
-                  setProfile((prev) => ({ ...prev, ssn: val }));
+                  let val = event.target.value.replace(/\D/g, '');
+                  if (val.length > 9) val = val.slice(0, 9);
+                  
+                  let formatted = val;
+                  if (val.length > 3 && val.length <= 5) {
+                    formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                  } else if (val.length > 5) {
+                    formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+                  }
+                  
+                  setProfile((prev) => ({ ...prev, ssn: formatted }));
                   setProfileErrors((prev) => ({ ...prev, ssn: undefined }));
                 }}
               />

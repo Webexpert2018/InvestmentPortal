@@ -53,9 +53,9 @@ export class AccountsService {
           user_id, account_number, account_type, custodian_name, beneficiary,
           middle_name, suffix, marital_status, mailing_address_same,
           mailing_address_1, mailing_address_2, mailing_city, mailing_state,
-          mailing_zip_code, ssn, mailing_country
+          mailing_zip_code, mailing_country
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
         )
         ON CONFLICT (account_number) DO UPDATE SET
           account_type = EXCLUDED.account_type,
@@ -70,7 +70,6 @@ export class AccountsService {
           mailing_city = EXCLUDED.mailing_city,
           mailing_state = EXCLUDED.mailing_state,
           mailing_zip_code = EXCLUDED.mailing_zip_code,
-          ssn = EXCLUDED.ssn,
           mailing_country = EXCLUDED.mailing_country,
           updated_at = CURRENT_TIMESTAMP
         RETURNING *;
@@ -91,18 +90,18 @@ export class AccountsService {
         dto.mailingCity,
         dto.mailingState,
         dto.mailingZipCode,
-        dto.ssn || '',
         dto.mailingCountry
       ];
 
       const result = await db.query(upsertQuery, values);
 
       // 2. Sync Profile Data to investors table
-      if (dto.ssn) {
-        console.log('🔄 Syncing SSN to investors tax_id...');
+      const finalTaxId = dto.ssn || dto.taxId;
+      if (finalTaxId) {
+        console.log('🔄 Syncing SSN/TaxID to investors table...');
         await db.query(
           'UPDATE investors SET tax_id = $1 WHERE id = $2::uuid',
-          [dto.ssn, userId]
+          [finalTaxId, userId]
         );
       }
 

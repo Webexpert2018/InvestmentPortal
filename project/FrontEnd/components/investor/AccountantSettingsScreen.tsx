@@ -597,7 +597,18 @@ export function AccountantSettingsScreen() {
               placeholder="Format: XXX-XX-XXXX"
               value={taxId}
               maxLength={11}
-              onChange={(e) => setTaxId(e.target.value)}
+              onChange={(e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length > 9) val = val.slice(0, 9);
+                
+                let formatted = val;
+                if (val.length > 3 && val.length <= 5) {
+                  formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                } else if (val.length > 5) {
+                  formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+                }
+                setTaxId(formatted);
+              }}
               className="h-[42px] w-full rounded-[8px] border border-[#E5E7EB] bg-white px-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica"
             />
             <p className="mt-1 text-[11px] text-[#9CA3AF] font-helvetica">Your information is encrypted and secure</p>
