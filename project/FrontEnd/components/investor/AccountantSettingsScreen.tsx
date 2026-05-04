@@ -26,7 +26,7 @@ interface Session {
 const TAB_LIST: { id: AcctTab; label: string }[] = [
   { id: 'profile', label: 'Profile Information' },
   { id: 'security', label: 'Security & Login' },
-  { id: 'notifications', label: 'Notification' },
+  { id: 'notifications', label: 'Notifications' },
 ];
 
 const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
@@ -168,6 +168,12 @@ export function AccountantSettingsScreen() {
 
           setCity(userData.city || '');
           setTaxId(userData.taxId || '');
+
+          // Notification settings
+          if (userData.notif_doc_uploaded !== undefined) setNotifDocUploaded(!!userData.notif_doc_uploaded);
+          if (userData.notif_missing_doc !== undefined) setNotifMissingDoc(!!userData.notif_missing_doc);
+          if (userData.notif_investor_msg !== undefined) setNotifInvestorMsg(!!userData.notif_investor_msg);
+          if (userData.notif_reminder !== undefined) setNotifReminder(!!userData.notif_reminder);
         }
         setError(null);
       } catch (err) {
@@ -194,6 +200,7 @@ export function AccountantSettingsScreen() {
   const [notifMissingDoc, setNotifMissingDoc] = useState(true);
   const [notifInvestorMsg, setNotifInvestorMsg] = useState(false);
   const [notifReminder, setNotifReminder] = useState(true);
+  const [savingNotif, setSavingNotif] = useState(false);
 
   // ── Form errors ──
   const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
@@ -835,6 +842,31 @@ export function AccountantSettingsScreen() {
     </div>
   );
 
+  const handleSaveNotifications = async () => {
+    try {
+      setSavingNotif(true);
+      await apiClient.updateSettings({
+        notif_doc_uploaded: notifDocUploaded,
+        notif_missing_doc: notifMissingDoc,
+        notif_investor_msg: notifInvestorMsg,
+        notif_reminder: notifReminder,
+      });
+      toast({
+        title: 'Success',
+        description: 'Notification settings updated successfully',
+        variant: 'success',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to update notification settings',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingNotif(false);
+    }
+  };
+
   /* -----------------------------------
      TAB 3 — Notifications
      ----------------------------------- */
@@ -848,22 +880,54 @@ export function AccountantSettingsScreen() {
           {/* New document uploaded */}
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
             <span className="text-[14px] text-[#1F1F1F] font-helvetica">New document uploaded</span>
-            {renderToggle(notifDocUploaded, () => setNotifDocUploaded(!notifDocUploaded))}
+            {renderToggle(notifDocUploaded, () => {
+              const newState = !notifDocUploaded;
+              setNotifDocUploaded(newState);
+              toast({
+                title: newState ? 'Notification Enabled' : 'Notification Disabled',
+                description: `New document uploaded notification ${newState ? 'turned on' : 'turned off'}.`,
+                variant: newState ? 'enable' : ('disable' as any),
+              });
+            })}
           </div>
           {/* Missing document alerts */}
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
             <span className="text-[14px] text-[#1F1F1F] font-helvetica">Missing document alerts</span>
-            {renderToggle(notifMissingDoc, () => setNotifMissingDoc(!notifMissingDoc))}
+            {renderToggle(notifMissingDoc, () => {
+              const newState = !notifMissingDoc;
+              setNotifMissingDoc(newState);
+              toast({
+                title: newState ? 'Notification Enabled' : 'Notification Disabled',
+                description: `Missing document alerts ${newState ? 'turned on' : 'turned off'}.`,
+                variant: newState ? 'enable' : ('disable' as any),
+              });
+            })}
           </div>
           {/* New investor messages */}
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
             <span className="text-[14px] text-[#1F1F1F] font-helvetica">New investor messages</span>
-            {renderToggle(notifInvestorMsg, () => setNotifInvestorMsg(!notifInvestorMsg))}
+            {renderToggle(notifInvestorMsg, () => {
+              const newState = !notifInvestorMsg;
+              setNotifInvestorMsg(newState);
+              toast({
+                title: newState ? 'Notification Enabled' : 'Notification Disabled',
+                description: `New investor messages notification ${newState ? 'turned on' : 'turned off'}.`,
+                variant: newState ? 'enable' : ('disable' as any),
+              });
+            })}
           </div>
           {/* Reminder */}
           <div className="flex items-center justify-between py-4">
             <span className="text-[14px] text-[#1F1F1F] font-helvetica">Reminder</span>
-            {renderToggle(notifReminder, () => setNotifReminder(!notifReminder))}
+            {renderToggle(notifReminder, () => {
+              const newState = !notifReminder;
+              setNotifReminder(newState);
+              toast({
+                title: newState ? 'Notification Enabled' : 'Notification Disabled',
+                description: `Reminder notification ${newState ? 'turned on' : 'turned off'}.`,
+                variant: newState ? 'enable' : ('disable' as any),
+              });
+            })}
           </div>
         </div>
 
@@ -872,9 +936,11 @@ export function AccountantSettingsScreen() {
         <div className="mt-5 flex justify-end mb-3 mr-3">
           <button
             type="button"
-            className="h-[40px] min-w-[100px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] shadow-sm hover:shadow-md transition-shadow font-helvetica"
+            onClick={handleSaveNotifications}
+            disabled={savingNotif}
+            className="h-[40px] min-w-[100px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] shadow-sm hover:shadow-md transition-shadow font-helvetica disabled:opacity-50"
           >
-            Save
+            {savingNotif ? 'Saving...' : 'Save'}
           </button>
         </div>
       </div>
