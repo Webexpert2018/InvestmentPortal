@@ -209,6 +209,8 @@ export function InvestorSettingsScreen() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [profile, setProfile] = useState(defaultProfile);
   const [password, setPassword] = useState(defaultPassword);
+  const [notifSubTab, setNotifSubTab] = useState<'email' | 'sms'>('email');
+  const [savingNotif, setSavingNotif] = useState(false);
   const [sessions, setSessions] = useState<SessionItem[]>(initialSessions);
   const [bankAccounts, setBankAccounts] = useState<any[]>([]);
   const [bankAccountsLoading, setBankAccountsLoading] = useState(true);
@@ -332,6 +334,29 @@ export function InvestorSettingsScreen() {
             country: countryIso || 'US',
             ssn: userData.taxId || '*** ** ***',
             profileImageUrl: userData.profileImageUrl || '',
+          });
+
+          // Sync notification settings
+          setEmailNotifications({
+            investmentActivity: userData.notif_invest_activity ?? true,
+            fundingConfirmations: userData.notif_funding_conf ?? true,
+            documentUploads: userData.notif_doc_uploads ?? false,
+            kycUpdates: userData.notif_kyc_updates ?? true,
+            announcements: userData.notif_announcements ?? false,
+          });
+
+          setSmsNotifications({
+            investmentConfirmations: userData.notif_sms_invest_conf ?? true,
+            securityAlerts: userData.notif_sms_security ?? true,
+          });
+
+          setDocumentPrefs({
+            sendByEmail: userData.pref_send_by_email ?? true,
+            taxFormsAlert: userData.pref_tax_forms_alert ?? true,
+            autoDownload: userData.pref_auto_download ?? false,
+            paperless: userData.pref_paperless ?? true,
+            format: userData.pref_format ?? 'PDF',
+            frequency: userData.pref_frequency ?? 'Quarterly',
           });
         }
         setError(null);
@@ -1020,93 +1045,226 @@ export function InvestorSettingsScreen() {
     </div>
   );
 
+  const handleSaveNotifications = async () => {
+    try {
+      setSavingNotif(true);
+      await apiClient.updateSettings({
+        notif_invest_activity: emailNotifications.investmentActivity,
+        notif_funding_conf: emailNotifications.fundingConfirmations,
+        notif_doc_uploads: emailNotifications.documentUploads,
+        notif_kyc_updates: emailNotifications.kycUpdates,
+        notif_announcements: emailNotifications.announcements,
+        notif_sms_invest_conf: smsNotifications.investmentConfirmations,
+        notif_sms_security: smsNotifications.securityAlerts,
+      });
+      toast({
+        title: 'Success',
+        description: 'Notification settings updated successfully',
+        variant: 'success',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to update notification settings',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingNotif(false);
+    }
+  };
+
+  const handleSaveDocumentPrefs = async () => {
+    try {
+      setSavingNotif(true);
+      await apiClient.updateSettings({
+        pref_send_by_email: documentPrefs.sendByEmail,
+        pref_tax_forms_alert: documentPrefs.taxFormsAlert,
+        pref_auto_download: documentPrefs.autoDownload,
+        pref_paperless: documentPrefs.paperless,
+        pref_format: documentPrefs.format,
+        pref_frequency: documentPrefs.frequency,
+      });
+      toast({
+        title: 'Success',
+        description: 'Document preferences updated successfully',
+        variant: 'success',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to update document preferences',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingNotif(false);
+    }
+  };
+
   const renderNotificationsTab = () => (
     <div className="space-y-3">
-      <SectionCard>
-        <SectionHeader title="Email Notifications" />
-        <div className="divide-y divide-[#ECEDEF] p-4">
-          <div className="flex items-start justify-between py-3">
-            <div>
-              <p className="text-[12px] text-[#1F1F1F]">Investment activity</p>
-              <p className="mt-1 text-[10px] text-[#A2A5AA]">Updates on your invest performance and trades.</p>
-            </div>
-            <Toggle
-              enabled={emailNotifications.investmentActivity}
-              onChange={(value) => setEmailNotifications((prev) => ({ ...prev, investmentActivity: value }))}
-            />
-          </div>
-          <div className="flex items-start justify-between py-3">
-            <div>
-              <p className="text-[12px] text-[#1F1F1F]">Funding confirmations</p>
-              <p className="mt-1 text-[10px] text-[#A2A5AA]">Confirmations for deposits and withdrawals.</p>
-            </div>
-            <Toggle
-              enabled={emailNotifications.fundingConfirmations}
-              onChange={(value) => setEmailNotifications((prev) => ({ ...prev, fundingConfirmations: value }))}
-            />
-          </div>
-          <div className="flex items-start justify-between py-3">
-            <div>
-              <p className="text-[12px] text-[#1F1F1F]">Document uploads</p>
-              <p className="mt-1 text-[10px] text-[#A2A5AA]">Notifications when new documents are available.</p>
-            </div>
-            <Toggle
-              enabled={emailNotifications.documentUploads}
-              onChange={(value) => setEmailNotifications((prev) => ({ ...prev, documentUploads: value }))}
-            />
-          </div>
-          <div className="flex items-start justify-between py-3">
-            <div>
-              <p className="text-[12px] text-[#1F1F1F]">KYC updates</p>
-              <p className="mt-1 text-[10px] text-[#A2A5AA]">Alerts regarding your account verification status.</p>
-            </div>
-            <Toggle
-              enabled={emailNotifications.kycUpdates}
-              onChange={(value) => setEmailNotifications((prev) => ({ ...prev, kycUpdates: value }))}
-            />
-          </div>
-          <div className="flex items-start justify-between py-3">
-            <div>
-              <p className="text-[12px] text-[#1F1F1F]">General announcements</p>
-              <p className="mt-1 text-[10px] text-[#A2A5AA]">Platform news, updates, and marketing.</p>
-            </div>
-            <Toggle
-              enabled={emailNotifications.announcements}
-              onChange={(value) => setEmailNotifications((prev) => ({ ...prev, announcements: value }))}
-            />
-          </div>
-        </div>
-      </SectionCard>
+      {/* Sub Tabs */}
+      <div className="flex items-center justify-start gap-6 mb-0 pr-1 border-b border-[#ECEDEF] pb-0">
+        <button
+          onClick={() => setNotifSubTab('email')}
+          className={`text-[13px] font-medium transition-colors relative pb-2 ${notifSubTab === 'email' ? 'text-[#274583]' : 'text-[#9CA3AF] hover:text-[#6B7280]'}`}
+        >
+          Email Notifications
+          {notifSubTab === 'email' && (
+            <span className="absolute bottom-[-2px] left-0 h-[2px] w-full bg-[#FBCB4B]" />
+          )}
+        </button>
+        <button
+          onClick={() => setNotifSubTab('sms')}
+          className={`text-[13px] font-medium transition-colors relative pb-2 ${notifSubTab === 'sms' ? 'text-[#274583]' : 'text-[#9CA3AF] hover:text-[#6B7280]'}`}
+        >
+          SMS Notifications
+          {notifSubTab === 'sms' && (
+            <span className="absolute bottom-[-2px] left-0 h-[2px] w-full bg-[#FBCB4B]" />
+          )}
+        </button>
+      </div>
 
-      <SectionCard>
-        <SectionHeader title="SMS Notifications" />
-        <div className="divide-y divide-[#ECEDEF] p-4">
-          <div className="flex items-start justify-between py-3">
-            <div>
-              <p className="text-[12px] text-[#1F1F1F]">Investment confirmations</p>
-              <p className="mt-1 text-[10px] text-[#A2A5AA]">Receive a text when a large investment is confirmed.</p>
+      {notifSubTab === 'email' ? (
+        <SectionCard>
+          <SectionHeader title="Notifications" />
+          <div className="divide-y divide-[#ECEDEF] p-4">
+            <div className="flex items-start justify-between py-3">
+              <div>
+                <p className="text-[12px] text-[#1F1F1F]">Investment activity</p>
+                <p className="mt-1 text-[10px] text-[#A2A5AA]">Updates on your invest performance and trades.</p>
+              </div>
+              <Toggle
+                enabled={emailNotifications.investmentActivity}
+                onChange={(value) => {
+                  setEmailNotifications((prev) => ({ ...prev, investmentActivity: value }));
+                  toast({
+                    title: value ? 'Notification Enabled' : 'Notification Disabled',
+                    description: `Investment activity notification ${value ? 'turned on' : 'turned off'}.`,
+                    variant: value ? 'enable' : ('disable' as any),
+                  });
+                }}
+              />
             </div>
-            <Toggle
-              enabled={smsNotifications.investmentConfirmations}
-              onChange={(value) => setSmsNotifications((prev) => ({ ...prev, investmentConfirmations: value }))}
-            />
-          </div>
-          <div className="flex items-start justify-between py-3">
-            <div>
-              <p className="text-[12px] text-[#1F1F1F]">Security alerts</p>
-              <p className="mt-1 text-[10px] text-[#A2A5AA]">Get notified about new logins and security events.</p>
+            <div className="flex items-start justify-between py-3">
+              <div>
+                <p className="text-[12px] text-[#1F1F1F]">Funding confirmations</p>
+                <p className="mt-1 text-[10px] text-[#A2A5AA]">Confirmations for deposits and withdrawals.</p>
+              </div>
+              <Toggle
+                enabled={emailNotifications.fundingConfirmations}
+                onChange={(value) => {
+                  setEmailNotifications((prev) => ({ ...prev, fundingConfirmations: value }));
+                  toast({
+                    title: value ? 'Notification Enabled' : 'Notification Disabled',
+                    description: `Funding confirmations notification ${value ? 'turned on' : 'turned off'}.`,
+                    variant: value ? 'enable' : ('disable' as any),
+                  });
+                }}
+              />
             </div>
-            <Toggle
-              enabled={smsNotifications.securityAlerts}
-              onChange={(value) => setSmsNotifications((prev) => ({ ...prev, securityAlerts: value }))}
-            />
+            <div className="flex items-start justify-between py-3">
+              <div>
+                <p className="text-[12px] text-[#1F1F1F]">Document uploads</p>
+                <p className="mt-1 text-[10px] text-[#A2A5AA]">Notifications when new documents are available.</p>
+              </div>
+              <Toggle
+                enabled={emailNotifications.documentUploads}
+                onChange={(value) => {
+                  setEmailNotifications((prev) => ({ ...prev, documentUploads: value }));
+                  toast({
+                    title: value ? 'Notification Enabled' : 'Notification Disabled',
+                    description: `Document uploads notification ${value ? 'turned on' : 'turned off'}.`,
+                    variant: value ? 'enable' : ('disable' as any),
+                  });
+                }}
+              />
+            </div>
+            <div className="flex items-start justify-between py-3">
+              <div>
+                <p className="text-[12px] text-[#1F1F1F]">KYC updates</p>
+                <p className="mt-1 text-[10px] text-[#A2A5AA]">Alerts regarding your account verification status.</p>
+              </div>
+              <Toggle
+                enabled={emailNotifications.kycUpdates}
+                onChange={(value) => {
+                  setEmailNotifications((prev) => ({ ...prev, kycUpdates: value }));
+                  toast({
+                    title: value ? 'Notification Enabled' : 'Notification Disabled',
+                    description: `KYC updates notification ${value ? 'turned on' : 'turned off'}.`,
+                    variant: value ? 'enable' : ('disable' as any),
+                  });
+                }}
+              />
+            </div>
+            <div className="flex items-start justify-between py-3">
+              <div>
+                <p className="text-[12px] text-[#1F1F1F]">General announcements</p>
+                <p className="mt-1 text-[10px] text-[#A2A5AA]">Platform news, updates, and marketing.</p>
+              </div>
+              <Toggle
+                enabled={emailNotifications.announcements}
+                onChange={(value) => {
+                  setEmailNotifications((prev) => ({ ...prev, announcements: value }));
+                  toast({
+                    title: value ? 'Notification Enabled' : 'Notification Disabled',
+                    description: `General announcements notification ${value ? 'turned on' : 'turned off'}.`,
+                    variant: value ? 'enable' : ('disable' as any),
+                  });
+                }}
+              />
+            </div>
           </div>
-        </div>
-      </SectionCard>
+        </SectionCard>
+      ) : (
+        <SectionCard>
+          <SectionHeader title="Notifications" />
+          <div className="divide-y divide-[#ECEDEF] p-4">
+            <div className="flex items-start justify-between py-3">
+              <div>
+                <p className="text-[12px] text-[#1F1F1F]">Investment confirmations</p>
+                <p className="mt-1 text-[10px] text-[#A2A5AA]">Receive a text when a large investment is confirmed.</p>
+              </div>
+              <Toggle
+                enabled={smsNotifications.investmentConfirmations}
+                onChange={(value) => {
+                  setSmsNotifications((prev) => ({ ...prev, investmentConfirmations: value }));
+                  toast({
+                    title: value ? 'Notification Enabled' : 'Notification Disabled',
+                    description: `Investment confirmations SMS ${value ? 'turned on' : 'turned off'}.`,
+                    variant: value ? 'enable' : ('disable' as any),
+                  });
+                }}
+              />
+            </div>
+            <div className="flex items-start justify-between py-3">
+              <div>
+                <p className="text-[12px] text-[#1F1F1F]">Security alerts</p>
+                <p className="mt-1 text-[10px] text-[#A2A5AA]">Get notified about new logins and security events.</p>
+              </div>
+              <Toggle
+                enabled={smsNotifications.securityAlerts}
+                onChange={(value) => {
+                  setSmsNotifications((prev) => ({ ...prev, securityAlerts: value }));
+                  toast({
+                    title: value ? 'Notification Enabled' : 'Notification Disabled',
+                    description: `Security alerts SMS ${value ? 'turned on' : 'turned off'}.`,
+                    variant: value ? 'enable' : ('disable' as any),
+                  });
+                }}
+              />
+            </div>
+          </div>
+        </SectionCard>
+      )}
 
       <div className="flex justify-end">
-        <button type="button" className="h-[32px] min-w-[90px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F]">
-          Save
+        <button
+          type="button"
+          onClick={handleSaveNotifications}
+          disabled={savingNotif}
+          className="h-[32px] min-w-[90px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] disabled:opacity-50"
+        >
+          {savingNotif ? 'Saving...' : 'Save'}
         </button>
       </div>
     </div>
@@ -1203,8 +1361,13 @@ export function InvestorSettingsScreen() {
       </SectionCard>
 
       <div className="flex justify-end">
-        <button type="button" className="h-[32px] min-w-[90px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F]">
-          Save
+        <button
+          type="button"
+          onClick={handleSaveDocumentPrefs}
+          disabled={savingNotif}
+          className="h-[32px] min-w-[90px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] disabled:opacity-50"
+        >
+          {savingNotif ? 'Saving...' : 'Save'}
         </button>
       </div>
     </div>
@@ -1301,8 +1464,8 @@ export function InvestorSettingsScreen() {
               </thead>
               <tbody>
                 {bankAccounts.map((item) => (
-                  <tr 
-                    key={item.id} 
+                  <tr
+                    key={item.id}
                     className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] transition-colors cursor-pointer"
                     onClick={() => {
                       setBankAdd({
