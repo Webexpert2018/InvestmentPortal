@@ -18,14 +18,14 @@ export class DocumentsService {
       JOIN investors i ON d.investor_id = i.id
     `;
     const params = [];
-    
+
     if (role === 'accountant' && userId) {
       query += ` WHERE i.assigned_accountant_id = $1 `;
       params.push(userId);
     }
-    
+
     query += ` ORDER BY d.uploaded_at DESC`;
-    
+
     const result = await db.query(query, params);
     return result.rows;
   }
@@ -93,7 +93,7 @@ export class DocumentsService {
   async getMyDocuments(investorId: string) {
     // Both fund documents (if applicable) and personal investor documents
     const investorDocs = await this.getInvestorDocuments(investorId);
-    
+
     // Also include any specific fund documents that this investor might have access to?
     // For now, just return investor_documents as that's what the vault expects for KYC/Tax docs.
     return investorDocs;

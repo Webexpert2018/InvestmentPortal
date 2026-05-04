@@ -497,14 +497,6 @@ export default function InvestPage() {
 
         <div className="hidden md:flex items-center gap-4 text-xs">
           <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-            <div>
-              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
-            </div>
-          </div>
-
-          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
@@ -591,14 +583,6 @@ export default function InvestPage() {
 
         <div className="hidden md:flex items-center gap-4 text-xs">
           <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-            <div>
-              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
-            </div>
-          </div>
-
-          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
@@ -651,14 +635,6 @@ export default function InvestPage() {
         </div>
 
         <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-            <div>
-              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
-            </div>
-          </div>
-
           <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
@@ -762,14 +738,6 @@ export default function InvestPage() {
         </div>
 
         <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-            <div>
-              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
-            </div>
-          </div>
-
           <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
@@ -969,14 +937,6 @@ export default function InvestPage() {
 
         <div className="hidden md:flex items-center gap-4 text-xs">
           <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-            <div>
-              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
-            </div>
-          </div>
-
-          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
@@ -1134,14 +1094,6 @@ export default function InvestPage() {
         </div>
 
         <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-            <div>
-              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
-            </div>
-          </div>
-
           <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>

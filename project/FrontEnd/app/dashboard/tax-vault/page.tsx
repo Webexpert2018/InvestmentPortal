@@ -65,7 +65,9 @@ export default function TaxVaultPage() {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const data = await apiClient.getAllDocuments();
+      const data = user?.role === 'investor' 
+        ? await apiClient.getMyDocuments() 
+        : await apiClient.getAllDocuments();
 
       const mappedRows: TaxVaultRow[] = data.map((doc: any) => ({
         id: doc.id,
@@ -191,14 +193,6 @@ export default function TaxVaultPage() {
                       <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
                     </div>
                   </div>
-
-                  <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-                    <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-                    <div>
-                      <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-                      <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -311,8 +305,8 @@ export default function TaxVaultPage() {
                   <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
                     <thead>
                       <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
-                        <th className="rounded-l-[6px] px-4 py-3">Investor</th>
-                        <th className="px-4 py-3">File Name</th>
+                        {user?.role !== 'investor' && <th className="rounded-l-[6px] px-4 py-3 text-left">Investor</th>}
+                        <th className={`px-4 py-3 ${user?.role === 'investor' ? 'rounded-l-[6px]' : ''}`}>File Name</th>
                         <th className="px-4 py-3">Document Type</th>
                         <th className="px-4 py-3">Tax Year</th>
                         <th className="px-4 py-3">Uploaded Date</th>
@@ -327,7 +321,7 @@ export default function TaxVaultPage() {
                           onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
                           className="border-b border-[#F1F1F1] hover:bg-gray-50/50 cursor-pointer transition-colors"
                         >
-                          <td className="px-4 py-4 font-bold text-[#1F1F1F]">{row.investorName}</td>
+                          {user?.role !== 'investor' && <td className="px-4 py-4 font-bold text-[#1F1F1F]">{row.investorName}</td>}
                           <td className="px-4 py-4 max-w-[200px] truncate" title={row.fileName}>{row.fileName}</td>
                           <td className="px-4 py-4">{row.documentType}</td>
                           <td className="px-4 py-4">{row.taxYear}</td>
