@@ -65,6 +65,29 @@ export class UsersService implements OnModuleInit {
                 ALTER TABLE investors ADD COLUMN notif_sms_security BOOLEAN DEFAULT TRUE;
             END IF;
 
+            -- Redesigned Investor Notifications
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_alerts') THEN
+                ALTER TABLE investors ADD COLUMN notif_alerts BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_nav_recalc') THEN
+                ALTER TABLE investors ADD COLUMN notif_nav_recalc BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_sms_announcements') THEN
+                ALTER TABLE investors ADD COLUMN notif_sms_announcements BOOLEAN DEFAULT FALSE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_sms_alerts') THEN
+                ALTER TABLE investors ADD COLUMN notif_sms_alerts BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_sms_doc_uploads') THEN
+                ALTER TABLE investors ADD COLUMN notif_sms_doc_uploads BOOLEAN DEFAULT FALSE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_sms_nav_recalc') THEN
+                ALTER TABLE investors ADD COLUMN notif_sms_nav_recalc BOOLEAN DEFAULT FALSE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_sms_funding_conf') THEN
+                ALTER TABLE investors ADD COLUMN notif_sms_funding_conf BOOLEAN DEFAULT TRUE;
+            END IF;
+
             -- 4. Add document preferences to investors table
             IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='pref_send_by_email') THEN
                 ALTER TABLE investors ADD COLUMN pref_send_by_email BOOLEAN DEFAULT TRUE;
@@ -105,7 +128,7 @@ export class UsersService implements OnModuleInit {
     );
 
     let user = result.rows[0];
-    
+
     // If not found in users, check the staff table
     if (!user) {
       result = await db.query(`
@@ -132,6 +155,7 @@ export class UsersService implements OnModuleInit {
           i.profile_image_url as "profileImageUrl", i.kyc_status as "kycStatus",
           ir.full_name as "assignedIrName", acc.full_name as "assignedAccountantName",
           i.notif_invest_activity, i.notif_funding_conf, i.notif_doc_uploads, i.notif_kyc_updates, i.notif_announcements, i.notif_sms_invest_conf, i.notif_sms_security,
+          i.notif_alerts, i.notif_nav_recalc, i.notif_sms_announcements, i.notif_sms_alerts, i.notif_sms_doc_uploads, i.notif_sms_nav_recalc, i.notif_sms_funding_conf,
           i.pref_send_by_email, i.pref_tax_forms_alert, i.pref_auto_download, i.pref_paperless,
           i.pref_format, i.pref_frequency
         FROM investors i
@@ -186,6 +210,13 @@ export class UsersService implements OnModuleInit {
       notif_announcements: user.notif_announcements,
       notif_sms_invest_conf: user.notif_sms_invest_conf,
       notif_sms_security: user.notif_sms_security,
+      notif_alerts: user.notif_alerts,
+      notif_nav_recalc: user.notif_nav_recalc,
+      notif_sms_announcements: user.notif_sms_announcements,
+      notif_sms_alerts: user.notif_sms_alerts,
+      notif_sms_doc_uploads: user.notif_sms_doc_uploads,
+      notif_sms_nav_recalc: user.notif_sms_nav_recalc,
+      notif_sms_funding_conf: user.notif_sms_funding_conf,
       pref_send_by_email: user.pref_send_by_email,
       pref_tax_forms_alert: user.pref_tax_forms_alert,
       pref_auto_download: user.pref_auto_download,
@@ -220,13 +251,20 @@ export class UsersService implements OnModuleInit {
     notif_announcements?: boolean,
     notif_sms_invest_conf?: boolean,
     notif_sms_security?: boolean,
+    notif_alerts?: boolean,
+    notif_nav_recalc?: boolean,
+    notif_sms_announcements?: boolean,
+    notif_sms_alerts?: boolean,
+    notif_sms_doc_uploads?: boolean,
+    notif_sms_nav_recalc?: boolean,
+    notif_sms_funding_conf?: boolean,
     pref_send_by_email?: boolean,
     pref_tax_forms_alert?: boolean,
     pref_auto_download?: boolean,
     pref_paperless?: boolean,
     pref_format?: string,
     pref_frequency?: string,
-) {
+  ) {
     // Determine which table handles this user
     let tableName: string | null = null;
     let nameFieldType: 'split' | 'full' = 'split';
@@ -266,7 +304,7 @@ export class UsersService implements OnModuleInit {
         const currentRes = await db.query(`SELECT full_name FROM ${tableName} WHERE id = $1`, [userId]);
         const currentFullName = currentRes.rows[0]?.full_name || '';
         const [currFirst, ...currLastParts] = currentFullName.split(' ');
-        
+
         const finalFirst = firstName !== undefined ? firstName : currFirst;
         const finalLast = lastName !== undefined ? lastName : currLastParts.join(' ');
         const fullName = `${finalFirst} ${finalLast}`.trim();
@@ -308,6 +346,13 @@ export class UsersService implements OnModuleInit {
       notif_announcements,
       notif_sms_invest_conf,
       notif_sms_security,
+      notif_alerts,
+      notif_nav_recalc,
+      notif_sms_announcements,
+      notif_sms_alerts,
+      notif_sms_doc_uploads,
+      notif_sms_nav_recalc,
+      notif_sms_funding_conf,
       pref_send_by_email,
       pref_tax_forms_alert,
       pref_auto_download,
@@ -319,7 +364,7 @@ export class UsersService implements OnModuleInit {
     // Filter fields based on table availability to prevent SQL errors
     const commonFields = ['phone', 'dob', 'address_line1', 'address_line2', 'city', 'state', 'zip_code', 'country', 'tax_id', 'profile_image_url'];
     const staffNotifs = ['notif_doc_uploaded', 'notif_missing_doc', 'notif_investor_msg', 'notif_reminder'];
-    const investorNotifs = [...staffNotifs, 'notif_invest_activity', 'notif_funding_conf', 'notif_doc_uploads', 'notif_kyc_updates', 'notif_announcements', 'notif_sms_invest_conf', 'notif_sms_security', 'pref_send_by_email', 'pref_tax_forms_alert', 'pref_auto_download', 'pref_paperless', 'pref_format', 'pref_frequency'];
+    const investorNotifs = [...staffNotifs, 'notif_invest_activity', 'notif_funding_conf', 'notif_doc_uploads', 'notif_kyc_updates', 'notif_announcements', 'notif_sms_invest_conf', 'notif_sms_security', 'notif_alerts', 'notif_nav_recalc', 'notif_sms_announcements', 'notif_sms_alerts', 'notif_sms_doc_uploads', 'notif_sms_nav_recalc', 'notif_sms_funding_conf', 'pref_send_by_email', 'pref_tax_forms_alert', 'pref_auto_download', 'pref_paperless', 'pref_format', 'pref_frequency'];
 
     const allowedColumns = tableName === 'investors' ? [...commonFields, ...investorNotifs] : [...commonFields, ...staffNotifs];
 
@@ -332,8 +377,8 @@ export class UsersService implements OnModuleInit {
 
     values.push(userId);
 
-    const returning = nameFieldType === 'full' 
-      ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency'
+    const returning = nameFieldType === 'full'
+      ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, notif_alerts, notif_nav_recalc, notif_sms_announcements, notif_sms_alerts, notif_sms_doc_uploads, notif_sms_nav_recalc, notif_sms_funding_conf, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency'
       : 'id, email, first_name, last_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder';
 
     const result = await db.query(
@@ -600,7 +645,7 @@ export class UsersService implements OnModuleInit {
 
     // Determine which table handles this user
     let tableName: string | null = null;
-    
+
     const userCheck = await db.query('SELECT id FROM users WHERE id = $1', [userId]);
     if (userCheck.rows.length > 0) {
       tableName = 'users';
@@ -636,7 +681,7 @@ export class UsersService implements OnModuleInit {
 
     // Determine which table handles this user
     let tableName: string | null = null;
-    
+
     // Check investors table (primary for KYC)
     const investorCheck = await db.query('SELECT id FROM investors WHERE id = $1', [userId]);
     if (investorCheck.rows.length > 0) {
@@ -667,7 +712,7 @@ export class UsersService implements OnModuleInit {
     let tableName: string | null = null;
     let nameField: string = 'first_name';
     let queryResult = await db.query('SELECT email, first_name, password_hash FROM users WHERE id = $1', [userId]);
-    
+
     if (queryResult.rows.length > 0) {
       tableName = 'users';
     } else {
@@ -739,7 +784,7 @@ export class UsersService implements OnModuleInit {
 
     const user = queryResult.rows[0];
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
-    
+
     // Update password in the correct table
     if (tableName === 'users') {
       await db.query(
@@ -767,8 +812,8 @@ export class UsersService implements OnModuleInit {
       throw new ForbiddenException('Only admins can invite investors');
     }
 
-    const { 
-      email, 
+    const {
+      email,
       full_name,
       phone,
       dob,
@@ -811,7 +856,7 @@ export class UsersService implements OnModuleInit {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
       [
         investorId, email, full_name, dummyPasswordHash, 'pending', 'unverified',
-        phone || null, dob || null, address_line1 || null, address_line2 || null, 
+        phone || null, dob || null, address_line1 || null, address_line2 || null,
         city || null, state || null, zip_code || null, country || null, tax_id || null,
         assigned_ir_id || null, assigned_accountant_id || null
       ]

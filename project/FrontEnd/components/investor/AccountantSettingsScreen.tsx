@@ -607,7 +607,7 @@ export function AccountantSettingsScreen() {
               onChange={(e) => {
                 let val = e.target.value.replace(/\D/g, '');
                 if (val.length > 9) val = val.slice(0, 9);
-                
+
                 let formatted = val;
                 if (val.length > 3 && val.length <= 5) {
                   formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
