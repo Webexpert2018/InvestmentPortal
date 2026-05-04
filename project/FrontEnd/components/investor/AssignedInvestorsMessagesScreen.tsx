@@ -67,6 +67,7 @@ type Thread = {
   messages?: ChatMessage[];
   isGroup?: boolean;
   createdBy?: string;
+  isCreator?: boolean;
   participants?: any[];
 };
 
@@ -219,6 +220,7 @@ export function AssignedInvestorsMessagesScreen() {
           isOnline: true,
           isGroup: isGroup,
           createdBy: conv.created_by,
+          isCreator: conv.is_creator === true || conv.is_creator === 'true' || conv.is_creator === 1 || conv.created_by === profile?.id,
           participants: conv.participants
         };
       });
@@ -236,7 +238,7 @@ export function AssignedInvestorsMessagesScreen() {
       // Handle auto-selection via targetUserId or default to first thread
       if (!activeThreadId && mappedThreads.length > 0 && !initializingRef.current) {
         if (targetUserId) {
-          const targetThread = mappedThreads.find(t => 
+          const targetThread = mappedThreads.find(t =>
             !t.isGroup && t.participants?.some((p: any) => p.id === targetUserId)
           );
           if (targetThread) {
@@ -749,7 +751,7 @@ export function AssignedInvestorsMessagesScreen() {
           </div>
         </section>
 
-        <section 
+        <section
           className={cn(
             "rounded-[8px] bg-white p-4 shadow-sm border border-[#F0F0F0] flex flex-col h-[calc(100vh-160px)] min-h-[500px] relative",
             !isMobileChatOpen ? "hidden md:flex" : "flex",
@@ -819,28 +821,30 @@ export function AssignedInvestorsMessagesScreen() {
                           {activeThread.isGroup ? 'Group Details' : 'Chat Details'}
                         </p>
                       </div>
+                      <div className="max-h-[300px] overflow-y-auto thin-scrollbar px-1">
+                        {activeThread.participants?.map((p: any) => (
+                          <div key={p.id} className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#1F1F1F]">
+                            <AvatarDisplay
+                              src={p.avatar}
+                              name={p.name}
+                              className="w-6 h-6 rounded-full text-[10px]"
+                            />
+                            <span className="flex-1 truncate">{p.name} {p.id === profile?.id && '(You)'}</span>
+                            {activeThread.isGroup && (activeThread.isCreator || ['admin', 'executive_admin', 'staff'].includes(profile?.role)) && p.id !== profile?.id && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleRemoveParticipant(activeThread.id, p.id); }}
+                                className="text-red-500 hover:bg-red-50 p-1 rounded-md transition-colors"
+                                title="Remove Participant"
+                              >
+                                <UserMinus className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
 
-                      {activeThread.participants?.map((p: any) => (
-                        <div key={p.id} className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#1F1F1F]">
-                          <AvatarDisplay
-                            src={p.avatar}
-                            name={p.name}
-                            className="w-6 h-6 rounded-full text-[10px]"
-                          />
-                          <span className="flex-1 truncate">{p.name} {p.id === profile?.id && '(You)'}</span>
-                          {activeThread.isGroup && activeThread.createdBy === profile?.id && p.id !== profile?.id && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleRemoveParticipant(activeThread.id, p.id); }}
-                              className="text-red-500 hover:bg-red-50 p-1 rounded-md transition-colors"
-                              title="Remove Participant"
-                            >
-                              <UserMinus className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-
-                      {activeThread.isGroup && activeThread.createdBy === profile?.id && (
+                      {/* Add Members - Only visible for non-investor users */}
+                      {profile?.role !== 'investor' && (
                         <>
                           <div className="h-[1px] bg-[#F0F0F0] my-1" />
                           <DropdownMenuItem

@@ -4,7 +4,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class MessagesService {
-  constructor(private readonly notificationsService: NotificationsService) {}
+  constructor(private readonly notificationsService: NotificationsService) { }
 
   async getConversations(userId: string) {
     try {
@@ -60,13 +60,13 @@ export class MessagesService {
     }
   }
 
-  async sendMessage(senderId: string, data: { 
-    content: string; 
-    recipientId?: string; 
-    targetRole?: string; 
+  async sendMessage(senderId: string, data: {
+    content: string;
+    recipientId?: string;
+    targetRole?: string;
     conversationId?: string;
-    fileUrl?: string; 
-    fileName?: string; 
+    fileUrl?: string;
+    fileName?: string;
     fileSize?: string;
   }) {
     const { content, recipientId, targetRole, fileUrl, fileName, fileSize } = data;
@@ -90,10 +90,10 @@ export class MessagesService {
         RETURNING *
       `;
       const result = await db.query(msgQuery, [
-        senderId, 
-        recipientId || null, 
-        targetRole || null, 
-        content, 
+        senderId,
+        recipientId || null,
+        targetRole || null,
+        content,
         conversationId,
         fileUrl || null,
         fileName || null,
@@ -149,10 +149,10 @@ export class MessagesService {
           UNION ALL
           SELECT role, null as assigned_accountant_id FROM users WHERE id = $1
         `, [pId]);
-        
+
         if ((userRes.rowCount ?? 0) > 0) {
           const { role, assigned_accountant_id } = userRes.rows[0];
-          
+
           // --- Accountant Restriction ---
           if (senderRole === 'accountant') {
             if (role !== 'investor' || assigned_accountant_id !== senderId) {
@@ -197,7 +197,7 @@ export class MessagesService {
       const conversationId = newConvRes.rows[0].id;
 
       // 3. Add participants
-      const participantPromises = allParticipants.map(userId => 
+      const participantPromises = allParticipants.map(userId =>
         db.query(
           'INSERT INTO conversation_participants (conversation_id, user_id, is_admin) VALUES ($1, $2, $3)',
           [conversationId, userId, userId === senderId]
@@ -247,7 +247,7 @@ export class MessagesService {
         [conversationId]
       );
       if (checkRes.rowCount === 0) throw new NotFoundException('Conversation not found');
-      
+
       if (checkRes.rows[0].created_by !== userId) {
         throw new Error('Unauthorized to delete this conversation');
       }
@@ -270,7 +270,9 @@ export class MessagesService {
     }
   }
 
-  async removeParticipant(conversationId: string, targetUserId: string, requesterId: string) {
+  async removeParticipant(conversationId: string, targetUserId: string, requester: any) {
+    const requesterId = typeof requester === 'string' ? requester : (requester.userId || requester.id);
+    const isStaff = requester && typeof requester !== 'string' && ['admin', 'executive_admin', 'staff'].includes(requester.role);
     try {
       // Check if it is a group chat
       const convRes = await db.query(
@@ -287,11 +289,11 @@ export class MessagesService {
         'SELECT is_admin FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2',
         [conversationId, requesterId]
       );
-      
+
       const isCreator = convRes.rows[0].created_by === requesterId;
       const isAdmin = (checkAdminRes.rowCount ?? 0) > 0 && checkAdminRes.rows[0].is_admin;
 
-      if (!isAdmin && !isCreator) {
+      if (!isAdmin && !isCreator && !isStaff) {
         throw new Error('Unauthorized to remove members');
       }
 
@@ -303,7 +305,9 @@ export class MessagesService {
     }
   }
 
-  async addParticipants(conversationId: string, participantIds: string[], requesterId: string) {
+  async addParticipants(conversationId: string, participantIds: string[], requester: any) {
+    const requesterId = typeof requester === 'string' ? requester : (requester.userId || requester.id);
+    const isStaff = requester && typeof requester !== 'string' && ['admin', 'executive_admin', 'staff'].includes(requester.role);
     try {
       // Check if it is a group chat
       const convRes = await db.query(
@@ -311,21 +315,30 @@ export class MessagesService {
         [conversationId]
       );
       if (convRes.rowCount === 0) throw new NotFoundException('Conversation not found');
-      if (!convRes.rows[0].is_group) {
-        throw new Error('Cannot add participants to a 1-on-1 conversation');
-      }
+      const isGroup = convRes.rows[0].is_group;
 
       // Check if requester is admin of the conversation OR the creator
       const checkAdminRes = await db.query(
         'SELECT is_admin FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2',
         [conversationId, requesterId]
       );
-      
-      const isCreator = convRes.rows[0].created_by === requesterId;
-      const isAdmin = (checkAdminRes.rowCount ?? 0) > 0 && checkAdminRes.rows[0].is_admin;
 
-      if (!isAdmin && !isCreator) {
-        throw new Error('Unauthorized to add members');
+      const isParticipant = (checkAdminRes.rowCount ?? 0) > 0;
+      const isCreator = convRes.rows[0].created_by === requesterId;
+      const isAdmin = isParticipant && checkAdminRes.rows[0].is_admin;
+
+      // Authorization: 
+      // - Admins and creators can always add members.
+      // - In 1-on-1 chats, either participant can add members (which converts it to a group).
+      if (!isAdmin && !isCreator && !isStaff) {
+        if (isGroup || !isParticipant) {
+          throw new Error('Unauthorized to add members');
+        }
+      }
+
+      // If it's a 1-on-1 conversation, convert it to a group chat
+      if (!isGroup) {
+        await db.query('UPDATE conversations SET is_group = TRUE, updated_at = NOW() WHERE id = $1', [conversationId]);
       }
 
       const participantPromises = participantIds.map(async (userId) => {
@@ -333,7 +346,7 @@ export class MessagesService {
           'SELECT 1 FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2',
           [conversationId, userId]
         );
-        
+
         if (existingRes.rowCount === 0) {
           return db.query(
             'INSERT INTO conversation_participants (conversation_id, user_id, is_admin) VALUES ($1, $2, $3)',
@@ -341,7 +354,7 @@ export class MessagesService {
           );
         }
       });
-      
+
       await Promise.all(participantPromises);
       return { success: true };
     } catch (error: any) {
@@ -370,13 +383,13 @@ export class MessagesService {
 
     return { success: true, sentCount, failedCount };
   }
-  
+
   async deleteMessage(messageId: string, userId: string) {
     try {
       // Ensure the user is the sender of the message
       const checkResult = await db.query('SELECT sender_id FROM messages WHERE id = $1', [messageId]);
       if (checkResult.rowCount === 0) throw new NotFoundException('Message not found');
-      
+
       const message = checkResult.rows[0];
       if (message.sender_id !== userId) {
         // Option: allow admins to delete investor messages too? For now, only sender.
@@ -395,7 +408,7 @@ export class MessagesService {
     try {
       const checkResult = await db.query('SELECT sender_id FROM messages WHERE id = $1', [messageId]);
       if (checkResult.rowCount === 0) throw new NotFoundException('Message not found');
-      
+
       if (checkResult.rows[0].sender_id !== userId) {
         throw new Error('Unauthorized to edit this message');
       }
@@ -414,7 +427,7 @@ export class MessagesService {
       if (result.rowCount === 0) throw new NotFoundException('Message not found');
 
       let reactions = result.rows[0].reactions || {};
-      
+
       // If emoji already exists for this user, remove it (toggle)
       // reactions = { "👍": ["user1", "user2"], ... }
       if (reactions[emoji]) {
@@ -458,7 +471,7 @@ export class MessagesService {
         // Investors can only talk to staff/admins
         const staffRes = await db.query('SELECT id, full_name, role, profile_image_url FROM staff WHERE status = \'active\'');
         const adminUsersRes = await db.query('SELECT id, first_name || \' \' || last_name as full_name, role, profile_image_url FROM users WHERE role IN (\'admin\', \'executive_admin\')');
-        
+
         users = [
           ...staffRes.rows.map(r => ({ ...r, type: 'staff' })),
           ...adminUsersRes.rows.map(r => ({ ...r, type: 'admin' }))
@@ -466,14 +479,14 @@ export class MessagesService {
       } else {
         // Staff/Admins branch
         let investorsRes;
-        
+
         if (requesterRole === 'accountant') {
           // Accountants can only message their assigned investors
           investorsRes = await db.query(
             'SELECT id, full_name, role, profile_image_url FROM investors WHERE status = \'active\' AND assigned_accountant_id = $1',
             [userId]
           );
-          
+
           // Per request "only message their assigned investors", we omit other staff/admins for accountants
           users = [
             ...investorsRes.rows.map(r => ({ ...r, type: 'investor' }))

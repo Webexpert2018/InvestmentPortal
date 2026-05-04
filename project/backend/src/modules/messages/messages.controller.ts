@@ -56,7 +56,7 @@ export class MessagesController {
     @CurrentUser() user: any, 
     @Body('targetUserId') targetUserId: string
   ) {
-    return this.messagesService.removeParticipant(id, targetUserId, user.userId);
+    return this.messagesService.removeParticipant(id, targetUserId, user);
   }
 
   @Post('conversations/:id/add-participants')
@@ -65,7 +65,7 @@ export class MessagesController {
     @CurrentUser() user: any, 
     @Body('participantIds') participantIds: string[]
   ) {
-    return this.messagesService.addParticipants(id, participantIds || [], user.userId);
+    return this.messagesService.addParticipants(id, participantIds || [], user);
   }
 
   @Get('unread-count')
