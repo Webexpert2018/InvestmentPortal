@@ -78,9 +78,9 @@ export class AccountsService {
 
       const values = [
         userId,
-        dto.accountNumber,
+        dto.accountNumber?.trim() || null,
         dto.accountType,
-        dto.custodian || '',
+        dto.custodian?.trim() || null,
         dto.beneficiary || '',
         dto.middleName,
         dto.suffix,

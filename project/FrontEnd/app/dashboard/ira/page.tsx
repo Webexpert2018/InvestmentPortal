@@ -137,6 +137,11 @@ export default function IRAPage() {
 
   const { toast } = useToast();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferForm, setTransferForm] = useState({
+    accountNumber: '',
+    custodian: '',
+  });
   const [iraForm, setIraForm] = useState({
     accountType: 'Traditional IRA',
     accountNumber: '',
@@ -184,7 +189,7 @@ export default function IRAPage() {
   const validate = () => {
     const e: { [k: string]: string } = {};
     if (!iraForm.accountType.trim()) e.accountType = 'Please enter account type.';
-    if (!iraForm.accountNumber.trim()) e.accountNumber = 'Please enter account number.';
+    // if (!iraForm.accountNumber.trim()) e.accountNumber = 'Please enter account number.';
     //if (!iraForm.custodian.trim()) e.custodian = 'Please enter custodian name.';
     //if (!iraForm.beneficiary.trim()) e.beneficiary = 'Please enter beneficiary name.';
     if (!iraForm.maritalStatus) e.maritalStatus = 'Please select marital status.';
@@ -279,6 +284,28 @@ export default function IRAPage() {
     }
   };
 
+  const handleTransferIRA = () => {
+    if (!transferForm.accountNumber.trim()) {
+      globalToast({
+        title: 'Validation failed',
+        description: 'Please enter account number.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (!transferForm.custodian.trim()) {
+      globalToast({
+        title: 'Validation failed',
+        description: 'Please enter previous custodian name.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    alert('We will integrate an API soon for this');
+    setShowTransferModal(false);
+    setTransferForm({ accountNumber: '', custodian: '' });
+  };
+
   return (
     <DashboardLayout>
       <div className="mx-auto w-full max-w-8xl font-helvetica">
@@ -307,20 +334,29 @@ export default function IRAPage() {
                   <option value="personal">Personal Account</option>
                   {iraAccounts.map((acc, idx) => (
                     <option key={acc.id} value={idx}>
-                      {acc.account_type} ({acc.account_number})
+                      {acc.account_type}
                     </option>
                   ))}
                 </select>
               </div>
             )}
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 py-2 rounded-full text-sm font-medium shadow-md"
-          >
-            <Plus className="h-4 w-4" />
-            Add IRA Account
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowTransferModal(true)}
+              className="inline-flex items-center gap-2 border border-[#E5E7EB] bg-white px-5 py-2 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors"
+            >
+              <History className="h-4 w-4 text-[#D1A94C]" />
+              Transfer In
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 py-2 rounded-full text-sm font-medium shadow-md hover:opacity-90 transition-opacity"
+            >
+              <Plus className="h-4 w-4" />
+              New Account
+            </button>
+          </div>
         </div>
 
         {/* Main Card */}
@@ -516,7 +552,7 @@ export default function IRAPage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1]">
                   <Plus className="h-5 w-5 text-[#D1A94C]" />
                 </div>
-                <h2 className="text-[22px] font-bold text-[#1F1F1F] font-goudy">Add New IRA Account</h2>
+                <h2 className="text-[22px] font-bold text-[#1F1F1F] font-goudy">Open New IRA Account</h2>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -541,17 +577,6 @@ export default function IRAPage() {
                         placeholder="Select Account Type"
                       />
                       {errors.accountType && <p className="mt-1 text-[11px] text-red-500">{errors.accountType}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Account Number</label>
-                      <input
-                        type="text"
-                        placeholder="Enter account number"
-                        value={iraForm.accountNumber}
-                        onChange={e => setIraForm({ ...iraForm, accountNumber: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
-                      />
-                      {errors.accountNumber && <p className="mt-1 text-[11px] text-red-500">{errors.accountNumber}</p>}
                     </div>
                   </div>
                 </div>
@@ -675,17 +700,6 @@ export default function IRAPage() {
                       />
                       {errors.beneficiary && <p className="mt-1 text-[11px] text-red-500">{errors.beneficiary}</p>}
                     </div>
-                  </div>
-                  <div className="mt-4">
-                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Custodian</label>
-                    <input
-                      type="text"
-                      placeholder="Enter custodian name"
-                      value={iraForm.custodian}
-                      onChange={e => setIraForm({ ...iraForm, custodian: e.target.value })}
-                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
-                    />
-                    {errors.custodian && <p className="mt-1 text-[11px] text-red-500">{errors.custodian}</p>}
                   </div>
                 </div>
 
@@ -836,6 +850,60 @@ export default function IRAPage() {
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── TRANSFER IRA MODAL ─── */}
+      {showTransferModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-[20px] bg-white shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between border-b bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFF8E1]">
+                  <History className="h-4 w-4 text-[#D1A94C]" />
+                </div>
+                <h2 className="text-[18px] font-bold text-[#1F1F1F] font-goudy">Transfer IRA</h2>
+              </div>
+              <button
+                onClick={() => setShowTransferModal(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FAFAFA] text-[#9CA3AF] hover:bg-[#F3F4F6] transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              <div>
+                <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Account Number</label>
+                <input
+                  type="text"
+                  placeholder="Enter current account number"
+                  value={transferForm.accountNumber}
+                  onChange={e => setTransferForm({ ...transferForm, accountNumber: e.target.value })}
+                  className="w-full h-[42px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Previous Custodian Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Fidelity, Vanguard"
+                  value={transferForm.custodian}
+                  onChange={e => setTransferForm({ ...transferForm, custodian: e.target.value })}
+                  className="w-full h-[42px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={handleTransferIRA}
+                  className="w-full h-[45px] bg-[#D1A94C] text-white rounded-full text-sm font-semibold shadow-md hover:bg-[#B89440] transition-colors flex items-center justify-center gap-2"
+                >
+                  Transfer
+                </button>
               </div>
             </div>
           </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Search, ChevronDown, X, Loader2, Send, Plus } from 'lucide-react';
+import { Search, ChevronDown, X, Loader2, Send, Plus, History } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import Image from 'next/image';
@@ -59,6 +59,15 @@ export default function InvestorPage() {
     assigned_ir_id: '',
     assigned_accountant_id: ''
   });
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferForm, setTransferForm] = useState({
+    accountNumber: '',
+    custodian: '',
+  });
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
+
+
 
   const [irStaff, setIrStaff] = useState<any[]>([]);
   const [accountantStaff, setAccountantStaff] = useState<any[]>([]);
@@ -212,12 +221,29 @@ export default function InvestorPage() {
     }
   };
 
-  const handleCancelInvite = async (id: string) => {
-    if (!confirm('Are you sure you want to cancel this invitation?')) return;
+  const handleTransferIRA = () => {
+    if (!transferForm.accountNumber.trim()) {
+      toast.error('Please enter account number.');
+      return;
+    }
+    if (!transferForm.custodian.trim()) {
+      toast.error('Please enter previous custodian name.');
+      return;
+    }
+    alert('We will integrate an API soon for this');
+    setShowTransferModal(false);
+    setTransferForm({ accountNumber: '', custodian: '' });
+  };
+
+
+  const handleCancelInvite = async () => {
+    if (!cancelTargetId) return;
     try {
-      await apiClient.deleteUser(id);
+      await apiClient.deleteUser(cancelTargetId);
       toast.success('Invitation cancelled');
       fetchInvestors();
+      setShowCancelModal(false);
+      setCancelTargetId(null);
     } catch (error: any) {
       toast.error('Failed to cancel invitation');
     }
@@ -242,6 +268,17 @@ export default function InvestorPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowTransferModal(true);
+              }}
+              disabled={!selectedInvestorId}
+              className="px-8 py-3 bg-white text-[#4B5563] border border-[#E5E7EB] text-sm font-bold rounded-full hover:bg-gray-50 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <History className="h-4 w-4 text-[#D1A94C]" />
+              Transfer In IRA
+            </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -805,6 +842,60 @@ export default function InvestorPage() {
         />
       )}
 
+      {/* Admin Transfer IRA Modal */}
+      {showTransferModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4" onClick={() => setShowTransferModal(false)}>
+          <div className="w-full max-w-md rounded-[20px] bg-white shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFF8E1]">
+                  <History className="h-4 w-4 text-[#D1A94C]" />
+                </div>
+                <h2 className="text-[18px] font-bold text-[#1F1F1F]">Transfer IRA</h2>
+              </div>
+              <button
+                onClick={() => setShowTransferModal(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FAFAFA] text-[#9CA3AF] hover:bg-[#F3F4F6] transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              <div>
+                <label className="block text-[12px] font-medium text-[#6B7280] mb-1">Account Number</label>
+                <input
+                  type="text"
+                  placeholder="Enter current account number"
+                  value={transferForm.accountNumber}
+                  onChange={e => setTransferForm({ ...transferForm, accountNumber: e.target.value })}
+                  className="w-full h-[42px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] outline-none focus:border-[#D1A94C] bg-white transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-[12px] font-medium text-[#6B7280] mb-1">Previous Custodian Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Fidelity, Vanguard"
+                  value={transferForm.custodian}
+                  onChange={e => setTransferForm({ ...transferForm, custodian: e.target.value })}
+                  className="w-full h-[42px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] outline-none focus:border-[#D1A94C] bg-white transition-all"
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={handleTransferIRA}
+                  className="w-full h-[45px] bg-[#D1A94C] text-white rounded-full text-sm font-semibold shadow-md hover:bg-[#B89440] transition-colors flex items-center justify-center gap-2"
+                >
+                  Transfer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-[#000000]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -1051,6 +1142,36 @@ export default function InvestorPage() {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Cancel Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-4" onClick={() => setShowCancelModal(false)}>
+          <div className="w-full max-w-sm rounded-[24px] bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+            <div className="p-8 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 mb-5">
+                <X className="h-7 w-7 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-[#111827] mb-2">Cancel Invitation?</h3>
+              <p className="text-sm text-[#6B7280] font-medium leading-relaxed">
+                Are you sure you want to cancel this invitation? This action will delete the investor record and cannot be undone.
+              </p>
+            </div>
+            <div className="flex border-t divide-x">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 py-4 text-sm font-bold text-[#6B7280] hover:bg-gray-50 transition-all"
+              >
+                No, Keep it
+              </button>
+              <button
+                onClick={handleCancelInvite}
+                className="flex-1 py-4 text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
+              >
+                Yes, Cancel
+              </button>
             </div>
           </div>
         </div>

@@ -44,6 +44,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [isSuspending, setIsSuspending] = useState(false);
   const [showSuspendModal, setShowSuspendModal] = useState(false);
   const [showAdminIraModal, setShowAdminIraModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -181,9 +183,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   };
 
   const handleCancelInvite = async () => {
-    if (!confirm('Are you sure you want to cancel this invitation? This will delete the investor record.')) return;
     try {
-      setIsSuspending(true); // Using this as a general loading state for buttons
+      setIsSuspending(true);
       await apiClient.deleteUser(params.id);
       toast.success('Invitation cancelled');
       router.push(isAdmin ? '/dashboard/investor' : '/dashboard/assigned-investors');
@@ -191,6 +192,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       toast.error(err.message || 'Failed to cancel invitation');
     } finally {
       setIsSuspending(false);
+      setShowCancelModal(false);
     }
   };
 
@@ -302,7 +304,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                               </button>,
                               <button
                                 key="cancel"
-                                onClick={handleCancelInvite}
+                                onClick={() => setShowCancelModal(true)}
                                 disabled={isSuspending || !isPending}
                                 className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${
                                   isPending
@@ -1056,6 +1058,39 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
           }}
         />
       )}
+      {/* Cancel Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-4" onClick={() => setShowCancelModal(false)}>
+          <div className="w-full max-w-sm rounded-[24px] bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+            <div className="p-8 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 mb-5">
+                <X className="h-7 w-7 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-[#111827] mb-2">Cancel Invitation?</h3>
+              <p className="text-sm text-[#6B7280] font-medium leading-relaxed">
+                Are you sure you want to cancel this invitation? This action will delete the investor record and cannot be undone.
+              </p>
+            </div>
+            <div className="flex border-t divide-x">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 py-4 text-sm font-bold text-[#6B7280] hover:bg-gray-50 transition-all"
+              >
+                No, Keep it
+              </button>
+              <button
+                onClick={handleCancelInvite}
+                disabled={isSuspending}
+                className="flex-1 py-4 text-sm font-bold text-red-500 hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+              >
+                {isSuspending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Yes, Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
+
   );
 }

@@ -88,7 +88,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
   const validate = () => {
     const e: { [k: string]: string } = {};
     if (!iraForm.accountType.trim()) e.accountType = 'Please enter account type.';
-    if (!iraForm.accountNumber.trim()) e.accountNumber = 'Please enter account number.';
+    // if (!iraForm.accountNumber.trim()) e.accountNumber = 'Please enter account number.';
     // if (!iraForm.custodian.trim()) e.custodian = 'Please enter custodian name.';
     // if (!iraForm.beneficiary.trim()) e.beneficiary = 'Please enter beneficiary name.';
     if (!iraForm.maritalStatus) e.maritalStatus = 'Please select marital status.';
@@ -242,28 +242,6 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                       placeholder="Select Account Type"
                     />
                     {errors.accountType && <p className="mt-1 text-[11px] text-red-500">{errors.accountType}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Account Number</label>
-                    <input
-                      type="text"
-                      placeholder="Enter account number"
-                      value={iraForm.accountNumber}
-                      onChange={e => setIraForm({ ...iraForm, accountNumber: e.target.value })}
-                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm"
-                    />
-                    {errors.accountNumber && <p className="mt-1 text-[11px] text-red-500">{errors.accountNumber}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Custodian</label>
-                    <input
-                      type="text"
-                      placeholder="Enter custodian name"
-                      value={iraForm.custodian}
-                      onChange={e => setIraForm({ ...iraForm, custodian: e.target.value })}
-                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm"
-                    />
-                    {errors.custodian && <p className="mt-1 text-[11px] text-red-500">{errors.custodian}</p>}
                   </div>
                   <div>
                     <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Beneficiary</label>

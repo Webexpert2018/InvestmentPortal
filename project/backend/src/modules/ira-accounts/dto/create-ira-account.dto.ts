@@ -10,8 +10,8 @@ export class CreateAccountDto {
   accountType: string;
 
   @IsString()
-  @IsNotEmpty()
-  accountNumber: string;
+  @IsOptional()
+  accountNumber?: string;
 
   @IsString()
   @IsOptional()
