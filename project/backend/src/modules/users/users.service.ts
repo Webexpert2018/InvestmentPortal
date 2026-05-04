@@ -1,19 +1,104 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, ConflictException, OnModuleInit } from '@nestjs/common';
 import { db } from '../../config/database';
 import * as bcrypt from 'bcryptjs';
 import { EmailService } from '../email/email.service';
 import * as crypto from 'crypto';
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnModuleInit {
   constructor(private emailService: EmailService) { }
+
+  async onModuleInit() {
+    console.log('🔄 Checking notification settings columns...');
+    try {
+      await db.query(`
+        DO $$ 
+        BEGIN 
+            -- 1. Update users table
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='notif_doc_uploaded') THEN
+                ALTER TABLE users ADD COLUMN notif_doc_uploaded BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='notif_missing_doc') THEN
+                ALTER TABLE users ADD COLUMN notif_missing_doc BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='notif_investor_msg') THEN
+                ALTER TABLE users ADD COLUMN notif_investor_msg BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='notif_reminder') THEN
+                ALTER TABLE users ADD COLUMN notif_reminder BOOLEAN DEFAULT TRUE;
+            END IF;
+
+            -- 2. Update staff table
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='staff' AND column_name='notif_doc_uploaded') THEN
+                ALTER TABLE staff ADD COLUMN notif_doc_uploaded BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='staff' AND column_name='notif_missing_doc') THEN
+                ALTER TABLE staff ADD COLUMN notif_missing_doc BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='staff' AND column_name='notif_investor_msg') THEN
+                ALTER TABLE staff ADD COLUMN notif_investor_msg BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='staff' AND column_name='notif_reminder') THEN
+                ALTER TABLE staff ADD COLUMN notif_reminder BOOLEAN DEFAULT TRUE;
+            END IF;
+
+            -- 3. Update investors table
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_invest_activity') THEN
+                ALTER TABLE investors ADD COLUMN notif_invest_activity BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_funding_conf') THEN
+                ALTER TABLE investors ADD COLUMN notif_funding_conf BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_doc_uploads') THEN
+                ALTER TABLE investors ADD COLUMN notif_doc_uploads BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_kyc_updates') THEN
+                ALTER TABLE investors ADD COLUMN notif_kyc_updates BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_announcements') THEN
+                ALTER TABLE investors ADD COLUMN notif_announcements BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_sms_invest_conf') THEN
+                ALTER TABLE investors ADD COLUMN notif_sms_invest_conf BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_sms_security') THEN
+                ALTER TABLE investors ADD COLUMN notif_sms_security BOOLEAN DEFAULT TRUE;
+            END IF;
+
+            -- 4. Add document preferences to investors table
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='pref_send_by_email') THEN
+                ALTER TABLE investors ADD COLUMN pref_send_by_email BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='pref_tax_forms_alert') THEN
+                ALTER TABLE investors ADD COLUMN pref_tax_forms_alert BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='pref_auto_download') THEN
+                ALTER TABLE investors ADD COLUMN pref_auto_download BOOLEAN DEFAULT FALSE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='pref_paperless') THEN
+                ALTER TABLE investors ADD COLUMN pref_paperless BOOLEAN DEFAULT TRUE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='pref_format') THEN
+                ALTER TABLE investors ADD COLUMN pref_format VARCHAR DEFAULT 'PDF';
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='pref_frequency') THEN
+                ALTER TABLE investors ADD COLUMN pref_frequency VARCHAR DEFAULT 'Quarterly';
+            END IF;
+        END $$;
+      `);
+      console.log('✅ Notification settings columns checked/added.');
+    } catch (error) {
+      console.error('❌ Error initializing notification settings columns:', error);
+    }
+  }
   async getProfile(userId: string) {
     // First, check the users table (Admin/Staff)
     let result = await db.query(`
       SELECT 
         id, email, role, first_name as "firstName", last_name as "lastName", phone, status, created_at as "createdAt", 
         profile_image_url as "profileImageUrl", dob, address_line1 as "addressLine1", address_line2 as "addressLine2", 
-        city, state, zip_code as "zipCode", country, tax_id as "taxId", kyc_status as "kycStatus"
+        city, state, zip_code as "zipCode", country, tax_id as "taxId", kyc_status as "kycStatus",
+        notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder
       FROM users
       WHERE id = $1`,
       [userId]
@@ -28,7 +113,8 @@ export class UsersService {
           id, email, role, full_name, phone, status, created_at as "createdAt", 
           profile_image_url as "profileImageUrl", dob, address_line1 as "addressLine1", 
           address_line2 as "addressLine2", city, state, zip_code as "zipCode", country, 
-          tax_id as "taxId", 'approved' as "kycStatus"
+          tax_id as "taxId", 'approved' as "kycStatus",
+          notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder
         FROM staff
         WHERE id = $1`,
         [userId]
@@ -44,7 +130,10 @@ export class UsersService {
           i.dob, i.address_line1 as "addressLine1", i.address_line2 as "addressLine2", 
           i.city, i.state, i.zip_code as "zipCode", i.country, i.tax_id as "taxId", 
           i.profile_image_url as "profileImageUrl", i.kyc_status as "kycStatus",
-          ir.full_name as "assignedIrName", acc.full_name as "assignedAccountantName"
+          ir.full_name as "assignedIrName", acc.full_name as "assignedAccountantName",
+          i.notif_invest_activity, i.notif_funding_conf, i.notif_doc_uploads, i.notif_kyc_updates, i.notif_announcements, i.notif_sms_invest_conf, i.notif_sms_security,
+          i.pref_send_by_email, i.pref_tax_forms_alert, i.pref_auto_download, i.pref_paperless,
+          i.pref_format, i.pref_frequency
         FROM investors i
         LEFT JOIN staff ir ON i.assigned_ir_id = ir.id
         LEFT JOIN staff acc ON i.assigned_accountant_id = acc.id
@@ -85,7 +174,24 @@ export class UsersService {
       profileImageUrl: user.profileImageUrl || '',
       kycStatus: user.kycStatus || 'pending',
       assignedIrName: user.assignedIrName,
-      assignedAccountantName: user.assignedAccountantName
+      assignedAccountantName: user.assignedAccountantName,
+      notif_doc_uploaded: user.notif_doc_uploaded,
+      notif_missing_doc: user.notif_missing_doc,
+      notif_investor_msg: user.notif_investor_msg,
+      notif_reminder: user.notif_reminder,
+      notif_invest_activity: user.notif_invest_activity,
+      notif_funding_conf: user.notif_funding_conf,
+      notif_doc_uploads: user.notif_doc_uploads,
+      notif_kyc_updates: user.notif_kyc_updates,
+      notif_announcements: user.notif_announcements,
+      notif_sms_invest_conf: user.notif_sms_invest_conf,
+      notif_sms_security: user.notif_sms_security,
+      pref_send_by_email: user.pref_send_by_email,
+      pref_tax_forms_alert: user.pref_tax_forms_alert,
+      pref_auto_download: user.pref_auto_download,
+      pref_paperless: user.pref_paperless,
+      pref_format: user.pref_format,
+      pref_frequency: user.pref_frequency
     };
   }
 
@@ -103,7 +209,24 @@ export class UsersService {
     country?: string,
     taxId?: string,
     profileImageUrl?: string,
-  ) {
+    notif_doc_uploaded?: boolean,
+    notif_missing_doc?: boolean,
+    notif_investor_msg?: boolean,
+    notif_reminder?: boolean,
+    notif_invest_activity?: boolean,
+    notif_funding_conf?: boolean,
+    notif_doc_uploads?: boolean,
+    notif_kyc_updates?: boolean,
+    notif_announcements?: boolean,
+    notif_sms_invest_conf?: boolean,
+    notif_sms_security?: boolean,
+    pref_send_by_email?: boolean,
+    pref_tax_forms_alert?: boolean,
+    pref_auto_download?: boolean,
+    pref_paperless?: boolean,
+    pref_format?: string,
+    pref_frequency?: string,
+) {
     // Determine which table handles this user
     let tableName: string | null = null;
     let nameFieldType: 'split' | 'full' = 'split';
@@ -174,10 +297,34 @@ export class UsersService {
       country,
       tax_id: taxId,
       profile_image_url: profileImageUrl,
+      notif_doc_uploaded,
+      notif_missing_doc,
+      notif_investor_msg,
+      notif_reminder,
+      notif_invest_activity,
+      notif_funding_conf,
+      notif_doc_uploads,
+      notif_kyc_updates,
+      notif_announcements,
+      notif_sms_invest_conf,
+      notif_sms_security,
+      pref_send_by_email,
+      pref_tax_forms_alert,
+      pref_auto_download,
+      pref_paperless,
+      pref_format,
+      pref_frequency,
     };
 
+    // Filter fields based on table availability to prevent SQL errors
+    const commonFields = ['phone', 'dob', 'address_line1', 'address_line2', 'city', 'state', 'zip_code', 'country', 'tax_id', 'profile_image_url'];
+    const staffNotifs = ['notif_doc_uploaded', 'notif_missing_doc', 'notif_investor_msg', 'notif_reminder'];
+    const investorNotifs = [...staffNotifs, 'notif_invest_activity', 'notif_funding_conf', 'notif_doc_uploads', 'notif_kyc_updates', 'notif_announcements', 'notif_sms_invest_conf', 'notif_sms_security', 'pref_send_by_email', 'pref_tax_forms_alert', 'pref_auto_download', 'pref_paperless', 'pref_format', 'pref_frequency'];
+
+    const allowedColumns = tableName === 'investors' ? [...commonFields, ...investorNotifs] : [...commonFields, ...staffNotifs];
+
     for (const [colName, val] of Object.entries(fieldMap)) {
-      if (val !== undefined) {
+      if (val !== undefined && allowedColumns.includes(colName)) {
         updates.push(`${colName} = $${paramIndex++}`);
         values.push(val === '' ? null : val);
       }
@@ -186,8 +333,8 @@ export class UsersService {
     values.push(userId);
 
     const returning = nameFieldType === 'full' 
-      ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url'
-      : 'id, email, first_name, last_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url';
+      ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency'
+      : 'id, email, first_name, last_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder';
 
     const result = await db.query(
       `UPDATE ${tableName} SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING ${returning}`,
@@ -217,6 +364,23 @@ export class UsersService {
       country: user.country,
       taxId: user.tax_id,
       profileImageUrl: user.profile_image_url,
+      notif_doc_uploaded: user.notif_doc_uploaded,
+      notif_missing_doc: user.notif_missing_doc,
+      notif_investor_msg: user.notif_investor_msg,
+      notif_reminder: user.notif_reminder,
+      notif_invest_activity: user.notif_invest_activity,
+      notif_funding_conf: user.notif_funding_conf,
+      notif_doc_uploads: user.notif_doc_uploads,
+      notif_kyc_updates: user.notif_kyc_updates,
+      notif_announcements: user.notif_announcements,
+      notif_sms_invest_conf: user.notif_sms_invest_conf,
+      notif_sms_security: user.notif_sms_security,
+      pref_send_by_email: user.pref_send_by_email,
+      pref_tax_forms_alert: user.pref_tax_forms_alert,
+      pref_auto_download: user.pref_auto_download,
+      pref_paperless: user.pref_paperless,
+      pref_format: user.pref_format,
+      pref_frequency: user.pref_frequency
     };
   }
 

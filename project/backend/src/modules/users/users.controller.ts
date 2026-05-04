@@ -50,6 +50,18 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
       updateDto.zipCode,
       updateDto.country,
       updateDto.taxId,
+      updateDto.profileImageUrl,
+      updateDto.notif_doc_uploaded,
+      updateDto.notif_missing_doc,
+      updateDto.notif_investor_msg,
+      updateDto.notif_reminder,
+      updateDto.notif_invest_activity,
+      updateDto.notif_funding_conf,
+      updateDto.notif_doc_uploads,
+      updateDto.notif_kyc_updates,
+      updateDto.notif_announcements,
+      updateDto.notif_sms_invest_conf,
+      updateDto.notif_sms_security,
     );
   }
 
@@ -89,6 +101,18 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
       updateDto.zipCode,
       updateDto.country,
       updateDto.taxId,
+      updateDto.profileImageUrl,
+      updateDto.notif_doc_uploaded,
+      updateDto.notif_missing_doc,
+      updateDto.notif_investor_msg,
+      updateDto.notif_reminder,
+      updateDto.notif_invest_activity,
+      updateDto.notif_funding_conf,
+      updateDto.notif_doc_uploads,
+      updateDto.notif_kyc_updates,
+      updateDto.notif_announcements,
+      updateDto.notif_sms_invest_conf,
+      updateDto.notif_sms_security,
     );
   }
 
