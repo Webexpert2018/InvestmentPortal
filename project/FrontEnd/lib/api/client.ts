@@ -840,10 +840,10 @@ class ApiClient {
     });
   }
 
-  async addParticipants(id: string, participantIds: string[]) {
+  async addParticipants(id: string, participantIds: string[], groupName?: string, groupImageUrl?: string) {
     return this.request<{ success: boolean }>(`/messages/conversations/${id}/add-participants`, {
       method: 'POST',
-      body: JSON.stringify({ participantIds })
+      body: JSON.stringify({ participantIds, groupName, groupImageUrl })
     });
   }
 

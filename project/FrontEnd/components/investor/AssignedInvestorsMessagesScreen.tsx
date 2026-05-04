@@ -359,11 +359,13 @@ export function AssignedInvestorsMessagesScreen() {
         const newIds = selectedUserIds.filter(id => !currentParticipantIds.includes(id));
 
         if (newIds.length > 0) {
-          await apiClient.addParticipants(activeThreadId, newIds);
+          await apiClient.addParticipants(activeThreadId, newIds, groupNameInput, selectedGroupAvatar);
           toast({ title: 'Success', description: 'Members added successfully', variant: 'success' });
         }
         setIsNewChatModalOpen(false);
         setSelectedUserIds([]);
+        setGroupNameInput('');
+        setSelectedGroupAvatar('/images/messages-person/GroupIcon.png');
         setIsAddMode(false);
         await fetchConversations();
       } else {
@@ -1218,6 +1220,7 @@ export function AssignedInvestorsMessagesScreen() {
         if (!open) {
           setSelectedUserIds([]);
           setGroupNameInput('');
+          setSelectedGroupAvatar('/images/messages-person/GroupIcon.png');
           setUserSearch('');
           setIsAddMode(false);
         }
@@ -1303,7 +1306,7 @@ export function AssignedInvestorsMessagesScreen() {
           </div>
 
           <div className="p-6 pt-2 border-t border-[#F0F0F0] bg-gray-50/50 shrink-0">
-            {!isAddMode && selectedUserIds.length > 1 && (
+            {((!isAddMode && selectedUserIds.length > 1) || (isAddMode && !activeThread?.isGroup && selectedUserIds.length > 0)) && (
               <div className="space-y-3 pt-2">
                 <div>
                   <label className="text-[12px] font-bold text-[#6F7177] uppercase tracking-wider mb-2 block">Group Name</label>

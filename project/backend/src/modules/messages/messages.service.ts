@@ -305,7 +305,7 @@ export class MessagesService {
     }
   }
 
-  async addParticipants(conversationId: string, participantIds: string[], requester: any) {
+  async addParticipants(conversationId: string, participantIds: string[], requester: any, groupName?: string, groupImageUrl?: string) {
     const requesterId = typeof requester === 'string' ? requester : (requester.userId || requester.id);
     const isStaff = requester && typeof requester !== 'string' && ['admin', 'executive_admin', 'staff'].includes(requester.role);
     try {
@@ -336,9 +336,29 @@ export class MessagesService {
         }
       }
 
-      // If it's a 1-on-1 conversation, convert it to a group chat
+      // If it's a 1-on-1 conversation, convert it to a group chat and update name/avatar if provided
+      const updates = [];
+      const values = [];
+
       if (!isGroup) {
-        await db.query('UPDATE conversations SET is_group = TRUE, updated_at = NOW() WHERE id = $1', [conversationId]);
+        updates.push('is_group = TRUE');
+      }
+
+      if (groupName) {
+        updates.push(`group_name = $${values.length + 2}`);
+        values.push(groupName);
+      }
+
+      if (groupImageUrl) {
+        updates.push(`group_image_url = $${values.length + 2}`);
+        values.push(groupImageUrl);
+      }
+
+      if (updates.length > 0) {
+        await db.query(
+          `UPDATE conversations SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $1`,
+          [conversationId, ...values]
+        );
       }
 
       const participantPromises = participantIds.map(async (userId) => {

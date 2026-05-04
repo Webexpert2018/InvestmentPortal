@@ -63,9 +63,11 @@ export class MessagesController {
   async addParticipants(
     @Param('id') id: string, 
     @CurrentUser() user: any, 
-    @Body('participantIds') participantIds: string[]
+    @Body('participantIds') participantIds: string[],
+    @Body('groupName') groupName?: string,
+    @Body('groupImageUrl') groupImageUrl?: string
   ) {
-    return this.messagesService.addParticipants(id, participantIds || [], user);
+    return this.messagesService.addParticipants(id, participantIds || [], user, groupName, groupImageUrl);
   }
 
   @Get('unread-count')
