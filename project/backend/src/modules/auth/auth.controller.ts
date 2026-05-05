@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsDateString, IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
@@ -141,7 +141,7 @@ export class AuthController {
 
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
-  async signup(@Body() signupDto: SignupDto) {
+  async signup(@Body() signupDto: SignupDto, @Req() req: any) {
     if (
       !signupDto.email ||
       !signupDto.password ||
@@ -181,13 +181,14 @@ export class AuthController {
       signupDto.zipCode,
       signupDto.country,
       signupDto.taxId,
-      signupDto.invitationToken
+      signupDto.invitationToken,
+      req
     );
   }
 
   @Post('investor-signup')
   @HttpCode(HttpStatus.CREATED)
-  async investorSignup(@Body() signupDto: SignupDto) {
+  async investorSignup(@Body() signupDto: SignupDto, @Req() req: any) {
     if (
       !signupDto.email ||
       !signupDto.password ||
@@ -227,7 +228,8 @@ export class AuthController {
       signupDto.zipCode,
       signupDto.country,
       signupDto.taxId,
-      signupDto.invitationToken
+      signupDto.invitationToken,
+      req
     );
   }
 
@@ -242,11 +244,11 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body() loginDto: LoginDto, @Req() req: any) {
     if (!loginDto.email || !loginDto.password) {
       throw new BadRequestException('Missing required login fields');
     }
-    return this.authService.login(loginDto.email, loginDto.password, loginDto.role);
+    return this.authService.login(loginDto.email, loginDto.password, loginDto.role, req);
   }
 
   @Post('forgot-password')

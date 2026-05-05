@@ -5,6 +5,7 @@ import { db } from '../../config/database';
 import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import * as crypto from 'crypto';
+import { SessionsService } from '../sessions/sessions.service';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
     private emailService: EmailService,
     private notificationsService: NotificationsService,
+    private sessionsService: SessionsService,
   ) { }
 
   async signup(
@@ -19,7 +21,8 @@ export class AuthService {
     phone?: string, dob?: string, role?: string,
     addressLine1?: string, addressLine2?: string, city?: string, state?: string,
     zipCode?: string, country?: string, taxId?: string,
-    invitationToken?: string
+    invitationToken?: string,
+    req?: any
   ) {
     // 1. Check if user already exists in ANY table (users, investors, staff)
     const [existingUser, existingInvestor, existingStaff] = await Promise.all([
@@ -124,10 +127,20 @@ export class AuthService {
       newUser.lastName = nameParts.slice(1).join(' ') || '';
     }
 
+    // Record session
+    let sessionId = null;
+    if (req) {
+      const userAgent = req.headers['user-agent'] || '';
+      const ipAddress = req.ip || req.connection.remoteAddress || '';
+      const session = await this.sessionsService.createSession(newUser.id, newUser.role || targetRole, userAgent, ipAddress);
+      sessionId = session.id;
+    }
+
     const token = this.jwtService.sign({
       userId: newUser.id,
       email: newUser.email,
-      role: newUser.role || targetRole
+      role: newUser.role || targetRole,
+      sessionId
     });
 
     // Send welcome email asynchronously
@@ -170,7 +183,7 @@ export class AuthService {
     };
   }
 
-  async login(email: string, password: string, role?: string) {
+  async login(email: string, password: string, role?: string, req?: any) {
     try {
       // 1. Try finding in users table first (Admin)
       let result = await db.query(
@@ -240,10 +253,20 @@ export class AuthService {
         }
       }
 
+      // Record session
+      let sessionId = null;
+      if (req) {
+        const userAgent = req.headers['user-agent'] || '';
+        const ipAddress = req.ip || req.connection.remoteAddress || '';
+        const session = await this.sessionsService.createSession(user.id, user.role, userAgent, ipAddress);
+        sessionId = session.id;
+      }
+
       const token = this.jwtService.sign({
         userId: user.id,
         email: user.email,
-        role: user.role
+        role: user.role,
+        sessionId
       });
 
       return {

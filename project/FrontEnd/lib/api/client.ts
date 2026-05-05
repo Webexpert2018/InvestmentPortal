@@ -62,6 +62,19 @@ class ApiClient {
     }
 
     if (!response.ok) {
+      if (response.status === 401 && typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        // Check current path to determine which login page to use
+        const path = window.location.pathname;
+        if (path.includes('/dashboard/admin')) {
+           window.location.href = '/auth/login?flow=admin';
+        } else if (path.includes('/dashboard/accountant')) {
+           window.location.href = '/auth/login?flow=accountant';
+        } else {
+           window.location.href = '/auth/login?flow=investor';
+        }
+      }
+
       let errorMsg = data?.message || data?.error || `Error: ${response.status} ${response.statusText}`;
       let errorDetails = data?.details;
 
@@ -145,6 +158,16 @@ class ApiClient {
     return this.request<{ user: any; token: string }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password, role }),
+    });
+  }
+
+  async getSessions() {
+    return this.request<any[]>('/sessions');
+  }
+
+  async deleteSession(sessionId: string) {
+    return this.request<any>(`/sessions/${sessionId}`, {
+      method: 'DELETE',
     });
   }
 

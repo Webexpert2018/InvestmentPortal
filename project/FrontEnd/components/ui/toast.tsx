@@ -38,6 +38,8 @@ const toastVariants = cva(
           'border-[#10B981] bg-gradient-to-r from-[#F0FDF4] to-[#DCFCE7] text-[#166534]',
         disable:
           'border-[#F43F5E] bg-gradient-to-r from-[#FFF1F2] to-[#FFE4E6] text-[#9F1239]',
+        warning:
+          'border-[#F59E0B] bg-[#FFFBEB] text-[#92400E]',
       },
     },
     defaultVariants: {

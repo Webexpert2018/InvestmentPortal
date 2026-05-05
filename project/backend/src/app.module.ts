@@ -26,6 +26,7 @@ import { PipelineModule } from './modules/pipeline/pipeline.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { CrmModule } from './modules/crm/crm.module';
+import { SessionsModule } from './modules/sessions/sessions.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { CrmModule } from './modules/crm/crm.module';
     NotificationsModule,
     MessagesModule,
     CrmModule,
+    SessionsModule,
   ],
   controllers: [HealthController],
 })

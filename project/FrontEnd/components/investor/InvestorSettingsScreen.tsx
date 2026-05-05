@@ -1,13 +1,23 @@
 'use client';
 
 import { ChangeEvent, useMemo, useRef, useState, useEffect } from 'react';
-import { CalendarDays, ChevronDown, ChevronLeft, Plus, Upload, Eye, EyeOff, Loader2, MoreHorizontal, RefreshCcw } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronLeft, Plus, Upload, Eye, EyeOff, Loader2, MoreHorizontal, RefreshCcw, LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type SettingsTab =
   | 'profile'
@@ -24,6 +34,7 @@ type SessionItem = {
   name: string;
   subtitle: string;
   activeNow?: boolean;
+  signedInAt?: string;
 };
 
 type AccountItem = {
@@ -100,19 +111,7 @@ const defaultBankAdd = {
   bank_description: '',
 };
 
-const initialSessions: SessionItem[] = [
-  {
-    id: 'chrome-current',
-    name: 'Chrome on macOS (Current) - New York, USA',
-    subtitle: 'ACTIVE NOW',
-    activeNow: true,
-  },
-  {
-    id: 'safari-london',
-    name: 'Safari on Windows - London, UK',
-    subtitle: '2 hours ago',
-  },
-];
+const initialSessions: SessionItem[] = [];
 
 const initialAccounts: AccountItem[] = [
   {
@@ -220,6 +219,10 @@ export function InvestorSettingsScreen() {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [deleteBankId, setDeleteBankId] = useState<string | null>(null);
   const [isDeletingBank, setIsDeletingBank] = useState(false);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
+  const [sessionToRevoke, setSessionToRevoke] = useState<SessionItem | null>(null);
+  const [isConfirmRevokeOpen, setIsConfirmRevokeOpen] = useState(false);
 
   const countries = useMemo(() => {
     const allCountries = Country.getAllCountries();
@@ -284,6 +287,18 @@ export function InvestorSettingsScreen() {
       setBankAccounts([]);
     } finally {
       setBankAccountsLoading(false);
+    }
+  };
+
+  const loadSessions = async () => {
+    try {
+      setSessionsLoading(true);
+      const data = await apiClient.getSessions();
+      setSessions(data);
+    } catch (err) {
+      console.error('Error loading sessions:', err);
+    } finally {
+      setSessionsLoading(false);
     }
   };
 
@@ -374,6 +389,7 @@ export function InvestorSettingsScreen() {
 
     loadProfile();
     loadBankAccounts();
+    loadSessions();
   }, []);
 
   const [notifications, setNotifications] = useState({
@@ -1023,26 +1039,103 @@ export function InvestorSettingsScreen() {
         <div className="p-4">
           <p className="text-[10px] text-[#A2A5AA]">Review and manage devices currently logged into your account.</p>
           <div className="mt-2 divide-y divide-[#ECEDEF]">
-            {sessions.map((session) => (
-              <div key={session.id} className="flex items-center justify-between py-3">
-                <div>
-                  <p className="text-[12px] text-[#1F1F1F]">{session.name}</p>
-                  <p className={`mt-1 text-[10px] ${session.activeNow ? 'text-[#16A66A]' : 'text-[#A2A5AA]'}`}>
-                    {session.subtitle}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSessions((prev) => prev.filter((item) => item.id !== session.id))}
-                  className="h-[28px] rounded-full bg-[#FFF3D6] px-4 text-[10px] text-[#9E8C62]"
-                >
-                  Log Out
-                </button>
+            {sessionsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-[#274583]" />
               </div>
-            ))}
+            ) : sessions.length === 0 ? (
+              <p className="py-4 text-center text-[12px] text-[#A2A5AA]">No active sessions found.</p>
+            ) : (
+              sessions.map((session) => (
+                <div key={session.id} className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="text-[12px] font-medium text-[#1F1F1F]">{session.name}</p>
+                    <p className={`mt-1 text-[10px] ${session.activeNow ? 'text-[#16A66A]' : 'text-[#A2A5AA]'}`}>
+                      {session.subtitle}
+                    </p>
+                    <p className="mt-0.5 text-[9px] text-[#A2A5AA]">
+                      Logged in: {session.signedInAt}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={revokingSessionId === session.id}
+                    onClick={() => {
+                      if (session.activeNow) {
+                        toast({
+                          title: 'Current Session',
+                          description: 'You cannot log out of your current session here. Please use the Sign Out button.',
+                          variant: 'warning',
+                        });
+                        return;
+                      }
+                      setSessionToRevoke(session);
+                      setIsConfirmRevokeOpen(true);
+                    }}
+                    className="flex h-[28px] items-center justify-center gap-2 rounded-full bg-[#FBCB4B] px-4 text-[11px] font-semibold text-[#1F1F1F] hover:bg-[#F9BF2A] transition-colors disabled:opacity-50"
+                  >
+                    {revokingSessionId === session.id && <Loader2 className="h-3 w-3 animate-spin" />}
+                    Log Out
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </SectionCard>
+
+      {/* Confirmation Dialog for Revoking Session */}
+      <AlertDialog open={isConfirmRevokeOpen} onOpenChange={setIsConfirmRevokeOpen}>
+        <AlertDialogContent className="max-w-[400px] rounded-[20px] border-none bg-white p-6 shadow-2xl">
+          <AlertDialogHeader>
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
+              <LogOut className="h-6 w-6 text-red-500" />
+            </div>
+            <AlertDialogTitle className="text-center text-[18px] font-semibold text-[#1F1F1F]">
+              Terminate Session?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-[14px] text-[#6B7280]">
+              Are you sure you want to log out from <span className="font-medium text-[#1F1F1F]">{sessionToRevoke?.name}</span>? 
+              This will immediately end the session on that device.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6 flex gap-3 sm:justify-center">
+            <AlertDialogCancel className="h-[44px] flex-1 rounded-full border border-[#E5E7EB] bg-white text-[14px] font-medium text-[#6B7280] hover:bg-[#F9FAFB] transition-colors">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!sessionToRevoke) return;
+                
+                try {
+                  setRevokingSessionId(sessionToRevoke.id);
+                  setIsConfirmRevokeOpen(false);
+                  await apiClient.deleteSession(sessionToRevoke.id);
+                  setSessions((prev) => prev.filter((item) => item.id !== sessionToRevoke.id));
+                  toast({
+                    title: 'Success',
+                    description: 'Session terminated successfully',
+                    variant: 'success',
+                  });
+                } catch (err: any) {
+                  toast({
+                    title: 'Error',
+                    description: err.message || 'Failed to terminate session',
+                    variant: 'destructive',
+                  });
+                } finally {
+                  setRevokingSessionId(null);
+                  setSessionToRevoke(null);
+                }
+              }}
+              className="h-[44px] flex-1 rounded-full bg-red-500 text-[14px] font-semibold text-white shadow-sm hover:bg-red-600 transition-colors"
+            >
+              Log Out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 

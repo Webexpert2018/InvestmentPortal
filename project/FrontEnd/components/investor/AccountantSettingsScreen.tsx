@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect, ChangeEvent } from 'react';
-import { CalendarDays, ChevronDown, Plus, X, Eye, EyeOff, Loader2, Upload } from 'lucide-react';
+import { CalendarDays, ChevronDown, Plus, X, Eye, EyeOff, Loader2, Upload, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -9,6 +9,16 @@ import { apiClient, BASE_URL } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
 import { Combobox } from '@/components/ui/combobox';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 /* ═══════════════════════════════════════════════════════
    TYPES & DATA
@@ -21,6 +31,7 @@ interface Session {
   device: string;
   status: string;
   isActive: boolean;
+  signedInAt?: string;
 }
 
 const TAB_LIST: { id: AcctTab; label: string }[] = [
@@ -31,10 +42,7 @@ const TAB_LIST: { id: AcctTab; label: string }[] = [
 
 const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
 
-const SESSIONS: Session[] = [
-  { id: 's1', device: 'Chrome on macOS (Current) - New York, USA', status: 'ACTIVE NOW', isActive: true },
-  { id: 's2', device: 'Safari on Windows - London, UK', status: '2 hours ago', isActive: false },
-];
+const SESSIONS: Session[] = [];
 
 function PasswordInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   const [showPassword, setShowPassword] = useState(false);
@@ -185,7 +193,26 @@ export function AccountantSettingsScreen() {
     };
 
     loadProfile();
+    loadSessions();
   }, []);
+
+  const loadSessions = async () => {
+    try {
+      setSessionsLoading(true);
+      const data = await apiClient.getSessions();
+      setSessions(data.map((s: any) => ({
+        id: s.id,
+        device: s.name,
+        status: s.subtitle,
+        isActive: s.activeNow,
+        signedInAt: s.signedInAt
+      })));
+    } catch (err) {
+      console.error('Error loading sessions:', err);
+    } finally {
+      setSessionsLoading(false);
+    }
+  };
 
   // ── Security ──
   const [curPwd, setCurPwd] = useState('');
@@ -208,6 +235,10 @@ export function AccountantSettingsScreen() {
 
   // ── Logout modal ──
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
+  const [sessionToRevoke, setSessionToRevoke] = useState<Session | null>(null);
+  const [isConfirmRevokeOpen, setIsConfirmRevokeOpen] = useState(false);
 
   // ── Validation helpers ──
   const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
@@ -818,27 +849,96 @@ export function AccountantSettingsScreen() {
           <p className="text-[12px] text-[#9CA3AF] font-helvetica">
             Review and manage devices currently logged into your account.
           </p>
-          <div className="mt-2">
-            {sessions.map((s) => (
-              <div key={s.id} className="flex items-center justify-between border-b border-[#ECEDEF] py-4 last:border-b-0">
-                <div>
-                  <p className="text-[13px] text-[#1F1F1F] font-helvetica">{s.device}</p>
-                  <p className={`mt-[2px] text-[11px] font-semibold font-helvetica ${s.isActive ? 'text-[#16A66A]' : 'text-[#9CA3AF]'}`}>
-                    {s.status}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setLogoutOpen(true)}
-                  className="h-[32px] rounded-full border border-[#E5E7EB] bg-[#FAFAFA] px-4 text-[12px] font-medium text-[#6B7280] hover:bg-[#F3F4F6] transition-colors font-helvetica"
-                >
-                  Log Out
-                </button>
+          <div className="mt-2 divide-y divide-[#ECEDEF]">
+            {sessionsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-[#D1A94C]" />
               </div>
-            ))}
+            ) : sessions.length === 0 ? (
+              <p className="py-4 text-center text-[13px] text-[#9CA3AF]">No active sessions found.</p>
+            ) : (
+              sessions.map((s) => (
+                <div key={s.id} className="flex items-center justify-between py-4">
+                  <div>
+                    <p className="text-[13px] text-[#1F1F1F] font-helvetica">{s.device}</p>
+                    <p className={`mt-[2px] text-[11px] font-semibold font-helvetica ${s.isActive ? 'text-[#16A66A]' : 'text-[#9CA3AF]'}`}>
+                      {s.status}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-[#A2A5AA]">
+                      Logged in: {s.signedInAt}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={revokingSessionId === s.id}
+                    onClick={() => {
+                      if (s.isActive) {
+                        toast({
+                          title: 'Current Session',
+                          description: 'You cannot log out of your current session here. Please use the Sign Out button.',
+                          variant: 'warning',
+                        });
+                        return;
+                      }
+                      setSessionToRevoke(s);
+                      setIsConfirmRevokeOpen(true);
+                    }}
+                    className="flex h-[32px] items-center justify-center gap-2 rounded-full bg-[#FBCB4B] px-4 text-[11px] font-semibold text-[#1F1F1F] hover:bg-[#F9BF2A] transition-colors font-helvetica disabled:opacity-50"
+                  >
+                    {revokingSessionId === s.id && <Loader2 className="h-3 w-3 animate-spin" />}
+                    Log Out
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog for Revoking Session */}
+      <AlertDialog open={isConfirmRevokeOpen} onOpenChange={setIsConfirmRevokeOpen}>
+        <AlertDialogContent className="max-w-[400px] rounded-[20px] border-none bg-white p-6 shadow-2xl">
+          <AlertDialogHeader>
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
+              <LogOut className="h-6 w-6 text-red-500" />
+            </div>
+            <AlertDialogTitle className="text-center text-[18px] font-semibold text-[#1F1F1F]">
+              Terminate Session?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-[14px] text-[#6B7280]">
+              Are you sure you want to log out from <span className="font-medium text-[#1F1F1F]">{sessionToRevoke?.device}</span>? 
+              This will immediately end the session on that device.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6 flex gap-3 sm:justify-center">
+            <AlertDialogCancel className="h-[44px] flex-1 rounded-full border border-[#E5E7EB] bg-white text-[14px] font-medium text-[#6B7280] hover:bg-[#F9FAFB] transition-colors">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!sessionToRevoke) return;
+                
+                try {
+                  setRevokingSessionId(sessionToRevoke.id);
+                  setIsConfirmRevokeOpen(false);
+                  await apiClient.deleteSession(sessionToRevoke.id);
+                  setSessions(prev => prev.filter(item => item.id !== sessionToRevoke.id));
+                  toast({ title: 'Success', description: 'Session terminated', variant: 'success' });
+                } catch (err: any) {
+                  toast({ title: 'Error', description: err.message || 'Failed to terminate session', variant: 'destructive' });
+                } finally {
+                  setRevokingSessionId(null);
+                  setSessionToRevoke(null);
+                }
+              }}
+              className="h-[44px] flex-1 rounded-full bg-red-500 text-[14px] font-semibold text-white shadow-sm hover:bg-red-600 transition-colors"
+            >
+              Log Out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 

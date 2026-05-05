@@ -3,10 +3,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { db } from '../config/database';
+import { SessionsService } from '../modules/sessions/sessions.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private sessionsService: SessionsService
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -65,12 +69,31 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User account is not active');
     }
 
+    // Update last active if sessionId exists
+    if (payload.sessionId) {
+      // 1. Check if session is revoked
+      const sessionResult = await db.query(
+        'SELECT is_revoked FROM user_sessions WHERE id = $1',
+        [payload.sessionId]
+      );
+      
+      const session = sessionResult.rows[0];
+      if (session && session.is_revoked) {
+        throw new UnauthorizedException('Session has been revoked');
+      }
+
+      this.sessionsService.updateLastActive(payload.sessionId).catch(err => {
+        console.error('Failed to update session last active:', err);
+      });
+    }
+
     return {
       userId: user.id,
       email: user.email,
       role: user.role,
       firstName: user.first_name,
       lastName: user.last_name,
+      sessionId: payload.sessionId,
     };
   }
 }
