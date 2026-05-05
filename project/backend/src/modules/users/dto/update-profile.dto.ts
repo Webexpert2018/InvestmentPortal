@@ -99,4 +99,28 @@ export class UpdateProfileDto {
 
   @IsOptional()
   pref_frequency?: string;
+
+  @IsOptional()
+  notif_alerts?: boolean;
+
+  @IsOptional()
+  notif_nav_recalc?: boolean;
+
+  @IsOptional()
+  notif_sms_announcements?: boolean;
+
+  @IsOptional()
+  notif_sms_alerts?: boolean;
+
+  @IsOptional()
+  notif_sms_doc_uploads?: boolean;
+
+  @IsOptional()
+  notif_sms_nav_recalc?: boolean;
+
+  @IsOptional()
+  notif_sms_funding_conf?: boolean;
+
+  @IsOptional()
+  notif_sms_tax_forms?: boolean;
 }

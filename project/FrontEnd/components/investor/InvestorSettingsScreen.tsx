@@ -350,7 +350,7 @@ export function InvestorSettingsScreen() {
             },
             taxFormsAlert: {
               email: userData.pref_tax_forms_alert ?? true,
-              sms: false
+              sms: userData.notif_sms_tax_forms ?? false
             },
             navRecalc: {
               email: userData.notif_nav_recalc ?? true,
@@ -1061,6 +1061,7 @@ export function InvestorSettingsScreen() {
         notif_sms_nav_recalc: notifications.navRecalc.sms,
         notif_funding_conf: notifications.fundingConf.email,
         notif_sms_funding_conf: notifications.fundingConf.sms,
+        notif_sms_tax_forms: notifications.taxFormsAlert.sms,
       });
       toast({
         title: 'Success',
@@ -1099,7 +1100,7 @@ export function InvestorSettingsScreen() {
       {
         key: 'taxFormsAlert',
         title: 'Notify me when new tax forms are uploaded',
-        description: 'Get an alert with your tax documents are ready.',
+        description: 'Get an alert when your tax documents are ready.',
       },
       {
         key: 'navRecalc',

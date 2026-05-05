@@ -107,6 +107,9 @@ export class UsersService implements OnModuleInit {
             IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='pref_frequency') THEN
                 ALTER TABLE investors ADD COLUMN pref_frequency VARCHAR DEFAULT 'Quarterly';
             END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_sms_tax_forms') THEN
+                ALTER TABLE investors ADD COLUMN notif_sms_tax_forms BOOLEAN DEFAULT FALSE;
+            END IF;
         END $$;
       `);
       console.log('✅ Notification settings columns checked/added.');
@@ -155,7 +158,7 @@ export class UsersService implements OnModuleInit {
           i.profile_image_url as "profileImageUrl", i.kyc_status as "kycStatus",
           ir.full_name as "assignedIrName", acc.full_name as "assignedAccountantName",
           i.notif_invest_activity, i.notif_funding_conf, i.notif_doc_uploads, i.notif_kyc_updates, i.notif_announcements, i.notif_sms_invest_conf, i.notif_sms_security,
-          i.notif_alerts, i.notif_nav_recalc, i.notif_sms_announcements, i.notif_sms_alerts, i.notif_sms_doc_uploads, i.notif_sms_nav_recalc, i.notif_sms_funding_conf,
+          i.notif_alerts, i.notif_nav_recalc, i.notif_sms_announcements, i.notif_sms_alerts, i.notif_sms_doc_uploads, i.notif_sms_nav_recalc, i.notif_sms_funding_conf, i.notif_sms_tax_forms,
           i.pref_send_by_email, i.pref_tax_forms_alert, i.pref_auto_download, i.pref_paperless,
           i.pref_format, i.pref_frequency
         FROM investors i
@@ -217,6 +220,7 @@ export class UsersService implements OnModuleInit {
       notif_sms_doc_uploads: user.notif_sms_doc_uploads,
       notif_sms_nav_recalc: user.notif_sms_nav_recalc,
       notif_sms_funding_conf: user.notif_sms_funding_conf,
+      notif_sms_tax_forms: user.notif_sms_tax_forms,
       pref_send_by_email: user.pref_send_by_email,
       pref_tax_forms_alert: user.pref_tax_forms_alert,
       pref_auto_download: user.pref_auto_download,
@@ -258,6 +262,7 @@ export class UsersService implements OnModuleInit {
     notif_sms_doc_uploads?: boolean,
     notif_sms_nav_recalc?: boolean,
     notif_sms_funding_conf?: boolean,
+    notif_sms_tax_forms?: boolean,
     pref_send_by_email?: boolean,
     pref_tax_forms_alert?: boolean,
     pref_auto_download?: boolean,
@@ -353,6 +358,7 @@ export class UsersService implements OnModuleInit {
       notif_sms_doc_uploads,
       notif_sms_nav_recalc,
       notif_sms_funding_conf,
+      notif_sms_tax_forms,
       pref_send_by_email,
       pref_tax_forms_alert,
       pref_auto_download,
@@ -364,7 +370,7 @@ export class UsersService implements OnModuleInit {
     // Filter fields based on table availability to prevent SQL errors
     const commonFields = ['phone', 'dob', 'address_line1', 'address_line2', 'city', 'state', 'zip_code', 'country', 'tax_id', 'profile_image_url'];
     const staffNotifs = ['notif_doc_uploaded', 'notif_missing_doc', 'notif_investor_msg', 'notif_reminder'];
-    const investorNotifs = [...staffNotifs, 'notif_invest_activity', 'notif_funding_conf', 'notif_doc_uploads', 'notif_kyc_updates', 'notif_announcements', 'notif_sms_invest_conf', 'notif_sms_security', 'notif_alerts', 'notif_nav_recalc', 'notif_sms_announcements', 'notif_sms_alerts', 'notif_sms_doc_uploads', 'notif_sms_nav_recalc', 'notif_sms_funding_conf', 'pref_send_by_email', 'pref_tax_forms_alert', 'pref_auto_download', 'pref_paperless', 'pref_format', 'pref_frequency'];
+    const investorNotifs = [...staffNotifs, 'notif_invest_activity', 'notif_funding_conf', 'notif_doc_uploads', 'notif_kyc_updates', 'notif_announcements', 'notif_sms_invest_conf', 'notif_sms_security', 'notif_alerts', 'notif_nav_recalc', 'notif_sms_announcements', 'notif_sms_alerts', 'notif_sms_doc_uploads', 'notif_sms_nav_recalc', 'notif_sms_funding_conf', 'notif_sms_tax_forms', 'pref_send_by_email', 'pref_tax_forms_alert', 'pref_auto_download', 'pref_paperless', 'pref_format', 'pref_frequency'];
 
     const allowedColumns = tableName === 'investors' ? [...commonFields, ...investorNotifs] : [...commonFields, ...staffNotifs];
 
@@ -378,7 +384,7 @@ export class UsersService implements OnModuleInit {
     values.push(userId);
 
     const returning = nameFieldType === 'full'
-      ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, notif_alerts, notif_nav_recalc, notif_sms_announcements, notif_sms_alerts, notif_sms_doc_uploads, notif_sms_nav_recalc, notif_sms_funding_conf, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency'
+      ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, notif_alerts, notif_nav_recalc, notif_sms_announcements, notif_sms_alerts, notif_sms_doc_uploads, notif_sms_nav_recalc, notif_sms_funding_conf, notif_sms_tax_forms, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency'
       : 'id, email, first_name, last_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder';
 
     const result = await db.query(
@@ -420,6 +426,13 @@ export class UsersService implements OnModuleInit {
       notif_announcements: user.notif_announcements,
       notif_sms_invest_conf: user.notif_sms_invest_conf,
       notif_sms_security: user.notif_sms_security,
+      notif_sms_tax_forms: user.notif_sms_tax_forms,
+      notif_alerts: user.notif_alerts,
+      notif_nav_recalc: user.notif_nav_recalc,
+      notif_sms_announcements: user.notif_sms_announcements,
+      notif_sms_alerts: user.notif_sms_alerts,
+      notif_sms_nav_recalc: user.notif_sms_nav_recalc,
+      notif_sms_funding_conf: user.notif_sms_funding_conf,
       pref_send_by_email: user.pref_send_by_email,
       pref_tax_forms_alert: user.pref_tax_forms_alert,
       pref_auto_download: user.pref_auto_download,

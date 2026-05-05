@@ -62,6 +62,16 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
       updateDto.notif_announcements,
       updateDto.notif_sms_invest_conf,
       updateDto.notif_sms_security,
+      updateDto.notif_alerts,
+      updateDto.notif_nav_recalc,
+      updateDto.notif_sms_announcements,
+      updateDto.notif_sms_alerts,
+      updateDto.notif_sms_doc_uploads,
+      updateDto.notif_sms_nav_recalc,
+      updateDto.notif_sms_funding_conf,
+      updateDto.notif_sms_tax_forms,
+      updateDto.pref_send_by_email,
+      updateDto.pref_tax_forms_alert,
     );
   }
 
@@ -113,6 +123,16 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
       updateDto.notif_announcements,
       updateDto.notif_sms_invest_conf,
       updateDto.notif_sms_security,
+      updateDto.notif_alerts,
+      updateDto.notif_nav_recalc,
+      updateDto.notif_sms_announcements,
+      updateDto.notif_sms_alerts,
+      updateDto.notif_sms_doc_uploads,
+      updateDto.notif_sms_nav_recalc,
+      updateDto.notif_sms_funding_conf,
+      updateDto.notif_sms_tax_forms,
+      updateDto.pref_send_by_email,
+      updateDto.pref_tax_forms_alert,
     );
   }
 
