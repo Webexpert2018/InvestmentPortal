@@ -76,7 +76,7 @@ const formatDateForInput = (dateStr: string | null | undefined) => {
 };
 
 export function AccountantSettingsScreen() {
-  const { logout, updateUser, profileTimestamp } = useAuth();
+  const { user, refreshUser, logout, updateUser, profileTimestamp } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -182,6 +182,7 @@ export function AccountantSettingsScreen() {
           if (userData.notif_missing_doc !== undefined) setNotifMissingDoc(!!userData.notif_missing_doc);
           if (userData.notif_investor_msg !== undefined) setNotifInvestorMsg(!!userData.notif_investor_msg);
           if (userData.notif_reminder !== undefined) setNotifReminder(!!userData.notif_reminder);
+          if (userData.notif_sms_security !== undefined) setNotifSmsSecurity(!!userData.notif_sms_security);
         }
         setError(null);
       } catch (err) {
@@ -220,6 +221,13 @@ export function AccountantSettingsScreen() {
   const [confirmPwd, setConfirmPwd] = useState('');
   const [authApp, setAuthApp] = useState(false);
   const [smsCodes, setSmsCodes] = useState(false);
+  const [mfaSetupOpen, setMfaSetupOpen] = useState(false);
+  const [mfaQrCode, setMfaQrCode] = useState('');
+  const [mfaSecret, setMfaSecret] = useState('');
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaRecoveryCodes, setMfaRecoveryCodes] = useState<string[]>([]);
+  const [mfaLoading, setMfaLoading] = useState(false);
+  const [showRecoveryCodes, setShowRecoveryCodes] = useState(false);
   const [sessions, setSessions] = useState<Session[]>(SESSIONS);
 
   // ── Notifications ──
@@ -227,6 +235,7 @@ export function AccountantSettingsScreen() {
   const [notifMissingDoc, setNotifMissingDoc] = useState(true);
   const [notifInvestorMsg, setNotifInvestorMsg] = useState(false);
   const [notifReminder, setNotifReminder] = useState(true);
+  const [notifSmsSecurity, setNotifSmsSecurity] = useState(false);
   const [savingNotif, setSavingNotif] = useState(false);
 
   // ── Form errors ──
@@ -819,20 +828,63 @@ export function AccountantSettingsScreen() {
               <p className="text-[14px] font-semibold text-[#1F1F1F] font-helvetica">Authenticator App</p>
               <p className="mt-[2px] text-[12px] text-[#9CA3AF] font-helvetica">Time-based one-time password (OTP)</p>
             </div>
-            {renderToggle(authApp, () => setAuthApp(!authApp))}
+            {renderToggle(user?.twoFactorEnabled || false, async () => {
+              if (user?.twoFactorEnabled) {
+                if (confirm('Are you sure you want to disable 2FA?')) {
+                  try {
+                    await apiClient.disableTwoFactor();
+                    refreshUser();
+                    toast({ title: 'Success', description: '2FA Disabled', variant: 'success' });
+                  } catch (err: any) {
+                    toast({ title: 'Error', description: err.message || 'Failed to disable 2FA', variant: 'destructive' });
+                  }
+                }
+              } else {
+                try {
+                  const res = await apiClient.generateTwoFactor();
+                  setMfaQrCode(res.qrCodeDataUrl);
+                  setMfaSecret(res.secret);
+                  setMfaCode('');
+                  setMfaSetupOpen(true);
+                } catch (err: any) {
+                  toast({ title: 'Error', description: err.message || 'Failed to start 2FA setup', variant: 'destructive' });
+                }
+              }
+            })}
           </div>
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
             <div>
               <p className="text-[14px] font-semibold text-[#1F1F1F] font-helvetica">SMS Backup Codes</p>
               <p className="mt-[2px] text-[12px] text-[#9CA3AF] font-helvetica">Receive codes via text message as a backup.</p>
             </div>
-            {renderToggle(smsCodes, () => setSmsCodes(!smsCodes))}
+            {renderToggle(notifSmsSecurity, async () => {
+              try {
+                const newVal = !notifSmsSecurity;
+                await apiClient.updateProfile({ notif_sms_security: newVal });
+                setNotifSmsSecurity(newVal);
+                toast({ title: 'Success', description: `SMS Backup ${newVal ? 'enabled' : 'disabled'}`, variant: 'success' });
+              } catch (err: any) {
+                toast({ title: 'Error', description: 'Failed to update SMS backup setting', variant: 'destructive' });
+              }
+            })}
           </div>
           {/* Download Recovery Codes */}
           <div className="py-4">
             <button
               type="button"
-              className="h-[36px] rounded-full border border-[#F5D98A] bg-[#FFF8E7] px-5 text-[12px] font-medium text-[#92722A] hover:bg-[#FFF3D6] transition-colors font-helvetica"
+              disabled={!user?.twoFactorEnabled || !user?.twoFactorRecoveryCodes?.length}
+              onClick={() => {
+                if (!user?.twoFactorRecoveryCodes?.length) return;
+                const element = document.createElement("a");
+                const file = new Blob([user.twoFactorRecoveryCodes.join('\n')], {type: 'text/plain'});
+                element.href = URL.createObjectURL(file);
+                element.download = "recovery-codes.txt";
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+                toast({ title: 'Downloaded', description: 'Recovery codes have been downloaded.', variant: 'success' });
+              }}
+              className="h-[40px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] shadow-sm hover:shadow-md transition-all font-helvetica disabled:opacity-50"
             >
               Download Recovery Codes
             </button>
@@ -937,6 +989,113 @@ export function AccountantSettingsScreen() {
               Log Out
             </AlertDialogAction>
           </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* MFA Setup Modal */}
+      <AlertDialog open={mfaSetupOpen} onOpenChange={setMfaSetupOpen}>
+        <AlertDialogContent className="max-w-[440px] rounded-[20px] bg-white p-6 shadow-2xl border-none">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center text-[20px] font-bold text-[#1F1F1F]">
+              {showRecoveryCodes ? 'Backup Recovery Codes' : 'Secure Your Account'}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-[14px] text-[#6B7280]">
+              {showRecoveryCodes 
+                ? 'Save these codes in a safe place. You can use them to access your account if you lose your phone.'
+                : 'Scan the QR code below with your authenticator app (like Google Authenticator or Authy).'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {showRecoveryCodes ? (
+            <div className="mt-4">
+              <div className="grid grid-cols-2 gap-2 bg-[#F9FAFB] p-4 rounded-xl border border-[#ECEDEF]">
+                {mfaRecoveryCodes.map((code, idx) => (
+                  <div key={idx} className="text-[14px] font-mono text-[#1F1F1F] text-center py-1">
+                    {code}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 flex flex-col gap-3">
+                <button
+                  onClick={() => {
+                    const text = mfaRecoveryCodes.join('\n');
+                    navigator.clipboard.writeText(text);
+                    toast({ title: 'Copied', description: 'Recovery codes copied to clipboard', variant: 'success' });
+                  }}
+                  className="h-[44px] rounded-full border border-[#E5E7EB] bg-white text-[14px] font-medium text-[#1F1F1F] hover:bg-[#F9FAFB] transition-colors"
+                >
+                  Copy to Clipboard
+                </button>
+                <AlertDialogAction
+                  onClick={() => {
+                    setMfaSetupOpen(false);
+                    setShowRecoveryCodes(false);
+                    refreshUser();
+                  }}
+                  className="h-[44px] rounded-full bg-[#FBCB4B] text-[14px] font-semibold text-[#1F1F1F] hover:bg-[#F9BF2A] transition-colors"
+                >
+                  I've Saved These Codes
+                </AlertDialogAction>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4 flex flex-col items-center">
+              {mfaQrCode ? (
+                <div className="bg-white p-3 rounded-xl border border-[#ECEDEF] mb-6">
+                  <img src={mfaQrCode} alt="2FA QR Code" className="w-[180px] h-[180px]" />
+                </div>
+              ) : (
+                <div className="w-[180px] h-[180px] flex items-center justify-center bg-[#F9FAFB] rounded-xl mb-6">
+                  <Loader2 className="h-8 w-8 animate-spin text-[#FBCB4B]" />
+                </div>
+              )}
+
+              <div className="w-full space-y-4">
+                <div>
+                  <label className="block text-[12px] font-medium text-[#4B4B4B] mb-1.5">
+                    Verification Code
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter 6-digit code"
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value)}
+                    className="h-[44px] w-full rounded-full border border-[#E5E7EB] px-4 text-[14px] text-center tracking-[0.5em] font-semibold focus:border-[#FBCB4B] focus:ring-1 focus:ring-[#FBCB4B] outline-none"
+                    maxLength={6}
+                  />
+                </div>
+                
+                <div className="flex gap-3">
+                  <AlertDialogCancel className="h-[44px] flex-1 rounded-full border border-[#E5E7EB] bg-white text-[14px] font-medium text-[#6B7280]">
+                    Cancel
+                  </AlertDialogCancel>
+                  <button
+                    onClick={async () => {
+                      if (mfaCode.length !== 6) {
+                        toast({ title: 'Invalid Code', description: 'Please enter a 6-digit code', variant: 'destructive' });
+                        return;
+                      }
+                      setMfaLoading(true);
+                      try {
+                        const res = await apiClient.enableTwoFactor(mfaCode);
+                        setMfaRecoveryCodes(res.recoveryCodes);
+                        setShowRecoveryCodes(true);
+                        toast({ title: '2FA Enabled', description: 'Your account is now more secure', variant: 'success' });
+                      } catch (err: any) {
+                        toast({ title: 'Error', description: err.message || 'Failed to enable 2FA', variant: 'destructive' });
+                      } finally {
+                        setMfaLoading(false);
+                      }
+                    }}
+                    disabled={mfaLoading || mfaCode.length !== 6}
+                    className="h-[44px] flex-1 rounded-full bg-[#FBCB4B] text-[14px] font-semibold text-[#1F1F1F] hover:bg-[#F9BF2A] transition-colors disabled:opacity-50"
+                  >
+                    {mfaLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Verify & Enable'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </AlertDialogContent>
       </AlertDialog>
     </div>

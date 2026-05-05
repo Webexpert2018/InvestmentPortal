@@ -3,8 +3,9 @@
 import { useState, Suspense } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
+import { Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { apiClient } from '@/lib/api/client';
 
 type LoginFlow = 'admin' | 'accountant' | 'investor';
 
@@ -32,6 +33,10 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaData, setMfaData] = useState<{ userId: string; role: string } | null>(null);
+  const router = useRouter();
 
   let flowParam = (searchParams.get('flow') || '').toLowerCase();
   if (flowParam === 'account') flowParam = 'accountant';
@@ -55,13 +60,107 @@ function LoginForm() {
     };
 
     try {
-      await login(email, password, roleMap[flow]);
+      const response = await login(email, password, roleMap[flow]);
+      if (response?.mfaRequired) {
+        setMfaRequired(true);
+        setMfaData({ userId: response.userId, role: response.role });
+      }
     } catch (err: any) {
       setError(err?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
+
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfaData) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await apiClient.verifyTwoFactor({
+        userId: mfaData.userId,
+        role: mfaData.role,
+        code: mfaCode,
+      });
+
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+        // Refresh the page or redirect to dashboard
+        window.location.href = '/dashboard';
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Invalid 2FA code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (mfaRequired) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
+        style={{ backgroundImage: "url('/images/login-bg.jpg')" }}
+      >
+        <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
+          <button
+            onClick={() => setMfaRequired(false)}
+            className="flex items-center text-gray-500 hover:text-gray-700 mb-4 text-sm"
+          >
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            Back to login
+          </button>
+
+          <a href="/" className="flex justify-center mb-3 sm:mb-4">
+            <img src="/images/logo.png" alt="Logo" className="logo-container" />
+          </a>
+
+          <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
+            Two-Factor Auth
+          </h2>
+          <p className="mt-1 text-center text-md sm:text-xl">
+            Enter the 6-digit code from your authenticator app or a recovery code.
+          </p>
+
+          <form onSubmit={handleMfaSubmit} className="mt-6 space-y-4">
+            <div>
+              <label className="block font-helvetica font-medium text-sm sm:text-md text-[#4B4B4B] mb-1">
+                Security Code
+              </label>
+              <input
+                type="text"
+                placeholder="000000"
+                required
+                autoFocus
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value)}
+                disabled={loading}
+                className="w-full font-helvetica text-center tracking-[1em] text-lg sm:text-xl rounded-md border px-3 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                maxLength={8}
+              />
+            </div>
+
+            {error && (
+              <div className="text-sm text-red-600 text-center">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-4 flex justify-center items-center rounded-full bg-yellow-400 py-2.5 text-sm font-medium text-gray-900 hover:bg-yellow-500 transition"
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading ? 'Verifying...' : 'Verify & Log In'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

@@ -1163,6 +1163,33 @@ class ApiClient {
   async getAssignedInvestors() {
     return this.request<any[]>('/users/assigned-investors');
   }
+
+  // --- 2FA ---
+  async generateTwoFactor() {
+    return this.request<{ secret: string; qrCodeDataUrl: string }>('/auth/2fa/generate', {
+      method: 'POST',
+    });
+  }
+
+  async enableTwoFactor(code: string) {
+    return this.request<{ success: boolean; recoveryCodes: string[] }>('/auth/2fa/enable', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    });
+  }
+
+  async disableTwoFactor() {
+    return this.request<{ success: boolean }>('/auth/2fa/disable', {
+      method: 'POST',
+    });
+  }
+
+  async verifyTwoFactor(data: { userId: string; role: string; code: string }) {
+    return this.request<{ user: any; token: string }>('/auth/2fa/verify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 
