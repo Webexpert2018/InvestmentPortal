@@ -143,13 +143,29 @@ if (process.env.VERCEL !== '1') {
 
 // Support for Vercel Serverless Functions
 export default async (req: any, res: any) => {
-  // 🔍 Diagnostic Check: Ensure critical env vars are present
+  // 1. Handle Preflight (OPTIONS) immediately
+  // This must be FIRST to ensure CORS preflight always succeeds even if the app is cold-starting or misconfigured
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization, X-Requested-With, Origin, Content-Type, Accept');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+    return res.status(204).end();
+  }
+
+  // 2. 🔍 Diagnostic Check: Ensure critical env vars are present
   const missingVars = [];
   if (!process.env.DATABASE_URL) missingVars.push('DATABASE_URL');
   if (!process.env.JWT_SECRET) missingVars.push('JWT_SECRET');
 
   if (missingVars.length > 0 && (process.env.VERCEL === '1' || process.env.NODE_ENV === 'production')) {
     console.error(`❌ MISSING CONFIGURATION: ${missingVars.join(', ')}`);
+    
+    // Set CORS headers even on error responses to allow the frontend to read the error
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+
     return res.status(500).json({
       statusCode: 500,
       message: 'Backend Configuration Error',
@@ -160,15 +176,6 @@ export default async (req: any, res: any) => {
   try {
     const app = await bootstrap();
     const server = app.getHttpAdapter().getInstance();
-
-    // Handle Preflight (OPTIONS)
-    if (req.method === 'OPTIONS') {
-      res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization, X-Requested-With');
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      return res.status(204).end();
-    }
 
     return server(req, res);
   } catch (error: any) {
