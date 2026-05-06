@@ -205,6 +205,13 @@ class ApiClient {
     return this.request<any>(`/users/${id}`);
   }
 
+  async updateUser(userId: string, data: any) {
+    return this.request<any>(`/users/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
   async inviteInvestor(data: any) {
     return this.request<any>('/users/invite', {
       method: 'POST',

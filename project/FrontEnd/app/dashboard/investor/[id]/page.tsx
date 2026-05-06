@@ -45,6 +45,9 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [showSuspendModal, setShowSuspendModal] = useState(false);
   const [showAdminIraModal, setShowAdminIraModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isEditingTaxId, setIsEditingTaxId] = useState(false);
+  const [editedTaxId, setEditedTaxId] = useState('');
+  const [isSavingTaxId, setIsSavingTaxId] = useState(false);
 
 
   useEffect(() => {
@@ -59,6 +62,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
           apiClient.getInvestorStats(params.id)
         ]);
         setInvestorData(profile);
+        setEditedTaxId(profile.taxId || '');
         setKycDocuments(docs);
         setFundingHistory(investments);
         setRedemptionHistory(redemptions);
@@ -193,6 +197,20 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     } finally {
       setIsSuspending(false);
       setShowCancelModal(false);
+    }
+  };
+
+  const handleSaveTaxId = async () => {
+    try {
+      setIsSavingTaxId(true);
+      await apiClient.updateUser(params.id, { taxId: editedTaxId });
+      setInvestorData({ ...investorData, taxId: editedTaxId });
+      setIsEditingTaxId(false);
+      toast.success('Tax ID updated successfully');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update Tax ID');
+    } finally {
+      setIsSavingTaxId(false);
     }
   };
 
@@ -398,8 +416,59 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       </div>
 
                       <div className="space-y-1.5">
-                        <span className="text-xs font-bold text-gray-400">Tax ID</span>
-                        <p className="text-sm font-bold text-gray-900">{investorData.taxId || '56235895656'}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-gray-400">Tax ID</span>
+                          {isAdmin && !isEditingTaxId && (
+                            <button 
+                              onClick={() => setIsEditingTaxId(true)}
+                              className="text-[10px] font-bold text-[#3B82F6] hover:underline"
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </div>
+                        {isEditingTaxId ? (
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={editedTaxId}
+                              maxLength={11}
+                              onChange={(e) => {
+                                let val = e.target.value.replace(/\D/g, '');
+                                if (val.length > 9) val = val.slice(0, 9);
+                                
+                                let formatted = val;
+                                if (val.length > 3 && val.length <= 5) {
+                                  formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                                } else if (val.length > 5) {
+                                  formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+                                }
+                                setEditedTaxId(formatted);
+                              }}
+                              className="flex-1 h-8 px-2 text-sm font-bold text-gray-900 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#FCD34D]"
+                            />
+                            <button
+                              onClick={handleSaveTaxId}
+                              disabled={isSavingTaxId}
+                              className="px-2 h-8 text-[10px] font-bold bg-[#FCD34D] text-[#1F1F1F] rounded-md hover:bg-[#FBD24E] disabled:opacity-50"
+                            >
+                              {isSavingTaxId ? '...' : 'Save'}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setIsEditingTaxId(false);
+                                setEditedTaxId(investorData.taxId || '');
+                              }}
+                              className="px-2 h-8 text-[10px] font-bold bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-sm font-bold text-gray-900">
+                            {investorData.taxId ? (investorData.taxId.length === 9 && !investorData.taxId.includes('-') ? `${investorData.taxId.slice(0, 3)}-${investorData.taxId.slice(3, 5)}-${investorData.taxId.slice(5)}` : investorData.taxId) : 'Not provided'}
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-1.5">

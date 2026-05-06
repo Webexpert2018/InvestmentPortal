@@ -71,6 +71,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
         mailingState: data.state || '',
         mailingZipCode: data.zipCode || '',
         mailingCountry: data.country || '',
+        ssn: data.taxId || '',
       }));
     } catch (error) {
       console.error('Failed to fetch investor details:', error);

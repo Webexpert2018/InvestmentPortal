@@ -297,7 +297,7 @@ export default function ReconciliationPage() {
                   currentRecords.map((record) => (
                     <tr key={record.id} className="hover:bg-gray-50 transition-colors group">
                       <td className="px-6 py-4">
-                        <Link 
+                        <Link
                           href={`/dashboard/${record.type === 'Funding' ? 'funding' : 'redemption'}-requests/${record.id}`}
                           className="font-medium text-[#1F3B6E] hover:underline"
                         >

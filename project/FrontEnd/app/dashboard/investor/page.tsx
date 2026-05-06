@@ -988,9 +988,21 @@ export default function InvestorPage() {
                           <label className="text-xs font-bold text-[#4B5563] ml-1">Tax ID / SSN</label>
                           <input
                             type="text"
-                            placeholder="SSN or TaxID"
+                            placeholder="Format: XXX-XX-XXXX"
                             value={inviteForm.tax_id}
-                            onChange={(e) => setInviteForm({ ...inviteForm, tax_id: e.target.value })}
+                            maxLength={11}
+                            onChange={(e) => {
+                              let val = e.target.value.replace(/\D/g, '');
+                              if (val.length > 9) val = val.slice(0, 9);
+                              
+                              let formatted = val;
+                              if (val.length > 3 && val.length <= 5) {
+                                formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                              } else if (val.length > 5) {
+                                formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+                              }
+                              setInviteForm({ ...inviteForm, tax_id: formatted });
+                            }}
                             className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
                           />
                         </div>
