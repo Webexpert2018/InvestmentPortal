@@ -438,6 +438,50 @@ export class AuthService {
     return { message: 'Code verified successfully' };
   }
 
+  async sendSignupOtp(email: string) {
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Check if email already exists in users or staff
+    const existing = await this.findUserAcrossTables(email);
+    if (existing && existing.tableName !== 'investors') {
+       // Allow investors to re-signup if they are pending, but others not
+       throw new BadRequestException('An account with this email already exists.');
+    }
+
+    // Store in user_otps (user_id is null for initial signup)
+    await db.query(
+      'INSERT INTO user_otps (email, otp, type, expires_at) VALUES ($1, $2, $3, $4)',
+      [email, otp, 'SIGNUP', expiresAt]
+    );
+
+    await this.emailService.sendVerificationOtp(email, otp);
+
+    return { message: 'Verification code sent successfully' };
+  }
+
+  async verifySignupOtp(email: string, otp: string) {
+    const otpResult = await db.query(
+      'SELECT id FROM user_otps WHERE email = $1 AND otp = $2 AND type = $3 AND expires_at > NOW() AND is_used = false ORDER BY created_at DESC LIMIT 1',
+      [email, otp, 'SIGNUP']
+    );
+
+    if (otpResult.rows.length === 0) {
+      throw new UnauthorizedException('Invalid or expired verification code');
+    }
+
+    const otpId = otpResult.rows[0].id;
+
+    // Mark OTP as used
+    await db.query(
+      'UPDATE user_otps SET is_used = true WHERE id = $1',
+      [otpId]
+    );
+
+    return { message: 'Email verified successfully' };
+  }
+
   async resetPassword(email: string, otp: string, password: string) {
     const searchResult = await this.findUserAcrossTables(email);
 

@@ -25,10 +25,26 @@ export class EmailService {
       <p style="margin: 20px 0 0; font-size: 14px; color: #6B7280; font-style: italic;">This link will expire in 15 minutes. If you did not request this, please ignore this email.</p>
       
       <div style="text-align: center; margin: 40px 0;">
-        <a href="https://investmentportalfrontend.vercel.app/auth/forgot-password?email=${email}&otp=${otp}&flow=investor" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
+        <a href="https://investmentportalfrontend.vercel.app/auth/forgot-password?email=${email}&otp=${otp}&flow=investor" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 166px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
           Reset Password
         </a>
       </div>
+    `;
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+  }
+
+  async sendVerificationOtp(email: string, otp: string) {
+    const title = 'Verify Your Email';
+    const subject = 'Verification Code - Ovalia Capital';
+    const content = `
+      <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Email Verification</h1>
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">Thank you for starting your onboarding with <strong>Ovalia Capital</strong>. Please use the verification code below to confirm your email address and continue your setup.</p>
+      
+      <div style="background-color: #F8FAFC; border: 2px solid #E2E8F0; border-radius: 12px; padding: 30px; text-align: center; margin: 30px 0;">
+        <span style="font-size: 36px; font-weight: bold; color: #1F3B6E; letter-spacing: 10px; font-family: 'Courier New', monospace;">${otp}</span>
+      </div>
+
+      <p style="margin: 20px 0 0; font-size: 14px; color: #64748B; font-style: italic;">This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
     `;
     await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
   }
