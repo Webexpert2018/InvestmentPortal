@@ -29,7 +29,7 @@ async function bootstrap() {
       try {
         console.log('🛠️ Relaxing conversation table constraints...');
         await db.query('ALTER TABLE conversations ALTER COLUMN investor_id DROP NOT NULL');
-        await db.query('ALTER TABLE conversations ALTER COLUMN staff_id DROP NOT NULL');
+        await db.query('ALTER TABLE conversations ALTER COLUMN admin_id DROP NOT NULL');
         console.log('✅ Constraints relaxed successfully.');
       } catch (err) {
         console.warn('⚠️ Could not relax DB constraints:', err);
@@ -52,7 +52,7 @@ async function bootstrap() {
       const uploadsBaseDir = isVercel
         ? join('/tmp', 'uploads')
         : join(process.cwd(), 'uploads');
-      
+
       const profileImagesDir = join(uploadsBaseDir, 'profile-images');
 
       if (!fs.existsSync(profileImagesDir)) {
@@ -141,16 +141,34 @@ if (process.env.VERCEL !== '1') {
   });
 }
 
+// --- CORS Helper for Vercel ---
+const ALLOWED_ORIGINS = [
+  'https://investmentportalfrontend.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3001'
+];
+
+const setCorsHeaders = (req: any, res: any) => {
+  const requestOrigin = req.headers.origin;
+  const origin = ALLOWED_ORIGINS.includes(requestOrigin)
+    ? requestOrigin
+    : ALLOWED_ORIGINS[0]; // Default to production URL
+
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization, X-Requested-With, Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+};
+
 // Support for Vercel Serverless Functions
 export default async (req: any, res: any) => {
+  // Apply CORS headers to every response
+  setCorsHeaders(req, res);
+
   // 1. Handle Preflight (OPTIONS) immediately
   // This must be FIRST to ensure CORS preflight always succeeds even if the app is cold-starting or misconfigured
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization, X-Requested-With, Origin, Content-Type, Accept');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
     return res.status(204).end();
   }
 
@@ -161,10 +179,9 @@ export default async (req: any, res: any) => {
 
   if (missingVars.length > 0 && (process.env.VERCEL === '1' || process.env.NODE_ENV === 'production')) {
     console.error(`❌ MISSING CONFIGURATION: ${missingVars.join(', ')}`);
-    
+
     // Set CORS headers even on error responses to allow the frontend to read the error
-    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    // (Already handled by setCorsHeaders at the top)
 
     return res.status(500).json({
       statusCode: 500,
