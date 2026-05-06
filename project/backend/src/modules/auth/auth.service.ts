@@ -363,11 +363,20 @@ export class AuthService {
 
     // 3. Try staff table
     result = await db.query(
-      'SELECT id, email, role, first_name, last_name, status FROM staff WHERE email = $1',
+      'SELECT id, email, role, full_name, status FROM staff WHERE email = $1',
       [email]
     );
     if (result.rows.length > 0) {
-      return { user: result.rows[0], tableName: 'staff', nameField: 'first_name' };
+      const user = result.rows[0];
+      return {
+        user: {
+          ...user,
+          first_name: user.full_name?.split(' ')[0] || 'User',
+          last_name: user.full_name?.split(' ').slice(1).join(' ') || ''
+        },
+        tableName: 'staff',
+        nameField: 'full_name'
+      };
     }
 
     return null;
