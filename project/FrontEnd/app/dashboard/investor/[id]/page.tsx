@@ -412,7 +412,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
                       <div className="space-y-1.5">
                         <span className="text-xs font-bold text-gray-400">Phone Number</span>
-                        <p className="text-sm font-bold text-gray-900">{investorData.phone || '(+1) 4589 6992'}</p>
+                        <p className="text-sm font-bold text-gray-900">{investorData.phone || 'Not provided'}</p>
                       </div>
 
                       <div className="space-y-1.5">
@@ -473,13 +473,20 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
                       <div className="space-y-1.5">
                         <span className="text-xs font-bold text-gray-400">Date of Birth</span>
-                        <p className="text-sm font-bold text-gray-900">{investorData.dob ? new Date(investorData.dob).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Oct 25, 1977'}</p>
+                        <p className="text-sm font-bold text-gray-900">{investorData.dob ? new Date(investorData.dob).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not provided'}</p>
                       </div>
 
                       <div className="md:col-span-2 space-y-1.5">
                         <span className="text-xs font-bold text-gray-400">Address</span>
                         <p className="text-sm font-bold text-gray-900 max-w-lg">
-                          {investorData.addressLine1 || '123 Market St. Suite 450 San Francisco, CA 94103'}
+                          {investorData.addressLine1 ? [
+                            investorData.addressLine1,
+                            investorData.addressLine2,
+                            investorData.city,
+                            investorData.state,
+                            investorData.zipCode,
+                            investorData.country
+                          ].filter(Boolean).join(', ') : 'Not provided'}
                         </p>
                       </div>
                     </div>
@@ -527,7 +534,15 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       </div>
                       <div className="space-y-1 text-right sm:text-left">
                         <span className="text-xs font-bold text-gray-400">Last Login</span>
-                        <p className="text-sm font-bold text-gray-900">July 20, 2025 at 02:30 AM</p>
+                        <p className="text-sm font-bold text-gray-900">
+                          {investorData.lastLogin ? new Date(investorData.lastLogin).toLocaleString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          }) : 'Never'}
+                        </p>
                       </div>
                     </div>
 
@@ -535,9 +550,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     <div className="pt-8 space-y-3">
                       <p className="text-xs font-semibold text-gray-400">Note (Private note visible only to you)</p>
                       <div className="space-y-1">
-                        <p className="text-xs font-bold text-gray-900">Dec 21, 2025 at 09:30AM</p>
-                        <p className="text-xs font-medium text-gray-400 leading-relaxed">
-                          Investor provided an updated proof of address. Initial document was blurry but the new one is clear. All checks passed successfully after re-evaluation.
+                        <p className="text-xs font-medium text-gray-400 italic">
+                          No private notes available for this investor.
                         </p>
                       </div>
                     </div>

@@ -331,6 +331,8 @@ export default function InvestorSignupPage() {
   const moveNext = async () => {
     if (loading) return;
 
+    if (!validateStep(currentStep)) return;
+
     if (currentStep === 3) {
       if (!otpSent) {
         setGlobalError('Please send and verify the code first.');
@@ -691,7 +693,7 @@ export default function InvestorSignupPage() {
           </FormField>
 
           <div className="md:col-span-1">
-            <FormField label="Date of Birth" error={errors.dob}>
+            <FormField label="Date of Birth *" error={errors.dob}>
               <div className="relative">
                 <input
                   type="date"
