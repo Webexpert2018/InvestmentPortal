@@ -22,7 +22,6 @@ export default function EditStaffPage() {
 
   const [formData, setFormData] = useState({
     role: '',
-    associated_fund_id: '',
     full_name: '',
     email: '',
     phone: '',
@@ -45,9 +44,6 @@ export default function EditStaffPage() {
     if (!formData.phone || formData.phone.trim().length < 5) {
       newErrors.phone = 'Valid phone number is required';
     }
-    if ((formData.role === 'partnership' || formData.role === 'fund_admin') && !formData.associated_fund_id) {
-      newErrors.associated_fund_id = 'Please associate this staff with a fund';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -62,10 +58,7 @@ export default function EditStaffPage() {
   const fetchData = async () => {
     try {
       setFetching(true);
-      const [staffData, fundsData] = await Promise.all([
-        apiClient.getStaffById(id),
-        apiClient.getFunds()
-      ]);
+      const staffData = await apiClient.getStaffById(id);
 
       let phoneCode = '+1';
       let phoneNumber = staffData.phone || '';
@@ -79,7 +72,6 @@ export default function EditStaffPage() {
 
       setFormData({
         role: staffData.role,
-        associated_fund_id: staffData.associated_fund_id || '',
         full_name: staffData.full_name,
         email: staffData.email,
         phone: phoneNumber,
@@ -87,7 +79,6 @@ export default function EditStaffPage() {
         status: staffData.status || 'active',
       });
       setImagePreview(staffData.profile_image_url || null);
-      setFunds(fundsData);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load staff details');
@@ -122,10 +113,6 @@ export default function EditStaffPage() {
       submitData.append('email', formData.email);
       submitData.append('phone', formData.phone ? `${formData.phone_code} ${formData.phone}` : '');
       submitData.append('status', formData.status);
-
-      if ((formData.role === 'partnership' || formData.role === 'fund_admin') && formData.associated_fund_id) {
-        submitData.append('associated_fund_id', formData.associated_fund_id);
-      }
 
       if (selectedFile) {
         submitData.append('file', selectedFile);
@@ -198,30 +185,6 @@ export default function EditStaffPage() {
                 <option value="partnership">Partnership</option>
               </select>
             </div>
-
-            {(formData.role === 'partnership' || formData.role === 'fund_admin') && (
-              <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                <label className="text-[14px] font-medium text-[#1F1F1F]">Associated Fund</label>
-                <div className="relative">
-                  <select
-                    value={formData.associated_fund_id}
-                    onChange={(e) => {
-                      setFormData({ ...formData, associated_fund_id: e.target.value });
-                      if (errors.associated_fund_id) setErrors({ ...errors, associated_fund_id: '' });
-                    }}
-                    className={`w-full h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer transition-all ${errors.associated_fund_id ? 'border-red-500 ring-1 ring-red-500' : 'border-transparent'
-                      }`}
-                  >
-                    <option value="">Select associated fund</option>
-                    {funds.map((fund) => (
-                      <option key={fund.id} value={fund.id}>{fund.name}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8E8E93] h-5 w-5 pointer-events-none" />
-                </div>
-                {errors.associated_fund_id && <p className="text-red-500 text-[12px] mt-1 ml-1 animate-in fade-in slide-in-from-top-1">{errors.associated_fund_id}</p>}
-              </div>
-            )}
 
             <div className="flex flex-col gap-2">
               <label className="text-[14px] font-medium text-[#1F1F1F]">Full Name</label>

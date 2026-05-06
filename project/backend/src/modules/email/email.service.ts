@@ -201,11 +201,15 @@ export class EmailService {
         Hello ${fullName || 'Valued Investor'},
       </p>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
-        You have been personally invited to join the <strong>Bitcoin IRA Platform</strong>. Our platform provides you with a secure and streamlined way to manage your digital asset investments.
+        You have been personally invited to join <strong>Ovalia Capital. Welcome!</strong>
       </p>
       
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
-        To get started and set up your account, please follow the link below. Your registration data has already been prepared for you.
+        Our platform provides you with a secure and seamless way to manage your investments and retirement accounts. The platform is designed to bring clarity and simplicity to a sophisticated system of building generational wealth. 
+      </p>
+
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
+        To get started and set up your account, please follow the link below. Your registration has been started for you.
       </p>
 
       <div style="text-align: center; margin: 40px 0;">

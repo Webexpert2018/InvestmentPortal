@@ -18,8 +18,7 @@ export class StaffService {
       const query = `
         WITH combined AS (
           SELECT id, first_name || ' ' || last_name as full_name, email, phone, role, status, 
-                  0 as assigned_investors_count, profile_image_url, created_at, updated_at,
-                  null as associated_fund_name, null as associated_fund_id
+                  0 as assigned_investors_count, profile_image_url, created_at, updated_at
            FROM users 
            WHERE role = 'executive_admin'
            
@@ -30,10 +29,8 @@ export class StaffService {
                      WHEN s.role = 'accountant' THEN (SELECT COUNT(*) FROM investors i WHERE i.assigned_accountant_id = s.id)::int
                      ELSE (SELECT COUNT(*) FROM investors i WHERE i.assigned_ir_id = s.id)::int
                    END as assigned_investors_count,
-                   s.profile_image_url, s.created_at, s.updated_at,
-                   f.name as associated_fund_name, f.id as associated_fund_id
+                   s.profile_image_url, s.created_at, s.updated_at
            FROM staff s
-           LEFT JOIN funds f ON s.associated_fund_id = f.id
         )
         SELECT *, COUNT(*) OVER() AS total_count 
         FROM combined
@@ -48,7 +45,6 @@ export class StaffService {
       const query = `
         SELECT id, first_name || ' ' || last_name as full_name, email, phone, role, status, 
                 0 as assigned_investors_count, profile_image_url, created_at, updated_at,
-                null as associated_fund_name, null as associated_fund_id,
                 COUNT(*) OVER() AS total_count
          FROM users 
          WHERE role = 'executive_admin'
@@ -67,18 +63,15 @@ export class StaffService {
         query = `
           WITH combined AS (
             SELECT id, first_name || ' ' || last_name as full_name, email, phone, role, status, 
-                    profile_image_url, created_at, updated_at,
-                    null as associated_fund_name, null as associated_fund_id
+                    profile_image_url, created_at, updated_at
             FROM users 
             WHERE role ILIKE $1
             
             UNION ALL
             
             SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
-                   s.profile_image_url, s.created_at, s.updated_at,
-                   f.name as associated_fund_name, f.id as associated_fund_id
+                   s.profile_image_url, s.created_at, s.updated_at
             FROM staff s
-            LEFT JOIN funds f ON s.associated_fund_id = f.id
             WHERE s.role ILIKE $1
           )
           SELECT *, 
@@ -97,10 +90,8 @@ export class StaffService {
           SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
                 (SELECT COUNT(*) FROM investors i WHERE i.assigned_accountant_id = s.id OR i.assigned_ir_id = s.id)::int as assigned_investors_count,
                 s.profile_image_url, s.created_at, s.updated_at,
-                f.name as associated_fund_name, f.id as associated_fund_id,
                 COUNT(*) OVER() AS total_count
           FROM staff s
-          LEFT JOIN funds f ON s.associated_fund_id = f.id
           WHERE s.role = $1
           AND ($4::text IS NULL OR s.full_name ILIKE $4 OR s.email ILIKE $4)
           ORDER BY s.created_at DESC
@@ -130,10 +121,9 @@ export class StaffService {
   async findOne(id: string) {
     // 1. Try staff table
      const staffResult = await db.query(
-      `SELECT s.*, f.name as associated_fund_name,
+      `SELECT s.*,
               (SELECT COUNT(*) FROM investors i WHERE i.assigned_accountant_id = s.id OR i.assigned_ir_id = s.id)::int as assigned_investors_count
        FROM staff s 
-       LEFT JOIN funds f ON s.associated_fund_id = f.id 
        WHERE s.id = $1`,
       [id]
     );
@@ -168,7 +158,7 @@ export class StaffService {
 
 
   async create(createStaffDto: CreateStaffDto) {
-    const { full_name, email, phone, password, role, associated_fund_id, profile_image_url } = createStaffDto;
+    const { full_name, email, phone, password, role, profile_image_url } = createStaffDto;
 
     // Strict prohibition of creating executive_admin through this service
     if (role === 'executive_admin') {
@@ -188,10 +178,10 @@ export class StaffService {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const result = await db.query(
-      `INSERT INTO staff (full_name, email, phone, password_hash, role, associated_fund_id, assigned_investors_count, profile_image_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO staff (full_name, email, phone, password_hash, role, assigned_investors_count, profile_image_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, full_name, email, role, status, profile_image_url, created_at`,
-      [full_name, email, phone, passwordHash, role, associated_fund_id || null, 0, profile_image_url || null]
+      [full_name, email, phone, passwordHash, role, 0, profile_image_url || null]
     );
 
     const newStaff = result.rows[0];

@@ -19,7 +19,6 @@ export default function AddStaffPage() {
   
   const [formData, setFormData] = useState({
     role: '',
-    associated_fund_id: '',
     full_name: '',
     email: '',
     phone: '',
@@ -52,25 +51,9 @@ export default function AddStaffPage() {
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
     }
-    if ((formData.role === 'partnership' || formData.role === 'fund_admin') && !formData.associated_fund_id) {
-      newErrors.associated_fund_id = 'Please associate this staff with a fund';
-    }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  useEffect(() => {
-    fetchFunds();
-  }, []);
-
-  const fetchFunds = async () => {
-    try {
-      const data = await apiClient.getFunds();
-      setFunds(data);
-    } catch (error) {
-      console.error('Error fetching funds:', error);
-    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,10 +88,6 @@ export default function AddStaffPage() {
       submitData.append('email', formData.email);
       submitData.append('phone', formData.phone ? `${formData.phone_code} ${formData.phone}` : '');
       submitData.append('password', formData.password);
-      
-      if ((formData.role === 'partnership' || formData.role === 'fund_admin') && formData.associated_fund_id) {
-        submitData.append('associated_fund_id', formData.associated_fund_id);
-      }
       
       if (selectedFile) {
         submitData.append('file', selectedFile);
@@ -194,35 +173,6 @@ export default function AddStaffPage() {
               </div>
               {errors.role && <p className="text-red-500 text-[12px] mt-1 ml-1 animate-in fade-in slide-in-from-top-1">{errors.role}</p>}
             </div>
-
-            {/* Associated Fund - ONLY for Partnership or Fund Admin */}
-            {(formData.role === 'partnership' || formData.role === 'fund_admin') && (
-              <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                <label className="text-[14px] font-medium text-[#1F1F1F]">
-                  Associated Fund <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                  required
-                  value={formData.associated_fund_id}
-                  onChange={(e) => {
-                    setFormData({ ...formData, associated_fund_id: e.target.value });
-                    if (errors.associated_fund_id) setErrors({ ...errors, associated_fund_id: '' });
-                  }}
-                  className={`w-full h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer transition-all ${
-                    errors.associated_fund_id ? 'border-red-500 ring-1 ring-red-500' : 'border-transparent'
-                  }`}
-                >
-                  <option value="">Select associated fund</option>
-                  {funds.map((fund) => (
-                    <option key={fund.id} value={fund.id}>{fund.name}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8E8E93] h-5 w-5 pointer-events-none" />
-              </div>
-              {errors.associated_fund_id && <p className="text-red-500 text-[12px] mt-1 ml-1 animate-in fade-in slide-in-from-top-1">{errors.associated_fund_id}</p>}
-            </div>
-            )}
 
             <div className="flex flex-col gap-2">
               <label className="text-[14px] font-medium text-[#1F1F1F]">

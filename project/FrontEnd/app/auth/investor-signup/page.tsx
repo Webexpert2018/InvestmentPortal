@@ -336,7 +336,7 @@ export default function InvestorSignupPage() {
         setGlobalError('Please send and verify the code first.');
         return;
       }
-      
+
       try {
         setLoading(true);
         await apiClient.verifySignupOtp(form.email, form.emailOtp.join(''));
@@ -360,7 +360,7 @@ export default function InvestorSignupPage() {
 
   const handleCreateAccount = async () => {
     if (!validateAccount()) return;
-    
+
     try {
       setLoading(true);
       setGlobalError('');
@@ -513,7 +513,7 @@ export default function InvestorSignupPage() {
             <button
               onClick={handleCreateAccount}
               disabled={loading}
-              className="h-11 w-full rounded-full bg-yellow-400 font-bold text-[#1F1F1F] transition-all hover:bg-yellow-500 disabled:opacity-70 flex items-center justify-center gap-2"
+              className="h-11 mt-6 w-full rounded-full bg-yellow-400 font-bold text-[#1F1F1F] transition-all hover:bg-yellow-500 disabled:opacity-70 flex items-center justify-center gap-2"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               Create Account
