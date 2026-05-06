@@ -41,43 +41,56 @@ export default function ReconciliationPage() {
         apiClient.getAllRedemptions(),
       ]);
 
-      const investmentRecords: ReconciliationRecord[] = (Array.isArray(investments) ? investments : []).map((inv: any) => {
-        const custodian = parseFloat(inv?.investment_amount || 0);
-        const internal = parseFloat(inv?.internal_amount || 0);
-        const difference = custodian - internal;
-        return {
-          id: String(inv?.id || ''),
-          recordId: `FUN-${String(inv?.id || '').substring(0, 6).toUpperCase()}`,
-          type: 'Funding',
-          custodian,
-          internal,
-          difference,
-          status: Math.abs(difference) < 0.01 ? 'Matched' : 'Mismatch',
-          isReconciled: inv?.is_reconciled === undefined || inv?.is_reconciled === null ? null : !!inv?.is_reconciled,
-          date: String(inv?.created_at || new Date().toISOString()),
-        };
-      });
+      const investmentRecords: ReconciliationRecord[] = (Array.isArray(investments) ? investments : [])
+        .filter((inv: any) => ['Awaiting Funding', 'Units Issued'].includes(inv.status))
+        .map((inv: any) => {
+          const custodian = parseFloat(inv?.investment_amount || 0);
+          const internal = parseFloat(inv?.internal_amount || 0);
+          const difference = custodian - internal;
+          return {
+            id: String(inv?.id || ''),
+            recordId: `FUN-${String(inv?.id || '').substring(0, 6).toUpperCase()}`,
+            type: 'Funding',
+            custodian,
+            internal,
+            difference,
+            status: Math.abs(difference) < 0.01 ? 'Matched' : 'Mismatch',
+            isReconciled: inv?.is_reconciled === undefined || inv?.is_reconciled === null ? null : !!inv?.is_reconciled,
+            date: String(inv?.created_at || new Date().toISOString()),
+          };
+        });
 
-      const redemptionRecords: ReconciliationRecord[] = (Array.isArray(redemptions) ? redemptions : []).map((red: any) => {
-        const custodian = parseFloat(red?.amount || 0);
-        const internal = parseFloat(red?.internal_amount || 0);
-        const difference = custodian - internal;
-        return {
-          id: String(red?.id || ''),
-          recordId: `RED-${String(red?.id || '').substring(0, 6).toUpperCase()}`,
-          type: 'Redemption',
-          custodian,
-          internal,
-          difference,
-          status: Math.abs(difference) < 0.01 ? 'Matched' : 'Mismatch',
-          isReconciled: red?.is_reconciled === undefined || red?.is_reconciled === null ? null : !!red?.is_reconciled,
-          date: String(red?.created_at || new Date().toISOString()),
-        };
-      });
+      const redemptionRecords: ReconciliationRecord[] = (Array.isArray(redemptions) ? redemptions : [])
+        .filter((red: any) => ['Approved', 'approved', 'Processed'].includes(red.status))
+        .map((red: any) => {
+          const custodian = parseFloat(red?.amount || 0);
+          const internal = parseFloat(red?.internal_amount || 0);
+          const difference = custodian - internal;
+          return {
+            id: String(red?.id || ''),
+            recordId: `RED-${String(red?.id || '').substring(0, 6).toUpperCase()}`,
+            type: 'Redemption',
+            custodian,
+            internal,
+            difference,
+            status: Math.abs(difference) < 0.01 ? 'Matched' : 'Mismatch',
+            isReconciled: red?.is_reconciled === undefined || red?.is_reconciled === null ? null : !!red?.is_reconciled,
+            date: String(red?.created_at || new Date().toISOString()),
+          };
+        });
 
-      const merged = [...investmentRecords, ...redemptionRecords].sort((a, b) =>
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
+      const merged = [...investmentRecords, ...redemptionRecords].sort((a, b) => {
+        // 1. Sort by completion status: Incomplete (false/null) comes first
+        const aCompleted = !!a.isReconciled;
+        const bCompleted = !!b.isReconciled;
+        
+        if (aCompleted !== bCompleted) {
+          return aCompleted ? 1 : -1;
+        }
+        
+        // 2. Secondary sort by date (newest first)
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
 
       setRecords(merged);
     } catch (error) {
@@ -309,28 +322,35 @@ export default function ReconciliationPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <input
-                            type="number"
-                            defaultValue={record.internal === 0 ? '' : record.internal}
+                            type="text"
+                            defaultValue={record.internal === 0 ? '' : record.internal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             disabled={record.isReconciled === true}
+                            onFocus={(e) => {
+                              // Strip commas and currency symbols for easier editing
+                              e.target.value = e.target.value.replace(/[^0-9.]/g, '');
+                            }}
                             onBlur={(e) => {
-                              const newVal = parseFloat(e.target.value);
-                              if (newVal !== record.internal && !isNaN(newVal)) {
-                                handleUpdateInternal(record.id, record.type, newVal);
+                              const rawValue = e.target.value.replace(/[^0-9.]/g, '');
+                              const newVal = parseFloat(rawValue);
+                              
+                              if (!isNaN(newVal)) {
+                                if (Math.abs(newVal - record.internal) > 0.001) {
+                                  handleUpdateInternal(record.id, record.type, newVal);
+                                }
+                                e.target.value = newVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                              } else if (e.target.value === '') {
+                                handleUpdateInternal(record.id, record.type, 0);
+                                e.target.value = '';
+                              } else {
+                                // Revert to current value if invalid input
+                                e.target.value = record.internal === 0 ? '' : record.internal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                               }
                             }}
                             className={cn(
-                              "w-32 px-3 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#1F3B6E] font-medium text-right transition-all",
+                              "w-40 px-3 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#1F3B6E] font-medium text-right transition-all",
                               record.isReconciled === true ? "bg-gray-50 text-gray-400 border-transparent cursor-not-allowed" : "bg-white text-gray-900"
                             )}
-                            style={{ MozAppearance: 'textfield' }}
                           />
-                          <style jsx>{`
-                            input::-webkit-outer-spin-button,
-                            input::-webkit-inner-spin-button {
-                              -webkit-appearance: none;
-                              margin: 0;
-                            }
-                          `}</style>
                           {savingId === record.id ? (
                             <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                           ) : savedId === record.id ? (

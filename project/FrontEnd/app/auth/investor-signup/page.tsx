@@ -17,7 +17,7 @@ type Step = 1 | 2 | 3 | 4 | 5;
 
 type ValidationErrors = Record<string, string>;
 
-const STEP_LABELS = ['Set Profile', 'Address', 'Phone Number Verify', 'Tax Info.', 'Two Factor'];
+const STEP_LABELS = ['Set Profile', 'Address', 'Email Verification', 'Tax Info.', 'Two Factor'];
 
 const countryCodes = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
 
@@ -35,6 +35,24 @@ export default function InvestorSignupPage() {
   const [globalError, setGlobalError] = useState('');
   const [verifyingInvite, setVerifyingInvite] = useState(false);
   const [isInvited, setIsInvited] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
+
+  useEffect(() => {
+    let interval: any;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get('invite');
@@ -117,7 +135,7 @@ export default function InvestorSignupPage() {
 
     taxId: '',
 
-    phoneOtp: ['', '', '', '', '', ''],
+    emailOtp: ['', '', '', '', '', ''],
     twoFactorOtp: ['', '', '', '', '', ''],
   });
 
@@ -241,22 +259,11 @@ export default function InvestorSignupPage() {
     }
 
     if (step === 3) {
-      // Phone Number
-      const phoneErrorStep3 = (() => {
-        const cleanNumber = form.phoneNumber.trim();
-        if (!cleanNumber) return 'Phone number is required';
-        if (form.phoneCountryCode === '+1 (USA)') {
-          if (cleanNumber.length !== 10) return 'USA phone number must be 10 digits';
-        } else if (form.phoneCountryCode === '+44 (UK)') {
-          if (cleanNumber.length < 10 || cleanNumber.length > 11) return 'UK phone number must be 10-11 digits';
-        } else if (form.phoneCountryCode === '+91 (IN)') {
-          if (cleanNumber.length !== 10) return 'India phone number must be 10 digits';
-        }
-        return null;
-      })();
-      if (phoneErrorStep3) nextErrors.phoneNumber = phoneErrorStep3;
-      if (otpSent && form.phoneOtp.some((digit) => !digit)) {
-        nextErrors.phoneOtp = 'Enter complete 6-digit verification code';
+      if (otpSent && form.emailOtp.some((digit) => !digit)) {
+        nextErrors.emailOtp = 'Enter complete 6-digit verification code';
+      }
+      if (otpSent && !isOtpVerified && currentStep === 3) {
+        // This will be handled in moveNext, but we can set a flag here
       }
     }
 
@@ -274,7 +281,7 @@ export default function InvestorSignupPage() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const updateOtp = (field: 'phoneOtp' | 'twoFactorOtp', index: number, value: string) => {
+  const updateOtp = (field: 'emailOtp' | 'twoFactorOtp', index: number, value: string) => {
     const safeValue = value.replace(/\D/g, '').slice(-1);
     const next = [...form[field]];
     next[index] = safeValue;
@@ -293,13 +300,55 @@ export default function InvestorSignupPage() {
     } else {
       setShowProfileFlow(false);
       setCurrentStep(1);
+      // Clear data to start fresh
+      setForm({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        firstName: '',
+        lastName: '',
+        phoneCountryCode: '+1 (USA)',
+        phoneNumber: '',
+        dob: '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'US',
+        taxId: '',
+        emailOtp: ['', '', '', '', '', ''],
+        twoFactorOtp: ['', '', '', '', '', ''],
+      });
+      setErrors({});
+      setOtpSent(false);
+      setIsOtpVerified(false);
+      setTimer(0);
+      setGlobalError('');
     }
   };
 
   const moveNext = async () => {
     if (loading) return;
 
-    if (!validateStep(currentStep)) return;
+    if (currentStep === 3) {
+      if (!otpSent) {
+        setGlobalError('Please send and verify the code first.');
+        return;
+      }
+
+      try {
+        setLoading(true);
+        await apiClient.verifySignupOtp(form.email, form.emailOtp.join(''));
+        setIsOtpVerified(true);
+        toast.success('Email verified successfully!');
+      } catch (err: any) {
+        setGlobalError(err.message || 'Invalid or expired code');
+        return;
+      } finally {
+        setLoading(false);
+      }
+    }
 
     if (currentStep === 5) {
       await handleFinalSubmit();
@@ -309,10 +358,24 @@ export default function InvestorSignupPage() {
     setCurrentStep((prev) => (prev + 1) as Step);
   };
 
-  const handleCreateAccount = () => {
+  const handleCreateAccount = async () => {
     if (!validateAccount()) return;
-    setShowProfileFlow(true);
-    setCurrentStep(1);
+
+    try {
+      setLoading(true);
+      setGlobalError('');
+      const { available } = await apiClient.checkEmail(form.email);
+      if (!available) {
+        setErrors(prev => ({ ...prev, email: 'An account with this email already exists.' }));
+        return;
+      }
+      setShowProfileFlow(true);
+      setCurrentStep(1);
+    } catch (err: any) {
+      setGlobalError(err.message || 'Error checking email availability');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFinalSubmit = async () => {
@@ -446,15 +509,16 @@ export default function InvestorSignupPage() {
 
           {globalError && <p className="mt-4 text-center font-helvetica text-sm text-red-600">{globalError}</p>}
 
-          <button
-            type="button"
-            onClick={handleCreateAccount}
-            disabled={loading}
-            className="mt-7 h-11 w-full rounded-full bg-yellow-400 text-lg  text-[#2A4474]"
-          >
-            Sign Up
-          </button>
-
+          <div className="space-y-6">
+            <button
+              onClick={handleCreateAccount}
+              disabled={loading}
+              className="h-11 mt-6 w-full rounded-full bg-yellow-400 font-bold text-[#1F1F1F] transition-all hover:bg-yellow-500 disabled:opacity-70 flex items-center justify-center gap-2"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              Create Account
+            </button>
+          </div>
           <p className="mt-5 text-center text-xl text-[#9C9C9C]">
             Already have an account?{' '}
             <Link href="/auth/login?flow=investor" className="font-medium text-yellow-600 hover:underline">
@@ -466,9 +530,11 @@ export default function InvestorSignupPage() {
         <div className="mx-auto flex min-h-[752px] w-full max-w-[1230px] items-center justify-center p-6 md:p-10">
           <div className="w-full rounded-md bg-[#FCFCFC] shadow-xl">
             <div className="border-b border-[#EBEBEB] px-6 pt-6">
-              <a href="/" className="mb-4 flex justify-center">
-                <img src="/images/logo.png" alt="Ovalia Capital" className="h-auto w-[170px] object-contain logo-con" />
-              </a>
+              <div className="mb-4 flex justify-center">
+                <a href="/" className="inline-block">
+                  <img src="/images/logo.png" alt="Ovalia Capital" className="h-auto w-[170px] object-contain logo-con" />
+                </a>
+              </div>
 
               <h3 className="text-[24px] text-[#1F1F1F] font-bold">Complete Your Profile</h3>
               <p className="mb-4 font-helvetica text-lg">Just a few steps to get started</p>
@@ -512,9 +578,10 @@ export default function InvestorSignupPage() {
                   <button
                     type="button"
                     className="text-sm font-medium text-[#888888] hover:text-[#4B4B4B]"
-                    onClick={() => router.push('/auth/login?flow=investor')}
+                    onClick={handleFinalSubmit}
+                    disabled={loading}
                   >
-                    SKIP
+                    {loading ? 'Processing...' : 'SKIP'}
                   </button>
                 )}
               </div>
@@ -524,12 +591,24 @@ export default function InvestorSignupPage() {
                 {currentStep === 3 && !otpSent ? (
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       if (!validateStep(3)) return;
-                      setOtpSent(true);
+                      try {
+                        setLoading(true);
+                        await apiClient.sendSignupOtp(form.email);
+                        setOtpSent(true);
+                        setTimer(60);
+                        toast.success('Verification code sent to your email.');
+                      } catch (err: any) {
+                        setGlobalError(err.message || 'Failed to send verification code');
+                      } finally {
+                        setLoading(false);
+                      }
                     }}
-                    className="h-10 min-w-[108px] rounded-full bg-yellow-400 px-6 font-medium text-[#2A2A2A]"
+                    disabled={loading}
+                    className="h-10 min-w-[108px] rounded-full bg-yellow-400 px-6 font-medium text-[#2A2A2A] disabled:opacity-70 flex items-center justify-center gap-2"
                   >
+                    {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                     Send Code
                   </button>
                 ) : (
@@ -712,32 +791,15 @@ export default function InvestorSignupPage() {
     if (currentStep === 3 && !otpSent) {
       return (
         <div className="max-w-[540px] space-y-3">
-          <h4 className="text-[20px] text-[#4B4B4B] font-medium">Phone Verification</h4>
-          <p className="font-helvetica text-sm text-[#A0A0A0]">We&apos;ll send you a verification code to confirm your phone number.</p>
+          <h4 className="text-[20px] text-[#4B4B4B] font-medium">Email Verification</h4>
+          <p className="font-helvetica text-sm text-[#A0A0A0]">We&apos;ll send you a verification code to confirm your email address.</p>
 
-          <FormField label="" error={errors.phoneNumber}>
-            <div className="flex gap-2">
-              <select
-                value={form.phoneCountryCode}
-                onChange={(e) => setField('phoneCountryCode', e.target.value)}
-                disabled
-                className="h-11 w-[130px] rounded-md border border-[#E6E6E6] px-2 font-helvetica text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
-              >
-                {countryCodes.map((code) => (
-                  <option key={code} value={code}>
-                    {code}
-                  </option>
-                ))}
-              </select>
-
-              <input
-                value={form.phoneNumber}
-                onChange={(e) => setField('phoneNumber', e.target.value.replace(/\D/g, '').slice(0, 15))}
-                placeholder="Enter phone number"
-                disabled
-                className="h-11 flex-1 rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
-              />
-            </div>
+          <FormField label="Verification Email" error={errors.email}>
+            <input
+              value={form.email}
+              readOnly
+              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+            />
           </FormField>
         </div>
       );
@@ -746,28 +808,57 @@ export default function InvestorSignupPage() {
     if (currentStep === 3 && otpSent) {
       return (
         <div className="mx-auto max-w-[540px] text-center">
-          <h4 className="text-[30px] text-[#2A2A2A]">Phone Number Verification</h4>
+          <h4 className="text-[30px] text-[#2A2A2A]">Email Verification</h4>
           <p className="mx-auto max-w-[420px] font-helvetica text-sm text-[#A0A0A0]">
-            We&apos;ve sent a 6-digit code to your phone number. Please enter it below to continue.
+            We&apos;ve sent a 6-digit code to <strong>{form.email}</strong>. Please enter it below to continue.
           </p>
 
           <div className="mt-5 flex justify-center gap-2">
-            {form.phoneOtp.map((digit, index) => (
+            {form.emailOtp.map((digit, index) => (
               <input
-                key={`phoneOtp-${index}`}
-                id={`phoneOtp-${index}`}
+                key={`emailOtp-${index}`}
+                id={`emailOtp-${index}`}
                 value={digit}
-                onChange={(e) => updateOtp('phoneOtp', index, e.target.value)}
-                className="h-12 w-12 rounded-md border border-[#E5E5E5] text-center font-helvetica text-lg"
+                onChange={(e) => updateOtp('emailOtp', index, e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Backspace' && !digit && index > 0) {
+                    document.getElementById(`emailOtp-${index - 1}`)?.focus();
+                  }
+                }}
+                className="h-12 w-12 rounded-md border border-[#E5E5E5] text-center font-helvetica text-lg focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 outline-none transition-all"
               />
             ))}
           </div>
 
-          {errors.phoneOtp && <p className="mt-2 font-helvetica text-sm text-red-600">{errors.phoneOtp}</p>}
+          {errors.emailOtp && <p className="mt-2 font-helvetica text-sm text-red-600">{errors.emailOtp}</p>}
 
-          <p className="mt-4 text-[30px] text-[#8A8A8A]">
-            Didn&apos;t receive code? <span className="text-[#3F3F3F]">00:26</span>
-          </p>
+          <div className="mt-6">
+            {timer > 0 ? (
+              <p className="text-[20px] text-[#8A8A8A]">
+                Didn&apos;t receive code? <span className="text-[#3F3F3F] font-bold">{formatTimer(timer)}</span>
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    setLoading(true);
+                    await apiClient.sendSignupOtp(form.email);
+                    setTimer(60);
+                    setForm(prev => ({ ...prev, emailOtp: ['', '', '', '', '', ''] }));
+                    toast.success('Verification code resent.');
+                  } catch (err: any) {
+                    setGlobalError(err.message || 'Failed to resend code');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="text-[16px] font-medium text-yellow-600 hover:text-yellow-700 underline"
+              >
+                Resend Code
+              </button>
+            )}
+          </div>
         </div>
       );
     }

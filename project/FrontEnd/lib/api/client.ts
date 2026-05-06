@@ -62,7 +62,7 @@ class ApiClient {
     }
 
     if (!response.ok) {
-      if (response.status === 401 && typeof window !== 'undefined') {
+      if (response.status === 401 && typeof window !== 'undefined' && !endpoint.includes('/auth/')) {
         localStorage.removeItem('token');
         // Check current path to determine which login page to use
         const path = window.location.pathname;
@@ -435,10 +435,31 @@ class ApiClient {
     });
   }
 
-  async verifyOtp(email: string, otp: string) {
-    return this.request<any>('/auth/verify-otp', {
+  async verifyOtp(email: string, otp: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/auth/verify-otp', {
       method: 'POST',
       body: JSON.stringify({ email, otp }),
+    });
+  }
+
+  async sendSignupOtp(email: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/auth/signup/send-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async verifySignupOtp(email: string, otp: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/auth/signup/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp }),
+    });
+  }
+
+  async checkEmail(email: string): Promise<{ available: boolean }> {
+    return this.request<{ available: boolean }>('/auth/check-email', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
     });
   }
 

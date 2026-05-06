@@ -285,4 +285,31 @@ export class AuthController {
       resetPasswordDto.password,
     );
   }
+
+  @Post('signup/send-otp')
+  @HttpCode(HttpStatus.OK)
+  async sendSignupOtp(@Body() body: { email: string }) {
+    if (!body.email) {
+      throw new BadRequestException('Email is required');
+    }
+    return this.authService.sendSignupOtp(body.email);
+  }
+
+  @Post('signup/verify-otp')
+  @HttpCode(HttpStatus.OK)
+  async verifySignupOtp(@Body() body: { email: string; otp: string }) {
+    if (!body.email || !body.otp) {
+      throw new BadRequestException('Email and OTP are required');
+    }
+    return this.authService.verifySignupOtp(body.email, body.otp);
+  }
+
+  @Post('check-email')
+  @HttpCode(HttpStatus.OK)
+  async checkEmail(@Body() body: { email: string }) {
+    if (!body.email) {
+      throw new BadRequestException('Email is required');
+    }
+    return this.authService.checkEmailAvailability(body.email);
+  }
 }

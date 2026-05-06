@@ -20,10 +20,6 @@ export class CreateStaffDto {
   @IsEnum(['executive_admin', 'admin', 'fund_admin', 'investor_relations', 'accountant', 'relations_associate', 'partnership'])
   role: string;
 
-  @IsUUID()
-  @IsOptional()
-  associated_fund_id?: string;
-
   @IsString()
   @IsOptional()
   profile_image_url?: string;
@@ -49,10 +45,6 @@ export class UpdateStaffDto {
   @IsEnum(['executive_admin', 'admin', 'fund_admin', 'investor_relations', 'accountant', 'relations_associate', 'partnership'])
   @IsOptional()
   role?: string;
-
-  @IsUUID()
-  @IsOptional()
-  associated_fund_id?: string;
 
   @IsString()
   @IsOptional()

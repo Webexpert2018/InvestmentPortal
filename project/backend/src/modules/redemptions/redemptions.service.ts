@@ -39,15 +39,29 @@ export class RedemptionsService {
           WHERE is_reconciled = true
           GROUP BY investment_id
         ) red_sums ON i.id = red_sums.investment_id
-        WHERE i.id = $1 AND i.user_id = $2 AND i.is_reconciled = true
+        WHERE i.id = $1 AND i.user_id = $2
       `;
       const invResult = await db.query(invQuery, [investment_id, userId]);
 
       if (invResult.rows.length === 0) {
-        throw new NotFoundException('Investment not found or has not been reconciled yet.');
+        throw new NotFoundException('Investment not found.');
       }
 
       const investment = invResult.rows[0];
+
+      // Check status
+      if (investment.status !== 'Units Issued') {
+        throw new BadRequestException('Only investments with "Units Issued" status can be redeemed.');
+      }
+
+      // Check holding period (3 years from units_issued_at)
+      const threeYearsAgo = new Date();
+      threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+      const unitsIssuedAt = investment.units_issued_at ? new Date(investment.units_issued_at) : null;
+
+      if (!unitsIssuedAt || unitsIssuedAt > threeYearsAgo) {
+        throw new BadRequestException('Investments must be held for at least 3 years after units are issued before they can be redeemed.');
+      }
 
       // 3. Calculate units to be redeemed
       const units = parseFloat(amount) / currentNav;
