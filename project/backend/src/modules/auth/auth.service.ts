@@ -482,6 +482,18 @@ export class AuthService {
     return { message: 'Email verified successfully' };
   }
 
+  async checkEmailAvailability(email: string) {
+    const existing = await this.findUserAcrossTables(email);
+    if (!existing) return { available: true };
+    
+    // If it's an investor, check if they are pending. Pending investors can still signup.
+    if (existing.tableName === 'investors' && existing.user.status === 'pending') {
+      return { available: true };
+    }
+
+    return { available: false };
+  }
+
   async resetPassword(email: string, otp: string, password: string) {
     const searchResult = await this.findUserAcrossTables(email);
 

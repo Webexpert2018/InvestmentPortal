@@ -303,4 +303,13 @@ export class AuthController {
     }
     return this.authService.verifySignupOtp(body.email, body.otp);
   }
+
+  @Post('check-email')
+  @HttpCode(HttpStatus.OK)
+  async checkEmail(@Body() body: { email: string }) {
+    if (!body.email) {
+      throw new BadRequestException('Email is required');
+    }
+    return this.authService.checkEmailAvailability(body.email);
+  }
 }

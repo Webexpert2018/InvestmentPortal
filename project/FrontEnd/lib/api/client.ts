@@ -456,6 +456,13 @@ class ApiClient {
     });
   }
 
+  async checkEmail(email: string): Promise<{ available: boolean }> {
+    return this.request<{ available: boolean }>('/auth/check-email', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
   async resetPassword(data: any) {
     return this.request<any>('/auth/reset-password', {
       method: 'POST',

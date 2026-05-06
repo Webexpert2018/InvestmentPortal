@@ -300,6 +300,31 @@ export default function InvestorSignupPage() {
     } else {
       setShowProfileFlow(false);
       setCurrentStep(1);
+      // Clear data to start fresh
+      setForm({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        firstName: '',
+        lastName: '',
+        phoneCountryCode: '+1 (USA)',
+        phoneNumber: '',
+        dob: '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'US',
+        taxId: '',
+        emailOtp: ['', '', '', '', '', ''],
+        twoFactorOtp: ['', '', '', '', '', ''],
+      });
+      setErrors({});
+      setOtpSent(false);
+      setIsOtpVerified(false);
+      setTimer(0);
+      setGlobalError('');
     }
   };
 
@@ -333,10 +358,24 @@ export default function InvestorSignupPage() {
     setCurrentStep((prev) => (prev + 1) as Step);
   };
 
-  const handleCreateAccount = () => {
+  const handleCreateAccount = async () => {
     if (!validateAccount()) return;
-    setShowProfileFlow(true);
-    setCurrentStep(1);
+    
+    try {
+      setLoading(true);
+      setGlobalError('');
+      const { available } = await apiClient.checkEmail(form.email);
+      if (!available) {
+        setErrors(prev => ({ ...prev, email: 'An account with this email already exists.' }));
+        return;
+      }
+      setShowProfileFlow(true);
+      setCurrentStep(1);
+    } catch (err: any) {
+      setGlobalError(err.message || 'Error checking email availability');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFinalSubmit = async () => {
@@ -470,15 +509,16 @@ export default function InvestorSignupPage() {
 
           {globalError && <p className="mt-4 text-center font-helvetica text-sm text-red-600">{globalError}</p>}
 
-          <button
-            type="button"
-            onClick={handleCreateAccount}
-            disabled={loading}
-            className="mt-7 h-11 w-full rounded-full bg-yellow-400 text-lg  text-[#2A4474]"
-          >
-            Sign Up
-          </button>
-
+          <div className="space-y-6">
+            <button
+              onClick={handleCreateAccount}
+              disabled={loading}
+              className="h-11 w-full rounded-full bg-yellow-400 font-bold text-[#1F1F1F] transition-all hover:bg-yellow-500 disabled:opacity-70 flex items-center justify-center gap-2"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              Create Account
+            </button>
+          </div>
           <p className="mt-5 text-center text-xl text-[#9C9C9C]">
             Already have an account?{' '}
             <Link href="/auth/login?flow=investor" className="font-medium text-yellow-600 hover:underline">
