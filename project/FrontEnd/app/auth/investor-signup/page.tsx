@@ -536,9 +536,10 @@ export default function InvestorSignupPage() {
                   <button
                     type="button"
                     className="text-sm font-medium text-[#888888] hover:text-[#4B4B4B]"
-                    onClick={() => router.push('/auth/login?flow=investor')}
+                    onClick={handleFinalSubmit}
+                    disabled={loading}
                   >
-                    SKIP
+                    {loading ? 'Processing...' : 'SKIP'}
                   </button>
                 )}
               </div>
