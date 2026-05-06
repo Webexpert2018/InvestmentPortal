@@ -256,7 +256,7 @@ export default function HomePage() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full bg-transparent border border-white/20 text-white hover:bg-white/5"
+                    className="w-full bg-[#D4AF37] text-[#070A13] hover:bg-[#F3E5AB] font-bold border-white/20"
                   >
                     Sign In
                   </Button>
@@ -267,11 +267,11 @@ export default function HomePage() {
                   <DropdownMenuItem className="text-white hover:text-white focus:text-white cursor-pointer" onSelect={() => router.push('/auth/login?flow=investor')}>Investor login</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Link href="/auth/signup" className="w-full">
+              {/* <Link href="/auth/signup" className="w-full">
                 <Button className="w-full bg-[#D4AF37] text-[#070A13] hover:bg-[#F3E5AB] font-bold">
                   Log In
                 </Button>
-              </Link>
+              </Link> */}
             </div>
           </motion.div>
         )}
@@ -302,7 +302,7 @@ export default function HomePage() {
             muted
             playsInline
             preload="auto"
-            poster="/banner_image.mp4"
+            poster="/video/intro_video.mp4"
             onCanPlay={() => {
               setTimeout(() => setVideoLoaded(true), 1500);
             }}
@@ -441,7 +441,7 @@ export default function HomePage() {
                   Traditional investments like mutual funds, single stocks, and single-family real estate all have major disadvantages and leave you with lower returns or higher risk.
                 </p>
                 <p className="leading-relaxed">
-                  We're taking a stand against weak investments with a different solution: Apartment Multifamily Investing.
+                  We&apos;re taking a stand against weak investments with a different solution: Apartment Multifamily Investing.
                 </p>
               </div>
               <div className="relative">
