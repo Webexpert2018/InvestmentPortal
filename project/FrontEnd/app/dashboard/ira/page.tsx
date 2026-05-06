@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useToast, toast as globalToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { apiClient } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
 import { Combobox } from '@/components/ui/combobox';
-import { Check, ChevronDown, Shield, Smartphone, QrCode, Phone, MapPin, User, FileText, Lock, Plus, X, Loader2, Info, Wallet, Sparkles, Building2, ShieldCheck, History } from 'lucide-react';
+import { Check, ChevronDown, ChevronLeft, Shield, Smartphone, QrCode, Phone, MapPin, User, FileText, Lock, Plus, X, Loader2, Info, Wallet, Sparkles, Building2, ShieldCheck, History } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════
    FIELD DISPLAY COMPONENT
@@ -46,12 +47,17 @@ function StatusBadge({ verified, label }: { verified: boolean; label: string }) 
    PAGE
    ═══════════════════════════════════════════════════════ */
 export default function IRAPage() {
+  const router = useRouter();
   const { user } = useAuth();
+  const { toast: localToast } = useToast();
   const [iraAccounts, setIraAccounts] = useState<any[]>([]);
-  const [selectedAccountIdx, setSelectedAccountIdx] = useState<number | 'personal'>(0);
+  const [selectedAccountIdx, setSelectedAccountIdx] = useState<number>(0);
+  const [view, setView] = useState<'list' | 'detail'>('list');
   const [fetchingIra, setFetchingIra] = useState(true);
   const [loading, setLoading] = useState(false);
   const [accountTypes, setAccountTypes] = useState<any[]>([]);
+  const [myInvestments, setMyInvestments] = useState<any[]>([]);
+  const [myRedemptions, setMyRedemptions] = useState<any[]>([]);
 
   const phoneComplete = user?.phone || '';
   const phoneParts = phoneComplete.match(/^(\+\d+\s*\([^)]+\))\s*(.*)$/);
@@ -61,7 +67,21 @@ export default function IRAPage() {
   useEffect(() => {
     fetchIraAccount();
     fetchAccountTypes();
+    fetchPortfolioData();
   }, []);
+
+  const fetchPortfolioData = async () => {
+    try {
+      const [investments, redemptions] = await Promise.all([
+        apiClient.getMyInvestments(),
+        apiClient.getMyRedemptions()
+      ]);
+      setMyInvestments(investments || []);
+      setMyRedemptions(redemptions || []);
+    } catch (error) {
+      console.error('Failed to fetch portfolio data:', error);
+    }
+  };
 
   const fetchAccountTypes = async () => {
     try {
@@ -83,7 +103,19 @@ export default function IRAPage() {
     }
   };
 
-  const selectedIra = selectedAccountIdx !== 'personal' ? iraAccounts[selectedAccountIdx] : null;
+  const selectedIra = iraAccounts[selectedAccountIdx];
+
+  const calculateBalance = (accountId: string) => {
+    const accountInvestments = myInvestments.filter(inv => inv.account_id === accountId && inv.is_reconciled);
+    const totalInvested = accountInvestments.reduce((sum, inv) => sum + parseFloat(inv.revised_amount || inv.investment_amount || 0), 0);
+    
+    const investmentIds = accountInvestments.map(inv => inv.id);
+    const totalRedeemed = myRedemptions
+      .filter(red => red.is_reconciled && investmentIds.includes(red.investment_id))
+      .reduce((sum, red) => sum + parseFloat(red.amount || 0), 0);
+
+    return totalInvested - totalRedeemed;
+  };
 
   const d = {
     firstName: user?.firstName || '',
@@ -113,10 +145,10 @@ export default function IRAPage() {
     accountOpenDate: selectedIra?.created_at ? new Date(selectedIra.created_at).toLocaleDateString() : (user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'),
     accountUpdatedDate: selectedIra?.updated_at ? new Date(selectedIra.updated_at).toLocaleDateString() : '-',
     custodian: selectedIra?.custodian_name || '-',
-    beneficiary: selectedIra?.beneficiary || '-',
+     beneficiary: selectedIra?.beneficiary || '-',
     contributionYTD: '$0.00',
     contributionLimit: '$7,000.00',
-    accountBalance: '$0.00',
+    accountBalance: selectedIra ? `$${calculateBalance(selectedIra.id).toLocaleString()}` : '$0.00',
     fullAccountHolderName: [user?.firstName, selectedIra?.middle_name, user?.lastName, selectedIra?.suffix].filter(Boolean).join(' ') || '-',
 
     middleName: selectedIra?.middle_name || '-',
@@ -135,7 +167,6 @@ export default function IRAPage() {
     taxCompleted: !!user?.taxId,
   };
 
-  const { toast } = useToast();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferForm, setTransferForm] = useState({
@@ -217,7 +248,7 @@ export default function IRAPage() {
 
     setErrors(e);
     if (Object.keys(e).length > 0) {
-      globalToast({
+      localToast({
         title: 'Validation failed',
         description: 'Missing or invalid fields: ' + Object.keys(e).join(', '),
         variant: 'destructive',
@@ -262,12 +293,7 @@ export default function IRAPage() {
         country: user?.country,
       });
 
-      toast({
-        title: 'IRA saved',
-        description: 'All IRA account values saved successfully.',
-        className: 'bg-green-50 border-green-200 text-green-800'
-      });
-      globalToast({
+      localToast({
         title: 'IRA saved',
         description: 'All IRA account values saved successfully.',
         className: 'bg-green-50 border-green-200 text-green-800'
@@ -282,7 +308,7 @@ export default function IRAPage() {
       });
       setErrors({});
     } catch (error: any) {
-      toast({
+      localToast({
         title: error?.status === 409 ? 'Duplicate Account Type' : 'Error',
         description: error?.message || 'Failed to save IRA account',
         variant: 'destructive'
@@ -294,7 +320,7 @@ export default function IRAPage() {
 
   const handleTransferIRA = () => {
     if (!transferForm.accountNumber.trim()) {
-      globalToast({
+      localToast({
         title: 'Validation failed',
         description: 'Please enter account number.',
         variant: 'destructive',
@@ -302,7 +328,7 @@ export default function IRAPage() {
       return;
     }
     if (!transferForm.custodian.trim()) {
-      globalToast({
+      localToast({
         title: 'Validation failed',
         description: 'Please enter previous custodian name.',
         variant: 'destructive',
@@ -318,18 +344,15 @@ export default function IRAPage() {
     try {
       setIsSavingTaxId(true);
       await apiClient.updateProfile({ taxId: editedTaxId });
-      // Update local state if needed, though refreshUser is usually better
-      // For now, apiClient.updateProfile might return the updated user
       setIsEditingTaxId(false);
-      toast({
+      localToast({
         title: 'Success',
         description: 'Tax ID updated successfully',
         className: 'bg-green-50 border-green-200 text-green-800'
       });
-      // Optionally reload profile
       window.location.reload(); 
     } catch (err: any) {
-      toast({
+      localToast({
         title: 'Error',
         description: err.message || 'Failed to update Tax ID',
         variant: 'destructive'
@@ -345,34 +368,26 @@ export default function IRAPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                if (view === 'detail') {
+                  setView('list');
+                } else {
+                  router.back();
+                }
+              }}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ChevronLeft className="h-5 w-5 text-gray-600" />
+            </button>
             <div>
               <h1 className="font-goudy text-[22px] md:text-[26px] font-bold text-[#1F1F1F]">IRA</h1>
               <p className="mt-1 text-[13px] text-[#8E8E93] font-helvetica">
-                Manage your IRA-related investments and account information here.
+                {view === 'list' 
+                  ? 'Manage your IRA-related investments and account information here.' 
+                  : `Detailed overview of your ${selectedIra?.account_type || ''} account.`}
               </p>
             </div>
-
-            {/* Account Selector Dropdown */}
-            {iraAccounts.length > 0 && (
-              <div className="ml-4 flex items-center gap-2">
-                <span className="text-[12px] font-medium text-[#6B7280]">Select Account:</span>
-                <select
-                  value={selectedAccountIdx}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSelectedAccountIdx(val === 'personal' ? 'personal' : parseInt(val));
-                  }}
-                  className="h-9 rounded-[8px] border border-[#E5E7EB] bg-white px-3 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] shadow-sm cursor-pointer min-w-[180px]"
-                >
-                  <option value="personal">Personal Account</option>
-                  {iraAccounts.map((acc, idx) => (
-                    <option key={acc.id} value={idx}>
-                      {acc.account_type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
           </div>
           <div className="flex gap-3">
             <button
@@ -392,242 +407,331 @@ export default function IRAPage() {
           </div>
         </div>
 
-        {/* Main Card */}
-        <div className="mt-4 rounded-sm border border-[#F0F0F0] bg-white shadow-sm overflow-hidden">
-          {/* SECTION 1: IRA Account Overview */}
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
-                <FileText className="h-3.5 w-3.5 text-[#D1A94C]" />
-              </div>
-              <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">IRA Account Overview</h3>
-            </div>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              <Field label="Account Type" value={d.accountType} />
-              <Field label="Account Number" value={d.accountNumber} />
-              <Field label="Account Holder Name" value={d.fullAccountHolderName} />
-              <Field label="Custodian" value={d.custodian} />
-              <Field label="Beneficiary" value={d.beneficiary} />
-              <Field label="Contribution (YTD)" value={d.contributionYTD} />
-              <Field label="Annual Contribution Limit" value={d.contributionLimit} />
-              <Field label="Account Balance" value={d.accountBalance} />
-              <Field label="Marital Status" value={d.maritalStatus} />
+        {/* Main Content Area */}
+        {view === 'list' ? (
+          <div className="mt-6 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full border-separate border-spacing-0 text-[14px]">
+                <thead>
+                  <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
+                    <th className="px-6 py-4 border-b border-[#F0F0F0]">Account Type</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] text-right">Account Balance</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0]">Beneficiary</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F0F0F0]">
+                  {fetchingIra ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-20 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                          <Loader2 className="h-8 w-8 animate-spin text-[#D1A94C]" />
+                          <p className="text-[#8E8E93] font-helvetica">Loading your accounts...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : iraAccounts.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-20 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                          <Wallet className="h-12 w-12 text-[#E5E7EB]" />
+                          <p className="text-[#8E8E93] font-helvetica">No IRA accounts found.</p>
+                          <button
+                            onClick={() => setShowAddModal(true)}
+                            className="mt-2 text-[#D1A94C] font-semibold hover:underline"
+                          >
+                            Open your first account
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    iraAccounts.map((acc, idx) => (
+                      <tr 
+                        key={acc.id} 
+                        onClick={() => {
+                          setSelectedAccountIdx(idx);
+                          setView('detail');
+                        }}
+                        className="hover:bg-[#FAFAFA] cursor-pointer transition-colors group"
+                      >
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1] group-hover:bg-[#FFC63F] group-hover:text-white transition-colors">
+                              <FileText className="h-5 w-5 text-[#D1A94C] group-hover:text-white" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-[#1F1F1F] font-goudy text-[16px]">{acc.account_type}</p>
+                              <p className="text-[12px] text-[#8E8E93] font-helvetica">{acc.account_number || 'N/A'}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 text-right">
+                          <p className="font-bold text-[#1F1F1F] font-helvetica text-[15px]">
+                            ${calculateBalance(acc.id).toLocaleString()}
+                          </p>
+                          <p className="text-[11px] text-[#2BB673] font-medium font-helvetica">Active Account</p>
+                        </td>
+                        <td className="px-6 py-5">
+                          <p className="text-[#4B4B4B] font-helvetica">{acc.beneficiary || '-'}</p>
+                        </td>
+                        <td className="px-6 py-5 text-center">
+                          <button className="h-8 px-4 rounded-full border border-[#E5E7EB] text-[12px] font-bold text-[#4B4B4B] hover:bg-[#F5F5F5] transition-colors">
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
-
-          <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
-
-          {/* SECTION 2: Profile Information */}
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
-                <User className="h-3.5 w-3.5 text-[#D1A94C]" />
-              </div>
-              <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Profile Information</h3>
-              <StatusBadge verified={d.profileCompleted} label={d.profileCompleted ? "Completed" : "Pending"} />
-            </div>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="First Name" value={d.firstName} />
-              <Field label="Middle Name" value={d.middleName} />
-              <Field label="Last Name" value={d.lastName} />
-              <Field label="Suffix" value={d.suffix} />
-              <Field label="Email" value={d.email} />
-              <div>
-                <p className="text-[12px] font-medium text-[#6B7280] mb-[6px] font-helvetica">Phone Number</p>
-                <div className="flex gap-2">
-                  <div className="h-[42px] w-[120px] shrink-0 flex items-center rounded-[8px] border border-[#E5E7EB] bg-[#FAFAFA] px-3">
-                    <span className="text-[13px] text-[#374151] font-helvetica">{d.phoneCountryCode}</span>
+        ) : (
+          <div className="mt-4 rounded-sm border border-[#F0F0F0] bg-white shadow-sm overflow-hidden">
+            {/* SECTION 1: IRA Account Overview */}
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
+                    <FileText className="h-3.5 w-3.5 text-[#D1A94C]" />
                   </div>
-                  <div className="h-[42px] w-[240px] flex items-center rounded-[8px] border border-[#E5E7EB] bg-[#FAFAFA] px-4">
-                    <span className="text-[13px] text-[#1F1F1F] font-helvetica">{d.phoneNumber}</span>
-                  </div>
+                  <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">IRA Account Overview</h3>
                 </div>
+                <button 
+                  onClick={() => setView('list')}
+                  className="text-[12px] font-bold text-[#D1A94C] hover:underline flex items-center gap-1"
+                >
+                  <ChevronLeft className="h-3 w-3" /> Back to List
+                </button>
               </div>
-              <Field label="Date of Birth" value={d.dob} />
-            </div>
-          </div>
-
-          <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
-
-          {/* SECTION 3: Address */}
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
-                <MapPin className="h-3.5 w-3.5 text-[#D1A94C]" />
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <Field label="Account Type" value={d.accountType} />
+                <Field label="Account Number" value={d.accountNumber} />
+                <Field label="Account Holder Name" value={d.fullAccountHolderName} />
+                <Field label="Custodian" value={d.custodian} />
+                <Field label="Beneficiary" value={d.beneficiary} />
+                <Field label="Contribution (YTD)" value={d.contributionYTD} />
+                <Field label="Annual Contribution Limit" value={d.contributionLimit} />
+                <Field label="Account Balance" value={d.accountBalance} />
+                <Field label="Marital Status" value={d.maritalStatus} />
               </div>
-              <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Address</h3>
-              <StatusBadge verified={d.addressCompleted} label={d.addressCompleted ? "Completed" : "Pending"} />
             </div>
 
-            <div className="flex flex-col gap-8">
-              <div className="space-y-5">
-                <h4 className="text-[14px] font-semibold text-[#1F1F1F] font-goudy underline decoration-[#FFC63F] underline-offset-4">Physical Address</h4>
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="Street Address Line 1" value={d.addressLine1} />
-                  <Field label="Street Address Line 2" value={d.addressLine2} />
-                  <Field label="Country" value={d.country} />
-                  <Field label="State" value={d.state} />
-                  <Field label="City" value={d.city} />
-                  <Field label="ZIP Code" value={d.zipCode} />
+            <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
+
+            {/* SECTION 2: Profile Information */}
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
+                  <User className="h-3.5 w-3.5 text-[#D1A94C]" />
                 </div>
+                <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Profile Information</h3>
+                <StatusBadge verified={d.profileCompleted} label={d.profileCompleted ? "Completed" : "Pending"} />
               </div>
-
-              <div className="border-t border-dashed border-[#ECEDEF]" />
-
-              <div className="space-y-5">
-                <h4 className="text-[14px] font-semibold text-[#1F1F1F] font-goudy underline decoration-[#FFC63F] underline-offset-4">Mailing Address</h4>
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-3">
-                    <p className="text-[12px] font-medium text-[#6B7280] font-helvetica">Mailing same as Physical:</p>
-                    <div className="flex gap-2">
-                      <span className={`px-3 py-0.5 rounded-full text-[12px] font-medium ${d.mailingAddressSame === 'Yes' ? 'bg-[#ECFDF5] text-[#16A66A]' : 'bg-[#F3F4F6] text-[#6B7280]'}`}>
-                        Yes
-                      </span>
-                      <span className={`px-3 py-0.5 rounded-full text-[12px] font-medium ${d.mailingAddressSame === 'No' ? 'bg-[#FEF2F2] text-[#EF4444]' : 'bg-[#F3F4F6] text-[#6B7280]'}`}>
-                        No
-                      </span>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field label="First Name" value={d.firstName} />
+                <Field label="Middle Name" value={d.middleName} />
+                <Field label="Last Name" value={d.lastName} />
+                <Field label="Suffix" value={d.suffix} />
+                <Field label="Email" value={d.email} />
+                <div>
+                  <p className="text-[12px] font-medium text-[#6B7280] mb-[6px] font-helvetica">Phone Number</p>
+                  <div className="flex gap-2">
+                    <div className="h-[42px] w-[120px] shrink-0 flex items-center rounded-[8px] border border-[#E5E7EB] bg-[#FAFAFA] px-3">
+                      <span className="text-[13px] text-[#374151] font-helvetica">{d.phoneCountryCode}</span>
+                    </div>
+                    <div className="h-[42px] w-[240px] flex items-center rounded-[8px] border border-[#E5E7EB] bg-[#FAFAFA] px-4">
+                      <span className="text-[13px] text-[#1F1F1F] font-helvetica">{d.phoneNumber}</span>
                     </div>
                   </div>
                 </div>
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="Street Address Line 1" value={d.mailingAddress1} />
-                  <Field label="Street Address Line 2" value={d.mailingAddress2} />
-                  <Field label="Country" value={d.mailingCountry} />
-                  <Field label="State" value={d.mailingState} />
-                  <Field label="City" value={d.mailingCity} />
-                  <Field label="ZIP Code" value={d.mailingZipCode} />
+                <Field label="Date of Birth" value={d.dob} />
+              </div>
+            </div>
+
+            <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
+
+            {/* SECTION 3: Address */}
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
+                  <MapPin className="h-3.5 w-3.5 text-[#D1A94C]" />
                 </div>
+                <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Address</h3>
+                <StatusBadge verified={d.addressCompleted} label={d.addressCompleted ? "Completed" : "Pending"} />
               </div>
-            </div>
-          </div>
 
-          <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
-
-          {/* SECTION 4: Phone Verification */}
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
-                <Phone className="h-3.5 w-3.5 text-[#D1A94C]" />
-              </div>
-              <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Phone Verification</h3>
-              <StatusBadge verified={d.phoneVerified} label={d.phoneVerified ? 'Verified' : 'Pending'} />
-            </div>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div>
-                <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Phone Number</p>
-                <p className="text-[14px] text-[#1F1F1F] font-helvetica">{d.phoneCountryCode} {d.phoneNumber}</p>
-              </div>
-              <Field label="Verified On" value={d.phoneVerifiedAt} />
-            </div>
-          </div>
-
-          <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
-
-          {/* SECTION 5: TAX Information */}
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
-                <FileText className="h-3.5 w-3.5 text-[#D1A94C]" />
-              </div>
-              <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">TAX Information</h3>
-              <StatusBadge verified={d.taxCompleted} label={d.taxCompleted ? "Completed" : "Pending"} />
-            </div>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Social Security Number / Tax ID</p>
-                  {!isEditingTaxId && (
-                    <button 
-                      onClick={() => setIsEditingTaxId(true)}
-                      className="text-[10px] font-bold text-[#D1A94C] hover:underline font-helvetica"
-                    >
-                      Edit
-                    </button>
-                  )}
-                </div>
-                {isEditingTaxId ? (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={editedTaxId}
-                      maxLength={11}
-                      onChange={(e) => {
-                        let val = e.target.value.replace(/\D/g, '');
-                        if (val.length > 9) val = val.slice(0, 9);
-                        
-                        let formatted = val;
-                        if (val.length > 3 && val.length <= 5) {
-                          formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
-                        } else if (val.length > 5) {
-                          formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
-                        }
-                        setEditedTaxId(formatted);
-                      }}
-                      className="flex-1 h-9 px-3 text-[14px] text-[#1F1F1F] font-helvetica border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#D1A94C]"
-                    />
-                    <button
-                      onClick={handleSaveTaxId}
-                      disabled={isSavingTaxId}
-                      className="px-3 h-9 text-[12px] font-bold bg-[#FFC63F] text-[#1F1F1F] rounded-lg hover:opacity-90 disabled:opacity-50 font-helvetica"
-                    >
-                      {isSavingTaxId ? '...' : 'Save'}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsEditingTaxId(false);
-                        setEditedTaxId(user?.taxId || '');
-                      }}
-                      className="px-3 h-9 text-[12px] font-bold bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-helvetica"
-                    >
-                      Cancel
-                    </button>
+              <div className="flex flex-col gap-8">
+                <div className="space-y-5">
+                  <h4 className="text-[14px] font-semibold text-[#1F1F1F] font-goudy underline decoration-[#FFC63F] underline-offset-4">Physical Address</h4>
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <Field label="Street Address Line 1" value={d.addressLine1} />
+                    <Field label="Street Address Line 2" value={d.addressLine2} />
+                    <Field label="Country" value={d.country} />
+                    <Field label="State" value={d.state} />
+                    <Field label="City" value={d.city} />
+                    <Field label="ZIP Code" value={d.zipCode} />
                   </div>
-                ) : (
-                  <p className="text-[14px] tracking-[3px] text-[#1F1F1F] font-helvetica">
-                    {d.taxId ? (d.taxId.length === 9 && !d.taxId.includes('-') ? `${d.taxId.slice(0, 3)}-${d.taxId.slice(3, 5)}-${d.taxId.slice(5)}` : d.taxId) : 'Not provided'}
-                  </p>
-                )}
-              </div>
-              <div>
-                <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Encryption Status</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Lock className="h-3.5 w-3.5 text-[#16A66A]" />
-                  <span className="text-[13px] text-[#16A66A] font-medium font-helvetica">Your information is encrypted and secure</span>
+                </div>
+
+                <div className="border-t border-dashed border-[#ECEDEF]" />
+
+                <div className="space-y-5">
+                  <h4 className="text-[14px] font-semibold text-[#1F1F1F] font-goudy underline decoration-[#FFC63F] underline-offset-4">Mailing Address</h4>
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3">
+                      <p className="text-[12px] font-medium text-[#6B7280] font-helvetica">Mailing same as Physical:</p>
+                      <div className="flex gap-2">
+                        <span className={`px-3 py-0.5 rounded-full text-[12px] font-medium ${d.mailingAddressSame === 'Yes' ? 'bg-[#ECFDF5] text-[#16A66A]' : 'bg-[#F3F4F6] text-[#6B7280]'}`}>
+                          Yes
+                        </span>
+                        <span className={`px-3 py-0.5 rounded-full text-[12px] font-medium ${d.mailingAddressSame === 'No' ? 'bg-[#FEF2F2] text-[#EF4444]' : 'bg-[#F3F4F6] text-[#6B7280]'}`}>
+                          No
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <Field label="Street Address Line 1" value={d.mailingAddress1} />
+                    <Field label="Street Address Line 2" value={d.mailingAddress2} />
+                    <Field label="Country" value={d.mailingCountry} />
+                    <Field label="State" value={d.mailingState} />
+                    <Field label="City" value={d.mailingCity} />
+                    <Field label="ZIP Code" value={d.mailingZipCode} />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
+            <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
 
-          {/* SECTION 6: Two-Factor Authentication */}
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
-                <Shield className="h-3.5 w-3.5 text-[#D1A94C]" />
+            {/* SECTION 4: Phone Verification */}
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
+                  <Phone className="h-3.5 w-3.5 text-[#D1A94C]" />
+                </div>
+                <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Phone Verification</h3>
+                <StatusBadge verified={d.phoneVerified} label={d.phoneVerified ? 'Verified' : 'Pending'} />
               </div>
-              <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Two-Factor Authentication</h3>
-              <StatusBadge verified={d.twoFactorEnabled} label={d.twoFactorEnabled ? 'Enabled' : 'Disabled'} />
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Phone Number</p>
+                  <p className="text-[14px] text-[#1F1F1F] font-helvetica">{d.phoneCountryCode} {d.phoneNumber}</p>
+                </div>
+                <Field label="Verified On" value={d.phoneVerifiedAt} />
+              </div>
             </div>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              <Field label="Authentication Method" value={d.twoFactorMethod} />
-              <Field label="Setup Date" value={d.twoFactorSetupDate} />
-              <div>
-                <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Status</p>
-                <div className="flex items-center gap-2 mt-1">
-                  {d.twoFactorEnabled ? (
-                    <>
-                      <Smartphone className="h-3.5 w-3.5 text-[#16A66A]" />
-                      <span className="text-[13px] text-[#16A66A] font-medium font-helvetica">Active</span>
-                    </>
+
+            <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
+
+            {/* SECTION 5: TAX Information */}
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
+                  <FileText className="h-3.5 w-3.5 text-[#D1A94C]" />
+                </div>
+                <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">TAX Information</h3>
+                <StatusBadge verified={d.taxCompleted} label={d.taxCompleted ? "Completed" : "Pending"} />
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Social Security Number / Tax ID</p>
+                    {!isEditingTaxId && (
+                      <button 
+                        onClick={() => setIsEditingTaxId(true)}
+                        className="text-[10px] font-bold text-[#D1A94C] hover:underline font-helvetica"
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+                  {isEditingTaxId ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={editedTaxId}
+                        maxLength={11}
+                        onChange={(e) => {
+                          let val = e.target.value.replace(/\D/g, '');
+                          if (val.length > 9) val = val.slice(0, 9);
+                          
+                          let formatted = val;
+                          if (val.length > 3 && val.length <= 5) {
+                            formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                          } else if (val.length > 5) {
+                            formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+                          }
+                          setEditedTaxId(formatted);
+                        }}
+                        className="flex-1 h-9 px-3 text-[14px] text-[#1F1F1F] font-helvetica border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#D1A94C]"
+                      />
+                      <button
+                        onClick={handleSaveTaxId}
+                        disabled={isSavingTaxId}
+                        className="px-3 h-9 text-[12px] font-bold bg-[#FFC63F] text-[#1F1F1F] rounded-lg hover:opacity-90 disabled:opacity-50 font-helvetica"
+                      >
+                        {isSavingTaxId ? '...' : 'Save'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsEditingTaxId(false);
+                          setEditedTaxId(user?.taxId || '');
+                        }}
+                        className="px-3 h-9 text-[12px] font-bold bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-helvetica"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   ) : (
-                    <span className="text-[13px] text-[#8E8E93] font-helvetica">Not configured</span>
+                    <p className="text-[14px] tracking-[3px] text-[#1F1F1F] font-helvetica">
+                      {d.taxId ? (d.taxId.length === 9 && !d.taxId.includes('-') ? `${d.taxId.slice(0, 3)}-${d.taxId.slice(3, 5)}-${d.taxId.slice(5)}` : d.taxId) : 'Not provided'}
+                    </p>
                   )}
                 </div>
+                <div>
+                  <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Encryption Status</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Lock className="h-3.5 w-3.5 text-[#16A66A]" />
+                    <span className="text-[13px] text-[#16A66A] font-medium font-helvetica">Your information is encrypted and secure</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
+
+            {/* SECTION 6: Two-Factor Authentication */}
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
+                  <Shield className="h-3.5 w-3.5 text-[#D1A94C]" />
+                </div>
+                <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Two-Factor Authentication</h3>
+                <StatusBadge verified={d.twoFactorEnabled} label={d.twoFactorEnabled ? 'Enabled' : 'Disabled'} />
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <Field label="Authentication Method" value={d.twoFactorMethod} />
+                <Field label="Setup Date" value={d.twoFactorSetupDate} />
+                <div>
+                  <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Status</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {d.twoFactorEnabled ? (
+                      <>
+                        <Smartphone className="h-3.5 w-3.5 text-[#16A66A]" />
+                        <span className="text-[13px] text-[#16A66A] font-medium font-helvetica">Active</span>
+                      </>
+                    ) : (
+                      <span className="text-[13px] text-[#8E8E93] font-helvetica">Not configured</span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ─── ADD IRA MODAL ─── */}
