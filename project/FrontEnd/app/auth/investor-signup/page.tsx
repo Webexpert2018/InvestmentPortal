@@ -780,8 +780,20 @@ export default function InvestorSignupPage() {
           <FormField label="Social Security Number / Tax ID" error={errors.taxId}>
             <input
               value={form.taxId}
-              onChange={(e) => setField('taxId', e.target.value)}
-              placeholder="*** ** ***"
+              maxLength={11}
+              onChange={(e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length > 9) val = val.slice(0, 9);
+
+                let formatted = val;
+                if (val.length > 3 && val.length <= 5) {
+                  formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                } else if (val.length > 5) {
+                  formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+                }
+                setField('taxId', formatted);
+              }}
+              placeholder="Format: XXX-XX-XXXX"
               className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
             />
           </FormField>

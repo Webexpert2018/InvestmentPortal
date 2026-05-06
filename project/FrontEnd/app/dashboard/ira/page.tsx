@@ -142,13 +142,17 @@ export default function IRAPage() {
     accountNumber: '',
     custodian: '',
   });
+  const [isEditingTaxId, setIsEditingTaxId] = useState(false);
+  const [editedTaxId, setEditedTaxId] = useState(user?.taxId || '');
+  const [isSavingTaxId, setIsSavingTaxId] = useState(false);
+
   const [iraForm, setIraForm] = useState({
     accountType: 'Traditional IRA',
     accountNumber: '',
     custodian: '',
     beneficiary: '',
     accountHolderName: user ? `${user.firstName} ${user.lastName}` : '',
-    ssn: '',
+    ssn: user?.taxId || '',
     middleName: '',
     suffix: '',
     maritalStatus: 'single',
@@ -179,8 +183,12 @@ export default function IRAPage() {
     if (user && !iraForm.accountHolderName) {
       setIraForm(prev => ({
         ...prev,
-        accountHolderName: `${user.firstName} ${user.lastName}`
+        accountHolderName: `${user.firstName} ${user.lastName}`,
+        ssn: prev.ssn || user.taxId || ''
       }));
+    }
+    if (user) {
+      setEditedTaxId(user.taxId || '');
     }
   }, [user, showAddModal]);
 
@@ -304,6 +312,31 @@ export default function IRAPage() {
     alert('We will integrate an API soon for this');
     setShowTransferModal(false);
     setTransferForm({ accountNumber: '', custodian: '' });
+  };
+
+  const handleSaveTaxId = async () => {
+    try {
+      setIsSavingTaxId(true);
+      await apiClient.updateProfile({ taxId: editedTaxId });
+      // Update local state if needed, though refreshUser is usually better
+      // For now, apiClient.updateProfile might return the updated user
+      setIsEditingTaxId(false);
+      toast({
+        title: 'Success',
+        description: 'Tax ID updated successfully',
+        className: 'bg-green-50 border-green-200 text-green-800'
+      });
+      // Optionally reload profile
+      window.location.reload(); 
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to update Tax ID',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSavingTaxId(false);
+    }
   };
 
   return (
@@ -500,7 +533,61 @@ export default function IRAPage() {
               <StatusBadge verified={d.taxCompleted} label={d.taxCompleted ? "Completed" : "Pending"} />
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
-              <MaskedField label="Social Security Number / Tax ID" value={d.taxId} />
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Social Security Number / Tax ID</p>
+                  {!isEditingTaxId && (
+                    <button 
+                      onClick={() => setIsEditingTaxId(true)}
+                      className="text-[10px] font-bold text-[#D1A94C] hover:underline font-helvetica"
+                    >
+                      Edit
+                    </button>
+                  )}
+                </div>
+                {isEditingTaxId ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={editedTaxId}
+                      maxLength={11}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\D/g, '');
+                        if (val.length > 9) val = val.slice(0, 9);
+                        
+                        let formatted = val;
+                        if (val.length > 3 && val.length <= 5) {
+                          formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                        } else if (val.length > 5) {
+                          formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+                        }
+                        setEditedTaxId(formatted);
+                      }}
+                      className="flex-1 h-9 px-3 text-[14px] text-[#1F1F1F] font-helvetica border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#D1A94C]"
+                    />
+                    <button
+                      onClick={handleSaveTaxId}
+                      disabled={isSavingTaxId}
+                      className="px-3 h-9 text-[12px] font-bold bg-[#FFC63F] text-[#1F1F1F] rounded-lg hover:opacity-90 disabled:opacity-50 font-helvetica"
+                    >
+                      {isSavingTaxId ? '...' : 'Save'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingTaxId(false);
+                        setEditedTaxId(user?.taxId || '');
+                      }}
+                      className="px-3 h-9 text-[12px] font-bold bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-helvetica"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-[14px] tracking-[3px] text-[#1F1F1F] font-helvetica">
+                    {d.taxId ? (d.taxId.length === 9 && !d.taxId.includes('-') ? `${d.taxId.slice(0, 3)}-${d.taxId.slice(3, 5)}-${d.taxId.slice(5)}` : d.taxId) : 'Not provided'}
+                  </p>
+                )}
+              </div>
               <div>
                 <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Encryption Status</p>
                 <div className="flex items-center gap-2 mt-1">

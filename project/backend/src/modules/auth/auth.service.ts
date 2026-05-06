@@ -27,13 +27,14 @@ export class AuthService {
     // 1. Check if user already exists in ANY table (users, investors, staff)
     const [existingUser, existingInvestor, existingStaff] = await Promise.all([
       db.query('SELECT id FROM users WHERE email = $1', [email]),
-      db.query('SELECT id FROM investors WHERE email = $1', [email]),
+      db.query('SELECT id, status FROM investors WHERE email = $1', [email]),
       db.query('SELECT id FROM staff WHERE email = $1', [email])
     ]);
 
-    // If it's an invitation, we allow the existing pending investor
     const isInvitation = !!invitationToken;
     let invitationData: any = null;
+    let isUpgradingPending = false;
+    let upgradeUserId: string | null = null;
 
     if (isInvitation) {
       const inviteResult = await db.query(
@@ -52,9 +53,21 @@ export class AuthService {
       if (invitationData.email !== email) {
         throw new BadRequestException('Invitation token does not match this email');
       }
+      upgradeUserId = invitationData.user_id;
     } else {
-      if (existingUser.rows.length > 0 || existingInvestor.rows.length > 0 || existingStaff.rows.length > 0) {
+      if (existingUser.rows.length > 0 || existingStaff.rows.length > 0) {
         throw new ConflictException('User with this email already exists');
+      }
+
+      if (existingInvestor.rows.length > 0) {
+        const investor = existingInvestor.rows[0];
+        if (investor.status === 'pending') {
+          // Allow pending investors to signup manually
+          isUpgradingPending = true;
+          upgradeUserId = investor.id;
+        } else {
+          throw new ConflictException('User with this email already exists');
+        }
       }
     }
 
@@ -100,18 +113,32 @@ export class AuthService {
       newUser.lastName = nameParts.slice(1).join(' ') || '';
     } else {
       // 2c. Insert or Update into INVESTORS table for default/investor role
-      if (isInvitation) {
+      if (isInvitation || isUpgradingPending) {
         const userResult = await db.query(
           `UPDATE investors 
            SET full_name = $1, password_hash = $2, phone = $3, dob = $4, address_line1 = $5, address_line2 = $6, city = $7, state = $8, zip_code = $9, country = $10, tax_id = $11, status = 'active', kyc_status = 'unverified', pipeline_stage_id = COALESCE(pipeline_stage_id, $12), updated_at = NOW()
            WHERE id = $13
-           RETURNING id, email, role, full_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status, kyc_status`,
-          [firstName + ' ' + (lastName || ''), passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId, firstStageId, invitationData.user_id]
+           RETURNING id, email, role, full_name, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status, kyc_status, assigned_ir_id, assigned_accountant_id`,
+          [firstName + ' ' + (lastName || ''), passwordHash, phone, dob, addressLine1, addressLine2, city, state, zipCode, country, taxId, firstStageId, upgradeUserId]
         );
         newUser = userResult.rows[0];
 
-        // Mark token as used
-        await db.query('UPDATE user_otps SET is_used = true WHERE otp = $1', [invitationToken]);
+        // Fetch assigned names if they exist
+        if (newUser.assigned_ir_id || newUser.assigned_accountant_id) {
+          const namesRes = await db.query(
+            `SELECT 
+              (SELECT full_name FROM staff WHERE id = $1) as ir_name,
+              (SELECT full_name FROM staff WHERE id = $2) as acc_name`,
+            [newUser.assigned_ir_id, newUser.assigned_accountant_id]
+          );
+          newUser.assigned_ir_name = namesRes.rows[0]?.ir_name;
+          newUser.assigned_accountant_name = namesRes.rows[0]?.acc_name;
+        }
+
+        if (isInvitation) {
+          // Mark token as used
+          await db.query('UPDATE user_otps SET is_used = true WHERE otp = $1', [invitationToken]);
+        }
       } else {
         const userResult = await db.query(
           `INSERT INTO investors (id, full_name, email, password_hash, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status, pipeline_stage_id)
@@ -178,6 +205,8 @@ export class AuthService {
         taxId: newUser.tax_id,
         profileImageUrl: null,
         kycStatus: newUser.kyc_status || 'unverified',
+        assignedIrName: newUser.assigned_ir_name || null,
+        assignedAccountantName: newUser.assigned_accountant_name || null,
       },
       token,
     };
@@ -196,7 +225,13 @@ export class AuthService {
       // 2. If not found in users, try investors table
       if (!user) {
         result = await db.query(
-          'SELECT id, email, password_hash, role, full_name, status, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, kyc_status FROM investors WHERE email = $1',
+          `SELECT i.*, 
+                  ir.full_name as assigned_ir_name, 
+                  acc.full_name as assigned_accountant_name 
+           FROM investors i 
+           LEFT JOIN staff ir ON i.assigned_ir_id = ir.id 
+           LEFT JOIN staff acc ON i.assigned_accountant_id = acc.id 
+           WHERE i.email = $1`,
           [email]
         );
         user = result.rows[0];
@@ -288,6 +323,8 @@ export class AuthService {
           taxId: user.tax_id,
           profileImageUrl: user.profile_image_url,
           kycStatus: user.kyc_status || 'unverified',
+          assignedIrName: user.assigned_ir_name || null,
+          assignedAccountantName: user.assigned_accountant_name || null,
         },
         token,
       };

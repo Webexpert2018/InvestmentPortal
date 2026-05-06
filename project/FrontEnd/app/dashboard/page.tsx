@@ -435,7 +435,8 @@ export default function DashboardPage() {
         <div className="space-y-8 font-helvetica text-[#1F1F1F]">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex flex-col gap-1">
-              <h1 className="font-goudy text-2xl text-[#1F1F1F]">Dashboard</h1>
+              <p className="font-goudy text-xl sm:text-2xl font-bold text-[#1F1F1F]">Welcome, {welcomeName}</p>
+              <h1 className="font-goudy text-xl sm:text-2xl font-light text-gray-700">Dashboard</h1>
               <p className="text-sm text-[#8E8E93]">
                 Here&apos;s your latest investment overview and updates from Ovalia Capital.
               </p>
@@ -885,10 +886,8 @@ export default function DashboardPage() {
     <DashboardLayout>
       <div className="space-y-8 font-sans">
         <div>
-          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F]">Dashboard</h1>
-          {dashboardRole === 'admin' && (
-            <p className="font-helvetica text-sm sm:text-md mt-2">Welcome Back, {welcomeName}</p>
-          )}
+          <p className="font-goudy text-xl sm:text-3xl font-bold text-[#1F1F1F]">Welcome, {welcomeName}</p>
+          <h1 className="font-goudy text-xl sm:text-2xl font-light text-gray-700">Dashboard</h1>
           {dashboardRole === 'accountant' && (
             <p className="font-helvetica text-sm sm:text-md mt-2">Here’s a summary of your assigned investors and pending actions.</p>
           )}

@@ -488,12 +488,28 @@ export class MessagesService {
       let users: any[] = [];
 
       if (isInvestor) {
-        // Investors can only talk to staff/admins
-        const staffRes = await db.query('SELECT id, full_name, role, profile_image_url FROM staff WHERE status = \'active\'');
-        const adminUsersRes = await db.query('SELECT id, first_name || \' \' || last_name as full_name, role, profile_image_url FROM users WHERE role IN (\'admin\', \'executive_admin\')');
+        // 1. Get investor's assigned staff IDs
+        const invRes = await db.query('SELECT assigned_ir_id, assigned_accountant_id FROM investors WHERE id = $1', [userId]);
+        const { assigned_ir_id, assigned_accountant_id } = invRes.rows[0] || {};
+
+        // 2. Fetch executive admins from users table
+        const adminUsersRes = await db.query(
+          "SELECT id, first_name || ' ' || last_name as full_name, role, profile_image_url FROM users WHERE role = 'executive_admin' AND status = 'active'"
+        );
+
+        // 3. Fetch assigned IR and Accountant from staff table
+        const assignedStaffIds = [assigned_ir_id, assigned_accountant_id].filter(Boolean);
+        let staffResRows: any[] = [];
+        if (assignedStaffIds.length > 0) {
+          const staffRes = await db.query(
+            "SELECT id, full_name, role, profile_image_url FROM staff WHERE id = ANY($1) AND status = 'active'",
+            [assignedStaffIds]
+          );
+          staffResRows = staffRes.rows;
+        }
 
         users = [
-          ...staffRes.rows.map(r => ({ ...r, type: 'staff' })),
+          ...staffResRows.map(r => ({ ...r, type: 'staff' })),
           ...adminUsersRes.rows.map(r => ({ ...r, type: 'admin' }))
         ];
       } else {
