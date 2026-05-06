@@ -530,9 +530,11 @@ export default function InvestorSignupPage() {
         <div className="mx-auto flex min-h-[752px] w-full max-w-[1230px] items-center justify-center p-6 md:p-10">
           <div className="w-full rounded-md bg-[#FCFCFC] shadow-xl">
             <div className="border-b border-[#EBEBEB] px-6 pt-6">
-              <a href="/" className="mb-4 flex justify-center">
-                <img src="/images/logo.png" alt="Ovalia Capital" className="h-auto w-[170px] object-contain logo-con" />
-              </a>
+              <div className="mb-4 flex justify-center">
+                <a href="/" className="inline-block">
+                  <img src="/images/logo.png" alt="Ovalia Capital" className="h-auto w-[170px] object-contain logo-con" />
+                </a>
+              </div>
 
               <h3 className="text-[24px] text-[#1F1F1F] font-bold">Complete Your Profile</h3>
               <p className="mb-4 font-helvetica text-lg">Just a few steps to get started</p>

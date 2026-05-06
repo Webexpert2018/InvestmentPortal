@@ -411,13 +411,13 @@ export default function IRAPage() {
         {view === 'list' ? (
           <div className="mt-6 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full border-separate border-spacing-0 text-[14px]">
+              <table className="w-full border-separate border-spacing-0 text-[14px] table-fixed">
                 <thead>
                   <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
-                    <th className="px-6 py-4 border-b border-[#F0F0F0]">Account Type</th>
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] text-right">Account Balance</th>
-                    <th className="px-6 py-4 border-b border-[#F0F0F0]">Beneficiary</th>
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] text-center">Action</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] w-[25%]">Account Type</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] w-[25%]">Beneficiary</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] text-right w-[25%]">Account Balance</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] text-center w-[25%]">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F0F0F0]">
@@ -466,14 +466,14 @@ export default function IRAPage() {
                             </div>
                           </div>
                         </td>
+                        <td className="px-6 py-5">
+                          <p className="text-[#4B4B4B] font-helvetica">{acc.beneficiary || '-'}</p>
+                        </td>
                         <td className="px-6 py-5 text-right">
                           <p className="font-bold text-[#1F1F1F] font-helvetica text-[15px]">
                             ${calculateBalance(acc.id).toLocaleString()}
                           </p>
                           <p className="text-[11px] text-[#2BB673] font-medium font-helvetica">Active Account</p>
-                        </td>
-                        <td className="px-6 py-5">
-                          <p className="text-[#4B4B4B] font-helvetica">{acc.beneficiary || '-'}</p>
                         </td>
                         <td className="px-6 py-5 text-center">
                           <button className="h-8 px-4 rounded-full border border-[#E5E7EB] text-[12px] font-bold text-[#4B4B4B] hover:bg-[#F5F5F5] transition-colors">
