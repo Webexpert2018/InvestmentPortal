@@ -6,8 +6,6 @@ import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import * as crypto from 'crypto';
 import { SessionsService } from '../sessions/sessions.service';
-import * as otplib from 'otplib';
-import * as QRCode from 'qrcode';
 
 @Injectable()
 export class AuthService {
@@ -189,7 +187,7 @@ export class AuthService {
     try {
       // 1. Try finding in users table first (Admin)
       let result = await db.query(
-        'SELECT id, email, password_hash, role, first_name, last_name, status, phone, two_factor_enabled FROM users WHERE email = $1',
+        'SELECT id, email, password_hash, role, first_name, last_name, status, phone FROM users WHERE email = $1',
         [email]
       );
 
@@ -198,7 +196,7 @@ export class AuthService {
       // 2. If not found in users, try investors table
       if (!user) {
         result = await db.query(
-          'SELECT id, email, password_hash, role, full_name, status, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, kyc_status, two_factor_enabled FROM investors WHERE email = $1',
+          'SELECT id, email, password_hash, role, full_name, status, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, kyc_status FROM investors WHERE email = $1',
           [email]
         );
         user = result.rows[0];
@@ -213,7 +211,7 @@ export class AuthService {
       // 3. If still not found, try staff table
       if (!user) {
         result = await db.query(
-          'SELECT id, email, password_hash, role, full_name, status, phone, profile_image_url, two_factor_enabled FROM staff WHERE email = $1',
+          'SELECT id, email, password_hash, role, full_name, status, phone, profile_image_url FROM staff WHERE email = $1',
           [email]
         );
         user = result.rows[0];
@@ -239,15 +237,6 @@ export class AuthService {
       const isPasswordValid = await bcrypt.compare(password, user.password_hash);
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid credentials');
-      }
-
-      // Check if 2FA is enabled
-      if (user.two_factor_enabled) {
-        return {
-          mfaRequired: true,
-          userId: user.id,
-          role: user.role,
-        };
       }
 
       // Role-based access control check
@@ -497,150 +486,5 @@ export class AuthService {
       country,
       tax_id
     };
-  }
-
-  async generateTwoFactorSecret(userId: string, role: string) {
-    const secret = otplib.generateSecret();
-    const tableName = this.getTableNameByRole(role);
-    
-    const result = await db.query(`SELECT email FROM ${tableName} WHERE id = $1`, [userId]);
-    if (result.rows.length === 0) {
-      throw new BadRequestException('User not found');
-    }
-    const email = result.rows[0].email;
-    const otpauthUrl = otplib.generateURI({ label: email, issuer: 'Investment Portal', secret });
-    const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
-
-    // Temporarily store secret in session or database? 
-    // For now, let's just return it and the user will send it back to enable.
-    // Actually, it's safer to store it in a 'pending_2fa_secret' column or similar if we want to be strict,
-    // but many implementations just return it to the client and wait for verification.
-    // Let's store it in the user's table but don't enable yet.
-    await db.query(`UPDATE ${tableName} SET two_factor_secret = $1 WHERE id = $2`, [secret, userId]);
-
-    return {
-      secret,
-      qrCodeDataUrl
-    };
-  }
-
-  async enableTwoFactor(userId: string, role: string, code: string) {
-    const tableName = this.getTableNameByRole(role);
-    
-    const result = await db.query(`SELECT two_factor_secret FROM ${tableName} WHERE id = $1`, [userId]);
-    if (result.rows.length === 0 || !result.rows[0].two_factor_secret) {
-      throw new BadRequestException('2FA secret not generated');
-    }
-
-    const secret = result.rows[0].two_factor_secret;
-    const isValid = await otplib.verify({ token: code, secret });
-
-    if (!isValid) {
-      throw new BadRequestException('Invalid verification code');
-    }
-
-    await db.query(`UPDATE ${tableName} SET two_factor_enabled = true WHERE id = $1`, [userId]);
-    
-    // Generate recovery codes
-    const recoveryCodes = Array.from({ length: 8 }, () => crypto.randomBytes(4).toString('hex'));
-    await db.query(`UPDATE ${tableName} SET two_factor_recovery_codes = $1 WHERE id = $2`, [recoveryCodes, userId]);
-
-    return { success: true, recoveryCodes };
-  }
-
-  async disableTwoFactor(userId: string, role: string) {
-    const tableName = this.getTableNameByRole(role);
-    await db.query(`UPDATE ${tableName} SET two_factor_enabled = false, two_factor_secret = NULL, two_factor_recovery_codes = NULL WHERE id = $1`, [userId]);
-    return { success: true };
-  }
-
-  async verifyTwoFactorLogin(userId: string, role: string, code: string, req?: any) {
-    const tableName = this.getTableNameByRole(role);
-    
-    const result = await db.query(`SELECT * FROM ${tableName} WHERE id = $1`, [userId]);
-    if (result.rows.length === 0) {
-      throw new UnauthorizedException('User not found');
-    }
-
-    const user = result.rows[0];
-    if (!user.two_factor_enabled) {
-      throw new BadRequestException('2FA is not enabled for this user');
-    }
-
-    const isValid = await otplib.verify({ token: code, secret: user.two_factor_secret });
-    
-    // Check recovery codes if TOTP fails
-    let isRecoveryCode = false;
-    if (!isValid && user.two_factor_recovery_codes) {
-      const recoveryIndex = user.two_factor_recovery_codes.indexOf(code);
-      if (recoveryIndex !== -1) {
-        isRecoveryCode = true;
-        // Remove used recovery code
-        const updatedCodes = [...user.two_factor_recovery_codes];
-        updatedCodes.splice(recoveryIndex, 1);
-        await db.query(`UPDATE ${tableName} SET two_factor_recovery_codes = $1 WHERE id = $2`, [updatedCodes, userId]);
-      }
-    }
-
-    if (!isValid && !isRecoveryCode) {
-      throw new UnauthorizedException('Invalid 2FA code');
-    }
-
-    // Map fields for consistency (copied from login method)
-    if (tableName === 'investors' || tableName === 'staff') {
-      user.first_name = user.full_name?.split(' ')[0] || '';
-      user.last_name = user.full_name?.split(' ')[1] || '';
-    }
-
-    // Record session
-    let sessionId = null;
-    if (req) {
-      const userAgent = req.headers['user-agent'] || '';
-      const ipAddress = req.ip || req.connection.remoteAddress || '';
-      const session = await this.sessionsService.createSession(user.id, user.role || role, userAgent, ipAddress);
-      sessionId = session.id;
-    }
-
-    const token = this.jwtService.sign({
-      userId: user.id,
-      email: user.email,
-      role: user.role || role,
-      sessionId
-    });
-
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role || role,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        phone: user.phone,
-        dob: user.dob,
-        status: user.status,
-        addressLine1: user.address_line1,
-        addressLine2: user.address_line2,
-        city: user.city,
-        state: user.state,
-        zipCode: user.zip_code,
-        country: user.country,
-        taxId: user.tax_id,
-        profileImageUrl: user.profile_image_url,
-        kycStatus: user.kyc_status || 'unverified',
-        twoFactorEnabled: user.two_factor_enabled,
-      },
-      token,
-    };
-  }
-
-  private getTableNameByRole(role: string): string {
-    const normalizedRole = role?.toLowerCase().trim();
-    if (['executive_admin', 'admin'].includes(normalizedRole)) {
-      return 'users';
-    }
-    if (['fund_admin', 'investor_relations', 'accountant', 'accountants', 'relations_associate', 'partnership', 'compliance'].includes(normalizedRole)) {
-      return 'staff';
-    }
-    return 'investors';
   }
 }

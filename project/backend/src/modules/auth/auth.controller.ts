@@ -1,9 +1,7 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
-import { UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { IsBoolean, IsDateString, IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class SignupDto {
   @ApiProperty({ example: 'test@example.com' })
@@ -135,23 +133,6 @@ export class ResetPasswordDto {
   @IsString()
   @MinLength(6)
   password: string | undefined;
-}
-
-export class TwoFactorVerifyDto {
-  @ApiProperty({ example: '123456' })
-  @IsString()
-  @IsNotEmpty()
-  code: string | undefined;
-
-  @ApiProperty({ example: 'investor' })
-  @IsString()
-  @IsNotEmpty()
-  role: string | undefined;
-
-  @ApiProperty({ example: 'uuid-here' })
-  @IsString()
-  @IsNotEmpty()
-  userId: string | undefined;
 }
 
 @Controller('api/auth')
@@ -303,38 +284,5 @@ export class AuthController {
       resetPasswordDto.otp,
       resetPasswordDto.password,
     );
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('2fa/generate')
-  @HttpCode(HttpStatus.OK)
-  async generateTwoFactor(@Req() req: any) {
-    return this.authService.generateTwoFactorSecret(req.user.userId, req.user.role);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('2fa/enable')
-  @HttpCode(HttpStatus.OK)
-  async enableTwoFactor(@Req() req: any, @Body() body: { code: string }) {
-    if (!body.code) {
-      throw new BadRequestException('Verification code is required');
-    }
-    return this.authService.enableTwoFactor(req.user.userId, req.user.role, body.code);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('2fa/disable')
-  @HttpCode(HttpStatus.OK)
-  async disableTwoFactor(@Req() req: any) {
-    return this.authService.disableTwoFactor(req.user.userId, req.user.role);
-  }
-
-  @Post('2fa/verify')
-  @HttpCode(HttpStatus.OK)
-  async verifyTwoFactorLogin(@Body() verifyDto: TwoFactorVerifyDto, @Req() req: any) {
-    if (!verifyDto.code || !verifyDto.userId || !verifyDto.role) {
-      throw new BadRequestException('Missing required 2FA verification fields');
-    }
-    return this.authService.verifyTwoFactorLogin(verifyDto.userId, verifyDto.role, verifyDto.code, req);
   }
 }

@@ -25,8 +25,6 @@ interface User {
   kycStatus?: string;
   assignedIrName?: string;
   assignedAccountantName?: string;
-  twoFactorEnabled?: boolean;
-  twoFactorRecoveryCodes?: string[];
 }
 
 interface AuthContextType {
@@ -78,14 +76,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string, role?: string): Promise<any> => {
-    const response = await apiClient.login(email, password, role);
-    
-    if ((response as any).mfaRequired) {
-      return response;
-    }
-
-    const { user: userData, token } = response as { user: any; token: string };
+  const login = async (email: string, password: string, role?: string) => {
+    const { user: userData, token } = await apiClient.login(email, password, role);
     localStorage.setItem('token', token);
     setUser(userData);
     setSessionExpired(false);
