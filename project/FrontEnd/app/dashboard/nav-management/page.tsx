@@ -111,7 +111,7 @@ export default function NAVManagementPage() {
       id: item.id,
       quarter: `Q${quarter}`,
       year: date.getFullYear().toString(),
-      pricePerUnit: `$${parseFloat(item.nav_per_unit).toFixed(2)}`,
+      pricePerUnit: `$${parseFloat(item.nav_per_unit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       totalValue: formatCurrency(parseFloat(item.total_fund_value)),
       status: statusLabelMapped,
       rawStatus: item.status

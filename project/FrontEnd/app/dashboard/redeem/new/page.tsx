@@ -75,8 +75,11 @@ export default function RedemptionAmountPage() {
 
       const eligibleHoldings = data.filter(h => {
         const hasUnits = parseFloat(h.estimated_units) > 0;
-        const isOldEnough = new Date(h.created_at) <= threeYearsAgo;
-        return hasUnits && isOldEnough;
+        const isUnitsIssued = h.status === 'Units Issued';
+        const unitsIssuedAt = h.units_issued_at ? new Date(h.units_issued_at) : null;
+        const isOldEnough = unitsIssuedAt && unitsIssuedAt <= threeYearsAgo;
+        
+        return hasUnits && isUnitsIssued && isOldEnough;
       });
 
       setHoldings(eligibleHoldings);
