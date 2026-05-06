@@ -27,6 +27,7 @@ const getPool = () => {
   if (pool) return pool;
 
   const connectionString = getConnectionString();
+  console.log(`[Database] Connecting to: ${connectionString.replace(/:[^:]+@/, ':****@')}`);
 
   if (!connectionString) {
     console.error('❌ ERROR: Database configuration is missing');

@@ -13,11 +13,11 @@ import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 
-type Step = 1 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 3 | 4;
 
 type ValidationErrors = Record<string, string>;
 
-const STEP_LABELS = ['Set Profile', 'Address', 'Email Verification', 'Tax Info.', 'Two Factor'];
+const STEP_LABELS = ['Set Profile', 'Address', 'Email Verification', 'Tax Info.'];
 
 const countryCodes = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
 
@@ -59,14 +59,16 @@ export default function InvestorSignupPage() {
 
   useEffect(() => {
     if (inviteToken) {
-      verifyInvite();
+      verifyInvite(inviteToken.trim());
     }
   }, [inviteToken]);
 
-  const verifyInvite = async () => {
+  const verifyInvite = async (token: string) => {
     try {
+      console.log(`[InvestorSignup] Verifying invite token: ${token}`);
       setVerifyingInvite(true);
-      const data = await apiClient.verifyInvitation(inviteToken!);
+      const data = await apiClient.verifyInvitation(token);
+      console.log(`[InvestorSignup] Invite verified successfully:`, data);
 
       // Backend now sends firstName & lastName separately
       // For phone: stored as raw number, try to split if formatted
@@ -134,9 +136,7 @@ export default function InvestorSignupPage() {
     country: 'US', // Default to USA
 
     taxId: '',
-
     emailOtp: ['', '', '', '', '', ''],
-    twoFactorOtp: ['', '', '', '', '', ''],
   });
 
   const canGoBack = currentStep > 1;
@@ -271,17 +271,13 @@ export default function InvestorSignupPage() {
       if (!form.taxId.trim()) nextErrors.taxId = 'Tax ID is required';
     }
 
-    if (step === 5) {
-      if (form.twoFactorOtp.some((digit) => !digit)) {
-        nextErrors.twoFactorOtp = 'Enter complete 6-digit code';
-      }
-    }
+
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
 
-  const updateOtp = (field: 'emailOtp' | 'twoFactorOtp', index: number, value: string) => {
+  const updateOtp = (field: 'emailOtp', index: number, value: string) => {
     const safeValue = value.replace(/\D/g, '').slice(-1);
     const next = [...form[field]];
     next[index] = safeValue;
@@ -318,7 +314,6 @@ export default function InvestorSignupPage() {
         country: 'US',
         taxId: '',
         emailOtp: ['', '', '', '', '', ''],
-        twoFactorOtp: ['', '', '', '', '', ''],
       });
       setErrors({});
       setOtpSent(false);
@@ -352,7 +347,7 @@ export default function InvestorSignupPage() {
       }
     }
 
-    if (currentStep === 5) {
+    if (currentStep === 4) {
       await handleFinalSubmit();
       return;
     }
@@ -576,16 +571,6 @@ export default function InvestorSignupPage() {
                   Back
                 </button>
 
-                {currentStep === 5 && (
-                  <button
-                    type="button"
-                    className="text-sm font-medium text-[#888888] hover:text-[#4B4B4B]"
-                    onClick={handleFinalSubmit}
-                    disabled={loading}
-                  >
-                    {loading ? 'Processing...' : 'SKIP'}
-                  </button>
-                )}
               </div>
 
               <div className="flex items-center gap-3">
@@ -620,7 +605,7 @@ export default function InvestorSignupPage() {
                     disabled={loading}
                     className="h-10 min-w-[108px] rounded-full bg-yellow-400 px-6 font-medium text-[#2A2A2A] disabled:opacity-70"
                   >
-                    {currentStep === 5 ? (loading ? 'Submitting...' : 'Continue') : 'Continue'}
+                    {currentStep === 4 ? (loading ? 'Submitting...' : 'Continue') : 'Continue'}
                   </button>
                 )}
               </div>
@@ -896,40 +881,7 @@ export default function InvestorSignupPage() {
       );
     }
 
-    return (
-      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-        <div className="max-w-[520px]">
-          <h4 className="text-[30px] text-[#2A2A2A]">Setup Two-Factor Authentication</h4>
-          <p className="font-helvetica text-sm text-[#A0A0A0]">Add an extra layer of security to protect your investments</p>
-
-          <p className="mt-4 font-helvetica text-sm text-[#989898]">Enter the 6-digit code from your authenticator app</p>
-          <div className="mt-3 flex gap-2">
-            {form.twoFactorOtp.map((digit, index) => (
-              <input
-                key={`twoFactorOtp-${index}`}
-                id={`twoFactorOtp-${index}`}
-                value={digit}
-                onChange={(e) => updateOtp('twoFactorOtp', index, e.target.value)}
-                className="h-12 w-12 rounded-md border border-[#E5E5E5] text-center font-helvetica text-lg"
-              />
-            ))}
-          </div>
-          {errors.twoFactorOtp && <p className="mt-2 font-helvetica text-sm text-red-600">{errors.twoFactorOtp}</p>}
-        </div>
-
-        <div className="w-[180px] text-center">
-          <div className="mx-auto flex items-center justify-center">
-            <img src="/images/qr-code-placeholder.png" alt="QR Code" className="h-full w-full object-contain" />
-            {/* <div className="grid h-full w-full grid-cols-6 gap-[2px]">
-              {Array.from({ length: 36 }).map((_, i) => (
-                <div key={i} className={(i + (i % 3)) % 2 === 0 ? 'bg-black' : 'bg-white'} />
-              ))}
-            </div> */}
-          </div>
-          <p className="mt-3 font-helvetica text-xs text-[#929292]">Scan this QR code with your authenticator app</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 }
 

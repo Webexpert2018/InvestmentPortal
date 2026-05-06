@@ -10,7 +10,7 @@ export class EmailService {
 
   async sendPasswordResetOtp(email: string, otp: string, showCode: boolean = true) {
     const title = 'Verify Your Identity';
-    const subject = 'Password Reset Code - Bitcoin IRA Platform';
+    const subject = 'Password Reset Code - Ovalia Capital';
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Password Reset</h1>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">You have requested to reset your password. Please click the button below to set a new password for your account.</p>
@@ -51,11 +51,11 @@ export class EmailService {
 
   async sendWelcomeEmail(email: string, firstName: string, role: string, password?: string) {
     const title = 'Welcome to Ovalia Capital';
-    const subject = 'Your Journey Begins - Welcome to Bitcoin IRA Platform!';
+    const subject = 'Your Journey Begins - Welcome to Ovalia Capital!';
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Welcome Aboard, ${firstName}!</h1>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
-        We are thrilled to have you join the <strong>Bitcoin IRA Platform</strong> as an ${role.charAt(0).toUpperCase() + role.slice(1)}.
+        We are thrilled to have you join the <strong>Ovalia Capital</strong> as an ${role.charAt(0).toUpperCase() + role.slice(1)}.
       </p>
       
       <!-- Account Details Section -->
@@ -107,7 +107,7 @@ export class EmailService {
 
   async sendPasswordChangedEmail(email: string, firstName: string, password?: string) {
     const title = 'Security Update';
-    const subject = 'Password Successfully Updated - Bitcoin IRA Platform';
+    const subject = 'Password Successfully Updated - Ovalia Capital';
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Password Updated</h1>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">Hello ${firstName},</p>
@@ -155,7 +155,7 @@ export class EmailService {
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Welcome to the Team, ${fullName}!</h1>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
-        We are excited to inform you that you have been added as a <strong>${roleName}</strong> on the <strong>Bitcoin IRA Platform</strong>.
+        We are excited to inform you that you have been added as a <strong>${roleName}</strong> on the <strong>Ovalia Capital</strong>.
       </p>
       
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
@@ -191,9 +191,10 @@ export class EmailService {
   }
 
   async sendInvestorInvitationEmail(email: string, fullName: string, token: string) {
-    const title = 'Invitation to Bitcoin IRA';
-    const subject = 'You have been invited to join the Bitcoin IRA Platform';
-    const inviteLink = `https://investmentportalfrontend.vercel.app/auth/investor-signup?invite=${token}`;
+    const title = 'Invitation to Ovalia Capital';
+    const subject = 'You have been invited to join the Ovalia Capital';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://investmentportalfrontend.vercel.app';
+    const inviteLink = `${frontendUrl.replace(/\/$/, '')}/auth/investor-signup?invite=${token}`;
 
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Exclusive Invitation</h1>
@@ -267,10 +268,7 @@ export class EmailService {
           <!-- Logo Section -->
           <tr>
             <td style="padding: 40px 40px 20px; text-align: center;">
-              <div style="color: #2A4474; font-size: 24px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase;">
-                <span style="color: #FBCB4B;">Ovalia</span> Capital
-              </div>
-              <div style="color: #9CA3AF; font-size: 10px; letter-spacing: 3px; margin-top: 5px; text-transform: uppercase;">Bitcoin IRA Platform</div>
+              <img src="https://investmentportalfrontend.vercel.app/images/logo.png" alt="Ovalia Capital" style="width: 170px; height: auto; display: block; margin: 0 auto;">
             </td>
           </tr>
           <!-- Main Content -->
@@ -300,7 +298,7 @@ export class EmailService {
     const port = portString ? parseInt(portString, 10) : 587;
     const user = this.configService.get<string>('SMTP_USER') || this.configService.get<string>('EMAIL_USER');
     const pass = this.configService.get<string>('SMTP_PASS') || this.configService.get<string>('EMAIL_PASS');
-    const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('EMAIL_FROM') || '"Bitcoin IRA Platform" <noreply@bitcoinira.com>';
+    const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('EMAIL_FROM') || '"Ovalia Capital" <noreply@ovaliacapital.com>';
 
     if (host && port && user && pass) {
       const client = new SMTPClient({ host, port });

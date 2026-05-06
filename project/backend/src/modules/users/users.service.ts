@@ -942,7 +942,7 @@ export class UsersService implements OnModuleInit {
     );
 
     if (result.rows.length === 0) {
-      throw new BadRequestException('Invalid or expired invitation token');
+      throw new BadRequestException('Invalid or expired invitation token (from UsersService validateInvitationToken)');
     }
 
     return result.rows[0];
