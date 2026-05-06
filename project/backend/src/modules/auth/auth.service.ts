@@ -337,7 +337,7 @@ export class AuthService {
   private async findUserAcrossTables(email: string) {
     // 1. Try users table
     let result = await db.query(
-      'SELECT id, email, role, first_name as first_name, last_name as last_name FROM users WHERE email = $1',
+      'SELECT id, email, role, first_name as first_name, last_name as last_name, status FROM users WHERE email = $1',
       [email]
     );
     if (result.rows.length > 0) {
@@ -346,7 +346,7 @@ export class AuthService {
 
     // 2. Try investors table
     result = await db.query(
-      'SELECT id, email, role, full_name FROM investors WHERE email = $1',
+      'SELECT id, email, role, full_name, status FROM investors WHERE email = $1',
       [email]
     );
     if (result.rows.length > 0) {
@@ -363,19 +363,11 @@ export class AuthService {
 
     // 3. Try staff table
     result = await db.query(
-      'SELECT id, email, role, full_name FROM staff WHERE email = $1',
+      'SELECT id, email, role, first_name, last_name, status FROM staff WHERE email = $1',
       [email]
     );
     if (result.rows.length > 0) {
-      const user = result.rows[0];
-      return {
-        user: {
-          ...user,
-          first_name: user.full_name?.split(' ')[0] || 'User'
-        },
-        tableName: 'staff',
-        nameField: 'full_name'
-      };
+      return { user: result.rows[0], tableName: 'staff', nameField: 'first_name' };
     }
 
     return null;
