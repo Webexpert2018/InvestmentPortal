@@ -268,7 +268,7 @@ export class EmailService {
           <!-- Logo Section -->
           <tr>
             <td style="padding: 40px 40px 20px; text-align: center;">
-              <img src="https://investmentportalfrontend.vercel.app/images/logo.png" alt="Ovalia Capital" style="width: 170px; height: auto; display: block; margin: 0 auto;">
+              <img src="https://investmentportalfrontend.vercel.app/images/logo.png" alt="Ovalia Capital" style="width:100px; height: auto; display: block; margin: 0 auto;">
             </td>
           </tr>
           <!-- Main Content -->

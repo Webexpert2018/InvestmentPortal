@@ -812,7 +812,7 @@ export default function InvestorSignupPage() {
                     document.getElementById(`emailOtp-${index - 1}`)?.focus();
                   }
                 }}
-                className="h-12 w-12 rounded-md border border-[#E5E5E5] text-center font-helvetica text-lg focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 outline-none transition-all"
+                className="h-10 w-10 rounded-md border border-[#E5E5E5] text-center font-helvetica text-lg focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 outline-none transition-all"
               />
             ))}
           </div>
