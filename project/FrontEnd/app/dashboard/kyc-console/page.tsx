@@ -37,7 +37,7 @@ export default function KYCConsolePage() {
   const [kycFilter, setKycFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  
+
   // Assignment Modal State
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedInvestorId, setSelectedInvestorId] = useState<string | null>(null);
@@ -177,8 +177,8 @@ export default function KYCConsolePage() {
                           <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
                             {record.profileImageUrl ? (
                               <Image
-                                src={record.profileImageUrl.startsWith('http') 
-                                  ? record.profileImageUrl 
+                                src={record.profileImageUrl.startsWith('http')
+                                  ? record.profileImageUrl
                                   : `${BASE_URL}${record.profileImageUrl.startsWith('/') ? '' : '/'}${record.profileImageUrl}`}
                                 alt={record.firstName}
                                 fill
@@ -231,10 +231,10 @@ export default function KYCConsolePage() {
                                     setSelectedInvestorId(record.id);
                                     // Need to find if record has assignedIrId (not in interface currently)
                                     // For now just reset
-                                    setSelectedAssociate(''); 
+                                    setSelectedAssociate('');
                                     setShowAssignModal(true);
                                     setActiveDropdown(null);
-                                    
+
                                     setIrLoading(true);
                                     try {
                                       const res = await apiClient.getStaff('investor_relations', 1, 100);
@@ -246,7 +246,7 @@ export default function KYCConsolePage() {
                                     }
                                   }}
                                 >
-                                  Assign Relation Associate
+                                  Assign Investor Relation
                                 </button>
                               </div>
                             </>
@@ -298,20 +298,20 @@ export default function KYCConsolePage() {
         </div>
       </div>
 
-      {/* Assign Relation Associate Modal */}
+      {/* Assign Investor Relation Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-8 space-y-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-[#1F1F1F]">Assign Relation Associate</h2>
+                  <h2 className="text-2xl font-bold text-[#1F1F1F]">Assign Investor Relation</h2>
                   <p className="text-sm text-gray-500 mt-2">
-                    Select a relation associate to manage this investor's KYC verification.
+                    Select a Investor Relation to manage this investor's KYC verification.
                   </p>
                 </div>
-                <button 
-                  onClick={() => setShowAssignModal(false)} 
+                <button
+                  onClick={() => setShowAssignModal(false)}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
                   <X className="h-6 w-6 text-gray-400" />
@@ -319,7 +319,7 @@ export default function KYCConsolePage() {
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-bold text-gray-700 ml-1">Relation Associate</label>
+                <label className="text-sm font-bold text-gray-700 ml-1">Investor Relation</label>
                 <div className="relative">
                   <select
                     value={selectedAssociate}
@@ -349,7 +349,7 @@ export default function KYCConsolePage() {
                     try {
                       setAssigning(true);
                       await apiClient.assignInvestorRelations(selectedInvestorId, selectedAssociate || null);
-                      toast.success('Relation Associate assigned successfully');
+                      toast.success('Investor Relation assigned successfully');
                       setShowAssignModal(false);
                     } catch (err: any) {
                       toast.error(err.message || 'Failed to assign');

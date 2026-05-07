@@ -295,7 +295,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           </p>
                           <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
                             <User className="h-4 w-4 shrink-0" />
-                            Investor Relations: <span className="text-gray-900 font-bold">{investorData.assignedIrName || 'Not assigned'}</span>
+                            Investor Relation: <span className="text-gray-900 font-bold">{investorData.assignedIrName || 'Not assigned'}</span>
                           </p>
                         </div>
                       </div>
@@ -380,7 +380,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 }}
                                 className="h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
                               >
-                                {investorData.assignedIrId ? 'Change Investor Relations' : 'Assign Investor Relations'}
+                                {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
                               </button>,
                               <button
                                 key="assign-accountant"
@@ -526,7 +526,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         <p className="text-sm font-bold text-green-600 capitalize">{investorData.status || 'Active'}</p>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-xs font-bold text-gray-400">Assigned Investor Relations</span>
+                        <span className="text-xs font-bold text-gray-400">Assigned Investor Relation</span>
                         <p className="text-sm font-bold text-gray-900">{investorData.assignedIrName || <span className="text-gray-400 italic">Not assigned</span>}</p>
                       </div>
                       <div className="space-y-1">
@@ -862,7 +862,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         </div>
       </div>
 
-      {/* Assign Investor Relations Modal */}
+      {/* Assign Investor Relation Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
@@ -870,9 +870,9 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-[#1F1F1F]">Assign Investor Relations</h2>
+                  <h2 className="text-xl font-semibold text-[#1F1F1F]">Assign Investor Relation</h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    Select an investor relations member to manage this investor's KYC documents and communication.
+                    Select an Investor Relation member to manage this investor's KYC documents and communication.
                   </p>
                 </div>
                 <button
@@ -885,7 +885,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
               {/* Dropdown */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-700">Investor Relations</label>
+                <label className="text-sm font-bold text-gray-700">Investor Relation</label>
                 <div className="relative">
                   <select
                     value={selectedIrStaff}
@@ -893,7 +893,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     disabled={irLoading}
                     className="w-full px-5 py-4 bg-[#F9FAFB] border-none rounded-2xl text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#FCD34D] cursor-pointer font-medium disabled:opacity-50"
                   >
-                    <option value="">{irLoading ? 'Loading...' : 'Select investor relations'}</option>
+                    <option value="">{irLoading ? 'Loading...' : 'Select Investor Relation'}</option>
                     {irStaffList.map((staff: any) => (
                       <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
                     ))}
@@ -916,12 +916,12 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     setAssigning(true);
                     try {
                       await apiClient.assignInvestorRelations(params.id, selectedIrStaff || null);
-                      toast.success('Investor Relations assigned successfully');
+                      toast.success('Investor Relation assigned successfully');
                       const profile = await apiClient.getUserById(params.id);
                       setInvestorData(profile);
                       setShowAssignModal(false);
                     } catch (err) {
-                      toast.error('Failed to assign Investor Relations');
+                      toast.error('Failed to assign Investor Relation');
                     } finally {
                       setAssigning(false);
                     }
