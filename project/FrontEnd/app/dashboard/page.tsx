@@ -22,6 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const stats = [
   { name: 'Total Investors', value: '38' },
@@ -884,7 +890,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 font-sans">
+      <div className="space-y-6 font-sans">
         <div>
           <p className="font-goudy text-xl sm:text-3xl font-bold text-[#1F1F1F]">Welcome, {welcomeName}</p>
           <h1 className="font-goudy text-xl sm:text-2xl font-light text-gray-700">Dashboard</h1>
@@ -963,9 +969,20 @@ export default function DashboardPage() {
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{getFundingDisplay(person.fundingStatus)}</td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-400">
-                            <button className="p-1 rounded-full hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                              <MoreVertical className="h-4 w-4" />
-                            </button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="p-1 rounded-full hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                                  <MoreVertical className="h-4 w-4" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem asChild>
+                                  <Link href={`/dashboard/investor/${person.id}`} className="cursor-pointer">
+                                    View Profile
+                                  </Link>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </td>
                         </tr>
                       );
@@ -988,7 +1005,7 @@ export default function DashboardPage() {
                   KYC Review Queue
                 </h3>
               </div>
-              <div className="space-y-6  h-[calc(50vh-100px)] overflow-y-auto pr-3">
+              <div className="space-y-6 max-h-[350px] overflow-y-auto pr-3">
                 {kycQueue.map((item, index) => (
                   <div key={item.id} className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
@@ -1194,7 +1211,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.funding ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.funding && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicFundingRequests.length > 0 ? dynamicFundingRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
@@ -1230,7 +1247,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.redemption ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.redemption && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicRedemptionRequests.length > 0 ? dynamicRedemptionRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
@@ -1266,7 +1283,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.reconciliation ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.reconciliation && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicReconciliationAlerts.length > 0 ? dynamicReconciliationAlerts.map((request, idx) => (
                     <div key={request.id || idx} className="flex items-center justify-between">
                       <div>

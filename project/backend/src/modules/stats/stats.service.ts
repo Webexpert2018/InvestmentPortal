@@ -34,7 +34,7 @@ export class StatsService {
         `),
         db.query(`
           SELECT 
-            i.id,
+            i.user_id as id,
             COALESCE(inv.full_name, u.first_name || ' ' || u.last_name) as investor_name,
             i.account_type,
             COALESCE(inv.kyc_status, 'verified') as kyc_status,
