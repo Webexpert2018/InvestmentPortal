@@ -268,7 +268,12 @@ export default function InvestorSignupPage() {
     }
 
     if (step === 4) {
-      if (!form.taxId.trim()) nextErrors.taxId = 'Tax ID is required';
+      const cleanTaxId = form.taxId.replace(/\D/g, '');
+      if (!cleanTaxId) {
+        nextErrors.taxId = 'Tax ID is required';
+      } else if (cleanTaxId.length !== 9) {
+        nextErrors.taxId = 'Tax ID must be exactly 9 digits';
+      }
     }
 
 

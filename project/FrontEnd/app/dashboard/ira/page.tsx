@@ -211,12 +211,23 @@ export default function IRAPage() {
   }, [iraForm.mailingAddressSame, user]);
 
   useEffect(() => {
-    if (user && !iraForm.accountHolderName) {
-      setIraForm(prev => ({
-        ...prev,
-        accountHolderName: `${user.firstName} ${user.lastName}`,
-        ssn: prev.ssn || user.taxId || ''
-      }));
+    if (user && showAddModal) {
+      setIraForm(prev => {
+        const rawSsn = prev.ssn || user.taxId || '';
+        const val = rawSsn.replace(/\D/g, '');
+        let formatted = val;
+        if (val.length > 3 && val.length <= 5) {
+          formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+        } else if (val.length > 5) {
+          formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+        }
+        
+        return {
+          ...prev,
+          accountHolderName: prev.accountHolderName || `${user.firstName} ${user.lastName}`,
+          ssn: formatted
+        };
+      });
     }
     if (user) {
       setEditedTaxId(user.taxId || '');
@@ -341,9 +352,18 @@ export default function IRAPage() {
   };
 
   const handleSaveTaxId = async () => {
+    const cleanTaxId = editedTaxId.replace(/\D/g, '');
+    if (cleanTaxId.length !== 9) {
+      localToast({
+        title: 'Invalid Tax ID',
+        description: 'Tax ID must be exactly 9 digits.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       setIsSavingTaxId(true);
-      const cleanTaxId = editedTaxId.replace(/\D/g, '');
       await apiClient.updateProfile({ taxId: cleanTaxId });
       setIsEditingTaxId(false);
       localToast({

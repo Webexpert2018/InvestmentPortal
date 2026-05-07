@@ -201,9 +201,14 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   };
 
   const handleSaveTaxId = async () => {
+    const cleanTaxId = editedTaxId.replace(/\D/g, '');
+    if (cleanTaxId.length !== 9) {
+      toast.error('Tax ID must be exactly 9 digits');
+      return;
+    }
+
     try {
       setIsSavingTaxId(true);
-      const cleanTaxId = editedTaxId.replace(/\D/g, '');
       await apiClient.updateUser(params.id, { taxId: cleanTaxId });
       setInvestorData({ ...investorData, taxId: cleanTaxId });
       setIsEditingTaxId(false);

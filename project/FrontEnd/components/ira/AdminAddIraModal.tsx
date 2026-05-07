@@ -23,7 +23,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
 
   const [iraForm, setIraForm] = useState({
-    accountType: 'Traditional',
+    accountType: '',
     accountNumber: '',
     custodian: '',
     beneficiary: '',
@@ -62,17 +62,26 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
       const data = await apiClient.getUserById(targetInvestorId);
       setInvestor(data);
       // Pre-fill some defaults based on investor name
-      setIraForm(prev => ({
-        ...prev,
-        // username: `${data.firstName.toLowerCase()}_${Math.floor(100 + Math.random() * 900)}`,
-        mailingAddress1: data.addressLine1 || '',
-        mailingAddress2: data.addressLine2 || '',
-        mailingCity: data.city || '',
-        mailingState: data.state || '',
-        mailingZipCode: data.zipCode || '',
-        mailingCountry: data.country || '',
-        ssn: data.taxId || '',
-      }));
+      setIraForm(prev => {
+        const val = (data.taxId || '').replace(/\D/g, '');
+        let formatted = val;
+        if (val.length > 3 && val.length <= 5) {
+          formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+        } else if (val.length > 5) {
+          formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+        }
+        
+        return {
+          ...prev,
+          mailingAddress1: data.addressLine1 || '',
+          mailingAddress2: data.addressLine2 || '',
+          mailingCity: data.city || '',
+          mailingState: data.state || '',
+          mailingZipCode: data.zipCode || '',
+          mailingCountry: data.country || '',
+          ssn: formatted,
+        };
+      });
     } catch (error) {
       console.error('Failed to fetch investor details:', error);
       toast({
@@ -235,7 +244,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
 
                 <div className="grid gap-5 md:grid-cols-2">
                   <div>
-                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Account Type</label>
+                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Account Type (Required)</label>
                     <Combobox
                       options={accountTypes.map(t => ({ label: t.name, value: t.name }))}
                       value={iraForm.accountType}
