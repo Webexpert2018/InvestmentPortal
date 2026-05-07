@@ -747,7 +747,7 @@ export default function PipelinePage() {
           ref={topScrollRef}
           onScroll={handleSyncBoardScroll}
           className="overflow-x-auto pipeline-scroll"
-          style={{ maxWidth: 'calc(-300px + 100vw)', marginBottom: '-10px' }}
+          style={{ maxWidth: 'calc(-320px + 100vw)', marginBottom: '-10px' }}
         >
           <div style={{ width: 'max-content', height: '1px' }}>
             <div className="flex flex-nowrap gap-4 lg:gap-6 opacity-0 pointer-events-none" style={{ minWidth: 'max-content' }}>
@@ -767,7 +767,7 @@ export default function PipelinePage() {
             className="overflow-x-auto overflow-y-auto pt-2 pipeline-scroll"
             style={{
               maxHeight: 'calc(100vh - 160px)',
-              maxWidth: 'calc(-300px + 100vw)',
+              maxWidth: 'calc(-320px + 100vw)',
             }}
           >
             <DroppableComponent droppableId="board" type="column" direction="horizontal">

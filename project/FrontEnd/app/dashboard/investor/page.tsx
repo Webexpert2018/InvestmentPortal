@@ -260,14 +260,14 @@ export default function InvestorPage() {
         onClick={() => setSelectedInvestorId(null)}
       >
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2">
-          <div>
-            <h1 className="text-3xl font-bold text-[#111827] tracking-tight">Investors</h1>
-            <p className="text-[#6B7280] mt-1 font-medium">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5 px-2 w-full">
+          <div className="w-full xl:w-auto">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] tracking-tight">Investors</h1>
+            <p className="text-[#6B7280] mt-1 font-medium text-sm sm:text-base">
               View and manage all investor accounts.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap xl:flex-nowrap items-stretch sm:items-center gap-3 w-full xl:w-auto xl:justify-end">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -303,13 +303,13 @@ export default function InvestorPage() {
         </div>
 
         {/* Filters and Table Container */}
-        <div className="bg-[#FFFFFF] rounded-[24px] shadow-sm border border-[#F3F4F6] overflow-hidden">
+        <div className="bg-[#FFFFFF] rounded-[24px] shadow-sm border border-[#F3F4F6] overflow-hidden w-full">
 
           {/* Action Bar */}
           <div className="p-6 border-b border-[#F3F4F6]" onClick={(e) => e.stopPropagation()}>
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-4 w-full">
               {/* Search Box */}
-              <div className="relative max-w-md w-full">
+              <div className="relative max-w-md w-full xl:max-w-sm">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                 <input
                   type="text"
@@ -321,11 +321,11 @@ export default function InvestorPage() {
               </div>
 
               {/* KYC Status Filter */}
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <select
                   value={kycFilter}
                   onChange={(e) => setKycFilter(e.target.value)}
-                  className="appearance-none pl-5 pr-10 py-3 bg-[#F9FAFB] border-none rounded-full text-sm font-medium text-[#4B5563] cursor-pointer focus:ring-2 focus:ring-[#FCD34D] transition-all min-w-[150px]"
+                  className="appearance-none w-full lg:w-auto pl-5 pr-10 py-3 bg-[#F9FAFB] border-none rounded-full text-sm font-medium text-[#4B5563] cursor-pointer focus:ring-2 focus:ring-[#FCD34D] transition-all min-w-[150px]"
                 >
                   <option value="">KYC Status</option>
                   <option value="approved">Approved</option>
@@ -336,11 +336,11 @@ export default function InvestorPage() {
               </div>
 
               {/* Account Type Filter */}
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <select
                   value={accountTypeFilter}
                   onChange={(e) => setAccountTypeFilter(e.target.value)}
-                  className="appearance-none pl-5 pr-10 py-3 bg-[#F9FAFB] border-none rounded-full text-sm font-medium text-[#4B5563] cursor-pointer focus:ring-2 focus:ring-[#FCD34D] transition-all min-w-[150px]"
+                  className="appearance-none w-full lg:w-auto pl-5 pr-10 py-3 bg-[#F9FAFB] border-none rounded-full text-sm font-medium text-[#4B5563] cursor-pointer focus:ring-2 focus:ring-[#FCD34D] transition-all min-w-[150px]"
                 >
                   <option value="">Account Type</option>
                   <option value="Personal">Personal</option>
@@ -356,11 +356,11 @@ export default function InvestorPage() {
               </div>
 
               {/* Account Status Filter */}
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="appearance-none pl-5 pr-10 py-3 bg-[#F9FAFB] border-none rounded-full text-sm font-medium text-[#4B5563] cursor-pointer focus:ring-2 focus:ring-[#FCD34D] transition-all min-w-[150px]"
+                  className="appearance-none w-full lg:w-auto pl-5 pr-10 py-3 bg-[#F9FAFB] border-none rounded-full text-sm font-medium text-[#4B5563] cursor-pointer focus:ring-2 focus:ring-[#FCD34D] transition-all min-w-[150px]"
                 >
                   <option value="">Account Status</option>
                   <option value="active">Active</option>
@@ -373,166 +373,65 @@ export default function InvestorPage() {
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="text-[#6B7280] text-[13px] font-semibold uppercase tracking-wider bg-[#F9FAFB]/50">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize w-20">Select</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Investor Name</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Email</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Account Type</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">KYC Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Units</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Invested</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Assigned To</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Date Joined</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F3F4F6]">
-                {loading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i} className="animate-pulse">
-                      <td colSpan={7} className="px-8 py-6 h-[80px] bg-white"></td>
-                    </tr>
-                  ))
-                ) : (
-                  <>
-                    {/* Active Investors Heading */}
-                    {activeInvestors.length > 0 && (
-                      <tr className="bg-[#F9FAFB]/30">
-                        <td colSpan={10} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
-                          Active Investors ({activeInvestors.length})
-                        </td>
+          <div className="w-full overflow-x-auto">
+            <div className="min-w-[950px] lg:min-w-full">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="text-[#6B7280] text-[13px] font-semibold uppercase tracking-wider bg-[#F9FAFB]/50">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize w-20">Select</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Investor Name</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Email</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Account Type</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">KYC Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Units</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Invested</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Assigned To</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Date Joined</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F3F4F6]">
+                  {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
+                        <td colSpan={7} className="px-8 py-6 h-[80px] bg-white"></td>
                       </tr>
-                    )}
-
-                    {activeInvestors.length === 0 && pendingInvestors.length === 0 ? (
-                      <tr>
-                        <td colSpan={10} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
-                          No investors found matching your search.
-                        </td>
-                      </tr>
-                    ) : (
-                      displayedActiveInvestors.map((investor) => (
-                        <tr
-                          key={investor.id}
-                          className={`hover:bg-[#F9FAFB]/80 transition-colors group cursor-pointer ${selectedInvestorId === investor.id ? 'bg-amber-50/50' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedInvestorId(selectedInvestorId === investor.id ? null : investor.id);
-                          }}
-                        >
-                          <td className="px-6 py-5">
-                            <div className="flex items-center justify-center">
-                              <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedInvestorId === investor.id ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
-                                {selectedInvestorId === investor.id && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-5">
-                            <div className="flex items-center gap-4">
-                              <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
-                                {investor.profileImageUrl ? (
-                                  <Image
-                                    src={investor.profileImageUrl.startsWith('http')
-                                      ? investor.profileImageUrl
-                                      : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
-                                    alt={investor.firstName}
-                                    fill
-                                    className="object-cover"
-                                  />
-                                ) : (
-                                  <Image
-                                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
-                                    alt={investor.firstName}
-                                    fill
-                                    className="object-cover"
-                                  />
-                                )}
-                              </div>
-                              <div>
-                                <p className="text-sm font-bold text-[#111827]">{investor.firstName} {investor.lastName || '-'}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-5">
-                            <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
-                          </td>
-                          <td className="px-6 py-5">
-                            <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType || 'Personal'}</span>
-                          </td>
-                          <td className="px-6 py-5">
-                            <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
-                              {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-5 text-left font-bold text-[#111827] whitespace-nowrap">
-                            {investor.units || '0.00'}
-                          </td>
-                          <td className="px-6 py-5 text-left font-bold text-[#111827] whitespace-nowrap">
-                            {investor.invested || '-'}
-                          </td>
-                          <td className="px-6 py-5 text-sm text-[#4B5563] font-medium whitespace-nowrap">
-                            <div className="flex flex-col gap-0.5">
-                              {investor.assigned_ir_name && (
-                                <span className="text-sm text-[#4B5563] font-medium">
-                                  IR: {investor.assigned_ir_name}
-                                </span>
-                              )}
-                              {investor.assigned_accountant_name && (
-                                <span className="text-sm text-[#4B5563] font-medium">
-                                  Acc: {investor.assigned_accountant_name}
-                                </span>
-                              )}
-                              {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
-                                <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-5 text-sm text-[#4B5563] font-medium whitespace-nowrap">
-                            {new Date(investor.createdAt).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </td>
-                          <td className="px-6 py-5 text-left">
-                            <Link href={`/dashboard/investor/${investor.id}`}>
-                              <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
-                                View Profile
-                              </button>
-                            </Link>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-
-                    {/* IRA Accounts Heading */}
-                    {activeIraInvestors.length > 0 && (
-                      <>
+                    ))
+                  ) : (
+                    <>
+                      {/* Active Investors Heading */}
+                      {activeInvestors.length > 0 && (
                         <tr className="bg-[#F9FAFB]/30">
-                          <td colSpan={10} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
-                            Active IRA Accounts ({activeIraInvestors.length})
+                          <td colSpan={10} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+                            Active Investors ({activeInvestors.length})
                           </td>
                         </tr>
-                        {activeIraInvestors.map((investor) => (
+                      )}
+
+                      {activeInvestors.length === 0 && pendingInvestors.length === 0 ? (
+                        <tr>
+                          <td colSpan={10} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
+                            No investors found matching your search.
+                          </td>
+                        </tr>
+                      ) : (
+                        displayedActiveInvestors.map((investor) => (
                           <tr
-                            key={`${investor.id}-${investor.accountType}`}
+                            key={investor.id}
                             className={`hover:bg-[#F9FAFB]/80 transition-colors group cursor-pointer ${selectedInvestorId === investor.id ? 'bg-amber-50/50' : ''}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedInvestorId(selectedInvestorId === investor.id ? null : investor.id);
                             }}
                           >
-                            <td className="px-6 py-5">
+                            <td className="px-3 sm:px-4 lg:px-6 py-4">
                               <div className="flex items-center justify-center">
                                 <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedInvestorId === investor.id ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
                                   {selectedInvestorId === investor.id && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-5">
+                            <td className="px-3 sm:px-4 lg:px-6 py-4">
                               <div className="flex items-center gap-4">
                                 <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
                                   {investor.profileImageUrl ? (
@@ -558,24 +457,24 @@ export default function InvestorPage() {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-5">
+                            <td className="px-3 sm:px-4 lg:px-6 py-4">
                               <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
                             </td>
-                            <td className="px-6 py-5">
-                              <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType}</span>
+                            <td className="px-3 sm:px-4 lg:px-6 py-4">
+                              <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType || 'Personal'}</span>
                             </td>
-                            <td className="px-6 py-5">
+                            <td className="px-3 sm:px-4 lg:px-6 py-4">
                               <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
                                 {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
                               </span>
                             </td>
-                            <td className="px-6 py-5 text-left font-bold text-[#111827] whitespace-nowrap">
+                            <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
                               {investor.units || '0.00'}
                             </td>
-                            <td className="px-6 py-5 text-left font-bold text-[#111827] whitespace-nowrap">
+                            <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
                               {investor.invested || '-'}
                             </td>
-                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                            <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
                               <div className="flex flex-col gap-0.5">
                                 {investor.assigned_ir_name && (
                                   <span className="text-sm text-[#4B5563] font-medium">
@@ -592,14 +491,14 @@ export default function InvestorPage() {
                                 )}
                               </div>
                             </td>
-                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                            <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
                               {new Date(investor.createdAt).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
                                 year: 'numeric'
                               })}
                             </td>
-                            <td className="px-6 py-5 text-left">
+                            <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
                               <Link href={`/dashboard/investor/${investor.id}`}>
                                 <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
                                   View Profile
@@ -607,182 +506,285 @@ export default function InvestorPage() {
                               </Link>
                             </td>
                           </tr>
-                        ))}
-                      </>
-                    )}
+                        ))
+                      )}
 
-                    {/* Pending Invitations Heading */}
-                    {pendingInvestors.length > 0 && (
-                      <>
-                        <tr className="bg-[#F9FAFB]/30">
-                          <td colSpan={10} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
-                            Pending Invitations ({pendingInvestors.length})
-                          </td>
-                        </tr>
-                        {pendingInvestors.map((investor) => (
-                          <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group">
-                            <td className="px-6 py-5"></td>
-                            <td className="px-6 py-5">
-                              <div className="flex items-center gap-4">
-                                <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
-                                  <Image
-                                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
-                                    alt={investor.firstName}
-                                    fill
-                                    className="object-cover opacity-60"
-                                  />
-                                </div>
-                                <div>
-                                  <p className="text-sm font-bold text-[#111827]">{investor.firstName} {investor.lastName || '-'}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-5">
-                              <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
-                            </td>
-                            <td className="px-6 py-5">
-                              <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType || 'Personal'}</span>
-                            </td>
-                            <td className="px-6 py-5">
-                              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-200 whitespace-nowrap">
-                                Invited
-                              </span>
-                            </td>
-                            <td className="px-6 py-5 text-left font-bold text-[#111827] whitespace-nowrap">
-                              0.00
-                            </td>
-                            <td className="px-6 py-5 text-left font-bold text-[#111827] whitespace-nowrap">
-                              -
-                            </td>
-                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium whitespace-nowrap">
-                              <div className="flex flex-col gap-0.5">
-                                {investor.assigned_ir_name && (
-                                  <span className="text-sm text-[#4B5563] font-medium">
-                                    IR: {investor.assigned_ir_name}
-                                  </span>
-                                )}
-                                {investor.assigned_accountant_name && (
-                                  <span className="text-sm text-[#4B5563] font-medium">
-                                    Acc: {investor.assigned_accountant_name}
-                                  </span>
-                                )}
-                                {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
-                                  <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium whitespace-nowrap">
-                              {new Date(investor.createdAt).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric'
-                              })}
-                            </td>
-                            <td className="px-6 py-5 text-left">
-                              <Link href={`/dashboard/investor/${investor.id}`}>
-                                <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
-                                  View Profile
-                                </button>
-                              </Link>
+                      {/* IRA Accounts Heading */}
+                      {activeIraInvestors.length > 0 && (
+                        <>
+                          <tr className="bg-[#F9FAFB]/30">
+                            <td colSpan={10} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
+                              Active IRA Accounts ({activeIraInvestors.length})
                             </td>
                           </tr>
-                        ))}
-                      </>
-                    )}
-
-                    {/* Suspended Accounts Heading */}
-                    {suspendedInvestors.length > 0 && (
-                      <>
-                        <tr className="bg-[#F9FAFB]/30">
-                          <td colSpan={10} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
-                            Suspended Accounts ({suspendedInvestors.length})
-                          </td>
-                        </tr>
-                        {suspendedInvestors.map((investor) => (
-                          <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group opacity-80">
-                            <td className="px-6 py-5"></td>
-                            <td className="px-6 py-5">
-                              <div className="flex items-center gap-4">
-                                <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB] grayscale">
-                                  {investor.profileImageUrl ? (
-                                    <Image
-                                      src={investor.profileImageUrl.startsWith('http')
-                                        ? investor.profileImageUrl
-                                        : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
-                                      alt={investor.firstName}
-                                      fill
-                                      className="object-cover opacity-50"
-                                    />
-                                  ) : (
-                                    <Image
-                                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=9CA3AF`}
-                                      alt={investor.firstName}
-                                      fill
-                                      className="object-cover opacity-50"
-                                    />
+                          {activeIraInvestors.map((investor) => (
+                            <tr
+                              key={`${investor.id}-${investor.accountType}`}
+                              className={`hover:bg-[#F9FAFB]/80 transition-colors group cursor-pointer ${selectedInvestorId === investor.id ? 'bg-amber-50/50' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedInvestorId(selectedInvestorId === investor.id ? null : investor.id);
+                              }}
+                            >
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <div className="flex items-center justify-center">
+                                  <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedInvestorId === investor.id ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                    {selectedInvestorId === investor.id && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
+                                    {investor.profileImageUrl ? (
+                                      <Image
+                                        src={investor.profileImageUrl.startsWith('http')
+                                          ? investor.profileImageUrl
+                                          : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
+                                        alt={investor.firstName}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    ) : (
+                                      <Image
+                                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
+                                        alt={investor.firstName}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-bold text-[#111827]">{investor.firstName} {investor.lastName || '-'}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType}</span>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
+                                  {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
+                                </span>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                {investor.units || '0.00'}
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                {investor.invested || '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                <div className="flex flex-col gap-0.5">
+                                  {investor.assigned_ir_name && (
+                                    <span className="text-sm text-[#4B5563] font-medium">
+                                      IR: {investor.assigned_ir_name}
+                                    </span>
+                                  )}
+                                  {investor.assigned_accountant_name && (
+                                    <span className="text-sm text-[#4B5563] font-medium">
+                                      Acc: {investor.assigned_accountant_name}
+                                    </span>
+                                  )}
+                                  {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                    <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
                                   )}
                                 </div>
-                                <div>
-                                  <p className="text-sm font-bold text-gray-400 line-through decoration-gray-300">{investor.firstName} {investor.lastName || '-'}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-5">
-                              <span className="text-sm text-gray-400 font-medium">{investor.email}</span>
-                            </td>
-                            <td className="px-6 py-5">
-                              <span className="text-sm text-gray-400 font-medium">{investor.accountType}</span>
-                            </td>
-                            <td className="px-6 py-5">
-                              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-500 border border-red-100 italic">
-                                Suspended
-                              </span>
-                            </td>
-                            <td className="px-6 py-5 text-left font-bold text-gray-400">
-                              {investor.units || '0.00'}
-                            </td>
-                            <td className="px-6 py-5 text-left font-bold text-gray-400">
-                              {investor.invested || '-'}
-                            </td>
-                            <td className="px-6 py-5 text-sm text-[#4B5563] font-medium">
-                              <div className="flex flex-col gap-0.5">
-                                {investor.assigned_ir_name && (
-                                  <span className="text-sm text-[#4B5563] font-medium">
-                                    IR: {investor.assigned_ir_name}
-                                  </span>
-                                )}
-                                {investor.assigned_accountant_name && (
-                                  <span className="text-sm text-[#4B5563] font-medium">
-                                    Acc: {investor.assigned_accountant_name}
-                                  </span>
-                                )}
-                                {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
-                                  <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-5 text-sm text-gray-400 font-medium">
-                              {new Date(investor.createdAt).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric'
-                              })}
-                            </td>
-                            <td className="px-6 py-5 text-left">
-                              <Link href={`/dashboard/investor/${investor.id}`}>
-                                <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
-                                  View Profile
-                                </button>
-                              </Link>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                {new Date(investor.createdAt).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
+                                <Link href={`/dashboard/investor/${investor.id}`}>
+                                  <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                    View Profile
+                                  </button>
+                                </Link>
+                              </td>
+                            </tr>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Pending Invitations Heading */}
+                      {pendingInvestors.length > 0 && (
+                        <>
+                          <tr className="bg-[#F9FAFB]/30">
+                            <td colSpan={10} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
+                              Pending Invitations ({pendingInvestors.length})
                             </td>
                           </tr>
-                        ))}
-                      </>
-                    )}
-                  </>
-                )}
-              </tbody>
-            </table>
+                          {pendingInvestors.map((investor) => (
+                            <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group">
+                              <td className="px-3 sm:px-4 lg:px-6 py-4"></td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
+                                    <Image
+                                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
+                                      alt={investor.firstName}
+                                      fill
+                                      className="object-cover opacity-60"
+                                    />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-bold text-[#111827]">{investor.firstName} {investor.lastName || '-'}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType || 'Personal'}</span>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-200 whitespace-nowrap">
+                                  Invited
+                                </span>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                0.00
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                -
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                <div className="flex flex-col gap-0.5">
+                                  {investor.assigned_ir_name && (
+                                    <span className="text-sm text-[#4B5563] font-medium">
+                                      IR: {investor.assigned_ir_name}
+                                    </span>
+                                  )}
+                                  {investor.assigned_accountant_name && (
+                                    <span className="text-sm text-[#4B5563] font-medium">
+                                      Acc: {investor.assigned_accountant_name}
+                                    </span>
+                                  )}
+                                  {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                    <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                {new Date(investor.createdAt).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
+                                <Link href={`/dashboard/investor/${investor.id}`}>
+                                  <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                    View Profile
+                                  </button>
+                                </Link>
+                              </td>
+                            </tr>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Suspended Accounts Heading */}
+                      {suspendedInvestors.length > 0 && (
+                        <>
+                          <tr className="bg-[#F9FAFB]/30">
+                            <td colSpan={10} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
+                              Suspended Accounts ({suspendedInvestors.length})
+                            </td>
+                          </tr>
+                          {suspendedInvestors.map((investor) => (
+                            <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group opacity-80">
+                              <td className="px-3 sm:px-4 lg:px-6 py-4"></td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB] grayscale">
+                                    {investor.profileImageUrl ? (
+                                      <Image
+                                        src={investor.profileImageUrl.startsWith('http')
+                                          ? investor.profileImageUrl
+                                          : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
+                                        alt={investor.firstName}
+                                        fill
+                                        className="object-cover opacity-50"
+                                      />
+                                    ) : (
+                                      <Image
+                                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=9CA3AF`}
+                                        alt={investor.firstName}
+                                        fill
+                                        className="object-cover opacity-50"
+                                      />
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-bold text-gray-400 line-through decoration-gray-300">{investor.firstName} {investor.lastName || '-'}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <span className="text-sm text-gray-400 font-medium">{investor.email}</span>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <span className="text-sm text-gray-400 font-medium">{investor.accountType}</span>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-500 border border-red-100 italic">
+                                  Suspended
+                                </span>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-gray-400">
+                                {investor.units || '0.00'}
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-gray-400">
+                                {investor.invested || '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium">
+                                <div className="flex flex-col gap-0.5">
+                                  {investor.assigned_ir_name && (
+                                    <span className="text-sm text-[#4B5563] font-medium">
+                                      IR: {investor.assigned_ir_name}
+                                    </span>
+                                  )}
+                                  {investor.assigned_accountant_name && (
+                                    <span className="text-sm text-[#4B5563] font-medium">
+                                      Acc: {investor.assigned_accountant_name}
+                                    </span>
+                                  )}
+                                  {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                    <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-gray-400 font-medium">
+                                {new Date(investor.createdAt).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                              </td>
+                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
+                                <Link href={`/dashboard/investor/${investor.id}`}>
+                                  <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                    View Profile
+                                  </button>
+                                </Link>
+                              </td>
+                            </tr>
+                          ))}
+                        </>
+                      )}
+                    </>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Pagination */}
@@ -794,7 +796,7 @@ export default function InvestorPage() {
               Showing {activeInvestors.length} Active, {pendingInvestors.length} Pending, and {suspendedInvestors.length} Suspended Investors
             </span>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
@@ -899,7 +901,7 @@ export default function InvestorPage() {
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-[#000000]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-4xl shadow-2xl relative overflow-hidden animate-in fade-in zoom-in duration-300">
+          <div className="bg-white rounded-[1.5rem] w-full max-w-4xl shadow-2xl relative overflow-hidden animate-in fade-in zoom-in duration-300">
             <div className="p-10 max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setShowInviteModal(false)}
@@ -994,7 +996,7 @@ export default function InvestorPage() {
                             onChange={(e) => {
                               let val = e.target.value.replace(/\D/g, '');
                               if (val.length > 9) val = val.slice(0, 9);
-                              
+
                               let formatted = val;
                               if (val.length > 3 && val.length <= 5) {
                                 formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
