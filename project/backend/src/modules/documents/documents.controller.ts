@@ -59,6 +59,7 @@ export class DocumentsController {
   async uploadVaultDocument(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: any,
+    @CurrentUser() user: any,
   ) {
     try {
       if (!file) {
@@ -70,13 +71,13 @@ export class DocumentsController {
         throw new BadRequestException('The uploaded file is empty (0 bytes). Please select a valid file.');
       }
       
-      console.log(`🚀 Uploading to vault via memory stream: ${file.originalname} (${file.size} bytes)`);
+      console.log(`🚀 Uploading to vault via memory stream for user ${user.userId}: ${file.originalname} (${file.size} bytes)`);
 
       const cloudinaryUpload = () => {
         return new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
             {
-              folder: 'investment-portal/fund-documents',
+              folder: user.role === 'investor' ? 'investment-portal/investor-documents' : 'investment-portal/fund-documents',
               resource_type: 'auto',
               public_id: `vault-${Date.now()}-${file.originalname.replace(/\.[^/.]+$/, "")}`,
             },
@@ -92,6 +93,22 @@ export class DocumentsController {
       const uploadResult: any = await cloudinaryUpload();
       const fileUrl = uploadResult.secure_url;
 
+      // Determine which investor this document belongs to
+      const targetInvestorId = body.investor_id || (user.role === 'investor' ? user.userId : null);
+
+      // If we have an investor ID (either from body or from user session), save to investor_documents
+      if (targetInvestorId) {
+        return await this.documentsService.uploadKycDocument(targetInvestorId, {
+          file_name: file.originalname,
+          file_url: fileUrl,
+          document_type: body.document_type || 'tax_document',
+          tax_year: body.tax_year ? parseInt(body.tax_year) : undefined,
+          description: body.description,
+          file_size: file.size,
+        });
+      }
+
+      // Default: save to fund_documents (general vault)
       return await this.documentsService.uploadFundDocument(null, {
         file_name: file.originalname,
         file_url: fileUrl,
@@ -115,8 +132,11 @@ export class DocumentsController {
 
   @Get('investor/:investorId')
   @Roles('admin', 'accountant')
-  async getInvestorDocuments(@Param('investorId') investorId: string) {
-    return this.documentsService.getInvestorDocuments(investorId);
+  async getInvestorDocuments(
+    @Param('investorId') investorId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.documentsService.getInvestorDocuments(investorId, user.userId, user.role);
   }
 
   @Post('kyc/upload')

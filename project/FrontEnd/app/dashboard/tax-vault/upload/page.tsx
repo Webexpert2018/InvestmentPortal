@@ -1,10 +1,11 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ChevronDown, Plus, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 export default function UploadTaxDocumentPage() {
   const router = useRouter();
@@ -14,14 +15,52 @@ export default function UploadTaxDocumentPage() {
   const [note, setNote] = useState('');
   const [selectedFileName, setSelectedFileName] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [investors, setInvestors] = useState<any[]>([]);
+  const [selectedInvestorId, setSelectedInvestorId] = useState('');
+  const { user } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isLoadingInvestors, setIsLoadingInvestors] = useState(false);
   const [errors, setErrors] = useState<{
     documentType?: string;
     taxYear?: string;
     description?: string;
     file?: string;
+    investor?: string;
   }>({});
+
+  const fetchInvestors = async () => {
+    try {
+      setIsLoadingInvestors(true);
+      const data = await apiClient.getAllUsers();
+      // Filter only investors
+      setInvestors(data.filter((u: any) => u.role === 'investor'));
+    } catch (err) {
+      console.error('Failed to fetch investors:', err);
+    } finally {
+      setIsLoadingInvestors(false);
+    }
+  };
+
+  const fetchAssignedInvestors = async () => {
+    try {
+      setIsLoadingInvestors(true);
+      const data = await apiClient.getAssignedInvestors();
+      setInvestors(data);
+    } catch (err) {
+      console.error('Failed to fetch assigned investors:', err);
+    } finally {
+      setIsLoadingInvestors(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.role === 'admin' || user?.role === 'executive_admin' || user?.role === 'fund_admin') {
+      fetchInvestors();
+    } else if (user?.role === 'accountant') {
+      fetchAssignedInvestors();
+    }
+  }, [user]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -31,6 +70,7 @@ export default function UploadTaxDocumentPage() {
       taxYear?: string;
       description?: string;
       file?: string;
+      investor?: string;
     } = {};
 
     if (!documentType.trim()) {
@@ -45,6 +85,10 @@ export default function UploadTaxDocumentPage() {
       nextErrors.file = 'Please upload a file';
     } else if (selectedFile.size === 0) {
       nextErrors.file = 'The uploaded file is empty (0 bytes). Please select a valid file.';
+    }
+
+    if ((user?.role === 'admin' || user?.role === 'accountant' || user?.role === 'executive_admin') && !selectedInvestorId) {
+      nextErrors.investor = 'Please select an investor';
     }
 
     setErrors(nextErrors);
@@ -65,7 +109,8 @@ export default function UploadTaxDocumentPage() {
         document_type: documentType,
         tax_year: parseInt(taxYear),
         description,
-        note
+        note,
+        investor_id: selectedInvestorId || undefined
       });
 
       router.push('/dashboard/tax-vault');
@@ -119,6 +164,32 @@ export default function UploadTaxDocumentPage() {
         <div className="px-2 sm:px-10">
           <div className="mt-6 rounded-[10px] bg-white px-6 py-6">
             <div className="grid gap-5 md:grid-cols-2">
+              {(user?.role === 'admin' || user?.role === 'accountant' || user?.role === 'executive_admin') && (
+                <div className="md:col-span-2">
+                  <label className="mb-2 block text-[14px] text-[#4B4B4B]">Select Investor</label>
+                  <div className="relative">
+                    <select
+                      value={selectedInvestorId}
+                      onChange={(event) => {
+                        setSelectedInvestorId(event.target.value);
+                        setErrors((prev) => ({ ...prev, investor: undefined }));
+                      }}
+                      className={`h-[48px] w-full appearance-none rounded-[8px] border px-4 text-left text-[14px] outline-none ${errors.investor ? 'border-[#E05252]' : 'border-[#E5E5EA]'
+                        } ${selectedInvestorId ? 'text-[#1F1F1F]' : 'text-[#A2A5AA]'}`}
+                    >
+                      <option value="">{isLoadingInvestors ? 'Loading investors...' : 'Select an investor'}</option>
+                      {investors.map((inv: any) => (
+                        <option key={inv.id} value={inv.id}>
+                          {inv.full_name || inv.firstName + ' ' + inv.lastName} ({inv.email})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#A2A5AA]" />
+                  </div>
+                  {errors.investor && <p className="mt-1 text-[12px] text-[#E05252]">{errors.investor}</p>}
+                </div>
+              )}
+
               <div>
                 <label className="mb-2 block text-[14px] text-[#4B4B4B]">Document Type</label>
                 <div className="relative">

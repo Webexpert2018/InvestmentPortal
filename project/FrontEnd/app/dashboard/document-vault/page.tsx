@@ -77,14 +77,11 @@ export default function DocumentVaultPage() {
     const fetchDocs = async () => {
       try {
         setLoading(true);
-        const [myDocs, allDocs] = await Promise.all([
-          apiClient.getMyDocuments(),
-          apiClient.getAllDocuments()
-        ]);
+        const data = user?.role === 'investor' 
+          ? await apiClient.getMyDocuments() 
+          : await apiClient.getAllDocuments();
 
-        const combined = [...myDocs, ...allDocs];
-
-        const mapped = combined.map((doc: any) => ({
+        const mapped = data.map((doc: any) => ({
           id: doc.id,
           documentName: doc.file_name,
           category: getCategoryName(doc.document_type || doc.category),

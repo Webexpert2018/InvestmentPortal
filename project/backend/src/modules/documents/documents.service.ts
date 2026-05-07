@@ -22,6 +22,9 @@ export class DocumentsService {
     if (role === 'accountant' && userId) {
       query += ` WHERE i.assigned_accountant_id = $1 `;
       params.push(userId);
+    } else if (role === 'investor' && userId) {
+      query += ` WHERE d.investor_id = $1 `;
+      params.push(userId);
     }
 
     query += ` ORDER BY d.uploaded_at DESC`;
@@ -82,7 +85,23 @@ export class DocumentsService {
     return result.rows[0];
   }
 
-  async getInvestorDocuments(investorId: string) {
+  async getInvestorDocuments(investorId: string, requestingUserId?: string, requestingUserRole?: string) {
+    // If accountant is requesting, verify they are assigned to this investor
+    if (requestingUserRole === 'accountant' && requestingUserId) {
+      const assignmentCheck = await db.query(
+        'SELECT id FROM investors WHERE id = $1 AND assigned_accountant_id = $2',
+        [investorId, requestingUserId]
+      );
+      if (assignmentCheck.rows.length === 0) {
+        return []; // Or throw ForbiddenException, but returning empty list is safer for UI
+      }
+    }
+
+    // If investor is requesting, verify it's their own ID
+    if (requestingUserRole === 'investor' && requestingUserId && investorId !== requestingUserId) {
+      return [];
+    }
+
     const result = await db.query(
       'SELECT * FROM investor_documents WHERE investor_id = $1 ORDER BY uploaded_at DESC',
       [investorId]

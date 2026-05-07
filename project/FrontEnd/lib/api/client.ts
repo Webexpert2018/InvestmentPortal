@@ -728,6 +728,7 @@ class ApiClient {
     tax_year?: number;
     description?: string;
     note?: string;
+    investor_id?: string;
   }) {
     const formData = new FormData();
     formData.append('file', data.file);
@@ -735,6 +736,7 @@ class ApiClient {
     if (data.tax_year) formData.append('tax_year', data.tax_year.toString());
     if (data.description) formData.append('description', data.description);
     if (data.note) formData.append('note', data.note);
+    if (data.investor_id) formData.append('investor_id', data.investor_id);
 
     const headers: HeadersInit = {};
     if (typeof window !== 'undefined') {

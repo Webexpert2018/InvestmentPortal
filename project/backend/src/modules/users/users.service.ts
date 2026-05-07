@@ -162,8 +162,16 @@ export class UsersService implements OnModuleInit {
           i.pref_send_by_email, i.pref_tax_forms_alert, i.pref_auto_download, i.pref_paperless,
           i.pref_format, i.pref_frequency
         FROM investors i
-        LEFT JOIN staff ir ON i.assigned_ir_id = ir.id
-        LEFT JOIN staff acc ON i.assigned_accountant_id = acc.id
+        LEFT JOIN (
+          SELECT id, full_name FROM staff
+          UNION
+          SELECT id, first_name || ' ' || last_name as full_name FROM users
+        ) ir ON i.assigned_ir_id = ir.id
+        LEFT JOIN (
+          SELECT id, full_name FROM staff
+          UNION
+          SELECT id, first_name || ' ' || last_name as full_name FROM users
+        ) acc ON i.assigned_accountant_id = acc.id
         WHERE i.id = $1`,
         [userId]
       );
@@ -517,8 +525,16 @@ export class UsersService implements OnModuleInit {
       JOIN investors i ON ua.user_id = i.id
       LEFT JOIN investment_sums inv_s ON ua.user_id = inv_s.user_id AND ua.account_type = inv_s.account_type
       LEFT JOIN redemption_sums red_s ON ua.user_id = red_s.user_id AND ua.account_type = red_s.account_type
-      LEFT JOIN staff s ON i.assigned_ir_id = s.id
-      LEFT JOIN staff acc ON i.assigned_accountant_id = acc.id
+      LEFT JOIN (
+        SELECT id, full_name FROM staff
+        UNION
+        SELECT id, first_name || ' ' || last_name as full_name FROM users
+      ) s ON i.assigned_ir_id = s.id
+      LEFT JOIN (
+        SELECT id, full_name FROM staff
+        UNION
+        SELECT id, first_name || ' ' || last_name as full_name FROM users
+      ) acc ON i.assigned_accountant_id = acc.id
       ORDER BY 
         CASE WHEN i.status = 'pending' THEN 0 ELSE 1 END,
         i.created_at DESC
@@ -600,11 +616,19 @@ export class UsersService implements OnModuleInit {
           i.city, i.state, i.zip_code as "zipCode", i.country, 
           i.tax_id as "taxId", i.profile_image_url as "profileImageUrl", i.kyc_status as "kycStatus", i.assigned_ir_id,
           i.assigned_accountant_id,
-          s.full_name as assigned_ir_name, s.email as assigned_ir_email,
+          ir.full_name as assigned_ir_name, ir.email as assigned_ir_email,
           acc.full_name as assigned_accountant_name, acc.email as assigned_accountant_email
         FROM investors i
-        LEFT JOIN staff s ON i.assigned_ir_id = s.id
-        LEFT JOIN staff acc ON i.assigned_accountant_id = acc.id
+        LEFT JOIN (
+          SELECT id, full_name, email FROM staff
+          UNION
+          SELECT id, first_name || ' ' || last_name as full_name, email FROM users
+        ) ir ON i.assigned_ir_id = ir.id
+        LEFT JOIN (
+          SELECT id, full_name, email FROM staff
+          UNION
+          SELECT id, first_name || ' ' || last_name as full_name, email FROM users
+        ) acc ON i.assigned_accountant_id = acc.id
         WHERE i.id = $1`,
         [targetUserId]
       );
@@ -990,7 +1014,9 @@ export class UsersService implements OnModuleInit {
     // If staffId provided, verify it's a valid investor_relations staff
     if (staffId) {
       const staffCheck = await db.query(
-        "SELECT id, full_name FROM staff WHERE id = $1 AND role = 'investor_relations'",
+        `SELECT id FROM staff WHERE id = $1 AND role = 'investor_relations'
+         UNION
+         SELECT id FROM users WHERE id = $1 AND role = 'investor_relations'`,
         [staffId]
       );
       if (staffCheck.rows.length === 0) {
@@ -1018,10 +1044,12 @@ export class UsersService implements OnModuleInit {
       throw new NotFoundException('Investor not found');
     }
 
-    // If staffId provided, verify it's a valid accountant staff
+    // If staffId provided, verify it's a valid accountant staff (can be in staff or users table)
     if (staffId) {
       const staffCheck = await db.query(
-        "SELECT id, full_name FROM staff WHERE id = $1 AND role = 'accountant'",
+        `SELECT id FROM staff WHERE id = $1 AND role = 'accountant'
+         UNION
+         SELECT id FROM users WHERE id = $1 AND role = 'accountant'`,
         [staffId]
       );
       if (staffCheck.rows.length === 0) {
