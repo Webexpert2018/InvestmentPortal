@@ -54,9 +54,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           />
         )}
 
-        <main className="flex-1 overflow-y-auto overflow-x-auto px-4 py-6 sm:px-6 lg:px-8 bg-[#F5F7FA]">
+       
+        <main className={`flex-1 overflow-y-auto overflow-x-auto px-4 py-6 sm:px-6bg-[#F5F7FA]
+            ${user
+              ? isCollapsed
+                ? "sidebar_closed"
+                : "sidebar_open"
+              : ""
+            }
+
+            lg:px-8
+          `}
+          >
           {children}
-        </main>
+           </main>
       </div>
 
       {sessionExpired && (
