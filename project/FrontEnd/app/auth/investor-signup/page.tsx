@@ -524,19 +524,19 @@ export default function InvestorSignupPage() {
           </p>
         </div>
       ) : (
-        <div className="mx-auto flex min-h-[752px] w-full max-w-[1230px] items-center justify-center p-6 md:p-10">
+        <div className="mx-auto flex min-h-[752px] w-full max-w-[1230px] items-center justify-center p-3 md:p-6 md:p-10">
           <div className="w-full rounded-md bg-[#FCFCFC] shadow-xl">
             <div className="border-b border-[#EBEBEB] px-6 pt-6">
               <div className="mb-4 flex justify-center">
                 <a href="/" className="inline-block">
-                  <img src="/images/logo.png" alt="Ovalia Capital" className="h-auto w-[170px] object-contain logo-con" />
+                  <img src="/images/logo.png" alt="Ovalia Capital" className="h-auto w-[70px] md:w-[170px] object-contain logo-con" />
                 </a>
               </div>
 
               <h3 className="text-[24px] text-[#1F1F1F] font-bold">Complete Your Profile</h3>
               <p className="mb-4 font-helvetica text-lg">Just a few steps to get started</p>
 
-              <div className="mb-3 flex items-center gap-2 pb-4">
+              <div className="mb-3 flex items-center gap-2 pb-4 overflow-x-auto">
                 {progress.map((item, index) => (
                   <div key={item.label} className="flex flex-1 items-center gap-2">
                     <div
@@ -660,7 +660,7 @@ export default function InvestorSignupPage() {
               <select
                 value={form.phoneCountryCode}
                 onChange={(e) => setField('phoneCountryCode', e.target.value)}
-                className="h-11 w-[110px] rounded-md border border-[#E6E6E6] px-2 font-helvetica text-sm"
+                className="h-11 md:w-[110px] w-[80px] rounded-md border border-[#E6E6E6] px-2 font-helvetica text-xs md:text-sm"
               >
                 {countryCodes.map((code) => (
                   <option key={code} value={code}>
