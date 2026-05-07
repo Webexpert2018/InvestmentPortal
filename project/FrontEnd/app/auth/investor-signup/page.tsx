@@ -55,7 +55,8 @@ export default function InvestorSignupPage() {
   };
 
   const searchParams = useSearchParams();
-  const inviteToken = searchParams.get('invite');
+  const rawToken = searchParams.get('token');
+  const inviteToken = (rawToken && rawToken !== 'null' && rawToken !== 'undefined') ? rawToken : null;
 
   useEffect(() => {
     if (inviteToken) {
