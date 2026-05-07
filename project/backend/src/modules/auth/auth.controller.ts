@@ -235,8 +235,10 @@ export class AuthController {
 
   @Post('verify-invitation')
   @HttpCode(HttpStatus.OK)
-  async verifyInvitation(@Body() body: { token: string }) {
-    if (!body.token) {
+  async verifyInvitation(@Body() body: any) {
+    console.log(`[AuthController] verify-invitation body:`, JSON.stringify(body));
+    const token = body.token;
+    if (!token) {
       throw new BadRequestException('Invitation token is required');
     }
     return this.authService.verifyInvitationToken(body.token);

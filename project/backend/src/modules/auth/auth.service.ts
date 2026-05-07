@@ -46,7 +46,7 @@ export class AuthService {
       );
 
       if (inviteResult.rows.length === 0) {
-        throw new BadRequestException('Invalid or expired invitation token');
+        throw new BadRequestException('Invalid or expired invitation token (from AuthService signup)');
       }
       invitationData = inviteResult.rows[0];
 
@@ -545,40 +545,69 @@ export class AuthService {
   }
 
   async verifyInvitationToken(token: string) {
-    const result = await db.query(
-      `SELECT i.id, i.email, i.full_name, i.phone, i.status, i.dob, i.address_line1, i.address_line2, i.city, i.state, i.zip_code, i.country, i.tax_id 
-       FROM investors i
-       JOIN user_otps o ON i.id = o.user_id
-       WHERE o.otp = $1 AND o.type = 'INVITATION' AND o.expires_at > NOW() AND o.is_used = false`,
+    console.log(`[AuthService] Verifying invitation token: "${token}"`);
+    
+    // 1. Find the OTP record
+    const otpResult = await db.query(
+      'SELECT user_id, expires_at, is_used, type FROM user_otps WHERE otp = $1',
       [token]
     );
 
-    if (result.rows.length === 0) {
-      throw new BadRequestException('Invalid or expired invitation token');
+    if (otpResult.rows.length === 0) {
+      console.log(`[AuthService] Token NOT found in DB: "${token}"`);
+      throw new BadRequestException('Invalid invitation link (token not found)');
     }
 
-    const {
-      id, email, full_name, phone, dob,
-      address_line1, address_line2, city,
-      state, zip_code, country, tax_id
-    } = result.rows[0];
+    const otp = otpResult.rows[0];
 
-    const [firstName, ...lastNameParts] = (full_name || '').split(' ');
+    // 2. Validate OTP properties
+    if (otp.type !== 'INVITATION') {
+      console.log(`[AuthService] Invalid type: ${otp.type}`);
+      throw new BadRequestException('Invalid invitation link (invalid type)');
+    }
+
+    if (otp.is_used) {
+      console.log(`[AuthService] Token already used`);
+      throw new BadRequestException('This invitation link has already been used');
+    }
+
+    if (new Date(otp.expires_at) < new Date()) {
+      console.log(`[AuthService] Token expired`);
+      throw new BadRequestException('This invitation link has expired');
+    }
+
+    // 3. Find the associated investor
+    const investorResult = await db.query(
+      `SELECT id, email, full_name, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id 
+       FROM investors 
+       WHERE id = $1`,
+      [otp.user_id]
+    );
+
+    if (investorResult.rows.length === 0) {
+      console.log(`[AuthService] Investor NOT found for id: ${otp.user_id}`);
+      throw new BadRequestException('Invalid invitation link (user not found)');
+    }
+
+    const investor = investorResult.rows[0];
+    const [firstName, ...lastNameParts] = (investor.full_name || '').split(' ');
+
+    console.log(`[AuthService] Token verified successfully for investor: ${investor.email}`);
 
     return {
-      id,
-      email,
+      id: investor.id,
+      email: investor.email,
       firstName,
       lastName: lastNameParts.join(' '),
-      phone,
-      dob,
-      address_line1,
-      address_line2,
-      city,
-      state,
-      zip_code,
-      country,
-      tax_id
+      phone: investor.phone,
+      dob: investor.dob,
+      address_line1: investor.address_line1,
+      address_line2: investor.address_line2,
+      city: investor.city,
+      state: investor.state,
+      zip_code: investor.zip_code,
+      country: investor.country,
+      tax_id: investor.tax_id
     };
   }
 }
