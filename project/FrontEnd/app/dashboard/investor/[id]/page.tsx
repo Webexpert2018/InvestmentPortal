@@ -203,8 +203,9 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const handleSaveTaxId = async () => {
     try {
       setIsSavingTaxId(true);
-      await apiClient.updateUser(params.id, { taxId: editedTaxId });
-      setInvestorData({ ...investorData, taxId: editedTaxId });
+      const cleanTaxId = editedTaxId.replace(/\D/g, '');
+      await apiClient.updateUser(params.id, { taxId: cleanTaxId });
+      setInvestorData({ ...investorData, taxId: cleanTaxId });
       setIsEditingTaxId(false);
       toast.success('Tax ID updated successfully');
     } catch (err: any) {
