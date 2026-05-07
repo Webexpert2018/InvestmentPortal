@@ -350,15 +350,15 @@ export default function DashboardPage() {
           setAllRedemptions(redemptions);
           setDynamicConversations(convs || []);
 
-          // Filter pending fundings: Awaiting Funding
+          // Filter pending fundings: Status is not Units Issued
           const pendingFundings = (investments || []).filter((inv: any) =>
-            inv.status === 'Awaiting Funding'
+            inv.status !== 'Units Issued'
           );
           setDynamicFundingRequests(pendingFundings);
 
-          // Filter pending redemptions: Approved
+          // Filter pending redemptions: Status is not Processed
           const pendingRedemptions = (redemptions || []).filter((red: any) =>
-            red.status === 'Approved'
+            red.status !== 'Processed'
           );
           setDynamicRedemptionRequests(pendingRedemptions);
 
@@ -411,8 +411,8 @@ export default function DashboardPage() {
     investor: [
       { name: 'My Active Funds', value: activeFundsCount.toString(), icon: Bitcoin, color: 'text-orange-500' },
       { name: 'KYC Status', value: investorKycStatus.charAt(0).toUpperCase() + investorKycStatus.slice(1), icon: TrendingUp, color: investorKycStatus === 'verified' ? 'text-emerald-500' : 'text-amber-500' },
-      { name: 'Pending Funding', value: allInvestments.filter(inv => inv.status === 'Awaiting Funding').length.toString(), icon: Wallet, color: 'text-yellow-600' },
-      { name: 'Pending Redemption', value: allRedemptions.filter(r => r.status === 'Approved').length.toString(), icon: TrendingUp, color: 'text-red-500' },
+      { name: 'Pending Funding', value: allInvestments.filter(inv => inv.status !== 'Units Issued').length.toString(), icon: Wallet, color: 'text-yellow-600' },
+      { name: 'Pending Redemption', value: allRedemptions.filter(r => r.status !== 'Processed').length.toString(), icon: TrendingUp, color: 'text-red-500' },
     ],
     accountant: [
       { name: 'Assigned Investors', value: assignedInvestors.length.toString(), icon: Users, color: 'text-gray-600' },
