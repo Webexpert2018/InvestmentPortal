@@ -22,6 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const stats = [
   { name: 'Total Investors', value: '38' },
@@ -344,22 +350,22 @@ export default function DashboardPage() {
           setAllRedemptions(redemptions);
           setDynamicConversations(convs || []);
 
-          // Filter pending fundings: Subscription Submitted or Awaiting Funding
+          // Filter pending fundings: Status is not Units Issued
           const pendingFundings = (investments || []).filter((inv: any) =>
-            ['Subscription Submitted', 'Awaiting Funding'].includes(inv.status)
+            inv.status !== 'Units Issued'
           );
           setDynamicFundingRequests(pendingFundings);
 
-          // Filter pending redemptions: Pending
+          // Filter pending redemptions: Status is not Processed
           const pendingRedemptions = (redemptions || []).filter((red: any) =>
-            red.status === 'Pending'
+            red.status !== 'Processed'
           );
           setDynamicRedemptionRequests(pendingRedemptions);
 
-          // Filter pending reconciliations: is_reconciled is false
+          // Filter pending reconciliations: is_reconciled is false AND status matches
           const pendingReconciliations = [
-            ...(investments || []).filter((inv: any) => !inv.is_reconciled).map((inv: any) => ({ ...inv, type: 'Funding' })),
-            ...(redemptions || []).filter((red: any) => !red.is_reconciled).map((red: any) => ({ ...red, type: 'Redemption' }))
+            ...(investments || []).filter((inv: any) => !inv.is_reconciled && inv.status === 'Awaiting Funding').map((inv: any) => ({ ...inv, type: 'Funding' })),
+            ...(redemptions || []).filter((red: any) => !red.is_reconciled && red.status === 'Approved').map((red: any) => ({ ...red, type: 'Redemption' }))
           ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
           setDynamicReconciliationAlerts(pendingReconciliations);
 
@@ -405,8 +411,8 @@ export default function DashboardPage() {
     investor: [
       { name: 'My Active Funds', value: activeFundsCount.toString(), icon: Bitcoin, color: 'text-orange-500' },
       { name: 'KYC Status', value: investorKycStatus.charAt(0).toUpperCase() + investorKycStatus.slice(1), icon: TrendingUp, color: investorKycStatus === 'verified' ? 'text-emerald-500' : 'text-amber-500' },
-      { name: 'Pending Funding', value: allInvestments.filter(inv => ['Subscription Submitted', 'Awaiting Funding'].includes(inv.status)).length.toString(), icon: Wallet, color: 'text-yellow-600' },
-      { name: 'Pending Redemption', value: allRedemptions.filter(r => r.status === 'Pending').length.toString(), icon: TrendingUp, color: 'text-red-500' },
+      { name: 'Pending Funding', value: allInvestments.filter(inv => inv.status !== 'Units Issued').length.toString(), icon: Wallet, color: 'text-yellow-600' },
+      { name: 'Pending Redemption', value: allRedemptions.filter(r => r.status !== 'Processed').length.toString(), icon: TrendingUp, color: 'text-red-500' },
     ],
     accountant: [
       { name: 'Assigned Investors', value: assignedInvestors.length.toString(), icon: Users, color: 'text-gray-600' },
@@ -884,7 +890,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 font-sans">
+      <div className="space-y-6 font-sans">
         <div>
           <p className="font-goudy text-xl sm:text-3xl font-bold text-[#1F1F1F]">Welcome, {welcomeName}</p>
           <h1 className="font-goudy text-xl sm:text-2xl font-light text-gray-700">Dashboard</h1>
@@ -963,9 +969,20 @@ export default function DashboardPage() {
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{getFundingDisplay(person.fundingStatus)}</td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-400">
-                            <button className="p-1 rounded-full hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                              <MoreVertical className="h-4 w-4" />
-                            </button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="p-1 rounded-full hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                                  <MoreVertical className="h-4 w-4" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem asChild>
+                                  <Link href={`/dashboard/investor/${person.id}`} className="cursor-pointer">
+                                    View Profile
+                                  </Link>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </td>
                         </tr>
                       );
@@ -988,7 +1005,7 @@ export default function DashboardPage() {
                   KYC Review Queue
                 </h3>
               </div>
-              <div className="space-y-6  h-[calc(50vh-100px)] overflow-y-auto pr-3">
+              <div className="space-y-6 max-h-[350px] overflow-y-auto pr-3">
                 {kycQueue.map((item, index) => (
                   <div key={item.id} className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
@@ -1194,7 +1211,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.funding ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.funding && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicFundingRequests.length > 0 ? dynamicFundingRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
@@ -1230,7 +1247,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.redemption ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.redemption && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicRedemptionRequests.length > 0 ? dynamicRedemptionRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
@@ -1266,7 +1283,7 @@ export default function DashboardPage() {
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.reconciliation ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.reconciliation && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicReconciliationAlerts.length > 0 ? dynamicReconciliationAlerts.map((request, idx) => (
                     <div key={request.id || idx} className="flex items-center justify-between">
                       <div>

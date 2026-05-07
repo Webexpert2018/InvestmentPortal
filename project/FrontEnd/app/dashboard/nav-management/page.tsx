@@ -14,6 +14,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -29,26 +44,76 @@ export default function NAVManagementPage() {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [performance, setPerformance] = useState<any[]>([]);
+  const [btcPerformance, setBtcPerformance] = useState<any[]>([]);
+  const [btcTableData, setBtcTableData] = useState<any[]>([]);
+  const [navRange, setNavRange] = useState('6');
+  const [btcRange, setBtcRange] = useState('6');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    fetchBaseData();
   }, []);
 
-  const fetchData = async () => {
+  useEffect(() => {
+    fetchNavPerformance();
+  }, [navRange]);
+
+  useEffect(() => {
+    fetchBtcPerformance();
+  }, [btcRange]);
+
+  const fetchBaseData = async () => {
     try {
       setLoading(true);
       const [summaryRes, historyRes] = await Promise.all([
         apiClient.getNavSummary(),
-        apiClient.getNavHistory()
+        apiClient.getNavHistory(),
       ]);
       setSummary(summaryRes);
       setHistory(historyRes);
     } catch (error) {
-      console.error('Error fetching NAV data:', error);
+      console.error('Error fetching base NAV data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchNavPerformance = async () => {
+    try {
+      const performanceRes = await apiClient.getPerformance(parseInt(navRange));
+      setPerformance(performanceRes);
+    } catch (error) {
+      console.error('Error fetching NAV performance:', error);
+    }
+  };
+
+  const fetchBtcPerformance = async () => {
+    try {
+      const days = parseInt(btcRange) * 30;
+      const btcRes = await fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}&interval=daily`);
+      const btcData = await btcRes.json();
+      
+      if (btcData.prices) {
+        const mappedBtc = btcData.prices.map((p: any) => ({
+          date: new Date(p[0]).toISOString(),
+          value: p[1]
+        }));
+        setBtcPerformance(mappedBtc);
+
+        // Prepare table data from last 5 entries
+        const tableData = btcData.prices.slice(-5).reverse().map((p: any, idx: number) => ({
+          id: idx + 1,
+          date: new Date(p[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          price: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(p[1]),
+          source: 'CoinGecko',
+          status: 'success'
+        }));
+        setBtcTableData(tableData);
+      }
+    } catch (btcErr) {
+      console.error('Error fetching live BTC data:', btcErr);
     }
   };
 
@@ -64,40 +129,55 @@ export default function NAVManagementPage() {
     }).format(value);
   };
 
+  // Calculate dynamic change stats for the chart
+  const getNavChangeStats = () => {
+    if (performance.length < 2) return { 
+      value: summary?.currentNav || 0, 
+      change: 0,
+      range: navRange === '12' ? '1 Year' : `Last ${navRange} Months`
+    };
+    
+    const latest = performance[performance.length - 1].value;
+    const previous = performance[0].value;
+    const change = ((latest - previous) / previous) * 100;
+    
+    return {
+      value: latest,
+      change: change,
+      range: navRange === '12' ? '1 Year' : `Last ${navRange} Months`
+    };
+  };
+
+  const navStats = getNavChangeStats();
+
+  // Calculate dynamic BTC stats
+  const getBtcStats = () => {
+    if (btcPerformance.length < 2) return { 
+      value: 0, 
+      change: 0,
+      range: btcRange === '12' ? '1 Year' : `Last ${btcRange} Months`
+    };
+    const latest = btcPerformance[btcPerformance.length - 1].value;
+    const thirtyDaysAgo = btcPerformance[Math.max(0, btcPerformance.length - 31)].value;
+    const change = ((latest - thirtyDaysAgo) / thirtyDaysAgo) * 100;
+    return { 
+      value: latest, 
+      change,
+      range: btcRange === '12' ? '1 Year' : `Last ${btcRange} Months`
+    };
+  };
+
+  const btcStats = getBtcStats();
+
   // Stats data
   const stats = [
     { label: 'Current NAV', value: summary ? `$${summary.currentNav.toFixed(2)}` : '$0.00' },
     { label: 'Total Fund Value', value: summary ? formatCurrency(summary.totalFundValue) : '$0.00' },
-    { label: '30-Day BTC Trend', value: summary?.btcTrend || '+6.2%', isPositive: true },
+    { label: '30-Day BTC Trend', value: btcStats.change ? `${btcStats.change >= 0 ? '+' : ''}${btcStats.change.toFixed(1)}%` : '+0.0%', isPositive: btcStats.change >= 0 },
     { label: 'Investor Count', value: summary ? summary.investorCount.toLocaleString() : '0' },
   ];
 
-  // Daily BTC Reference data
-  const btcReferenceData = [
-    {
-      id: 1,
-      date: 'Feb 10, 2025',
-      price: '$48,399.08',
-      source: 'CoinGecko',
-      status: 'success',
-    },
-    {
-      id: 2,
-      date: 'Jan 14, 2025',
-      price: '$49,500.00',
-      source: 'CoinGecko',
-      status: 'success',
-    },
-    {
-      id: 3,
-      date: 'Jan 14, 2025',
-      price: '$0.00',
-      source: 'Binance',
-      status: 'fallback',
-    },
-  ];
-
-  // NAV History data - Map from history state
+  // Daily BTC Reference data - Now dynamic via btcTableData
   const navHistoryData = history.map(item => {
     const date = new Date(item.effective_date);
     const month = date.getMonth();
@@ -117,6 +197,7 @@ export default function NAVManagementPage() {
       rawStatus: item.status
     };
   });
+  
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -147,7 +228,8 @@ export default function NAVManagementPage() {
       await apiClient.deleteNavEntry(deleteId);
       toast.success('NAV entry deleted successfully');
       setDeleteId(null);
-      fetchData(); // Refresh list
+      fetchBaseData(); // Refresh list
+      fetchNavPerformance(); // Refresh chart
     } catch (error: any) {
       toast.error(error.message || 'Failed to delete entry');
     } finally {
@@ -199,47 +281,79 @@ export default function NAVManagementPage() {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Official NAV Trend</h3>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Last 6 month</span>
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
-                </div>
+                <Select value={navRange} onValueChange={setNavRange}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs border-gray-200 rounded-full">
+                    <SelectValue placeholder="Time Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Last month</SelectItem>
+                    <SelectItem value="3">Last 3 months</SelectItem>
+                    <SelectItem value="6">Last 6 months</SelectItem>
+                    <SelectItem value="12">Last year</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="mb-4">
-                <p className="text-2xl font-bold text-gray-900">$124.50</p>
-                <p className="text-sm text-green-600">Last Quarter +2.1%</p>
-              </div>
-
-              {/* Chart placeholder - Yellow/Orange gradient area */}
-              <div className="relative h-48 bg-gradient-to-b from-yellow-100 to-transparent rounded-lg flex items-end justify-center overflow-hidden">
-                <svg className="w-full h-full" viewBox="0 0 400 150" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="navGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#FCD34D" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#FCD34D" stopOpacity="0.1" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M 0 100 Q 50 80, 100 90 T 200 70 T 300 85 T 400 75 L 400 150 L 0 150 Z"
-                    fill="url(#navGradient)"
-                  />
-                  <path
-                    d="M 0 100 Q 50 80, 100 90 T 200 70 T 300 85 T 400 75"
-                    fill="none"
-                    stroke="#FCD34D"
-                    strokeWidth="2"
-                  />
-                </svg>
+                <p className="text-2xl font-bold text-gray-900">${navStats.value.toFixed(2)}</p>
+                <p className={`text-sm ${navStats.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {navStats.range} {navStats.change >= 0 ? '+' : ''}{navStats.change.toFixed(1)}%
+                </p>
               </div>
               
-              {/* X-axis labels */}
-              <div className="flex justify-between mt-2 text-xs text-gray-500">
-                <span>Jan</span>
-                <span>Feb</span>
-                <span>Mar</span>
-                <span>Apr</span>
-                <span>May</span>
-                <span>Jun</span>
+              <div className="h-48 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={performance}>
+                    <defs>
+                      <linearGradient id="navGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#FCD34D" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#FCD34D" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis 
+                      dataKey="date" 
+                      hide={false}
+                      axisLine={false}
+                      tickLine={false}
+                      fontSize={10}
+                      tickFormatter={(str) => {
+                        try {
+                          const date = new Date(str);
+                          return date.toLocaleDateString('en-US', { month: 'short' });
+                        } catch (e) {
+                          return str;
+                        }
+                      }}
+                      stroke="#9CA3AF"
+                      dy={10}
+                    />
+                    <Tooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-white p-3 border border-gray-100 shadow-xl rounded-xl">
+                              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">
+                                {new Date(payload[0].payload.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                              </p>
+                              <p className="text-sm font-bold text-gray-900">
+                                NAV: ${Number(payload[0].value).toFixed(2)}
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#FCD34D" 
+                      strokeWidth={3}
+                      fillOpacity={1} 
+                      fill="url(#navGradient)" 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
@@ -247,47 +361,81 @@ export default function NAVManagementPage() {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">BTC Reference Trend (Unit)</h3>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Last 6 month</span>
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
-                </div>
+                <Select value={btcRange} onValueChange={setBtcRange}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs border-gray-200 rounded-full">
+                    <SelectValue placeholder="Time Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Last month</SelectItem>
+                    <SelectItem value="3">Last 3 months</SelectItem>
+                    <SelectItem value="6">Last 6 months</SelectItem>
+                    <SelectItem value="12">Last year</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="mb-4">
-                <p className="text-2xl font-bold text-gray-900">$45,676.50</p>
-                <p className="text-sm text-green-600">Last 30 days +3.5%</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {btcStats.value > 0 ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(btcStats.value) : '$0.00'}
+                </p>
+                <p className={`text-sm ${btcStats.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {btcStats.range} {btcStats.change >= 0 ? '+' : ''}{btcStats.change.toFixed(1)}%
+                </p>
               </div>
 
-              {/* Chart placeholder - Blue gradient area */}
-              <div className="relative h-48 bg-gradient-to-b from-blue-100 to-transparent rounded-lg flex items-end justify-center overflow-hidden">
-                <svg className="w-full h-full" viewBox="0 0 400 150" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="btcGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#6B7FBA" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#6B7FBA" stopOpacity="0.1" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M 0 80 Q 50 60, 100 75 T 200 55 T 300 70 T 400 50 L 400 150 L 0 150 Z"
-                    fill="url(#btcGradient)"
-                  />
-                  <path
-                    d="M 0 80 Q 50 60, 100 75 T 200 55 T 300 70 T 400 50"
-                    fill="none"
-                    stroke="#6B7FBA"
-                    strokeWidth="2"
-                  />
-                </svg>
-              </div>
-              
-              {/* X-axis labels */}
-              <div className="flex justify-between mt-2 text-xs text-gray-500">
-                <span>Jan</span>
-                <span>Feb</span>
-                <span>Mar</span>
-                <span>Apr</span>
-                <span>May</span>
-                <span>Jun</span>
+              <div className="h-48 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={btcPerformance}>
+                    <defs>
+                      <linearGradient id="btcGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6B7FBA" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#6B7FBA" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis 
+                      dataKey="date" 
+                      hide={false}
+                      axisLine={false}
+                      tickLine={false}
+                      fontSize={10}
+                      tickFormatter={(str) => {
+                        try {
+                          const date = new Date(str);
+                          return date.toLocaleDateString('en-US', { month: 'short' });
+                        } catch (e) {
+                          return str;
+                        }
+                      }}
+                      stroke="#9CA3AF"
+                      dy={10}
+                    />
+                    <Tooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-white p-3 border border-gray-100 shadow-xl rounded-xl">
+                              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">
+                                {new Date(payload[0].payload.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                              </p>
+                              <p className="text-sm font-bold text-gray-900">
+                                BTC: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(payload[0].value))}
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#6B7FBA" 
+                      strokeWidth={3}
+                      fillOpacity={1} 
+                      fill="url(#btcGradient)" 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
@@ -310,7 +458,7 @@ export default function NAVManagementPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {btcReferenceData.map((item) => (
+                  {btcTableData.length > 0 ? btcTableData.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-gray-900">{item.date}</td>
                       <td className="px-6 py-4 text-gray-900 font-medium">{item.price}</td>
@@ -328,7 +476,13 @@ export default function NAVManagementPage() {
                         )}
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-4 text-center text-gray-500 italic">
+                        {loading ? 'Fetching live market data...' : 'No BTC data available'}
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

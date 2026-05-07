@@ -93,18 +93,18 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
               <div className="w-full lg:w-[350px] shrink-0">
                 <div className="relative aspect-[4/5] rounded-[32px] overflow-hidden border border-gray-100 bg-gray-50 shadow-sm">
                   {investorData.profileImageUrl ? (
-                    <Image 
-                      src={investorData.profileImageUrl.startsWith('http') 
-                        ? investorData.profileImageUrl 
-                        : `${BASE_URL}${investorData.profileImageUrl.startsWith('/') ? '' : '/'}${investorData.profileImageUrl}`} 
-                      alt="Profile" 
+                    <Image
+                      src={investorData.profileImageUrl.startsWith('http')
+                        ? investorData.profileImageUrl
+                        : `${BASE_URL}${investorData.profileImageUrl.startsWith('/') ? '' : '/'}${investorData.profileImageUrl}`}
+                      alt="Profile"
                       fill
-                      className="object-cover" 
+                      className="object-cover"
                     />
                   ) : (
-                    <Image 
-                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${investorData.firstName}&backgroundColor=FCD34D`} 
-                      alt="Placeholder" 
+                    <Image
+                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${investorData.firstName}&backgroundColor=FCD34D`}
+                      alt="Placeholder"
                       fill
                       className="object-cover"
                     />
@@ -119,10 +119,10 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                     <h2 className="text-4xl font-bold text-[#1F1F1F] tracking-tight">{investorData.firstName} {investorData.lastName}</h2>
                     <p className="text-gray-500 mt-2 font-medium">Joined date: {new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                   </div>
-                  
+
                   {/* Dedicated Action Buttons */}
                   <div className="flex flex-wrap gap-3">
-                    <button 
+                    <button
                       onClick={async () => {
                         setShowAssignModal(true);
                         setSelectedAssociate(investorData.assignedIrId || '');
@@ -138,15 +138,15 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                       }}
                       className="px-6 py-3 bg-[#FCD34D] text-[#1F1F1F] text-sm font-bold rounded-xl hover:bg-[#FBD24E] transition-all shadow-lg shadow-yellow-50 active:scale-95"
                     >
-                      Assign Relations Associate
+                      Assign Investor Relation
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleStatusUpdate('rejected')}
                       className="px-8 py-3 bg-[#FF5A5F] text-white text-sm font-bold rounded-xl hover:bg-[#FF4146] transition-all shadow-lg shadow-red-50 active:scale-95"
                     >
                       Reject
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleStatusUpdate('approved')}
                       className="px-8 py-3 bg-[#10B981] text-white text-sm font-bold rounded-xl hover:bg-[#059669] transition-all shadow-lg shadow-green-50 active:scale-95"
                     >
@@ -159,16 +159,16 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                   <div className="space-y-1.5">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Email</span>
                     <div className="flex items-center gap-2">
-                       <Mail className="h-4 w-4 text-gray-400" />
-                       <p className="text-base font-bold text-gray-900">{investorData.email}</p>
+                      <Mail className="h-4 w-4 text-gray-400" />
+                      <p className="text-base font-bold text-gray-900">{investorData.email}</p>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Phone Number</span>
                     <div className="flex items-center gap-2">
-                       <Phone className="h-4 w-4 text-gray-400" />
-                       <p className="text-base font-bold text-gray-900">{investorData.phone || '(+1) 4589 6992'}</p>
+                      <Phone className="h-4 w-4 text-gray-400" />
+                      <p className="text-base font-bold text-gray-900">{investorData.phone || '(+1) 4589 6992'}</p>
                     </div>
                   </div>
 
@@ -180,8 +180,8 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                   <div className="space-y-1.5">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Date of Birth</span>
                     <div className="flex items-center gap-2">
-                       <Calendar className="h-4 w-4 text-gray-400" />
-                       <p className="text-base font-bold text-gray-900">{investorData.dob ? new Date(investorData.dob).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Oct 25, 1977'}</p>
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <p className="text-base font-bold text-gray-900">{investorData.dob ? new Date(investorData.dob).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Oct 25, 1977'}</p>
                     </div>
                   </div>
 
@@ -193,12 +193,12 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                   <div className="md:col-span-2 space-y-1.5">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Address</span>
                     <div className="flex items-start gap-2">
-                       <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
-                       <p className="text-base font-bold text-gray-900 max-w-2xl leading-relaxed">
-                         {investorData.addressLine1 || '123 Market St. Suite 450 San Francisco, CA 94103'}{investorData.addressLine2 ? `, ${investorData.addressLine2}` : ''}
-                         {investorData.city ? `, ${investorData.city}` : ''} {investorData.state ? `, ${investorData.state}` : ''} {investorData.zipCode}
-                         {investorData.phone ? ` (${investorData.phone.substring(0,3)}) ${investorData.phone.substring(3)}` : ''}
-                       </p>
+                      <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
+                      <p className="text-base font-bold text-gray-900 max-w-2xl leading-relaxed">
+                        {investorData.addressLine1 || '123 Market St. Suite 450 San Francisco, CA 94103'}{investorData.addressLine2 ? `, ${investorData.addressLine2}` : ''}
+                        {investorData.city ? `, ${investorData.city}` : ''} {investorData.state ? `, ${investorData.state}` : ''} {investorData.zipCode}
+                        {investorData.phone ? ` (${investorData.phone.substring(0, 3)}) ${investorData.phone.substring(3)}` : ''}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -222,7 +222,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <button 
+                            <button
                               onClick={async () => {
                                 try {
                                   const token = localStorage.getItem('token');
@@ -236,9 +236,9 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                               className="p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-white rounded-lg transition-all"
                               title="View"
                             >
-                               <FileText className="h-5 w-5" />
+                              <FileText className="h-5 w-5" />
                             </button>
-                            <button 
+                            <button
                               onClick={async () => {
                                 try {
                                   const token = localStorage.getItem('token');
@@ -265,7 +265,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                               className="p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-white rounded-lg transition-all"
                               title="Download"
                             >
-                               <Download className="h-5 w-5" />
+                              <Download className="h-5 w-5" />
                             </button>
                           </div>
                         </div>
@@ -283,16 +283,16 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
         </div>
       </div>
 
-      {/* Assign Relation Associate Modal */}
+      {/* Assign Investor Relation Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-8 space-y-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-[#1F1F1F]">Assign Relation Associate</h2>
+                  <h2 className="text-2xl font-bold text-[#1F1F1F]">Assign Investor Relation</h2>
                   <p className="text-sm text-gray-500 mt-2">
-                    Select a relation associate to manage this investor's KYC verification.
+                    Select an Investor Relation to manage this investor's KYC verification.
                   </p>
                 </div>
                 <button onClick={() => setShowAssignModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -301,7 +301,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-bold text-gray-700 ml-1">Relation Associate</label>
+                <label className="text-sm font-bold text-gray-700 ml-1">Investor Relation</label>
                 <div className="relative">
                   <select
                     value={selectedAssociate}
@@ -330,7 +330,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                     try {
                       setAssigning(true);
                       await apiClient.assignInvestorRelations(params.id, selectedAssociate || null);
-                      toast.success('Relation Associate assigned successfully');
+                      toast.success('Investor Relation assigned successfully');
                       const profile = await apiClient.getUserById(params.id);
                       setInvestorData(profile);
                       setShowAssignModal(false);

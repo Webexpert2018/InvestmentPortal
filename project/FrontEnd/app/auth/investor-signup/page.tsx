@@ -397,7 +397,7 @@ export default function InvestorSignupPage() {
         state: form.state,
         zipCode: form.zipCode,
         country: form.country,
-        taxId: form.taxId,
+        taxId: form.taxId.replace(/\D/g, ''),
         invitationToken: inviteToken || undefined
       });
       router.push('/dashboard');

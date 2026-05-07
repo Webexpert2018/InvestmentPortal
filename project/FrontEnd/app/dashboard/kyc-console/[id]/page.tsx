@@ -87,7 +87,7 @@ export default function KYCProfilePage({ params }: PageProps) {
                     onClick={() => setShowAssignModal(true)}
                     className="bg-[#FCD34D] text-gray-900 hover:bg-[#FDE68A] font-semibold px-6"
                   >
-                    Assign Relations Associate
+                    Assign Investor Relation
                   </Button>
                   <Button
                     onClick={() => setShowRejectModal(true)}
@@ -156,7 +156,7 @@ export default function KYCProfilePage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Assign Relations Associate Modal */}
+        {/* Assign Investor Relation Modal */}
         {showAssignModal && (
           <>
             <div 
@@ -166,7 +166,7 @@ export default function KYCProfilePage({ params }: PageProps) {
             <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-bold text-gray-900">Assign Investment Relations Associate</h3>
+                  <h3 className="text-xl font-bold text-gray-900">Assign Investor Relation</h3>
                   <button
                     onClick={() => setShowAssignModal(false)}
                     className="text-gray-400 hover:text-gray-600"
@@ -175,12 +175,12 @@ export default function KYCProfilePage({ params }: PageProps) {
                   </button>
                 </div>
                 <p className="text-sm text-gray-600 mb-6">
-                  Select an investment relations associate to manage this investor's KYC documents and communication.
+                  Select an Investor Relation to manage this investor's KYC documents and communication.
                 </p>
                 <div className="mb-6">
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Investment Relations Associate</label>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Investor Relation</label>
                   <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white text-gray-500">
-                    <option>Select investment relations associate</option>
+                    <option>Select Investor Relation</option>
                     <option>John Smith</option>
                     <option>Sarah Johnson</option>
                     <option>Michael Brown</option>

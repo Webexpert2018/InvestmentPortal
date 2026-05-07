@@ -343,7 +343,8 @@ export default function IRAPage() {
   const handleSaveTaxId = async () => {
     try {
       setIsSavingTaxId(true);
-      await apiClient.updateProfile({ taxId: editedTaxId });
+      const cleanTaxId = editedTaxId.replace(/\D/g, '');
+      await apiClient.updateProfile({ taxId: cleanTaxId });
       setIsEditingTaxId(false);
       localToast({
         title: 'Success',

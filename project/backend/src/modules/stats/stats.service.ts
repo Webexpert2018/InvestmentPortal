@@ -8,8 +8,8 @@ export class StatsService {
       const [investorsCount, pendingKycCount, pendingFundingsCount, pendingRedemptionsCount, financialTotals, recentInvestorsResult] = await Promise.all([
         db.query("SELECT COUNT(*) FROM investors WHERE status = 'active'"),
         db.query("SELECT COUNT(*) FROM investors WHERE kyc_status = 'pending'"),
-        db.query("SELECT COUNT(*) FROM investments WHERE status IN ('Subscription Submitted', 'Awaiting Funding')"),
-        db.query("SELECT COUNT(*) FROM redemptions WHERE status = 'Pending'"),
+        db.query("SELECT COUNT(*) FROM investments WHERE status != 'Units Issued'"),
+        db.query("SELECT COUNT(*) FROM redemptions WHERE status != 'Processed'"),
         db.query(`
           WITH reconciled_investments AS (
             SELECT 
@@ -34,7 +34,7 @@ export class StatsService {
         `),
         db.query(`
           SELECT 
-            i.id,
+            i.user_id as id,
             COALESCE(inv.full_name, u.first_name || ' ' || u.last_name) as investor_name,
             i.account_type,
             COALESCE(inv.kyc_status, 'verified') as kyc_status,
