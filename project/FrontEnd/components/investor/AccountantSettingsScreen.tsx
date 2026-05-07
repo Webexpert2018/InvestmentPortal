@@ -655,7 +655,7 @@ export function AccountantSettingsScreen() {
           {profileSaved && <p className="mt-3 text-[12px] text-[#16A66A] font-helvetica">Profile updated successfully!</p>}
 
           {/* Action buttons */}
-          <div className="mt-8 flex items-center justify-end gap-3">
+          <div className="mt-8 flex items-center justify-center sm:justify-end gap-3">
             <button
               type="button"
               onClick={() => {
@@ -906,7 +906,7 @@ export function AccountantSettingsScreen() {
               Terminate Session?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-[14px] text-[#6B7280]">
-              Are you sure you want to log out from <span className="font-medium text-[#1F1F1F]">{sessionToRevoke?.device}</span>? 
+              Are you sure you want to log out from <span className="font-medium text-[#1F1F1F]">{sessionToRevoke?.device}</span>?
               This will immediately end the session on that device.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -918,7 +918,7 @@ export function AccountantSettingsScreen() {
               onClick={async (e) => {
                 e.preventDefault();
                 if (!sessionToRevoke) return;
-                
+
                 try {
                   setRevokingSessionId(sessionToRevoke.id);
                   setIsConfirmRevokeOpen(false);

@@ -116,7 +116,7 @@ export default function UploadTaxDocumentPage() {
           </p>
         </div>
 
-        <div className="px-2 sm:px-10">
+        <div className="px-2 md:px-10">
           <div className="mt-6 rounded-[10px] bg-white px-6 py-6">
             <div className="grid gap-5 md:grid-cols-2">
               <div>
@@ -234,7 +234,7 @@ export default function UploadTaxDocumentPage() {
               </div>
             )}
 
-            <div className="mt-6 flex items-center justify-end gap-3">
+            <div className="mt-6 flex items-center justify-center sm:justify-end gap-3">
               <button
                 type="button"
                 onClick={handleCancel}

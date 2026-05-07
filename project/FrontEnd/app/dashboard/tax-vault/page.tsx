@@ -65,8 +65,8 @@ export default function TaxVaultPage() {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const data = user?.role === 'investor' 
-        ? await apiClient.getMyDocuments() 
+      const data = user?.role === 'investor'
+        ? await apiClient.getMyDocuments()
         : await apiClient.getAllDocuments();
 
       const mappedRows: TaxVaultRow[] = data.map((doc: any) => ({
@@ -175,9 +175,9 @@ export default function TaxVaultPage() {
     <DashboardLayout>
       <>
         <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F]">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="font-goudy font-bold text-lg md:text-2xl text-[#1F1F1F]">Tax Vault</h1>
+          <div className="sm:flex items-center justify-between gap-4">
+            <div className="mb-3 md:mb-0">
+              <h1 className="font-goudy font-bold text-xl md:text-2xl text-[#1F1F1F]">Tax Vault</h1>
               <p className="mt-1 text-[14px] leading-6 text-[#8E8E93]">
                 Securely manage and review investor tax documents.
               </p>
