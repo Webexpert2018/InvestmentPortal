@@ -800,7 +800,7 @@ export default function InvestorSignupPage() {
     if (currentStep === 3 && otpSent) {
       return (
         <div className="mx-auto max-w-[540px] text-center">
-          <h4 className="text-[30px] text-[#2A2A2A]">Email Verification</h4>
+          <h4 className="text-lg lg:text-[30px] text-[#2A2A2A]">Email Verification</h4>
           <p className="mx-auto max-w-[420px] font-helvetica text-sm text-[#A0A0A0]">
             We&apos;ve sent a 6-digit code to <strong>{form.email}</strong>. Please enter it below to continue.
           </p>
@@ -858,7 +858,7 @@ export default function InvestorSignupPage() {
     if (currentStep === 4) {
       return (
         <div className="max-w-[520px]">
-          <h4 className="text-[30px] text-[#2A2A2A]">TAX Information</h4>
+          <h4 className="text-lg lg:text-[30px] text-[#2A2A2A]">TAX Information</h4>
 
           <FormField label="Social Security Number / Tax ID" error={errors.taxId}>
             <input
