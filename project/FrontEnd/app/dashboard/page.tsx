@@ -350,22 +350,22 @@ export default function DashboardPage() {
           setAllRedemptions(redemptions);
           setDynamicConversations(convs || []);
 
-          // Filter pending fundings: Subscription Submitted or Awaiting Funding
+          // Filter pending fundings: Awaiting Funding
           const pendingFundings = (investments || []).filter((inv: any) =>
-            ['Subscription Submitted', 'Awaiting Funding'].includes(inv.status)
+            inv.status === 'Awaiting Funding'
           );
           setDynamicFundingRequests(pendingFundings);
 
-          // Filter pending redemptions: Pending
+          // Filter pending redemptions: Approved
           const pendingRedemptions = (redemptions || []).filter((red: any) =>
-            red.status === 'Pending'
+            red.status === 'Approved'
           );
           setDynamicRedemptionRequests(pendingRedemptions);
 
-          // Filter pending reconciliations: is_reconciled is false
+          // Filter pending reconciliations: is_reconciled is false AND status matches
           const pendingReconciliations = [
-            ...(investments || []).filter((inv: any) => !inv.is_reconciled).map((inv: any) => ({ ...inv, type: 'Funding' })),
-            ...(redemptions || []).filter((red: any) => !red.is_reconciled).map((red: any) => ({ ...red, type: 'Redemption' }))
+            ...(investments || []).filter((inv: any) => !inv.is_reconciled && inv.status === 'Awaiting Funding').map((inv: any) => ({ ...inv, type: 'Funding' })),
+            ...(redemptions || []).filter((red: any) => !red.is_reconciled && red.status === 'Approved').map((red: any) => ({ ...red, type: 'Redemption' }))
           ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
           setDynamicReconciliationAlerts(pendingReconciliations);
 
@@ -411,8 +411,8 @@ export default function DashboardPage() {
     investor: [
       { name: 'My Active Funds', value: activeFundsCount.toString(), icon: Bitcoin, color: 'text-orange-500' },
       { name: 'KYC Status', value: investorKycStatus.charAt(0).toUpperCase() + investorKycStatus.slice(1), icon: TrendingUp, color: investorKycStatus === 'verified' ? 'text-emerald-500' : 'text-amber-500' },
-      { name: 'Pending Funding', value: allInvestments.filter(inv => ['Subscription Submitted', 'Awaiting Funding'].includes(inv.status)).length.toString(), icon: Wallet, color: 'text-yellow-600' },
-      { name: 'Pending Redemption', value: allRedemptions.filter(r => r.status === 'Pending').length.toString(), icon: TrendingUp, color: 'text-red-500' },
+      { name: 'Pending Funding', value: allInvestments.filter(inv => inv.status === 'Awaiting Funding').length.toString(), icon: Wallet, color: 'text-yellow-600' },
+      { name: 'Pending Redemption', value: allRedemptions.filter(r => r.status === 'Approved').length.toString(), icon: TrendingUp, color: 'text-red-500' },
     ],
     accountant: [
       { name: 'Assigned Investors', value: assignedInvestors.length.toString(), icon: Users, color: 'text-gray-600' },
