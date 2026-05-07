@@ -92,7 +92,7 @@ export function DashboardHeader({
         </button>
       </div>
 
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-2 lg:gap-5">
         {/* <div className="hidden h-[50px] w-[180px] lg:w-[340px] items-center rounded-[40px] bg-[#F2F2F2] px-6 lg:w-[390px] md:flex">
           <Search className="h-[20px] w-[20px] text-[#8D8D8D]" strokeWidth={1.8} />
           <input
