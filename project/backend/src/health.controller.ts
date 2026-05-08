@@ -5,8 +5,8 @@ import { Response } from 'express';
 export class HealthController {
   @Get()
   root(@Res() res: Response) {
-    res.set('Content-Type', 'text/html');
-    return res.send(`
+    res.setHeader('Content-Type', 'text/html');
+    return res.status(200).send(`
       <!DOCTYPE html>
       <html lang="en">
       <head>
