@@ -685,8 +685,8 @@ export default function InvestPage() {
         <div className="rounded-2xl bg-white px-8 py-8 shadow-sm border border-gray-100 h-fit">
           <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] mb-6">Order Summary</h2>
           <div className="space-y-4 text-sm">
-            <div className="flex items-center justify-between text-[#4B4B4B]">
-              <span className="font-medium">Investment Amount:</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <span className="text-[#8E8E93]">Investment Amount</span>
               <span className="font-bold text-[#1F1F1F]">
                 $
                 {investmentAmount.toLocaleString('en-US', {
@@ -695,8 +695,17 @@ export default function InvestPage() {
                 })}
               </span>
             </div>
-            <div className="flex items-center justify-between text-[#4B4B4B]">
-              <span className="font-medium">Processing Fee (0%):</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <span className="text-[#8E8E93]">Estimated Units</span>
+              <span className="font-bold text-[#1F1F1F]">
+                {estimatedUnits.toLocaleString('en-US', {
+                  minimumFractionDigits: 4,
+                  maximumFractionDigits: 4,
+                })}
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <span className="text-[#8E8E93]">Processing Fee (0%)</span>
               <span className="font-bold text-[#1F1F1F]">
                 $
                 {processingFee.toLocaleString('en-US', {
@@ -706,7 +715,7 @@ export default function InvestPage() {
               </span>
             </div>
             <div className="pt-6 mt-6 border-t border-dashed border-[#E5E5EA]">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                 <span className="text-gray-400 font-medium">Total</span>
                 <span className="text-xl font-bold text-[#2BB673]">
                   $

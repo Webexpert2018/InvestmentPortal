@@ -232,7 +232,7 @@ export default function RedemptionAmountPage() {
         </p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)]">
+      <div className="grid gap-8 xl:grid-cols-[1fr_380px]">
         <div className="rounded-2xl bg-white px-6 py-6 shadow-sm">
           {/* Select Fund */}
           <div className="mb-6">
@@ -335,27 +335,29 @@ export default function RedemptionAmountPage() {
         <div className="rounded-2xl bg-white px-6 py-6 shadow-sm text-sm text-[#4B4B4B] h-fit sticky top-6">
           <h2 className="font-goudy text-[16px] text-[#1F1F1F] mb-4">Transaction Preview</h2>
           <div className="space-y-4 border-t border-[#F1F1F1] pt-6">
-            <div className="flex items-center justify-between">
-              <span className="text-[#8E8E93]">Units to be redeemed</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <span className="text-[#8E8E93] whitespace-nowrap">Units to be redeemed</span>
               <span className="font-bold text-[#1F1F1F]">{unitsToRedeem.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[#8E8E93]">Current NAV</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <span className="text-[#8E8E93] whitespace-nowrap">Current NAV</span>
               <span className="font-bold text-[#1F1F1F]">{formatCurrency(currentNav)}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[#8E8E93]">Estimated payout date</span>
-              <span className="font-bold text-[#1F1F1F]">{estimatedPayoutDate}</span>
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1">
+              <span className="text-[#8E8E93] whitespace-nowrap">Estimated payout date</span>
+              <span className="font-bold text-[#1F1F1F] text-right">{estimatedPayoutDate}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[#8E8E93]">Service Fee</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <span className="text-[#8E8E93] whitespace-nowrap">Service Fee</span>
               <span className="font-bold text-[#1F1F1F]">$0.00</span>
             </div>
-            <div className="mt-4 flex items-center justify-between border-t border-dashed border-[#E5E5EA] pt-4">
-              <span className="font-bold text-[#1F1F1F]">Total Payout</span>
-              <span className="text-xl font-bold text-[#274583]">
-                {formatCurrency(totalPayout)}
-              </span>
+            <div className="mt-4 border-t border-dashed border-[#E5E5EA] pt-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <span className="font-bold text-[#1F1F1F]">Total Payout</span>
+                <span className="text-xl font-bold text-[#274583]">
+                  {formatCurrency(totalPayout)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
