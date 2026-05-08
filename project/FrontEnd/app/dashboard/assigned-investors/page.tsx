@@ -461,6 +461,7 @@ export default function AdminAssignedInvestorsPage() {
             </div>
           </div>
 
+
           <div className="mt-8 flex flex-col items-center gap-6 border-t border-[#F5F5F5] pt-6">
             <div className="flex items-center justify-center gap-2">
               <button
