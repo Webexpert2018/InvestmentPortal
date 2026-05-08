@@ -77,8 +77,8 @@ export default function DocumentVaultPage() {
     const fetchDocs = async () => {
       try {
         setLoading(true);
-        const data = user?.role === 'investor' 
-          ? await apiClient.getMyDocuments() 
+        const data = user?.role === 'investor'
+          ? await apiClient.getMyDocuments()
           : await apiClient.getAllDocuments();
 
         const mapped = data.map((doc: any) => ({
@@ -189,7 +189,7 @@ export default function DocumentVaultPage() {
 
         <div className="mt-4 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm">
           <div className="flex flex-wrap items-center gap-3">
-            <label className="relative block w-full max-w-[360px]">
+            <label className="relative block w-full sm:max-w-[360px]">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A7ABB2]" />
               <input
                 value={query}
@@ -203,7 +203,7 @@ export default function DocumentVaultPage() {
               />
             </label>
 
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <select
                 value={docType}
                 onChange={(event) => {
