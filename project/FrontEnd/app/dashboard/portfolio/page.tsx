@@ -186,7 +186,7 @@ export default function PortfolioPage() {
           </div>
 
           {activeTab === 'investments' && (
-            <div className="mt-6 grid gap-4 md:grid-cols-4">
+            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
                   Total Invested
@@ -234,15 +234,15 @@ export default function PortfolioPage() {
           )}
 
           {activeTab === 'fundInfo' && (
-            <div className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-2">
+            <div className="mt-8 grid gap-6 grid-cols-1 lg:grid-cols-1 xl:grid-cols-2">
               {funds.map((fund) => (
                 <Link
                   key={fund.id}
                   href={`/dashboard/funds/${fund.id}`}
-                  className="flex items-center rounded-2xl bg-[#F7F8FA] p-6 transition hover:bg-[#F1F2F5] hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] duration-300"
+                  className="group flex flex-col sm:flex-row items-center rounded-2xl bg-[#F7F8FA] p-5 sm:p-6 transition hover:bg-[#F1F2F5] hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] duration-300"
                 >
-                  <div className="flex items-center gap-6 w-full">
-                    <div className="flex-shrink-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-6 w-full">
+                    <div className="flex-shrink-0 w-full sm:w-56">
                       <img
                         src={
                           fund.image_url
@@ -250,11 +250,11 @@ export default function PortfolioPage() {
                             : "/images/strive_funds.jpg"
                         }
                         alt={fund.name}
-                        className="h-32 w-56 rounded-xl object-cover shadow-sm"
+                        className="h-40 sm:h-32 w-full sm:w-56 rounded-xl object-cover shadow-sm"
                       />
                     </div>
-                    <div className="flex-grow">
-                      <h3 className="font-goudy text-2xl text-[#1F3B6E] leading-tight">{fund.name}</h3>
+                    <div className="flex-grow py-2 sm:py-0">
+                      <h3 className="font-goudy text-xl sm:text-2xl text-[#1F3B6E] leading-tight">{fund.name}</h3>
                       <div className="mt-3 flex items-center gap-2 text-sm font-medium text-[#8E8E93]">
                         <span>View Fund Details</span>
                         <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -277,55 +277,55 @@ export default function PortfolioPage() {
                 <table className="min-w-full text-left text-sm">
                   <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
                     <tr>
-                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('fund_name')}>
+                      <th className="px-4 py-3 cursor-pointer select-none group whitespace-nowrap" onClick={() => requestSort('fund_name')}>
                         <div className="flex items-center gap-1">
                           Fund Name
                           <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'fund_name' ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'}`} />
                         </div>
                       </th>
-                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('account_type')}>
+                      <th className="px-4 py-3 cursor-pointer select-none group whitespace-nowrap" onClick={() => requestSort('account_type')}>
                         <div className="flex items-center gap-1">
                           Account Type
                           <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'account_type' ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'}`} />
                         </div>
                       </th>
-                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('units')}>
+                      <th className="px-4 py-3 cursor-pointer select-none group whitespace-nowrap" onClick={() => requestSort('units')}>
                         <div className="flex items-center justify-end gap-1">
                           Units
                           <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'units' ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'}`} />
                         </div>
                       </th>
-                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('currentNav')}>
+                      <th className="px-4 py-3 cursor-pointer select-none group whitespace-nowrap" onClick={() => requestSort('currentNav')}>
                         <div className="flex items-center justify-end gap-1">
                           Current NAV
                           <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'currentNav' ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'}`} />
                         </div>
                       </th>
-                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('currentValue')}>
+                      <th className="px-4 py-3 cursor-pointer select-none group whitespace-nowrap" onClick={() => requestSort('currentValue')}>
                         <div className="flex items-center justify-end gap-1">
                           Current Value
                           <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'currentValue' ? 'opacity-100' : 'opacity-20 group-hover:opacity-40'}`} />
                         </div>
                       </th>
-                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('costBasis')}>
+                      <th className="px-4 py-3 cursor-pointer select-none group whitespace-nowrap" onClick={() => requestSort('costBasis')}>
                         <div className="flex items-center justify-end gap-1">
                           Cost Basis
                           <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'costBasis' ? 'opacity-100' : 'opacity-20 group-hover:opacity-40'}`} />
                         </div>
                       </th>
-                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('gainLossValue')}>
+                      <th className="px-4 py-3 cursor-pointer select-none group whitespace-nowrap" onClick={() => requestSort('gainLossValue')}>
                         <div className="flex items-center gap-1">
                           Gain/Loss
                           <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'gainLossValue' ? 'opacity-100' : 'opacity-20 group-hover:opacity-40'}`} />
                         </div>
                       </th>
-                      <th className="px-4 py-3 cursor-pointer select-none group" onClick={() => requestSort('statusValue')}>
+                      <th className="px-4 py-3 cursor-pointer select-none group whitespace-nowrap" onClick={() => requestSort('statusValue')}>
                         <div className="flex items-center gap-1">
                           Status
                           <ArrowUpDown className={`h-3 w-3 transition-opacity ${sortConfig?.key === 'statusValue' ? 'opacity-100' : 'opacity-20 group-hover:opacity-40'}`} />
                         </div>
                       </th>
-                      <th className="px-4 py-3 text-right">Action</th>
+                      <th className="px-4 py-3 text-right whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
@@ -363,8 +363,8 @@ export default function PortfolioPage() {
                           </td>
                           <td className="px-4 py-3">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.is_reconciled
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
                               }`}>
                               {row.is_reconciled ? 'Completed' : 'Pending'}
                             </span>

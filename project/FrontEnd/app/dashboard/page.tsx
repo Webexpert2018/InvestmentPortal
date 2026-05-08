@@ -305,6 +305,13 @@ export default function DashboardPage() {
   const welcomeName = user?.firstName ? user.firstName : dashboardRole[0].toUpperCase() + dashboardRole.slice(1);
 
   useEffect(() => {
+    // Suppress Recharts defaultProps warning (known issue with React 18+)
+    const originalError = console.error;
+    console.error = (...args) => {
+      if (typeof args[0] === 'string' && args[0].includes('defaultProps')) return;
+      originalError(...args);
+    };
+
     if (user?.kycStatus && dashboardRole === 'investor') {
       setInvestorKycState(user.kycStatus);
     }
@@ -632,6 +639,7 @@ export default function DashboardPage() {
                       </defs>
                       <XAxis
                         dataKey="date"
+                        xAxisId={0}
                         fontSize={8}
                         tickFormatter={(str) => {
                           const date = new Date(str);

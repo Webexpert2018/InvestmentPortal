@@ -198,18 +198,18 @@ export default function FundOverviewPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-8 bg-[#F9FAFB] min-h-screen">
+      <div className="p-4 sm:p-8 bg-[#F9FAFB] min-h-screen">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => router.back()}
-            className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200 group"
+            className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200 group flex-shrink-0"
             title="Go back"
           >
             <ChevronLeft className="h-6 w-6 text-gray-600 transition-transform group-hover:-translate-x-0.5" />
           </button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 leading-tight">{fund.name}</h1>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight truncate">{fund.name}</h1>
             <p className="text-sm text-gray-500 mt-0.5">Fund Details</p>
           </div>
 
@@ -267,17 +267,17 @@ export default function FundOverviewPage() {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm p-8">
-              <div className="flex items-start gap-8">
+              <div className="flex flex-col lg:flex-row items-start gap-8">
                 {/* Left Side - Image */}
-                <div className="flex-shrink-0">
+                <div className="w-full lg:w-[450px] flex-shrink-0">
                   {fund.image ? (
                     <img
                       src={getFullImageUrl(fund.image) || ''}
                       alt={fund.name}
-                      className="w-[450px] h-[280px] object-cover rounded-lg"
+                      className="w-full h-[240px] sm:h-[280px] object-cover rounded-lg shadow-sm"
                     />
                   ) : (
-                    <div className="w-[450px] h-[280px] bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center rounded-lg">
+                    <div className="w-full h-[240px] sm:h-[280px] bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center rounded-lg">
                       <span className="text-4xl font-bold text-white opacity-20">No Image</span>
                     </div>
                   )}
@@ -505,12 +505,12 @@ export default function FundOverviewPage() {
                 <table className="w-full relative">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">File Name</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Document Type</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Tax Year</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">AV Scan Status</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Uploaded Date</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Action</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">File Name</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Document Type</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Tax Year</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">AV Scan Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Uploaded Date</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
