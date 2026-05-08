@@ -82,7 +82,7 @@ export default function RedeemPage() {
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-8xl px-4 py-8 font-helvetica text-[#1F1F1F]">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
             <h1 className="font-goudy text-xl sm:text-3xl font-bold leading-[36px] tracking-tight">Redeem</h1>
             <p className="mt-1 text-sm text-[#8E8E93]">
@@ -91,7 +91,7 @@ export default function RedeemPage() {
           </div>
           <Link
             href="/dashboard/redeem/new"
-            className="rounded-full bg-[#FBCB4B] px-8 py-2.5 text-sm font-bold text-[#1F1F1F] shadow-md hover:bg-[#F9B800] transition-all transform hover:-translate-y-0.5"
+            className="w-full sm:w-auto text-center rounded-full bg-[#FBCB4B] px-8 py-2.5 text-sm font-bold text-[#1F1F1F] shadow-md hover:bg-[#F9B800] transition-all transform hover:-translate-y-0.5"
           >
             Redemption Request
           </Link>

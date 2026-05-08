@@ -462,7 +462,7 @@ export default function TaxVaultPage() {
               </div>
             </AlertDialogHeader>
 
-            <AlertDialogFooter className="mt-10 flex items-center justify-end gap-3 sm:space-x-0">
+            <AlertDialogFooter className="mt-10 flex items-center justify-center sm:justify-end gap-3 sm:space-x-0">
               <AlertDialogCancel
                 className="h-[46px] min-w-[130px] rounded-full bg-[#FFF5E9] border-none text-[#4B4B4B] text-[15px] font-semibold hover:bg-[#FFEBD4] transition-all"
               >

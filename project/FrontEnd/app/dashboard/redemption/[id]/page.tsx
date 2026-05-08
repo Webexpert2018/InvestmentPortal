@@ -131,7 +131,7 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1.2fr)]">
           {/* Status Tracker */}
-          <div className="rounded-3xl bg-white px-10 py-8 shadow-sm border border-gray-100">
+          <div className="rounded-3xl bg-white px-6 sm:px-10 py-8 shadow-sm border border-gray-100">
             <h2 className="font-goudy text-xl text-[#1F1F1F] font-bold">Status Tracker</h2>
             <div className="h-px bg-gray-100 my-6" />
             
@@ -193,7 +193,7 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
 
           <div className="space-y-8">
             {/* Req Details */}
-            <div className="rounded-3xl bg-white px-8 py-8 shadow-sm border border-gray-100">
+            <div className="rounded-3xl bg-white px-6 sm:px-8 py-8 shadow-sm border border-gray-100">
               <div className="mb-8 flex items-center justify-between">
                 <h2 className="font-goudy text-xl text-[#1F1F1F] font-bold">Request Details</h2>
                 <span className={`rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest shadow-sm border ${
@@ -204,7 +204,7 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
                   {redemption.status}
                 </span>
               </div>
-              <div className="grid gap-8 grid-cols-2">
+              <div className="grid gap-8 grid-cols-1 sm:grid-cols-2">
                 <div>
                   <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-widest mb-1.5">Amount</p>
                   <p className="text-base font-bold text-[#1F3B6E]">{formatCurrency(redemption.amount)}</p>
@@ -229,7 +229,7 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
             </div>
 
             {/* Documents Section (Currently Empty) */}
-            <div className="rounded-3xl bg-white px-8 py-8 shadow-sm border border-gray-100">
+            <div className="rounded-3xl bg-white px-6 sm:px-8 py-8 shadow-sm border border-gray-100">
               <h2 className="font-goudy text-xl text-[#1F1F1F] font-bold mb-4">Documents</h2>
               <p className="text-xs text-gray-400 italic">No documents available for this request.</p>
             </div>
