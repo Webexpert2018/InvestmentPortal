@@ -228,7 +228,7 @@ export default function AdminAssignedInvestorsPage() {
                 ) : active.length > 0 ? (
                   active.map((inv) => (
                     <tr 
-                      key={inv.id} 
+                      key={`${inv.id}-${inv.accountType}`} 
                       onClick={(e) => {
                         if (!(e.target as Element).closest('a')) {
                           router.push(`/dashboard/investor/${inv.id}`);
@@ -283,7 +283,7 @@ export default function AdminAssignedInvestorsPage() {
                 ) : ira.length > 0 ? (
                   ira.map((inv) => (
                     <tr 
-                      key={inv.id} 
+                      key={`${inv.id}-${inv.accountType}`} 
                       onClick={(e) => {
                         if (!(e.target as Element).closest('a')) {
                           router.push(`/dashboard/investor/${inv.id}`);
@@ -332,7 +332,7 @@ export default function AdminAssignedInvestorsPage() {
                 {!loading && pending.length > 0 ? (
                   pending.map((inv) => (
                     <tr 
-                      key={inv.id} 
+                      key={`${inv.id}-${inv.accountType}`} 
                       onClick={(e) => {
                         if (!(e.target as Element).closest('a') && !(e.target as Element).closest('button')) {
                           router.push(`/dashboard/investor/${inv.id}`);
@@ -380,7 +380,7 @@ export default function AdminAssignedInvestorsPage() {
                 {!loading && suspended.length > 0 ? (
                   suspended.map((inv) => (
                     <tr 
-                      key={inv.id} 
+                      key={`${inv.id}-${inv.accountType}`} 
                       onClick={(e) => {
                         if (!(e.target as Element).closest('a') && !(e.target as Element).closest('button')) {
                           router.push(`/dashboard/investor/${inv.id}`);
