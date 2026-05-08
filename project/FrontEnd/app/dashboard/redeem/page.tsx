@@ -102,14 +102,14 @@ export default function RedeemPage() {
             <table className="min-w-full text-xs text-[#4B4B4B]">
               <thead className="bg-[#F8FAFC] text-[11px] uppercase tracking-widest text-[#8E8E93]">
                 <tr className="border-b border-gray-100">
-                  <th className="px-6 py-4 text-left font-bold">Request ID</th>
-                  <th className="px-6 py-4 text-left font-bold">Fund</th>
-                  <th className="px-6 py-4 text-left font-bold">Amount</th>
-                  <th className="px-6 py-4 text-left font-bold">Units Redeemed</th>
-                  <th className="px-6 py-4 text-left font-bold">Destination Bank</th>
-                  <th className="px-6 py-4 text-left font-bold">Status</th>
-                  <th className="px-6 py-4 text-left font-bold">Requested Date</th>
-                  <th className="px-6 py-4 text-right font-bold tracking-normal uppercase">Action</th>
+                  <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[120px]">Request ID</th>
+                  <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[150px]">Fund</th>
+                  <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[100px]">Amount</th>
+                  <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[120px]">Units Redeemed</th>
+                  <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[150px]">Destination Bank</th>
+                  <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[100px]">Status</th>
+                  <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[120px]">Requested Date</th>
+                  <th className="px-6 py-4 text-right font-bold tracking-normal uppercase whitespace-nowrap min-w-[100px]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F9F9F9] bg-white text-[13px]">
@@ -209,22 +209,23 @@ export default function RedeemPage() {
             </table>
           </div>
 
-          <div className="flex items-center justify-between border-t border-[#F1F1F1] px-8 py-6 text-[12px] bg-[#F8FAFC]/50">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#F1F1F1] px-8 py-6 text-[12px] bg-[#F8FAFC]/50">
             <button
               type="button"
               className="flex items-center gap-1 font-bold text-gray-400 hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             >
-              &lt; Previous
+              <span className="hidden sm:inline">&lt; Previous</span>
+              <span className="sm:hidden">&lt;</span>
             </button>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
                   key={page}
                   type="button"
                   onClick={() => setCurrentPage(page)}
-                  className={`h-8 w-8 rounded-lg text-xs font-bold transition-all shadow-sm ${
+                  className={`h-8 w-8 flex-shrink-0 rounded-lg text-xs font-bold transition-all shadow-sm ${
                     currentPage === page 
                       ? 'bg-[#1F3B6E] text-white shadow-[#1F3B6E]/20' 
                       : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'
@@ -240,7 +241,8 @@ export default function RedeemPage() {
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             >
-              Next &gt;
+              <span className="hidden sm:inline">Next &gt;</span>
+              <span className="sm:hidden">&gt;</span>
             </button>
           </div>
         </div>
