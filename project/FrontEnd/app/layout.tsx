@@ -5,6 +5,13 @@ import { Toaster as SonnerToaster } from 'sonner';
 import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] });
+export const metadata = {
+  title: 'Ovalia Capital | Investment Portal',
+  description: 'Secure investment management portal',
+  icons: {
+    icon: '/favicon.ico',
+  },
+};
 
 export default function RootLayout({
   children,
