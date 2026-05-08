@@ -748,7 +748,7 @@ export default function InvestPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+      <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         {/* Left Preview Section */}
         <div className="rounded-[8px] bg-white p-4 shadow-sm border border-[#E5E5EA]">
           <div className="flex flex-col min-h-[600px] rounded-[6px] border border-[#E9EBEE] bg-[#F8F9FB] overflow-hidden transition-all">
