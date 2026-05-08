@@ -157,14 +157,14 @@ export default function AdminAssignedInvestorsPage() {
                 value={query}
                 onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }}
                 placeholder="Find something here..."
-                className="w-full h-[38px] rounded-full border border-[#ECEDEF] bg-[#FAFAFA] pl-9 pr-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica"
+                className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] font-helvetica"
               />
             </div>
             <div className="relative">
               <select
                 value={kycFilter}
                 onChange={(e) => { setKycFilter(e.target.value); setCurrentPage(1); }}
-                className="h-[38px] appearance-none rounded-full border border-[#ECEDEF] bg-white pl-4 pr-8 text-[13px] text-[#6B7280] outline-none font-helvetica cursor-pointer"
+                className="inline-flex h-[40px] min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[14px] appearance-none outline-none font-helvetica text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
               >
                 <option value="All">KYC Status</option>
                 <option>Approved</option>
@@ -177,7 +177,7 @@ export default function AdminAssignedInvestorsPage() {
               <select
                 value={typeFilter}
                 onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
-                className="h-[38px] appearance-none rounded-full border border-[#ECEDEF] bg-white pl-4 pr-8 text-[13px] text-[#6B7280] outline-none font-helvetica cursor-pointer"
+                className="inline-flex h-[40px] min-w-[150px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[14px] appearance-none outline-none font-helvetica  text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
               >
                 <option value="All">Account Type</option>
                 <option value="Personal">Personal</option>
@@ -204,7 +204,7 @@ export default function AdminAssignedInvestorsPage() {
                     { label: "Date", width: "12%" },
                     { label: "Action", width: "6%" }
                   ].map((h) => (
-                    <th key={h.label} style={{ width: h.width }} className="px-4 py-3 text-[12px] font-helvetica font-semibold uppercase tracking-wider text-[#6B7280] whitespace-nowrap border-b border-[#ECEDEF]">
+                    <th key={h.label} style={{ width: h.width }} className="px-4 py-3 text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap border-b border-[#ECEDEF]">
                       <span className="inline-flex items-center gap-1">
                         {h.label}
                         {h.label !== "Action" && <ArrowUpDown className="h-3 w-3 text-[#C4C4C4]" />}
@@ -227,8 +227,8 @@ export default function AdminAssignedInvestorsPage() {
                   ))
                 ) : active.length > 0 ? (
                   active.map((inv) => (
-                    <tr 
-                      key={`${inv.id}-${inv.accountType}`} 
+                    <tr
+                      key={`${inv.id}-${inv.accountType}`}
                       onClick={(e) => {
                         if (!(e.target as Element).closest('a')) {
                           router.push(`/dashboard/investor/${inv.id}`);
@@ -282,8 +282,8 @@ export default function AdminAssignedInvestorsPage() {
                   ))
                 ) : ira.length > 0 ? (
                   ira.map((inv) => (
-                    <tr 
-                      key={`${inv.id}-${inv.accountType}`} 
+                    <tr
+                      key={`${inv.id}-${inv.accountType}`}
                       onClick={(e) => {
                         if (!(e.target as Element).closest('a')) {
                           router.push(`/dashboard/investor/${inv.id}`);
@@ -331,8 +331,8 @@ export default function AdminAssignedInvestorsPage() {
                 </tr>
                 {!loading && pending.length > 0 ? (
                   pending.map((inv) => (
-                    <tr 
-                      key={`${inv.id}-${inv.accountType}`} 
+                    <tr
+                      key={`${inv.id}-${inv.accountType}`}
                       onClick={(e) => {
                         if (!(e.target as Element).closest('a') && !(e.target as Element).closest('button')) {
                           router.push(`/dashboard/investor/${inv.id}`);
@@ -379,8 +379,8 @@ export default function AdminAssignedInvestorsPage() {
                 </tr>
                 {!loading && suspended.length > 0 ? (
                   suspended.map((inv) => (
-                    <tr 
-                      key={`${inv.id}-${inv.accountType}`} 
+                    <tr
+                      key={`${inv.id}-${inv.accountType}`}
                       onClick={(e) => {
                         if (!(e.target as Element).closest('a') && !(e.target as Element).closest('button')) {
                           router.push(`/dashboard/investor/${inv.id}`);
