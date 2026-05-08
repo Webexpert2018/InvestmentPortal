@@ -129,7 +129,7 @@ export default function AdminAssignedInvestorsPage() {
       filtered.sort((a, b) => {
         const aVal = a[sortConfig.key]
         const bVal = b[sortConfig.key]
-        
+
         if (sortConfig.key === 'date') {
           const dateA = new Date(a.date).getTime()
           const dateB = new Date(b.date).getTime()
@@ -225,7 +225,7 @@ export default function AdminAssignedInvestorsPage() {
               <table className="w-full text-left border-separate border-spacing-0">
                 <thead>
                   <tr className="border-b border-[#ECEDEF]">
-                     {[
+                    {[
                       { label: "Investor Name", minWidth: "180px", sortKey: "name" },
                       { label: "Email", minWidth: "180px", sortKey: "email" },
                       { label: "Account Type", minWidth: "120px", sortKey: "accountType" },
@@ -263,7 +263,7 @@ export default function AdminAssignedInvestorsPage() {
                       </tr>
                     ))
                   ) : active.length > 0 ? (
-                    active.map((inv) => (
+                    paginatedActive.map((inv) => (
                       <tr
                         key={`${inv.id}-${inv.accountType}`}
                         onClick={(e) => {
@@ -470,7 +470,7 @@ export default function AdminAssignedInvestorsPage() {
               >
                 <ChevronLeft className="h-4 w-4" /> Previous
               </button>
-              
+
               <div className="flex gap-2">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                   <button

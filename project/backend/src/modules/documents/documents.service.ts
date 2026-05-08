@@ -13,7 +13,7 @@ export class DocumentsService {
 
   async getAllDocuments(userId?: string, role?: string) {
     let query = `
-      SELECT d.*, i.full_name as "investorName"
+      SELECT d.*, i.full_name as "investorName", i.profile_image_url as "investorAvatar"
       FROM investor_documents d
       JOIN investors i ON d.investor_id = i.id
     `;
@@ -103,7 +103,11 @@ export class DocumentsService {
     }
 
     const result = await db.query(
-      'SELECT * FROM investor_documents WHERE investor_id = $1 ORDER BY uploaded_at DESC',
+      `SELECT d.*, i.full_name as "investorName", i.profile_image_url as "investorAvatar"
+       FROM investor_documents d
+       JOIN investors i ON d.investor_id = i.id
+       WHERE d.investor_id = $1 
+       ORDER BY d.uploaded_at DESC`,
       [investorId]
     );
     return result.rows;

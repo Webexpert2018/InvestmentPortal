@@ -66,7 +66,7 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
     try {
       const token = localStorage.getItem('token');
       const downloadUrl = apiClient.getDocumentDownloadUrl(id);
-      
+
       const response = await fetch(downloadUrl, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -148,7 +148,7 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
             <Link href="/dashboard/document-vault" className="flex items-center gap-2 text-[#333333] hover:opacity-70 transition-opacity">
               <ChevronLeft className="h-6 w-6" />
             </Link>
-            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">Document Details</h1>
+            <h1 className="font-goudy text-[20px] md:text-[28px] lg:text-[34px] leading-tight text-[#1F1F1F]">Document Details</h1>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -237,7 +237,7 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
             {/* Right side: File Information (40% on desktop) */}
             <div className="flex flex-col">
               <div className="pt-0">
-                <h2 className="font-goudy text-[28px] leading-tight text-[#1F1F1F] mb-4">File Information</h2>
+                <h2 className="font-goudy text-[20px] md:text-[28px] leading-tight text-[#1F1F1F] mb-4">File Information</h2>
                 <div className="border-t border-[#F1F1F1] pt-8 space-y-8">
                   <div className="grid grid-cols-2 gap-4">
                     <div>

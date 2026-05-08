@@ -29,6 +29,7 @@ type TaxVaultRow = {
   status: TaxDocStatus;
   uploadedDate: string;
   investorName: string;
+  investorAvatar?: string;
 };
 
 const statusClass: Record<TaxDocStatus, string> = {
@@ -81,6 +82,7 @@ export default function TaxVaultPage() {
           year: 'numeric'
         }),
         investorName: doc.investorName || 'N/A',
+        investorAvatar: doc.investorAvatar || '',
       }));
 
       setDocuments(mappedRows);
@@ -161,7 +163,8 @@ export default function TaxVaultPage() {
   const taxYears = ['All', ...uniqueYears.sort((a, b) => b.localeCompare(a))];
 
   const filteredDocuments = documents.filter(doc => {
-    const matchesSearch = doc.fileName.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchStr = `${doc.fileName} ${doc.investorName} ${doc.documentType} ${doc.taxYear} ${doc.uploadedDate}`.toLowerCase();
+    const matchesSearch = searchStr.includes(searchQuery.toLowerCase());
     const matchesType = selectedType === 'All' || doc.documentType === selectedType;
     const matchesYear = selectedYear === 'All' || doc.taxYear === selectedYear;
     return matchesSearch && matchesType && matchesYear;
@@ -175,17 +178,17 @@ export default function TaxVaultPage() {
     <DashboardLayout>
       <>
         <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F]">
-          <div className="sm:flex items-center justify-between gap-4">
-            <div className="mb-3 md:mb-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="mb-2 sm:mb-0">
               <h1 className="font-goudy font-bold text-xl md:text-2xl text-[#1F1F1F]">Tax Vault</h1>
-              <p className="mt-1 text-[14px] leading-6 text-[#8E8E93]">
+              <p className="mt-1 text-[13px] md:text-[14px] leading-6 text-[#8E8E93]">
                 Securely manage and review investor tax documents.
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3">
               {user?.role !== 'accountant' && (
-                <div className="hidden md:flex items-center gap-4 text-xs">
+                <div className="hidden lg:flex items-center gap-4 text-xs">
                   <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
                     <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
                     <div>
@@ -198,18 +201,17 @@ export default function TaxVaultPage() {
 
               <Link
                 href="/dashboard/tax-vault/upload"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 py-3 rounded-full text-[15px] font-bold shadow-md transition-all hover:shadow-lg active:scale-95"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 py-3 rounded-full text-[13px] md:text-[15px] font-bold shadow-md transition-all hover:shadow-lg active:scale-95"
               >
                 Upload Document
               </Link>
-
             </div>
           </div>
 
-          <div className="mt-4 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm">
-            <div className="flex flex-wrap items-center gap-4">
-              <label className="relative block w-full max-w-[417px]">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#9FA3A9]" />
+          <div className="mt-6 rounded-xl bg-white p-4 sm:p-6 shadow-sm border border-[#F0F0F0]">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-6">
+              <div className="relative w-full lg:w-[320px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
                 <input
                   type="text"
                   placeholder="Find something here..."
@@ -218,81 +220,83 @@ export default function TaxVaultPage() {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA]"
+                  className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] font-helvetica border border-transparent focus:border-[#FFC63F] transition-all"
                 />
-              </label>
-
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsTypeOpen(!isTypeOpen);
-                    setIsYearOpen(false);
-                  }}
-                  className="inline-flex h-[40px] min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
-                >
-                  {selectedType === 'All' ? 'Document Type' : selectedType}
-                  <ChevronDown className={`ml-3 h-5 w-5 transition-transform ${isTypeOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {isTypeOpen && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setIsTypeOpen(false)} />
-                    <div className="absolute top-full left-0 mt-2 z-20 w-48 rounded-xl border border-[#EFEFEF] bg-white py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
-                      {documentTypes.map(type => (
-                        <button
-                          key={type}
-                          onClick={() => {
-                            setSelectedType(type);
-                            setIsTypeOpen(false);
-                            setCurrentPage(1);
-                          }}
-                          className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedType === type ? 'bg-[#F5F5F5] text-[#274583] font-semibold' : 'text-[#4B4B4B] hover:bg-[#F8F8F8]'}`}
-                        >
-                          {type}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
               </div>
 
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsYearOpen(!isYearOpen);
-                    setIsTypeOpen(false);
-                  }}
-                  className="inline-flex h-[40px] min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
-                >
-                  {selectedYear === 'All' ? 'Year' : selectedYear}
-                  <ChevronDown className={`ml-3 h-5 w-5 transition-transform ${isYearOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {isYearOpen && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setIsYearOpen(false)} />
-                    <div className="absolute top-full left-0 mt-2 z-20 w-32 rounded-xl border border-[#EFEFEF] bg-white py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
-                      {taxYears.map(year => (
-                        <button
-                          key={year}
-                          onClick={() => {
-                            setSelectedYear(year);
-                            setIsYearOpen(false);
-                            setCurrentPage(1);
-                          }}
-                          className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedYear === year ? 'bg-[#F5F5F5] text-[#274583] font-semibold' : 'text-[#4B4B4B] hover:bg-[#F8F8F8]'}`}
-                        >
-                          {year}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
+              <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                <div className="relative flex-1 sm:flex-none">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsTypeOpen(!isTypeOpen);
+                      setIsYearOpen(false);
+                    }}
+                    className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+                  >
+                    {selectedType === 'All' ? 'Document Type' : selectedType}
+                    <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${isTypeOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isTypeOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setIsTypeOpen(false)} />
+                      <div className="absolute top-full left-0 mt-2 z-20 w-full sm:w-48 rounded-xl border border-[#EFEFEF] bg-white py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
+                        {documentTypes.map(type => (
+                          <button
+                            key={type}
+                            onClick={() => {
+                              setSelectedType(type);
+                              setIsTypeOpen(false);
+                              setCurrentPage(1);
+                            }}
+                            className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedType === type ? 'bg-[#F5F5F5] text-[#274583] font-semibold' : 'text-[#4B4B4B] hover:bg-[#F8F8F8]'}`}
+                          >
+                            {type}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="relative flex-1 sm:flex-none">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsYearOpen(!isYearOpen);
+                      setIsTypeOpen(false);
+                    }}
+                    className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+                  >
+                    {selectedYear === 'All' ? 'Year' : selectedYear}
+                    <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${isYearOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isYearOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setIsYearOpen(false)} />
+                      <div className="absolute top-full left-0 mt-2 z-20 w-full sm:w-32 rounded-xl border border-[#EFEFEF] bg-white py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
+                        {taxYears.map(year => (
+                          <button
+                            key={year}
+                            onClick={() => {
+                              setSelectedYear(year);
+                              setIsYearOpen(false);
+                              setCurrentPage(1);
+                            }}
+                            className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedYear === year ? 'bg-[#F5F5F5] text-[#274583] font-semibold' : 'text-[#4B4B4B] hover:bg-[#F8F8F8]'}`}
+                          >
+                            {year}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="mt-6 overflow-x-auto pb-20 custom-scrollbar">
-              <div className="min-h-[400px]">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 custom-scrollbar">
+              <div className="min-w-[900px] sm:min-w-full inline-block align-middle px-4 sm:px-0">
                 {loading ? (
                   <div className="flex h-32 items-center justify-center">
                     <Loader2 className="h-8 w-8 animate-spin text-[#274583]" />
@@ -302,15 +306,15 @@ export default function TaxVaultPage() {
                 ) : filteredDocuments.length === 0 ? (
                   <div className="p-8 text-center text-[#8E8E93]">No documents found matching your criteria.</div>
                 ) : (
-                  <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
+                  <table className="w-full border-separate border-spacing-0 text-[13px] md:text-[14px] text-[#4B4B4B]">
                     <thead>
-                      <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
-                        {user?.role !== 'investor' && <th className="rounded-l-[6px] px-4 py-3 text-left">Investor</th>}
-                        <th className={`px-4 py-3 ${user?.role === 'investor' ? 'rounded-l-[6px]' : ''}`}>File Name</th>
-                        <th className="px-4 py-3">Document Type</th>
-                        <th className="px-4 py-3">Tax Year</th>
-                        <th className="px-4 py-3">Uploaded Date</th>
-                        <th className="rounded-r-[6px] px-4 py-3 text-center">Action</th>
+                      <tr className="bg-[#FAFAFA] text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap">
+                        {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF]">Investor</th>}
+                        <th className="px-4 py-3 border-b border-[#ECEDEF]">File Name</th>
+                        <th className="px-4 py-3 border-b border-[#ECEDEF]">Document Type</th>
+                        <th className="px-4 py-3 border-b border-[#ECEDEF]">Tax Year</th>
+                        <th className="px-4 py-3 border-b border-[#ECEDEF]">Uploaded Date</th>
+                        <th className="px-4 py-3 text-right border-b border-[#ECEDEF]">Action</th>
                       </tr>
                     </thead>
 
@@ -321,12 +325,25 @@ export default function TaxVaultPage() {
                           onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
                           className="border-b border-[#F1F1F1] hover:bg-gray-50/50 cursor-pointer transition-colors"
                         >
-                          {user?.role !== 'investor' && <td className="px-4 py-4 font-bold text-[#1F1F1F]">{row.investorName}</td>}
-                          <td className="px-4 py-4 max-w-[200px] truncate" title={row.fileName}>{row.fileName}</td>
-                          <td className="px-4 py-4">{row.documentType}</td>
-                          <td className="px-4 py-4">{row.taxYear}</td>
-                          <td className="px-4 py-4">{row.uploadedDate}</td>
-                          <td className="relative px-4 py-4 text-center">
+                          {user?.role !== 'investor' && (
+                            <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                              <div className="flex items-center gap-3">
+                                {row.investorAvatar ? (
+                                  <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
+                                ) : (
+                                  <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[11px] font-semibold font-helvetica border border-[#E5E7EB]">
+                                    {row.investorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                  </div>
+                                )}
+                                <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{row.investorName}</span>
+                              </div>
+                            </td>
+                          )}
+                          <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
+                          <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.documentType}</td>
+                          <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.taxYear}</td>
+                          <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.uploadedDate}</td>
+                          <td className="relative px-4 py-4 border-b border-[#F5F5F5] text-right">
                             <button
                               type="button"
                               className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"
@@ -384,34 +401,44 @@ export default function TaxVaultPage() {
               </div>
             </div>
 
-            {!loading && !error && documents.length > 0 && (
-              <div className="mt-5 flex items-center justify-center gap-6 text-[16px] text-[#8E8E93]">
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="px-1 hover:text-[#274583] transition-colors disabled:opacity-30 disabled:pointer-events-none"
-                >
-                  &lt; Previous
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            {!loading && !error && filteredDocuments.length > 0 && (
+              <div className="mt-8 flex flex-col items-center gap-6 border-t border-[#F5F5F5] pt-6">
+                <div className="flex items-center justify-center gap-2">
                   <button
-                    key={page}
                     type="button"
-                    onClick={() => setCurrentPage(page)}
-                    className={`inline-flex h-8 w-8 items-center justify-center rounded-[8px] transition-colors ${currentPage === page ? 'bg-[#274583] text-white' : 'hover:bg-[#E9EDF4]'}`}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
                   >
-                    {page}
+                    &lt; Previous
                   </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-1 hover:text-[#274583] transition-colors disabled:opacity-30 disabled:pointer-events-none"
-                >
-                  Next &gt;
-                </button>
+
+                  <div className="flex gap-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => setCurrentPage(page)}
+                        className={`h-10 w-10 rounded-lg text-[13px] font-medium transition-colors font-helvetica ${currentPage === page ? 'bg-[#1F3B6E] text-white' : 'text-[#6B7280] hover:bg-gray-100'}`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
+                  >
+                    Next &gt;
+                  </button>
+                </div>
+
+                <div className="text-[13px] text-[#8E8E93] font-helvetica">
+                  Showing <span className="font-medium text-[#1F1F1F]">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-[#1F1F1F]">{Math.min(currentPage * itemsPerPage, filteredDocuments.length)}</span> of <span className="font-medium text-[#1F1F1F]">{filteredDocuments.length}</span> documents
+                </div>
               </div>
             )}
           </div>
