@@ -446,7 +446,7 @@ export default function InvestPage() {
     const { primaryLabel = 'Continue', showBack = true } = options;
 
     return (
-      <div className="mt-16 flex items-center justify-end border-t border-[#E5E5EA] pt-8">
+      <div className="mt-16 flex items-center sm:justify-end justify-center border-t border-[#E5E5EA] pt-8">
         {/* <button
           type="button"
           onClick={() => setStep('chooseFund')}
@@ -573,7 +573,7 @@ export default function InvestPage() {
     <>
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
             Select Funding Account
           </h1>
           <p className="mt-2 text-sm text-[#8E8E93]">
@@ -729,7 +729,7 @@ export default function InvestPage() {
     <>
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
             Sign Subscription Documents
           </h1>
           <p className="mt-1 text-sm text-[#8E8E93]">
@@ -927,7 +927,7 @@ export default function InvestPage() {
               </svg>
             </div>
           </div>
-          <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
             Congratulations!
           </h1>
           <p className="mt-2 text-base text-[#8E8E93]">
@@ -1068,7 +1068,7 @@ export default function InvestPage() {
         </div>
       </div>
 
-      <div className="mt-16 flex items-center justify-end border-t border-[#E5E5EA] pt-8">
+      <div className="mt-16 flex items-center sm:justify-end justify-center border-t border-[#E5E5EA] pt-8">
         <button
           type="button"
           onClick={() => {
@@ -1087,7 +1087,7 @@ export default function InvestPage() {
     <>
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-goudy text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
             Investment Status
           </h1>
           <p className="mt-2 text-sm text-[#8E8E93]">Track your investment through each stage.</p>
