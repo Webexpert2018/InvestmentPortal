@@ -245,20 +245,21 @@ html {
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px !important;
-  height: 6px !important;
+  width: 8px !important;
+  height: 8px !important;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1 !important;
+  background: #F9FAFB !important;
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #c1c1c1 !important;
+  background: #D1D5DB !important;
   border-radius: 10px;
+  border: 2px solid #F9FAFB;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8 !important;
+  background: #9CA3AF !important;
 }
