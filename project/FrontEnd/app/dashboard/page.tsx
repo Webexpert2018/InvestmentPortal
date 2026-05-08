@@ -892,7 +892,7 @@ export default function DashboardPage() {
     <DashboardLayout>
       <div className="space-y-6 font-sans">
         <div>
-          <p className="font-goudy text-xl sm:text-3xl font-bold text-[#1F1F1F]">Welcome, {welcomeName}</p>
+          <p className="font-goudy text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-1">Welcome, {welcomeName}</p>
           <h1 className="font-goudy text-xl sm:text-2xl font-light text-gray-700">Dashboard</h1>
           {dashboardRole === 'accountant' && (
             <p className="font-helvetica text-sm sm:text-md mt-2">Here’s a summary of your assigned investors and pending actions.</p>

@@ -309,106 +309,102 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       <div className="flex flex-wrap gap-2">
                         {(() => {
                           const isPending = investorData.status === 'pending';
-                            
-                            if (!isAdmin) return null;
 
-                            const inviteButtons = [
-                              <button
-                                key="send"
-                                onClick={handleSendInvite}
-                                disabled={isSendingInvite || !isPending}
-                                className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${
-                                  isPending
-                                    ? 'bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent'
-                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
-                                }`}
-                              >
-                                {isSendingInvite ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
-                                Send/Resend Invite
-                              </button>,
-                              <button
-                                key="cancel"
-                                onClick={() => setShowCancelModal(true)}
-                                disabled={isSuspending || !isPending}
-                                className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${
-                                  isPending
-                                    ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
-                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
-                                }`}
-                              >
-                                {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
-                                Cancel Invite
-                              </button>
-                            ];
+                          if (!isAdmin) return null;
 
-                            const actionButtons = [
-                              <button
-                                key="forgot"
-                                onClick={handleForgotPassword}
-                                disabled={isResetting || isPending}
-                                className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${
-                                  !isPending
-                                    ? 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200'
-                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                          const inviteButtons = [
+                            <button
+                              key="send"
+                              onClick={handleSendInvite}
+                              disabled={isSendingInvite || !isPending}
+                              className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${isPending
+                                ? 'bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent'
+                                : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
                                 }`}
-                              >
-                                {isResetting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Shield className="h-3 w-3" />}
-                                Forgot Password
-                              </button>,
-                              <button
-                                key="suspend"
-                                onClick={() => setShowSuspendModal(true)}
-                                disabled={isSuspending || isPending}
-                                className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${
-                                  !isPending
-                                    ? (investorData.status === 'suspended'
-                                      ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                      : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                                    )
-                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            >
+                              {isSendingInvite ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
+                              Send/Resend Invite
+                            </button>,
+                            <button
+                              key="cancel"
+                              onClick={() => setShowCancelModal(true)}
+                              disabled={isSuspending || !isPending}
+                              className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${isPending
+                                ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
+                                : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
                                 }`}
-                              >
-                                {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
-                                {investorData.status === 'suspended' ? 'Activate Account' : 'Suspend Account'}
-                              </button>,
-                              <button
-                                key="assign"
-                                onClick={async () => {
-                                  setShowAssignModal(true);
-                                  setSelectedIrStaff(investorData.assignedIrId || '');
-                                  setIrLoading(true);
-                                  try {
-                                    const res = await apiClient.getStaff('investor_relations', 1, 100);
-                                    setIrStaffList(res.data || []);
-                                  } catch (err) { console.error('Failed to fetch IR staff:', err); }
-                                  finally { setIrLoading(false); }
-                                }}
-                                className="h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
-                              >
-                                {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
-                              </button>,
-                              <button
-                                key="assign-accountant"
-                                onClick={async () => {
-                                  setShowAccountantModal(true);
-                                  setSelectedAccountant(investorData.assignedAccountantId || '');
-                                  setAccountantLoading(true);
-                                  try {
-                                    const res = await apiClient.getStaff('accountant', 1, 100);
-                                    setAccountantList(res.data || []);
-                                  } catch (err) { console.error('Failed to fetch accountants:', err); }
-                                  finally { setAccountantLoading(false); }
-                                }}
-                                className="h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
-                              >
-                                {investorData.assignedAccountantId ? 'Change Accountant' : 'Assign Accountant'}
-                              </button>
-                            ];
+                            >
+                              {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
+                              Cancel Invite
+                            </button>
+                          ];
 
-                            return isPending ? [...inviteButtons, ...actionButtons] : [...actionButtons, ...inviteButtons];
-                          })()}
-                        </div>
+                          const actionButtons = [
+                            <button
+                              key="forgot"
+                              onClick={handleForgotPassword}
+                              disabled={isResetting || isPending}
+                              className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${!isPending
+                                ? 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200'
+                                : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                                }`}
+                            >
+                              {isResetting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Shield className="h-3 w-3" />}
+                              Forgot Password
+                            </button>,
+                            <button
+                              key="suspend"
+                              onClick={() => setShowSuspendModal(true)}
+                              disabled={isSuspending || isPending}
+                              className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${!isPending
+                                ? (investorData.status === 'suspended'
+                                  ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                  : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                )
+                                : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                                }`}
+                            >
+                              {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
+                              {investorData.status === 'suspended' ? 'Activate Account' : 'Suspend Account'}
+                            </button>,
+                            <button
+                              key="assign"
+                              onClick={async () => {
+                                setShowAssignModal(true);
+                                setSelectedIrStaff(investorData.assignedIrId || '');
+                                setIrLoading(true);
+                                try {
+                                  const res = await apiClient.getStaff('investor_relations', 1, 100);
+                                  setIrStaffList(res.data || []);
+                                } catch (err) { console.error('Failed to fetch IR staff:', err); }
+                                finally { setIrLoading(false); }
+                              }}
+                              className="h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
+                            >
+                              {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
+                            </button>,
+                            <button
+                              key="assign-accountant"
+                              onClick={async () => {
+                                setShowAccountantModal(true);
+                                setSelectedAccountant(investorData.assignedAccountantId || '');
+                                setAccountantLoading(true);
+                                try {
+                                  const res = await apiClient.getStaff('accountant', 1, 100);
+                                  setAccountantList(res.data || []);
+                                } catch (err) { console.error('Failed to fetch accountants:', err); }
+                                finally { setAccountantLoading(false); }
+                              }}
+                              className="h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
+                            >
+                              {investorData.assignedAccountantId ? 'Change Accountant' : 'Assign Accountant'}
+                            </button>
+                          ];
+
+                          return isPending ? [...inviteButtons, ...actionButtons] : [...actionButtons, ...inviteButtons];
+                        })()}
                       </div>
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 py-6 border-y border-gray-100">
                       <div className="space-y-1.5">
@@ -425,7 +421,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-gray-400">Tax ID</span>
                           {isAdmin && !isEditingTaxId && (
-                            <button 
+                            <button
                               onClick={() => setIsEditingTaxId(true)}
                               className="text-[10px] font-bold text-[#3B82F6] hover:underline"
                             >
@@ -442,7 +438,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                               onChange={(e) => {
                                 let val = e.target.value.replace(/\D/g, '');
                                 if (val.length > 9) val = val.slice(0, 9);
-                                
+
                                 let formatted = val;
                                 if (val.length > 3 && val.length <= 5) {
                                   formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
@@ -541,9 +537,9 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       <div className="space-y-1 text-right sm:text-left">
                         <span className="text-xs font-bold text-gray-400">Last Login</span>
                         <p className="text-sm font-bold text-gray-900">
-                          {investorData.lastLogin ? new Date(investorData.lastLogin).toLocaleString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric', 
+                          {investorData.lastLogin ? new Date(investorData.lastLogin).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit'
@@ -677,7 +673,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
             {activeTab === 'funding' && (
               <div className="space-y-6">
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Total Profile Value</p>
                     <p className="text-2xl font-bold text-[#1F1F1F]">${stats.totalValue.toLocaleString()}</p>
@@ -700,14 +696,14 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     <table className="w-full">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fund Name</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account Type</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Units</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current NAV</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Value</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost Basis</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gain/Loss</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Units</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Current Value</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Cost Basis</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Gain/Loss</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Action</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-100">
@@ -748,30 +744,32 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
                   {/* Pagination */}
                   <div className="px-6 py-4 bg-white border-t border-gray-100 flex items-center justify-center">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => setFundingPage(Math.max(1, fundingPage - 1))}
                         disabled={fundingPage === 1}
-                        className="px-3 py-1 text-sm text-gray-400 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
                       >
                         Previous
                       </button>
-                      {Array.from({ length: fundingTotalPages }, (_, i) => i + 1).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => setFundingPage(page)}
-                          className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${fundingPage === page
-                            ? 'bg-[#3B82F6] text-white'
-                            : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
+                      <div className="flex gap-2">
+                        {Array.from({ length: fundingTotalPages }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => setFundingPage(page)}
+                            className={`h-10 w-10 rounded-lg text-[13px] font-medium transition-colors font-helvetica ${fundingPage === page
+                              ? "bg-[#1F3B6E] text-white"
+                              : "text-[#6B7280] hover:bg-gray-100"
+                              }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
                       <button
                         onClick={() => setFundingPage(Math.min(fundingTotalPages, fundingPage + 1))}
                         disabled={fundingPage === fundingTotalPages}
-                        className="px-3 py-1 text-sm text-gray-400 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
                       >
                         Next
                       </button>
@@ -789,13 +787,13 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     <table className="w-full">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request ID</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Units Relinquent</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination Bank</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Request ID</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Amount</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Units Relinquent</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Destination Bank</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Requested Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Action</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-100">
@@ -831,30 +829,32 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
                   {/* Pagination */}
                   <div className="px-6 py-4 bg-white border-t border-gray-100 flex items-center justify-center">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => setRedemptionPage(Math.max(1, redemptionPage - 1))}
                         disabled={redemptionPage === 1}
-                        className="px-3 py-1 text-sm text-gray-400 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
                       >
                         Previous
                       </button>
-                      {Array.from({ length: redemptionTotalPages }, (_, i) => i + 1).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => setRedemptionPage(page)}
-                          className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${redemptionPage === page
-                            ? 'bg-[#3B82F6] text-white'
-                            : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
+                      <div className="flex gap-2">
+                        {Array.from({ length: redemptionTotalPages }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => setRedemptionPage(page)}
+                            className={`h-10 w-10 rounded-lg text-[13px] font-medium transition-colors font-helvetica ${redemptionPage === page
+                              ? "bg-[#1F3B6E] text-white"
+                              : "text-[#6B7280] hover:bg-gray-100"
+                              }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
                       <button
                         onClick={() => setRedemptionPage(Math.min(redemptionTotalPages, redemptionPage + 1))}
                         disabled={redemptionPage === redemptionTotalPages}
-                        className="px-3 py-1 text-sm text-gray-400 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
                       >
                         Next
                       </button>
@@ -1112,8 +1112,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   disabled={isSuspending}
                   onClick={handleSuspendAccount}
                   className={`w-full py-4 text-sm font-bold text-white rounded-2xl transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${investorData.status === 'suspended'
-                      ? 'bg-green-600 hover:bg-green-700 shadow-green-100'
-                      : 'bg-red-600 hover:bg-red-700 shadow-red-100'
+                    ? 'bg-green-600 hover:bg-green-700 shadow-green-100'
+                    : 'bg-red-600 hover:bg-red-700 shadow-red-100'
                     }`}
                 >
                   {isSuspending ? (
