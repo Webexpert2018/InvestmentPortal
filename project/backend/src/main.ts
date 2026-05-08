@@ -10,6 +10,19 @@ import { db } from './config/database';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// --- Production Warning Fixes ---
+// Suppress Node.js [DEP0169] DeprecationWarning for url.parse()
+// This often comes from third-party dependencies (like older versions of superagent/pg/express-static)
+// and cannot be easily fixed without updating all underlying libraries.
+if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
+  const originalWarn = process.emitWarning;
+  process.emitWarning = (warning, ...args: any[]) => {
+    if (typeof warning === 'string' && warning.includes('DEP0169')) return;
+    if (warning instanceof Error && (warning as any).code === 'DEP0169') return;
+    return originalWarn.call(process, warning, ...args);
+  };
+}
+
 
 
 let cachedApp: NestExpressApplication;
