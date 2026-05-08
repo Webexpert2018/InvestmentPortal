@@ -108,7 +108,7 @@ export default function IRAPage() {
   const calculateBalance = (accountId: string) => {
     const accountInvestments = myInvestments.filter(inv => inv.account_id === accountId && inv.is_reconciled);
     const totalInvested = accountInvestments.reduce((sum, inv) => sum + parseFloat(inv.revised_amount || inv.investment_amount || 0), 0);
-    
+
     const investmentIds = accountInvestments.map(inv => inv.id);
     const totalRedeemed = myRedemptions
       .filter(red => red.is_reconciled && investmentIds.includes(red.investment_id))
@@ -145,7 +145,7 @@ export default function IRAPage() {
     accountOpenDate: selectedIra?.created_at ? new Date(selectedIra.created_at).toLocaleDateString() : (user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'),
     accountUpdatedDate: selectedIra?.updated_at ? new Date(selectedIra.updated_at).toLocaleDateString() : '-',
     custodian: selectedIra?.custodian_name || '-',
-     beneficiary: selectedIra?.beneficiary || '-',
+    beneficiary: selectedIra?.beneficiary || '-',
     contributionYTD: '$0.00',
     contributionLimit: '$7,000.00',
     accountBalance: selectedIra ? `$${calculateBalance(selectedIra.id).toLocaleString()}` : '$0.00',
@@ -221,7 +221,7 @@ export default function IRAPage() {
         } else if (val.length > 5) {
           formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
         }
-        
+
         return {
           ...prev,
           accountHolderName: prev.accountHolderName || `${user.firstName} ${user.lastName}`,
@@ -371,7 +371,7 @@ export default function IRAPage() {
         description: 'Tax ID updated successfully',
         className: 'bg-green-50 border-green-200 text-green-800'
       });
-      window.location.reload(); 
+      window.location.reload();
     } catch (err: any) {
       localToast({
         title: 'Error',
@@ -387,8 +387,8 @@ export default function IRAPage() {
     <DashboardLayout>
       <div className="mx-auto w-full max-w-8xl font-helvetica">
         {/* Page Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="md:flex items-center justify-between">
+          <div className="flex items-center gap-4 mb-3 md:mb-0">
             <button
               onClick={() => {
                 if (view === 'detail') {
@@ -404,13 +404,13 @@ export default function IRAPage() {
             <div>
               <h1 className="font-goudy text-[22px] md:text-[26px] font-bold text-[#1F1F1F]">IRA</h1>
               <p className="mt-1 text-[13px] text-[#8E8E93] font-helvetica">
-                {view === 'list' 
-                  ? 'Manage your IRA-related investments and account information here.' 
+                {view === 'list'
+                  ? 'Manage your IRA-related investments and account information here.'
                   : `Detailed overview of your ${selectedIra?.account_type || ''} account.`}
               </p>
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 sm:justify-end justify-auto">
             <button
               onClick={() => setShowTransferModal(true)}
               className="inline-flex items-center gap-2 border border-[#E5E7EB] bg-white px-5 py-2 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors"
@@ -432,7 +432,7 @@ export default function IRAPage() {
         {view === 'list' ? (
           <div className="mt-6 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full border-separate border-spacing-0 text-[14px] table-fixed">
+              <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
                 <thead>
                   <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
                     <th className="px-6 py-4 border-b border-[#F0F0F0] w-[25%]">Account Type</th>
@@ -468,8 +468,8 @@ export default function IRAPage() {
                     </tr>
                   ) : (
                     iraAccounts.map((acc, idx) => (
-                      <tr 
-                        key={acc.id} 
+                      <tr
+                        key={acc.id}
                         onClick={() => {
                           setSelectedAccountIdx(idx);
                           setView('detail');
@@ -519,7 +519,7 @@ export default function IRAPage() {
                   </div>
                   <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">IRA Account Overview</h3>
                 </div>
-                <button 
+                <button
                   onClick={() => setView('list')}
                   className="text-[12px] font-bold text-[#D1A94C] hover:underline flex items-center gap-1"
                 >
@@ -661,7 +661,7 @@ export default function IRAPage() {
                   <div className="flex items-center justify-between">
                     <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Social Security Number / Tax ID</p>
                     {!isEditingTaxId && (
-                      <button 
+                      <button
                         onClick={() => setIsEditingTaxId(true)}
                         className="text-[10px] font-bold text-[#D1A94C] hover:underline font-helvetica"
                       >
@@ -678,7 +678,7 @@ export default function IRAPage() {
                         onChange={(e) => {
                           let val = e.target.value.replace(/\D/g, '');
                           if (val.length > 9) val = val.slice(0, 9);
-                          
+
                           let formatted = val;
                           if (val.length > 3 && val.length <= 5) {
                             formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
@@ -879,7 +879,7 @@ export default function IRAPage() {
                         onChange={e => {
                           let val = e.target.value.replace(/\D/g, '');
                           if (val.length > 9) val = val.slice(0, 9);
-                          
+
                           // Format: XXX-XX-XXXX
                           let formatted = val;
                           if (val.length > 3 && val.length <= 5) {
@@ -887,7 +887,7 @@ export default function IRAPage() {
                           } else if (val.length > 5) {
                             formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
                           }
-                          
+
                           setIraForm({ ...iraForm, ssn: formatted });
                           if (val.length === 9) {
                             setErrors((prev: any) => {
