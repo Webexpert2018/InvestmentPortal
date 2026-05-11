@@ -170,16 +170,16 @@ export default function StaffPage() {
 
         {/* Table wrapper - Removed overflow-hidden to prevent dropdown clipping */}
         <div className="bg-white rounded-[12px] shadow-sm border border-[#F2F2F2]">
-          <div className="min-w-full">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-[#F2F2F2]">
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Name</th>
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Email</th>
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Role Type</th>
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Assigned Investors</th>
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Date</th>
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] text-right">Action</th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Name</th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Email</th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Role Type</th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Assigned Investors</th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Date</th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] text-right whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F2F2F2]">
@@ -198,7 +198,7 @@ export default function StaffPage() {
                 ) : (
                   displayStaff.map((staff) => (
                     <tr key={staff.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white overflow-hidden ${staff.role === 'admin' ? 'bg-[#2A4474]' :
                             staff.role === 'executive_admin' ? 'bg-[#1F1F1F]' :
@@ -215,8 +215,8 @@ export default function StaffPage() {
                           <span className="text-[14px] font-medium text-[#1F1F1F]">{staff.full_name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">{staff.email}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] whitespace-nowrap">{staff.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-3 py-1 rounded-full text-[12px] font-medium ${staff.role === 'executive_admin' ? 'bg-[#1F1F1F] text-white' :
                           staff.role === 'admin' ? 'bg-[#2A4474]/10 text-[#2A4474]' :
                             staff.role === 'fund_admin' ? 'bg-[#059669]/10 text-[#059669]' :
@@ -226,11 +226,11 @@ export default function StaffPage() {
                           {ROLE_OPTIONS.find(o => o.id === staff.role)?.label || staff.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] whitespace-nowrap">
                         {staff.assigned_investors_count || 0}
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">{formatDate(staff.created_at)}</td>
-                      <td className="px-6 py-4 text-right relative">
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] whitespace-nowrap">{formatDate(staff.created_at)}</td>
+                      <td className="px-6 py-4 text-right relative whitespace-nowrap">
                         <div className="relative inline-block">
                           <button
                             onClick={(e) => {
