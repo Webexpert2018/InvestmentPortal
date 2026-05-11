@@ -181,12 +181,12 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 mt-30 md:mt-0">
       <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-8 py-5">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 md:px-8 py-5">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1]">
               <Plus className="h-5 w-5 text-[#D1A94C]" />
             </div>
-            <h2 className="text-[22px] font-bold text-[#1F1F1F] font-goudy">Admin: Add IRA for Investor</h2>
+            <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] font-goudy">Admin: Add IRA for Investor</h2>
           </div>
           <button
             onClick={onClose}
@@ -206,7 +206,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
             <div className="flex flex-col gap-8">
 
               {/* SECTION: Investor Profile (Read-Only) */}
-              <div className="rounded-[16px] border border-[#F0F0F0] bg-[#FAFAFA] p-6">
+              <div className="rounded-[16px] border border-[#F0F0F0] bg-[#FAFAFA] p-0 md:p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <User className="h-4 w-4 text-[#D1A94C]" />
                   <h3 className="text-[15px] font-bold text-[#1F1F1F] font-goudy">Investor Profile (Non-Editable)</h3>

@@ -759,12 +759,12 @@ export default function IRAPage() {
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-8 py-5">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 md:px-8 py-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1]">
                   <Plus className="h-5 w-5 text-[#D1A94C]" />
                 </div>
-                <h2 className="text-[22px] font-bold text-[#1F1F1F] font-goudy">Open New IRA Account</h2>
+                <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] font-goudy">Open New IRA Account</h2>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -774,7 +774,7 @@ export default function IRAPage() {
               </button>
             </div>
 
-            <div className="p-8">
+            <div className="p-4 md:p-8">
               <div className="flex flex-col gap-8">
                 {/* Account Details */}
                 <div>

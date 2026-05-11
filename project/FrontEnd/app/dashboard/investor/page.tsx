@@ -307,7 +307,7 @@ export default function InvestorPage() {
 
           {/* Action Bar */}
           <div className="p-6 border-b border-[#F3F4F6]" onClick={(e) => e.stopPropagation()}>
-            <div className="flex flex-col lg:flex-row lg:items-center gap-4 w-full">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 w-full">
               {/* Search Box */}
               <div className="relative max-w-md w-full xl:max-w-sm">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />

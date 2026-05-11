@@ -200,7 +200,7 @@ export default function StaffPage() {
                     <tr key={staff.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white overflow-hidden ${staff.role === 'admin' ? 'bg-[#3B82F6]' :
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white overflow-hidden ${staff.role === 'admin' ? 'bg-[#2A4474]' :
                             staff.role === 'executive_admin' ? 'bg-[#1F1F1F]' :
                               staff.role === 'fund_admin' ? 'bg-[#059669]' :
                                 staff.role === 'investor_relations' ? 'bg-[#7C3AED]' :
@@ -218,7 +218,7 @@ export default function StaffPage() {
                       <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">{staff.email}</td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-[12px] font-medium ${staff.role === 'executive_admin' ? 'bg-[#1F1F1F] text-white' :
-                          staff.role === 'admin' ? 'bg-[#3B82F6]/10 text-[#3B82F6]' :
+                          staff.role === 'admin' ? 'bg-[#2A4474]/10 text-[#2A4474]' :
                             staff.role === 'fund_admin' ? 'bg-[#059669]/10 text-[#059669]' :
                               staff.role === 'investor_relations' ? 'bg-[#7C3AED]/10 text-[#7C3AED]' :
                                 staff.role === 'accountant' ? 'bg-[#5B21B6]/10 text-[#5B21B6]' : 'bg-[#EF4444]/10 text-[#EF4444]'

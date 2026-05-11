@@ -245,7 +245,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === tab.id
-                      ? 'border-[#FCD34D] text-[#3B82F6]'
+                      ? 'border-[#FCD34D] text-[#2A4474]'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                       }`}
                   >
@@ -423,7 +423,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           {isAdmin && !isEditingTaxId && (
                             <button
                               onClick={() => setIsEditingTaxId(true)}
-                              className="text-[10px] font-bold text-[#3B82F6] hover:underline"
+                              className="text-[10px] font-bold text-[#2A4474] hover:underline"
                             >
                               Edit
                             </button>
@@ -730,7 +730,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <Link
                                   href={`/dashboard/funding/${fund.id}`}
-                                  className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors inline-block"
+                                  className="px-3 py-3 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors inline-block"
                                 >
                                   View Fund Details
                                 </Link>
@@ -816,7 +816,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <Link
                                 href={`/dashboard/redemption/${redemption.id}`}
-                                className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors inline-block"
+                                className="px-3 py-3 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors inline-block"
                               >
                                 View Fund Details
                               </Link>
