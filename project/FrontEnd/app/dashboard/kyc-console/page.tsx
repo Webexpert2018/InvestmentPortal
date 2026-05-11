@@ -133,7 +133,7 @@ export default function KYCConsolePage() {
               <select
                 value={kycFilter}
                 onChange={(e) => setKycFilter(e.target.value)}
-                className="appearance-none w-full md:w-auto px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white cursor-pointer"
+                className="appearance-none px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white cursor-pointer"
               >
                 <option value="all">KYC Status</option>
                 <option value="pending">Pending</option>
