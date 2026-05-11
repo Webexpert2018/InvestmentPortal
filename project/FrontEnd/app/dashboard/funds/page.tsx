@@ -134,14 +134,14 @@ export default function FundsPage() {
     <DashboardLayout>
       <div className="p-0">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-2">Funds</h1>
-            <p className="text-gray-600">View, manage, and configure all funds.</p>
+            <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] mb-1 font-goudy tracking-tight">Funds</h1>
+            <p className="text-gray-500 font-medium">View, manage, and configure all funds.</p>
           </div>
           <Button
             onClick={() => router.push('/dashboard/funds/add')}
-            className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-6 py-2 rounded-full font-medium"
+            className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-7 py-3 rounded-full font-bold shadow-sm transition-all active:scale-95 whitespace-nowrap"
           >
             Add New Fund
           </Button>
@@ -157,55 +157,55 @@ export default function FundsPage() {
                 placeholder="Find something here..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[#F4F4F4] border-none rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20"
+                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/10 focus:border-[#1F3B6E] transition-all"
               />
             </div>
           </div>
 
           {/* Table */}
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-[#FAFAFA] border-b border-gray-100">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full border-collapse">
+                <thead className="bg-gray-50/50 border-b border-gray-100">
                   <tr>
-                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280]">Fund Name</th>
-                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280]">Fund Start Date</th>
-                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280]">Total Investors</th>
-                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280]">Total AUM</th>
-                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280]">Status</th>
-                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] text-right pr-12">Action</th>
+                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Fund Name</th>
+                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Fund Start Date</th>
+                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Total Investors</th>
+                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Total AUM</th>
+                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Status</th>
+                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap pr-12 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {currentFunds.map((fund) => (
-                    <tr key={fund.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
+                    <tr key={fund.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0">
+                      <td className="px-6 py-5 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           {fund.image ? (
                             <img
                               src={getFullImageUrl(fund.image) || ''}
                               alt={fund.name}
-                              className="w-10 h-10 rounded-full object-cover border border-gray-100"
+                              className="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-semibold text-sm">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-xs shadow-sm">
                               {getInitials(fund.name)}
                             </div>
                           )}
                           <span className="font-medium text-gray-900">{fund.name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{formatDate(fund.startDate)}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{fund.totalInvestors}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      <td className="px-6 py-5 text-[13px] text-gray-600 font-medium whitespace-nowrap">{formatDate(fund.startDate)}</td>
+                      <td className="px-6 py-5 text-[13px] text-gray-900 font-bold whitespace-nowrap">{fund.totalInvestors}</td>
+                      <td className="px-6 py-5 text-[13px] font-bold text-[#1F3B6E] whitespace-nowrap">
                         {formatAUM(fund.totalAUM)}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(fund.status)}`}>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusColor(fund.status)}`}>
                           {fund.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right pr-12">
+                      <td className="px-6 py-5 text-center whitespace-nowrap pr-12">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -265,8 +265,8 @@ export default function FundsPage() {
                     key={page}
                     onClick={() => setCurrentPage(page)}
                     className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === page
-                        ? 'bg-[#1F3B6E] text-white shadow-sm'
-                        : 'text-gray-400 hover:bg-gray-50'
+                      ? 'bg-[#1F3B6E] text-white shadow-sm'
+                      : 'text-gray-400 hover:bg-gray-50'
                       }`}
                   >
                     {page}

@@ -10,14 +10,14 @@ import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip as RechartsTooltip, 
-  ResponsiveContainer 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer
 } from 'recharts';
 
 export default function FundOverviewPage() {
@@ -26,8 +26,8 @@ export default function FundOverviewPage() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<'overview' | 'documents' | 'bankDetails'>(
-    tabParam === 'documents' ? 'documents' : 
-    tabParam === 'bankDetails' ? 'bankDetails' : 'overview'
+    tabParam === 'documents' ? 'documents' :
+      tabParam === 'bankDetails' ? 'bankDetails' : 'overview'
   );
   const [fund, setFund] = useState<any>(null);
   const [documents, setDocuments] = useState<any[]>([]);
@@ -367,7 +367,7 @@ export default function FundOverviewPage() {
             <div className="bg-white rounded-lg shadow-sm p-8">
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-lg font-bold text-gray-900">Performance Overview</h3>
-                <select 
+                <select
                   value={timeframe}
                   onChange={(e) => setTimeframe(parseInt(e.target.value))}
                   className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:border-[#FCD34D] bg-white cursor-pointer"
@@ -390,7 +390,7 @@ export default function FundOverviewPage() {
                   </span>
                 </p>
               </div>
-              
+
               <div className="h-[300px] w-full mt-4">
                 {isPerformanceLoading ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
@@ -401,25 +401,25 @@ export default function FundOverviewPage() {
                     <AreaChart data={performanceData}>
                       <defs>
                         <linearGradient id="performanceGradient" x1="0" y1="0" x2="0" y2="100%">
-                          <stop offset="5%" stopColor="#FCD34D" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#FCD34D" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#FCD34D" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#FCD34D" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                      <XAxis 
-                        dataKey="formattedDate" 
+                      <XAxis
+                        dataKey="formattedDate"
                         axisLine={false}
                         tickLine={false}
-                        tick={{fontSize: 12, fill: '#9CA3AF'}}
+                        tick={{ fontSize: 12, fill: '#9CA3AF' }}
                         dy={10}
                       />
-                      <YAxis 
+                      <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{fontSize: 12, fill: '#9CA3AF'}}
+                        tick={{ fontSize: 12, fill: '#9CA3AF' }}
                         tickFormatter={(value) => `$${value}`}
                       />
-                      <RechartsTooltip 
+                      <RechartsTooltip
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             return (
@@ -434,13 +434,13 @@ export default function FundOverviewPage() {
                           return null;
                         }}
                       />
-                      <Area 
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke="#F59E0B" 
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#F59E0B"
                         strokeWidth={3}
-                        fillOpacity={1} 
-                        fill="url(#performanceGradient)" 
+                        fillOpacity={1}
+                        fill="url(#performanceGradient)"
                         animationDuration={1500}
                       />
                     </AreaChart>
@@ -503,101 +503,101 @@ export default function FundOverviewPage() {
             <div className="overflow-x-auto pb-20 custom-scrollbar">
               <div className="min-h-[400px]">
                 <table className="w-full relative">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">File Name</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Document Type</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Tax Year</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">AV Scan Status</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Uploaded Date</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {documents.map((doc) => (
-                    <tr key={doc.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-gray-900">{doc.file_name}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium">
-                        {doc.document_type}
-                      </td>
-                      <td className="px-6 py-4 text-gray-900">{doc.tax_year || 'N/A'}</td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600">
-                          Clean
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-gray-900">{formatDate(doc.uploaded_at)}</td>
-                      <td className="px-6 py-4">
-                        <div className="relative">
-                          <button
-                            onClick={() => setActiveDocDropdown(activeDocDropdown === doc.id ? null : doc.id)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <MoreVertical className="h-5 w-5 text-gray-600" />
-                          </button>
-                          {activeDocDropdown === doc.id && (
-                            <>
-                              <div
-                                className="fixed inset-0 z-10"
-                                onClick={() => setActiveDocDropdown(null)}
-                              />
-                              <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
-                                <Link
-                                  href={`/dashboard/funds/${params.id}/documents/${doc.id}`}
-                                  className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                                  onClick={() => setActiveDocDropdown(null)}
-                                >
-                                  View
-                                </Link>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    handleDownload(doc.id, doc.file_name);
-                                    setActiveDocDropdown(null);
-                                  }}
-                                  className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                                >
-                                  Download
-                                </button>
-                                {!isInvestor && (
-                                  <>
-                                    <Link
-                                      href={`/dashboard/funds/${params.id}/documents/${doc.id}/edit`}
-                                      className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                                    >
-                                      Edit
-                                    </Link>
-                                    <button
-                                      onClick={() => {
-                                        setDocToDelete(doc);
-                                        setShowDocDeleteModal(true);
-                                        setActiveDocDropdown(null);
-                                      }}
-                                      className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
-                                    >
-                                      Delete
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {documents.length === 0 && (
+                  <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                        No documents found for this fund.
-                      </td>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">File Name</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Document Type</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Tax Year</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">AV Scan Status</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Uploaded Date</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Action</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {documents.map((doc) => (
+                      <tr key={doc.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-gray-900">{doc.file_name}</td>
+                        <td className="px-6 py-4 text-gray-900 font-medium">
+                          {doc.document_type}
+                        </td>
+                        <td className="px-6 py-4 text-gray-900">{doc.tax_year || 'N/A'}</td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600">
+                            Clean
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-900">{formatDate(doc.uploaded_at)}</td>
+                        <td className="px-6 py-4">
+                          <div className="relative">
+                            <button
+                              onClick={() => setActiveDocDropdown(activeDocDropdown === doc.id ? null : doc.id)}
+                              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                              <MoreVertical className="h-5 w-5 text-gray-600" />
+                            </button>
+                            {activeDocDropdown === doc.id && (
+                              <>
+                                <div
+                                  className="fixed inset-0 z-10"
+                                  onClick={() => setActiveDocDropdown(null)}
+                                />
+                                <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+                                  <Link
+                                    href={`/dashboard/funds/${params.id}/documents/${doc.id}`}
+                                    className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                                    onClick={() => setActiveDocDropdown(null)}
+                                  >
+                                    View
+                                  </Link>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleDownload(doc.id, doc.file_name);
+                                      setActiveDocDropdown(null);
+                                    }}
+                                    className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                                  >
+                                    Download
+                                  </button>
+                                  {!isInvestor && (
+                                    <>
+                                      <Link
+                                        href={`/dashboard/funds/${params.id}/documents/${doc.id}/edit`}
+                                        className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                                      >
+                                        Edit
+                                      </Link>
+                                      <button
+                                        onClick={() => {
+                                          setDocToDelete(doc);
+                                          setShowDocDeleteModal(true);
+                                          setActiveDocDropdown(null);
+                                        }}
+                                        className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
+                                      >
+                                        Delete
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {documents.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                          No documents found for this fund.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
         )}
       </div>
 
