@@ -846,7 +846,7 @@ export default function PipelinePage() {
                                 </div>
 
                                 {/* Investors List */}
-                                <div className="space-y-3">
+                                <div className="space-y-3 max-h-[400px] sm:max-h-[500px] lg:max-h-[600px] xl:max-h-[650px] overflow-y-auto custom-scrollbar pr-1">
                                   {stage.investors?.map((investor: any, index: number) => (
                                     <DraggableComponent key={investor.id} draggableId={investor.id.toString()} index={index}>
                                       {(provided: any, snapshot: any) => (
