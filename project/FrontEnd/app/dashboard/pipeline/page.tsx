@@ -601,84 +601,86 @@ export default function PipelinePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-px bg-gray-100 rounded-2xl overflow-hidden border border-gray-100">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
-            <div key={d} className="bg-gray-50 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-              {d}
-            </div>
-          ))}
-          {days.map((d, i) => {
-            const dateStr = formatDateLocal(d.date);
-            const isToday = dateStr === todayStr;
-            const dayNotes = scheduledNotes.filter(n => n.scheduledDate === dateStr);
-            
-            return (
-              <div 
-                key={i} 
-                className={cn(
-                  "bg-white min-h-[100px] p-2 transition-all relative group/day",
-                  !d.currentMonth && "bg-gray-50/50"
-                )}
-              >
-                <div className={cn(
-                  "w-7 h-7 flex items-center justify-center text-sm font-bold rounded-lg mb-1",
-                  isToday ? "bg-yellow-400 text-white shadow-lg shadow-yellow-100" : d.currentMonth ? "text-gray-700" : "text-gray-300"
-                )}>
-                  {d.day}
-                </div>
-                
-                <div className="space-y-1">
-                  {dayNotes.map((note, idx) => (
-                    <div 
-                      key={idx}
-                      className="px-2 py-1 bg-red-50 border border-red-100 rounded-md cursor-help relative group/note"
-                    >
-                      <p className="text-[10px] font-bold text-red-600 truncate">{note.investorName}</p>
-                      
-                      {/* Tooltip */}
-                      <div className="absolute bottom-full left-0 mb-2 w-72 bg-white text-gray-900 p-5 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 opacity-0 group-hover/note:opacity-100 pointer-events-none transition-all z-50 translate-y-2 group-hover/note:translate-y-0 backdrop-blur-xl">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between gap-2 border-b border-gray-50 pb-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Scheduled Task</span>
+        <div className="overflow-x-auto pipeline-scroll pb-2">
+          <div className="grid grid-cols-7 gap-px bg-gray-100 rounded-2xl overflow-hidden border border-gray-100 min-w-[700px]">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
+              <div key={d} className="bg-gray-50 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                {d}
+              </div>
+            ))}
+            {days.map((d, i) => {
+              const dateStr = formatDateLocal(d.date);
+              const isToday = dateStr === todayStr;
+              const dayNotes = scheduledNotes.filter(n => n.scheduledDate === dateStr);
+              
+              return (
+                <div 
+                  key={i} 
+                  className={cn(
+                    "bg-white min-h-[100px] p-2 transition-all relative group/day",
+                    !d.currentMonth && "bg-gray-50/50"
+                  )}
+                >
+                  <div className={cn(
+                    "w-7 h-7 flex items-center justify-center text-sm font-bold rounded-lg mb-1",
+                    isToday ? "bg-yellow-400 text-white shadow-lg shadow-yellow-100" : d.currentMonth ? "text-gray-700" : "text-gray-300"
+                  )}>
+                    {d.day}
+                  </div>
+                  
+                  <div className="space-y-1">
+                    {dayNotes.map((note, idx) => (
+                      <div 
+                        key={idx}
+                        className="px-2 py-1 bg-red-50 border border-red-100 rounded-md cursor-help relative group/note"
+                      >
+                        <p className="text-[10px] font-bold text-red-600 truncate">{note.investorName}</p>
+                        
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full left-0 mb-2 w-72 bg-white text-gray-900 p-5 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 opacity-0 group-hover/note:opacity-100 pointer-events-none transition-all z-50 translate-y-2 group-hover/note:translate-y-0 backdrop-blur-xl">
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between gap-2 border-b border-gray-50 pb-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Scheduled Task</span>
+                              </div>
+                              <span className="text-[9px] text-gray-400 font-bold">{note.date}</span>
                             </div>
-                            <span className="text-[9px] text-gray-400 font-bold">{note.date}</span>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1">Investor</p>
-                            <p className="text-sm font-bold text-gray-900">{note.investorName}</p>
-                          </div>
-                          <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-100">
-                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1.5">Note</p>
-                            <p className="text-xs font-medium text-gray-700 leading-relaxed italic">"{note.text}"</p>
-                          </div>
-                          <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-50">
                             <div>
-                              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Assigned To</p>
-                              <div className="flex items-center gap-1.5">
-                                <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[8px] font-bold text-white uppercase">
-                                  {note.author?.charAt(0)}
+                              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1">Investor</p>
+                              <p className="text-sm font-bold text-gray-900">{note.investorName}</p>
+                            </div>
+                            <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1.5">Note</p>
+                              <p className="text-xs font-medium text-gray-700 leading-relaxed italic">"{note.text}"</p>
+                            </div>
+                            <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-50">
+                              <div>
+                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Assigned To</p>
+                                <div className="flex items-center gap-1.5">
+                                  <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-[8px] font-bold text-white uppercase">
+                                    {note.author?.charAt(0)}
+                                  </div>
+                                  <p className="text-[10px] font-bold text-blue-600">{note.author}</p>
                                 </div>
-                                <p className="text-[10px] font-bold text-blue-600">{note.author}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Stage</p>
+                                <span className="px-1.5 py-0.5 bg-green-50 text-[9px] font-bold text-green-600 rounded uppercase">
+                                  {note.stageName}
+                                </span>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Stage</p>
-                              <span className="px-1.5 py-0.5 bg-green-50 text-[9px] font-bold text-green-600 rounded uppercase">
-                                {note.stageName}
-                              </span>
-                            </div>
                           </div>
+                          <div className="absolute top-full left-6 border-[10px] border-transparent border-t-white drop-shadow-[0_1px_0_rgba(0,0,0,0.05)]" />
                         </div>
-                        <div className="absolute top-full left-6 border-[10px] border-transparent border-t-white drop-shadow-[0_1px_0_rgba(0,0,0,0.05)]" />
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     );
@@ -746,13 +748,13 @@ export default function PipelinePage() {
         <div
           ref={topScrollRef}
           onScroll={handleSyncBoardScroll}
-          className="overflow-x-auto pipeline-scroll"
-          style={{ maxWidth: 'calc(-320px + 100vw)', marginBottom: '-10px' }}
+          className="overflow-x-auto pipeline-scroll w-full"
+          style={{ marginBottom: '-10px' }}
         >
           <div style={{ width: 'max-content', height: '1px' }}>
             <div className="flex flex-nowrap gap-4 lg:gap-6 opacity-0 pointer-events-none" style={{ minWidth: 'max-content' }}>
               {stages.map((stage) => (
-                <div key={stage.id} style={{ width: '350px' }} className="flex-none" />
+                <div key={stage.id} className="flex-none w-[280px] sm:w-[320px] lg:w-[350px]" />
               ))}
               <div className="pr-4" />
             </div>
@@ -764,10 +766,9 @@ export default function PipelinePage() {
           <div
             ref={boardScrollRef}
             onScroll={handleSyncTopScroll}
-            className="overflow-x-auto overflow-y-auto pt-2 pipeline-scroll"
+            className="overflow-x-auto overflow-y-auto pt-2 pipeline-scroll w-full"
             style={{
               maxHeight: 'calc(100vh - 160px)',
-              maxWidth: 'calc(-320px + 100vw)',
             }}
           >
             <DroppableComponent droppableId="board" type="column" direction="horizontal">
@@ -789,7 +790,7 @@ export default function PipelinePage() {
                         <div
                           ref={providedStage.innerRef}
                           {...providedStage.draggableProps}
-                          className="flex-none w-[350px]"
+                          className="flex-none w-[280px] sm:w-[320px] lg:w-[350px]"
                         >
                           <DroppableComponent droppableId={stage.id.toString()} type="investor">
                             {(provided: any, snapshot: any) => (
