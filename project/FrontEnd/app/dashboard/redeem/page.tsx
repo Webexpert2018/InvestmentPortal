@@ -48,7 +48,7 @@ export default function RedeemPage() {
 
   const handleCancelRequest = async (id: string) => {
     if (!confirm('Are you sure you want to cancel this redemption request?')) return;
-    
+
     try {
       await apiClient.cancelRedemption(id);
       toast.success('Redemption request cancelled successfully');
@@ -100,7 +100,7 @@ export default function RedeemPage() {
         <div className="overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100">
           <div className="overflow-x-auto bg-white p-6">
             <table className="min-w-full text-xs text-[#4B4B4B]">
-              <thead className="bg-[#F8FAFC] text-[11px] uppercase tracking-widest text-[#8E8E93]">
+              <thead className="bg-[#F8FAFC] text-[13px] capitalize tracking-normal text-[#8E8E93]">
                 <tr className="border-b border-gray-100">
                   <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[120px]">Request ID</th>
                   <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[150px]">Fund</th>
@@ -109,13 +109,13 @@ export default function RedeemPage() {
                   <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[150px]">Destination Bank</th>
                   <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[100px]">Status</th>
                   <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[120px]">Requested Date</th>
-                  <th className="px-6 py-4 text-right font-bold tracking-normal uppercase whitespace-nowrap min-w-[100px]">Action</th>
+                  <th className="px-6 py-4 text-right font-bold tracking-normal whitespace-nowrap min-w-[100px]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F9F9F9] bg-white text-[13px]">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-20 text-center">
+                    <td colSpan={8} className="px-6 py-20 text-center">
                       <div className="flex flex-col items-center justify-center gap-3">
                         <Loader2 className="h-8 w-8 animate-spin text-[#274583] opacity-40" />
                         <span className="text-gray-400 font-medium">Fetching your requests...</span>
@@ -125,19 +125,19 @@ export default function RedeemPage() {
                 ) : currentRows.length > 0 ? (
                   currentRows.map((row) => (
                     <tr key={row.id} className="hover:bg-[#F9FAFB]/50 transition-colors group">
-                      <td className="px-6 py-4 align-middle font-bold text-[#1F1F1F]">
+                      <td className="px-6 py-4 align-middle font-bold text-[#1F1F1F] whitespace-nowrap">
                         RED-{row.id.substring(0, 6).toUpperCase()}
                       </td>
-                      <td className="px-6 py-4 align-middle font-medium text-gray-700">
+                      <td className="px-6 py-4 align-middle font-medium text-gray-700 whitespace-nowrap">
                         {row.fund_name}
                       </td>
-                      <td className="px-6 py-4 align-middle font-bold text-[#1F3B6E]">
+                      <td className="px-6 py-4 align-middle font-bold text-[#1F3B6E] whitespace-nowrap">
                         {formatCurrency(row.amount)}
                       </td>
-                      <td className="px-6 py-4 align-middle font-medium text-gray-700">
+                      <td className="px-6 py-4 align-middle font-medium text-gray-700 whitespace-nowrap">
                         {parseFloat(row.units).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                       </td>
-                      <td className="px-6 py-4 align-middle text-gray-500 italic">
+                      <td className="px-6 py-4 align-middle text-gray-500 italic whitespace-nowrap">
                         {row.bank_info?.label || 'Bank transfer'}
                       </td>
                       <td className="px-6 py-4 align-middle">
@@ -145,7 +145,7 @@ export default function RedeemPage() {
                           {row.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 align-middle text-gray-500 font-medium">
+                      <td className="px-6 py-4 align-middle text-gray-500 font-medium whitespace-nowrap">
                         {formatDate(row.created_at)}
                       </td>
                       <td className="px-6 py-4 align-middle">
@@ -177,7 +177,7 @@ export default function RedeemPage() {
                                   <ExternalLink className="h-3.5 w-3.5" />
                                   View Details
                                 </Link>
-                                
+
                                 {row.status === 'Pending' && (
                                   <button
                                     type="button"
@@ -197,7 +197,7 @@ export default function RedeemPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-6 py-20 text-center text-[#8E8E93]">
+                    <td colSpan={8} className="px-6 py-20 text-center text-[#8E8E93]">
                       <div className="flex flex-col items-center gap-2">
                         <Search className="h-8 w-8 opacity-20" />
                         <span className="text-sm font-medium">No redemption requests found.</span>
@@ -225,11 +225,10 @@ export default function RedeemPage() {
                   key={page}
                   type="button"
                   onClick={() => setCurrentPage(page)}
-                  className={`h-8 w-8 flex-shrink-0 rounded-lg text-xs font-bold transition-all shadow-sm ${
-                    currentPage === page 
-                      ? 'bg-[#1F3B6E] text-white shadow-[#1F3B6E]/20' 
-                      : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'
-                  }`}
+                  className={`h-8 w-8 flex-shrink-0 rounded-lg text-xs font-bold transition-all shadow-sm ${currentPage === page
+                    ? 'bg-[#1F3B6E] text-white shadow-[#1F3B6E]/20'
+                    : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'
+                    }`}
                 >
                   {page}
                 </button>
