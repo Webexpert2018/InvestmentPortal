@@ -408,7 +408,7 @@ export default function ReconciliationPage() {
           </div>
 
           {!loading && filteredRecords.length > 0 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-center gap-4 px-6 py-6 border-t border-gray-100 font-helvetica">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
@@ -425,7 +425,7 @@ export default function ReconciliationPage() {
                       {i > 0 && arr[i - 1] !== page - 1 && <span className="px-2 text-gray-400">...</span>}
                       <button
                         onClick={() => setCurrentPage(page)}
-                        className={`w-10 h-10 rounded-lg font-medium transition-colors ${currentPage === page ? 'bg-[#1F3B6E] text-white' : 'text-gray-600 hover:bg-gray-100'
+                        className={`w-8 h-8 rounded font-medium transition-colors ${currentPage === page ? 'bg-[#1F3B6E] text-white' : 'text-gray-600 hover:bg-gray-100'
                           }`}
                       >
                         {page}

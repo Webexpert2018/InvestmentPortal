@@ -263,7 +263,7 @@ export default function RedemptionRequestsPage() {
 
           {/* Pagination */}
           {!loading && filteredRequests.length > 0 && (
-            <div className="flex items-center justify-center px-6 py-6 bg-[#F8FAFC] border-t border-gray-100">
+            <div className="flex items-center justify-center px-6 py-6 bg-[#F8FAFC] border-t border-gray-100 font-helvetica">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
@@ -277,7 +277,7 @@ export default function RedemptionRequestsPage() {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`w-9 h-9 rounded-lg text-xs font-bold transition-all ${currentPage === page
+                    className={`w-8 h-8 rounded text-sm font-bold transition-all ${currentPage === page
                       ? 'bg-[#1F3B6E] text-white shadow-md shadow-[#1F3B6E]/20'
                       : 'text-gray-500 hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200'
                       }`}

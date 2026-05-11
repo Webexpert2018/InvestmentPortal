@@ -102,10 +102,10 @@ export default function StaffDetailPage() {
             <div className="flex-shrink-0">
               {staffData.profile_image_url ? (
                 <div className="w-48 h-48 rounded-lg overflow-hidden relative border border-gray-100 shadow-sm">
-                   <Image 
-                    src={staffData.profile_image_url} 
-                    alt={staffData.full_name} 
-                    fill 
+                  <Image
+                    src={staffData.profile_image_url}
+                    alt={staffData.full_name}
+                    fill
                     className="object-cover"
                     sizes="192px"
                   />
@@ -214,15 +214,15 @@ export default function StaffDetailPage() {
                           >
                             < MoreVertical className="h-5 w-5 text-gray-400" />
                           </button>
-                          
+
                           {activeDropdown === investor.id && (
                             <>
-                              <div 
+                              <div
                                 className="fixed inset-0 z-10"
                                 onClick={() => setActiveDropdown(null)}
                               />
                               <div className="absolute right-0 top-0 mt-8 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
-                                <Link 
+                                <Link
                                   href={`/dashboard/investor/${investor.id}`}
                                   className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                 >
@@ -242,7 +242,7 @@ export default function StaffDetailPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-center gap-4 px-6 py-6 border-t border-gray-100 font-helvetica">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
@@ -250,17 +250,16 @@ export default function StaffDetailPage() {
               >
                 Previous
               </button>
-              
+
               <div className="flex gap-2">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                      currentPage === page
-                        ? 'bg-[#1F3B6E] text-white'
-                        : 'text-gray-400 hover:bg-gray-100'
-                    }`}
+                    className={`w-8 h-8 rounded font-medium transition-colors ${currentPage === page
+                      ? 'bg-[#1F3B6E] text-white'
+                      : 'text-gray-400 hover:bg-gray-100'
+                      }`}
                   >
                     {page}
                   </button>

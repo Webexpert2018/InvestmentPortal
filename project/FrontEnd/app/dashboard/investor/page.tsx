@@ -796,11 +796,11 @@ export default function InvestorPage() {
               Showing {activeInvestors.length} Active, {pendingInvestors.length} Pending, and {suspendedInvestors.length} Suspended Investors
             </span>
 
-            <div className="flex flex-wrap items-center justify-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 font-helvetica">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
+                className="px-4 py-2 text-sm ffont-medium text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
               >
                 Previous
               </button>
@@ -810,7 +810,7 @@ export default function InvestorPage() {
                   <button
                     key={i + 1}
                     onClick={() => setCurrentPage(i + 1)}
-                    className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${currentPage === i + 1
+                    className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${currentPage === i + 1
                       ? 'bg-[#1F3B6E] text-white shadow-md scale-105'
                       : 'text-[#4B5563] hover:bg-white'
                       }`}
@@ -823,7 +823,7 @@ export default function InvestorPage() {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
+                className="px-4 py-2 text-sm font-medium text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
               >
                 Next
               </button>
