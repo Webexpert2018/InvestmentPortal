@@ -125,7 +125,7 @@ export default function StaffPage() {
       <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F]">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="font-goudy text-[34px] leading-tight text-[#1F1F1F]">Staff</h1>
+            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">Staff</h1>
             <p className="text-[#8E8E93] text-[14px] mt-1">Manage platform users, assign roles and permissions, and view activity</p>
           </div>
           <Link

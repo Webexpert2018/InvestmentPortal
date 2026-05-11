@@ -148,7 +148,7 @@ export default function EditStaffPage() {
           </Link>
         </div>
 
-        <h1 className="font-goudy text-[34px] leading-tight text-[#1F1F1F]">Edit Staff</h1>
+        <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">Edit Staff</h1>
         <p className="text-[#8E8E93] text-[14px] mt-1 mb-10">Update staff member details and permissions</p>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-[12px] p-8 shadow-sm ring-1 ring-black/5">

@@ -152,13 +152,13 @@ export default function CRMBulkOpsPage() {
   };
 
   const filteredInvestors = investors.filter(investor => {
-    const matchesSearch = 
+    const matchesSearch =
       investor.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       investor.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       investor.phone?.includes(searchQuery);
-    
+
     const matchesFund = selectedFundId === 'all' || investor.fundIds?.includes(selectedFundId);
-    
+
     return matchesSearch && matchesFund;
   });
 
@@ -175,7 +175,7 @@ export default function CRMBulkOpsPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="font-goudy text-[34px] leading-tight text-[#1F1F1F]">CRM & Bulk Ops</h1>
+            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">CRM & Bulk Ops</h1>
             <p className="text-[#8E8E93] text-[14px] mt-1">Manage active investors and perform bulk operations like email or message outreach.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -183,8 +183,8 @@ export default function CRMBulkOpsPage() {
               onClick={() => setIsEmailModalOpen(true)}
               disabled={selectedIds.length === 0}
               className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${selectedIds.length > 0
-                  ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
                 }`}
             >
               <Mail className="h-4 w-4" />
@@ -195,8 +195,8 @@ export default function CRMBulkOpsPage() {
               onClick={() => setIsMessageModalOpen(true)}
               disabled={selectedIds.length === 0}
               className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${selectedIds.length > 0
-                  ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
                 }`}
             >
               <MessageSquare className="h-4 w-4" />
@@ -231,7 +231,7 @@ export default function CRMBulkOpsPage() {
             </select>
             <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-[#8E8E93]">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
           </div>
@@ -249,11 +249,11 @@ export default function CRMBulkOpsPage() {
 
         {/* Table */}
         <div className="bg-white rounded-[16px] shadow-sm border border-[#F2F2F2] overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-[#F2F2F2] bg-[#fcfcfc]">
-                  <th className="px-6 py-4 w-[50px]">
+                  <th className="px-6 py-4 w-[50px] whitespace-nowrap">
                     <div className="flex items-center">
                       <input
                         type="checkbox"
@@ -263,11 +263,11 @@ export default function CRMBulkOpsPage() {
                       />
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Full Name</th>
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Email Address</th>
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Contact Number</th>
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Date Joined</th>
-                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93]">Status</th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Full Name</th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Email Address</th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Contact Number</th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Date Joined</th>
+                  <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F2F2F2]">
@@ -290,7 +290,7 @@ export default function CRMBulkOpsPage() {
                       className={`hover:bg-gray-50/50 transition-colors cursor-pointer ${selectedIds.includes(investor.id) ? 'bg-[#FFD66B]/5' : ''}`}
                       onClick={() => toggleSelect(investor.id)}
                     >
-                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center">
                           <input
                             type="checkbox"
@@ -300,7 +300,7 @@ export default function CRMBulkOpsPage() {
                           />
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2A4474] to-[#1F3B6E] flex items-center justify-center text-[11px] font-bold text-white uppercase shadow-sm">
                             {investor.fullName?.charAt(0) || '?'}
@@ -308,12 +308,12 @@ export default function CRMBulkOpsPage() {
                           <span className="text-[14px] font-semibold text-[#1F1F1F]">{investor.fullName}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">{investor.email}</td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] font-medium">
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] whitespace-nowrap">{investor.email}</td>
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] font-medium whitespace-nowrap">
                         {investor.phone || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B]">{formatDate(investor.dateJoined)}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] whitespace-nowrap">{formatDate(investor.dateJoined)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase bg-green-50 text-green-600 border border-green-100">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                           Active
