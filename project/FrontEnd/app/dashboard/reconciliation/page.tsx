@@ -83,11 +83,11 @@ export default function ReconciliationPage() {
         // 1. Sort by completion status: Incomplete (false/null) comes first
         const aCompleted = !!a.isReconciled;
         const bCompleted = !!b.isReconciled;
-        
+
         if (aCompleted !== bCompleted) {
           return aCompleted ? 1 : -1;
         }
-        
+
         // 2. Secondary sort by date (newest first)
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       });
@@ -251,7 +251,7 @@ export default function ReconciliationPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="appearance-none px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white cursor-pointer"
+                className="appearance-none w-full md:w-auto px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white cursor-pointer"
               >
                 <option value="all">All Status</option>
                 <option value="matched">Matched</option>
@@ -264,7 +264,7 @@ export default function ReconciliationPage() {
               <select
                 value={eventTypeFilter}
                 onChange={(e) => setEventTypeFilter(e.target.value)}
-                className="appearance-none px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white cursor-pointer"
+                className="appearance-none w-full md:w-auto px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white cursor-pointer"
               >
                 <option value="all">All Types</option>
                 <option value="funding">Funding</option>
@@ -276,18 +276,18 @@ export default function ReconciliationPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">ID</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Type</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Custodian</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Internal</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Difference</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Status</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Completed</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Action</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">ID</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Type</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">Custodian</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">Internal</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">Difference</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 whitespace-nowrap">Status</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 whitespace-nowrap">Completed</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -312,13 +312,13 @@ export default function ReconciliationPage() {
                       <td className="px-6 py-4">
                         <Link
                           href={`/dashboard/${record.type === 'Funding' ? 'funding' : 'redemption'}-requests/${record.id}`}
-                          className="font-medium text-[#1F3B6E] hover:underline"
+                          className="font-medium text-[#1F3B6E] hover:underline whitespace-nowrap"
                         >
                           {record.recordId}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 text-gray-900">{record.type}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium text-right">{formatCurrency(record.custodian)}</td>
+                      <td className="px-6 py-4 text-gray-900 whitespace-nowrap">{record.type}</td>
+                      <td className="px-6 py-4 text-gray-900 font-medium text-right whitespace-nowrap">{formatCurrency(record.custodian)}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <input
@@ -332,7 +332,7 @@ export default function ReconciliationPage() {
                             onBlur={(e) => {
                               const rawValue = e.target.value.replace(/[^0-9.]/g, '');
                               const newVal = parseFloat(rawValue);
-                              
+
                               if (!isNaN(newVal)) {
                                 if (Math.abs(newVal - record.internal) > 0.001) {
                                   handleUpdateInternal(record.id, record.type, newVal);
@@ -358,9 +358,9 @@ export default function ReconciliationPage() {
                           ) : null}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-gray-900 font-medium text-right">{formatCurrency(record.difference)}</td>
+                      <td className="px-6 py-4 text-gray-900 font-medium text-right whitespace-nowrap">{formatCurrency(record.difference)}</td>
                       <td className="px-6 py-4 text-center">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(record.status)}`}>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${getStatusColor(record.status)}`}>
                           {record.status}
                         </span>
                       </td>
