@@ -46,13 +46,13 @@ export default function RedemptionRequestsPage() {
   };
 
   const filteredRequests = redemptions.filter(req => {
-    const matchesSearch = 
+    const matchesSearch =
       req.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       req.investor_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       req.fund_name?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesStatus = statusFilter === 'all' || req.status.toLowerCase() === statusFilter.toLowerCase();
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -84,16 +84,16 @@ export default function RedemptionRequestsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-0">
+      <div className="px-3">
         {/* Header */}
-        <div className="mb-8 flex justify-between items-center">
-          <div>
+        <div className="mb-5 md:mb-8 md:flex md:justify-between md:items-center">
+          <div className="mb-3 md:mb-0">
             <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-2 tracking-tight">Redemption Requests</h1>
             <p className="text-gray-500">Review and process investor withdrawal and capital redemption requests.</p>
           </div>
-          <Button 
-            onClick={fetchRedemptions} 
-            variant="outline" 
+          <Button
+            onClick={fetchRedemptions}
+            variant="outline"
             className="flex items-center gap-2"
             disabled={loading}
           >
@@ -103,7 +103,7 @@ export default function RedemptionRequestsPage() {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-0 md:p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <div className="flex-1 relative">
@@ -140,14 +140,14 @@ export default function RedemptionRequestsPage() {
             <table className="w-full">
               <thead className="bg-[#F8FAFC] border-b border-gray-100">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Request ID</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Investor Name</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Fund</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Units</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Submitted</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Action</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Request ID</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Investor Name</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Units</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Amount</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Submitted</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -170,7 +170,7 @@ export default function RedemptionRequestsPage() {
                   currentRequests.map((request) => (
                     <tr key={request.id} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-6 py-4">
-                        <Link 
+                        <Link
                           href={`/dashboard/redemption-requests/${request.id}`}
                           className="text-sm font-bold text-[#1F3B6E] uppercase hover:underline cursor-pointer"
                         >
@@ -178,7 +178,7 @@ export default function RedemptionRequestsPage() {
                         </Link>
                       </td>
                       <td className="px-6 py-4">
-                        <Link 
+                        <Link
                           href={`/dashboard/investor/${request.investor_id}`}
                           className="flex items-center gap-3 group/name cursor-pointer"
                         >
@@ -225,24 +225,24 @@ export default function RedemptionRequestsPage() {
                           >
                             <MoreVertical className="h-5 w-5 text-gray-400 group-hover:text-gray-600" />
                           </button>
-                          
+
                           {(activeDropdown as any)?.id === request.id && (
                             <>
-                              <div 
+                              <div
                                 className="fixed inset-0 z-[100]"
                                 onClick={() => setActiveDropdown(null)}
                               />
-                              <div 
+                              <div
                                 className="fixed w-48 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[101] animate-in fade-in slide-in-from-top-1 duration-200"
-                                style={{ 
-                                  top: `${(activeDropdown as any).top - window.scrollY}px`, 
-                                  left: `${(activeDropdown as any).left}px` 
+                                style={{
+                                  top: `${(activeDropdown as any).top - window.scrollY}px`,
+                                  left: `${(activeDropdown as any).left}px`
                                 }}
                               >
                                 <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">
                                   Actions
                                 </div>
-                                
+
                                 <Link href={`/dashboard/redemption-requests/${request.id}`}>
                                   <button className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
                                     <Search className="h-4 w-4" />
@@ -271,17 +271,16 @@ export default function RedemptionRequestsPage() {
               >
                 Previous
               </button>
-              
+
               <div className="flex gap-2">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`w-9 h-9 rounded-lg text-xs font-bold transition-all ${
-                      currentPage === page
-                        ? 'bg-[#1F3B6E] text-white shadow-md shadow-[#1F3B6E]/20'
-                        : 'text-gray-500 hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200'
-                    }`}
+                    className={`w-9 h-9 rounded-lg text-xs font-bold transition-all ${currentPage === page
+                      ? 'bg-[#1F3B6E] text-white shadow-md shadow-[#1F3B6E]/20'
+                      : 'text-gray-500 hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200'
+                      }`}
                   >
                     {page}
                   </button>

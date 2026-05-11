@@ -71,7 +71,7 @@ export default function RedemptionRequestDetailsPage() {
     requestId: `RED-${redemption.id.substring(0, 6).toUpperCase()}`,
     submittedDate: new Date(redemption.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     investor: redemption.investor_name || 'Jakob Phillips',
-    accountType: redemption.account_type || 'Personal', 
+    accountType: redemption.account_type || 'Personal',
     email: redemption.investor_email || 'demo@gmail.com',
     amount: `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(redemption.amount))} / ${parseFloat(redemption.units).toFixed(4)} Units`,
     paymentMethod: 'Wire', // AS REQUESTED
@@ -83,7 +83,7 @@ export default function RedemptionRequestDetailsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-8">
+      <div className="p-6 md:p-8">
         {/* HEADER */}
         <div className="flex justify-between items-start mb-8">
           <div>
@@ -95,7 +95,7 @@ export default function RedemptionRequestDetailsPage() {
               Back
             </button>
 
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">
+            <h1 className="text-2xl md md:text-3xl font-bold tracking-tight text-gray-900 mb-2">
               Redemption Request Details
             </h1>
             <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
@@ -129,7 +129,7 @@ export default function RedemptionRequestDetailsPage() {
         {/* CONTENT */}
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="flex justify-between items-center border-b border-gray-50 px-8 py-6">
+            <div className="flex justify-between items-center border-b border-gray-50 px-3 md:px-8 py-6">
               <h2 className="text-lg font-bold text-gray-900">Req Details</h2>
               <span
                 className={`text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm border
@@ -144,7 +144,7 @@ export default function RedemptionRequestDetailsPage() {
               </span>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-x-12 gap-y-10 p-8">
+            <div className="grid md:grid-cols-2 gap-x-12 gap-y-10 p-3 md:p-8">
               <Detail label="Investor" value={data.investor} />
               <Detail label="Account Type" value={data.accountType} />
               <Detail label="Email" value={data.email} />
@@ -203,7 +203,7 @@ function ChecklistItem({ label, checked }: { label: string; checked?: boolean })
 
 function WireTransferConfirmation({ amount }: { amount: string | number }) {
   const formattedAmount = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(amount as string));
-  
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
       <h3 className="text-lg font-bold text-gray-900 mb-8">Wire Transfer Confirmation</h3>

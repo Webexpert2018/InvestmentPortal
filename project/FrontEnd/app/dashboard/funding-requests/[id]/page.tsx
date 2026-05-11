@@ -281,7 +281,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
             </button>
 
             <h2 className="text-xl font-bold text-gray-900 mb-4 font-goudy">Wire Instructions Sent</h2>
-            <p className="text-gray-600 mb-6 font-helvetica">
+            <p className="text-gray-600 text-sm mb-6 font-helvetica">
               Are you sure you want to mark these wire instructions as sent and move this request to awaiting funding?
             </p>
 
@@ -328,7 +328,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
             </button>
 
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Reject Funding Request</h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 text-sm mb-4">
               Please provide a reason for rejecting this funding request.
             </p>
 
