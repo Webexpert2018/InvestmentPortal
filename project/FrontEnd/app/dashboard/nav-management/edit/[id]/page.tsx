@@ -16,7 +16,7 @@ export default function EditNAVEntryPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
@@ -88,7 +88,7 @@ export default function EditNAVEntryPage() {
       if (field === 'totalFundValue' || field === 'totalUnits') {
         const fundValue = parseFloat(field === 'totalFundValue' ? value : updated.totalFundValue);
         const units = parseFloat(field === 'totalUnits' ? value : updated.totalUnits);
-        
+
         if (!isNaN(fundValue) && !isNaN(units) && units > 0) {
           updated.navPerUnit = (fundValue / units).toFixed(2);
         } else {
@@ -187,7 +187,7 @@ export default function EditNAVEntryPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Side - Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-8">
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-8">
               <div className="space-y-6">
                 {/* Effective Date and Total Fund Value */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -383,11 +383,10 @@ export default function EditNAVEntryPage() {
                 <Button
                   onClick={confirmPublish}
                   disabled={!confirmationChecked}
-                  className={`px-8 py-2 rounded-full font-medium ${
-                    confirmationChecked
-                      ? 'bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
+                  className={`px-8 py-2 rounded-full font-medium ${confirmationChecked
+                    ? 'bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
                 >
                   Confirm & Update
                 </Button>

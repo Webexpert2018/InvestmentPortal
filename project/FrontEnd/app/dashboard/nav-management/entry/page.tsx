@@ -61,7 +61,7 @@ export default function NAVEntryPage() {
         const rawValue = value.replace(/[^0-9.]/g, '');
         const fundValue = parseFloat(field === 'totalFundValue' ? rawValue : updated.totalFundValue.replace(/[^0-9.]/g, ''));
         const units = parseFloat(field === 'totalUnits' ? rawValue : updated.totalUnits.replace(/[^0-9.]/g, ''));
-        
+
         if (!isNaN(fundValue) && !isNaN(units) && units > 0) {
           updated.navPerUnit = (fundValue / units).toFixed(2);
         } else {
@@ -149,7 +149,7 @@ export default function NAVEntryPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Side - Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-8">
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-8">
               <div className="space-y-6">
                 {/* Effective Date and Total Fund Value */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -365,11 +365,10 @@ export default function NAVEntryPage() {
                 <Button
                   onClick={confirmPublish}
                   disabled={!confirmationChecked}
-                  className={`px-8 py-2 rounded-full font-medium ${
-                    confirmationChecked
-                      ? 'bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
+                  className={`px-8 py-2 rounded-full font-medium ${confirmationChecked
+                    ? 'bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
                 >
                   Publish
                 </Button>

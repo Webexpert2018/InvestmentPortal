@@ -94,7 +94,7 @@ export default function NAVManagementPage() {
       const days = parseInt(btcRange) * 30;
       const btcRes = await fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}&interval=daily`);
       const btcData = await btcRes.json();
-      
+
       if (btcData.prices) {
         const mappedBtc = btcData.prices.map((p: any) => ({
           date: new Date(p[0]).toISOString(),
@@ -131,16 +131,16 @@ export default function NAVManagementPage() {
 
   // Calculate dynamic change stats for the chart
   const getNavChangeStats = () => {
-    if (performance.length < 2) return { 
-      value: summary?.currentNav || 0, 
+    if (performance.length < 2) return {
+      value: summary?.currentNav || 0,
       change: 0,
       range: navRange === '12' ? '1 Year' : `Last ${navRange} Months`
     };
-    
+
     const latest = performance[performance.length - 1].value;
     const previous = performance[0].value;
     const change = ((latest - previous) / previous) * 100;
-    
+
     return {
       value: latest,
       change: change,
@@ -152,16 +152,16 @@ export default function NAVManagementPage() {
 
   // Calculate dynamic BTC stats
   const getBtcStats = () => {
-    if (btcPerformance.length < 2) return { 
-      value: 0, 
+    if (btcPerformance.length < 2) return {
+      value: 0,
       change: 0,
       range: btcRange === '12' ? '1 Year' : `Last ${btcRange} Months`
     };
     const latest = btcPerformance[btcPerformance.length - 1].value;
     const thirtyDaysAgo = btcPerformance[Math.max(0, btcPerformance.length - 31)].value;
     const change = ((latest - thirtyDaysAgo) / thirtyDaysAgo) * 100;
-    return { 
-      value: latest, 
+    return {
+      value: latest,
       change,
       range: btcRange === '12' ? '1 Year' : `Last ${btcRange} Months`
     };
@@ -182,10 +182,10 @@ export default function NAVManagementPage() {
     const date = new Date(item.effective_date);
     const month = date.getMonth();
     const quarter = Math.floor(month / 3) + 1;
-    
+
     // Map status labels
-    const statusLabelMapped = item.status === 'active' ? 'Published' : 
-                               item.status === 'draft' ? 'Draft' : 'Inactive';
+    const statusLabelMapped = item.status === 'active' ? 'Published' :
+      item.status === 'draft' ? 'Draft' : 'Inactive';
 
     return {
       id: item.id,
@@ -197,7 +197,7 @@ export default function NAVManagementPage() {
       rawStatus: item.status
     };
   });
-  
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -222,7 +222,7 @@ export default function NAVManagementPage() {
 
   const confirmDelete = async () => {
     if (!deleteId) return;
-    
+
     try {
       setIsDeleting(true);
       await apiClient.deleteNavEntry(deleteId);
@@ -275,7 +275,7 @@ export default function NAVManagementPage() {
         {/* Performance Overview Section */}
         <div className="mb-8 bg-white">
           <h2 className="text-2xl font-semibold text-gray-900 p-5 border-b">Performance Overview</h2>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Official NAV Trend */}
             <div className="bg-white rounded-lg shadow-sm p-6">
@@ -293,14 +293,14 @@ export default function NAVManagementPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="mb-4">
                 <p className="text-2xl font-bold text-gray-900">${navStats.value.toFixed(2)}</p>
                 <p className={`text-sm ${navStats.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {navStats.range} {navStats.change >= 0 ? '+' : ''}{navStats.change.toFixed(1)}%
                 </p>
               </div>
-              
+
               <div className="h-48 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={performance}>
@@ -310,8 +310,8 @@ export default function NAVManagementPage() {
                         <stop offset="95%" stopColor="#FCD34D" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <XAxis 
-                      dataKey="date" 
+                    <XAxis
+                      dataKey="date"
                       hide={false}
                       axisLine={false}
                       tickLine={false}
@@ -327,7 +327,7 @@ export default function NAVManagementPage() {
                       stroke="#9CA3AF"
                       dy={10}
                     />
-                    <Tooltip 
+                    <Tooltip
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
@@ -344,13 +344,13 @@ export default function NAVManagementPage() {
                         return null;
                       }}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#FCD34D" 
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#FCD34D"
                       strokeWidth={3}
-                      fillOpacity={1} 
-                      fill="url(#navGradient)" 
+                      fillOpacity={1}
+                      fill="url(#navGradient)"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -373,7 +373,7 @@ export default function NAVManagementPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="mb-4">
                 <p className="text-2xl font-bold text-gray-900">
                   {btcStats.value > 0 ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(btcStats.value) : '$0.00'}
@@ -392,8 +392,8 @@ export default function NAVManagementPage() {
                         <stop offset="95%" stopColor="#6B7FBA" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <XAxis 
-                      dataKey="date" 
+                    <XAxis
+                      dataKey="date"
                       hide={false}
                       axisLine={false}
                       tickLine={false}
@@ -409,7 +409,7 @@ export default function NAVManagementPage() {
                       stroke="#9CA3AF"
                       dy={10}
                     />
-                    <Tooltip 
+                    <Tooltip
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
@@ -426,13 +426,13 @@ export default function NAVManagementPage() {
                         return null;
                       }}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#6B7FBA" 
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#6B7FBA"
                       strokeWidth={3}
-                      fillOpacity={1} 
-                      fill="url(#btcGradient)" 
+                      fillOpacity={1}
+                      fill="url(#btcGradient)"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -446,7 +446,7 @@ export default function NAVManagementPage() {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-2xl font-semibold text-gray-900 mb-2">Daily BTC Reference</h3>
             <p className="text-sm text-gray-600 mb-6">Reflects varying market price and official fund NAV</p>
-            
+
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
@@ -495,7 +495,7 @@ export default function NAVManagementPage() {
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-2xl font-semibold text-gray-900">NAV History</h3>
             </div>
-            
+
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
@@ -528,14 +528,14 @@ export default function NAVManagementPage() {
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-32 bg-white">
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="cursor-pointer"
                               onClick={() => handleEdit(item.id)}
                             >
                               <Edit2 className="mr-2 h-4 w-4" />
                               <span>Edit</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50"
                               onClick={() => handleDeleteClick(item.id)}
                             >
@@ -564,7 +564,7 @@ export default function NAVManagementPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
                 confirmDelete();
