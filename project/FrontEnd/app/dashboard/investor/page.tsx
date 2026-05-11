@@ -378,16 +378,16 @@ export default function InvestorPage() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="text-[#6B7280] text-[13px] font-semibold uppercase tracking-wider bg-[#F9FAFB]/50">
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize w-20">Select</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Investor Name</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Email</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Account Type</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">KYC Status</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Units</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Invested</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Assigned To</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Date Joined</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Action</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize w-20 whitespace-nowrap">Select</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap">Investor Name</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap">Email</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap">Account Type</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap">KYC Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap">Units</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap">Invested</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap">Assigned To</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap">Date Joined</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F3F4F6]">
@@ -453,7 +453,7 @@ export default function InvestorPage() {
                                   )}
                                 </div>
                                 <div>
-                                  <p className="text-sm font-bold text-[#111827]">{investor.firstName} {investor.lastName || '-'}</p>
+                                  <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || '-'}</p>
                                 </div>
                               </div>
                             </td>
@@ -555,7 +555,7 @@ export default function InvestorPage() {
                                     )}
                                   </div>
                                   <div>
-                                    <p className="text-sm font-bold text-[#111827]">{investor.firstName} {investor.lastName || '-'}</p>
+                                    <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || '-'}</p>
                                   </div>
                                 </div>
                               </td>
@@ -634,7 +634,7 @@ export default function InvestorPage() {
                                     />
                                   </div>
                                   <div>
-                                    <p className="text-sm font-bold text-[#111827]">{investor.firstName} {investor.lastName || '-'}</p>
+                                    <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || '-'}</p>
                                   </div>
                                 </div>
                               </td>
@@ -724,7 +724,7 @@ export default function InvestorPage() {
                                     )}
                                   </div>
                                   <div>
-                                    <p className="text-sm font-bold text-gray-400 line-through decoration-gray-300">{investor.firstName} {investor.lastName || '-'}</p>
+                                    <p className="text-sm font-bold text-gray-400 line-through decoration-gray-300 whitespace-nowrap">{investor.firstName} {investor.lastName || '-'}</p>
                                   </div>
                                 </div>
                               </td>
@@ -847,7 +847,7 @@ export default function InvestorPage() {
       {/* Admin Transfer IRA Modal */}
       {showTransferModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4" onClick={() => setShowTransferModal(false)}>
-          <div className="w-full max-w-md rounded-[20px] bg-white shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-md rounded-[10px] bg-white shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFF8E1]">

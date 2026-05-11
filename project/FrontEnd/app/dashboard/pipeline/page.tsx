@@ -529,12 +529,12 @@ export default function PipelinePage() {
   const renderCalendar = () => {
     const year = calendarDate.getFullYear();
     const month = calendarDate.getMonth();
-    
+
     const firstDayOfMonth = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     const prevMonthDays = new Date(year, month, 0).getDate();
-    
+
     const monthNames = ["January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"
     ];
@@ -550,17 +550,17 @@ export default function PipelinePage() {
     const todayStr = formatDateLocal(today);
 
     const days = [];
-    
+
     // Previous month overlap
     for (let i = firstDayOfMonth - 1; i >= 0; i--) {
       days.push({ day: prevMonthDays - i, currentMonth: false, date: new Date(year, month - 1, prevMonthDays - i) });
     }
-    
+
     // Current month
     for (let i = 1; i <= daysInMonth; i++) {
       days.push({ day: i, currentMonth: true, date: new Date(year, month, i) });
     }
-    
+
     // Next month overlap
     const remaining = 42 - days.length;
     for (let i = 1; i <= remaining; i++) {
@@ -580,19 +580,19 @@ export default function PipelinePage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={() => setCalendarDate(new Date(year, month - 1, 1))}
               className="p-2 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100"
             >
               <ChevronLeft className="h-5 w-5 text-gray-500" />
             </button>
-            <button 
+            <button
               onClick={() => setCalendarDate(new Date())}
               className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100"
             >
               Today
             </button>
-            <button 
+            <button
               onClick={() => setCalendarDate(new Date(year, month + 1, 1))}
               className="p-2 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100"
             >
@@ -612,10 +612,10 @@ export default function PipelinePage() {
               const dateStr = formatDateLocal(d.date);
               const isToday = dateStr === todayStr;
               const dayNotes = scheduledNotes.filter(n => n.scheduledDate === dateStr);
-              
+
               return (
-                <div 
-                  key={i} 
+                <div
+                  key={i}
                   className={cn(
                     "bg-white min-h-[100px] p-2 transition-all relative group/day",
                     !d.currentMonth && "bg-gray-50/50"
@@ -627,15 +627,15 @@ export default function PipelinePage() {
                   )}>
                     {d.day}
                   </div>
-                  
+
                   <div className="space-y-1">
                     {dayNotes.map((note, idx) => (
-                      <div 
+                      <div
                         key={idx}
                         className="px-2 py-1 bg-red-50 border border-red-100 rounded-md cursor-help relative group/note"
                       >
                         <p className="text-[10px] font-bold text-red-600 truncate">{note.investorName}</p>
-                        
+
                         {/* Tooltip */}
                         <div className="absolute bottom-full left-0 mb-2 w-72 bg-white text-gray-900 p-5 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 opacity-0 group-hover/note:opacity-100 pointer-events-none transition-all z-50 translate-y-2 group-hover/note:translate-y-0 backdrop-blur-xl">
                           <div className="space-y-4">
@@ -1167,7 +1167,7 @@ export default function PipelinePage() {
                     </div>
                   </div>
 
-                   {(user?.role === 'admin' || user?.role === 'executive_admin') && (
+                  {(user?.role === 'admin' || user?.role === 'executive_admin') && (
                     <div className="space-y-6">
                       <div className="space-y-4">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Investor Relations Officer</label>
@@ -1213,7 +1213,7 @@ export default function PipelinePage() {
                   <div className="flex flex-col h-full space-y-4">
                     <div className="flex items-center justify-between ml-1">
                       <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Internal Notes / Comments</label>
-                      <button 
+                      <button
                         onClick={() => setShowDatePicker(!showDatePicker)}
                         className={cn(
                           "p-1.5 rounded-lg transition-colors",
@@ -1230,14 +1230,14 @@ export default function PipelinePage() {
                       {showDatePicker && (
                         <div className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-2xl border border-blue-100 animate-in slide-in-from-top-2 duration-200">
                           <CalendarDays className="h-4 w-4 text-blue-600" />
-                          <input 
+                          <input
                             type="date"
                             value={scheduledDate}
                             onChange={(e) => setScheduledDate(e.target.value)}
                             className="bg-transparent text-sm font-bold text-blue-600 outline-none cursor-pointer"
                           />
                           {scheduledDate && (
-                            <button 
+                            <button
                               onClick={() => setScheduledDate('')}
                               className="text-[10px] font-bold text-blue-400 hover:text-blue-600"
                             >

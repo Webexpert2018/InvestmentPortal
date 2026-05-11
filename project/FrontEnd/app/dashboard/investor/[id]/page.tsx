@@ -289,7 +289,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       {/* Name and Meta Info */}
                       <div>
                         <h2 className="text-3xl font-bold text-[#1F1F1F] leading-tight">{investorData.firstName} {investorData.lastName}</h2>
-                        <div className="flex flex-col gap-2 mt-2">
+                        <div className="flex flex-col gap-2 mt-2 space-y-1">
                           <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
                             <Calendar className="h-4 w-4 shrink-0" />
                             Joined date: {new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -564,7 +564,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
             {activeTab === 'kyc' && (
               <div className="space-y-8">
-                <div className={`rounded-2xl border px-6 py-5 flex items-center justify-between ${investorData.kycStatus === 'approved' ? 'bg-green-50 border-green-100' : 'bg-orange-50 border-orange-100'}`}>
+                <div className={`rounded-2xl border px-6 py-5 md:flex items-center md:justify-between ${investorData.kycStatus === 'approved' ? 'bg-green-50 border-green-100' : 'bg-orange-50 border-orange-100'}`}>
                   <div className="flex items-center gap-4">
                     <div className={`p-3 rounded-xl ${investorData.kycStatus === 'approved' ? 'bg-green-100' : 'bg-orange-100'}`}>
                       <Shield className={`h-6 w-6 ${investorData.kycStatus === 'approved' ? 'text-green-600' : 'text-orange-600'}`} />
@@ -586,7 +586,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           toast.error('Failed to approve KYC');
                         }
                       }}
-                      className="px-6 py-2.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95"
+                      className="px-6 py-2.5 mt-2 md:mt-0 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95"
                     >
                       Approve KYC
                     </button>
@@ -674,15 +674,15 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
               <div className="space-y-6">
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  <div>
+                  <div className="bg-white overflow-hidden shadow-sm rounded-xl p-6 flex flex-col justify-between h-36 border-t-4 border-transparent hover:border-current transition-all duration-200">
                     <p className="text-sm text-gray-500 mb-1">Total Profile Value</p>
                     <p className="text-2xl font-bold text-[#1F1F1F]">${stats.totalValue.toLocaleString()}</p>
                   </div>
-                  <div>
+                  <div className="bg-white overflow-hidden shadow-sm rounded-xl p-6 flex flex-col justify-between h-36 border-t-4 border-transparent hover:border-current transition-all duration-200">
                     <p className="text-sm text-gray-500 mb-1">Total Units</p>
                     <p className="text-2xl font-bold text-[#1F1F1F]">{stats.totalUnits.toFixed(2)}</p>
                   </div>
-                  <div>
+                  <div className="bg-white overflow-hidden shadow-sm rounded-xl p-6 flex flex-col justify-between h-36 border-t-4 border-transparent hover:border-current transition-all duration-200">
                     <p className="text-sm text-gray-500 mb-1">YTD Return</p>
                     <p className={`text-2xl font-bold ${stats.ytdReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {stats.ytdReturn >= 0 ? '+' : ''}{stats.ytdReturn.toFixed(1)}%

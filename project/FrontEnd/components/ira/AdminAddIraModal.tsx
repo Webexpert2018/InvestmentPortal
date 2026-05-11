@@ -70,7 +70,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
         } else if (val.length > 5) {
           formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
         }
-        
+
         return {
           ...prev,
           mailingAddress1: data.addressLine1 || '',
@@ -178,8 +178,8 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 mt-20 md:mt-0">
-      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[20px] bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 mt-30 md:mt-0">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white shadow-2xl">
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-8 py-5">
           <div className="flex items-center gap-3">
@@ -274,7 +274,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                       onChange={e => {
                         let val = e.target.value.replace(/\D/g, '');
                         if (val.length > 9) val = val.slice(0, 9);
-                        
+
                         // Format: XXX-XX-XXXX
                         let formatted = val;
                         if (val.length > 3 && val.length <= 5) {
@@ -282,7 +282,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                         } else if (val.length > 5) {
                           formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
                         }
-                        
+
                         setIraForm({ ...iraForm, ssn: formatted });
                         if (val.length === 9) {
                           setErrors((prev: any) => {

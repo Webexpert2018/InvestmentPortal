@@ -758,7 +758,7 @@ export default function IRAPage() {
       {/* ─── ADD IRA MODAL ─── */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[20px] bg-white shadow-2xl">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white shadow-2xl">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-8 py-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1]">
@@ -1071,7 +1071,7 @@ export default function IRAPage() {
       {/* ─── TRANSFER IRA MODAL ─── */}
       {showTransferModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-[20px] bg-white shadow-2xl overflow-hidden">
+          <div className="w-full max-w-md rounded-[10px] bg-white shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between border-b bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFF8E1]">
