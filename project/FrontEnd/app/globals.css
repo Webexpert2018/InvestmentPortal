@@ -224,7 +224,7 @@ html {
 }
 
 .pipeline-scroll::-webkit-scrollbar-track {
-  background: #e5e7eb !important;
+  background: transparent !important;
   border-radius: 10px;
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
