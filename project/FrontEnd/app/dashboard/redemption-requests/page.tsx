@@ -136,7 +136,7 @@ export default function RedemptionRequestsPage() {
 
         {/* Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full">
               <thead className="bg-[#F8FAFC] border-b border-gray-100">
                 <tr>
@@ -172,7 +172,7 @@ export default function RedemptionRequestsPage() {
                       <td className="px-6 py-4">
                         <Link
                           href={`/dashboard/redemption-requests/${request.id}`}
-                          className="text-sm font-bold text-[#1F3B6E] uppercase hover:underline cursor-pointer"
+                          className="text-sm font-bold text-[#1F3B6E] uppercase hover:underline cursor-pointer whitespace-nowrap"
                         >
                           RED-{request.id.substring(0, 6).toUpperCase()}
                         </Link>
@@ -189,23 +189,23 @@ export default function RedemptionRequestsPage() {
                               request.investor_name?.split(' ').map((n: string) => n[0]).join('')
                             )}
                           </div>
-                          <span className="font-semibold text-gray-900 group-hover/name:text-[#1F3B6E] group-hover/name:underline transition-colors">{request.investor_name}</span>
+                          <span className="font-semibold text-gray-900 group-hover/name:text-[#1F3B6E] group-hover/name:underline transition-colors whitespace-nowrap">{request.investor_name}</span>
                         </Link>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-gray-600">{request.fund_name}</span>
+                        <span className="text-sm text-gray-600 whitespace-nowrap">{request.fund_name}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm font-medium text-gray-900">{parseFloat(request.units).toFixed(4)}</span>
+                        <span className="text-sm font-medium text-gray-900 whitespace-nowrap">{parseFloat(request.units).toFixed(4)}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm font-bold text-[#1F3B6E]">{formatCurrency(request.amount)}</span>
+                        <span className="text-sm font-bold text-[#1F3B6E] whitespace-nowrap">{formatCurrency(request.amount)}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-gray-500">{new Date(request.created_at).toLocaleDateString()}</span>
+                        <span className="text-sm text-gray-500 whitespace-nowrap">{new Date(request.created_at).toLocaleDateString()}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold leading-none ${getStatusColor(request.status)}`}>
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold leading-none whitespace-nowrap ${getStatusColor(request.status)}`}>
                           {request.status}
                         </span>
                       </td>
