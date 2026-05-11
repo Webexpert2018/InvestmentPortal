@@ -241,14 +241,14 @@ export default function NAVManagementPage() {
     <DashboardLayout>
       <div className="p-0">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">NAV Management</h1>
-            <p className="text-gray-600">Performance Overview</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">NAV Management</h1>
+            <p className="text-gray-500 font-medium">Performance Overview</p>
           </div>
           <Button
             onClick={() => router.push('/dashboard/nav-management/entry')}
-            className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-6 py-2 rounded-full font-medium"
+            className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-6 py-2.5 rounded-full font-bold shadow-sm transition-all active:scale-95"
           >
             NAV Entry
           </Button>
@@ -262,9 +262,9 @@ export default function NAVManagementPage() {
             </div>
           ) : (
             stats.map((stat, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-sm p-6">
-                <p className="text-gray-600 text-sm mb-2">{stat.label}</p>
-                <p className={`text-3xl font-bold ${stat.isPositive ? 'text-green-600' : 'text-gray-900'}`}>
+              <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">{stat.label}</p>
+                <p className={`text-2xl sm:text-3xl font-bold ${stat.isPositive ? 'text-green-600' : 'text-gray-900'}`}>
                   {stat.value}
                 </p>
               </div>
@@ -447,23 +447,23 @@ export default function NAVManagementPage() {
             <h3 className="text-2xl font-semibold text-gray-900 mb-2">Daily BTC Reference</h3>
             <p className="text-sm text-gray-600 mb-6">Reflects varying market price and official fund NAV</p>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-gray-50/50 border-b border-gray-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Date</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Price (USD)</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Source</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
+                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Date</th>
+                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Price (USD)</th>
+                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Source</th>
+                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {btcTableData.length > 0 ? btcTableData.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-gray-900">{item.date}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium">{item.price}</td>
-                      <td className="px-6 py-4 text-gray-600">{item.source}</td>
-                      <td className="px-6 py-4">
+                    <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 text-gray-900 font-medium whitespace-nowrap">{item.date}</td>
+                      <td className="px-6 py-4 text-gray-900 font-bold whitespace-nowrap">{item.price}</td>
+                      <td className="px-6 py-4 text-gray-500 font-medium whitespace-nowrap">{item.source}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         {item.status === 'success' ? (
                           <div className="flex items-center gap-2 text-green-600">
                             <Check className="h-5 w-5" />
@@ -496,31 +496,31 @@ export default function NAVManagementPage() {
               <h3 className="text-2xl font-semibold text-gray-900">NAV History</h3>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-gray-50/50 border-b border-gray-100">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Quarter</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Year</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">$/sh per unit</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Total Value</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Action</th>
+                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Quarter</th>
+                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Year</th>
+                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">$/sh per unit</th>
+                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Total Value</th>
+                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
+                    <th className="px-6 py-4 text-center text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {navHistoryData.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-gray-900">{item.quarter}</td>
-                      <td className="px-6 py-4 text-gray-900">{item.year}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium">{item.pricePerUnit}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium">{item.totalValue}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(item.status)}`}>
+                    <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 text-gray-900 font-bold whitespace-nowrap">{item.quarter}</td>
+                      <td className="px-6 py-4 text-gray-900 font-medium whitespace-nowrap">{item.year}</td>
+                      <td className="px-6 py-4 text-gray-900 font-bold whitespace-nowrap">{item.pricePerUnit}</td>
+                      <td className="px-6 py-4 text-gray-900 font-bold whitespace-nowrap">{item.totalValue}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${getStatusBadge(item.status)}`}>
                           {item.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-center whitespace-nowrap">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors outline-none">
