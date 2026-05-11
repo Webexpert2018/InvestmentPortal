@@ -940,16 +940,16 @@ export default function DashboardPage() {
               <div className="overflow-x-auto">
                 <table className="min-w-full">
                   <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Investor Name</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Account Type</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">KYC Status</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Funding Status</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
+                    <tr className="border-b border-gray-100 text-[13px]">
+                      <th className="px-4 py-3 text-left font-semibold text-gray-500 whitespace-nowrap capitalize tracking-normal font-helvetica">Investor Name</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-500 whitespace-nowrap capitalize tracking-normal font-helvetica">Account Type</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-500 whitespace-nowrap capitalize tracking-normal font-helvetica">KYC Status</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-500 whitespace-nowrap capitalize tracking-normal font-helvetica">Funding Status</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-500 whitespace-nowrap capitalize tracking-normal font-helvetica">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {adminStats.recentInvestors.length > 0 ? adminStats.recentInvestors.map((person) => {
+                    {adminStats.recentInvestors.length > 0 ? adminStats.recentInvestors.map((person, index) => {
                       const getKycDisplay = (status: string) => {
                         const s = status?.toLowerCase();
                         if (s === 'verified' || s === 'approved') return { label: 'Approved', color: 'bg-[#F2FAF6] text-[#2A4474]' };
@@ -967,7 +967,7 @@ export default function DashboardPage() {
                       const kyc = getKycDisplay(person.kycStatus);
 
                       return (
-                        <tr key={person.id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={`${person.id}-${index}`} className="hover:bg-gray-50 transition-colors">
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{person.investorName || 'N/A'}</td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{person.accountType}</td>
                           <td className="px-4 py-4 whitespace-nowrap">
@@ -1293,7 +1293,7 @@ export default function DashboardPage() {
               {adminExpanded.reconciliation && (
                 <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicReconciliationAlerts.length > 0 ? dynamicReconciliationAlerts.map((request, idx) => (
-                    <div key={request.id || idx} className="flex items-center justify-between">
+                    <div key={request.id ? `${request.id}-${idx}` : idx} className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-900">{request.investor_name}</p>
                         <p className="text-xs text-gray-500">
