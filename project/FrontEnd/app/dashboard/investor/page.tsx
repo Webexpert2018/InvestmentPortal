@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Search, ChevronDown, X, Loader2, Send, Plus, History } from 'lucide-react';
@@ -29,6 +30,7 @@ interface Investor {
 }
 
 export default function InvestorPage() {
+  const router = useRouter();
   const [investors, setInvestors] = useState<Investor[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,7 +42,33 @@ export default function InvestorPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState<string | null>(null);
   const [selectedInvestorId, setSelectedInvestorId] = useState<string | null>(null);
+  const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
   const [showAdminIraModal, setShowAdminIraModal] = useState(false);
+
+  // Selection Persistence
+  useEffect(() => {
+    const savedKey = localStorage.getItem('selectedInvestorKey');
+    if (savedKey) {
+      setSelectedRowKey(savedKey);
+      // Extract investor ID from the composite key (first part before the last dash or simply split by dash)
+      // Since our key is `${investor.id}-${investor.accountType || 'Personal'}`
+      const id = savedKey.split('-')[0];
+      setSelectedInvestorId(id);
+    }
+  }, []);
+
+  const handleSelectRow = (investor: Investor) => {
+    const rowKey = `${investor.id}-${investor.accountType || 'Personal'}`;
+    setSelectedRowKey(rowKey);
+    setSelectedInvestorId(investor.id);
+    localStorage.setItem('selectedInvestorKey', rowKey);
+  };
+
+  const clearSelection = () => {
+    setSelectedRowKey(null);
+    setSelectedInvestorId(null);
+    localStorage.removeItem('selectedInvestorKey');
+  };
   const [emailError, setEmailError] = useState('');
   const [inviteForm, setInviteForm] = useState({
     first_name: '',
@@ -415,19 +443,34 @@ export default function InvestorPage() {
                           </td>
                         </tr>
                       ) : (
-                        displayedActiveInvestors.map((investor) => (
-                          <tr
-                            key={investor.id}
-                            className={`hover:bg-[#F9FAFB]/80 transition-colors group cursor-pointer ${selectedInvestorId === investor.id ? 'bg-amber-50/50' : ''}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedInvestorId(selectedInvestorId === investor.id ? null : investor.id);
-                            }}
-                          >
-                            <td className="px-3 sm:px-4 lg:px-6 py-4">
+                        displayedActiveInvestors.map((investor) => {
+                          const rowKey = `${investor.id}-${investor.accountType || 'Personal'}`;
+                          return (
+                            <tr
+                              key={rowKey}
+                              className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
+                                ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
+                                : 'hover:bg-[#F8FAFC]'
+                                }`}
+                              onClick={() => {
+                                handleSelectRow(investor);
+                                router.push(`/dashboard/investor/${investor.id}`);
+                              }}
+                            >
+                            <td
+                              className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (selectedRowKey === rowKey) {
+                                  clearSelection();
+                                } else {
+                                  handleSelectRow(investor);
+                                }
+                              }}
+                            >
                               <div className="flex items-center justify-center">
-                                <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedInvestorId === investor.id ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
-                                  {selectedInvestorId === investor.id && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
+                                <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                  {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
                                 </div>
                               </div>
                             </td>
@@ -499,15 +542,22 @@ export default function InvestorPage() {
                               })}
                             </td>
                             <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
-                              <Link href={`/dashboard/investor/${investor.id}`}>
+                              <Link
+                                href={`/dashboard/investor/${investor.id}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSelectRow(investor);
+                                }}
+                              >
                                 <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
                                   View Profile
                                 </button>
                               </Link>
                             </td>
                           </tr>
-                        ))
-                      )}
+                        )
+                      })
+                    )}
 
                       {/* IRA Accounts Heading */}
                       {activeIraInvestors.length > 0 && (
@@ -517,19 +567,34 @@ export default function InvestorPage() {
                               Active IRA Accounts ({activeIraInvestors.length})
                             </td>
                           </tr>
-                          {activeIraInvestors.map((investor) => (
-                            <tr
-                              key={`${investor.id}-${investor.accountType}`}
-                              className={`hover:bg-[#F9FAFB]/80 transition-colors group cursor-pointer ${selectedInvestorId === investor.id ? 'bg-amber-50/50' : ''}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedInvestorId(selectedInvestorId === investor.id ? null : investor.id);
-                              }}
-                            >
-                              <td className="px-3 sm:px-4 lg:px-6 py-4">
+                          {activeIraInvestors.map((investor) => {
+                            const rowKey = `${investor.id}-${investor.accountType || 'IRA'}`;
+                            return (
+                              <tr
+                                key={rowKey}
+                                className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
+                                  ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
+                                  : 'hover:bg-[#F8FAFC]'
+                                  }`}
+                                onClick={() => {
+                                  handleSelectRow(investor);
+                                  router.push(`/dashboard/investor/${investor.id}`);
+                                }}
+                              >
+                              <td
+                                className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (selectedRowKey === rowKey) {
+                                    clearSelection();
+                                  } else {
+                                    handleSelectRow(investor);
+                                  }
+                                }}
+                              >
                                 <div className="flex items-center justify-center">
-                                  <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedInvestorId === investor.id ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
-                                    {selectedInvestorId === investor.id && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
+                                  <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                    {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
                                   </div>
                                 </div>
                               </td>
@@ -600,15 +665,22 @@ export default function InvestorPage() {
                                   year: 'numeric'
                                 })}
                               </td>
-                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
-                                <Link href={`/dashboard/investor/${investor.id}`}>
+                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
+                                  <Link
+                                    href={`/dashboard/investor/${investor.id}`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSelectRow(investor);
+                                    }}
+                                  >
                                   <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
                                     View Profile
                                   </button>
                                 </Link>
                               </td>
                             </tr>
-                          ))}
+                            )
+                          })}
                         </>
                       )}
 
@@ -620,12 +692,40 @@ export default function InvestorPage() {
                               Pending Invitations ({pendingInvestors.length})
                             </td>
                           </tr>
-                          {pendingInvestors.map((investor) => (
-                            <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group">
-                              <td className="px-3 sm:px-4 lg:px-6 py-4"></td>
-                              <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                <div className="flex items-center gap-4">
-                                  <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
+                          {pendingInvestors.map((investor) => {
+                            const rowKey = `${investor.id}-${investor.accountType || 'Personal'}`;
+                            return (
+                              <tr
+                                key={rowKey}
+                                className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
+                                  ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
+                                  : 'hover:bg-[#F8FAFC]'
+                                  }`}
+                                onClick={() => {
+                                  handleSelectRow(investor);
+                                  router.push(`/dashboard/investor/${investor.id}`);
+                                }}
+                              >
+                                <td
+                                  className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (selectedRowKey === rowKey) {
+                                      clearSelection();
+                                    } else {
+                                      handleSelectRow(investor);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center justify-center">
+                                    <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                      {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                  <div className="flex items-center gap-4">
+                                    <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
                                     <Image
                                       src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
                                       alt={investor.firstName}
@@ -680,14 +780,21 @@ export default function InvestorPage() {
                                 })}
                               </td>
                               <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
-                                <Link href={`/dashboard/investor/${investor.id}`}>
+                                <Link
+                                  href={`/dashboard/investor/${investor.id}`}
+                                  onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSelectRow(investor);
+                                    }}
+                                >
                                   <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
                                     View Profile
                                   </button>
                                 </Link>
                               </td>
-                            </tr>
-                          ))}
+                              </tr>
+                            )
+                          })}
                         </>
                       )}
 
@@ -699,9 +806,37 @@ export default function InvestorPage() {
                               Suspended Accounts ({suspendedInvestors.length})
                             </td>
                           </tr>
-                          {suspendedInvestors.map((investor) => (
-                            <tr key={investor.id} className="hover:bg-[#F9FAFB]/80 transition-colors group opacity-80">
-                              <td className="px-3 sm:px-4 lg:px-6 py-4"></td>
+                          {suspendedInvestors.map((investor) => {
+                            const rowKey = `${investor.id}-${investor.accountType || 'Personal'}`;
+                            return (
+                              <tr
+                                key={rowKey}
+                                className={`transition-all duration-200 group cursor-pointer opacity-80 ${selectedRowKey === rowKey
+                                  ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
+                                  : 'hover:bg-[#F8FAFC]'
+                                  }`}
+                                onClick={() => {
+                                  handleSelectRow(investor);
+                                  router.push(`/dashboard/investor/${investor.id}`);
+                                }}
+                              >
+                              <td
+                                className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (selectedRowKey === rowKey) {
+                                    clearSelection();
+                                  } else {
+                                    handleSelectRow(investor);
+                                  }
+                                }}
+                              >
+                                <div className="flex items-center justify-center">
+                                  <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                    {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
+                                  </div>
+                                </div>
+                              </td>
                               <td className="px-3 sm:px-4 lg:px-6 py-4">
                                 <div className="flex items-center gap-4">
                                   <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB] grayscale">
@@ -770,14 +905,21 @@ export default function InvestorPage() {
                                 })}
                               </td>
                               <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
-                                <Link href={`/dashboard/investor/${investor.id}`}>
+                                <Link
+                                  href={`/dashboard/investor/${investor.id}`}
+                                  onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSelectRow(investor);
+                                    }}
+                                >
                                   <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
                                     View Profile
                                   </button>
                                 </Link>
                               </td>
-                            </tr>
-                          ))}
+                              </tr>
+                            )
+                          })}
                         </>
                       )}
                     </>

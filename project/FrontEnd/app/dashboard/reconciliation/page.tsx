@@ -12,6 +12,8 @@ interface ReconciliationRecord {
   id: string;
   recordId: string;
   type: 'Funding' | 'Redemption';
+  investorName: string;
+  accountType: string;
   custodian: number;
   internal: number;
   difference: number;
@@ -51,6 +53,8 @@ export default function ReconciliationPage() {
             id: String(inv?.id || ''),
             recordId: `FUN-${String(inv?.id || '').substring(0, 6).toUpperCase()}`,
             type: 'Funding',
+            investorName: inv?.investor_name || 'Unknown',
+            accountType: inv?.account_type || inv?.accountType || 'Personal',
             custodian,
             internal,
             difference,
@@ -66,10 +70,13 @@ export default function ReconciliationPage() {
           const custodian = parseFloat(red?.amount || 0);
           const internal = parseFloat(red?.internal_amount || 0);
           const difference = custodian - internal;
+          const relatedInv = (investments as any[]).find(i => String(i.id) === String(red.investment_id));
           return {
             id: String(red?.id || ''),
             recordId: `RED-${String(red?.id || '').substring(0, 6).toUpperCase()}`,
             type: 'Redemption',
+            investorName: red?.investor_name || relatedInv?.investor_name || 'Unknown',
+            accountType: relatedInv?.account_type || relatedInv?.accountType || 'Personal',
             custodian,
             internal,
             difference,
@@ -193,7 +200,9 @@ export default function ReconciliationPage() {
 
   const filteredRecords = records.filter(record => {
     const matchesSearch = record.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      record.recordId.toLowerCase().includes(searchQuery.toLowerCase());
+      record.recordId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      record.investorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      record.accountType.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || record.status.toLowerCase() === statusFilter.toLowerCase();
     const matchesType = eventTypeFilter === 'all' || record.type.toLowerCase() === eventTypeFilter.toLowerCase();
     return matchesSearch && matchesStatus && matchesType;
@@ -282,7 +291,9 @@ export default function ReconciliationPage() {
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">ID</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Type</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">Custodian</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Investor</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Account</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">Amount</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">Internal</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">Difference</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 whitespace-nowrap">Status</th>
@@ -293,7 +304,7 @@ export default function ReconciliationPage() {
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
                       <div className="flex flex-col items-center gap-2">
                         <Loader2 className="h-8 w-8 animate-spin text-[#1F3B6E]" />
                         <p>Loading records...</p>
@@ -302,7 +313,7 @@ export default function ReconciliationPage() {
                   </tr>
                 ) : currentRecords.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
                       No matching records found.
                     </td>
                   </tr>
@@ -318,6 +329,8 @@ export default function ReconciliationPage() {
                         </Link>
                       </td>
                       <td className="px-6 py-4 text-gray-900 whitespace-nowrap">{record.type}</td>
+                      <td className="px-6 py-4 text-gray-900 font-medium whitespace-nowrap">{record.investorName}</td>
+                      <td className="px-6 py-4 text-gray-600 text-sm whitespace-nowrap">{record.accountType}</td>
                       <td className="px-6 py-4 text-gray-900 font-medium text-right whitespace-nowrap">{formatCurrency(record.custodian)}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
