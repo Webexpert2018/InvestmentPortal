@@ -759,48 +759,48 @@ export default function InvestPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         {/* Left Preview Section */}
-        <div className="rounded-[8px] bg-white p-4 shadow-sm border border-[#E5E5EA]">
-          <div className="flex flex-col min-h-[600px] rounded-[6px] border border-[#E9EBEE] bg-[#F8F9FB] overflow-hidden transition-all">
+        <div className="rounded-[8px] bg-white p-0 sm:p-4 shadow-sm border border-[#E5E5EA] w-full max-w-full overflow-hidden">
+          <div className="flex flex-col min-h-[750px] lg:min-h-[900px] rounded-[6px] border border-[#E9EBEE] bg-[#F8F9FB] overflow-hidden transition-all w-full max-w-full">
             {/* Toolbar */}
-            <div className="flex h-[44px] items-center justify-between border-b border-[#E2E5EA] bg-white px-4">
-              <div className="flex items-center gap-3 text-[12px] text-[#6B7280]">
+            <div className="flex h-[44px] items-center justify-between border-b border-[#E2E5EA] bg-white px-2 sm:px-4">
+              <div className="flex items-center gap-2 sm:gap-3 text-[12px] text-[#6B7280] min-w-0">
                 <button
                   onClick={() => { setSelectedSubDoc(null); setSelectedPage(1); setStep('investmentAmount'); }}
-                  className="inline-flex items-center gap-1 text-[#5E6B7F] hover:text-[#1F1F1F] transition-colors"
+                  className="inline-flex items-center gap-0.5 sm:gap-1 text-[#5E6B7F] hover:text-[#1F1F1F] transition-colors flex-shrink-0"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Back
+                  <span className="hidden sm:inline">Back</span>
                 </button>
-                <div className="border-l border-gray-200 pl-3">
-                  <p className="font-medium text-[#374151] truncate max-w-[200px]">
+                <div className="border-l border-gray-200 pl-2 sm:pl-3 min-w-0">
+                  <p className="font-medium text-[#374151] truncate max-w-[120px] sm:max-w-[200px]">
                     {selectedSubDoc?.name || 'Select a document'}
                   </p>
-                  <p className="text-[10px] text-[#9CA3AF]">
+                  <p className="text-[10px] text-[#9CA3AF] hidden sm:block">
                     Document Vault &gt; Subscription Documents
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-[#6B7280]">
-                <button type="button" onClick={handleDownload} className="hover:text-[#374151]"><Download className="h-3.5 w-3.5" /></button>
-                <button type="button" onClick={handlePrint} className="hover:text-[#374151]"><Printer className="h-3.5 w-3.5" /></button>
-                <button type="button" className="hover:text-[#374151]"><Search className="h-3.5 w-3.5" /></button>
-                <span className="text-[11px] font-medium">{zoom}%</span>
+              <div className="flex items-center gap-2 sm:gap-3 text-[#6B7280] flex-shrink-0">
+                <button type="button" onClick={handleDownload} title="Download" className="hover:text-[#374151]"><Download className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={handlePrint} title="Print" className="hover:text-[#374151] hidden sm:block"><Printer className="h-3.5 w-3.5" /></button>
+                <button type="button" title="Search" className="hover:text-[#374151] hidden sm:block"><Search className="h-3.5 w-3.5" /></button>
+                <span className="text-[11px] font-medium hidden xs:inline">{zoom}%</span>
                 <button type="button" onClick={() => setZoom((prev: number) => Math.max(50, prev - 10))} className="hover:text-[#374151]"><Minus className="h-3.5 w-3.5" /></button>
                 <button type="button" onClick={() => setZoom((prev: number) => Math.min(200, prev + 10))} className="hover:text-[#374151]"><Plus className="h-3.5 w-3.5" /></button>
-                <button type="button" className="hover:text-[#374151]"><Maximize2 className="h-3.5 w-3.5" /></button>
+                <button type="button" className="hover:text-[#374151] hidden xs:block"><Maximize2 className="h-3.5 w-3.5" /></button>
               </div>
             </div>
 
-            <div className="grid flex-1 grid-cols-[92px_1fr]">
+            <div className="flex flex-col md:grid md:grid-cols-[92px_1fr] flex-1 min-h-0 w-full max-w-full overflow-hidden">
               {/* Dynamic Thumbnail Sidebar */}
-              <aside className="border-r border-[#E2E5EA] bg-white p-2 flex flex-col gap-2 overflow-y-auto max-h-[520px] custom-scrollbar">
+              <aside className="w-full max-w-full border-b md:border-b-0 md:border-r border-[#E2E5EA] bg-white p-2 pb-3 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto h-auto md:max-h-[820px] custom-scrollbar shrink-0">
                 {selectedSubDoc && Array.from({ length: selectedSubDoc.pages || 1 }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
                     type="button"
                     onClick={() => setSelectedPage(page)}
-                    className={`flex h-[80px] w-full flex-col items-center justify-center rounded-[4px] border text-[10px] transition-all shrink-0 ${page === selectedPage ? 'border-[#5EA0FF] bg-[#EEF4FF] text-[#4B5563]' : 'border-[#E4E7EC] bg-[#F4F6F9] text-[#6B7280] hover:border-gray-300'
+                    className={`flex h-[68px] md:h-[80px] w-[75px] md:w-full flex-col items-center justify-center rounded-[4px] border text-[10px] transition-all shrink-0 ${page === selectedPage ? 'border-[#5EA0FF] bg-[#EEF4FF] text-[#4B5563]' : 'border-[#E4E7EC] bg-[#F4F6F9] text-[#6B7280] hover:border-gray-300'
                       }`}
                   >
                     <FileText className="h-4 w-4 mb-1" />
@@ -810,17 +810,21 @@ export default function InvestPage() {
               </aside>
 
               {/* Main Content Area */}
-              <div className="relative bg-[#ECEDEF] p-10 flex justify-center items-start overflow-y-auto max-h-[520px] custom-scrollbar selection-none">
+              <div className="relative bg-[#ECEDEF] p-0 sm:p-10 flex flex-col items-center overflow-y-auto overflow-x-hidden max-h-[680px] lg:max-h-[820px] custom-scrollbar selection-none w-full min-w-0">
                 <div
-                  className="w-full max-w-[500px] h-fit bg-white shadow-lg border border-[#D9DDE3] rounded-sm relative transition-transform origin-top select-none"
-                  style={{ transform: `scale(${zoom / 100})`, minHeight: '800px' }}
+                  className="w-full bg-white shadow-lg border border-[#D9DDE3] rounded-sm relative overflow-hidden transition-all shrink-0"
+                  style={{ 
+                    maxWidth: zoom <= 100 ? 'min(850px, 100%)' : '100%',
+                    width: '100%',
+                    aspectRatio: '1 / 1.414',
+                    minHeight: zoom <= 100 ? 'auto' : `${zoom * 11}px`
+                  }}
                 >
                   {selectedSubDoc ? (
                     <iframe
-                      src={`/documents/subscription/${selectedSubDoc.name}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}`}
+                      src={`/documents/subscription/${selectedSubDoc.name}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH`}
                       key={`${selectedSubDoc.name}-${selectedPage}`}
-                      className="w-full h-full border-none absolute inset-0 pointer-events-auto"
-                      style={{ minHeight: '800px' }}
+                      className="w-full h-full border-none absolute inset-0 bg-white"
                       title="Document Preview"
                     />
                   ) : (
@@ -1285,7 +1289,7 @@ export default function InvestPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 font-helvetica text-[#1F1F1F]">{content}</div>
+      <div className="space-y-4 font-helvetica text-[#1F1F1F] w-full max-w-full overflow-x-hidden">{content}</div>
     </DashboardLayout>
   );
 }
