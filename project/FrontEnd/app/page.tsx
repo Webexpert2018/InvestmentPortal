@@ -682,7 +682,7 @@ export default function HomePage() {
               className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6"
             >
               <h2 className="text-4xl md:text-5xl font-bold text-white font-serif">2 ways to invest</h2>
-              <Link href="/auth/signup">
+              <Link href="https://investmentportalfrontend.vercel.app/auth/investor-signup?flow=investor">
                 <Button
                   className="bg-gradient-to-r from-[#D4AF37] to-[#AA8C2C] text-[#020817] hover:brightness-110 font-bold px-8 py-3 rounded-lg shadow-[0_4px_20px_rgba(212,175,55,0.3)] transition-all duration-300"
                 >
