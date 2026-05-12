@@ -156,7 +156,7 @@ export default function HomePage() {
               />
             </a>
 
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden lg:flex items-center space-x-8">
               <a href="#home" className={`relative transition-colors text-base font-semibold py-2 ${activeSection === 'home' ? 'text-[#D4AF37]' : 'text-gray-300 hover:text-[#D4AF37]'}`}>
                 Home
                 <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#D4AF37] transition-all duration-300 ${activeSection === 'home' ? 'scale-x-100' : 'scale-x-0'}`} />
@@ -184,7 +184,7 @@ export default function HomePage() {
             </div>
 
             <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center space-x-4">
+              <div className="hidden lg:flex items-center space-x-4">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -225,7 +225,7 @@ export default function HomePage() {
               </div>
 
               {/* Mobile Menu Button */}
-              <div className="md:hidden flex items-center">
+              <div className="lg:hidden flex items-center">
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="text-gray-300 hover:text-[#D4AF37] focus:outline-none p-2 rounded-lg border border-white/20 hover:border-[#D4AF37]/50 hover:bg-white/5 transition-colors"
@@ -243,7 +243,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="md:hidden bg-[#020817]/95 backdrop-blur-xl border border-white/10 px-6 pt-4 pb-6 space-y-3 shadow-2xl mx-4 mt-2 rounded-2xl"
+            className="lg:hidden bg-[#020817]/95 backdrop-blur-xl border border-white/10 px-6 pt-4 pb-6 space-y-3 shadow-2xl mx-4 mt-2 rounded-2xl"
           >
             <a href="#home" onClick={() => setIsMenuOpen(false)} className={`block py-2 font-semibold text-base transition-colors ${activeSection === 'home' ? 'text-[#D4AF37]' : 'text-gray-300 hover:text-[#D4AF37]'}`}>Home</a>
             <a href="#funds" onClick={() => setIsMenuOpen(false)} className={`block py-2 font-semibold text-base transition-colors ${activeSection === 'funds' ? 'text-[#D4AF37]' : 'text-gray-300 hover:text-[#D4AF37]'}`}>Funds</a>
@@ -261,10 +261,30 @@ export default function HomePage() {
                     Sign In
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-full p-1 bg-[#0B132B]/95 backdrop-blur-md border border-white/10 text-white" style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" }}>
-                  <DropdownMenuItem className="text-white hover:text-white focus:text-white cursor-pointer" onSelect={() => router.push('/auth/login?flow=admin')}>Admin login</DropdownMenuItem>
-                  <DropdownMenuItem className="text-white hover:text-white focus:text-white cursor-pointer" onSelect={() => router.push('/auth/login?flow=account')}>Accountant login</DropdownMenuItem>
-                  <DropdownMenuItem className="text-white hover:text-white focus:text-white cursor-pointer" onSelect={() => router.push('/auth/login?flow=investor')}>Investor login</DropdownMenuItem>
+                <DropdownMenuContent
+                  align="center"
+                  sideOffset={10}
+                  className="w-[var(--radix-dropdown-menu-trigger-width)] p-2 bg-[#0B132B]/95 backdrop-blur-md border border-white/10 text-white shadow-2xl"
+                  style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" }}
+                >
+                  <DropdownMenuItem
+                    className="w-full text-center py-3.5 text-white hover:text-white focus:text-white cursor-pointer hover:bg-white/10 rounded-xl mb-1 font-semibold text-base transition-colors"
+                    onSelect={() => router.push('/auth/login?flow=admin')}
+                  >
+                    Admin login
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="w-full text-center py-3.5 text-white hover:text-white focus:text-white cursor-pointer hover:bg-white/10 rounded-xl mb-1 font-semibold text-base transition-colors"
+                    onSelect={() => router.push('/auth/login?flow=account')}
+                  >
+                    Accountant login
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="w-full text-center py-3.5 text-white hover:text-white focus:text-white cursor-pointer hover:bg-white/10 rounded-xl font-semibold text-base transition-colors"
+                    onSelect={() => router.push('/auth/login?flow=investor')}
+                  >
+                    Investor login
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               {/* <Link href="/auth/signup" className="w-full">
@@ -331,7 +351,7 @@ export default function HomePage() {
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight tracking-tighter font-serif"
+              className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-6 leading-tight tracking-tighter font-serif"
             >
               Build Your Future with
               <br />
@@ -344,7 +364,7 @@ export default function HomePage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.8 }}
-              className="text-xl md:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed tracking-wide"
+              className="text-lg sm:text-xl md:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed tracking-wide"
             >
               Transform your retirement strategy with secure, compliant Bitcoin IRAs. Professional custody, tax advantages, and transparent investing.
             </motion.p>
