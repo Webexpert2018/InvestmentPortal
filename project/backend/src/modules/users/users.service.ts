@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, ConflictException, OnModuleInit } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, ConflictException, OnModuleInit, InternalServerErrorException } from '@nestjs/common';
 import { db } from '../../config/database';
 import * as bcrypt from 'bcryptjs';
 import { EmailService } from '../email/email.service';
@@ -486,11 +486,14 @@ export class UsersService implements OnModuleInit {
 
     const result = await db.query(`
       WITH user_accounts AS (
-        SELECT id AS user_id, 'Personal' AS account_type FROM investors
+        SELECT id AS user_id, NULL::uuid as account_id, 'Personal' AS account_type, LOWER(status) as account_status FROM investors
         UNION
-        SELECT user_id, CASE WHEN LOWER(account_type) = 'personal' THEN 'Personal' ELSE account_type END FROM investments WHERE account_type IS NOT NULL
-        UNION
-        SELECT user_id, CASE WHEN LOWER(account_type) = 'personal' THEN 'Personal' ELSE account_type END FROM ira_accounts
+        SELECT 
+          user_id, 
+          id as account_id, 
+          account_type,
+          LOWER(status) as account_status
+        FROM ira_accounts
       ),
       investment_sums AS (
         SELECT 
@@ -517,6 +520,8 @@ export class UsersService implements OnModuleInit {
         i.id, i.email, i.role, i.full_name as "firstName", '' as "lastName", i.phone, i.status, i.created_at as "createdAt", 
         i.kyc_status as "kycStatus", i.profile_image_url as "profileImageUrl",
         ua.account_type as "accountType",
+        ua.account_id as "accountId",
+        ua.account_status as "accountStatus",
         (COALESCE(inv_s.total_invested, 0) - COALESCE(red_s.total_redeemed_value, 0)) as total_invested,
         (COALESCE(inv_s.total_units, 0) - COALESCE(red_s.total_redeemed_units, 0)) as total_units,
         i.assigned_ir_id, s.full_name as assigned_ir_name,
@@ -973,30 +978,72 @@ export class UsersService implements OnModuleInit {
   }
 
   async deleteUser(userId: string, requestingUserRole: string) {
-    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
-    if (!adminRoles.includes(requestingUserRole)) {
-      throw new ForbiddenException('Only admins can delete users');
+    // Master Delete (Executive Admin only)
+    if (requestingUserRole !== 'executive_admin') {
+      throw new ForbiddenException('Only Executive Admins can perform Master Delete (complete permanent deletion)');
     }
 
-    // Identify which table the user is in
+    // Identify which table the user is in and check status
     const [userRes, investorRes, staffRes] = await Promise.all([
-      db.query('SELECT id FROM users WHERE id = $1', [userId]),
-      db.query('SELECT id FROM investors WHERE id = $1', [userId]),
-      db.query('SELECT id FROM staff WHERE id = $1', [userId])
+      db.query('SELECT id, status FROM users WHERE id = $1', [userId]),
+      db.query('SELECT id, status FROM investors WHERE id = $1', [userId]),
+      db.query('SELECT id, status FROM staff WHERE id = $1', [userId])
     ]);
 
     let tableName = '';
-    if (userRes.rows.length > 0) tableName = 'users';
-    else if (investorRes.rows.length > 0) tableName = 'investors';
-    else if (staffRes.rows.length > 0) tableName = 'staff';
+    let userStatus = '';
+    
+    if (userRes.rows.length > 0) {
+      tableName = 'users';
+      userStatus = userRes.rows[0].status;
+    } else if (investorRes.rows.length > 0) {
+      tableName = 'investors';
+      userStatus = investorRes.rows[0].status;
+    } else if (staffRes.rows.length > 0) {
+      tableName = 'staff';
+      userStatus = staffRes.rows[0].status;
+    }
 
-    if (!tableName) return { success: false, message: 'User not found' };
+    if (!tableName) {
+      throw new NotFoundException('User not found');
+    }
 
-    // Delete OTPs and then user
-    await db.query('DELETE FROM user_otps WHERE user_id = $1', [userId]);
-    await db.query(`DELETE FROM ${tableName} WHERE id = $1`, [userId]);
+    // Rule: User login must be suspended
+    if (userStatus !== 'suspended') {
+      throw new ForbiddenException('Cannot delete: User login must be suspended first');
+    }
 
-    return { success: true };
+    // Rule: All IRA accounts must be suspended
+    if (tableName === 'investors') {
+      const activeIraAccounts = await db.query(
+        "SELECT id FROM ira_accounts WHERE user_id = $1 AND status != 'suspended'",
+        [userId]
+      );
+      if (activeIraAccounts.rows.length > 0) {
+        throw new ForbiddenException('Cannot delete: All linked IRA accounts must be suspended first');
+      }
+    }
+
+    // Delete related records and then user
+    try {
+      await db.query('BEGIN');
+      
+      // Delete IRA accounts if investor
+      if (tableName === 'investors') {
+        await db.query('DELETE FROM ira_accounts WHERE user_id = $1', [userId]);
+      }
+      
+      await db.query('DELETE FROM user_otps WHERE user_id = $1', [userId]);
+      await db.query('DELETE FROM user_sessions WHERE user_id = $1', [userId]);
+      await db.query(`DELETE FROM ${tableName} WHERE id = $1`, [userId]);
+      
+      await db.query('COMMIT');
+      return { success: true, message: 'User and all related data deleted successfully' };
+    } catch (error) {
+      await db.query('ROLLBACK');
+      console.error('❌ Master Delete error:', error);
+      throw new InternalServerErrorException('Failed to perform master delete');
+    }
   }
 
   async assignInvestorRelations(investorId: string, staffId: string | null, requestingUserRole: string) {

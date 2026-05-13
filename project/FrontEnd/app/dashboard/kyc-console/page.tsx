@@ -19,6 +19,7 @@ interface Investor {
   createdAt: string;
   profileImageUrl: string | null;
   avatar: string;
+  accountStatus?: 'active' | 'suspended';
 }
 
 export default function KYCConsolePage() {

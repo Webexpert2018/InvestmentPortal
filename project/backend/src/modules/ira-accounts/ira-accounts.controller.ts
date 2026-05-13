@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, Headers, UseGuards, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, Param, Headers, UseGuards, ForbiddenException } from '@nestjs/common';
 import { AccountsService } from './ira-accounts.service';
 import { CreateAccountDto } from './dto/create-ira-account.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -42,5 +42,23 @@ export class AccountsController {
     }
 
     return this.accountsService.createAccount(targetUserId, dto, token);
+  }
+
+  @Get('user/:id')
+  async getUserIraAccounts(@Param('id') id: string, @CurrentUser() user: any) {
+    const adminRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(user.role)) {
+      throw new ForbiddenException('Only administrators can view other users\' IRA accounts');
+    }
+    return this.accountsService.getMyIraAccount(id);
+  }
+
+  @Patch(':id/status')
+  async updateAccountStatus(
+    @Param('id') id: string,
+    @Body() body: { status: string },
+    @CurrentUser() user: any
+  ) {
+    return this.accountsService.updateAccountStatus(id, body.status, user.role);
   }
 }

@@ -17,6 +17,7 @@ interface Investor {
   phone: string;
   dateJoined: string;
   status: string;
+  accountStatus?: 'active' | 'suspended';
   fundIds: string[];
 }
 

@@ -6,6 +6,9 @@ const API_URL = `${BASE_URL}/api`;
 export { BASE_URL, API_URL };
 
 class ApiClient {
+  async getCurrentUser() {
+    return this.request<any>('/users/profile');
+  }
   private getHeaders(): HeadersInit {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -67,11 +70,11 @@ class ApiClient {
         // Check current path to determine which login page to use
         const path = window.location.pathname;
         if (path.includes('/dashboard/admin')) {
-           window.location.href = '/auth/login?flow=admin';
+          window.location.href = '/auth/login?flow=admin';
         } else if (path.includes('/dashboard/accountant')) {
-           window.location.href = '/auth/login?flow=accountant';
+          window.location.href = '/auth/login?flow=accountant';
         } else {
-           window.location.href = '/auth/login?flow=investor';
+          window.location.href = '/auth/login?flow=investor';
         }
       }
 
@@ -83,7 +86,7 @@ class ApiClient {
         errorMsg = data.message.message || errorMsg;
         errorDetails = data.message.details || errorDetails;
       }
-      
+
       // Log the full error data to the console for easier debugging
       console.error(`[ApiClient] Request to ${endpoint} failed:`, {
         status: response.status,
@@ -402,10 +405,21 @@ class ApiClient {
     return this.request<any>('/ira-accounts/my');
   }
 
+  async getUserIRAAccounts(userId: string) {
+    return this.request<any[]>(`/ira-accounts/user/${userId}`);
+  }
+
   async updateIRAAccount(data: any) {
     return this.request<any>('/ira-accounts', {
       method: 'PUT',
       body: JSON.stringify(data),
+    });
+  }
+
+  async updateIRAAccountStatus(accountId: string, status: string) {
+    return this.request<any>(`/ira-accounts/${accountId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
     });
   }
 
@@ -975,7 +989,7 @@ class ApiClient {
   async getAvailableUsers() {
     return this.request<any[]>('/messages/available-users');
   }
-  
+
   async editMessage(id: string, content: string) {
     return this.request<any>(`/messages/${id}`, {
       method: 'PATCH',

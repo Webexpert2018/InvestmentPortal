@@ -50,16 +50,19 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [isSavingTaxId, setIsSavingTaxId] = useState(false);
 
 
+  const [iraAccounts, setIraAccounts] = useState<any[]>([]);
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [profile, docs, investments, redemptions, investorStats] = await Promise.all([
+        const [profile, docs, investments, redemptions, investorStats, accounts] = await Promise.all([
           apiClient.getUserById(params.id),
           apiClient.getInvestorDocuments(params.id),
           apiClient.getInvestorInvestments(params.id),
           apiClient.getInvestorRedemptions(params.id),
-          apiClient.getInvestorStats(params.id)
+          apiClient.getInvestorStats(params.id),
+          apiClient.getUserIRAAccounts(params.id)
         ]);
         setInvestorData(profile);
         setEditedTaxId(profile.taxId || '');
@@ -67,6 +70,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         setFundingHistory(investments);
         setRedemptionHistory(redemptions);
         setStats(investorStats);
+        setIraAccounts(accounts || []);
       } catch (err) {
         console.error('Error fetching investor data:', err);
         toast.error('Failed to load investor profile');
@@ -365,7 +369,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 }`}
                             >
                               {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
-                              {investorData.status === 'suspended' ? 'Activate Account' : 'Suspend Account'}
+                              {investorData.status === 'suspended' ? 'Enable Login' : 'Suspend Login'}
                             </button>,
                             <button
                               key="assign"
@@ -497,25 +501,50 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     <div className="space-y-6">
                       <h3 className="text-sm font-bold text-gray-500">Linked Custodian Accounts</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                        {Object.entries(fundingHistory.reduce((acc: any, curr: any) => {
-                          if (!curr.is_reconciled) return acc;
-                          const type = curr.account_type || 'Other';
-                          const val = parseFloat(curr.revised_amount || curr.investment_amount || 0);
-                          acc[type] = (acc[type] || 0) + val;
-                          return acc;
-                        }, {})).map(([type, total]: [string, any]) => {
+                        {iraAccounts.length > 0 ? iraAccounts.map((account: any) => {
+                          const totalInvested = fundingHistory
+                            .filter(f => f.is_reconciled && f.account_type === account.account_type)
+                            .reduce((sum, f) => sum + parseFloat(f.revised_amount || f.investment_amount || 0), 0);
                           const totalRedeemed = redemptionHistory
-                            .filter(r => r.is_reconciled && fundingHistory.find(inv => inv.id === r.investment_id)?.account_type === type)
+                            .filter(r => r.is_reconciled && fundingHistory.find(inv => inv.id === r.investment_id)?.account_type === account.account_type)
                             .reduce((sum, r) => sum + parseFloat(r.amount), 0);
-                          const netValue = total - totalRedeemed;
+                          const netValue = totalInvested - totalRedeemed;
+                          const isSuspended = account.status === 'suspended';
+
                           return (
-                            <div key={type}>
-                              <span className="text-xs font-bold text-gray-400 block mb-1">{type} Account</span>
-                              <p className="text-sm font-bold text-gray-900">Total Value: <span className="text-gray-900">${netValue.toLocaleString()}</span></p>
+                            <div key={account.id} className={`p-4 rounded-2xl border transition-all ${isSuspended ? 'bg-red-50/20 border-red-100 opacity-80' : 'bg-[#F9FAFB]/50 border-gray-100 hover:border-amber-200'}`}>
+                              <div className="flex items-start justify-between mb-3">
+                                <div>
+                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">{account.account_type} Account</span>
+                                  <p className="text-sm font-bold text-gray-900">${netValue.toLocaleString()}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={async () => {
+                                      const newStatus = isSuspended ? 'active' : 'suspended';
+                                      try {
+                                        await apiClient.updateIRAAccountStatus(account.id, newStatus);
+                                        toast.success(`Account ${newStatus === 'active' ? 'activated' : 'suspended'} successfully`);
+                                        const updatedAccounts = await apiClient.getUserIRAAccounts(params.id);
+                                        setIraAccounts(updatedAccounts);
+                                      } catch (err) {
+                                        toast.error('Failed to update account status');
+                                      }
+                                    }}
+                                    className={`px-4 py-1.5 text-[10px] font-bold rounded-full transition-all border flex items-center gap-1.5 shadow-sm active:scale-95 ${isSuspended
+                                      ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                      : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                      }`}
+                                  >
+                                    {isSuspended ? <CheckCircle className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                                    {isSuspended ? 'Active' : 'Suspend'}
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="text-[10px] text-gray-500 font-medium">#{account.account_number || 'N/A'}</p>
                             </div>
                           );
-                        })}
-                        {fundingHistory.length === 0 && (
+                        }) : (
                           <p className="text-sm text-gray-400 italic">No linked accounts found</p>
                         )}
                       </div>
@@ -1096,12 +1125,12 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 </div>
                 <div className="space-y-2">
                   <h2 className="text-2xl font-bold text-gray-900 leading-tight">
-                    {investorData.status === 'suspended' ? 'Activate Account?' : 'Suspend Account?'}
+                    {investorData.status === 'suspended' ? 'Enable Login?' : 'Suspend Login?'}
                   </h2>
                   <p className="text-gray-500 text-sm leading-relaxed max-w-[280px]">
                     {investorData.status === 'suspended'
-                      ? "Are you sure you want to activate this account? The investor will be able to log in again."
-                      : "Are you sure you want to suspend this account? The investor will no longer be able to log in to the portal."}
+                      ? "Are you sure you want to enable login for this account? The investor will be able to log in again."
+                      : "Are you sure you want to suspend login for this account? The investor will no longer be able to log in to the portal."}
                   </p>
                 </div>
               </div>

@@ -20,6 +20,7 @@ type Investor = {
   avatar: string
   hasNewMessage: boolean
   status: string
+  accountStatus?: 'active' | 'suspended'
   kyc_status: string
 }
 
@@ -127,8 +128,8 @@ export default function AdminAssignedInvestorsPage() {
 
     if (sortConfig !== null) {
       filtered.sort((a, b) => {
-        const aVal = a[sortConfig.key]
-        const bVal = b[sortConfig.key]
+        const aVal = a[sortConfig.key] ?? ''
+        const bVal = b[sortConfig.key] ?? ''
 
         if (sortConfig.key === 'date') {
           const dateA = new Date(a.date).getTime()

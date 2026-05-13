@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, ConflictException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, ConflictException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { db } from '../../config/database';
 // import axios from 'axios';
 import { CreateAccountDto } from './dto/create-ira-account.dto';
@@ -118,6 +118,34 @@ export class AccountsService {
       throw new InternalServerErrorException(
         'Failed to save account: ' + (error.message || 'Unknown error')
       );
+    }
+  }
+
+  async updateAccountStatus(accountId: string, status: string, requestingUserRole: string) {
+    const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+    if (!adminRoles.includes(requestingUserRole)) {
+      throw new ForbiddenException('Only admins can update account status');
+    }
+
+    try {
+      const result = await db.query(
+        'UPDATE ira_accounts SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+        [status, accountId]
+      );
+
+      if (result.rows.length === 0) {
+        throw new NotFoundException('IRA account not found');
+      }
+
+      return {
+        success: true,
+        data: result.rows[0],
+        message: `Account status updated to ${status}`
+      };
+    } catch (error: any) {
+      console.error('❌ Error updating IRA account status:', error.message || error);
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) throw error;
+      throw new InternalServerErrorException('Failed to update account status');
     }
   }
 }
