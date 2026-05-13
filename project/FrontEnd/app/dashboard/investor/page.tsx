@@ -1091,9 +1091,29 @@ export default function InvestorPage() {
             className="px-8 py-6 bg-white border-t border-[#F3F4F6] flex flex-col items-center justify-center gap-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <span className="text-sm font-bold text-[#6B7280]">
-              Showing {activeInvestors.length} Active, {activeIraInvestors.length} IRA, {pendingInvestors.length} Pending, {suspendedInvestors.length} Suspended Login, and {suspendedIraInvestors.length} Suspended IRA Investors
-            </span>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-xs font-bold text-[#6B7280] bg-gray-50/50 px-6 py-3 rounded-2xl border border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-green-100 text-green-700 rounded-md border border-green-200 shadow-sm">{activeInvestors.length}</span>
+                <span>Active</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-blue-100 text-blue-700 rounded-md border border-blue-200 shadow-sm">{activeIraInvestors.length}</span>
+                <span>IRA</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-amber-100 text-amber-700 rounded-md border border-amber-200 shadow-sm">{pendingInvestors.length}</span>
+                <span>Pending</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-red-100 text-red-700 rounded-md border border-red-200 shadow-sm">{suspendedInvestors.length}</span>
+                <span>Suspended Login</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-rose-100 text-rose-700 rounded-md border border-rose-200 shadow-sm">{suspendedIraInvestors.length}</span>
+                <span>Suspended IRA</span>
+              </div>
+              <span className="ml-1 text-[#9CA3AF] font-medium">Investors</span>
+            </div>
 
             <div className="flex flex-wrap items-center justify-center gap-2 font-helvetica">
               <button
