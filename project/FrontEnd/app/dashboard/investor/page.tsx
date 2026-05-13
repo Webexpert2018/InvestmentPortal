@@ -327,7 +327,7 @@ export default function InvestorPage() {
                   e.stopPropagation();
                   setShowDeleteModal(true);
                 }}
-                disabled={!selectedInvestorId || !investors.filter(i => i.id === selectedInvestorId).every(r => r.accountStatus?.toLowerCase() === 'suspended')}
+                disabled={!selectedInvestorId || !investors.filter(i => i.id === selectedInvestorId).every(r => r.accountStatus?.toLowerCase() === 'suspended' || r.status?.toLowerCase() === 'pending')}
                 className="px-8 py-3 bg-white text-red-600 border border-red-200 text-sm font-bold rounded-full hover:bg-red-50 transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed flex items-center gap-2"
                 title={!selectedInvestorId ? 'Select an investor first' : 'All accounts must be suspended before deletion'}
               >
@@ -615,7 +615,7 @@ export default function InvestorPage() {
                             </td>
                           </tr>
                           {activeIraInvestors.map((investor) => {
-                            const rowKey = `${investor.id}:${investor.accountId || 'IRA'}`;
+                            const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
                             return (
                               <tr
                                 key={rowKey}
@@ -747,7 +747,7 @@ export default function InvestorPage() {
                             </td>
                           </tr>
                           {pendingInvestors.map((investor) => {
-                            const rowKey = `${investor.id}-${investor.accountType || 'Personal'}`;
+                            const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
                             return (
                               <tr
                                 key={rowKey}
@@ -799,7 +799,7 @@ export default function InvestorPage() {
                                   <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType || 'Personal'}</span>
                                 </td>
                                 <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">Active</span>
+                                  <span className="text-[11px] font-bold text-[#D1A94C] bg-amber-50 px-3 py-1 rounded-full border border-amber-100 italic">Pending</span>
                                 </td>
                                 <td className="px-3 sm:px-4 lg:px-6 py-4">
                                   <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-200 whitespace-nowrap">
@@ -996,7 +996,7 @@ export default function InvestorPage() {
                         </td>
                       </tr>
                       {suspendedIraInvestors.map((investor) => {
-                        const rowKey = `${investor.id}:${investor.accountId || 'IRA'}`;
+                        const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
                         return (
                           <tr
                             key={rowKey}
