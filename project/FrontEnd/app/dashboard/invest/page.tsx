@@ -192,19 +192,22 @@ export default function InvestPage() {
   }, [funds, selectedFundId]);
 
   const dynamicAccounts = useMemo(() => {
-    const list = [
+    const list: any[] = [
       {
         id: 'personal',
         label: 'Personal Account',
         value: 'Cash / Checking',
+        status: 'active'
       },
     ];
 
     userIraAccounts.forEach((acc, index) => {
+      const isSuspended = acc.status?.toLowerCase() === 'suspended';
       list.push({
         id: acc.id || `ira-${index}`,
         label: `${acc.account_type || 'IRA'} Account`,
-        value: 'IRA',
+        value: isSuspended ? 'Suspended' : 'IRA',
+        status: acc.status || 'active'
       });
     });
 
@@ -592,29 +595,35 @@ export default function InvestPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-3 px-2">
         {dynamicAccounts.map((account: any) => {
           const selected = account.id === selectedAccountId;
+          const isSuspended = account.status?.toLowerCase() === 'suspended';
           return (
             <button
               key={account.id}
               type="button"
+              disabled={isSuspended}
               onClick={() => setSelectedAccountId(account.id)}
               className={`flex w-full flex-col items-start rounded-2xl px-6 py-5 text-left transition ${selected
                 ? 'bg-white shadow-md ring-2 ring-[#274583] ring-offset-2'
-                : 'bg-white shadow-sm hover:shadow-md border border-[#E5E5EA]'
+                : isSuspended 
+                  ? 'bg-gray-50 opacity-60 cursor-not-allowed border-red-100' 
+                  : 'bg-white shadow-sm hover:shadow-md border border-[#E5E5EA]'
                 }`}
             >
               <div className="flex w-full items-center justify-between mb-1">
-                <p className="text-sm font-bold text-[#1F1F1F]">{account.label}</p>
+                <p className={`text-sm font-bold ${isSuspended ? 'text-gray-400' : 'text-[#1F1F1F]'}`}>{account.label}</p>
                 <div
                   className={`flex h-5 w-5 items-center justify-center rounded-full border ${selected ? 'border-[#274583] bg-[#274583]' : 'border-[#D4D4D4]'
-                    }`}
+                    } ${isSuspended ? 'opacity-0' : ''}`}
                 >
                   {selected && <div className="h-2 w-2 rounded-full bg-white" />}
                 </div>
               </div>
-              <p className="text-xs text-[#8E8E93]">{account.value}</p>
+              <p className={`text-xs font-bold uppercase tracking-wider ${isSuspended ? 'text-red-500' : 'text-[#8E8E93]'}`}>
+                {isSuspended ? 'Suspended' : account.value}
+              </p>
             </button>
           );
         })}
@@ -813,7 +822,7 @@ export default function InvestPage() {
               <div className="relative bg-[#ECEDEF] p-0 sm:p-10 flex flex-col items-center overflow-y-auto overflow-x-hidden max-h-[680px] lg:max-h-[820px] custom-scrollbar selection-none w-full min-w-0">
                 <div
                   className="w-full bg-white shadow-lg border border-[#D9DDE3] rounded-sm relative overflow-hidden transition-all shrink-0"
-                  style={{ 
+                  style={{
                     maxWidth: zoom <= 100 ? 'min(850px, 100%)' : '100%',
                     width: '100%',
                     aspectRatio: '1 / 1.414',

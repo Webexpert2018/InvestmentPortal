@@ -264,11 +264,12 @@ export default function DashboardPage() {
       .filter(inv => !inv.account_id && inv.is_reconciled)
       .reduce((sum, inv) => sum + parseFloat(inv.revised_amount || (parseFloat(inv.estimated_units) * (investorStats.currentNav || 0))), 0);
 
-    const list = [
+    const list: any[] = [
       {
         id: 'personal',
         name: 'Personal Account',
         subtitle: `Total Value: ${formatter.format(personalValue)}`,
+        status: 'active'
       },
     ];
 
@@ -281,6 +282,7 @@ export default function DashboardPage() {
         id: acc.id || `ira-${index}`,
         name: acc.account_type || 'IRA Account',
         subtitle: `Total Value: ${formatter.format(accountValue)}`,
+        status: acc.status || 'active'
       });
     });
 
@@ -881,7 +883,12 @@ export default function DashboardPage() {
                       className="flex items-center justify-between rounded-xl bg-[#F7F8FA] px-4 py-3"
                     >
                       <div>
-                        <p className="text-[13px] font-medium text-[#1F1F1F]">{acc.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[13px] font-medium text-[#1F1F1F]">{acc.name}</p>
+                          {acc.status?.toLowerCase() === 'suspended' && (
+                            <span className="bg-red-50 text-red-500 text-[10px] font-bold px-1.5 py-0.5 rounded border border-red-100 uppercase">Suspended</span>
+                          )}
+                        </div>
                         <p className="mt-1 text-[11px] text-[#8E8E93]">{acc.subtitle}</p>
                       </div>
                       <ChevronRight className="h-4 w-4 text-gray-300" />

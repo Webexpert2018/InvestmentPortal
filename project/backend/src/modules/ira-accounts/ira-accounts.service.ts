@@ -9,11 +9,59 @@ export class AccountsService {
 
   constructor() {}
 
+  async onModuleInit() {
+    console.log('🔄 Checking IRA accounts table for email column and history table...');
+    try {
+      // 1. Ensure email column exists
+      await db.query(`
+        DO $$ 
+        BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ira_accounts' AND column_name='email') THEN
+                ALTER TABLE ira_accounts ADD COLUMN email VARCHAR(255);
+            END IF;
+        END $$;
+      `);
+
+      // 2. Create history table if it doesn't exist
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS ira_account_status_history (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          ira_account_id UUID NOT NULL,
+          user_id UUID NOT NULL,
+          email VARCHAR(255),
+          old_status VARCHAR(50),
+          new_status VARCHAR(50),
+          changed_by_id UUID,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      // 3. Backfill email from users/investors table if it's null
+      await db.query(`
+        UPDATE ira_accounts ia
+        SET email = u.email
+        FROM users u
+        WHERE ia.user_id = u.id AND ia.email IS NULL;
+      `);
+      
+      await db.query(`
+        UPDATE ira_accounts ia
+        SET email = inv.email
+        FROM investors inv
+        WHERE ia.user_id = inv.id AND ia.email IS NULL;
+      `);
+
+      console.log('✅ IRA accounts system initialized successfully.');
+    } catch (error) {
+      console.error('❌ Error initializing IRA accounts system:', error);
+    }
+  }
+
   async getMyIraAccount(userId: string) {
     try {
       console.log('🔍 Fetching IRA accounts for user:', userId);
       const result = await db.query(
-        'SELECT * FROM ira_accounts WHERE user_id = $1::uuid ORDER BY created_at DESC',
+        'SELECT * FROM ira_accounts WHERE user_id = $1::uuid ORDER BY email ASC, account_type ASC',
         [userId]
       );
       return result.rows; // Returning all accounts
@@ -47,15 +95,22 @@ export class AccountsService {
         throw new Error('DUPLICATE_ACCOUNT_TYPE');
       }
 
-      // 1. Update/Upsert IRA Account - Now using account_number as the conflict target
+      // 1. Fetch user email for synchronization
+      const emailResult = await db.query(
+        'SELECT email FROM users WHERE id = $1 UNION SELECT email FROM investors WHERE id = $1',
+        [userId]
+      );
+      const userEmail = emailResult.rows[0]?.email || null;
+
+      // 2. Update/Upsert IRA Account - Now including email
       const upsertQuery = `
         INSERT INTO ira_accounts (
           user_id, account_number, account_type, custodian_name, beneficiary,
           middle_name, suffix, marital_status, mailing_address_same,
           mailing_address_1, mailing_address_2, mailing_city, mailing_state,
-          mailing_zip_code, mailing_country
+          mailing_zip_code, mailing_country, email
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
         )
         ON CONFLICT (account_number) DO UPDATE SET
           account_type = EXCLUDED.account_type,
@@ -71,6 +126,7 @@ export class AccountsService {
           mailing_state = EXCLUDED.mailing_state,
           mailing_zip_code = EXCLUDED.mailing_zip_code,
           mailing_country = EXCLUDED.mailing_country,
+          email = EXCLUDED.email,
           updated_at = CURRENT_TIMESTAMP
         RETURNING *;
       `;
@@ -90,7 +146,8 @@ export class AccountsService {
         dto.mailingCity,
         dto.mailingState,
         dto.mailingZipCode,
-        dto.mailingCountry
+        dto.mailingCountry,
+        userEmail
       ];
 
       const result = await db.query(upsertQuery, values);
@@ -121,26 +178,45 @@ export class AccountsService {
     }
   }
 
-  async updateAccountStatus(accountId: string, status: string, requestingUserRole: string) {
+  async updateAccountStatus(accountId: string, status: string, requestingUserRole: string, requestingUserId?: string) {
     const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
     if (!adminRoles.includes(requestingUserRole)) {
       throw new ForbiddenException('Only admins can update account status');
     }
 
     try {
-      const result = await db.query(
+      // 1. Fetch current data for audit log
+      const currentResult = await db.query(
+        'SELECT status, user_id, email FROM ira_accounts WHERE id = $1',
+        [accountId]
+      );
+
+      if (currentResult.rows.length === 0) {
+        throw new NotFoundException('IRA account not found');
+      }
+
+      const oldStatus = currentResult.rows[0].status;
+      const investorId = currentResult.rows[0].user_id;
+      const investorEmail = currentResult.rows[0].email;
+
+      // 2. Update the main entry (Current state)
+      const updateResult = await db.query(
         'UPDATE ira_accounts SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
         [status, accountId]
       );
 
-      if (result.rows.length === 0) {
-        throw new NotFoundException('IRA account not found');
-      }
+      // 3. INSERT NEW ENTRY in history table (Audit Log)
+      await db.query(
+        `INSERT INTO ira_account_status_history 
+         (ira_account_id, user_id, email, old_status, new_status, changed_by_id)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [accountId, investorId, investorEmail, oldStatus, status, requestingUserId || null]
+      );
 
       return {
         success: true,
-        data: result.rows[0],
-        message: `Account status updated to ${status}`
+        data: updateResult.rows[0],
+        message: `Account status updated to ${status} and logged in history`
       };
     } catch (error: any) {
       console.error('❌ Error updating IRA account status:', error.message || error);

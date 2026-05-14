@@ -17,6 +17,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 export default function InvestorProfilePage({ params }: { params: { id: string } }) {
   const { user } = useAuth();
   const isAdmin = user?.role && ['admin', 'executive_admin', 'fund_admin', 'investor_relations'].includes(user.role.trim().toLowerCase());
+  const isExecutiveAdmin = user?.role?.trim().toLowerCase() === 'executive_admin';
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('basic');
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -190,6 +191,43 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     }
   };
 
+  const handleMasterStatusToggle = async () => {
+    const hasActive = iraAccounts.length > 0
+      ? (iraAccounts.some((acc: any) => acc.status !== 'suspended') || investorData.status !== 'suspended')
+      : investorData.status !== 'suspended';
+    const targetStatus = hasActive ? 'suspended' : 'active';
+
+    try {
+      setIsSuspending(true);
+      
+      // Update ALL statuses: Main Login + All IRAs
+      const updates = [
+        apiClient.updateUserStatus(params.id, targetStatus)
+      ];
+      
+      iraAccounts.forEach((acc: any) => {
+        updates.push(apiClient.updateIRAAccountStatus(acc.id, targetStatus));
+      });
+
+      await Promise.all(updates);
+
+      toast.success(`All accounts ${targetStatus === 'active' ? 'activated' : 'suspended'} successfully`);
+      
+      // Refresh all data to ensure UI is in sync with DB
+      const [profile, accounts] = await Promise.all([
+        apiClient.getUserById(params.id),
+        apiClient.getUserIRAAccounts(params.id)
+      ]);
+      setInvestorData(profile);
+      setIraAccounts(accounts || []);
+    } catch (err: any) {
+      toast.error('Failed to update all account statuses');
+      console.error('Master toggle error:', err);
+    } finally {
+      setIsSuspending(false);
+    }
+  };
+
   const handleCancelInvite = async () => {
     try {
       setIsSuspending(true);
@@ -258,11 +296,36 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 ))}
               </div>
 
+              {/* Master Status Toggle Button - Header Top Right */}
+              {isExecutiveAdmin && investorData.status === 'suspended' && (
+                <div className="hidden sm:block">
+                  {(() => {
+                    const hasInactive = iraAccounts.length > 0
+                      ? iraAccounts.some((acc: any) => acc.status !== 'active')
+                      : investorData.status !== 'active';
+                    return (
+                      <button
+                        onClick={handleMasterStatusToggle}
+                        disabled={isSuspending}
+                        className={`h-10 px-6 rounded-full text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-2 border mb-2 ${hasInactive
+                          ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                          : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                          }`}
+                      >
+                        {isSuspending ? <Loader2 className="h-4 w-4 animate-spin" /> : (hasInactive ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />)}
+                        {hasInactive
+                          ? (iraAccounts.length > 0 ? 'Activate All Linked Accounts' : 'Activate Personal Account')
+                          : (iraAccounts.length > 0 ? 'Suspend All Linked Accounts' : 'Suspend Personal Account')}
+                      </button>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Profile Content */}
-          <div className="p-6">
+          <div className="p-2 sm:p-6">
             {activeTab === 'basic' && (
               <div className="space-y-8">
                 <div className="flex flex-col lg:flex-row gap-8">
@@ -369,7 +432,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 }`}
                             >
                               {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
-                              {investorData.status === 'suspended' ? 'Enable Login' : 'Suspend Login'}
+                              {investorData.status === 'suspended' ? 'Activate Login' : 'Suspend Login'}
                             </button>,
                             <button
                               key="assign"
@@ -532,12 +595,12 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                       }
                                     }}
                                     className={`px-4 py-1.5 text-[10px] font-bold rounded-full transition-all border flex items-center gap-1.5 shadow-sm active:scale-95 ${isSuspended
-                                      ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                      : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                      ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                      : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
                                       }`}
                                   >
-                                    {isSuspended ? <CheckCircle className="h-3 w-3" /> : <X className="h-3 w-3" />}
-                                    {isSuspended ? 'Active' : 'Suspend'}
+                                    {isSuspended ? <X className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
+                                    {isSuspended ? 'Suspended' : 'Activated'}
                                   </button>
                                 </div>
                               </div>
@@ -553,7 +616,16 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-8 border-t border-gray-50">
                       <div className="space-y-1">
                         <span className="text-xs font-bold text-gray-400">Account Status</span>
-                        <p className="text-sm font-bold text-green-600 capitalize">{investorData.status || 'Active'}</p>
+                        {(() => {
+                          const isMainActive = investorData.status === 'active';
+                          const hasActiveIra = iraAccounts.some((acc: any) => acc.status === 'active');
+                          const isOverallActive = isMainActive || hasActiveIra;
+                          return (
+                            <p className={`text-sm font-bold capitalize ${isOverallActive ? 'text-green-600' : 'text-red-600'}`}>
+                              {isOverallActive ? 'Active' : 'Suspended'}
+                            </p>
+                          );
+                        })()}
                       </div>
                       <div className="space-y-1">
                         <span className="text-xs font-bold text-gray-400">Assigned Investor Relation</span>
@@ -578,13 +650,41 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     </div>
 
                     {/* Persistent Note Section */}
-                    <div className="pt-8 space-y-3">
-                      <p className="text-xs font-semibold text-gray-400">Note (Private note visible only to you)</p>
-                      <div className="space-y-1">
-                        <p className="text-xs font-medium text-gray-400 italic">
-                          No private notes available for this investor.
-                        </p>
+                    <div className="pt-8 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6">
+                      <div className="space-y-3 flex-1">
+                        <p className="text-xs font-semibold text-gray-400">Note (Private note visible only to you)</p>
+                        <div className="space-y-1">
+                          <p className="text-xs font-medium text-gray-400 italic">
+                            No private notes available for this investor.
+                          </p>
+                        </div>
                       </div>
+
+                      {/* Master Status Toggle Button - Bottom Position */}
+                      {isExecutiveAdmin && investorData.status === 'suspended' && (
+                        <div className="flex-shrink-0">
+                          {(() => {
+                            const hasInactive = iraAccounts.length > 0
+                              ? iraAccounts.some((acc: any) => acc.status !== 'active')
+                              : investorData.status !== 'active';
+                            return (
+                              <button
+                                onClick={handleMasterStatusToggle}
+                                disabled={isSuspending}
+                                className={`px-8 py-3 rounded-full text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2 border ${hasInactive
+                                  ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                  : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                  }`}
+                              >
+                                {isSuspending ? <Loader2 className="h-4 w-4 animate-spin" /> : (hasInactive ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />)}
+                                {hasInactive
+                                  ? (iraAccounts.length > 0 ? 'Activate All Linked Accounts' : 'Activate Personal Account')
+                                  : (iraAccounts.length > 0 ? 'Suspend All Linked Accounts' : 'Suspend Personal Account')}
+                              </button>
+                            );
+                          })()}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1125,12 +1225,12 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 </div>
                 <div className="space-y-2">
                   <h2 className="text-2xl font-bold text-gray-900 leading-tight">
-                    {investorData.status === 'suspended' ? 'Enable Login?' : 'Suspend Login?'}
+                    {investorData.status === 'suspended' ? 'Activate Account?' : 'Suspend Account?'}
                   </h2>
                   <p className="text-gray-500 text-sm leading-relaxed max-w-[280px]">
                     {investorData.status === 'suspended'
-                      ? "Are you sure you want to enable login for this account? The investor will be able to log in again."
-                      : "Are you sure you want to suspend login for this account? The investor will no longer be able to log in to the portal."}
+                      ? "Are you sure you want to activate this account? The investor will be able to log in to the portal."
+                      : "Are you sure you want to suspend this account? The investor will no longer be able to log in to the portal."}
                   </p>
                 </div>
               </div>

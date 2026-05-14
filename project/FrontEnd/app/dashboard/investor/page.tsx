@@ -1009,7 +1009,17 @@ export default function InvestorPage() {
                               router.push(`/dashboard/investor/${investor.id}`);
                             }}
                           >
-                            <td className="px-3 sm:px-4 lg:px-6 py-4">
+                            <td
+                              className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#EF4444]' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (selectedRowKey === rowKey) {
+                                  clearSelection();
+                                } else {
+                                  handleSelectRow(investor);
+                                }
+                              }}
+                            >
                               <div className="flex items-center justify-center">
                                 <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-red-400 bg-white' : 'border-gray-200 bg-white'}`}>
                                   {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-red-400" />}
@@ -1150,74 +1160,6 @@ export default function InvestorPage() {
           </div>
         </div>
       </div>
-
-      {/* High-Severity Delete Warning Modal */}
-      {showDeleteModal && selectedInvestorId && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setShowDeleteModal(false)}>
-          <div className="w-full max-w-md rounded-[20px] bg-white shadow-2xl overflow-hidden transform transition-all relative" onClick={e => e.stopPropagation()}>
-            {/* Close Button */}
-            <button
-              onClick={() => setShowDeleteModal(false)}
-              className="absolute top-5 right-5 flex h-9 w-9 items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all z-10"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            <div className="p-8 text-center mt-4">
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Permanent Investor Delete</h2>
-
-              <div className="flex flex-col items-center justify-center gap-1 mb-6 px-4 py-3 bg-gray-50 rounded-2xl border border-gray-100">
-                <p className="text-sm font-bold text-[#1F3B6E]">
-                  {investors.find(i => i.id === selectedInvestorId)?.firstName || 'Unknown Investor'}
-                </p>
-                <p className="text-xs text-gray-500 font-medium break-all">
-                  {investors.find(i => i.id === selectedInvestorId)?.email || 'No Email Available'}
-                </p>
-              </div>
-
-              <p className="text-gray-500 text-sm leading-relaxed mb-8">
-                This action is <span className="font-bold text-red-600 uppercase">irreversible</span>.
-                It will permanently delete the investor’s profile, login credentials, all linked IRA accounts, and all historical records from the system.
-              </p>
-
-              <div className="bg-red-50/50 p-4 rounded-xl border border-red-100 mb-8 text-left">
-                <p className="text-[11px] font-bold text-red-600 uppercase tracking-wider mb-1">Safety Check Confirmed</p>
-                <p className="text-xs text-red-700">All associated accounts are currently suspended. Deleted data cannot be recovered.</p>
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <button
-                  disabled={isDeleting}
-                  onClick={async () => {
-                    setIsDeleting(true);
-                    try {
-                      await apiClient.deleteUser(selectedInvestorId);
-                      toast.success('Investor and all related data delete successfully');
-                      setShowDeleteModal(false);
-                      clearSelection();
-                      fetchInvestors();
-                    } catch (error: any) {
-                      toast.error(error.response?.data?.message || 'Failed to delete investor');
-                    } finally {
-                      setIsDeleting(false);
-                    }
-                  }}
-                  className="w-full py-4 bg-red-600 text-white text-sm font-bold rounded-2xl hover:bg-red-700 shadow-lg shadow-red-100 transition-all flex items-center justify-center gap-2"
-                >
-                  {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Yes, Delete Permanently'}
-                </button>
-                <button
-                  disabled={isDeleting}
-                  onClick={() => setShowDeleteModal(false)}
-                  className="w-full py-4 bg-gray-50 text-gray-600 text-sm font-bold rounded-2xl hover:bg-gray-100 transition-all"
-                >
-                  Cancel and Keep Data
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Admin Add IRA Modal */}
       {showAdminIraModal && selectedInvestorId && (
