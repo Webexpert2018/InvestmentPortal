@@ -305,19 +305,32 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       ? iraAccounts.some((acc: any) => acc.status !== 'active')
                       : investorData.status !== 'active';
                     return (
-                      <button
-                        onClick={handleMasterStatusToggle}
-                        disabled={isSuspending}
-                        className={`h-10 px-6 rounded-full text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-2 border mb-2 ${hasInactive
-                          ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                          : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                          }`}
-                      >
-                        {isSuspending ? <Loader2 className="h-4 w-4 animate-spin" /> : (hasInactive ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />)}
-                        {hasInactive
-                          ? (iraAccounts.length > 0 ? 'Activate All Linked Accounts' : 'Activate Personal Account')
-                          : (iraAccounts.length > 0 ? 'Suspend All Linked Accounts' : 'Suspend Personal Account')}
-                      </button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={handleMasterStatusToggle}
+                              disabled={isSuspending}
+                              className={`h-10 px-6 rounded-full text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-2 border mb-2 ${hasInactive
+                                ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                }`}
+                            >
+                              {isSuspending ? <Loader2 className="h-4 w-4 animate-spin" /> : (hasInactive ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />)}
+                              {hasInactive
+                                ? (iraAccounts.length > 0 ? 'Activate Accounts' : 'Activate Account')
+                                : (iraAccounts.length > 0 ? 'Suspend Accounts' : 'Suspend Account')}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
+                            <p className="text-[11px] font-medium">
+                              {hasInactive
+                                ? 'Click here to activate all linked accounts.'
+                                : 'Click here to suspend all linked accounts.'}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     );
                   })()}
                 </div>
@@ -420,21 +433,34 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                               {isResetting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Shield className="h-3 w-3" />}
                               Forgot Password
                             </button>,
-                            <button
-                              key="suspend"
-                              onClick={() => setShowSuspendModal(true)}
-                              disabled={isSuspending || isPending}
-                              className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${!isPending
-                                ? (investorData.status === 'suspended'
-                                  ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                  : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                                )
-                                : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
-                                }`}
-                            >
-                              {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
-                              {investorData.status === 'suspended' ? 'Activate Login' : 'Suspend Login'}
-                            </button>,
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    key="suspend"
+                                    onClick={() => setShowSuspendModal(true)}
+                                    disabled={isSuspending || isPending}
+                                    className={`h-10 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-2 whitespace-nowrap shadow-sm ${!isPending
+                                      ? (investorData.status === 'suspended'
+                                        ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                        : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                      )
+                                      : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                                      }`}
+                                  >
+                                    {isSuspending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
+                                    {investorData.status === 'suspended' ? 'Activate Login' : 'Suspend Login'}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
+                                  <p className="text-[11px] font-medium">
+                                    {investorData.status === 'suspended'
+                                      ? 'Click here to activate user login.'
+                                      : 'Click here to suspend user login.'}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>,
                             <button
                               key="assign"
                               onClick={async () => {
@@ -688,19 +714,32 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                               ? iraAccounts.some((acc: any) => acc.status !== 'active')
                               : investorData.status !== 'active';
                             return (
-                              <button
-                                onClick={handleMasterStatusToggle}
-                                disabled={isSuspending}
-                                className={`px-8 py-3 rounded-full text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2 border ${hasInactive
-                                  ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                  : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                                  }`}
-                              >
-                                {isSuspending ? <Loader2 className="h-4 w-4 animate-spin" /> : (hasInactive ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />)}
-                                {hasInactive
-                                  ? (iraAccounts.length > 0 ? 'Activate All Linked Accounts' : 'Activate Personal Account')
-                                  : (iraAccounts.length > 0 ? 'Suspend All Linked Accounts' : 'Suspend Personal Account')}
-                              </button>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      onClick={handleMasterStatusToggle}
+                                      disabled={isSuspending}
+                                      className={`px-8 py-3 rounded-full text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2 border ${hasInactive
+                                        ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                        : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                        }`}
+                                    >
+                                      {isSuspending ? <Loader2 className="h-4 w-4 animate-spin" /> : (hasInactive ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />)}
+                                      {hasInactive
+                                        ? (iraAccounts.length > 0 ? 'Activate Accounts' : 'Activate Account')
+                                        : (iraAccounts.length > 0 ? 'Suspend Accounts' : 'Suspend Account')}
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
+                                    <p className="text-[11px] font-medium">
+                                      {hasInactive
+                                        ? 'Click here to activate all linked accounts.'
+                                        : 'Click here to suspend all linked accounts.'}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             );
                           })()}
                         </div>
