@@ -714,7 +714,7 @@ export class UsersService implements OnModuleInit {
     }
 
     // Execute updates on all relevant tables
-    const updatePromises = tablesToUpdate.map(table => 
+    const updatePromises = tablesToUpdate.map(table =>
       db.query(
         `UPDATE ${table} SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, email, status`,
         [status, userId]
@@ -722,7 +722,7 @@ export class UsersService implements OnModuleInit {
     );
 
     const results = await Promise.all(updatePromises);
-    
+
     // Return the result from the first updated table
     return results[0].rows[0];
   }
@@ -1004,7 +1004,7 @@ export class UsersService implements OnModuleInit {
 
     let tableName = '';
     let userStatus = '';
-    
+
     if (userRes.rows.length > 0) {
       tableName = 'users';
       userStatus = userRes.rows[0].status;
@@ -1039,16 +1039,16 @@ export class UsersService implements OnModuleInit {
     // Delete related records and then user
     try {
       await db.query('BEGIN');
-      
+
       // Delete IRA accounts if investor
       if (tableName === 'investors') {
         await db.query('DELETE FROM ira_accounts WHERE user_id = $1', [userId]);
       }
-      
+
       await db.query('DELETE FROM user_otps WHERE user_id = $1', [userId]);
       await db.query('DELETE FROM user_sessions WHERE user_id = $1', [userId]);
       await db.query(`DELETE FROM ${tableName} WHERE id = $1`, [userId]);
-      
+
       await db.query('COMMIT');
       return { success: true, message: 'User and all related data deleted successfully' };
     } catch (error) {

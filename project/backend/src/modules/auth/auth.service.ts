@@ -447,8 +447,8 @@ export class AuthService {
     // Check if email already exists in users or staff
     const existing = await this.findUserAcrossTables(email);
     if (existing && existing.tableName !== 'investors') {
-       // Allow investors to re-signup if they are pending, but others not
-       throw new BadRequestException('An account with this email already exists.');
+      // Allow investors to re-signup if they are pending, but others not
+      throw new BadRequestException('An account with this email already exists.');
     }
 
     // Store in user_otps (user_id is null for initial signup)
@@ -486,7 +486,7 @@ export class AuthService {
   async checkEmailAvailability(email: string) {
     const existing = await this.findUserAcrossTables(email);
     if (!existing) return { available: true };
-    
+
     // If it's an investor, check if they are pending. Pending investors can still signup.
     if (existing.tableName === 'investors' && existing.user.status === 'pending') {
       return { available: true };
@@ -546,7 +546,7 @@ export class AuthService {
 
   async verifyInvitationToken(token: string) {
     console.log(`[AuthService] Verifying invitation token: "${token}"`);
-    
+
     // 1. Find the OTP record
     const otpResult = await db.query(
       'SELECT user_id, expires_at, is_used, type FROM user_otps WHERE otp = $1',
