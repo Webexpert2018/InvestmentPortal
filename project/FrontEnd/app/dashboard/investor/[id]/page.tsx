@@ -681,7 +681,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         <span className="text-xs font-bold text-gray-400">Assigned Accountant</span>
                         <p className="text-sm font-bold text-gray-900">{investorData.assignedAccountantName || <span className="text-gray-400 italic">Not assigned</span>}</p>
                       </div>
-                      <div className="space-y-1 text-right sm:text-left">
+                      {/* <div className="space-y-1 text-right sm:text-left">
                         <span className="text-xs font-bold text-gray-400">Last Login</span>
                         <p className="text-sm font-bold text-gray-900">
                           {investorData.lastLogin ? new Date(investorData.lastLogin).toLocaleString('en-US', {
@@ -692,7 +692,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             minute: '2-digit'
                           }) : 'Never'}
                         </p>
-                      </div>
+                      </div> */}
                     </div>
 
                     {/* Persistent Note Section */}
