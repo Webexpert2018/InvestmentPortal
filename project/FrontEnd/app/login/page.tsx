@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bitcoin, Wallet, TrendingUp, Eye, EyeOff } from 'lucide-react';
 import { formatUSD, formatBTC } from '@/lib/utils/bitcoin';
-import  { DashboardLayout }  from '@/components/DashboardLayout';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -104,11 +104,10 @@ export default function DashboardPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium">{formatBTC(tx.amount)}</p>
-                      <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                        tx.status === 'completed' ? 'bg-green-100 text-green-700' :
+                      <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${tx.status === 'completed' ? 'bg-green-100 text-green-700' :
                         tx.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
+                          'bg-red-100 text-red-700'
+                        }`}>
                         {tx.status}
                       </span>
                     </div>

@@ -141,7 +141,7 @@ export default function IRAPage() {
 
     accountType: selectedIra?.account_type || '-',
     accountNumber: selectedIra?.account_number || '-',
-    accountStatus: user?.status ? (user.status.charAt(0).toUpperCase() + user.status.slice(1)) : '-',
+    accountStatus: selectedIra?.status ? (selectedIra.status.charAt(0).toUpperCase() + selectedIra.status.slice(1)) : (user?.status ? (user.status.charAt(0).toUpperCase() + user.status.slice(1)) : '-'),
     accountOpenDate: selectedIra?.created_at ? new Date(selectedIra.created_at).toLocaleDateString() : (user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'),
     accountUpdatedDate: selectedIra?.updated_at ? new Date(selectedIra.updated_at).toLocaleDateString() : '-',
     custodian: selectedIra?.custodian_name || '-',
@@ -494,7 +494,9 @@ export default function IRAPage() {
                           <p className="font-bold text-[#1F1F1F] font-helvetica text-[15px]">
                             ${calculateBalance(acc.id).toLocaleString()}
                           </p>
-                          <p className="text-[11px] text-[#2BB673] font-medium font-helvetica">Active Account</p>
+                          <p className={`text-[11px] font-medium font-helvetica ${acc.status?.toLowerCase() === 'suspended' ? 'text-red-500' : 'text-[#2BB673]'}`}>
+                            {acc.status?.toLowerCase() === 'suspended' ? 'Suspended Account' : 'Active Account'}
+                          </p>
                         </td>
                         <td className="px-6 py-5 text-center">
                           <button className="h-8 px-4 rounded-full border border-[#E5E7EB] text-[12px] font-bold text-[#4B4B4B] hover:bg-[#F5F5F5] transition-colors">
@@ -510,6 +512,15 @@ export default function IRAPage() {
           </div>
         ) : (
           <div className="mt-4 rounded-sm border border-[#F0F0F0] bg-white shadow-sm overflow-hidden">
+            {/* Suspended Banner */}
+            {selectedIra?.status === 'suspended' && (
+              <div className="bg-red-50 border-b border-red-100 px-6 py-3 flex items-center gap-3">
+                <X className="h-5 w-5 text-red-500" />
+                <p className="text-sm font-bold text-red-700 font-helvetica">
+                  This account is currently suspended. New investments and some actions are restricted.
+                </p>
+              </div>
+            )}
             {/* SECTION 1: IRA Account Overview */}
             <div className="p-6">
               <div className="flex items-center justify-between mb-5">
@@ -529,6 +540,7 @@ export default function IRAPage() {
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 <Field label="Account Type" value={d.accountType} />
                 <Field label="Account Number" value={d.accountNumber} />
+                <Field label="Account Status" value={d.accountStatus} />
                 <Field label="Account Holder Name" value={d.fullAccountHolderName} />
                 <Field label="Custodian" value={d.custodian} />
                 <Field label="Beneficiary" value={d.beneficiary} />

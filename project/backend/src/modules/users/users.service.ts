@@ -541,7 +541,10 @@ export class UsersService implements OnModuleInit {
         SELECT id, first_name || ' ' || last_name as full_name FROM users
       ) acc ON i.assigned_accountant_id = acc.id
       ORDER BY 
-        CASE WHEN i.status = 'pending' THEN 0 ELSE 1 END,
+        CASE WHEN i.status = 'pending' THEN 0 
+             WHEN i.status = 'suspended' THEN 2
+             ELSE 1 END,
+        CASE WHEN ua.account_status = 'suspended' THEN 1 ELSE 0 END ASC,
         i.created_at DESC
     `);
 
@@ -685,34 +688,43 @@ export class UsersService implements OnModuleInit {
       throw new ForbiddenException('Only admins can update user status');
     }
 
-    // Determine which table handles this user
-    let tableName: string | null = null;
+    // Determine which tables to update
+    const tablesToUpdate: string[] = [];
 
-    const userCheck = await db.query('SELECT id FROM users WHERE id = $1', [userId]);
+    // 1. Always check/update users table (main login)
+    const userCheck = await db.query('SELECT id, email FROM users WHERE id = $1', [userId]);
     if (userCheck.rows.length > 0) {
-      tableName = 'users';
-    } else {
-      const investorCheck = await db.query('SELECT id FROM investors WHERE id = $1', [userId]);
-      if (investorCheck.rows.length > 0) {
-        tableName = 'investors';
-      } else {
-        const staffCheck = await db.query('SELECT id FROM staff WHERE id = $1', [userId]);
-        if (staffCheck.rows.length > 0) {
-          tableName = 'staff';
-        }
-      }
+      tablesToUpdate.push('users');
     }
 
-    if (!tableName) {
-      throw new NotFoundException('User not found');
+    // 2. Check/update investors table (profile)
+    const investorCheck = await db.query('SELECT id, email FROM investors WHERE id = $1', [userId]);
+    if (investorCheck.rows.length > 0) {
+      tablesToUpdate.push('investors');
     }
 
-    const result = await db.query(
-      `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, email, status`,
-      [status, userId]
+    // 3. Check/update staff table
+    const staffCheck = await db.query('SELECT id FROM staff WHERE id = $1', [userId]);
+    if (staffCheck.rows.length > 0) {
+      tablesToUpdate.push('staff');
+    }
+
+    if (tablesToUpdate.length === 0) {
+      throw new NotFoundException('User not found in any record');
+    }
+
+    // Execute updates on all relevant tables
+    const updatePromises = tablesToUpdate.map(table => 
+      db.query(
+        `UPDATE ${table} SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, email, status`,
+        [status, userId]
+      )
     );
 
-    return result.rows[0];
+    const results = await Promise.all(updatePromises);
+    
+    // Return the result from the first updated table
+    return results[0].rows[0];
   }
 
   async updateKycStatus(userId: string, kycStatus: string, requestingUserRole: string, requestingUserId?: string) {

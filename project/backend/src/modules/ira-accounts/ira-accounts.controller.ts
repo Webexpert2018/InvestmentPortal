@@ -59,6 +59,6 @@ export class AccountsController {
     @Body() body: { status: string },
     @CurrentUser() user: any
   ) {
-    return this.accountsService.updateAccountStatus(id, body.status, user.role);
+    return this.accountsService.updateAccountStatus(id, body.status, user.role, user.userId);
   }
 }
