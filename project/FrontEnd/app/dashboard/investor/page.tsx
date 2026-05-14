@@ -321,20 +321,6 @@ export default function InvestorPage() {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row sm:flex-wrap xl:flex-nowrap items-stretch sm:items-center gap-3 w-full xl:w-auto xl:justify-end">
-            {currentUser?.role === 'executive_admin' && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDeleteModal(true);
-                }}
-                disabled={!selectedInvestorId || !investors.filter(i => i.id === selectedInvestorId).every(r => r.accountStatus?.toLowerCase() === 'suspended' || r.status?.toLowerCase() === 'pending')}
-                className="px-8 py-3 bg-white text-red-600 border border-red-200 text-sm font-bold rounded-full hover:bg-red-50 transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed flex items-center gap-2"
-                title={!selectedInvestorId ? 'Select an investor first' : 'All accounts must be suspended before deletion'}
-              >
-                <X className="h-4 w-4" />
-                Investor Delete
-              </button>
-            )}
             <button
               onClick={(e) => {
                 e.stopPropagation();
