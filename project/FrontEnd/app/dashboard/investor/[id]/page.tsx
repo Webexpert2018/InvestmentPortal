@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { AdminAddIraModal } from '@/components/ira/AdminAddIraModal';
+import { AdminEditProfileModal } from '@/components/investor/AdminEditProfileModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
 export default function InvestorProfilePage({ params }: { params: { id: string } }) {
@@ -48,13 +49,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [showSuspendModal, setShowSuspendModal] = useState(false);
   const [showAdminIraModal, setShowAdminIraModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [isEditingTaxId, setIsEditingTaxId] = useState(false);
-  const [editedTaxId, setEditedTaxId] = useState('');
-  const [isSavingTaxId, setIsSavingTaxId] = useState(false);
 
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [editedFullName, setEditedFullName] = useState('');
-  const [isSavingName, setIsSavingName] = useState(false);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
 
 
   const [iraAccounts, setIraAccounts] = useState<any[]>([]);
@@ -72,8 +68,6 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
           apiClient.getUserIRAAccounts(params.id)
         ]);
         setInvestorData(profile);
-        setEditedTaxId(profile.taxId || '');
-        setEditedFullName(`${profile.firstName || ''} ${profile.lastName || ''}`.trim());
         setKycDocuments(docs);
         setFundingHistory(investments);
         setRedemptionHistory(redemptions);
@@ -252,56 +246,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     }
   };
 
-  const handleSaveTaxId = async () => {
-    const cleanTaxId = editedTaxId.replace(/\D/g, '');
-    if (cleanTaxId.length !== 9) {
-      toast.error('Tax ID must be exactly 9 digits');
-      return;
-    }
 
-    try {
-      setIsSavingTaxId(true);
-      await apiClient.updateUser(params.id, { taxId: cleanTaxId });
-      setInvestorData({ ...investorData, taxId: cleanTaxId });
-      setIsEditingTaxId(false);
-      toast.success('Tax ID updated successfully');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to update Tax ID');
-    } finally {
-      setIsSavingTaxId(false);
-    }
-  };
-
-  const handleSaveName = async () => {
-    const trimmedName = editedFullName.trim();
-    if (!trimmedName) {
-      toast.error('Full name is required');
-      return;
-    }
-
-    // Split full name into first and last name
-    const nameParts = trimmedName.split(' ');
-    const firstName = nameParts[0];
-    const lastName = nameParts.slice(1).join(' ');
-
-    try {
-      setIsSavingName(true);
-      await apiClient.updateUser(params.id, {
-        firstName: firstName,
-        lastName: lastName
-      });
-      setInvestorData({
-        ...investorData,
-        firstName: firstName,
-        lastName: lastName
-      });
-      setIsEditingName(false);
-      toast.success('Investor name updated successfully');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to update investor name');
-    } finally {
-      setIsSavingName(false);
-    }
+  const handleProfileUpdateSuccess = (updatedInvestor: any) => {
+    setInvestorData(updatedInvestor);
+    // Refresh other data if needed
   };
 
   return (
@@ -410,54 +358,20 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     <div className="space-y-4">
                       {/* Name and Meta Info */}
                       <div>
-                        {isEditingName ? (
-                          <div className="flex flex-col sm:flex-row gap-2 mb-4 items-end">
-                            <div className="w-full sm:max-w-md lg:max-w-lg">
-                              <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Full Name</label>
-                              <input
-                                type="text"
-                                value={editedFullName}
-                                onChange={(e) => setEditedFullName(e.target.value)}
-                                className="w-full h-10 px-3 text-lg font-bold text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FCD34D]"
-                                placeholder="Full Name"
-                                autoFocus
-                              />
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={handleSaveName}
-                                disabled={isSavingName}
-                                className="h-10 px-6 bg-[#FCD34D] text-[#1F1F1F] font-bold rounded-lg hover:bg-[#FBD24E] disabled:opacity-50 transition-colors shadow-sm"
-                              >
-                                {isSavingName ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setIsEditingName(false);
-                                  setEditedFullName(`${investorData.firstName || ''} ${investorData.lastName || ''}`.trim());
-                                }}
-                                className="h-10 px-6 bg-gray-100 text-gray-600 font-bold rounded-lg hover:bg-gray-200 transition-colors"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-3 group">
-                            <h2 className="text-3xl font-bold text-[#1F1F1F] leading-tight">
-                              {investorData.firstName} {investorData.lastName}
-                            </h2>
-                            {canEditProfile && (
-                              <button
-                                onClick={() => setIsEditingName(true)}
-                                className="p-1.5 text-gray-400 hover:text-[#2A4474] hover:bg-gray-100 rounded-md transition-all"
-                                title="Edit Name"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </button>
-                            )}
-                          </div>
-                        )}
+                        <div className="flex items-center gap-3 group">
+                          <h2 className="text-3xl font-bold text-[#1F1F1F] leading-tight">
+                            {investorData.firstName} {investorData.lastName}
+                          </h2>
+                          {canEditProfile && (
+                            <button
+                              onClick={() => setIsEditProfileModalOpen(true)}
+                              className="p-1.5 text-gray-400 hover:text-[#2A4474] hover:bg-amber-50 rounded-lg transition-all duration-300"
+                              title="Edit Profile"
+                            >
+                              <Pencil className="h-5 w-5" />
+                            </button>
+                          )}
+                        </div>
                         <div className="flex flex-col gap-2 mt-2 space-y-1">
                           <p className="text-sm text-gray-400 font-medium flex items-center gap-1.5">
                             <Calendar className="h-4 w-4 shrink-0" />
@@ -602,57 +516,19 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-gray-400">Tax ID</span>
-                          {canEditProfile && !isEditingTaxId && (
+                          {canEditProfile && (
                             <button
-                              onClick={() => setIsEditingTaxId(true)}
-                              className="text-[10px] font-bold text-[#2A4474] hover:underline"
+                              onClick={() => setIsEditProfileModalOpen(true)}
+                              className="p-1.5 text-gray-400 hover:text-[#2A4474] hover:bg-amber-50 rounded-lg transition-all duration-300"
+                              title="Edit Tax ID"
                             >
-                              Edit
+                              <Pencil className="h-4 w-4" />
                             </button>
                           )}
                         </div>
-                        {isEditingTaxId ? (
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={editedTaxId}
-                              maxLength={11}
-                              onChange={(e) => {
-                                let val = e.target.value.replace(/\D/g, '');
-                                if (val.length > 9) val = val.slice(0, 9);
-
-                                let formatted = val;
-                                if (val.length > 3 && val.length <= 5) {
-                                  formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
-                                } else if (val.length > 5) {
-                                  formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
-                                }
-                                setEditedTaxId(formatted);
-                              }}
-                              className="flex-1 h-8 px-2 text-sm font-bold text-gray-900 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#FCD34D]"
-                            />
-                            <button
-                              onClick={handleSaveTaxId}
-                              disabled={isSavingTaxId}
-                              className="px-2 h-8 text-[10px] font-bold bg-[#FCD34D] text-[#1F1F1F] rounded-md hover:bg-[#FBD24E] disabled:opacity-50"
-                            >
-                              {isSavingTaxId ? '...' : 'Save'}
-                            </button>
-                            <button
-                              onClick={() => {
-                                setIsEditingTaxId(false);
-                                setEditedTaxId(investorData.taxId || '');
-                              }}
-                              className="px-2 h-8 text-[10px] font-bold bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <p className="text-sm font-bold text-gray-900">
-                            {investorData.taxId ? (investorData.taxId.length === 9 && !investorData.taxId.includes('-') ? `${investorData.taxId.slice(0, 3)}-${investorData.taxId.slice(3, 5)}-${investorData.taxId.slice(5)}` : investorData.taxId) : 'Not provided'}
-                          </p>
-                        )}
+                        <p className="text-sm font-bold text-gray-900">
+                          {investorData.taxId ? (investorData.taxId.length === 9 && !investorData.taxId.includes('-') ? `${investorData.taxId.slice(0, 3)}-${investorData.taxId.slice(3, 5)}-${investorData.taxId.slice(5)}` : investorData.taxId) : 'Not provided'}
+                        </p>
                       </div>
 
                       <div className="space-y-1.5">
@@ -1515,7 +1391,13 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
           </div>
         </div>
       )}
+      {/* Admin Edit Profile Modal */}
+      <AdminEditProfileModal
+        isOpen={isEditProfileModalOpen}
+        onClose={() => setIsEditProfileModalOpen(false)}
+        onSuccess={handleProfileUpdateSuccess}
+        investor={investorData}
+      />
     </DashboardLayout>
-
   );
 }

@@ -24,9 +24,14 @@ export class UsersController {
 
   @Put('profile')
 async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDto) {
+  // Check current profile to see if names are actually changing
+  const currentProfile = await this.usersService.getProfile(user.userId);
+  const firstNameChanged = updateDto.firstName !== undefined && updateDto.firstName !== currentProfile.firstName;
+  const lastNameChanged = updateDto.lastName !== undefined && updateDto.lastName !== currentProfile.lastName;
+
   // Restrict name changes to only admin/executive_admin
   const isAdmin = ['admin', 'executive_admin'].includes(user.role?.trim().toLowerCase());
-  if (!isAdmin && (updateDto.firstName || updateDto.lastName)) {
+  if (!isAdmin && (firstNameChanged || lastNameChanged)) {
     throw new BadRequestException('You do not have permission to change your name. Please contact support.');
   }
 

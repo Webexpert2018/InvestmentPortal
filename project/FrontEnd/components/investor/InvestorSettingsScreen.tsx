@@ -862,6 +862,15 @@ export function InvestorSettingsScreen() {
 
                   setSaving(true);
                   try {
+                    const countryObj = Country.getAllCountries().find(c => c.isoCode === profile.country || c.name === profile.country);
+                    const countryName = countryObj?.name || profile.country;
+                    
+                    let stateName = profile.state;
+                    if (countryObj && profile.state) {
+                      const stateObj = State.getStatesOfCountry(countryObj.isoCode).find(s => s.isoCode === profile.state || s.name === profile.state);
+                      stateName = stateObj?.name || profile.state;
+                    }
+
                     const updateData = {
                       firstName: profile.firstName,
                       lastName: profile.lastName,
@@ -871,9 +880,9 @@ export function InvestorSettingsScreen() {
                       addressLine1: profile.addressLine1,
                       addressLine2: profile.addressLine2,
                       city: profile.city,
-                      state: profile.state,
+                      state: stateName,
                       zipCode: profile.zipCode,
-                      country: profile.country,
+                      country: countryName,
                       taxId: profile.ssn,
                     };
 
