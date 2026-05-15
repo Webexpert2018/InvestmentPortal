@@ -522,7 +522,7 @@ export default function InvestorPage() {
                                     )}
                                   </div>
                                   <div>
-                                    <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || '-'}</p>
+                                    <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
                                   </div>
                                 </div>
                               </td>
@@ -653,7 +653,7 @@ export default function InvestorPage() {
                                       )}
                                     </div>
                                     <div>
-                                      <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || '-'}</p>
+                                      <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
                                     </div>
                                   </div>
                                 </td>
@@ -774,7 +774,7 @@ export default function InvestorPage() {
                                       />
                                     </div>
                                     <div>
-                                      <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || '-'}</p>
+                                      <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
                                     </div>
                                   </div>
                                 </td>
@@ -785,7 +785,7 @@ export default function InvestorPage() {
                                   <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType || 'Personal'}</span>
                                 </td>
                                 <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="text-[11px] font-bold text-[#D1A94C] bg-amber-50 px-3 py-1 rounded-full border border-amber-100 italic">Pending</span>
+                                  <span className="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">Active</span>
                                 </td>
                                 <td className="px-3 sm:px-4 lg:px-6 py-4">
                                   <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-200 whitespace-nowrap">
@@ -902,7 +902,7 @@ export default function InvestorPage() {
                                       )}
                                     </div>
                                     <div>
-                                      <p className="text-sm font-bold text-gray-400 line-through decoration-gray-300 whitespace-nowrap">{investor.firstName} {investor.lastName || '-'}</p>
+                                      <p className="text-sm font-bold text-gray-400 line-through decoration-gray-300 whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
                                     </div>
                                   </div>
                                 </td>
@@ -1032,7 +1032,7 @@ export default function InvestorPage() {
                                   )}
                                 </div>
                                 <div>
-                                  <p className="text-sm font-bold text-gray-500 whitespace-nowrap">{investor.firstName} {investor.lastName || '-'}</p>
+                                  <p className="text-sm font-bold text-gray-500 whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
                                 </div>
                               </div>
                             </td>
