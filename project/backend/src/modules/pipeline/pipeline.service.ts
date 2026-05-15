@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { db } from '../../config/database';
 import { NotificationsService } from '../notifications/notifications.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class PipelineService {
@@ -47,7 +48,7 @@ export class PipelineService {
       LEFT JOIN staff s ON i.assigned_ir_id = s.id
       LEFT JOIN users acc ON i.assigned_accountant_id = acc.id
       LEFT JOIN investments inv ON i.id = inv.user_id AND inv.is_reconciled = true
-      WHERE (i.pipeline_stage_id IS NOT NULL OR i.status = 'pending')
+      WHERE (i.pipeline_stage_id IS NOT NULL OR i.status IN ('pending', 'inactive'))
       ${isIR ? 'AND i.assigned_ir_id = $1' : ''}
       GROUP BY i.id, i.email, i.phone, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, i.assigned_accountant_id, s.full_name, acc.first_name, acc.last_name, i.updated_at, i.expected_future_investment, i.pipeline_note, i.status
       ORDER BY i.updated_at DESC
@@ -59,9 +60,9 @@ export class PipelineService {
     // 4. Group investors by stage
     return stages.map((stage, index) => ({
       ...stage,
-      count: investors.filter(i => i.pipeline_stage_id === stage.id || (index === 0 && (i.pipeline_stage_id === null || i.pipeline_stage_id === undefined) && i.status === 'pending')).length,
+      count: investors.filter(i => i.pipeline_stage_id === stage.id || (index === 0 && (i.pipeline_stage_id === null || i.pipeline_stage_id === undefined) && (i.status === 'pending' || i.status === 'inactive'))).length,
       investors: investors
-        .filter(i => i.pipeline_stage_id === stage.id || (index === 0 && (i.pipeline_stage_id === null || i.pipeline_stage_id === undefined) && i.status === 'pending'))
+        .filter(i => i.pipeline_stage_id === stage.id || (index === 0 && (i.pipeline_stage_id === null || i.pipeline_stage_id === undefined) && (i.status === 'pending' || i.status === 'inactive')))
         .map(i => ({
           id: i.id,
           name: i.name || 'Invited Investor',
@@ -74,6 +75,7 @@ export class PipelineService {
           totalInvestment: parseFloat(i.total_investment),
           expectedFutureInvestment: parseFloat(i.expected_future_investment || 0),
           pipelineNote: i.pipeline_note || '',
+          status: i.status,
           avatar: (i.name || 'Invited Investor')
             .split(' ')
             .filter((n: string) => !!n)
@@ -135,6 +137,53 @@ export class PipelineService {
   private async dbGetInvestor(id: string) {
     const result = await db.query('SELECT * FROM investors WHERE id = $1', [id]);
     if (result.rows.length === 0) throw new NotFoundException('Investor not found');
+    return result.rows[0];
+  }
+
+  async addInvestor(data: { name: string, email: string, phone?: string }) {
+    const { name, phone } = data;
+    const email = data.email.toLowerCase().trim();
+
+    // Check if user already exists in ANY table
+    const [existingUser, existingInvestor, existingStaff] = await Promise.all([
+      db.query('SELECT id FROM users WHERE email = $1', [email]),
+      db.query('SELECT id, status FROM investors WHERE email = $1', [email]),
+      db.query('SELECT id FROM staff WHERE email = $1', [email])
+    ]);
+
+    if (existingUser.rows.length > 0 || existingStaff.rows.length > 0) {
+      throw new ConflictException('User with this email already exists in system');
+    }
+
+    if (existingInvestor.rows.length > 0) {
+      const investor = existingInvestor.rows[0];
+      if (investor.status === 'inactive') {
+        // Update existing inactive investor
+        const result = await db.query(
+          'UPDATE investors SET full_name = $1, phone = $2, updated_at = NOW() WHERE id = $3 RETURNING *',
+          [name, phone || null, investor.id]
+        );
+        return result.rows[0];
+      } else {
+        throw new ConflictException('Investor already exists with status: ' + investor.status);
+      }
+    }
+
+    // Get first stage
+    const stageResult = await db.query('SELECT id FROM pipeline_stages ORDER BY order_index ASC LIMIT 1');
+    const firstStageId = stageResult.rows[0]?.id || null;
+
+    // Create new inactive investor
+    const investorId = crypto.randomUUID();
+    const dummyPasswordHash = 'INACTIVE_PIPELINE_' + crypto.randomBytes(16).toString('hex');
+
+    const result = await db.query(
+      `INSERT INTO investors (id, email, full_name, password_hash, status, phone, pipeline_stage_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [investorId, email, name, dummyPasswordHash, 'inactive', phone || null, firstStageId]
+    );
+
     return result.rows[0];
   }
 

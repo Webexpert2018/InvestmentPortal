@@ -48,6 +48,9 @@ export default function PipelinePage() {
   const [newStageName, setNewStageName] = useState('');
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAddInvestorModal, setShowAddInvestorModal] = useState(false);
+  const [newInvestorData, setNewInvestorData] = useState({ name: '', email: '', phone: '' });
+  const [isAddingInvestor, setIsAddingInvestor] = useState(false);
 
   // New states
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -300,6 +303,39 @@ export default function PipelinePage() {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleAddInvestor = async () => {
+    if (!newInvestorData.name.trim() || !newInvestorData.email.trim()) {
+      toast({
+        title: 'Required Fields',
+        description: 'Name and Email are required',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsAddingInvestor(true);
+    try {
+      await apiClient.addInvestorToPipeline(newInvestorData);
+      toast({
+        title: 'Success',
+        description: 'Lead added to pipeline successfully',
+        variant: 'success',
+      });
+      fetchData();
+      setShowAddInvestorModal(false);
+      setNewInvestorData({ name: '', email: '', phone: '' });
+    } catch (err: any) {
+      console.error('Failed to add investor:', err);
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to add investor to pipeline',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAddingInvestor(false);
     }
   };
 
@@ -735,6 +771,12 @@ export default function PipelinePage() {
           {canManageStages && (
             <div className="flex gap-3 flex-wrap">
               <button
+                onClick={() => setShowAddInvestorModal(true)}
+                className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-full hover:bg-blue-700 transition-colors whitespace-nowrap"
+              >
+                Add Investor
+              </button>
+              <button
                 onClick={() => setShowAddStage(true)}
                 className="px-5 py-2 bg-[#FCD34D] text-gray-800 text-sm font-medium rounded-full hover:bg-[#FBD24E] transition-colors whitespace-nowrap"
               >
@@ -908,8 +950,18 @@ export default function PipelinePage() {
                                                     <span className="text-[17px] font-bold text-gray-800 truncate">
 
                                                       {investor.name || investor.fullName || 'Unnamed Investor'}
-
                                                     </span>
+                                                    <span className={cn(
+                                                      "flex-none px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md tracking-tighter",
+                                                      investor.status === 'active' ? "bg-green-100 text-green-700" :
+                                                        investor.status === 'pending' ? "bg-yellow-100 text-yellow-700" :
+                                                          "bg-red-100 text-red-700"
+                                                    )}>
+                                                      {investor.status || 'inactive'}
+                                                    </span>
+
+
+
 
                                                     {user?.role !== 'investor_relations' && investor.assignedIrId === user?.id && (
 
@@ -1153,21 +1205,23 @@ export default function PipelinePage() {
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Amount ($)</label>
-                    <div className="relative">
-                      <span className="absolute left-5 top-1/2 -translate-y-1/2 text-lg font-bold text-gray-400">$</span>
-                      <input
-                        type="number"
-                        value={expectedInvestment}
-                        onChange={(e) => setExpectedInvestment(e.target.value)}
-                        placeholder="0.00"
-                        className="w-full pl-10 pr-5 py-4 bg-gray-50 border rounded-full text-lg font-black text-[#1F3B6E] placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
-                      />
+                  {selectedInvestor.status !== 'inactive' && (
+                    <div className="space-y-4">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Amount ($)</label>
+                      <div className="relative">
+                        <span className="absolute left-5 top-1/2 -translate-y-1/2 text-lg font-bold text-gray-400">$</span>
+                        <input
+                          type="number"
+                          value={expectedInvestment}
+                          onChange={(e) => setExpectedInvestment(e.target.value)}
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-5 py-4 bg-gray-50 border rounded-full text-lg font-black text-[#1F3B6E] placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {(user?.role === 'admin' || user?.role === 'executive_admin') && (
+                  {selectedInvestor.status !== 'inactive' && (user?.role === 'admin' || user?.role === 'executive_admin') && (
                     <div className="space-y-6">
                       <div className="space-y-4">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Investor Relations Officer</label>
@@ -1209,101 +1263,107 @@ export default function PipelinePage() {
                 </div>
 
                 {/* Right Column: Internal Notes */}
-                <div className="flex flex-col h-[500px]">
-                  <div className="flex flex-col h-full space-y-4">
-                    <div className="flex items-center justify-between ml-1">
-                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Internal Notes / Comments</label>
-                      <button
-                        onClick={() => setShowDatePicker(!showDatePicker)}
-                        className={cn(
-                          "p-1.5 rounded-lg transition-colors",
-                          showDatePicker ? "bg-blue-100 text-blue-600" : "text-gray-400 hover:bg-gray-100"
-                        )}
-                        title="Schedule a date"
-                      >
-                        <CalendarDays className="h-4 w-4" />
-                      </button>
-                    </div>
-
-                    {/* New Note Input Area */}
-                    <div className="space-y-3">
-                      {showDatePicker && (
-                        <div className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-2xl border border-blue-100 animate-in slide-in-from-top-2 duration-200">
-                          <CalendarDays className="h-4 w-4 text-blue-600" />
-                          <input
-                            type="date"
-                            value={scheduledDate}
-                            onChange={(e) => setScheduledDate(e.target.value)}
-                            className="bg-transparent text-sm font-bold text-blue-600 outline-none cursor-pointer"
-                          />
-                          {scheduledDate && (
-                            <button
-                              onClick={() => setScheduledDate('')}
-                              className="text-[10px] font-bold text-blue-400 hover:text-blue-600"
-                            >
-                              Clear
-                            </button>
+                {selectedInvestor.status !== 'inactive' ? (
+                  <div className="flex flex-col h-[500px]">
+                    <div className="flex flex-col h-full space-y-4">
+                      <div className="flex items-center justify-between ml-1">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Internal Notes / Comments</label>
+                        <button
+                          onClick={() => setShowDatePicker(!showDatePicker)}
+                          className={cn(
+                            "p-1.5 rounded-lg transition-colors",
+                            showDatePicker ? "bg-blue-100 text-blue-600" : "text-gray-400 hover:bg-gray-100"
                           )}
-                        </div>
-                      )}
-                      <div className="relative border rounded-2xl bg-gray-50 overflow-hidden transition-all">
-                        <textarea
-                          value={currentNewNote}
-                          onChange={(e) => setCurrentNewNote(e.target.value)}
-                          placeholder="Add internal notes about this investor here..."
-                          className="w-full p-4 bg-transparent text-sm font-medium text-gray-700 placeholder:text-gray-300 resize-none min-h-[100px] border-none focus:ring-0"
-                        />
+                          title="Schedule a date"
+                        >
+                          <CalendarDays className="h-4 w-4" />
+                        </button>
                       </div>
-                      <button
-                        onClick={handleAddNoteToList}
-                        disabled={!currentNewNote.trim()}
-                        className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                      >
-                        Save Note
-                      </button>
-                    </div>
 
-                    {/* Notes List / Feed */}
-                    <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                      {notesList.length === 0 ? (
-                        <div className="h-full flex items-center justify-center border-2 border-dashed border-gray-100 rounded-3xl">
-                          <p className="text-sm text-gray-300 font-medium">No notes yet</p>
-                        </div>
-                      ) : (
-                        notesList.map((note) => (
-                          <div key={note.id} className="space-y-2">
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2">
-                                <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white uppercase">
-                                  {note.author.charAt(0)}
-                                </div>
-                                <span className="text-xs font-bold text-gray-900">{note.author}</span>
-                                <span className="text-[10px] font-medium text-gray-400">{note.date}</span>
-                              </div>
+                      {/* New Note Input Area */}
+                      <div className="space-y-3">
+                        {showDatePicker && (
+                          <div className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-2xl border border-blue-100 animate-in slide-in-from-top-2 duration-200">
+                            <CalendarDays className="h-4 w-4 text-blue-600" />
+                            <input
+                              type="date"
+                              value={scheduledDate}
+                              onChange={(e) => setScheduledDate(e.target.value)}
+                              className="bg-transparent text-sm font-bold text-blue-600 outline-none cursor-pointer"
+                            />
+                            {scheduledDate && (
                               <button
-                                onClick={() => handleDeleteNote(note.id)}
-                                className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors"
+                                onClick={() => setScheduledDate('')}
+                                className="text-[10px] font-bold text-blue-400 hover:text-blue-600"
                               >
-                                Delete
+                                Clear
                               </button>
-                            </div>
-                            <div className="p-3 bg-gray-50 rounded-2xl rounded-tl-none border border-gray-100 space-y-2">
-                              <p className="text-sm text-gray-700 leading-relaxed font-normal">{note.text}</p>
-                              {note.scheduledDate && (
-                                <div className="flex items-center gap-1.5 px-2 py-1 bg-red-50 text-red-600 rounded-lg w-fit">
-                                  <CalendarDays className="h-3 w-3" />
-                                  <span className="text-[10px] font-bold uppercase tracking-wider">
-                                    Scheduled: {new Date(note.scheduledDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
+                            )}
                           </div>
-                        ))
-                      )}
+                        )}
+                        <div className="relative border rounded-2xl bg-gray-50 overflow-hidden transition-all">
+                          <textarea
+                            value={currentNewNote}
+                            onChange={(e) => setCurrentNewNote(e.target.value)}
+                            placeholder="Add internal notes about this investor here..."
+                            className="w-full p-4 bg-transparent text-sm font-medium text-gray-700 placeholder:text-gray-300 resize-none min-h-[100px] border-none focus:ring-0"
+                          />
+                        </div>
+                        <button
+                          onClick={handleAddNoteToList}
+                          disabled={!currentNewNote.trim()}
+                          className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                        >
+                          Save Note
+                        </button>
+                      </div>
+
+                      {/* Notes List / Feed */}
+                      <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+                        {notesList.length === 0 ? (
+                          <div className="h-full flex items-center justify-center border-2 border-dashed border-gray-100 rounded-3xl">
+                            <p className="text-sm text-gray-300 font-medium">No notes yet</p>
+                          </div>
+                        ) : (
+                          notesList.map((note) => (
+                            <div key={note.id} className="space-y-2">
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white uppercase">
+                                    {note.author.charAt(0)}
+                                  </div>
+                                  <span className="text-xs font-bold text-gray-900">{note.author}</span>
+                                  <span className="text-[10px] font-medium text-gray-400">{note.date}</span>
+                                </div>
+                                <button
+                                  onClick={() => handleDeleteNote(note.id)}
+                                  className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                              <div className="p-3 bg-gray-50 rounded-2xl rounded-tl-none border border-gray-100 space-y-2">
+                                <p className="text-sm text-gray-700 leading-relaxed font-normal">{note.text}</p>
+                                {note.scheduledDate && (
+                                  <div className="flex items-center gap-1.5 px-2 py-1 bg-red-50 text-red-600 rounded-lg w-fit">
+                                    <CalendarDays className="h-3 w-3" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                                      Scheduled: {new Date(note.scheduledDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full border-2 border-dashed border-gray-100 rounded-[2.5rem] bg-gray-50/30">
+                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Lead Profile Locked</p>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-10 mt-6 border-t border-gray-100">
@@ -1327,6 +1387,74 @@ export default function PipelinePage() {
                     'Save Changes'
                   )}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Investor Modal */}
+        {showAddInvestorModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold text-gray-900">Add Lead to Pipeline</h2>
+                <button
+                  onClick={() => setShowAddInvestorModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="h-6 w-6 text-gray-400" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Full Name *</label>
+                  <input
+                    type="text"
+                    value={newInvestorData.name}
+                    onChange={(e) => setNewInvestorData({ ...newInvestorData, name: e.target.value })}
+                    placeholder="Enter investor name"
+                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-full text-sm font-bold text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-blue-500 transition-all"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Email Address *</label>
+                  <input
+                    type="email"
+                    value={newInvestorData.email}
+                    onChange={(e) => setNewInvestorData({ ...newInvestorData, email: e.target.value })}
+                    placeholder="Enter email address"
+                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-full text-sm font-bold text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-blue-500 transition-all"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Phone Number (Optional)</label>
+                  <input
+                    type="text"
+                    value={newInvestorData.phone}
+                    onChange={(e) => setNewInvestorData({ ...newInvestorData, phone: e.target.value })}
+                    placeholder="Enter phone number"
+                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-full text-sm font-bold text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-blue-500 transition-all"
+                  />
+                </div>
+
+                <div className="flex gap-4 pt-2">
+                  <button
+                    onClick={() => setShowAddInvestorModal(false)}
+                    className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-full transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddInvestor}
+                    disabled={!newInvestorData.name.trim() || !newInvestorData.email.trim() || isAddingInvestor}
+                    className="flex-1 py-4 bg-blue-600 text-white text-sm font-bold rounded-full hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all disabled:opacity-50"
+                  >
+                    {isAddingInvestor ? 'Adding...' : 'Add Investor'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

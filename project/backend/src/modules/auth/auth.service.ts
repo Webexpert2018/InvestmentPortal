@@ -24,11 +24,14 @@ export class AuthService {
     invitationToken?: string,
     req?: any
   ) {
+    // Normalize email to lowercase
+    email = email.toLowerCase().trim();
+
     // 1. Check if user already exists in ANY table (users, investors, staff)
     const [existingUser, existingInvestor, existingStaff] = await Promise.all([
-      db.query('SELECT id FROM users WHERE email = $1', [email]),
-      db.query('SELECT id, status FROM investors WHERE email = $1', [email]),
-      db.query('SELECT id FROM staff WHERE email = $1', [email])
+      db.query('SELECT id FROM users WHERE LOWER(email) = $1', [email]),
+      db.query('SELECT id, status FROM investors WHERE LOWER(email) = $1', [email]),
+      db.query('SELECT id FROM staff WHERE LOWER(email) = $1', [email])
     ]);
 
     const isInvitation = !!invitationToken;
@@ -61,8 +64,8 @@ export class AuthService {
 
       if (existingInvestor.rows.length > 0) {
         const investor = existingInvestor.rows[0];
-        if (investor.status === 'pending') {
-          // Allow pending investors to signup manually
+        if (investor.status === 'pending' || investor.status === 'inactive') {
+          // Allow pending or inactive investors to signup manually
           isUpgradingPending = true;
           upgradeUserId = investor.id;
         } else {
@@ -213,6 +216,9 @@ export class AuthService {
   }
 
   async login(email: string, password: string, role?: string, req?: any) {
+    // Normalize email to lowercase
+    email = email.toLowerCase().trim();
+
     try {
       // 1. Try finding in users table first (Admin)
       let result = await db.query(
@@ -335,9 +341,12 @@ export class AuthService {
   }
 
   private async findUserAcrossTables(email: string) {
+    // Normalize email to lowercase
+    email = email.toLowerCase().trim();
+
     // 1. Try users table
     let result = await db.query(
-      'SELECT id, email, role, first_name as first_name, last_name as last_name, status FROM users WHERE email = $1',
+      'SELECT id, email, role, first_name as first_name, last_name as last_name, status FROM users WHERE LOWER(email) = $1',
       [email]
     );
     if (result.rows.length > 0) {
@@ -346,7 +355,7 @@ export class AuthService {
 
     // 2. Try investors table
     result = await db.query(
-      'SELECT id, email, role, full_name, status FROM investors WHERE email = $1',
+      'SELECT id, email, role, full_name, status FROM investors WHERE LOWER(email) = $1',
       [email]
     );
     if (result.rows.length > 0) {
@@ -363,7 +372,7 @@ export class AuthService {
 
     // 3. Try staff table
     result = await db.query(
-      'SELECT id, email, role, full_name, status FROM staff WHERE email = $1',
+      'SELECT id, email, role, full_name, status FROM staff WHERE LOWER(email) = $1',
       [email]
     );
     if (result.rows.length > 0) {
@@ -484,11 +493,13 @@ export class AuthService {
   }
 
   async checkEmailAvailability(email: string) {
+    // Normalize email to lowercase
+    email = email.toLowerCase().trim();
     const existing = await this.findUserAcrossTables(email);
     if (!existing) return { available: true };
 
-    // If it's an investor, check if they are pending. Pending investors can still signup.
-    if (existing.tableName === 'investors' && existing.user.status === 'pending') {
+    // If it's an investor, check if they are pending or inactive. Pending/Inactive investors can still signup.
+    if (existing.tableName === 'investors' && (existing.user.status === 'pending' || existing.user.status === 'inactive')) {
       return { available: true };
     }
 

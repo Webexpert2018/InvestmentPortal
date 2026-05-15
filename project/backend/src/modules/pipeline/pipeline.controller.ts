@@ -24,6 +24,13 @@ export class PipelineController {
     return this.pipelineService.updateInvestorStage(id, stageId);
   }
 
+  @Post('investors')
+  async addInvestor(
+    @Body() data: { name: string, email: string, phone?: string }
+  ) {
+    return this.pipelineService.addInvestor(data);
+  }
+
   @Patch('investors/:id/details')
   async updateInvestorDetails(
     @Param('id') id: string,

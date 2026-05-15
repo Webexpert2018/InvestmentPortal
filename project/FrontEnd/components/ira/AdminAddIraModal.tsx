@@ -71,14 +71,23 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
           formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
         }
 
+        const countryObj = Country.getAllCountries().find(c => c.name === data.country || c.isoCode === data.country);
+        const countryCode = countryObj?.isoCode || '';
+
+        let stateCode = data.state || '';
+        if (stateCode && countryCode) {
+          const stateObj = State.getStatesOfCountry(countryCode).find(s => s.name === stateCode || s.isoCode === stateCode);
+          stateCode = stateObj?.isoCode || stateCode;
+        }
+
         return {
           ...prev,
           mailingAddress1: data.addressLine1 || '',
           mailingAddress2: data.addressLine2 || '',
           mailingCity: data.city || '',
-          mailingState: data.state || '',
+          mailingState: stateCode,
           mailingZipCode: data.zipCode || '',
-          mailingCountry: data.country || '',
+          mailingCountry: countryCode,
           ssn: formatted,
         };
       });
@@ -359,7 +368,13 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                       <div>
                         <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Country</label>
                         <Combobox
-                          options={Country.getAllCountries().map(c => ({ label: c.name, value: c.isoCode }))}
+                          options={(() => {
+                            const all = Country.getAllCountries().map(c => ({ label: c.name, value: c.isoCode }));
+                            return [
+                              ...all.filter(c => c.value === 'US'),
+                              ...all.filter(c => c.value !== 'US')
+                            ];
+                          })()}
                           value={iraForm.mailingCountry}
                           onChange={val => setIraForm({ ...iraForm, mailingCountry: val, mailingState: '', mailingCity: '' })}
                           placeholder="Select Country"

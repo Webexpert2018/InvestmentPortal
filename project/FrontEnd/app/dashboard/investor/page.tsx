@@ -1415,7 +1415,9 @@ export default function InvestorPage() {
                           <Combobox
                             options={allCountries.map(c => ({ label: c.name, value: c.isoCode }))}
                             value={inviteForm.country}
-                            onChange={(val) => setInviteForm({ ...inviteForm, country: val, state: '', city: '' })}
+                            onChange={(val) => {
+                              setInviteForm({ ...inviteForm, country: val, state: '', city: '' });
+                            }}
                             placeholder="Select country"
                             className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
                           />
