@@ -495,7 +495,7 @@ export class UsersService implements OnModuleInit {
         ua.account_type
       FROM user_accounts ua
       JOIN investors i ON ua.user_id = i.id
-      WHERE i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1
+      WHERE (i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1) AND i.status != 'inactive'
       ORDER BY i.created_at DESC
     `, [staffId]);
 
@@ -510,7 +510,7 @@ export class UsersService implements OnModuleInit {
 
     const result = await db.query(`
       WITH user_accounts AS (
-        SELECT id AS user_id, NULL::uuid as account_id, 'Personal' AS account_type, LOWER(status) as account_status FROM investors
+        SELECT id AS user_id, NULL::uuid as account_id, 'Personal' AS account_type, LOWER(status) as account_status FROM investors WHERE status != 'inactive'
         UNION
         SELECT 
           user_id, 
@@ -551,7 +551,7 @@ export class UsersService implements OnModuleInit {
         i.assigned_ir_id, s.full_name as assigned_ir_name,
         i.assigned_accountant_id, acc.full_name as assigned_accountant_name
       FROM user_accounts ua
-      JOIN investors i ON ua.user_id = i.id
+      JOIN investors i ON ua.user_id = i.id AND i.status != 'inactive'
       LEFT JOIN investment_sums inv_s ON ua.user_id = inv_s.user_id AND ua.account_type = inv_s.account_type
       LEFT JOIN redemption_sums red_s ON ua.user_id = red_s.user_id AND ua.account_type = red_s.account_type
       LEFT JOIN (
@@ -594,6 +594,7 @@ export class UsersService implements OnModuleInit {
         id, email, 'investor' as role, full_name as "firstName", '' as "lastName", phone, status, created_at as "createdAt", 
         kyc_status as "kycStatus", profile_image_url as "profileImageUrl"
       FROM investors
+      WHERE status != 'inactive'
       ORDER BY 
         CASE WHEN kyc_status = 'pending' THEN 0 ELSE 1 END,
         created_at DESC
@@ -896,7 +897,6 @@ export class UsersService implements OnModuleInit {
     }
 
     const {
-      email,
       full_name,
       phone,
       dob,
@@ -910,19 +910,33 @@ export class UsersService implements OnModuleInit {
       assigned_ir_id,
       assigned_accountant_id
     } = data;
+    const email = data.email.toLowerCase().trim();
 
     // Check if user already exists in ANY table
     const [existingUser, existingInvestor, existingStaff] = await Promise.all([
       db.query('SELECT id FROM users WHERE email = $1', [email]),
-      db.query('SELECT id FROM investors WHERE email = $1', [email]),
+      db.query('SELECT id, status FROM investors WHERE email = $1', [email]),
       db.query('SELECT id FROM staff WHERE email = $1', [email])
     ]);
 
-    if (existingUser.rows.length > 0 || existingInvestor.rows.length > 0 || existingStaff.rows.length > 0) {
+    if (existingUser.rows.length > 0 || existingStaff.rows.length > 0) {
       throw new ConflictException('User with this email already exists');
     }
 
-    const investorId = crypto.randomUUID();
+    let isOverwritingInactive = false;
+    let existingInvestorId = null;
+
+    if (existingInvestor.rows.length > 0) {
+      const investor = existingInvestor.rows[0];
+      if (investor.status === 'inactive') {
+        isOverwritingInactive = true;
+        existingInvestorId = investor.id;
+      } else {
+        throw new ConflictException('User with this email already exists');
+      }
+    }
+
+    const investorId = isOverwritingInactive ? existingInvestorId : crypto.randomUUID();
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
 
@@ -930,20 +944,36 @@ export class UsersService implements OnModuleInit {
     // We set a dummy password hash that won't match anything
     const dummyPasswordHash = 'INVITED_PENDING_' + crypto.randomBytes(16).toString('hex');
 
-    await db.query(
-      `INSERT INTO investors (
-        id, email, full_name, password_hash, status, kyc_status, 
-        phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id,
-        assigned_ir_id, assigned_accountant_id
-      )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
-      [
-        investorId, email, full_name, dummyPasswordHash, 'pending', 'unverified',
-        phone || null, dob || null, address_line1 || null, address_line2 || null,
-        city || null, state || null, zip_code || null, country || null, tax_id || null,
-        assigned_ir_id || null, assigned_accountant_id || null
-      ]
-    );
+    if (isOverwritingInactive) {
+      await db.query(
+        `UPDATE investors SET 
+          full_name = $1, status = 'pending', kyc_status = 'unverified',
+          phone = $2, dob = $3, address_line1 = $4, address_line2 = $5, city = $6, state = $7, zip_code = $8, country = $9, tax_id = $10,
+          assigned_ir_id = $11, assigned_accountant_id = $12, updated_at = NOW()
+         WHERE id = $13`,
+        [
+          full_name,
+          phone || null, dob || null, address_line1 || null, address_line2 || null,
+          city || null, state || null, zip_code || null, country || null, tax_id || null,
+          assigned_ir_id || null, assigned_accountant_id || null, investorId
+        ]
+      );
+    } else {
+      await db.query(
+        `INSERT INTO investors (
+          id, email, full_name, password_hash, status, kyc_status, 
+          phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id,
+          assigned_ir_id, assigned_accountant_id
+        )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+        [
+          investorId, email, full_name, dummyPasswordHash, 'pending', 'unverified',
+          phone || null, dob || null, address_line1 || null, address_line2 || null,
+          city || null, state || null, zip_code || null, country || null, tax_id || null,
+          assigned_ir_id || null, assigned_accountant_id || null
+        ]
+      );
+    }
 
     // Store invitation token in user_otps
     await db.query(

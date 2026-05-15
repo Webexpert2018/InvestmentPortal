@@ -196,6 +196,13 @@ class ApiClient {
     });
   }
 
+  async addInvestorToPipeline(data: { name: string, email: string, phone?: string }) {
+    return this.request<any>('/pipeline/investors', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async getAllUsers() {
     return this.request<any[]>('/users');
   }
