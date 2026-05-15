@@ -216,7 +216,7 @@ export default function InvestorPage() {
 
     try {
       setIsSaving(true);
-      await apiClient.inviteInvestor({
+      const res = await apiClient.inviteInvestor({
         full_name: `${inviteForm.first_name.trim()} ${inviteForm.last_name.trim()}`.trim(),
         email: inviteForm.email,
         phone: inviteForm.phone ? `${inviteForm.phone_code} ${inviteForm.phone.replace(/\D/g, '')}` : '',
@@ -250,7 +250,16 @@ export default function InvestorPage() {
         assigned_ir_id: '',
         assigned_accountant_id: ''
       });
-      fetchInvestors();
+      await fetchInvestors();
+      if (currentUser?.role === 'executive_admin') {
+        setStatusFilter('pending');
+        if (res?.id) {
+          const rowKey = `${res.id}:Personal`;
+          setSelectedRowKey(rowKey);
+          setSelectedInvestorId(res.id);
+          localStorage.setItem('selectedInvestorKey', rowKey);
+        }
+      }
     } catch (error: any) {
       if (error.message?.includes('already exists') || error.status === 409) {
         setEmailError('This email is already registered in our system');

@@ -195,13 +195,15 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
   @Post('invite')
   @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
   async inviteInvestor(@Body() body: any, @CurrentUser() user: any) {
-    return this.usersService.inviteInvestor(body, user.role);
+    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+    return this.usersService.inviteInvestor(body, user.role, fullName || user.email);
   }
 
   @Post(':id/send-invitation')
   @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
   async sendInvitation(@Param('id') id: string, @CurrentUser() user: any) {
-    return this.usersService.sendInvitation(id, user.role);
+    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+    return this.usersService.sendInvitation(id, user.role, fullName || user.email);
   }
 
   @Patch('change-password')

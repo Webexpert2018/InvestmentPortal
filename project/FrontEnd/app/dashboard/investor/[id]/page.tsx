@@ -157,7 +157,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     try {
       setIsSendingInvite(true);
       await apiClient.sendInvitation(params.id);
-      toast.success('Invitation link sent successfully');
+      toast.success('Invitation link sent successfully. The link will expire in 3 days (72 hours).');
+      // Refresh profile to update "Invitation History" box
+      const profile = await apiClient.getUserById(params.id);
+      setInvestorData(profile);
     } catch (err: any) {
       toast.error(err.message || 'Failed to send invitation');
     } finally {
@@ -283,14 +286,14 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
     try {
       setIsSavingName(true);
-      await apiClient.updateUser(params.id, { 
-        firstName: firstName, 
-        lastName: lastName 
+      await apiClient.updateUser(params.id, {
+        firstName: firstName,
+        lastName: lastName
       });
-      setInvestorData({ 
-        ...investorData, 
-        firstName: firstName, 
-        lastName: lastName 
+      setInvestorData({
+        ...investorData,
+        firstName: firstName,
+        lastName: lastName
       });
       setIsEditingName(false);
       toast.success('Investor name updated successfully');
@@ -766,70 +769,130 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         <span className="text-xs font-bold text-gray-400">Assigned Accountant</span>
                         <p className="text-sm font-bold text-gray-900">{investorData.assignedAccountantName || <span className="text-gray-400 italic">Not assigned</span>}</p>
                       </div>
-                      {/* <div className="space-y-1 text-right sm:text-left">
-                        <span className="text-xs font-bold text-gray-400">Last Login</span>
-                        <p className="text-sm font-bold text-gray-900">
-                          {investorData.lastLogin ? new Date(investorData.lastLogin).toLocaleString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          }) : 'Never'}
-                        </p>
-                      </div> */}
                     </div>
 
-                    {/* Persistent Note Section */}
-                    <div className="pt-8 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6">
-                      <div className="space-y-3 flex-1">
-                        <p className="text-xs font-semibold text-gray-400">Note (Private note visible only to you)</p>
-                        <div className="space-y-1">
-                          <p className="text-xs font-medium text-gray-400 italic">
-                            No private notes available for this investor.
-                          </p>
+                    {/* Invitation History Box - Full Width or Custom */}
+                    <div className="mt-5 pt-5 mb-5 border-t border-gray-50">
+                      <div className="space-y-4">                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Invitation History</span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="h-3.5 w-3.5 text-gray-300 cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
+                                  <p className="text-[11px] font-medium">Each invitation link is valid for 3 days from the time it was sent.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          {investorData.invitationLogs?.length > 0 && (
+                            <span className="text-[10px] font-bold bg-[#FFF9EE] text-[#D1A94C] border border-[#FEF3C7] px-3 py-1 rounded-full shadow-sm">
+                              {investorData.invitationLogs.length} {investorData.invitationLogs.length === 1 ? 'Invite' : 'Invites'} Total
+                            </span>
+                          )}
                         </div>
+
+
+                        {investorData.invitationLogs?.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {investorData.invitationLogs.map((log: any, idx: number) => {
+                              const sentDate = new Date(log.sent_at);
+                              const isExpired = Date.now() - sentDate.getTime() > 3 * 24 * 60 * 60 * 1000;
+                              const isLatest = idx === 0;
+
+                              return (
+                                <div key={idx} className={`relative group p-5 rounded-2xl border transition-all duration-300 ${isLatest && !isExpired ? 'bg-amber-50/30 border-amber-200 shadow-sm' : 'bg-gray-50 border-gray-100 opacity-90'}`}>
+                                  {isLatest && !isExpired && (
+                                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+                                      ACTIVE LINK
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex items-center justify-between mb-4">
+                                    <div className={`p-2 rounded-lg ${isLatest && !isExpired ? 'bg-amber-100 text-amber-700' : 'bg-gray-200 text-gray-500'}`}>
+                                      <Mail className="h-4 w-4" />
+                                    </div>
+                                    <span className={`text-[9px] font-bold uppercase tracking-tighter px-2 py-0.5 rounded ${isExpired ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                      {isExpired ? 'Expired' : 'Valid'}
+                                    </span>
+                                  </div>
+
+                                  <div className="space-y-3">
+                                    <div className="flex flex-col">
+                                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Sent On</span>
+                                      <p className="text-sm font-bold text-gray-900">
+                                        {sentDate.toLocaleString('en-US', {
+                                          month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                                        })}
+                                      </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-100/50">
+                                      <div className="flex flex-col">
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">By Admin</span>
+                                        <p className="text-[11px] font-bold text-gray-700 truncate">{log.sent_by_name}</p>
+                                      </div>
+                                      <div className="flex flex-col">
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">To Investor</span>
+                                        <p className="text-[11px] font-bold text-gray-700 truncate">{investorData.firstName}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="bg-gray-50 rounded-xl p-6 border border-gray-100 flex flex-col items-center justify-center text-center">
+                            <Mail className="h-8 w-8 text-gray-300 mb-2" />
+                            <p className="text-sm text-gray-400 italic">No invitation records found for this investor.</p>
+                          </div>
+                        )}
                       </div>
-
-                      {/* Master Status Toggle Button - Bottom Position */}
-                      {isExecutiveAdmin && investorData.status === 'suspended' && (
-                        <div className="flex-shrink-0">
-                          {(() => {
-                            const hasInactive = iraAccounts.length > 0
-                              ? iraAccounts.some((acc: any) => acc.status !== 'active')
-                              : investorData.status !== 'active';
-                            return (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button
-                                      onClick={handleMasterStatusToggle}
-                                      disabled={isSuspending}
-                                      className={`px-8 py-3 rounded-full text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2 border ${hasInactive
-                                        ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                        : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                                        }`}
-                                    >
-                                      {isSuspending ? <Loader2 className="h-4 w-4 animate-spin" /> : (hasInactive ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />)}
-                                      {hasInactive
-                                        ? (iraAccounts.length > 0 ? 'Activate Accounts' : 'Activate Account')
-                                        : (iraAccounts.length > 0 ? 'Suspend Accounts' : 'Suspend Account')}
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
-                                    <p className="text-[11px] font-medium">
-                                      {hasInactive
-                                        ? 'Click here to activate all linked accounts.'
-                                        : 'Click here to suspend all linked accounts.'}
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            );
-                          })()}
-                        </div>
-                      )}
                     </div>
+
+                    {/* Note & Toggle Button Container */}
+
+                    {/* Master Status Toggle Button - Bottom Position */}
+                    {isExecutiveAdmin && investorData.status === 'suspended' && (
+                      <div className="flex-shrink-0">
+                        {(() => {
+                          const hasInactive = iraAccounts.length > 0
+                            ? iraAccounts.some((acc: any) => acc.status !== 'active')
+                            : investorData.status !== 'active';
+                          return (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={handleMasterStatusToggle}
+                                    disabled={isSuspending}
+                                    className={`px-8 py-3 rounded-full text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2 border ${hasInactive
+                                      ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                      : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                      }`}
+                                  >
+                                    {isSuspending ? <Loader2 className="h-4 w-4 animate-spin" /> : (hasInactive ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />)}
+                                    {hasInactive
+                                      ? (iraAccounts.length > 0 ? 'Activate Accounts' : 'Activate Account')
+                                      : (iraAccounts.length > 0 ? 'Suspend Accounts' : 'Suspend Account')}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
+                                  <p className="text-[11px] font-medium">
+                                    {hasInactive
+                                      ? 'Click here to activate all linked accounts.'
+                                      : 'Click here to suspend all linked accounts.'}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          );
+                        })()}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

@@ -110,6 +110,22 @@ export class UsersService implements OnModuleInit {
             IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='notif_sms_tax_forms') THEN
                 ALTER TABLE investors ADD COLUMN notif_sms_tax_forms BOOLEAN DEFAULT FALSE;
             END IF;
+            -- Add invitation tracking columns
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='last_invite_sent_at') THEN
+                ALTER TABLE investors ADD COLUMN last_invite_sent_at TIMESTAMP;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='investors' AND column_name='last_invite_sent_by_name') THEN
+                ALTER TABLE investors ADD COLUMN last_invite_sent_by_name VARCHAR;
+            END IF;
+
+            -- Add investor_invitations table for multi-invite tracking
+            CREATE TABLE IF NOT EXISTS investor_invitations (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                investor_id UUID REFERENCES investors(id) ON DELETE CASCADE,
+                sent_at TIMESTAMP DEFAULT NOW(),
+                sent_by_name VARCHAR NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
         END $$;
       `);
       console.log('✅ Notification settings columns checked/added.');
@@ -156,6 +172,7 @@ export class UsersService implements OnModuleInit {
           i.dob, i.address_line1 as "addressLine1", i.address_line2 as "addressLine2", 
           i.city, i.state, i.zip_code as "zipCode", i.country, i.tax_id as "taxId", 
           i.profile_image_url as "profileImageUrl", i.kyc_status as "kycStatus",
+          i.last_invite_sent_at as "lastInviteSentAt", i.last_invite_sent_by_name as "lastInviteSentByName",
           ir.full_name as "assignedIrName", acc.full_name as "assignedAccountantName",
           i.notif_invest_activity, i.notif_funding_conf, i.notif_doc_uploads, i.notif_kyc_updates, i.notif_announcements, i.notif_sms_invest_conf, i.notif_sms_security,
           i.notif_alerts, i.notif_nav_recalc, i.notif_sms_announcements, i.notif_sms_alerts, i.notif_sms_doc_uploads, i.notif_sms_nav_recalc, i.notif_sms_funding_conf, i.notif_sms_tax_forms,
@@ -631,8 +648,10 @@ export class UsersService implements OnModuleInit {
           i.city, i.state, i.zip_code as "zipCode", i.country, 
           i.tax_id as "taxId", i.profile_image_url as "profileImageUrl", i.kyc_status as "kycStatus", i.assigned_ir_id,
           i.assigned_accountant_id,
+          i.last_invite_sent_at as "lastInviteSentAt", i.last_invite_sent_by_name as "lastInviteSentByName",
           ir.full_name as assigned_ir_name, ir.email as assigned_ir_email,
-          acc.full_name as assigned_accountant_name, acc.email as assigned_accountant_email
+          acc.full_name as assigned_accountant_name, acc.email as assigned_accountant_email,
+          (SELECT json_agg(inv ORDER BY inv.sent_at DESC) FROM investor_invitations inv WHERE inv.investor_id = i.id) as "invitationLogs"
         FROM investors i
         LEFT JOIN (
           SELECT id, full_name, email FROM staff
@@ -685,7 +704,10 @@ export class UsersService implements OnModuleInit {
       assignedIrEmail: user.assigned_ir_email,
       assignedAccountantId: user.assigned_accountant_id,
       assignedAccountantName: user.assigned_accountant_name,
-      assignedAccountantEmail: user.assigned_accountant_email
+      assignedAccountantEmail: user.assigned_accountant_email,
+      lastInviteSentAt: user.lastInviteSentAt,
+      lastInviteSentByName: user.lastInviteSentByName,
+      invitationLogs: user.invitationLogs || []
     };
   }
 
@@ -711,7 +733,7 @@ export class UsersService implements OnModuleInit {
     }
 
     // 3. Check/update staff table
-    const staffCheck = await db.query('SELECT id FROM staff WHERE id = $1', [userId]);
+    const staffCheck = await db.query('SELECT id, email FROM staff WHERE id = $1', [userId]);
     if (staffCheck.rows.length > 0) {
       tablesToUpdate.push('staff');
     }
@@ -867,7 +889,7 @@ export class UsersService implements OnModuleInit {
   }
 
 
-  async inviteInvestor(data: any, requestingUserRole: string) {
+  async inviteInvestor(data: any, requestingUserRole: string, requestingUserName?: string) {
     const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
     if (!adminRoles.includes(requestingUserRole)) {
       throw new ForbiddenException('Only admins can invite investors');
@@ -902,7 +924,7 @@ export class UsersService implements OnModuleInit {
 
     const investorId = crypto.randomUUID();
     const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    const expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
 
     // Insert as pending investor
     // We set a dummy password hash that won't match anything
@@ -932,12 +954,25 @@ export class UsersService implements OnModuleInit {
     // 5. Send invitation email (if requested, usually only for bulk or immediate invites)
     if (data.sendEmail) {
       await this.emailService.sendInvestorInvitationEmail(email, full_name, token);
+      
+      const senderName = requestingUserName || 'Admin';
+      // Update invitation tracking
+      await db.query(
+        'UPDATE investors SET last_invite_sent_at = NOW(), last_invite_sent_by_name = $1 WHERE id = $2',
+        [senderName, investorId]
+      );
+
+      // Log invitation event
+      await db.query(
+        'INSERT INTO investor_invitations (investor_id, sent_by_name) VALUES ($1, $2)',
+        [investorId, senderName]
+      );
     }
 
-    return { message: 'Investor saved successfully', id: investorId };
+    return { message: 'Investor profile saved successfully', id: investorId };
   }
 
-  async sendInvitation(userId: string, requestingUserRole: string) {
+  async sendInvitation(userId: string, requestingUserRole: string, requestingUserName?: string) {
     console.log(`[sendInvitation] Invoked for userId: ${userId} by role: ${requestingUserRole}`);
     const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
     if (!adminRoles.includes(requestingUserRole)) {
@@ -960,20 +995,42 @@ export class UsersService implements OnModuleInit {
       throw new BadRequestException('Can only send invitations to pending investors');
     }
 
-    // 2. Get the active INVITATION token
-    const tokenResult = await db.query(
+    // 2. Get the active INVITATION token or create a new one
+    let tokenResult = await db.query(
       "SELECT otp FROM user_otps WHERE user_id = $1 AND type = 'INVITATION' AND is_used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1",
       [userId]
     );
 
-    if (tokenResult.rows.length === 0) {
-      throw new BadRequestException('No active invitation token found for this investor');
-    }
+    let token: string;
 
-    const token = tokenResult.rows[0].otp;
+    if (tokenResult.rows.length === 0) {
+      console.log(`[sendInvitation] No active token found for ${userId}, generating new one...`);
+      token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
+      
+      await db.query(
+        'INSERT INTO user_otps (user_id, otp, type, expires_at) VALUES ($1, $2, $3, $4)',
+        [userId, token, 'INVITATION', expiresAt]
+      );
+    } else {
+      token = tokenResult.rows[0].otp;
+    }
 
     // 3. Send the email
     await this.emailService.sendInvestorInvitationEmail(investor.email, investor.full_name, token);
+
+    const senderName = requestingUserName || 'Admin';
+    // 4. Update invitation tracking
+    await db.query(
+      'UPDATE investors SET last_invite_sent_at = NOW(), last_invite_sent_by_name = $1 WHERE id = $2',
+      [senderName, userId]
+    );
+
+    // 5. Log invitation event
+    await db.query(
+      'INSERT INTO investor_invitations (investor_id, sent_by_name) VALUES ($1, $2)',
+      [userId, senderName]
+    );
 
     return { message: 'Invitation email sent successfully' };
   }

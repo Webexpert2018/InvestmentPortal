@@ -219,9 +219,12 @@ export class EmailService {
         </a>
       </div>
 
-      <div style="background-color: #F9FAFB; border-left: 4px solid #FBCB4B; padding: 15px; margin: 25px 0;">
-        <p style="margin: 0; font-size: 13px; color: #374151; line-height: 1.5;">
-          <strong>Security Note:</strong> This invitation link is unique to you and should not be shared. If you have any questions, please reach out to our investor relations team.
+      <div style="background-color: #FEF3C7; border-left: 4px solid #FBCB4B; padding: 20px; margin: 30px 0; border-radius: 4px;">
+        <p style="margin: 0; font-size: 15px; color: #92400E; line-height: 1.6; font-weight: bold;">
+          ⚠️ SECURITY NOTICE: Expiration Limit
+        </p>
+        <p style="margin: 10px 0 0; font-size: 14px; color: #B45309;">
+          For your protection, this unique invitation link will <strong>expire in strictly 3 days (72 hours)</strong>. If the link expires, you will need to request a new invitation from your advisor.
         </p>
       </div>
 
