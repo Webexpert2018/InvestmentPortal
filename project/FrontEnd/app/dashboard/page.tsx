@@ -9,6 +9,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { apiClient } from '@/lib/api/client';
+import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 
 
@@ -212,6 +213,7 @@ const normalizeDashboardRole = (role?: string | null): DashboardRole => {
 export default function DashboardPage() {
   const loading = false;
   const { user } = useAuth();
+  const router = useRouter();
 
   const [adminExpanded, setAdminExpanded] = useState({
     funding: true,
@@ -255,6 +257,7 @@ export default function DashboardPage() {
   const [timeRange, setTimeRange] = useState('12');
   const [assignedInvestors, setAssignedInvestors] = useState<any[]>([]);
   const [dynamicNotifications, setDynamicNotifications] = useState<any[]>([]);
+  const [dynamicKycQueue, setDynamicKycQueue] = useState<any[]>([]);
 
   const investorAccountList = useMemo(() => {
     const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -397,6 +400,19 @@ export default function DashboardPage() {
             setAssignedInvestors(uniqueAssigned);
             setDynamicNotifications(notifs);
           }
+
+          // Fetch KYC Queue for Admin/Accountant
+          if (dashboardRole === 'admin' || dashboardRole === 'accountant') {
+            const kycData = await apiClient.getKycReviewQueue();
+            // Map backend 'firstName' (which is full_name) to 'investorName' for consistency
+            const pendingQueue = (kycData || [])
+              .filter((u: any) => u.kycStatus === 'pending' || u.kycStatus === 'unverified')
+              .map((u: any) => ({
+                ...u,
+                investorName: u.firstName // Backend maps full_name to firstName
+              }));
+            setDynamicKycQueue(pendingQueue);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
@@ -407,6 +423,21 @@ export default function DashboardPage() {
     const intervalId = setInterval(fetchStats, 15000);
     return () => clearInterval(intervalId);
   }, [dashboardRole, user?.kycStatus, user?.id, timeRange]);
+
+  const handleCompleteKyc = async (userId: string) => {
+    try {
+      await apiClient.updateKycStatus(userId, 'verified');
+      // Update local state to remove the investor from the queue
+      setDynamicKycQueue(prev => prev.filter(item => item.id !== userId));
+      // Optionally update adminStats.pendingKyc count
+      setAdminStats(prev => ({
+        ...prev,
+        pendingKyc: Math.max(0, prev.pendingKyc - 1)
+      }));
+    } catch (error) {
+      console.error('Failed to complete KYC:', error);
+    }
+  };
 
   const roleStats = {
     admin: [
@@ -1014,31 +1045,55 @@ export default function DashboardPage() {
             </div>
 
             {/* KYC Review Queue */}
-            <div className="bg-white shadow-sm rounded-xl p-6 h-fit flex flex-col">
+            <div className="bg-white shadow-sm rounded-xl pt-6 pl-4 pb-6 pr-3 flex flex-col">
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-[#1F1F1F] ">
-                  KYC Review Queue
+                  KYC Review Queue ({dynamicKycQueue.length})
                 </h3>
               </div>
-              <div className="space-y-6 max-h-[350px] overflow-y-auto pr-3">
-                {kycQueue.map((item, index) => (
-                  <div key={item.id} className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <h4 className="text-base font-medium text-[#1F1F1F]">{item.title}</h4>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-yellow-50 text-yellow-800">
-                          {item.status}
-                        </span>
+              <div className="space-y-0 overflow-y-auto custom-scrollbar pr-4" style={{ maxHeight: 'calc(100% - 60px)' }}>
+                {dynamicKycQueue.length > 0 ? dynamicKycQueue.map((item, index) => {
+                  const initials = item.investorName ? item.investorName.split(' ').map((n: any) => n[0]).join('').toUpperCase().slice(0, 2) : '??';
+                  return (
+                    <div key={item.id} className="group transition-all">
+                      <div className="flex items-start justify-between py-4 group-hover:bg-gray-50/50 rounded-xl px-2 transition-colors">
+                        <div className="flex items-start gap-4 min-w-0">
+                          {/* Avatar Circle */}
+                          <div className="h-10 w-10 rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#4B4B4B] text-[13px] font-bold shrink-0 border border-gray-100">
+                            {initials}
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-[15px] font-bold text-[#1F1F1F] truncate leading-tight">{item.investorName || 'N/A'}</h4>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold capitalize tracking-wider ${item.kycStatus === 'pending' ? 'bg-[#FFF9EE] text-[#BFA778]' : 'bg-[#FEF2F2] text-[#B91C1C]'
+                                }`}>
+                                {item.kycStatus}
+                              </span>
+                            </div>
+                            <p className="text-[12px] text-gray-500 truncate mt-0.5">{item.email}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-2 shrink-0">
+                          <button
+                            onClick={() => router.push(`/dashboard/kyc-console?highlight=${item.id}`)}
+                            className="px-3 py-1 rounded-full bg-[#FAFAFA] border border-gray-200 text-[#4B4B4B] text-[12px] font-bold hover:bg-[#F3F4F6] hover:border-gray-300 transition-all shadow-sm"
+                          >
+                            Continue KYC
+                          </button>
+                        </div>
                       </div>
-                      <button className="px-4 py-2 rounded-full bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200 transition-colors">
-                        Continue KYC
-                      </button>
+                      {index < dynamicKycQueue.length - 1 && (
+                        <div className="mx-2 h-[1px] bg-gray-50" />
+                      )}
                     </div>
-                    {index < kycQueue.length - 1 && (
-                      <div className="h-px bg-gray-50" />
-                    )}
+                  );
+                }) : (
+                  <div className="py-12 text-center">
+                    <p className="text-sm text-gray-400">No pending KYC requests found.</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>

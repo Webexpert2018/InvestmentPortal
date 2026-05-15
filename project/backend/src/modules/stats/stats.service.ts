@@ -7,7 +7,7 @@ export class StatsService {
     try {
       const [investorsCount, pendingKycCount, pendingFundingsCount, pendingRedemptionsCount, financialTotals, recentInvestorsResult] = await Promise.all([
         db.query("SELECT COUNT(*) FROM investors WHERE status = 'active'"),
-        db.query("SELECT COUNT(*) FROM investors WHERE kyc_status = 'pending'"),
+        db.query("SELECT COUNT(*) FROM investors WHERE kyc_status IN ('pending', 'unverified')"),
         db.query("SELECT COUNT(*) FROM investments WHERE status != 'Units Issued'"),
         db.query("SELECT COUNT(*) FROM redemptions WHERE status != 'Processed'"),
         db.query(`

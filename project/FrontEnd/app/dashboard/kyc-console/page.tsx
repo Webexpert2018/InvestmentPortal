@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Investor {
   id: string;
@@ -25,6 +25,8 @@ interface Investor {
 export default function KYCConsolePage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get('highlight');
 
   const [investors, setInvestors] = useState<Investor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +65,15 @@ export default function KYCConsolePage() {
   useEffect(() => {
     fetchInvestors();
   }, []);
+
+  useEffect(() => {
+    if (highlightId && !loading) {
+      const element = document.getElementById(`investor-${highlightId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [highlightId, loading]);
 
   const handleStatusUpdate = async (userId: string, newStatus: string) => {
     try {
@@ -172,7 +183,11 @@ export default function KYCConsolePage() {
                   </tr>
                 ) : (
                   currentRecords.map((record) => (
-                    <tr key={record.id} className="hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={record.id}
+                      id={`investor-${record.id}`}
+                      className={`hover:bg-gray-50 transition-colors ${highlightId === record.id ? 'bg-yellow-50 animate-pulse border-2 border-yellow-200' : ''}`}
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
