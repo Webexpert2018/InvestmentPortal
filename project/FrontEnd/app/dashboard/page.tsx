@@ -1051,7 +1051,7 @@ export default function DashboardPage() {
                   KYC Review Queue ({dynamicKycQueue.length})
                 </h3>
               </div>
-              <div className="space-y-0 overflow-y-auto custom-scrollbar pr-4" style={{ maxHeight: 'calc(100% - 60px)' }}>
+              <div className="space-y-0 overflow-y-auto custom-scrollbar pr-4" style={{ maxHeight: 'calc(410px - 60px)' }}>
                 {dynamicKycQueue.length > 0 ? dynamicKycQueue.map((item, index) => {
                   const initials = item.investorName ? item.investorName.split(' ').map((n: any) => n[0]).join('').toUpperCase().slice(0, 2) : '??';
                   return (
