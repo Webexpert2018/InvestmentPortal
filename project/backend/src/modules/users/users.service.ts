@@ -278,140 +278,147 @@ export class UsersService implements OnModuleInit {
     pref_format?: string,
     pref_frequency?: string,
   ) {
-    // Determine which table handles this user
-    let tableName: string | null = null;
-    let nameFieldType: 'split' | 'full' = 'split';
+    // Determine which tables handle this user and update all of them for consistency
+    const tablesFound: { name: string; type: 'split' | 'full' }[] = [];
 
     // 1. Check users table
     const userCheck = await db.query('SELECT id FROM users WHERE id = $1', [userId]);
     if (userCheck.rows.length > 0) {
-      tableName = 'users';
-      nameFieldType = 'split';
-    } else {
-      // 2. Check investors table
-      const investorCheck = await db.query('SELECT id FROM investors WHERE id = $1', [userId]);
-      if (investorCheck.rows.length > 0) {
-        tableName = 'investors';
-        nameFieldType = 'full';
-      } else {
-        // 3. Check staff table
-        const staffCheck = await db.query('SELECT id FROM staff WHERE id = $1', [userId]);
-        if (staffCheck.rows.length > 0) {
-          tableName = 'staff';
-          nameFieldType = 'full';
-        }
-      }
+      tablesFound.push({ name: 'users', type: 'split' });
     }
 
-    if (!tableName) {
+    // 2. Check investors table
+    const investorCheck = await db.query('SELECT id FROM investors WHERE id = $1', [userId]);
+    if (investorCheck.rows.length > 0) {
+      tablesFound.push({ name: 'investors', type: 'full' });
+    }
+
+    // 3. Check staff table
+    const staffCheck = await db.query('SELECT id FROM staff WHERE id = $1', [userId]);
+    if (staffCheck.rows.length > 0) {
+      tablesFound.push({ name: 'staff', type: 'full' });
+    }
+
+    if (tablesFound.length === 0) {
       throw new NotFoundException('User profile not found in any registration table');
     }
 
-    const updates: string[] = ['updated_at = NOW()'];
-    const values: any[] = [];
-    let paramIndex = 1;
+    let lastUpdatedUser: any = null;
 
-    // Handle names based on table structure
-    if (nameFieldType === 'full') {
-      if (firstName !== undefined || lastName !== undefined) {
-        const currentRes = await db.query(`SELECT full_name FROM ${tableName} WHERE id = $1`, [userId]);
-        const currentFullName = currentRes.rows[0]?.full_name || '';
-        const [currFirst, ...currLastParts] = currentFullName.split(' ');
+    for (const table of tablesFound) {
+      const tableName = table.name;
+      const nameFieldType = table.type;
 
-        const finalFirst = firstName !== undefined ? firstName : currFirst;
-        const finalLast = lastName !== undefined ? lastName : currLastParts.join(' ');
-        const fullName = `${finalFirst} ${finalLast}`.trim();
+      const updates: string[] = ['updated_at = NOW()'];
+      const values: any[] = [];
+      let paramIndex = 1;
 
-        updates.push(`full_name = $${paramIndex++}`);
-        values.push(fullName);
+      // Handle names based on table structure
+      if (nameFieldType === 'full') {
+        if (firstName !== undefined || lastName !== undefined) {
+          const currentRes = await db.query(`SELECT full_name FROM ${tableName} WHERE id = $1`, [userId]);
+          const currentFullName = currentRes.rows[0]?.full_name || '';
+          const [currFirst, ...currLastParts] = currentFullName.split(' ');
+
+          const finalFirst = firstName !== undefined ? firstName : currFirst;
+          const finalLast = lastName !== undefined ? lastName : currLastParts.join(' ');
+          const fullName = `${finalFirst} ${finalLast}`.trim();
+
+          updates.push(`full_name = $${paramIndex++}`);
+          values.push(fullName);
+        }
+      } else {
+        if (firstName !== undefined) {
+          updates.push(`first_name = $${paramIndex++}`);
+          values.push(firstName);
+        }
+        if (lastName !== undefined) {
+          updates.push(`last_name = $${paramIndex++}`);
+          values.push(lastName);
+        }
       }
-    } else {
-      if (firstName !== undefined) {
-        updates.push(`first_name = $${paramIndex++}`);
-        values.push(firstName);
+
+      // Common fields across all tables
+      const fieldMap: Record<string, any> = {
+        phone,
+        dob,
+        address_line1: addressLine1,
+        address_line2: addressLine2,
+        city,
+        state,
+        zip_code: zipCode,
+        country,
+        tax_id: taxId,
+        profile_image_url: profileImageUrl,
+        notif_doc_uploaded,
+        notif_missing_doc,
+        notif_investor_msg,
+        notif_reminder,
+        notif_invest_activity,
+        notif_funding_conf,
+        notif_doc_uploads,
+        notif_kyc_updates,
+        notif_announcements,
+        notif_sms_invest_conf,
+        notif_sms_security,
+        notif_alerts,
+        notif_nav_recalc,
+        notif_sms_announcements,
+        notif_sms_alerts,
+        notif_sms_doc_uploads,
+        notif_sms_nav_recalc,
+        notif_sms_funding_conf,
+        notif_sms_tax_forms,
+        pref_send_by_email,
+        pref_tax_forms_alert,
+        pref_auto_download,
+        pref_paperless,
+        pref_format,
+        pref_frequency,
+      };
+
+      // Filter fields based on table availability to prevent SQL errors
+      const commonFields = ['phone', 'dob', 'address_line1', 'address_line2', 'city', 'state', 'zip_code', 'country', 'tax_id', 'profile_image_url'];
+      const staffNotifs = ['notif_doc_uploaded', 'notif_missing_doc', 'notif_investor_msg', 'notif_reminder'];
+      const investorNotifs = [...staffNotifs, 'notif_invest_activity', 'notif_funding_conf', 'notif_doc_uploads', 'notif_kyc_updates', 'notif_announcements', 'notif_sms_invest_conf', 'notif_sms_security', 'notif_alerts', 'notif_nav_recalc', 'notif_sms_announcements', 'notif_sms_alerts', 'notif_sms_doc_uploads', 'notif_sms_nav_recalc', 'notif_sms_funding_conf', 'notif_sms_tax_forms', 'pref_send_by_email', 'pref_tax_forms_alert', 'pref_auto_download', 'pref_paperless', 'pref_format', 'pref_frequency'];
+
+      const allowedColumns = tableName === 'investors' ? [...commonFields, ...investorNotifs] : [...commonFields, ...staffNotifs];
+
+      for (const [colName, val] of Object.entries(fieldMap)) {
+        if (val !== undefined && allowedColumns.includes(colName)) {
+          updates.push(`${colName} = $${paramIndex++}`);
+          values.push(val === '' ? null : val);
+        }
       }
-      if (lastName !== undefined) {
-        updates.push(`last_name = $${paramIndex++}`);
-        values.push(lastName);
-      }
+
+      values.push(userId);
+
+      const returning = nameFieldType === 'full'
+        ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, notif_alerts, notif_nav_recalc, notif_sms_announcements, notif_sms_alerts, notif_sms_doc_uploads, notif_sms_nav_recalc, notif_sms_funding_conf, notif_sms_tax_forms, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency'
+        : 'id, email, first_name, last_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder';
+
+      const result = await db.query(
+        `UPDATE ${tableName} SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING ${returning}`,
+        values,
+      );
+
+      lastUpdatedUser = result.rows[0];
+      console.log(`[UsersService] Updated ${tableName} (${userId})`);
     }
 
-    // Common fields across all tables
-    const fieldMap: Record<string, any> = {
-      phone,
-      dob,
-      address_line1: addressLine1,
-      address_line2: addressLine2,
-      city,
-      state,
-      zip_code: zipCode,
-      country,
-      tax_id: taxId,
-      profile_image_url: profileImageUrl,
-      notif_doc_uploaded,
-      notif_missing_doc,
-      notif_investor_msg,
-      notif_reminder,
-      notif_invest_activity,
-      notif_funding_conf,
-      notif_doc_uploads,
-      notif_kyc_updates,
-      notif_announcements,
-      notif_sms_invest_conf,
-      notif_sms_security,
-      notif_alerts,
-      notif_nav_recalc,
-      notif_sms_announcements,
-      notif_sms_alerts,
-      notif_sms_doc_uploads,
-      notif_sms_nav_recalc,
-      notif_sms_funding_conf,
-      notif_sms_tax_forms,
-      pref_send_by_email,
-      pref_tax_forms_alert,
-      pref_auto_download,
-      pref_paperless,
-      pref_format,
-      pref_frequency,
-    };
-
-    // Filter fields based on table availability to prevent SQL errors
-    const commonFields = ['phone', 'dob', 'address_line1', 'address_line2', 'city', 'state', 'zip_code', 'country', 'tax_id', 'profile_image_url'];
-    const staffNotifs = ['notif_doc_uploaded', 'notif_missing_doc', 'notif_investor_msg', 'notif_reminder'];
-    const investorNotifs = [...staffNotifs, 'notif_invest_activity', 'notif_funding_conf', 'notif_doc_uploads', 'notif_kyc_updates', 'notif_announcements', 'notif_sms_invest_conf', 'notif_sms_security', 'notif_alerts', 'notif_nav_recalc', 'notif_sms_announcements', 'notif_sms_alerts', 'notif_sms_doc_uploads', 'notif_sms_nav_recalc', 'notif_sms_funding_conf', 'notif_sms_tax_forms', 'pref_send_by_email', 'pref_tax_forms_alert', 'pref_auto_download', 'pref_paperless', 'pref_format', 'pref_frequency'];
-
-    const allowedColumns = tableName === 'investors' ? [...commonFields, ...investorNotifs] : [...commonFields, ...staffNotifs];
-
-    for (const [colName, val] of Object.entries(fieldMap)) {
-      if (val !== undefined && allowedColumns.includes(colName)) {
-        updates.push(`${colName} = $${paramIndex++}`);
-        values.push(val === '' ? null : val);
-      }
-    }
-
-    values.push(userId);
-
-    const returning = nameFieldType === 'full'
-      ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, notif_alerts, notif_nav_recalc, notif_sms_announcements, notif_sms_alerts, notif_sms_doc_uploads, notif_sms_nav_recalc, notif_sms_funding_conf, notif_sms_tax_forms, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency'
-      : 'id, email, first_name, last_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder';
-
-    const result = await db.query(
-      `UPDATE ${tableName} SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING ${returning}`,
-      values,
-    );
-
-    const user = result.rows[0];
+    const user = lastUpdatedUser;
+    const finalTable = tablesFound[tablesFound.length - 1];
     if (!user) throw new NotFoundException('User update failed');
 
-    console.log(`[UsersService] Updated ${tableName} (${userId}): ${profileImageUrl ? 'image' : 'profile data'}`);
+    console.log(`[UsersService] Updated ${tablesFound.map(t => t.name).join(', ')} for ID: ${userId}`);
 
     // Return normalized object
     return {
       id: user.id,
       email: user.email,
       role: user.role,
-      firstName: nameFieldType === 'full' ? user.full_name?.split(' ')[0] : user.first_name,
-      lastName: nameFieldType === 'full' ? user.full_name?.split(' ').slice(1).join(' ') : user.last_name,
+      firstName: finalTable.type === 'full' ? user.full_name?.split(' ')[0] : user.first_name,
+      lastName: finalTable.type === 'full' ? user.full_name?.split(' ').slice(1).join(' ') : user.last_name,
       phone: user.phone,
       status: user.status,
       dob: user.dob,

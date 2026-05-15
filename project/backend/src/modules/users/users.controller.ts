@@ -24,6 +24,12 @@ export class UsersController {
 
   @Put('profile')
 async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDto) {
+  // Restrict name changes to only admin/executive_admin
+  const isAdmin = ['admin', 'executive_admin'].includes(user.role?.trim().toLowerCase());
+  if (!isAdmin && (updateDto.firstName || updateDto.lastName)) {
+    throw new BadRequestException('You do not have permission to change your name. Please contact support.');
+  }
+
   if (updateDto.dob) {
     const birthDate = new Date(updateDto.dob);
     const today = new Date();
@@ -268,6 +274,50 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
       throw new BadRequestException('Password is required');
     }
     return this.usersService.adminResetPassword(id, body.password, user.role);
+  }
+
+  @Patch(':id')
+  @Roles('admin', 'executive_admin')
+  async updateUser(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateProfileDto
+  ) {
+    return this.usersService.updateProfile(
+      id,
+      updateDto.firstName,
+      updateDto.lastName,
+      updateDto.phone,
+      updateDto.dob,
+      updateDto.addressLine1,
+      updateDto.addressLine2,
+      updateDto.city,
+      updateDto.state,
+      updateDto.zipCode,
+      updateDto.country,
+      updateDto.taxId,
+      updateDto.profileImageUrl,
+      updateDto.notif_doc_uploaded,
+      updateDto.notif_missing_doc,
+      updateDto.notif_investor_msg,
+      updateDto.notif_reminder,
+      updateDto.notif_invest_activity,
+      updateDto.notif_funding_conf,
+      updateDto.notif_doc_uploads,
+      updateDto.notif_kyc_updates,
+      updateDto.notif_announcements,
+      updateDto.notif_sms_invest_conf,
+      updateDto.notif_sms_security,
+      updateDto.notif_alerts,
+      updateDto.notif_nav_recalc,
+      updateDto.notif_sms_announcements,
+      updateDto.notif_sms_alerts,
+      updateDto.notif_sms_doc_uploads,
+      updateDto.notif_sms_nav_recalc,
+      updateDto.notif_sms_funding_conf,
+      updateDto.notif_sms_tax_forms,
+      updateDto.pref_send_by_email,
+      updateDto.pref_tax_forms_alert,
+    );
   }
 
   @Delete(':id')
