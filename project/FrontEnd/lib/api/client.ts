@@ -1214,6 +1214,33 @@ class ApiClient {
   async getAssignedInvestors() {
     return this.request<any[]>('/users/assigned-investors');
   }
+
+  // --- Meetings Module ---
+  async getMyMeetings() {
+    return this.request<any[]>('/meetings');
+  }
+
+  async getAvailableMeetingParticipants() {
+    return this.request<any[]>('/meetings/users');
+  }
+
+  async getPendingMeetingsCount() {
+    return this.request<{ count: number }>('/meetings/pending/count');
+  }
+
+  async createMeeting(data: { title: string; description?: string; scheduled_date: string; duration_minutes?: number; meeting_link?: string; participant_ids: string[] }) {
+    return this.request<any>('/meetings', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateMeetingStatus(id: string, status: 'accepted' | 'rejected') {
+    return this.request<{ success: boolean; status: string }>(`/meetings/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  }
 }
 
 
