@@ -28,6 +28,7 @@ export function DashboardHeader({
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [unreadMeetingsCount, setUnreadMeetingsCount] = useState(0);
 
   useEffect(() => {
     if (user && user.role === 'investor' && !iraAccount) {
@@ -65,6 +66,11 @@ export function DashboardHeader({
       // Messages (Chat)
       apiClient.getUnreadMessagesCount()
         .then(res => setUnreadMessagesCount(res.count))
+        .catch(() => { });
+
+      // Meetings (Calendar)
+      apiClient.getPendingMeetingsCount()
+        .then(res => setUnreadMeetingsCount(res.count))
         .catch(() => { });
     };
 
@@ -110,6 +116,11 @@ export function DashboardHeader({
           aria-label="Schedule Meeting"
         >
           <CalendarDays className="h-[21px] w-[21px] text-[#555555]" strokeWidth={1.8} />
+          {unreadMeetingsCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-[21px] min-w-[21px] items-center justify-center rounded-full bg-[#FF4D4F] px-1 text-[11px] font-bold leading-none text-white shadow-[0_2px_4px_rgba(255,77,79,0.3)] outline outline-2 outline-white">
+              {unreadMeetingsCount > 99 ? '99+' : unreadMeetingsCount}
+            </span>
+          )}
         </Link>
 
         <Link
