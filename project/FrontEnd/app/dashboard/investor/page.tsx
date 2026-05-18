@@ -39,13 +39,25 @@ export default function InvestorPage() {
   const [kycFilter, setKycFilter] = useState('');
   const [accountTypeFilter, setAccountTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [activePage, setActivePage] = useState(1);
+  const [activeIraPage, setActiveIraPage] = useState(1);
+  const [pendingPage, setPendingPage] = useState(1);
+  const [suspendedPage, setSuspendedPage] = useState(1);
+  const [suspendedIraPage, setSuspendedIraPage] = useState(1);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState<string | null>(null);
   const [selectedInvestorId, setSelectedInvestorId] = useState<string | null>(null);
   const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
   const [showAdminIraModal, setShowAdminIraModal] = useState(false);
+
+  useEffect(() => {
+    setActivePage(1);
+    setActiveIraPage(1);
+    setPendingPage(1);
+    setSuspendedPage(1);
+    setSuspendedIraPage(1);
+  }, [searchQuery, kycFilter, accountTypeFilter, statusFilter]);
 
   // Selection Persistence
   useEffect(() => {
@@ -175,7 +187,7 @@ export default function InvestorPage() {
     const investorAccType = investor.accountType || 'Personal';
     const matchesAccountType = !accountTypeFilter || (
       accountTypeFilter === 'IRA'
-        ? investorAccType.toLowerCase().includes('ira')
+        ? investorAccType.toLowerCase() !== 'personal'
         : investorAccType.toLowerCase() === accountTypeFilter.toLowerCase()
     );
 
@@ -312,9 +324,57 @@ export default function InvestorPage() {
     }
   };
 
-  const totalPages = Math.ceil(activeInvestors.length / (itemsPerPage || 7));
-  const startIndex = (currentPage - 1) * (itemsPerPage || 7);
-  const displayedActiveInvestors = activeInvestors.slice(startIndex, startIndex + (itemsPerPage || 7));
+  const activeTotalPages = Math.ceil(activeInvestors.length / itemsPerPage);
+  const activeIraTotalPages = Math.ceil(activeIraInvestors.length / itemsPerPage);
+  const pendingTotalPages = Math.ceil(pendingInvestors.length / itemsPerPage);
+  const suspendedTotalPages = Math.ceil(suspendedInvestors.length / itemsPerPage);
+  const suspendedIraTotalPages = Math.ceil(suspendedIraInvestors.length / itemsPerPage);
+
+  const displayedActiveInvestors = activeInvestors.slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage);
+  const displayedActiveIraInvestors = activeIraInvestors.slice((activeIraPage - 1) * itemsPerPage, activeIraPage * itemsPerPage);
+  const displayedPendingInvestors = pendingInvestors.slice((pendingPage - 1) * itemsPerPage, pendingPage * itemsPerPage);
+  const displayedSuspendedInvestors = suspendedInvestors.slice((suspendedPage - 1) * itemsPerPage, suspendedPage * itemsPerPage);
+  const displayedSuspendedIraInvestors = suspendedIraInvestors.slice((suspendedIraPage - 1) * itemsPerPage, suspendedIraPage * itemsPerPage);
+
+  const renderPaginationRow = (currentPage: number, totalPages: number, setPage: (page: number | ((p: number) => number)) => void) => {
+    if (totalPages <= 1) return null;
+    return (
+      <tr>
+        <td colSpan={11} className="px-8 py-4 bg-white border-b border-[#F3F4F6]">
+          <div className="flex flex-wrap items-center justify-center gap-2 font-helvetica" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 text-sm font-medium text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-2 shadow-sm rounded-full bg-[#F9FAFB] p-1">
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => setPage(i + 1)}
+                  className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${currentPage === i + 1
+                    ? 'bg-[#1F3B6E] text-white shadow-md scale-105'
+                    : 'text-[#4B5563] hover:bg-white'
+                    }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 text-sm font-medium text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
+            >
+              Next
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  };
 
   return (
     <DashboardLayout>
@@ -600,6 +660,7 @@ export default function InvestorPage() {
                           )
                         })
                       )}
+                      {renderPaginationRow(activePage, activeTotalPages, setActivePage)}
 
                       {/* IRA Accounts Heading */}
                       {activeIraInvestors.length > 0 && (
@@ -609,7 +670,7 @@ export default function InvestorPage() {
                               Active IRA Accounts ({activeIraInvestors.length})
                             </td>
                           </tr>
-                          {activeIraInvestors.map((investor) => {
+                          {displayedActiveIraInvestors.map((investor) => {
                             const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
                             return (
                               <tr
@@ -730,6 +791,7 @@ export default function InvestorPage() {
                               </tr>
                             )
                           })}
+                          {renderPaginationRow(activeIraPage, activeIraTotalPages, setActiveIraPage)}
                         </>
                       )}
 
@@ -741,7 +803,7 @@ export default function InvestorPage() {
                               Pending Invitations ({pendingInvestors.length})
                             </td>
                           </tr>
-                          {pendingInvestors.map((investor) => {
+                          {displayedPendingInvestors.map((investor) => {
                             const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
                             return (
                               <tr
@@ -847,6 +909,7 @@ export default function InvestorPage() {
                               </tr>
                             )
                           })}
+                          {renderPaginationRow(pendingPage, pendingTotalPages, setPendingPage)}
                         </>
                       )}
 
@@ -858,7 +921,7 @@ export default function InvestorPage() {
                               Suspended Login Accounts ({suspendedInvestors.length})
                             </td>
                           </tr>
-                          {suspendedInvestors.map((investor) => {
+                          {displayedSuspendedInvestors.map((investor) => {
                             const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
                             return (
                               <tr
@@ -977,6 +1040,7 @@ export default function InvestorPage() {
                               </tr>
                             )
                           })}
+                          {renderPaginationRow(suspendedPage, suspendedTotalPages, setSuspendedPage)}
                         </>
                       )}
                     </>
@@ -990,7 +1054,7 @@ export default function InvestorPage() {
                           Suspended IRA Accounts ({suspendedIraInvestors.length})
                         </td>
                       </tr>
-                      {suspendedIraInvestors.map((investor) => {
+                      {displayedSuspendedIraInvestors.map((investor) => {
                         const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
                         return (
                           <tr
@@ -1084,6 +1148,7 @@ export default function InvestorPage() {
                           </tr>
                         );
                       })}
+                      {renderPaginationRow(suspendedIraPage, suspendedIraTotalPages, setSuspendedIraPage)}
                     </>
                   )}
                 </tbody>
@@ -1118,39 +1183,6 @@ export default function InvestorPage() {
                 <span>Suspended IRA</span>
               </div>
               <span className="ml-1 text-[#9CA3AF] font-medium">Investors</span>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-2 font-helvetica">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="px-4 py-2 text-sm ffont-medium text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
-              >
-                Previous
-              </button>
-
-              <div className="flex items-center gap-2 shadow-sm rounded-full bg-[#F9FAFB] p-1">
-                {[...Array(totalPages)].map((_, i) => (
-                  <button
-                    key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${currentPage === i + 1
-                      ? 'bg-[#1F3B6E] text-white shadow-md scale-105'
-                      : 'text-[#4B5563] hover:bg-white'
-                      }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 text-sm font-medium text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
-              >
-                Next
-              </button>
             </div>
           </div>
         </div>
