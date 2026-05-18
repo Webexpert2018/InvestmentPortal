@@ -4,16 +4,16 @@ import { useEffect, useState, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { apiClient } from '@/lib/api/client';
-import { 
-  Calendar, 
-  Clock, 
-  User, 
-  Plus, 
-  Check, 
-  X, 
-  Link2, 
-  AlertCircle, 
-  Loader2, 
+import {
+  Calendar,
+  Clock,
+  User,
+  Plus,
+  Check,
+  X,
+  Link2,
+  AlertCircle,
+  Loader2,
   Video,
   FileText,
   CalendarCheck,
@@ -49,7 +49,7 @@ export default function ScheduleMeetingPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Interactive Calendar State
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
@@ -122,10 +122,10 @@ export default function ScheduleMeetingPage() {
 
   const selectDate = (day: number, m: number, y: number) => {
     // Toggle functionality
-    if (selectedCalendarDate && 
-        selectedCalendarDate.getDate() === day && 
-        selectedCalendarDate.getMonth() === m && 
-        selectedCalendarDate.getFullYear() === y) {
+    if (selectedCalendarDate &&
+      selectedCalendarDate.getDate() === day &&
+      selectedCalendarDate.getMonth() === m &&
+      selectedCalendarDate.getFullYear() === y) {
       setSelectedCalendarDate(null);
     } else {
       setSelectedCalendarDate(new Date(y, m, day));
@@ -162,20 +162,20 @@ export default function ScheduleMeetingPage() {
   };
 
   const isDateSelected = (day: number, m: number, y: number) => {
-    return selectedCalendarDate && 
-           selectedCalendarDate.getDate() === day && 
-           selectedCalendarDate.getMonth() === m && 
-           selectedCalendarDate.getFullYear() === y;
+    return selectedCalendarDate &&
+      selectedCalendarDate.getDate() === day &&
+      selectedCalendarDate.getMonth() === m &&
+      selectedCalendarDate.getFullYear() === y;
   };
 
   // Filter meetings if date filter is active
-  const filteredMeetings = selectedCalendarDate 
+  const filteredMeetings = selectedCalendarDate
     ? meetings.filter(meeting => {
-        const d = new Date(meeting.scheduled_date);
-        return d.getDate() === selectedCalendarDate.getDate() &&
-               d.getMonth() === selectedCalendarDate.getMonth() &&
-               d.getFullYear() === selectedCalendarDate.getFullYear();
-      })
+      const d = new Date(meeting.scheduled_date);
+      return d.getDate() === selectedCalendarDate.getDate() &&
+        d.getMonth() === selectedCalendarDate.getMonth() &&
+        d.getFullYear() === selectedCalendarDate.getFullYear();
+    })
     : meetings;
 
   // Modal State
@@ -253,12 +253,12 @@ export default function ScheduleMeetingPage() {
       setError(null);
       await apiClient.updateMeetingStatus(meetingId, status);
       // Fast local update to UI
-      setMeetings(prev => 
+      setMeetings(prev =>
         prev.map(m => {
           if (m.id === meetingId) {
             return {
               ...m,
-              participants: m.participants.map(p => 
+              participants: m.participants.map(p =>
                 p.id === user?.id ? { ...p, status } : p
               )
             };
@@ -396,22 +396,21 @@ export default function ScheduleMeetingPage() {
                     const today = isToday(dayObj.day, dayObj.month, dayObj.year);
                     const selected = isDateSelected(dayObj.day, dayObj.month, dayObj.year);
                     const past = isPastDate(dayObj.day, dayObj.month, dayObj.year);
-                    
+
                     return (
                       <button
                         key={index}
                         onClick={() => selectDate(dayObj.day, dayObj.month, dayObj.year)}
-                        className={`flex flex-col items-center justify-between h-14 rounded-xl border p-1.5 transition-all duration-200 cursor-pointer ${
-                          selected
+                        className={`flex flex-col items-center justify-between h-14 rounded-xl border p-1.5 transition-all duration-200 cursor-pointer ${selected
                             ? 'bg-[#FBCB4B] hover:bg-[#E2B93B] text-[#1F1F1F] font-bold shadow-md border-[#E2B93B] scale-[1.02] z-10'
                             : today
-                            ? 'border-amber-400 bg-amber-50/20 text-amber-900 font-bold'
-                            : past
-                            ? 'bg-gray-50 border-gray-100/50 text-gray-400 opacity-60 hover:opacity-85'
-                            : dayObj.isCurrentMonth
-                            ? 'bg-white hover:bg-gray-50 border-gray-100 text-gray-800'
-                            : 'bg-white hover:bg-gray-50 border-gray-100 text-gray-700 font-medium'
-                        }`}
+                              ? 'border-amber-400 bg-amber-50/20 text-amber-900 font-bold'
+                              : past
+                                ? 'bg-gray-50 border-gray-100/50 text-gray-400 opacity-60 hover:opacity-85'
+                                : dayObj.isCurrentMonth
+                                  ? 'bg-white hover:bg-gray-50 border-gray-100 text-gray-800'
+                                  : 'bg-white hover:bg-gray-50 border-gray-100 text-gray-700 font-medium'
+                          }`}
                       >
                         <span className="text-[11px] self-start leading-none">{dayObj.day}</span>
                         {dayMeetings.length > 0 && (
@@ -488,7 +487,7 @@ export default function ScheduleMeetingPage() {
                     {selectedCalendarDate ? 'No meetings scheduled' : 'No scheduled meetings'}
                   </h3>
                   <p className="mt-1 text-xs text-[#8E8E93] font-light">
-                    {selectedCalendarDate 
+                    {selectedCalendarDate
                       ? `There are no appointments on ${selectedCalendarDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`
                       : 'Propose your first meeting slot by clicking the Schedule button above.'
                     }
@@ -517,16 +516,15 @@ export default function ScheduleMeetingPage() {
                       minute: '2-digit',
                     });
                     const isUpcoming = date >= new Date();
-                    
+
                     // Find logged in user's invite details
                     const myInvite = meeting.participants.find(p => p.id === user?.id);
 
                     return (
-                      <div 
-                        key={meeting.id} 
-                        className={`rounded-2xl border bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300 ${
-                          !isUpcoming ? 'opacity-70 border-gray-100 bg-gray-50/50' : 'border-gray-100'
-                        }`}
+                      <div
+                        key={meeting.id}
+                        className={`rounded-2xl border bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300 ${!isUpcoming ? 'opacity-70 border-gray-100 bg-gray-50/50' : 'border-gray-100'
+                          }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                           <div className="space-y-2">
@@ -567,9 +565,9 @@ export default function ScheduleMeetingPage() {
                                 {formattedTime}
                               </div>
                               {meeting.meeting_link && isUpcoming && (
-                                <a 
+                                <a
                                   href={meeting.meeting_link}
-                                  target="_blank" 
+                                  target="_blank"
                                   rel="noopener noreferrer"
                                   className="flex items-center gap-1.5 bg-blue-50 text-blue-800 px-3 py-1.5 rounded-full font-medium hover:bg-blue-100 transition-colors"
                                 >
@@ -615,13 +613,12 @@ export default function ScheduleMeetingPage() {
                           <p className="text-[11px] font-bold text-[#A0A0A0] uppercase tracking-wider mb-2">Participant Responses</p>
                           <div className="flex flex-wrap gap-2">
                             {meeting.participants.map(p => (
-                              <div 
+                              <div
                                 key={p.id}
-                                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${
-                                  p.status === 'accepted' ? 'border-emerald-100 bg-emerald-50/50 text-emerald-800' :
-                                  p.status === 'rejected' ? 'border-rose-100 bg-rose-50/50 text-rose-800' :
-                                  'border-amber-100 bg-amber-50/50 text-amber-800'
-                                }`}
+                                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${p.status === 'accepted' ? 'border-emerald-100 bg-emerald-50/50 text-emerald-800' :
+                                    p.status === 'rejected' ? 'border-rose-100 bg-rose-50/50 text-rose-800' :
+                                      'border-amber-100 bg-amber-50/50 text-amber-800'
+                                  }`}
                               >
                                 <span className="h-1.5 w-1.5 rounded-full bg-current"></span>
                                 <span className="font-medium">{p.name}</span>
@@ -651,6 +648,9 @@ export default function ScheduleMeetingPage() {
                   <p>
                     To keep things clean, Ovalia Capital schedules **daily agenda summaries**. On the morning of your meeting (8:00 AM server time), you will receive a single, unified email containing the join links for all of today&apos;s appointments.
                   </p>
+                  <p>
+                    Alternatively, you can join your scheduled sessions instantly by clicking the <strong className="text-gray-800">"Join Video Call"</strong> button directly from the meeting cards on this page when a call link is active.
+                  </p>
                   <p className="bg-[#FFF9EE] border border-amber-100 text-amber-900 rounded-xl p-3">
                     <strong>Note:</strong> Meeting organizer permissions are strictly role-based to ensure privacy between staff relationships and investors.
                   </p>
@@ -666,7 +666,7 @@ export default function ScheduleMeetingPage() {
                   <p>
                     Adding a meeting link is completely <strong>optional</strong>. If you decide to add one, use these tips to ensure the link doesn&apos;t expire:
                   </p>
-                  
+
                   <div className="space-y-1 border-l-2 border-amber-200 pl-3">
                     <p className="font-semibold text-gray-800">Google Meet</p>
                     <p>
@@ -692,7 +692,7 @@ export default function ScheduleMeetingPage() {
             <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl border border-gray-100 my-8">
               <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
                 <h2 className="font-goudy text-2xl font-bold text-[#1F1F1F]">Schedule Invitation</h2>
-                <button 
+                <button
                   onClick={() => setIsModalOpen(false)}
                   className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
                 >
@@ -784,7 +784,7 @@ export default function ScheduleMeetingPage() {
                   <label className="block text-xs font-bold text-[#4B4B4B] uppercase tracking-wider mb-1.5">
                     Select Participants <span className="text-rose-500">*</span>
                   </label>
-                  
+
                   {availableParticipants.length === 0 ? (
                     <p className="text-xs text-[#8E8E93] italic">No eligible participants available.</p>
                   ) : (
@@ -796,7 +796,7 @@ export default function ScheduleMeetingPage() {
                         onChange={(e) => setParticipantSearchQuery(e.target.value)}
                         className="w-full rounded-xl border border-gray-200 px-4 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#FBCB4B] transition-shadow"
                       />
-                      
+
                       <div className="max-h-40 overflow-y-auto border border-gray-100 rounded-xl p-2 space-y-1.5">
                         {availableParticipants
                           .filter(p => {
@@ -811,9 +811,8 @@ export default function ScheduleMeetingPage() {
                                 type="button"
                                 key={p.id}
                                 onClick={() => toggleParticipantSelection(p.id)}
-                                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs transition-colors cursor-pointer ${
-                                  isSelected ? 'bg-[#FFF9EE] text-amber-900 border-l-4 border-[#FBCB4B]' : 'hover:bg-gray-50 text-gray-700'
-                                }`}
+                                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs transition-colors cursor-pointer ${isSelected ? 'bg-[#FFF9EE] text-amber-900 border-l-4 border-[#FBCB4B]' : 'hover:bg-gray-50 text-gray-700'
+                                  }`}
                               >
                                 <div>
                                   <p className="font-semibold">{p.name || (p.role === 'accountant' ? 'Assigned Accountant' : 'Staff Member')}</p>
