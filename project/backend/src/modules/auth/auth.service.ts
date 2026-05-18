@@ -130,8 +130,8 @@ export class AuthService {
         if (newUser.assigned_ir_id || newUser.assigned_accountant_id) {
           const namesRes = await db.query(
             `SELECT 
-              (SELECT full_name FROM staff WHERE id = $1) as ir_name,
-              (SELECT full_name FROM staff WHERE id = $2) as acc_name`,
+              (SELECT full_name FROM (SELECT id, full_name FROM staff UNION SELECT id, first_name || ' ' || last_name as full_name FROM users) s WHERE id = $1) as ir_name,
+              (SELECT full_name FROM (SELECT id, full_name FROM staff UNION SELECT id, first_name || ' ' || last_name as full_name FROM users) s WHERE id = $2) as acc_name`,
             [newUser.assigned_ir_id, newUser.assigned_accountant_id]
           );
           newUser.assigned_ir_name = namesRes.rows[0]?.ir_name;
@@ -235,8 +235,16 @@ export class AuthService {
                   ir.full_name as assigned_ir_name, 
                   acc.full_name as assigned_accountant_name 
            FROM investors i 
-           LEFT JOIN staff ir ON i.assigned_ir_id = ir.id 
-           LEFT JOIN staff acc ON i.assigned_accountant_id = acc.id 
+           LEFT JOIN (
+             SELECT id, full_name FROM staff
+             UNION
+             SELECT id, first_name || ' ' || last_name as full_name FROM users
+           ) ir ON i.assigned_ir_id = ir.id 
+           LEFT JOIN (
+             SELECT id, full_name FROM staff
+             UNION
+             SELECT id, first_name || ' ' || last_name as full_name FROM users
+           ) acc ON i.assigned_accountant_id = acc.id 
            WHERE i.email = $1`,
           [email]
         );

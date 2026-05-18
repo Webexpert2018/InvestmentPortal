@@ -527,7 +527,7 @@ export class UsersService implements OnModuleInit {
           SUM(estimated_units) as total_units
         FROM investments
         WHERE is_reconciled = true
-        GROUP BY user_id, account_type
+        GROUP BY user_id, CASE WHEN LOWER(account_type) = 'personal' OR account_type IS NULL THEN 'Personal' ELSE account_type END
       ),
       redemption_sums AS (
         SELECT 
@@ -538,7 +538,7 @@ export class UsersService implements OnModuleInit {
         FROM redemptions r
         JOIN investments inv ON r.investment_id = inv.id
         WHERE r.is_reconciled = true
-        GROUP BY r.investor_id, account_type
+        GROUP BY r.investor_id, CASE WHEN LOWER(inv.account_type) = 'personal' OR inv.account_type IS NULL THEN 'Personal' ELSE inv.account_type END
       )
       SELECT 
         i.id, i.email, i.role, i.full_name as "firstName", '' as "lastName", i.phone, i.status, i.created_at as "createdAt", 
