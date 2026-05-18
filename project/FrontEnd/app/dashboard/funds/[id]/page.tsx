@@ -249,18 +249,16 @@ export default function FundOverviewPage() {
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FCD34D]" />
               )}
             </button>
-            {!isInvestor && (
-              <button
-                onClick={() => setActiveTab('bankDetails')}
-                className={`pb-3 font-medium transition-colors relative ${activeTab === 'bankDetails' ? 'text-[#1F3B6E]' : 'text-gray-600'
-                  }`}
-              >
-                Wire Instructions
-                {activeTab === 'bankDetails' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FCD34D]" />
-                )}
-              </button>
-            )}
+            <button
+              onClick={() => setActiveTab('bankDetails')}
+              className={`pb-3 font-medium transition-colors relative ${activeTab === 'bankDetails' ? 'text-[#1F3B6E]' : 'text-gray-600'
+                }`}
+            >
+              Wire Instructions
+              {activeTab === 'bankDetails' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FCD34D]" />
+              )}
+            </button>
           </div>
         </div>
 
@@ -456,7 +454,7 @@ export default function FundOverviewPage() {
           </div>
         )}
 
-        {activeTab === 'bankDetails' && !isInvestor && (
+        {activeTab === 'bankDetails' && (
           <div className="bg-white rounded-lg shadow-sm p-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-6 font-goudy">Custodian Wire Instructions</h2>
 
@@ -515,7 +513,11 @@ export default function FundOverviewPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {documents.map((doc) => (
-                      <tr key={doc.id} className="hover:bg-gray-50">
+                      <tr 
+                        key={doc.id} 
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => router.push(`/dashboard/funds/${params.id}/documents/${doc.id}`)}
+                      >
                         <td className="px-6 py-4 text-gray-900">{doc.file_name}</td>
                         <td className="px-6 py-4 text-gray-900 font-medium">
                           {doc.document_type}
@@ -527,7 +529,7 @@ export default function FundOverviewPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-gray-900">{formatDate(doc.uploaded_at)}</td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <div className="relative">
                             <button
                               onClick={() => setActiveDocDropdown(activeDocDropdown === doc.id ? null : doc.id)}
