@@ -27,6 +27,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { MessagesModule } from './modules/messages/messages.module';
 import { CrmModule } from './modules/crm/crm.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
+import { MeetingsModule } from './modules/meetings/meetings.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { SessionsModule } from './modules/sessions/sessions.module';
     MessagesModule,
     CrmModule,
     SessionsModule,
+    MeetingsModule,
   ],
   controllers: [HealthController],
 })

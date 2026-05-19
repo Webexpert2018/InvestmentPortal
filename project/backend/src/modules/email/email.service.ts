@@ -295,7 +295,7 @@ export class EmailService {
     `;
   }
 
-  private async sendEmail(to: string, subject: string, html: string) {
+  async sendEmail(to: string, subject: string, html: string) {
     const host = this.configService.get<string>('SMTP_HOST') || this.configService.get<string>('EMAIL_HOST');
     const portString = this.configService.get<string>('SMTP_PORT') || this.configService.get<string>('EMAIL_PORT');
     const port = portString ? parseInt(portString, 10) : 587;

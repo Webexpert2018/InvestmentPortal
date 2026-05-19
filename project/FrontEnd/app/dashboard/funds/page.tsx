@@ -178,7 +178,11 @@ export default function FundsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {currentFunds.map((fund) => (
-                    <tr key={fund.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0">
+                    <tr 
+                      key={fund.id} 
+                      className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
+                      onClick={() => router.push(`/dashboard/funds/${fund.id}`)}
+                    >
                       <td className="px-6 py-5 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           {fund.image ? (
@@ -205,7 +209,7 @@ export default function FundsPage() {
                           {fund.status}
                         </span>
                       </td>
-                      <td className="px-6 py-5 text-center whitespace-nowrap pr-12">
+                      <td className="px-6 py-5 text-center whitespace-nowrap pr-12" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">

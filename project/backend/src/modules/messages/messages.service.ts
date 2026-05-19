@@ -143,20 +143,25 @@ export class MessagesService {
         if (pId === senderId) continue; // Skip self for restriction check
 
         const userRes = await db.query(`
-          SELECT 'investor' as role, assigned_accountant_id FROM investors WHERE id = $1
+          SELECT 'investor' as role, assigned_accountant_id, assigned_ir_id FROM investors WHERE id = $1
           UNION ALL
-          SELECT role, null as assigned_accountant_id FROM staff WHERE id = $1
+          SELECT role, null as assigned_accountant_id, null as assigned_ir_id FROM staff WHERE id = $1
           UNION ALL
-          SELECT role, null as assigned_accountant_id FROM users WHERE id = $1
+          SELECT role, null as assigned_accountant_id, null as assigned_ir_id FROM users WHERE id = $1
         `, [pId]);
 
         if ((userRes.rowCount ?? 0) > 0) {
-          const { role, assigned_accountant_id } = userRes.rows[0];
+          const { role, assigned_accountant_id, assigned_ir_id } = userRes.rows[0];
 
-          // --- Accountant Restriction ---
+          // --- Role Restrictions ---
           if (senderRole === 'accountant') {
             if (role !== 'investor' || assigned_accountant_id !== senderId) {
               throw new Error('Accountants can only message their assigned investors');
+            }
+          }
+          if (senderRole === 'investor_relations') {
+            if (role !== 'investor' || assigned_ir_id !== senderId) {
+              throw new Error('Investor Relations can only message their assigned investors');
             }
           }
           // ------------------------------
@@ -501,10 +506,11 @@ export class MessagesService {
         const assignedStaffIds = [assigned_ir_id, assigned_accountant_id].filter(Boolean);
         let staffResRows: any[] = [];
         if (assignedStaffIds.length > 0) {
-          const staffRes = await db.query(
-            "SELECT id, full_name, role, profile_image_url FROM staff WHERE id = ANY($1) AND status = 'active'",
-            [assignedStaffIds]
-          );
+          const staffRes = await db.query(`
+            SELECT id, full_name, role, profile_image_url FROM staff WHERE id = ANY($1) AND status = 'active'
+            UNION
+            SELECT id, first_name || ' ' || last_name as full_name, role, profile_image_url FROM users WHERE id = ANY($1) AND status = 'active'
+          `, [assignedStaffIds]);
           staffResRows = staffRes.rows;
         }
 
@@ -516,14 +522,15 @@ export class MessagesService {
         // Staff/Admins branch
         let investorsRes;
 
-        if (requesterRole === 'accountant') {
-          // Accountants can only message their assigned investors
+        if (requesterRole === 'accountant' || requesterRole === 'investor_relations') {
+          const assignCol = requesterRole === 'accountant' ? 'assigned_accountant_id' : 'assigned_ir_id';
+          
           investorsRes = await db.query(
-            'SELECT id, full_name, role, profile_image_url FROM investors WHERE status = \'active\' AND assigned_accountant_id = $1',
+            `SELECT id, full_name, role, profile_image_url FROM investors WHERE status = 'active' AND ${assignCol} = $1`,
             [userId]
           );
 
-          // Per request "only message their assigned investors", we omit other staff/admins for accountants
+          // Per request, accountants and IRs can only message their assigned investors
           users = [
             ...investorsRes.rows.map(r => ({ ...r, type: 'investor' }))
           ];
