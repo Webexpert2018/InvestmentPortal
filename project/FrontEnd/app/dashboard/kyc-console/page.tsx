@@ -183,10 +183,10 @@ export default function KYCConsolePage() {
                   </tr>
                 ) : (
                   currentRecords.map((record) => (
-                    <tr
-                      key={record.id}
-                      id={`investor-${record.id}`}
-                      className={`hover:bg-gray-50 transition-colors ${highlightId === record.id ? 'bg-yellow-50 animate-pulse border-2 border-yellow-200' : ''}`}
+                    <tr 
+                      key={record.id} 
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/dashboard/kyc-verification/${record.id}`)}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -219,7 +219,7 @@ export default function KYCConsolePage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-gray-600">{new Date(record.createdAt).toLocaleDateString()}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                         <div className="relative">
                           <button
                             onClick={() => setActiveDropdown(activeDropdown === record.id ? null : record.id)}
