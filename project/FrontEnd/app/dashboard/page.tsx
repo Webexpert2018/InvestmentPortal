@@ -891,7 +891,6 @@ export default function DashboardPage() {
                         </div>
                         <p className="mt-1 text-[11px] text-[#8E8E93]">{acc.subtitle}</p>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-gray-300" />
                     </div>
                   ))}
                 </div>
