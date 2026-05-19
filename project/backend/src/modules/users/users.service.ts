@@ -410,8 +410,10 @@ export class UsersService implements OnModuleInit {
 
       values.push(userId);
 
-      const returning = nameFieldType === 'full'
+      const returning = tableName === 'investors'
         ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, notif_alerts, notif_nav_recalc, notif_sms_announcements, notif_sms_alerts, notif_sms_doc_uploads, notif_sms_nav_recalc, notif_sms_funding_conf, notif_sms_tax_forms, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency'
+        : tableName === 'staff'
+        ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder'
         : 'id, email, first_name, last_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder';
 
       const result = await db.query(
