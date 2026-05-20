@@ -246,7 +246,9 @@ export class RedemptionsService {
     try {
       const query = `
         UPDATE redemptions 
-        SET internal_amount = $1, updated_at = CURRENT_TIMESTAMP 
+        SET internal_amount = $1, 
+            is_reconciled = CASE WHEN ABS(amount - $1) < 0.01 THEN is_reconciled ELSE false END,
+            updated_at = CURRENT_TIMESTAMP 
         WHERE id = $2 
         RETURNING *
       `;
