@@ -41,6 +41,8 @@ export class PipelineService {
         i.expected_future_investment,
         i.pipeline_note,
         i.status,
+        i.created_by_id,
+        i.created_by_name,
         s.full_name as assigned_ir_name,
         (acc.first_name || ' ' || acc.last_name) as assigned_accountant_name,
         COALESCE(SUM(inv.investment_amount), 0) as total_investment
@@ -50,7 +52,7 @@ export class PipelineService {
       LEFT JOIN investments inv ON i.id = inv.user_id AND inv.is_reconciled = true
       WHERE (i.pipeline_stage_id IS NOT NULL OR i.status IN ('pending', 'inactive'))
       ${isIR ? 'AND i.assigned_ir_id = $1' : ''}
-      GROUP BY i.id, i.email, i.phone, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, i.assigned_accountant_id, s.full_name, acc.first_name, acc.last_name, i.updated_at, i.expected_future_investment, i.pipeline_note, i.status
+      GROUP BY i.id, i.email, i.phone, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, i.assigned_accountant_id, i.created_by_id, i.created_by_name, s.full_name, acc.first_name, acc.last_name, i.updated_at, i.expected_future_investment, i.pipeline_note, i.status
       ORDER BY i.updated_at DESC
     `;
 
@@ -76,6 +78,8 @@ export class PipelineService {
           expectedFutureInvestment: parseFloat(i.expected_future_investment || 0),
           pipelineNote: i.pipeline_note || '',
           status: i.status,
+          createdById: i.created_by_id,
+          createdByName: i.created_by_name,
           avatar: (i.name || 'Invited Investor')
             .split(' ')
             .filter((n: string) => !!n)
@@ -140,7 +144,7 @@ export class PipelineService {
     return result.rows[0];
   }
 
-  async addInvestor(data: { name: string, email: string, phone?: string }) {
+  async addInvestor(data: { name: string, email: string, phone?: string }, creatorId?: string, creatorName?: string) {
     const { name, phone } = data;
     const email = data.email.toLowerCase().trim();
 
@@ -160,8 +164,8 @@ export class PipelineService {
       if (investor.status === 'inactive') {
         // Update existing inactive investor
         const result = await db.query(
-          'UPDATE investors SET full_name = $1, phone = $2, updated_at = NOW() WHERE id = $3 RETURNING *',
-          [name, phone || null, investor.id]
+          'UPDATE investors SET full_name = $1, phone = $2, created_by_id = $3, created_by_name = $4, updated_at = NOW() WHERE id = $5 RETURNING *',
+          [name, phone || null, creatorId || null, creatorName || null, investor.id]
         );
         return result.rows[0];
       } else {
@@ -178,10 +182,10 @@ export class PipelineService {
     const dummyPasswordHash = 'INACTIVE_PIPELINE_' + crypto.randomBytes(16).toString('hex');
 
     const result = await db.query(
-      `INSERT INTO investors (id, email, full_name, password_hash, status, phone, pipeline_stage_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO investors (id, email, full_name, password_hash, status, phone, pipeline_stage_id, created_by_id, created_by_name)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
-      [investorId, email, name, dummyPasswordHash, 'inactive', phone || null, firstStageId]
+      [investorId, email, name, dummyPasswordHash, 'inactive', phone || null, firstStageId, creatorId || null, creatorName || null]
     );
 
     return result.rows[0];

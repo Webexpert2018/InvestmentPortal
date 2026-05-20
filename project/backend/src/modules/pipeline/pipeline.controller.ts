@@ -26,9 +26,12 @@ export class PipelineController {
 
   @Post('investors')
   async addInvestor(
+    @Req() req: any,
     @Body() data: { name: string, email: string, phone?: string }
   ) {
-    return this.pipelineService.addInvestor(data);
+    const creatorId = req.user?.userId;
+    const creatorName = req.user?.firstName ? `${req.user.firstName} ${req.user.lastName || ''}`.trim() : req.user?.email || 'System';
+    return this.pipelineService.addInvestor(data, creatorId, creatorName);
   }
 
   @Patch('investors/:id/details')

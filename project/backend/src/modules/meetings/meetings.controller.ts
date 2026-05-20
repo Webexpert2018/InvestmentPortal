@@ -39,4 +39,10 @@ export class MeetingsController {
   async updateMeetingStatus(@Request() req: any, @Param('id') id: string, @Body() body: { status: 'accepted' | 'rejected' }) {
     return this.meetingsService.updateMeetingStatus(req.user, id, body.status);
   }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Edit/update a scheduled meeting' })
+  async updateMeeting(@Request() req: any, @Param('id') id: string, @Body() body: any) {
+    return this.meetingsService.updateMeeting(req.user, id, body);
+  }
 }

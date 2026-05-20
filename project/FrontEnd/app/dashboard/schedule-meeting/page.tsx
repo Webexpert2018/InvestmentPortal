@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api/client';
 import {
   Calendar,
@@ -19,7 +20,8 @@ import {
   CalendarCheck,
   ChevronLeft,
   ChevronRight,
-  Info
+  Info,
+  Pencil
 } from 'lucide-react';
 
 interface Participant {
@@ -39,11 +41,13 @@ interface Meeting {
   organizer_id: string;
   organizer_type: string;
   organizer_name: string;
+  is_edited?: boolean;
   participants: Participant[];
 }
 
 export default function ScheduleMeetingPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [availableParticipants, setAvailableParticipants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +58,15 @@ export default function ScheduleMeetingPage() {
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
   const [hoveredDate, setHoveredDate] = useState<{ day: number; month: number; year: number } | null>(null);
-  const dateTimeInputRef = useRef<HTMLInputElement | null>(null);
+  const dateInputRef = useRef<HTMLInputElement | null>(null);
+  const timeInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Custom Time Picker State
+  const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
+  const timePickerRef = useRef<HTMLDivElement | null>(null);
+  const hourScrollRef = useRef<HTMLDivElement | null>(null);
+  const minuteScrollRef = useRef<HTMLDivElement | null>(null);
+  const periodScrollRef = useRef<HTMLDivElement | null>(null);
 
   // Month calculation
   const calendarYear = calendarDate.getFullYear();
@@ -161,6 +173,79 @@ export default function ScheduleMeetingPage() {
     return now.toISOString().slice(0, 16);
   };
 
+  const getMinDate = () => {
+    const now = new Date();
+    return now.toISOString().slice(0, 10);
+  };
+
+  const handleDateChange = (val: string) => {
+    const timePart = newMeeting.scheduled_date ? newMeeting.scheduled_date.slice(11, 16) : '10:00';
+    setNewMeeting(prev => ({
+      ...prev,
+      scheduled_date: `${val}T${timePart}`
+    }));
+  };
+
+  const handleTimeChange = (val: string) => {
+    const datePart = newMeeting.scheduled_date ? newMeeting.scheduled_date.slice(0, 10) : new Date().toISOString().slice(0, 10);
+    setNewMeeting(prev => ({
+      ...prev,
+      scheduled_date: `${datePart}T${val}`
+    }));
+  };
+
+  const parse24To12 = (time24: string) => {
+    if (!time24) return { hour: '10', minute: '00', period: 'AM' };
+    const [hStr, mStr] = time24.split(':');
+    let h = parseInt(hStr || '10');
+    let m = mStr || '00';
+    
+    // Normalize minutes to nearest 15-minute slot: '00', '15', '30', '45'
+    const minVal = parseInt(m);
+    if (minVal < 8) m = '00';
+    else if (minVal < 23) m = '15';
+    else if (minVal < 38) m = '30';
+    else if (minVal < 53) m = '45';
+    else {
+      m = '00';
+      h = (h + 1) % 24;
+    }
+
+    let period = 'AM';
+    if (h >= 12) {
+      period = 'PM';
+      if (h > 12) h -= 12;
+    } else if (h === 0) {
+      h = 12;
+    }
+    return {
+      hour: h.toString().padStart(2, '0'),
+      minute: m,
+      period
+    };
+  };
+
+  const format12To24 = (h: string, m: string, period: string) => {
+    let hour = parseInt(h);
+    if (period === 'PM' && hour < 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0;
+    return `${hour.toString().padStart(2, '0')}:${m}`;
+  };
+
+  const hoursList = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+  const minutesList = ['00', '15', '30', '45'];
+  const periodsList = ['AM', 'PM'];
+
+  const scrollColumn = (ref: React.RefObject<HTMLDivElement | null>, direction: 'up' | 'down') => {
+    if (ref.current) {
+      const scrollAmount = 35;
+      ref.current.scrollBy({
+        top: direction === 'up' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   const isDateSelected = (day: number, m: number, y: number) => {
     return selectedCalendarDate &&
       selectedCalendarDate.getDate() === day &&
@@ -180,6 +265,7 @@ export default function ScheduleMeetingPage() {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
   const [participantSearchQuery, setParticipantSearchQuery] = useState('');
   const [newMeeting, setNewMeeting] = useState({
     title: '',
@@ -211,26 +297,22 @@ export default function ScheduleMeetingPage() {
     fetchMeetingsData();
   }, []);
 
-  const handleCreateMeeting = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMeeting.title || !newMeeting.scheduled_date || newMeeting.participant_ids.length === 0) {
-      setError('Please fill in all required fields and select at least one participant.');
-      return;
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (timePickerRef.current && !timePickerRef.current.contains(event.target as Node)) {
+        setIsTimePickerOpen(false);
+      }
     }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
-    const scheduledDate = new Date(newMeeting.scheduled_date);
-    const now = new Date();
-    if (scheduledDate < new Date(now.getTime() - 60000)) {
-      setError('Cannot schedule a meeting for a past date.');
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      setError(null);
-      await apiClient.createMeeting(newMeeting);
-      setIsModalOpen(false);
-      // Reset form
+  useEffect(() => {
+    setError(null);
+    if (!isModalOpen) {
+      setEditingMeetingId(null);
       setNewMeeting({
         title: '',
         description: '',
@@ -239,10 +321,63 @@ export default function ScheduleMeetingPage() {
         meeting_link: '',
         participant_ids: []
       });
-      // Refresh meetings list
-      await fetchMeetingsData();
+    }
+  }, [isModalOpen]);
+
+  const handleCreateMeeting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMeeting.title || !newMeeting.scheduled_date || newMeeting.participant_ids.length === 0) {
+      setError('Please fill in all required fields and select at least one participant.');
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all required fields and select at least one participant.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const scheduledDate = new Date(newMeeting.scheduled_date);
+    const now = new Date();
+    if (scheduledDate < new Date(now.getTime() - 60000)) {
+      setError('Cannot schedule a meeting for a past date.');
+      toast({
+        title: 'Validation Error',
+        description: 'Cannot schedule a meeting for a past date.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError(null);
+      if (editingMeetingId) {
+        await apiClient.updateMeeting(editingMeetingId, newMeeting);
+        setIsModalOpen(false);
+        await fetchMeetingsData();
+        toast({
+          title: 'Meeting Updated',
+          description: 'Meeting invitation has been updated successfully.',
+          className: 'bg-green-50 border-green-200 text-green-800'
+        });
+      } else {
+        await apiClient.createMeeting(newMeeting);
+        setIsModalOpen(false);
+        await fetchMeetingsData();
+        toast({
+          title: 'Meeting Scheduled',
+          description: 'Meeting invitation has been sent successfully.',
+          className: 'bg-green-50 border-green-200 text-green-800'
+        });
+      }
     } catch (err: any) {
-      setError(err?.message || 'Failed to schedule the meeting invitation.');
+      const errorMsg = err?.message || (editingMeetingId ? 'Failed to update the meeting invitation.' : 'Failed to schedule the meeting invitation.');
+      setError(errorMsg);
+      toast({
+        title: editingMeetingId ? 'Update Failed' : 'Scheduling Failed',
+        description: errorMsg,
+        variant: 'destructive'
+      });
     } finally {
       setSubmitting(false);
     }
@@ -268,9 +403,37 @@ export default function ScheduleMeetingPage() {
       );
       // Fetch fresh DB values
       await fetchMeetingsData();
+      toast({
+        title: `Invitation ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+        description: `You have successfully ${status} the meeting invitation.`,
+        className: 'bg-green-50 border-green-200 text-green-800'
+      });
     } catch (err: any) {
-      setError(err?.message || 'Failed to update meeting response.');
+      const errorMsg = err?.message || 'Failed to update meeting response.';
+      setError(errorMsg);
+      toast({
+        title: 'Action Failed',
+        description: errorMsg,
+        variant: 'destructive'
+      });
     }
+  };
+
+  const handleEditClick = (meeting: Meeting) => {
+    const targetDate = new Date(meeting.scheduled_date);
+    targetDate.setMinutes(targetDate.getMinutes() - targetDate.getTimezoneOffset());
+    const dateString = targetDate.toISOString().slice(0, 16);
+
+    setNewMeeting({
+      title: meeting.title,
+      description: meeting.description || '',
+      scheduled_date: dateString,
+      duration_minutes: meeting.duration_minutes || 30,
+      meeting_link: meeting.meeting_link || '',
+      participant_ids: meeting.participants.map(p => p.id)
+    });
+    setEditingMeetingId(meeting.id);
+    setIsModalOpen(true);
   };
 
   const toggleParticipantSelection = (id: string) => {
@@ -320,7 +483,7 @@ export default function ScheduleMeetingPage() {
           </button>
         </div>
 
-        {error && (
+        {!isModalOpen && error && (
           <div className="rounded-xl bg-rose-50 border border-rose-100 p-4 flex items-start gap-3 text-rose-800 text-sm">
             <AlertCircle className="h-5 w-5 text-rose-600 flex-shrink-0 mt-0.5" />
             <p>{error}</p>
@@ -540,6 +703,11 @@ export default function ScheduleMeetingPage() {
                                   Response Required
                                 </span>
                               )}
+                              {meeting.is_edited && (
+                                <span className="rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-semibold text-blue-700 uppercase tracking-wide">
+                                  Meeting Edited
+                                </span>
+                              )}
                             </div>
 
                             <p className="text-xs text-[#8E8E93] flex items-center gap-1 font-light">
@@ -604,6 +772,19 @@ export default function ScheduleMeetingPage() {
                                 {myInvite.status === 'accepted' ? <Check className="h-3 w-3 stroke-[3]" /> : <X className="h-3 w-3 stroke-[3]" />}
                                 {myInvite.status.charAt(0).toUpperCase() + myInvite.status.slice(1)}
                               </span>
+                            </div>
+                          )}
+
+                          {/* Organizer Actions */}
+                          {meeting.organizer_id === user?.id && isUpcoming && (
+                            <div className="flex items-center gap-2 sm:self-start">
+                              <button
+                                onClick={() => handleEditClick(meeting)}
+                                className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-4 text-xs font-semibold text-amber-700 hover:bg-amber-100 transition-colors cursor-pointer"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                                Edit Meeting
+                              </button>
                             </div>
                           )}
                         </div>
@@ -691,7 +872,9 @@ export default function ScheduleMeetingPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
             <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl border border-gray-100 my-8">
               <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
-                <h2 className="font-goudy text-2xl font-bold text-[#1F1F1F]">Schedule Invitation</h2>
+                <h2 className="font-goudy text-2xl font-bold text-[#1F1F1F]">
+                  {editingMeetingId ? 'Edit Invitation' : 'Schedule Invitation'}
+                </h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
@@ -699,6 +882,13 @@ export default function ScheduleMeetingPage() {
                   <X className="h-5 w-5" />
                 </button>
               </div>
+
+              {error && (
+                <div className="rounded-xl bg-rose-50 border border-rose-100 p-4 mb-4 flex items-start gap-3 text-rose-800 text-sm animate-in fade-in slide-in-from-top-1 duration-200">
+                  <AlertCircle className="h-5 w-5 text-rose-600 flex-shrink-0 mt-0.5" />
+                  <p>{error}</p>
+                </div>
+              )}
 
               <form onSubmit={handleCreateMeeting} className="space-y-4">
                 <div>
@@ -728,36 +918,188 @@ export default function ScheduleMeetingPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-[#4B4B4B] uppercase tracking-wider mb-1">
-                      Date & Time <span className="text-rose-500">*</span>
+                      Date <span className="text-rose-500">*</span>
                     </label>
                     <input
-                      ref={dateTimeInputRef}
-                      type="datetime-local"
+                      ref={dateInputRef}
+                      type="date"
                       required
-                      min={getMinDateTime()}
-                      value={newMeeting.scheduled_date}
-                      onChange={(e) => setNewMeeting(prev => ({ ...prev, scheduled_date: e.target.value }))}
+                      min={getMinDate()}
+                      value={newMeeting.scheduled_date ? newMeeting.scheduled_date.slice(0, 10) : ''}
+                      onChange={(e) => handleDateChange(e.target.value)}
                       onClick={() => {
                         try {
-                          dateTimeInputRef.current?.showPicker();
+                          dateInputRef.current?.showPicker();
                         } catch (e) {
                           console.error("showPicker not supported", e);
                         }
                       }}
-                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#FBCB4B] transition-shadow cursor-pointer"
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#FBCB4B] transition-shadow cursor-pointer bg-white"
                     />
+                  </div>
+                  <div className="relative">
+                    <label className="block text-xs font-bold text-[#4B4B4B] uppercase tracking-wider mb-1">
+                      Time <span className="text-rose-500">*</span>
+                    </label>
+                    <div
+                      onClick={() => setIsTimePickerOpen(!isTimePickerOpen)}
+                      className="flex items-center justify-between w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus-within:ring-1 focus-within:ring-[#FBCB4B] transition-shadow cursor-pointer bg-white h-[42px]"
+                    >
+                      <span className="text-gray-700 select-none">
+                        {(() => {
+                          const parsed = parse24To12(newMeeting.scheduled_date ? newMeeting.scheduled_date.slice(11, 16) : '');
+                          return `${parsed.hour}:${parsed.minute} ${parsed.period}`;
+                        })()}
+                      </span>
+                      <Clock className="h-4 w-4 text-gray-400" />
+                    </div>
+
+                    {isTimePickerOpen && (
+                      <div
+                        ref={timePickerRef}
+                        className="absolute left-0 mt-1 z-50 w-60 rounded-xl bg-white p-3 shadow-xl border border-gray-100 flex flex-col gap-2"
+                      >
+                        <div className="grid grid-cols-3 gap-1 h-44">
+                          {/* Hours Column */}
+                          {(() => {
+                            const current = parse24To12(newMeeting.scheduled_date ? newMeeting.scheduled_date.slice(11, 16) : '');
+                            return (
+                              <div className="flex flex-col items-center">
+                                <button
+                                  type="button"
+                                  onClick={() => scrollColumn(hourScrollRef, 'up')}
+                                  className="p-1 hover:bg-gray-50 text-gray-400 hover:text-gray-600 rounded transition-colors w-full flex justify-center cursor-pointer"
+                                >
+                                  <ChevronLeft className="h-4 w-4 rotate-90" />
+                                </button>
+                                <div
+                                  ref={hourScrollRef}
+                                  className="w-full overflow-y-auto max-h-32 flex flex-col gap-1 py-1 scroll-smooth scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-50"
+                                >
+                                  {hoursList.map(h => (
+                                    <button
+                                      type="button"
+                                      key={h}
+                                      onClick={() => handleTimeChange(format12To24(h, current.minute, current.period))}
+                                      className={`text-center py-1 text-xs rounded-md transition-colors cursor-pointer ${
+                                        current.hour === h
+                                          ? 'bg-amber-100 text-amber-900 font-bold'
+                                          : 'hover:bg-gray-50 text-gray-700'
+                                      }`}
+                                    >
+                                      {h}
+                                    </button>
+                                  ))}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => scrollColumn(hourScrollRef, 'down')}
+                                  className="p-1 hover:bg-gray-50 text-gray-400 hover:text-gray-600 rounded transition-colors w-full flex justify-center cursor-pointer"
+                                >
+                                  <ChevronRight className="h-4 w-4 rotate-90" />
+                                </button>
+                              </div>
+                            );
+                          })()}
+
+                          {/* Minutes Column */}
+                          {(() => {
+                            const current = parse24To12(newMeeting.scheduled_date ? newMeeting.scheduled_date.slice(11, 16) : '');
+                            return (
+                              <div className="flex flex-col items-center border-x border-gray-100">
+                                <button
+                                  type="button"
+                                  onClick={() => scrollColumn(minuteScrollRef, 'up')}
+                                  className="p-1 hover:bg-gray-50 text-gray-400 hover:text-gray-600 rounded transition-colors w-full flex justify-center cursor-pointer"
+                                >
+                                  <ChevronLeft className="h-4 w-4 rotate-90" />
+                                </button>
+                                <div
+                                  ref={minuteScrollRef}
+                                  className="w-full overflow-y-auto max-h-32 flex flex-col gap-1 py-1 scroll-smooth scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-50"
+                                >
+                                  {minutesList.map(m => (
+                                    <button
+                                      type="button"
+                                      key={m}
+                                      onClick={() => handleTimeChange(format12To24(current.hour, m, current.period))}
+                                      className={`text-center py-1 text-xs rounded-md transition-colors cursor-pointer ${
+                                        current.minute === m
+                                          ? 'bg-amber-100 text-amber-900 font-bold'
+                                          : 'hover:bg-gray-50 text-gray-700'
+                                      }`}
+                                    >
+                                      {m}
+                                    </button>
+                                  ))}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => scrollColumn(minuteScrollRef, 'down')}
+                                  className="p-1 hover:bg-gray-50 text-gray-400 hover:text-gray-600 rounded transition-colors w-full flex justify-center cursor-pointer"
+                                >
+                                  <ChevronRight className="h-4 w-4 rotate-90" />
+                                </button>
+                              </div>
+                            );
+                          })()}
+
+                          {/* AM/PM Column */}
+                          {(() => {
+                            const current = parse24To12(newMeeting.scheduled_date ? newMeeting.scheduled_date.slice(11, 16) : '');
+                            return (
+                              <div className="flex flex-col items-center">
+                                <button
+                                  type="button"
+                                  onClick={() => scrollColumn(periodScrollRef, 'up')}
+                                  className="p-1 hover:bg-gray-50 text-gray-400 hover:text-gray-600 rounded transition-colors w-full flex justify-center cursor-pointer"
+                                >
+                                  <ChevronLeft className="h-4 w-4 rotate-90" />
+                                </button>
+                                <div
+                                  ref={periodScrollRef}
+                                  className="w-full overflow-y-auto max-h-32 flex flex-col gap-1 py-1 scroll-smooth scrollbar-thin"
+                                >
+                                  {periodsList.map(p => (
+                                    <button
+                                      type="button"
+                                      key={p}
+                                      onClick={() => handleTimeChange(format12To24(current.hour, current.minute, p))}
+                                      className={`text-center py-2 text-xs rounded-md transition-colors cursor-pointer ${
+                                        current.period === p
+                                          ? 'bg-amber-100 text-amber-900 font-bold'
+                                          : 'hover:bg-gray-50 text-gray-700'
+                                      }`}
+                                    >
+                                      {p}
+                                    </button>
+                                  ))}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => scrollColumn(periodScrollRef, 'down')}
+                                  className="p-1 hover:bg-gray-50 text-gray-400 hover:text-gray-600 rounded transition-colors w-full flex justify-center cursor-pointer"
+                                >
+                                  <ChevronRight className="h-4 w-4 rotate-90" />
+                                </button>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-[#4B4B4B] uppercase tracking-wider mb-1">
-                      Duration (Minutes)
+                      Duration
                     </label>
                     <select
                       value={newMeeting.duration_minutes}
                       onChange={(e) => setNewMeeting(prev => ({ ...prev, duration_minutes: parseInt(e.target.value) }))}
-                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#FBCB4B] transition-shadow bg-white"
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#FBCB4B] transition-shadow bg-white"
                     >
                       <option value={15}>15 Minutes</option>
                       <option value={30}>30 Minutes</option>
@@ -845,10 +1187,10 @@ export default function ScheduleMeetingPage() {
                     {submitting ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Scheduling...
+                        {editingMeetingId ? 'Saving...' : 'Scheduling...'}
                       </>
                     ) : (
-                      'Send Invitation'
+                      editingMeetingId ? 'Save Changes' : 'Send Invitation'
                     )}
                   </button>
                 </div>

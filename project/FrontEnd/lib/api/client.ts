@@ -1241,6 +1241,13 @@ class ApiClient {
       body: JSON.stringify({ status }),
     });
   }
+
+  async updateMeeting(id: string, data: { title: string; description?: string; scheduled_date: string; duration_minutes?: number; meeting_link?: string; participant_ids: string[] }) {
+    return this.request<any>(`/meetings/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 
