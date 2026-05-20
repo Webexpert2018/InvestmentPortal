@@ -15,7 +15,13 @@ export class MeetingsService {
     this.pgClient = new Client({
       connectionString: this.configService.get<string>('DATABASE_URL'),
     });
-    this.pgClient.connect().catch(err => console.error('MeetingsService DB Connection Error', err));
+    this.pgClient.connect()
+      .then(() => {
+        this.pgClient.query('ALTER TABLE meetings ADD COLUMN IF NOT EXISTS is_edited BOOLEAN DEFAULT FALSE').catch(err => {
+          console.error('Failed to add is_edited column:', err);
+        });
+      })
+      .catch(err => console.error('MeetingsService DB Connection Error', err));
   }
 
   async getAvailableUsers(user: any) {
@@ -144,7 +150,7 @@ export class MeetingsService {
     try {
       const result = await this.pgClient.query(`
         SELECT 
-          m.id, m.title, m.description, m.scheduled_date, m.duration_minutes, m.meeting_link, m.organizer_id, m.organizer_type,
+          m.id, m.title, m.description, m.scheduled_date, m.duration_minutes, m.meeting_link, m.organizer_id, m.organizer_type, m.is_edited,
           (
             SELECT json_agg(json_build_object(
               'id', mp.participant_id, 
@@ -257,6 +263,72 @@ export class MeetingsService {
       }
     } catch (error) {
       console.error('Failed to run daily meeting reminders cron:', error);
+    }
+  }
+
+  async updateMeeting(user: any, meetingId: string, dto: { title: string, description?: string, scheduled_date: string, duration_minutes?: number, meeting_link?: string, participant_ids: string[] }) {
+    if (!dto.participant_ids || dto.participant_ids.length === 0) {
+      throw new BadRequestException('At least one participant is required');
+    }
+
+    const scheduledDate = new Date(dto.scheduled_date);
+    const now = new Date();
+    if (scheduledDate < new Date(now.getTime() - 60000)) {
+      throw new BadRequestException('Cannot schedule a meeting for a past date');
+    }
+
+    try {
+      const meetingCheck = await this.pgClient.query('SELECT organizer_id FROM meetings WHERE id = $1', [meetingId]);
+      if (meetingCheck.rows.length === 0) {
+        throw new NotFoundException('Meeting not found');
+      }
+      if (meetingCheck.rows[0].organizer_id !== user.userId) {
+        throw new ForbiddenException('Only the meeting organizer can edit the meeting');
+      }
+
+      await this.pgClient.query('BEGIN');
+
+      await this.pgClient.query(`
+        UPDATE meetings 
+        SET title = $1, description = $2, scheduled_date = $3, duration_minutes = $4, meeting_link = $5, is_edited = true, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $6
+      `, [dto.title, dto.description || null, dto.scheduled_date, dto.duration_minutes || 30, dto.meeting_link || null, meetingId]);
+
+      const currentParticipantsResult = await this.pgClient.query('SELECT participant_id FROM meeting_participants WHERE meeting_id = $1', [meetingId]);
+      const currentParticipantIds = currentParticipantsResult.rows.map(row => row.participant_id);
+
+      const toDelete = currentParticipantIds.filter(id => !dto.participant_ids.includes(id));
+      if (toDelete.length > 0) {
+        await this.pgClient.query('DELETE FROM meeting_participants WHERE meeting_id = $1 AND participant_id = ANY($2)', [meetingId, toDelete]);
+      }
+
+      for (const participantId of dto.participant_ids) {
+        if (currentParticipantIds.includes(participantId)) {
+          await this.pgClient.query(`
+            UPDATE meeting_participants 
+            SET status = 'pending', updated_at = CURRENT_TIMESTAMP
+            WHERE meeting_id = $1 AND participant_id = $2
+          `, [meetingId, participantId]);
+        } else {
+          const staffCheck = await this.pgClient.query('SELECT id FROM staff WHERE id = $1', [participantId]);
+          const pType = staffCheck.rows.length > 0 ? 'staff' : 'investor';
+
+          await this.pgClient.query(`
+            INSERT INTO meeting_participants (meeting_id, participant_id, participant_type, status)
+            VALUES ($1, $2, $3, 'pending')
+          `, [meetingId, participantId, pType]);
+        }
+      }
+
+      await this.pgClient.query('COMMIT');
+      return { success: true };
+    } catch (error) {
+      await this.pgClient.query('ROLLBACK');
+      console.error(error);
+      if (error instanceof NotFoundException || error instanceof ForbiddenException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to update meeting');
     }
   }
 }
