@@ -1114,7 +1114,7 @@ export default function ScheduleMeetingPage() {
                     Video Conference Link (Zoom / Google Meet)
                   </label>
                   <input
-                    type="url"
+                    type="text"
                     placeholder="https://zoom.us/j/... or https://meet.google.com/..."
                     value={newMeeting.meeting_link}
                     onChange={(e) => setNewMeeting(prev => ({ ...prev, meeting_link: e.target.value }))}

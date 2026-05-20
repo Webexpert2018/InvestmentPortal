@@ -50,7 +50,7 @@ export class PipelineService {
       LEFT JOIN staff s ON i.assigned_ir_id = s.id
       LEFT JOIN users acc ON i.assigned_accountant_id = acc.id
       LEFT JOIN investments inv ON i.id = inv.user_id AND inv.is_reconciled = true
-      WHERE (i.pipeline_stage_id IS NOT NULL OR i.status IN ('pending', 'inactive'))
+      WHERE (i.pipeline_stage_id IS NOT NULL OR i.status IN ('pending', 'prospect'))
       ${isIR ? 'AND i.assigned_ir_id = $1' : ''}
       GROUP BY i.id, i.email, i.phone, i.full_name, i.pipeline_stage_id, i.assigned_ir_id, i.assigned_accountant_id, i.created_by_id, i.created_by_name, s.full_name, acc.first_name, acc.last_name, i.updated_at, i.expected_future_investment, i.pipeline_note, i.status
       ORDER BY i.updated_at DESC
@@ -62,9 +62,9 @@ export class PipelineService {
     // 4. Group investors by stage
     return stages.map((stage, index) => ({
       ...stage,
-      count: investors.filter(i => i.pipeline_stage_id === stage.id || (index === 0 && (i.pipeline_stage_id === null || i.pipeline_stage_id === undefined) && (i.status === 'pending' || i.status === 'inactive'))).length,
+      count: investors.filter(i => i.pipeline_stage_id === stage.id || (index === 0 && (i.pipeline_stage_id === null || i.pipeline_stage_id === undefined) && (i.status === 'pending' || i.status === 'prospect'))).length,
       investors: investors
-        .filter(i => i.pipeline_stage_id === stage.id || (index === 0 && (i.pipeline_stage_id === null || i.pipeline_stage_id === undefined) && (i.status === 'pending' || i.status === 'inactive')))
+        .filter(i => i.pipeline_stage_id === stage.id || (index === 0 && (i.pipeline_stage_id === null || i.pipeline_stage_id === undefined) && (i.status === 'pending' || i.status === 'prospect')))
         .map(i => ({
           id: i.id,
           name: i.name || 'Invited Investor',
@@ -144,8 +144,8 @@ export class PipelineService {
     return result.rows[0];
   }
 
-  async addInvestor(data: { name: string, email: string, phone?: string }, creatorId?: string, creatorName?: string) {
-    const { name, phone } = data;
+  async addInvestor(data: { name: string, email: string, phone?: string, assignedIrId?: string }, creatorId?: string, creatorName?: string) {
+    const { name, phone, assignedIrId } = data;
     const email = data.email.toLowerCase().trim();
 
     // Check if user already exists in ANY table
@@ -161,11 +161,11 @@ export class PipelineService {
 
     if (existingInvestor.rows.length > 0) {
       const investor = existingInvestor.rows[0];
-      if (investor.status === 'inactive') {
+      if (investor.status === 'prospect') {
         // Update existing inactive investor
         const result = await db.query(
-          'UPDATE investors SET full_name = $1, phone = $2, created_by_id = $3, created_by_name = $4, updated_at = NOW() WHERE id = $5 RETURNING *',
-          [name, phone || null, creatorId || null, creatorName || null, investor.id]
+          'UPDATE investors SET full_name = $1, phone = $2, created_by_id = $3, created_by_name = $4, assigned_ir_id = $5, updated_at = NOW() WHERE id = $6 RETURNING *',
+          [name, phone || null, creatorId || null, creatorName || null, assignedIrId || null, investor.id]
         );
         return result.rows[0];
       } else {
@@ -182,10 +182,10 @@ export class PipelineService {
     const dummyPasswordHash = 'INACTIVE_PIPELINE_' + crypto.randomBytes(16).toString('hex');
 
     const result = await db.query(
-      `INSERT INTO investors (id, email, full_name, password_hash, status, phone, pipeline_stage_id, created_by_id, created_by_name)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO investors (id, email, full_name, password_hash, status, phone, pipeline_stage_id, created_by_id, created_by_name, assigned_ir_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
-      [investorId, email, name, dummyPasswordHash, 'inactive', phone || null, firstStageId, creatorId || null, creatorName || null]
+      [investorId, email, name, dummyPasswordHash, 'prospect', phone || null, firstStageId, creatorId || null, creatorName || null, assignedIrId || null]
     );
 
     return result.rows[0];

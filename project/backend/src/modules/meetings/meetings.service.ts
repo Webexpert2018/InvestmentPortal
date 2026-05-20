@@ -72,26 +72,26 @@ export class MeetingsService {
           const assignedInvestors = await this.pgClient.query(`
             SELECT id, full_name as name, role, 'investor' as type 
             FROM investors 
-            WHERE assigned_ir_id = $1 AND status != 'inactive'
+            WHERE assigned_ir_id = $1 AND status != 'prospect'
           `, [user.userId]);
           return assignedInvestors.rows;
         } else if (isAccountant) {
           const assignedInvestors = await this.pgClient.query(`
             SELECT id, full_name as name, role, 'investor' as type 
             FROM investors 
-            WHERE assigned_accountant_id = $1 AND status != 'inactive'
+            WHERE assigned_accountant_id = $1 AND status != 'prospect'
           `, [user.userId]);
           return assignedInvestors.rows;
         } else if (['executive_admin', 'fund_admin', 'admin'].includes(user.role)) {
           const staffResult = await this.pgClient.query(`SELECT id, full_name as name, role, 'staff' as type FROM staff WHERE id != $1 AND status = 'active'`, [user.userId]);
-          const investorResult = await this.pgClient.query(`SELECT id, full_name as name, role, 'investor' as type FROM investors WHERE status != 'inactive'`);
+          const investorResult = await this.pgClient.query(`SELECT id, full_name as name, role, 'investor' as type FROM investors WHERE status != 'prospect'`);
           return [...staffResult.rows, ...investorResult.rows];
         } else {
           // Fallback / accountant / other roles
           const assignedInvestors = await this.pgClient.query(`
             SELECT id, full_name as name, role, 'investor' as type 
             FROM investors 
-            WHERE (assigned_ir_id = $1 OR assigned_accountant_id = $1) AND status != 'inactive'
+            WHERE (assigned_ir_id = $1 OR assigned_accountant_id = $1) AND status != 'prospect'
           `, [user.userId]);
           
           const staffResult = await this.pgClient.query(`SELECT id, full_name as name, role, 'staff' as type FROM staff WHERE id != $1 AND status = 'active'`, [user.userId]);

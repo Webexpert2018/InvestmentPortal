@@ -27,7 +27,7 @@ export class PipelineController {
   @Post('investors')
   async addInvestor(
     @Req() req: any,
-    @Body() data: { name: string, email: string, phone?: string }
+    @Body() data: { name: string, email: string, phone?: string, assignedIrId?: string }
   ) {
     const creatorId = req.user?.userId;
     const creatorName = req.user?.firstName ? `${req.user.firstName} ${req.user.lastName || ''}`.trim() : req.user?.email || 'System';

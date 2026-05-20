@@ -196,7 +196,7 @@ class ApiClient {
     });
   }
 
-  async addInvestorToPipeline(data: { name: string, email: string, phone?: string }) {
+  async addInvestorToPipeline(data: { name: string, email: string, phone?: string, assignedIrId?: string }) {
     return this.request<any>('/pipeline/investors', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -206,6 +206,10 @@ class ApiClient {
   async getAllUsers() {
     return this.request<any[]>('/users');
   }
+  //aetapi
+  // async getExternalAccounts() {
+  //   return this.request<any>('/users/external-accounts');
+  // }
 
   async getKycReviewQueue() {
     return this.request<any[]>('/users/kyc-queue');
