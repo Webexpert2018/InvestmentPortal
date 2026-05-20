@@ -49,7 +49,7 @@ export default function PipelinePage() {
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAddInvestorModal, setShowAddInvestorModal] = useState(false);
-  const [newInvestorData, setNewInvestorData] = useState({ name: '', email: '', phone: '' });
+  const [newInvestorData, setNewInvestorData] = useState({ name: '', email: '', phone: '', assignedIrId: '' });
   const [isAddingInvestor, setIsAddingInvestor] = useState(false);
 
   // New states
@@ -316,6 +316,15 @@ export default function PipelinePage() {
       return;
     }
 
+    if (newInvestorData.phone && newInvestorData.phone.length !== 10) {
+      toast({
+        title: 'Validation Error',
+        description: 'Phone number must be exactly 10 digits',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsAddingInvestor(true);
     try {
       await apiClient.addInvestorToPipeline(newInvestorData);
@@ -326,7 +335,7 @@ export default function PipelinePage() {
       });
       fetchData();
       setShowAddInvestorModal(false);
-      setNewInvestorData({ name: '', email: '', phone: '' });
+      setNewInvestorData({ name: '', email: '', phone: '', assignedIrId: '' });
     } catch (err: any) {
       console.error('Failed to add investor:', err);
       toast({
@@ -508,9 +517,12 @@ export default function PipelinePage() {
       promises.push(
         apiClient.assignInvestorRelations(selectedInvestor.id, selectedIrStaff || null)
       );
-      promises.push(
-        apiClient.assignAccountant(selectedInvestor.id, selectedAccountant || null)
-      );
+
+      if (selectedInvestor.status !== 'prospect') {
+        promises.push(
+          apiClient.assignAccountant(selectedInvestor.id, selectedAccountant || null)
+        );
+      }
 
       await Promise.all(promises);
       toast({
@@ -957,7 +969,7 @@ export default function PipelinePage() {
                                                         investor.status === 'pending' ? "bg-yellow-100 text-yellow-700" :
                                                           "bg-red-100 text-red-700"
                                                     )}>
-                                                      {investor.status || 'inactive'}
+                                                      {investor.status || 'prospect'}
                                                     </span>
 
 
@@ -1019,7 +1031,7 @@ export default function PipelinePage() {
 
                                                   ) : <div />}
 
-                                                  {investor.status === 'inactive' && investor.createdByName && (
+                                                  {investor.status === 'prospect' && investor.createdByName && (
                                                     <div className="flex items-center gap-1.5 py-0.5 rounded-md">
                                                       <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest flex-none">Added by</span>
                                                       <span className="text-[10px] font-extrabold text-blue-600 uppercase leading-tight truncate">
@@ -1214,7 +1226,7 @@ export default function PipelinePage() {
                     </div>
                   </div>
 
-                  {selectedInvestor.status === 'inactive' && selectedInvestor.createdByName && (
+                  {selectedInvestor.status === 'prospect' && selectedInvestor.createdByName && (
                     <div className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100 flex items-center gap-4 group animate-in fade-in duration-200">
                       <div className="w-12 h-12 bg-purple-100/50 text-purple-600 rounded-2xl flex items-center justify-center flex-none animate-pulse">
                         <UserPlus className="h-6 w-6" />
@@ -1226,7 +1238,26 @@ export default function PipelinePage() {
                     </div>
                   )}
 
-                  {selectedInvestor.status !== 'inactive' && (
+                  {selectedInvestor.status === 'prospect' && (user?.role === 'admin' || user?.role === 'executive_admin') && (
+                    <div className="space-y-4">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Investor Relations Officer</label>
+                      <div className="relative group">
+                        <select
+                          value={selectedIrStaff}
+                          onChange={(e) => setSelectedIrStaff(e.target.value)}
+                          disabled={isIrLoading}
+                          className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
+                        >
+                          <option value="">{isIrLoading ? 'Loading staff...' : 'Unassigned / Select IR Officer'}</option>
+                          {irStaffList.map((staff: any) => (
+                            <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 transition-colors" />
+                      </div>
+                    </div>
+                  )}
+
                     <div className="space-y-4">
                       <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Amount ($)</label>
                       <div className="relative">
@@ -1240,9 +1271,8 @@ export default function PipelinePage() {
                         />
                       </div>
                     </div>
-                  )}
 
-                  {selectedInvestor.status !== 'inactive' && (user?.role === 'admin' || user?.role === 'executive_admin') && (
+                  {selectedInvestor.status !== 'prospect' && (user?.role === 'admin' || user?.role === 'executive_admin') && (
                     <div className="space-y-6">
                       <div className="space-y-4">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Investor Relations Officer</label>
@@ -1449,10 +1479,31 @@ export default function PipelinePage() {
                   <input
                     type="text"
                     value={newInvestorData.phone}
-                    onChange={(e) => setNewInvestorData({ ...newInvestorData, phone: e.target.value })}
-                    placeholder="Enter phone number"
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setNewInvestorData({ ...newInvestorData, phone: val });
+                    }}
+                    placeholder="Enter 10-digit phone number"
                     className="w-full px-5 py-4 bg-gray-50 border-none rounded-full text-sm font-bold text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-blue-500 transition-all"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Investor Relations Officer (Optional)</label>
+                  <div className="relative group">
+                    <select
+                      value={newInvestorData.assignedIrId}
+                      onChange={(e) => setNewInvestorData({ ...newInvestorData, assignedIrId: e.target.value })}
+                      disabled={isIrLoading}
+                      className="w-full px-5 py-4 bg-gray-50 border-none rounded-full text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      <option value="">{isIrLoading ? 'Loading staff...' : 'Unassigned / Select IR Officer'}</option>
+                      {irStaffList.map((staff: any) => (
+                        <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 transition-colors" />
+                  </div>
                 </div>
 
                 <div className="flex gap-4 pt-2">

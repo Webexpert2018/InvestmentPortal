@@ -124,6 +124,15 @@ export default function InvestorPage() {
       setLoading(true);
       const data = await apiClient.getAllUsers();
       setInvestors(data);
+      //aetapi 
+      // // Fetch external platform accounts and log them in browser console
+      // apiClient.getExternalAccounts()
+      //   .then(extData => {
+      //     console.log('%c🚀 [External Accounts] Fetched from aet.dev sandbox:', 'color: #3b82f6; font-weight: bold; font-size: 13px;', extData);
+      //   })
+      //   .catch(err => {
+      //     console.error('❌ Failed to fetch external accounts:', err);
+      //   });
     } catch (error) {
       console.error('Failed to fetch investors:', error);
       toast.error('Failed to load investors');

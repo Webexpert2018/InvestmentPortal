@@ -3,6 +3,8 @@ import { db } from '../../config/database';
 import * as bcrypt from 'bcryptjs';
 import { EmailService } from '../email/email.service';
 import * as crypto from 'crypto';
+//aetapi
+//import axios from 'axios';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -413,8 +415,8 @@ export class UsersService implements OnModuleInit {
       const returning = tableName === 'investors'
         ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, notif_alerts, notif_nav_recalc, notif_sms_announcements, notif_sms_alerts, notif_sms_doc_uploads, notif_sms_nav_recalc, notif_sms_funding_conf, notif_sms_tax_forms, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency'
         : tableName === 'staff'
-        ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder'
-        : 'id, email, first_name, last_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder';
+          ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder'
+          : 'id, email, first_name, last_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder';
 
       const result = await db.query(
         `UPDATE ${tableName} SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING ${returning}`,
@@ -497,7 +499,7 @@ export class UsersService implements OnModuleInit {
         ua.account_type
       FROM user_accounts ua
       JOIN investors i ON ua.user_id = i.id
-      WHERE (i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1) AND i.status != 'inactive'
+      WHERE (i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1) AND i.status != 'prospect'
       ORDER BY i.created_at DESC
     `, [staffId]);
 
@@ -512,7 +514,7 @@ export class UsersService implements OnModuleInit {
 
     const result = await db.query(`
       WITH user_accounts AS (
-        SELECT id AS user_id, NULL::uuid as account_id, 'Personal' AS account_type, LOWER(status) as account_status FROM investors WHERE status != 'inactive'
+        SELECT id AS user_id, NULL::uuid as account_id, 'Personal' AS account_type, LOWER(status) as account_status FROM investors WHERE status != 'prospect'
         UNION
         SELECT 
           user_id, 
@@ -553,7 +555,7 @@ export class UsersService implements OnModuleInit {
         i.assigned_ir_id, s.full_name as assigned_ir_name,
         i.assigned_accountant_id, acc.full_name as assigned_accountant_name
       FROM user_accounts ua
-      JOIN investors i ON ua.user_id = i.id AND i.status != 'inactive'
+      JOIN investors i ON ua.user_id = i.id AND i.status != 'prospect'
       LEFT JOIN investment_sums inv_s ON ua.user_id = inv_s.user_id AND ua.account_type = inv_s.account_type
       LEFT JOIN redemption_sums red_s ON ua.user_id = red_s.user_id AND ua.account_type = red_s.account_type
       LEFT JOIN (
@@ -596,7 +598,7 @@ export class UsersService implements OnModuleInit {
         id, email, 'investor' as role, full_name as "firstName", '' as "lastName", phone, status, created_at as "createdAt", 
         kyc_status as "kycStatus", profile_image_url as "profileImageUrl"
       FROM investors
-      WHERE status != 'inactive'
+      WHERE status != 'prospect'
       ORDER BY 
         CASE WHEN kyc_status = 'pending' THEN 0 ELSE 1 END,
         created_at DESC
@@ -930,7 +932,7 @@ export class UsersService implements OnModuleInit {
 
     if (existingInvestor.rows.length > 0) {
       const investor = existingInvestor.rows[0];
-      if (investor.status === 'inactive') {
+      if (investor.status === 'prospect') {
         isOverwritingInactive = true;
         existingInvestorId = investor.id;
       } else {
@@ -986,7 +988,7 @@ export class UsersService implements OnModuleInit {
     // 5. Send invitation email (if requested, usually only for bulk or immediate invites)
     if (data.sendEmail) {
       await this.emailService.sendInvestorInvitationEmail(email, full_name, token);
-      
+
       const senderName = requestingUserName || 'Admin';
       // Update invitation tracking
       await db.query(
@@ -1039,7 +1041,7 @@ export class UsersService implements OnModuleInit {
       console.log(`[sendInvitation] No active token found for ${userId}, generating new one...`);
       token = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
-      
+
       await db.query(
         'INSERT INTO user_otps (user_id, otp, type, expires_at) VALUES ($1, $2, $3, $4)',
         [userId, token, 'INVITATION', expiresAt]
@@ -1219,4 +1221,35 @@ export class UsersService implements OnModuleInit {
 
     return { id: result.rows[0].id, assignedAccountantId: result.rows[0].assigned_accountant_id };
   }
+  //aetapi 
+  // async getExternalAccounts() {
+  //   try {
+  //     const secret = process.env.AET_SECRET || '3AAHp5pgKaZ4yhVgbRbDng==';
+  //     const apiKey = process.env.AET_API_KEY || 'PCmkpq87iBsvoJSmhKi3usqu3PxshXDVxikw2auK106e6813';
+  //     const method = 'GET';
+  //     const path = '/api/v3/accounts';
+  //     const timestamp = Date.now().toString();
+
+  //     const payload = timestamp + method + path;
+
+  //     const signature = crypto
+  //       .createHmac('sha256', secret)
+  //       .update(payload)
+  //       .digest('base64');
+
+  //     const response = await axios.get('https://sandbox.aet.dev/api/v3/accounts', {
+  //       headers: {
+  //         'Authorization': `Bearer ${apiKey}`,
+  //         'Timestamp': timestamp,
+  //         'Signature': signature,
+  //       },
+  //     });
+
+  //     console.log('✅ External Accounts Fetched Successfully:', response.data);
+  //     return response.data;
+  //   } catch (error: any) {
+  //     console.error('❌ Failed to fetch external accounts:', error.response?.data || error.message);
+  //     throw new InternalServerErrorException(error.response?.data || error.message || 'Failed to fetch external accounts');
+  //   }
+  // }
 }
