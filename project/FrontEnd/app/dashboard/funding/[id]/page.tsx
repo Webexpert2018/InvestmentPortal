@@ -1,49 +1,154 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
+import { apiClient } from '@/lib/api/client';
+import { toast } from 'sonner';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 export default function FundingDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('transactions');
+  const [loading, setLoading] = useState(true);
+  const [investment, setInvestment] = useState<any>(null);
+  const [performanceData, setPerformanceData] = useState<any[]>([]);
+  const [timeRange, setTimeRange] = useState('12');
+  const [matchedDoc, setMatchedDoc] = useState<any>(null);
 
-  // Mock data - in real app, fetch based on params.id
+  useEffect(() => {
+    const fetchInvestmentAndPerformance = async () => {
+      try {
+        setLoading(true);
+        const invData = await apiClient.getInvestmentById(params.id);
+        setInvestment(invData);
+
+        if (invData?.user_id) {
+          const perfData = await apiClient.getInvestorPerformance(invData.user_id, parseInt(timeRange));
+          setPerformanceData(perfData);
+
+          // Dynamically fetch and match document for this investment
+          try {
+            const token = localStorage.getItem('token');
+            if (token) {
+              let docs: any[] = [];
+              if (user?.role === 'investor') {
+                docs = await apiClient.getMyDocuments();
+              } else if (user?.role) {
+                docs = await apiClient.getInvestorDocuments(invData.user_id);
+              } else {
+                // Safe fallback: try investor first, then admin/staff endpoint
+                try {
+                  docs = await apiClient.getMyDocuments();
+                } catch {
+                  docs = await apiClient.getInvestorDocuments(invData.user_id);
+                }
+              }
+
+              // Look for a document matching the investment id in name or description
+              const match = docs.find((d: any) => 
+                d.description?.includes(params.id) || 
+                d.file_name?.includes(params.id)
+              );
+              if (match) {
+                setMatchedDoc(match);
+              }
+            }
+          } catch (docError) {
+            console.error('Failed to fetch matched document:', docError);
+          }
+        }
+      } catch (error: any) {
+        console.error('Failed to fetch details:', error);
+        toast.error(error.message || 'Failed to fetch details');
+        router.back();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchInvestmentAndPerformance();
+    }
+  }, [params.id, timeRange, user]);
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-[#FCD34D]" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!investment) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <p className="text-red-500 font-medium">Investment details not found.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const costBasisValue = parseFloat(investment.investment_amount || 0);
+  const currentValueValue = parseFloat(investment.revised_amount || investment.investment_amount || 0);
+  const gainLossValue = currentValueValue - costBasisValue;
+  const gainLossPercentVal = costBasisValue > 0 ? (gainLossValue / costBasisValue) * 100 : 0;
+  const isGain = gainLossValue >= 0;
+
   const fundData = {
-    fundName: 'ABC Fund Details',
-    currentValue: '$94,571',
-    unitsHeld: '841.05',
-    currentNav: '$112.45',
-    totalGainLoss: '+12,571',
-    gainLossPercent: '+15.33%',
-    costBasis: '$82,000',
-    unrealizedGain: '$12,571',
-    percentReturn: '+15.33%',
-    inceptionDate: 'Jul 22, 2024',
+    fundName: investment.fund_name,
+    currentValue: `$${currentValueValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    unitsHeld: parseFloat(investment.estimated_units || 0).toFixed(4),
+    currentNav: `$${parseFloat(investment.unit_price || 0).toFixed(2)}`,
+    totalGainLoss: `${isGain ? '+' : '-'}$${Math.abs(gainLossValue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    gainLossPercent: `${isGain ? '+' : ''}${gainLossPercentVal.toFixed(2)}%`,
+    costBasis: `$${costBasisValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    unrealizedGain: `${isGain ? '+' : '-'}$${Math.abs(gainLossValue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    percentReturn: `${isGain ? '+' : ''}${gainLossPercentVal.toFixed(2)}%`,
+    inceptionDate: new Date(investment.created_at).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }),
   };
 
   const transactions = [
-    { id: 1, date: 'Jan 18, 2025', type: 'Subscription', amount: '$50,000.00', units: 200, status: 'Completed' },
-    { id: 2, date: 'Jan 18, 2025', type: 'Subscription', amount: '$50,000.00', units: 200, status: 'Completed' },
-    { id: 3, date: 'Jan 18, 2025', type: 'Subscription', amount: '$50,000.00', units: 200, status: 'Pending' },
+    {
+      id: investment.id,
+      date: new Date(investment.created_at).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+      type: 'Subscription',
+      amount: `$${costBasisValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      units: parseFloat(investment.estimated_units || 0).toFixed(2),
+      status: investment.status,
+    },
   ];
 
   const documents = [
-    { id: 1, name: 'Subscription Agreement — Signed - Feb 12, 2025' },
-    { id: 2, name: 'K-1 Tax Document — 2024' },
-    { id: 3, name: 'Quarterly Statement — Q4 2024' },
+    {
+      id: 1,
+      name: `Subscription Agreement — ${investment.document_signed ? 'Signed' : 'Awaiting Signature'} - ${new Date(investment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+    },
   ];
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Completed':
-        return 'text-green-600';
-      case 'Pending':
-        return 'text-yellow-600';
-      default:
-        return 'text-gray-600';
+    const s = status ? status.toLowerCase() : '';
+    if (s.includes('completed') || s.includes('issued') || s.includes('received')) {
+      return 'text-green-600';
     }
+    if (s.includes('pending') || s.includes('submitted') || s.includes('awaiting')) {
+      return 'text-yellow-600';
+    }
+    return 'text-gray-600';
   };
 
   const tabs = [
@@ -82,8 +187,12 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
           </div>
           <div className="bg-white rounded-xl shadow-sm p-6">
             <p className="text-sm text-gray-500 mb-2">Total gain/loss</p>
-            <p className="text-2xl font-bold text-green-600">{fundData.totalGainLoss}</p>
-            <p className="text-sm text-green-600 mt-1">{fundData.gainLossPercent}</p>
+            <p className={`text-2xl font-bold ${isGain ? 'text-green-600' : 'text-red-600'}`}>
+              {fundData.totalGainLoss}
+            </p>
+            <p className={`text-sm ${isGain ? 'text-green-600' : 'text-red-600'} mt-1`}>
+              {fundData.gainLossPercent}
+            </p>
           </div>
         </div>
 
@@ -93,58 +202,86 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-[#1F1F1F]">Performance Overview</h2>
-              <select className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FCD34D]">
-                <option>Last year</option>
-                <option>Last 6 months</option>
-                <option>Last 3 months</option>
-                <option>Last month</option>
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FCD34D]"
+              >
+                <option value="12">Last year</option>
+                <option value="6">Last 6 months</option>
+                <option value="3">Last 3 months</option>
+                <option value="1">Last month</option>
               </select>
             </div>
-            
-            {/* Chart Placeholder */}
-            <div className="relative h-64">
-              <svg className="w-full h-full" viewBox="0 0 600 200" preserveAspectRatio="none">
-                {/* Y-axis labels */}
-                <text x="10" y="20" className="text-xs fill-gray-400">$1000</text>
-                <text x="10" y="60" className="text-xs fill-gray-400">$800</text>
-                <text x="10" y="100" className="text-xs fill-gray-400">$600</text>
-                <text x="10" y="140" className="text-xs fill-gray-400">$400</text>
-                <text x="10" y="180" className="text-xs fill-gray-400">$200</text>
-                <text x="10" y="200" className="text-xs fill-gray-400">$0</text>
 
-                {/* Chart line with gradient area */}
-                <defs>
-                  <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="#FCD34D" stopOpacity="0.3"/>
-                    <stop offset="100%" stopColor="#FCD34D" stopOpacity="0"/>
-                  </linearGradient>
-                </defs>
-                
-                {/* Area under the curve */}
-                <path
-                  d="M 50,140 L 80,120 L 110,110 L 140,100 L 170,95 L 200,80 L 230,70 L 260,85 L 290,95 L 320,90 L 350,100 L 380,110 L 410,105 L 440,95 L 470,85 L 500,90 L 530,100 L 560,110 L 560,200 L 50,200 Z"
-                  fill="url(#chartGradient)"
-                />
-                
-                {/* Chart line */}
-                <path
-                  d="M 50,140 L 80,120 L 110,110 L 140,100 L 170,95 L 200,80 L 230,70 L 260,85 L 290,95 L 320,90 L 350,100 L 380,110 L 410,105 L 440,95 L 470,85 L 500,90 L 530,100 L 560,110"
-                  fill="none"
-                  stroke="#FCD34D"
-                  strokeWidth="2"
-                />
-
-                {/* X-axis labels */}
-                <text x="50" y="215" className="text-xs fill-gray-400">Jan</text>
-                <text x="110" y="215" className="text-xs fill-gray-400">Feb</text>
-                <text x="170" y="215" className="text-xs fill-gray-400">Mar</text>
-                <text x="230" y="215" className="text-xs fill-gray-400">Apr</text>
-                <text x="290" y="215" className="text-xs fill-gray-400">May</text>
-                <text x="350" y="215" className="text-xs fill-gray-400">Jun</text>
-                <text x="410" y="215" className="text-xs fill-gray-400">Jul</text>
-                <text x="470" y="215" className="text-xs fill-gray-400">Aug</text>
-                <text x="530" y="215" className="text-xs fill-gray-400">Sep</text>
-              </svg>
+            {/* Chart */}
+            <div className="relative h-64 w-full">
+              {performanceData && performanceData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={performanceData}>
+                    <defs>
+                      <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#FCD34D" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#FCD34D" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="date"
+                      fontSize={10}
+                      tickFormatter={(str) => {
+                        const date = new Date(str);
+                        if (parseInt(timeRange) <= 1) return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+                        return date.toLocaleDateString([], { month: 'short', year: '2-digit' });
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                      minTickGap={30}
+                      stroke="#A0A0A0"
+                    />
+                    <YAxis
+                      fontSize={10}
+                      tickFormatter={(val) => `$${val.toLocaleString()}`}
+                      axisLine={false}
+                      tickLine={false}
+                      stroke="#A0A0A0"
+                    />
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-white p-3 border border-gray-100 shadow-xl rounded-xl text-xs text-gray-800">
+                              <p className="font-semibold">{new Date(payload[0].payload.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                              <p className="text-[#92400E] font-bold mt-1">Current Value: ${parseFloat(payload[0].value as any).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                              <p className="text-gray-400 font-medium">Total Invested: ${parseFloat(payload[0].payload.totalInvested as any).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="currentValue"
+                      stroke="#FCD34D"
+                      fillOpacity={1}
+                      fill="url(#colorValue)"
+                      strokeWidth={2.5}
+                    />
+                    <Area
+                      type="stepAfter"
+                      dataKey="totalInvested"
+                      stroke="#A0A0A0"
+                      fill="none"
+                      strokeWidth={1.5}
+                      strokeDasharray="4 4"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-sm text-gray-400 italic">No performance history data available for this range.</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -158,11 +295,11 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
               </div>
               <div>
                 <p className="text-sm text-gray-500 mb-1">Unrealized Gain:</p>
-                <p className="text-lg font-semibold text-[#1F1F1F]">{fundData.unrealizedGain}</p>
+                <p className={`text-lg font-semibold ${isGain ? 'text-green-600' : 'text-red-600'}`}>{fundData.unrealizedGain}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500 mb-1">% Return:</p>
-                <p className="text-lg font-semibold text-green-600">{fundData.percentReturn}</p>
+                <p className={`text-lg font-semibold ${isGain ? 'text-green-600' : 'text-red-600'}`}>{fundData.percentReturn}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500 mb-1">Inception Date:</p>
@@ -181,11 +318,10 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${
-                    activeTab === tab.id
+                  className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === tab.id
                       ? 'border-red-500 text-[#1F1F1F]'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -231,28 +367,30 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
                 <table className="w-full">
                   <thead className="border-b border-gray-200">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Document Name</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {documents.map((document) => (
                       <tr key={document.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-4 text-sm text-gray-700">{document.name}</td>
+                        <td className="px-4 py-4 text-sm text-gray-700 font-medium">{document.name}</td>
                         <td className="px-4 py-4 text-sm">
                           <div className="flex items-center gap-2">
-                            <button className="text-gray-400 hover:text-gray-600">
-                              <svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor">
-                                <circle cx="2" cy="2" r="2" />
-                                <circle cx="2" cy="8" r="2" />
-                                <circle cx="2" cy="14" r="2" />
-                              </svg>
-                            </button>
-                            <button className="px-3 py-1 text-xs font-medium text-gray-700 hover:text-gray-900 transition-colors">
+                            <button
+                              onClick={() => {
+                                const token = localStorage.getItem('token');
+                                if (investment?.document_signed && matchedDoc) {
+                                  const fileUrl = `${apiClient.getApiUrl()}/documents/${matchedDoc.id}/view?token=${encodeURIComponent(token || '')}`;
+                                  window.open(fileUrl, '_blank');
+                                } else {
+                                  // Fallback to blank subscription agreement template if not signed or document vault record not found yet
+                                  window.open('/documents/subscription/SA-BWell-Fund.pdf', '_blank');
+                                }
+                              }}
+                              className="px-3 py-1 text-xs font-bold text-[#92400E] bg-[#FEF3C7] hover:bg-[#FDE68A] rounded-full transition-colors"
+                            >
                               View Document
-                            </button>
-                            <button className="px-3 py-1 text-xs font-medium text-gray-700 hover:text-gray-900 transition-colors">
-                              Download
                             </button>
                           </div>
                         </td>
@@ -264,18 +402,23 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
             )}
 
             {activeTab === 'fund-info' && (
-              <div className="space-y-4">
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  The Physician BTC Fund provides exposure to institutional-grade Bitcoin strategies designed specifically for physicians and medical professionals.
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-sm text-gray-700">
-                  <li>Long-term BTC exposure</li>
-                  <li>Optimized for tax-advantaged accounts</li>
-                  <li>Low operational friction</li>
-                </ul>
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.
-                </p>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Fund Description</h3>
+                  <p className="text-sm text-gray-700 leading-relaxed max-w-3xl whitespace-pre-wrap">
+                    {investment.fund_description || "No description provided for this fund."}
+                  </p>
+                </div>
+                {/* {investment.fund_description && (
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Key Highlights</h3>
+                    <ul className="list-disc list-inside space-y-2 text-sm text-[#1F1F1F] font-semibold">
+                      <li>Long-term institutional BTC exposure</li>
+                      <li>Optimized for tax-advantaged accounts</li>
+                      <li>Low operational friction</li>
+                    </ul>
+                  </div>
+                )} */}
               </div>
             )}
           </div>

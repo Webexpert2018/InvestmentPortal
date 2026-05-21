@@ -344,13 +344,13 @@ export default function DocumentDetailsPage() {
                 <div>
                   <label className="text-gray-400 font-medium text-sm mb-2 block tracking-wide">Description</label>
                   <p className="text-gray-800 font-bold text-lg leading-relaxed max-w-2xl whitespace-pre-wrap">
-                    {doc.description || "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s."}
+                    {doc.description || "No description provided."}
                   </p>
                 </div>
                 <div>
                   <label className="text-gray-400 font-medium text-sm mb-2 block tracking-wide">Note</label>
                   <p className="text-gray-800 font-bold text-lg leading-relaxed max-w-2xl whitespace-pre-wrap">
-                    {doc.note || "Lorem Ipsum is simply dummy text of the printing and typesetting industry."}
+                    {doc.note || "No notes available."}
                   </p>
                 </div>
               </div>
