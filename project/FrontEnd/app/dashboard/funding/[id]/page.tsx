@@ -7,14 +7,17 @@ import { ChevronLeft, Loader2 } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 export default function FundingDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('transactions');
   const [loading, setLoading] = useState(true);
   const [investment, setInvestment] = useState<any>(null);
   const [performanceData, setPerformanceData] = useState<any[]>([]);
   const [timeRange, setTimeRange] = useState('12');
+  const [matchedDoc, setMatchedDoc] = useState<any>(null);
 
   useEffect(() => {
     const fetchInvestmentAndPerformance = async () => {
@@ -26,6 +29,37 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
         if (invData?.user_id) {
           const perfData = await apiClient.getInvestorPerformance(invData.user_id, parseInt(timeRange));
           setPerformanceData(perfData);
+
+          // Dynamically fetch and match document for this investment
+          try {
+            const token = localStorage.getItem('token');
+            if (token) {
+              let docs: any[] = [];
+              if (user?.role === 'investor') {
+                docs = await apiClient.getMyDocuments();
+              } else if (user?.role) {
+                docs = await apiClient.getInvestorDocuments(invData.user_id);
+              } else {
+                // Safe fallback: try investor first, then admin/staff endpoint
+                try {
+                  docs = await apiClient.getMyDocuments();
+                } catch {
+                  docs = await apiClient.getInvestorDocuments(invData.user_id);
+                }
+              }
+
+              // Look for a document matching the investment id in name or description
+              const match = docs.find((d: any) => 
+                d.description?.includes(params.id) || 
+                d.file_name?.includes(params.id)
+              );
+              if (match) {
+                setMatchedDoc(match);
+              }
+            }
+          } catch (docError) {
+            console.error('Failed to fetch matched document:', docError);
+          }
         }
       } catch (error: any) {
         console.error('Failed to fetch details:', error);
@@ -39,7 +73,7 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
     if (params.id) {
       fetchInvestmentAndPerformance();
     }
-  }, [params.id, timeRange]);
+  }, [params.id, timeRange, user]);
 
   if (loading) {
     return (
@@ -179,7 +213,7 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
                 <option value="1">Last month</option>
               </select>
             </div>
-            
+
             {/* Chart */}
             <div className="relative h-64 w-full">
               {performanceData && performanceData.length > 0 ? (
@@ -284,11 +318,10 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${
-                    activeTab === tab.id
+                  className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === tab.id
                       ? 'border-red-500 text-[#1F1F1F]'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -346,7 +379,14 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => {
-                                toast.info('Preview functionality: Please navigate to investor Document Vault to view or download.');
+                                const token = localStorage.getItem('token');
+                                if (investment?.document_signed && matchedDoc) {
+                                  const fileUrl = `${apiClient.getApiUrl()}/documents/${matchedDoc.id}/view?token=${encodeURIComponent(token || '')}`;
+                                  window.open(fileUrl, '_blank');
+                                } else {
+                                  // Fallback to blank subscription agreement template if not signed or document vault record not found yet
+                                  window.open('/documents/subscription/SA-BWell-Fund.pdf', '_blank');
+                                }
                               }}
                               className="px-3 py-1 text-xs font-bold text-[#92400E] bg-[#FEF3C7] hover:bg-[#FDE68A] rounded-full transition-colors"
                             >
@@ -369,7 +409,7 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
                     {investment.fund_description || "No description provided for this fund."}
                   </p>
                 </div>
-                {investment.fund_description && (
+                {/* {investment.fund_description && (
                   <div>
                     <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Key Highlights</h3>
                     <ul className="list-disc list-inside space-y-2 text-sm text-[#1F1F1F] font-semibold">
@@ -378,7 +418,7 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
                       <li>Low operational friction</li>
                     </ul>
                   </div>
-                )}
+                )} */}
               </div>
             )}
           </div>
