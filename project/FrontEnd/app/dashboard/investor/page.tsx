@@ -926,7 +926,7 @@ export default function InvestorPage() {
                       {suspendedInvestors.length > 0 && (
                         <>
                           <tr className="bg-[#F9FAFB]/30">
-                            <td colSpan={11} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
+                            <td colSpan={11} className="px-8 py-3 text-xs font-bold text-red-500 uppercase tracking-wider border-t border-red-100">
                               Suspended Login Accounts ({suspendedInvestors.length})
                             </td>
                           </tr>
