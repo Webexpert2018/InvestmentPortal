@@ -84,6 +84,7 @@ export default function InvestorPage() {
     localStorage.removeItem('selectedInvestorKey');
   };
   const [emailError, setEmailError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [inviteForm, setInviteForm] = useState({
     first_name: '',
     last_name: '',
@@ -224,6 +225,7 @@ export default function InvestorPage() {
 
   const handleInvite = async () => {
     setEmailError('');
+    setPhoneError('');
     if (!inviteForm.email) {
       setEmailError('Email is required');
       return;
@@ -232,6 +234,11 @@ export default function InvestorPage() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(inviteForm.email)) {
       setEmailError('Please enter a valid email address');
+      return;
+    }
+
+    if (inviteForm.phone && inviteForm.phone.length !== 10) {
+      setPhoneError('Phone number must be exactly 10 digits');
       return;
     }
 
@@ -254,6 +261,7 @@ export default function InvestorPage() {
       });
       toast.success('Investor profile saved successfully');
       setShowInviteModal(false);
+      setPhoneError('');
       setInviteForm({
         first_name: '',
         last_name: '',
@@ -424,6 +432,8 @@ export default function InvestorPage() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                setEmailError('');
+                setPhoneError('');
                 setShowInviteModal(true);
               }}
               className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95"
@@ -865,7 +875,7 @@ export default function InvestorPage() {
                                   <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType || 'Personal'}</span>
                                 </td>
                                 <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">Active</span>
+                                  <span className="text-[11px] font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">Pending</span>
                                 </td>
                                 <td className="px-3 sm:px-4 lg:px-6 py-4">
                                   <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-200 whitespace-nowrap">
@@ -1337,10 +1347,15 @@ export default function InvestorPage() {
                               type="tel"
                               placeholder="555 000 0000"
                               value={inviteForm.phone}
-                              onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value.replace(/\D/g, '').slice(0, 15) })}
-                              className="flex-1 px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                setInviteForm({ ...inviteForm, phone: value });
+                                if (phoneError) setPhoneError('');
+                              }}
+                              className={`flex-1 px-5 py-4 bg-[#F9FAFB] border rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 transition-all placeholder:text-[#9CA3AF] ${phoneError ? 'border-red-300 ring-2 ring-red-100' : 'border-[#F3F4F6] focus:ring-[#FCD34D]'}`}
                             />
                           </div>
+                          {phoneError && <p className="text-[11px] font-bold text-red-500 ml-1 mt-1">{phoneError}</p>}
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-[#4B5563] ml-1">Date of Birth</label>

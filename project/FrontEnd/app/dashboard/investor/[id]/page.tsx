@@ -627,7 +627,15 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       <div className="space-y-1">
                         <span className="text-xs font-bold text-gray-400">Account Status</span>
                         {(() => {
-                          const isMainActive = investorData.status === 'active';
+                          const status = investorData.status?.toLowerCase();
+                          if (status === 'pending') {
+                            return (
+                              <p className="text-sm font-bold capitalize text-amber-500">
+                                Pending
+                              </p>
+                            );
+                          }
+                          const isMainActive = status === 'active';
                           const hasActiveIra = iraAccounts.some((acc: any) => acc.status === 'active');
                           const isOverallActive = isMainActive || hasActiveIra;
                           return (

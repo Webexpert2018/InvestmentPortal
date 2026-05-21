@@ -8,9 +8,19 @@ export class EmailService {
 
   constructor(private configService: ConfigService) { }
 
+  private getFrontendUrl(): string {
+    const url = this.configService.get<string>('FRONTEND_URL');
+    if (!url) {
+      this.logger.error('FRONTEND_URL environment variable is not defined!');
+      return '';
+    }
+    return url.replace(/\/$/, '');
+  }
+
   async sendPasswordResetOtp(email: string, otp: string, showCode: boolean = true) {
     const title = 'Verify Your Identity';
     const subject = 'Password Reset Code - Ovalia Capital';
+    const frontendUrl = this.getFrontendUrl();
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Password Reset</h1>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">You have requested to reset your password. Please click the button below to set a new password for your account.</p>
@@ -25,7 +35,7 @@ export class EmailService {
       <p style="margin: 20px 0 0; font-size: 14px; color: #6B7280; font-style: italic;">This link will expire in 15 minutes. If you did not request this, please ignore this email.</p>
       
       <div style="text-align: center; margin: 40px 0;">
-        <a href="https://investmentportalfrontend.vercel.app/auth/forgot-password?email=${email}&otp=${otp}&flow=investor" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
+        <a href="${frontendUrl}/auth/forgot-password?email=${email}&otp=${otp}&flow=investor" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
           Reset Password
         </a>
       </div>
@@ -52,6 +62,7 @@ export class EmailService {
   async sendWelcomeEmail(email: string, firstName: string, role: string, password?: string) {
     const title = 'Welcome to Ovalia Capital';
     const subject = 'Your Journey Begins - Welcome to Ovalia Capital!';
+    const frontendUrl = this.getFrontendUrl();
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Welcome Aboard, ${firstName}!</h1>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
@@ -93,7 +104,7 @@ export class EmailService {
       </div>
 
       <div style="text-align: center; margin: 40px 0;">
-        <a href="https://investmentportalfrontend.vercel.app/auth/login?flow=${role.toLowerCase()}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
+        <a href="${frontendUrl}/auth/login?flow=${role.toLowerCase()}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
           Go to Dashboard
         </a>
       </div>
@@ -151,6 +162,7 @@ export class EmailService {
 
     const flow = role.toLowerCase() === 'accountant' ? 'accountant' : 'admin';
     const buttonText = flow === 'accountant' ? 'Login to Accountant Portal' : 'Login to Admin Portal';
+    const frontendUrl = this.getFrontendUrl();
 
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Welcome to the Team, ${fullName}!</h1>
@@ -178,7 +190,7 @@ export class EmailService {
       </div>
 
       <div style="text-align: center; margin: 40px 0;">
-        <a href="https://investmentportalfrontend.vercel.app/auth/login?flow=${flow}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
+        <a href="${frontendUrl}/auth/login?flow=${flow}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
           ${buttonText}
         </a>
       </div>
@@ -193,8 +205,8 @@ export class EmailService {
   async sendInvestorInvitationEmail(email: string, fullName: string, token: string) {
     const title = 'Invitation to Ovalia Capital';
     const subject = 'You have been invited to join the Ovalia Capital';
-    const frontendUrl = process.env.FRONTEND_URL || 'https://investmentportalfrontend.vercel.app';
-    const inviteLink = `${frontendUrl.replace(/\/$/, '')}/auth/investor-signup?invite=${token}`;
+    const frontendUrl = this.getFrontendUrl();
+    const inviteLink = `${frontendUrl}/auth/investor-signup?invite=${token}`;
 
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Exclusive Invitation</h1>
@@ -254,6 +266,7 @@ export class EmailService {
   }
 
   private getHtmlTemplate(content: string, title: string) {
+    const frontendUrl = this.getFrontendUrl();
     return `
       <!DOCTYPE html>
       <html>
@@ -271,7 +284,7 @@ export class EmailService {
           <!-- Logo Section -->
           <tr>
             <td style="padding: 40px 40px 20px; text-align: center;">
-              <img src="https://investmentportalfrontend.vercel.app/images/logo.png" alt="Ovalia Capital" style="width:100px; height: auto; display: block; margin: 0 auto;">
+              <img src="${frontendUrl}/images/logo.png" alt="Ovalia Capital" style="width:100px; height: auto; display: block; margin: 0 auto;">
             </td>
           </tr>
           <!-- Main Content -->
