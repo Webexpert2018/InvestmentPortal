@@ -319,7 +319,7 @@ export default function TaxVaultPage() {
                     </thead>
 
                     <tbody>
-                      {currentDocuments.map((row) => (
+                      {currentDocuments.map((row, index) => (
                         <tr
                           key={row.id}
                           onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
@@ -363,7 +363,9 @@ export default function TaxVaultPage() {
                                   className="fixed inset-0 z-10"
                                   onClick={() => setActiveMenuId(null)}
                                 />
-                                <div className="absolute right-6 top-11 z-20 w-[145px] rounded-[6px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100">
+                                <div className={`absolute right-6 z-20 w-[145px] rounded-[6px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100 ${
+                                  index === currentDocuments.length - 1 ? 'bottom-11' : 'top-11'
+                                }`}>
                                   <Link
                                     href={`/dashboard/tax-vault/details/${row.id}`}
                                     className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"

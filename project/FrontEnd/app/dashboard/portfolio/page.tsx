@@ -2,11 +2,13 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { MoreVertical, Loader2, ArrowUpDown } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 
 export default function PortfolioPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo'>('investments');
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -329,7 +331,7 @@ export default function PortfolioPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
-                    {sortedInvestments.map((row) => {
+                    {sortedInvestments.map((row, index) => {
                       // Get redemptions for this specific investment
                       const rowRedemptions = redemptions || [];
                       const redeemedUnits = rowRedemptions
@@ -349,7 +351,11 @@ export default function PortfolioPage() {
                       const gainPercent = costBasis > 0 ? (gainLoss / costBasis) * 100 : 0;
 
                       return (
-                        <tr key={row.id} className="hover:bg-gray-50">
+                        <tr
+                          key={row.id}
+                          className="hover:bg-slate-50/80 cursor-pointer transition-colors duration-150"
+                          onClick={() => router.push(`/dashboard/portfolio/${row.id}`)}
+                        >
                           <td className="px-4 py-3 text-[#1F1F1F] font-medium">{row.fund_name}</td>
                           <td className="px-4 py-3 text-[#4B4B4B]">{row.account_type}</td>
                           <td className="px-4 py-3 text-[#4B4B4B] text-right">{row.units.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
@@ -369,7 +375,7 @@ export default function PortfolioPage() {
                               {row.is_reconciled ? 'Completed' : 'Pending'}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-4 py-3 text-right" onClick={(event) => event.stopPropagation()}>
                             <div className="relative inline-block text-left" data-portfolio-action-menu="true">
                               <button
                                 type="button"
@@ -386,7 +392,9 @@ export default function PortfolioPage() {
                               </button>
 
                               {openActionMenuId === row.id && (
-                                <div className="absolute right-0 top-full z-20 mt-1 w-[150px] rounded-[6px] border border-[#ECECEC] bg-white py-1 shadow-[0_6px_16px_rgba(0,0,0,0.08)]">
+                                <div className={`absolute right-0 z-20 w-[150px] rounded-[6px] border border-[#ECECEC] bg-white py-1 shadow-[0_6px_16px_rgba(0,0,0,0.08)] ${
+                                  index === sortedInvestments.length - 1 ? 'bottom-full mb-1' : 'top-full mt-1'
+                                }`}>
                                   <Link
                                     href={`/dashboard/portfolio/${row.id}`}
                                     className="block px-3 py-2 text-left text-[12px] text-[#5F5F5F] hover:bg-[#F8F8F8]"
