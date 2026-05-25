@@ -171,7 +171,7 @@ export default function KYCConsolePage() {
                     <td colSpan={5} className="px-6 py-10 text-center text-gray-500">No investors found.</td>
                   </tr>
                 ) : (
-                  currentRecords.map((record) => (
+                  currentRecords.map((record, index) => (
                     <tr 
                       key={record.id} 
                       className="hover:bg-gray-50 transition-colors cursor-pointer"
@@ -223,7 +223,9 @@ export default function KYCConsolePage() {
                                 className="fixed inset-0 z-10"
                                 onClick={() => setActiveDropdown(null)}
                               />
-                              <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+                              <div className={`absolute right-0 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20 ${
+                                index === currentRecords.length - 1 ? 'bottom-full mb-2' : 'top-full mt-2'
+                              }`}>
                                 <Link href={`/dashboard/kyc-verification/${record.id}`}>
                                   <button className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors">
                                     View Profile

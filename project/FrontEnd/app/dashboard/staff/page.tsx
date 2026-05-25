@@ -196,8 +196,12 @@ export default function StaffPage() {
                     </td>
                   </tr>
                 ) : (
-                  displayStaff.map((staff) => (
-                    <tr key={staff.id} className="hover:bg-gray-50/50 transition-colors">
+                  displayStaff.map((staff, index) => (
+                    <tr
+                      key={staff.id}
+                      className="hover:bg-slate-50/80 cursor-pointer transition-colors duration-150"
+                      onClick={() => router.push(`/dashboard/staff/view/${staff.id}`)}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white overflow-hidden ${staff.role === 'admin' ? 'bg-[#2A4474]' :
@@ -230,7 +234,7 @@ export default function StaffPage() {
                         {staff.assigned_investors_count || 0}
                       </td>
                       <td className="px-6 py-4 text-[14px] text-[#4B4B4B] whitespace-nowrap">{formatDate(staff.created_at)}</td>
-                      <td className="px-6 py-4 text-right relative whitespace-nowrap">
+                      <td className="px-6 py-4 text-right relative whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="relative inline-block">
                           <button
                             onClick={(e) => {
@@ -245,7 +249,9 @@ export default function StaffPage() {
                           {activeDropdown === staff.id && (
                             <>
                               <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
-                              <div className="absolute right-0 top-full mt-1 bg-white border border-[#F2F2F2] rounded-[8px] shadow-xl py-2 w-[120px] z-50 text-left animate-in fade-in zoom-in duration-200">
+                              <div className={`absolute right-0 bg-white border border-[#F2F2F2] rounded-[8px] shadow-xl py-2 w-[120px] z-50 text-left animate-in fade-in zoom-in duration-200 ${
+                                index === displayStaff.length - 1 ? 'bottom-full mb-1' : 'top-full mt-1'
+                              }`}>
                                 <Link
                                   href={`/dashboard/staff/view/${staff.id}`}
                                   className="block px-4 py-2 text-[13px] text-[#1F1F1F] hover:bg-gray-50 flex items-center gap-2 font-medium"
