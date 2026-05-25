@@ -27,7 +27,7 @@ export class MeetingsService {
   async getAvailableUsers(user: any) {
     try {
       const isInvestor = user.role === 'investor';
-      
+
       if (isInvestor) {
         const result = await this.pgClient.query(`
           SELECT 
@@ -58,7 +58,7 @@ export class MeetingsService {
         // Enforce role-based restrictions
         let isIR = ['investor_relations', 'relations_associate'].includes(user.role);
         let isAccountant = user.role === 'accountant';
-        
+
         if (!isIR || !isAccountant) {
           const staffMember = await this.pgClient.query(`SELECT role FROM staff WHERE id = $1`, [user.userId]);
           if (staffMember.rows.length > 0) {
@@ -93,7 +93,7 @@ export class MeetingsService {
             FROM investors 
             WHERE (assigned_ir_id = $1 OR assigned_accountant_id = $1) AND status != 'prospect'
           `, [user.userId]);
-          
+
           const staffResult = await this.pgClient.query(`SELECT id, full_name as name, role, 'staff' as type FROM staff WHERE id != $1 AND status = 'active'`, [user.userId]);
           return [...staffResult.rows, ...assignedInvestors.rows];
         }
@@ -116,9 +116,9 @@ export class MeetingsService {
 
     try {
       await this.pgClient.query('BEGIN');
-      
+
       const organizerType = user.role === 'investor' ? 'investor' : 'staff';
-      
+
       const meetingResult = await this.pgClient.query(`
         INSERT INTO meetings (organizer_id, organizer_type, title, description, scheduled_date, duration_minutes, meeting_link)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -222,16 +222,21 @@ export class MeetingsService {
   async handleDailyMeetingReminders() {
     console.log('Running daily meeting reminders...');
     try {
+      const startOfToday = new Date();
+      startOfToday.setUTCHours(0, 0, 0, 0);
+      const endOfToday = new Date();
+      endOfToday.setUTCHours(23, 59, 59, 999);
+
       const meetingsToday = await this.pgClient.query(`
         SELECT m.id, m.title, m.scheduled_date, m.meeting_link, m.organizer_id, m.organizer_type,
-               COALESCE(os.full_name, oi.full_name) as organizer_name,
+               COALESCE(os.full_name, oi.full_name, ou.first_name || ' ' || ou.last_name) as organizer_name,
                COALESCE(ou.email, oi.email) as organizer_email
         FROM meetings m
         LEFT JOIN staff os ON m.organizer_id = os.id AND m.organizer_type = 'staff'
         LEFT JOIN users ou ON m.organizer_id = ou.id AND m.organizer_type = 'staff'
         LEFT JOIN investors oi ON m.organizer_id = oi.id AND m.organizer_type = 'investor'
-        WHERE DATE(m.scheduled_date AT TIME ZONE 'UTC') = DATE(CURRENT_DATE AT TIME ZONE 'UTC')
-      `);
+        WHERE m.scheduled_date >= $1 AND m.scheduled_date <= $2
+      `, [startOfToday, endOfToday]);
 
       for (const meeting of meetingsToday.rows) {
         const participants = await this.pgClient.query(`
