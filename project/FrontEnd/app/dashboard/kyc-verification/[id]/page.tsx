@@ -19,6 +19,15 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
   const [irLoading, setIrLoading] = useState(false);
   const [assigning, setAssigning] = useState(false);
 
+  const getDocTypeName = (type: string) => {
+    switch (type) {
+      case 'tax_return_y1': return 'Tax Return (Year 1)';
+      case 'tax_return_y2': return 'Tax Return (Year 2)';
+      case 'balance_sheet': return 'Balance Sheet / Net Worth';
+      default: return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -138,7 +147,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                       }}
                       className="px-6 py-3 bg-[#FCD34D] text-[#1F1F1F] text-sm font-bold rounded-xl hover:bg-[#FBD24E] transition-all shadow-lg shadow-yellow-50 active:scale-95"
                     >
-                      Assign Investor Relation
+                      {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
                     </button>
                     <button
                       onClick={() => handleStatusUpdate('rejected')}
@@ -190,6 +199,22 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                     <p className="text-base font-bold text-gray-900">{investorData.accountType || 'Roth IRA'}</p>
                   </div>
 
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Assigned Investor Relation</span>
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-gray-400" />
+                      <p className="text-base font-bold text-gray-900">{investorData.assignedIrName || 'Not assigned'}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Assigned Accountant</span>
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-gray-400" />
+                      <p className="text-base font-bold text-gray-900">{investorData.assignedAccountantName || 'Not assigned'}</p>
+                    </div>
+                  </div>
+
                   <div className="md:col-span-2 space-y-1.5">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Address</span>
                     <div className="flex items-start gap-2">
@@ -207,20 +232,27 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                 <div className="space-y-6 pt-10 border-t border-gray-50">
                   <h3 className="text-xl font-bold text-[#1F1F1F]">KYC Document</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {kycDocuments.length > 0 ? (
-                      kycDocuments.map((doc, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-5 bg-[#F9FAFB] rounded-2xl border border-gray-100 group hover:border-[#FCD34D] transition-all shadow-sm">
-                          <div className="flex items-center gap-4">
-                            <div className="p-3 bg-red-50 rounded-xl">
-                              <FileText className="h-7 w-7 text-red-500" />
+                    {kycDocuments.filter((doc: any) => ['tax_return_y1', 'tax_return_y2', 'balance_sheet'].includes(doc.document_type)).length > 0 ? (
+                      kycDocuments
+                        .filter((doc: any) => ['tax_return_y1', 'tax_return_y2', 'balance_sheet'].includes(doc.document_type))
+                        .map((doc, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-5 bg-[#F9FAFB] rounded-2xl border border-gray-100 group hover:border-[#FCD34D] transition-all shadow-sm">
+                            <div className="flex items-center gap-4">
+                              <div className="p-3 bg-red-50 rounded-xl">
+                                <FileText className="h-7 w-7 text-red-500" />
+                              </div>
+                              <div className="overflow-hidden">
+                                <span className="block text-sm font-bold text-gray-900 truncate pr-2" title={getDocTypeName(doc.document_type)}>
+                                  {getDocTypeName(doc.document_type)}
+                                </span>
+                                <span className="text-[11px] text-gray-400 font-medium block truncate pr-2" title={doc.file_name}>
+                                  {doc.file_name}
+                                </span>
+                                <span className="text-[11px] text-gray-400 font-medium block">
+                                  {new Date(doc.uploaded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
                             </div>
-                            <div className="overflow-hidden">
-                              <span className="block text-sm font-bold text-gray-900 truncate pr-2" title={doc.file_name}>{doc.file_name}</span>
-                              <span className="text-[12px] text-gray-500 font-medium">
-                                {new Date(doc.uploaded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                          </div>
                           <div className="flex gap-2">
                             <button
                               onClick={async () => {
@@ -290,7 +322,9 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
             <div className="p-8 space-y-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-[#1F1F1F]">Assign Investor Relation</h2>
+                  <h2 className="text-2xl font-bold text-[#1F1F1F]">
+                    {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
+                  </h2>
                   <p className="text-sm text-gray-500 mt-2">
                     Select an Investor Relation to manage this investor's KYC verification.
                   </p>
@@ -330,7 +364,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                     try {
                       setAssigning(true);
                       await apiClient.assignInvestorRelations(params.id, selectedAssociate || null);
-                      toast.success('Investor Relation assigned successfully');
+                      toast.success(investorData.assignedIrId ? 'Investor Relation updated successfully' : 'Investor Relation assigned successfully');
                       const profile = await apiClient.getUserById(params.id);
                       setInvestorData(profile);
                       setShowAssignModal(false);
@@ -346,9 +380,9 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                   {assigning ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Assigning...
+                      {investorData.assignedIrId ? 'Updating...' : 'Assigning...'}
                     </>
-                  ) : 'Assign'}
+                  ) : (investorData.assignedIrId ? 'Change' : 'Assign')}
                 </button>
               </div>
             </div>
