@@ -1192,6 +1192,12 @@ class ApiClient {
     });
   }
 
+  async markAllNotificationsAsRead() {
+    return this.request<any>('/notifications/mark-all-read', {
+      method: 'PATCH',
+    });
+  }
+
   // --- CRM & Bulk Ops ---
   async getCrmInvestors() {
     return this.request<any[]>('/crm/investors');

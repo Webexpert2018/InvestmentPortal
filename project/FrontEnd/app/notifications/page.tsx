@@ -192,10 +192,13 @@ export default function NotificationsPage() {
           {activeTab === 'unread' && notifications.some((n) => !n.is_read) && (
             <button
               onClick={async () => {
-                const unread = notifications.filter((n) => !n.is_read);
                 // Optimistic UI
                 setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-                await Promise.all(unread.map((n) => apiClient.markNotificationAsRead(n.id)));
+                try {
+                  await apiClient.markAllNotificationsAsRead();
+                } catch (err) {
+                  console.error('Failed to mark all as read:', err);
+                }
               }}
               className="rounded-full bg-[#F2F6FF] px-4 py-2 text-[13px] font-medium text-[#3B6FF0] transition hover:bg-[#E6EEFF]"
             >
