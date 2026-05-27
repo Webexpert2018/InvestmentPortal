@@ -31,6 +31,7 @@ export default function EditStaffPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.full_name || formData.full_name.trim().length < 2) {
@@ -41,8 +42,11 @@ export default function EditStaffPage() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Invalid email format';
     }
-    if (!formData.phone || formData.phone.trim().length < 5) {
-      newErrors.phone = 'Valid phone number is required';
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+    if (!cleanPhone) {
+      newErrors.phone = 'Phone number is required';
+    } else if (cleanPhone.length !== 10) {
+      newErrors.phone = 'Phone number must be exactly 10 digits';
     }
 
     setErrors(newErrors);
@@ -238,7 +242,8 @@ export default function EditStaffPage() {
                   placeholder="Enter phone number"
                   value={formData.phone}
                   onChange={(e) => {
-                    setFormData({ ...formData, phone: e.target.value });
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setFormData({ ...formData, phone: val });
                     if (errors.phone) setErrors({ ...errors, phone: '' });
                   }}
                   className={`flex-1 h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border text-[15px] focus:ring-2 focus:ring-[#FFD66B] outline-none transition-all ${errors.phone ? 'border-red-500 ring-1 ring-red-500' : 'border-transparent'

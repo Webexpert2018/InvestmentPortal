@@ -482,21 +482,21 @@ export class UsersService implements OnModuleInit {
     // This fetches investors assigned to this staff member as either IR or Accountant
     const result = await db.query(`
       WITH user_accounts AS (
-        SELECT id AS user_id, 'Personal' AS account_type FROM investors
+        SELECT id AS user_id, NULL::uuid as account_id, 'Personal' AS account_type, LOWER(status) as account_status FROM investors WHERE status != 'prospect'
         UNION
-        SELECT user_id, CASE WHEN LOWER(account_type) = 'personal' THEN 'Personal' ELSE account_type END FROM investments WHERE account_type IS NOT NULL
-        UNION
-        SELECT user_id, 
-          CASE 
-            WHEN account_type ILIKE '%IRA%' THEN account_type 
-            ELSE account_type || ' IRA' 
-          END AS account_type 
+        SELECT 
+          user_id, 
+          id as account_id, 
+          account_type,
+          LOWER(status) as account_status
         FROM ira_accounts
       )
       SELECT 
         i.id, i.full_name, i.email, i.phone, i.status, i.kyc_status,
         i.profile_image_url, i.created_at,
-        ua.account_type
+        ua.account_type,
+        ua.account_id as "accountId",
+        ua.account_status as "accountStatus"
       FROM user_accounts ua
       JOIN investors i ON ua.user_id = i.id
       WHERE (i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1) AND i.status != 'prospect'
@@ -1088,11 +1088,6 @@ export class UsersService implements OnModuleInit {
   }
 
   async deleteUser(userId: string, requestingUserRole: string) {
-    // Master Delete (Executive Admin only)
-    if (requestingUserRole !== 'executive_admin') {
-      throw new ForbiddenException('Only Executive Admins can perform Master Delete (complete permanent deletion)');
-    }
-
     // Identify which table the user is in and check status
     const [userRes, investorRes, staffRes] = await Promise.all([
       db.query('SELECT id, status FROM users WHERE id = $1', [userId]),
@@ -1118,9 +1113,23 @@ export class UsersService implements OnModuleInit {
       throw new NotFoundException('User not found');
     }
 
-    // Rule: User login must be suspended
-    if (userStatus !== 'suspended') {
-      throw new ForbiddenException('Cannot delete: User login must be suspended first');
+    // If the status is pending, any admin role can delete/cancel the invite.
+    // Otherwise, we require executive_admin and suspended status.
+    if (userStatus !== 'pending') {
+      // Master Delete (Executive Admin only)
+      if (requestingUserRole !== 'executive_admin') {
+        throw new ForbiddenException('Only Executive Admins can perform Master Delete (complete permanent deletion)');
+      }
+
+      // Rule: User login must be suspended
+      if (userStatus !== 'suspended') {
+        throw new ForbiddenException('Cannot delete: User login must be suspended first');
+      }
+    } else {
+      const adminRoles = ['executive_admin', 'admin', 'fund_admin', 'investor_relations'];
+      if (!adminRoles.includes(requestingUserRole)) {
+        throw new ForbiddenException('Only admins can cancel invitations');
+      }
     }
 
     // Rule: All IRA accounts must be suspended

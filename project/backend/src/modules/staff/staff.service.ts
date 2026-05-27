@@ -10,98 +10,43 @@ export class StaffService {
 
   async findAll(role?: string, page: number = 1, limit: number = 10, search?: string) {
     const offset = (page - 1) * limit;
-    let data: any[] = [];
-    let total = 0;
     const searchPattern = search ? `%${search}%` : null;
 
-    if (role === 'all' || !role) {
-      const query = `
-        WITH combined AS (
-          SELECT id, first_name || ' ' || last_name as full_name, email, phone, role, status, 
-                  0 as assigned_investors_count, profile_image_url, created_at, updated_at
-           FROM users 
-           WHERE role = 'executive_admin'
-           
-           UNION ALL
-           
-            SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
-                   CASE 
-                     WHEN s.role = 'accountant' THEN (SELECT COUNT(*) FROM investors i WHERE i.assigned_accountant_id = s.id)::int
-                     ELSE (SELECT COUNT(*) FROM investors i WHERE i.assigned_ir_id = s.id)::int
-                   END as assigned_investors_count,
-                   s.profile_image_url, s.created_at, s.updated_at
-           FROM staff s
-        )
-        SELECT *, COUNT(*) OVER() AS total_count 
-        FROM combined
-        WHERE ($3::text IS NULL OR full_name ILIKE $3 OR email ILIKE $3)
-        ORDER BY created_at DESC
-        LIMIT $1 OFFSET $2
-      `;
-      const result = await db.query(query, [limit, offset, searchPattern]);
-      data = result.rows;
-      total = data.length > 0 ? parseInt(data[0].total_count) : 0;
-    } else if (role === 'executive_admin') {
-      const query = `
+    const query = `
+      WITH combined AS (
         SELECT id, first_name || ' ' || last_name as full_name, email, phone, role, status, 
-                0 as assigned_investors_count, profile_image_url, created_at, updated_at,
-                COUNT(*) OVER() AS total_count
-         FROM users 
-         WHERE role = 'executive_admin'
-         AND ($3::text IS NULL OR (first_name || ' ' || last_name) ILIKE $3 OR email ILIKE $3)
-         ORDER BY created_at DESC
-         LIMIT $1 OFFSET $2
-      `;
-      const result = await db.query(query, [limit, offset, searchPattern]);
-      data = result.rows;
-      total = data.length > 0 ? parseInt(data[0].total_count) : 0;
-    } else {
-      let query = '';
-      let params = [role, limit, offset, searchPattern];
+               CASE 
+                 WHEN role = 'accountant' THEN (SELECT COUNT(*) FROM investors i WHERE i.assigned_accountant_id = users.id)::int
+                 WHEN role = 'investor_relations' THEN (SELECT COUNT(*) FROM investors i WHERE i.assigned_ir_id = users.id)::int
+                 ELSE 0
+               END as assigned_investors_count,
+               profile_image_url, created_at, updated_at
+        FROM users 
+        WHERE role NOT IN ('investor', 'investors', 'prospect')
+        
+        UNION ALL
+        
+        SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
+               CASE 
+                 WHEN s.role = 'accountant' THEN (SELECT COUNT(*) FROM investors i WHERE i.assigned_accountant_id = s.id)::int
+                 WHEN s.role = 'investor_relations' THEN (SELECT COUNT(*) FROM investors i WHERE i.assigned_ir_id = s.id)::int
+                 ELSE 0
+               END as assigned_investors_count,
+               s.profile_image_url, s.created_at, s.updated_at
+        FROM staff s
+      )
+      SELECT *, COUNT(*) OVER() AS total_count 
+      FROM combined
+      WHERE ($1::text IS NULL OR $1 = 'all' OR role ILIKE $1)
+      AND ($4::text IS NULL OR full_name ILIKE $4 OR email ILIKE $4)
+      ORDER BY created_at DESC
+      LIMIT $2 OFFSET $3
+    `;
 
-      if (role === 'accountant' || role === 'investor_relations') {
-        query = `
-          WITH combined AS (
-            SELECT id, first_name || ' ' || last_name as full_name, email, phone, role, status, 
-                    profile_image_url, created_at, updated_at
-            FROM users 
-            WHERE role ILIKE $1
-            
-            UNION ALL
-            
-            SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
-                   s.profile_image_url, s.created_at, s.updated_at
-            FROM staff s
-            WHERE s.role ILIKE $1
-          )
-          SELECT *, 
-                 CASE 
-                   WHEN role = 'accountant' THEN (SELECT COUNT(*) FROM investors i WHERE i.assigned_accountant_id = combined.id)::int
-                   ELSE (SELECT COUNT(*) FROM investors i WHERE i.assigned_ir_id = combined.id)::int
-                 END as assigned_investors_count,
-                 COUNT(*) OVER() AS total_count 
-          FROM combined
-          WHERE ($4::text IS NULL OR full_name ILIKE $4 OR email ILIKE $4)
-          ORDER BY created_at DESC
-          LIMIT $2 OFFSET $3
-        `;
-      } else {
-        query = `
-          SELECT s.id, s.full_name, s.email, s.phone, s.role, s.status, 
-                (SELECT COUNT(*) FROM investors i WHERE i.assigned_accountant_id = s.id OR i.assigned_ir_id = s.id)::int as assigned_investors_count,
-                s.profile_image_url, s.created_at, s.updated_at,
-                COUNT(*) OVER() AS total_count
-          FROM staff s
-          WHERE s.role = $1
-          AND ($4::text IS NULL OR s.full_name ILIKE $4 OR s.email ILIKE $4)
-          ORDER BY s.created_at DESC
-          LIMIT $2 OFFSET $3
-        `;
-      }
-      const result = await db.query(query, params);
-      data = result.rows;
-      total = data.length > 0 ? parseInt(data[0].total_count) : 0;
-    }
+    const params = [role, limit, offset, searchPattern];
+    const result = await db.query(query, params);
+    const data = result.rows;
+    const total = data.length > 0 ? parseInt(data[0].total_count) : 0;
 
     // Remove total_count from each row before returning
     const sanitizedData = data.map(({ total_count, ...rest }) => rest);
@@ -194,9 +139,12 @@ export class StaffService {
   }
 
   async update(id: string, updateStaffDto: UpdateStaffDto) {
+    // Ensure the staff member exists
+    await this.findOne(id);
+
     // Detect which table the account belongs to
-    const existing = await this.findOne(id);
-    const tableName = existing.role === 'executive_admin' ? 'users' : 'staff';
+    const staffCheck = await db.query('SELECT id FROM staff WHERE id = $1', [id]);
+    const tableName = staffCheck.rows.length > 0 ? 'staff' : 'users';
 
     const fields = [];
     const values = [];

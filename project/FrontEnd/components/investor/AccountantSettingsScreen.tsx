@@ -704,8 +704,8 @@ export function AccountantSettingsScreen() {
                   });
 
                   setTimeout(() => setProfileSaved(false), 3000);
-                } catch (err) {
-                  setError('Failed to update profile. Please try again.');
+                } catch (err: any) {
+                  setError(err.message || 'Failed to update profile. Please try again.');
                   console.error('Error updating profile:', err);
                 } finally {
                   setSaving(false);
