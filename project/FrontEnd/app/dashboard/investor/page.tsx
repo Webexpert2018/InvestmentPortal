@@ -1152,6 +1152,9 @@ export default function InvestorPage() {
                               <div className="flex flex-col gap-0.5">
                                 {investor.assigned_ir_name && <span>IR: {investor.assigned_ir_name}</span>}
                                 {investor.assigned_accountant_name && <span>Acc: {investor.assigned_accountant_name}</span>}
+                                {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                  <span className="text-sm text-gray-400 italic font-medium">Unassigned</span>
+                                )}
                               </div>
                             </td>
                             <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-gray-400 font-medium whitespace-nowrap">

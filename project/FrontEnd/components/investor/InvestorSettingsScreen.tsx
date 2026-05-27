@@ -633,12 +633,15 @@ export function InvestorSettingsScreen() {
                   className={profileErrors.firstName ? '!border-[#E05252]' : ''}
                   placeholder="Enter first name"
                   value={profile.firstName}
+                  disabled
+                  title="First name cannot be changed directly"
                   onChange={(event) => {
                     setProfile((prev) => ({ ...prev, firstName: event.target.value }));
                     setProfileErrors((prev) => ({ ...prev, firstName: undefined }));
                   }}
                 />
                 {profileErrors.firstName && <p className="mt-1 text-[10px] text-[#E05252]">{profileErrors.firstName}</p>}
+                <p className="mt-1 text-[9px] text-[#A2A5AA]">Legal name cannot be changed directly due to KYC regulations. Please contact support.</p>
               </div>
               <div>
                 <FieldLabel>Last Name</FieldLabel>
@@ -646,6 +649,8 @@ export function InvestorSettingsScreen() {
                   className={profileErrors.lastName ? '!border-[#E05252]' : ''}
                   placeholder="Enter last name"
                   value={profile.lastName}
+                  disabled
+                  title="Last name cannot be changed directly"
                   onChange={(event) => {
                     setProfile((prev) => ({ ...prev, lastName: event.target.value }));
                     setProfileErrors((prev) => ({ ...prev, lastName: undefined }));
@@ -901,8 +906,8 @@ export function InvestorSettingsScreen() {
 
                     // Hide success message after 3 seconds
                     setTimeout(() => setProfileSaved(false), 3000);
-                  } catch (err) {
-                    setError('Failed to update profile. Please try again.');
+                  } catch (err: any) {
+                    setError(err.message || 'Failed to update profile. Please try again.');
                     console.error('Error updating profile:', err);
                   } finally {
                     setSaving(false);

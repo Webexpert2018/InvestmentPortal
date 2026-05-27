@@ -1014,7 +1014,13 @@ export default function IRAPage() {
                         <div>
                           <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Country</label>
                           <Combobox
-                            options={Country.getAllCountries().map(c => ({ label: c.name, value: c.isoCode }))}
+                            options={(() => {
+                              const all = Country.getAllCountries().map(c => ({ label: c.name, value: c.isoCode }));
+                              return [
+                                ...all.filter(c => c.value === 'US'),
+                                ...all.filter(c => c.value !== 'US')
+                              ];
+                            })()}
                             value={iraForm.mailingCountry}
                             onChange={val => setIraForm({ ...iraForm, mailingCountry: val, mailingState: '', mailingCity: '' })}
                             placeholder="Select Country"

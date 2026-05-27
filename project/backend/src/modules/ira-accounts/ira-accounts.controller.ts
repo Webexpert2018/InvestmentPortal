@@ -33,7 +33,7 @@ export class AccountsController {
     let targetUserId = user.userId;
     
     // If admin/staff and targetUserId is provided, use it
-    const adminRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations'];
+    const adminRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant'];
     if (dto.targetUserId && dto.targetUserId !== user.userId) {
       if (!adminRoles.includes(user.role)) {
         throw new ForbiddenException('Only administrators can create accounts for other users');
@@ -46,7 +46,7 @@ export class AccountsController {
 
   @Get('user/:id')
   async getUserIraAccounts(@Param('id') id: string, @CurrentUser() user: any) {
-    const adminRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations'];
+    const adminRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant'];
     if (!adminRoles.includes(user.role)) {
       throw new ForbiddenException('Only administrators can view other users\' IRA accounts');
     }

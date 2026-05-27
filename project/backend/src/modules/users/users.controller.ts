@@ -29,9 +29,9 @@ export class UsersController {
     const firstNameChanged = updateDto.firstName !== undefined && updateDto.firstName !== currentProfile.firstName;
     const lastNameChanged = updateDto.lastName !== undefined && updateDto.lastName !== currentProfile.lastName;
 
-    // Restrict name changes to only admin/executive_admin
-    const isAdmin = ['admin', 'executive_admin'].includes(user.role?.trim().toLowerCase());
-    if (!isAdmin && (firstNameChanged || lastNameChanged)) {
+    // Restrict name changes to investors only (allow admin, executive_admin, accountant)
+    const isInvestor = user.role?.trim().toLowerCase() === 'investor';
+    if (isInvestor && (firstNameChanged || lastNameChanged)) {
       throw new BadRequestException('You do not have permission to change your name. Please contact support.');
     }
 
