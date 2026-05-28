@@ -594,23 +594,28 @@ export default function InvestPage() {
                     </h3>
                     
                     {/* Toggle Switch */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setToggledFundId(toggledFundId === fund.id ? null : fund.id);
-                      }}
-                      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        toggledFundId === fund.id ? 'bg-[#274583]' : 'bg-[#E5E5EA]'
-                      }`}
-                      title={toggledFundId === fund.id ? "Hide details" : "Show details"}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          toggledFundId === fund.id ? 'translate-x-4' : 'translate-x-0'
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider select-none">
+                        View
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setToggledFundId(toggledFundId === fund.id ? null : fund.id);
+                        }}
+                        className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          toggledFundId === fund.id ? 'bg-[#274583]' : 'bg-[#E5E5EA]'
                         }`}
-                      />
-                    </button>
+                        title={toggledFundId === fund.id ? "Hide details" : "Show details"}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                            toggledFundId === fund.id ? 'translate-x-4' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-3 mt-1.5 mb-2">
