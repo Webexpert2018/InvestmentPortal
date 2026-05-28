@@ -52,7 +52,10 @@ export default function PortfolioPage() {
 
       setInvestments(investmentsData);
       setRedemptions(redemptionsData);
-      setFunds(fundsData);
+      const activeFunds = Array.isArray(fundsData)
+        ? fundsData.filter((fund: any) => fund.status?.toLowerCase() !== 'draft' && fund.status?.toLowerCase() !== 'closed')
+        : [];
+      setFunds(activeFunds);
 
       const totalInvested = investmentsData
         .filter((inv: any) => inv.is_reconciled)

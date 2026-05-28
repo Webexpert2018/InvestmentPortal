@@ -9,14 +9,19 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config) => {
+  transpilePackages: ['react-pdf', 'pdfjs-dist'],
+  webpack: (config, { dev }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
     };
+    if (dev) {
+      config.devtool = false;
+    }
     return config;
   },
   experimental: {
     serverComponentsExternalPackages: ['@supabase/supabase-js'],
+    esmExternals: 'loose',
   },
 };
 

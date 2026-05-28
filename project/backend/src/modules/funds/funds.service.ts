@@ -8,6 +8,13 @@ export class FundsService {
       `SELECT f.id, f.name, f.description, f.image_url as image, f.start_date as "startDate", f.status, f.note,
               f.bank_name as "bankName", f.account_number as "accountNumber", f.routing_number as "routingNumber", 
               f.beneficiary_name as "beneficiaryName", f.bank_address as "bankAddress",
+              f.subscription_doc_path as "subscriptionDocPath", f.anchor_name as "anchorName", 
+              f.anchor_date as "anchorDate", f.anchor_signature as "anchorSignature", f.anchor_amount as "anchorAmount",
+              f.name_page as "namePage", f.name_x as "nameX", f.name_y as "nameY",
+              f.date_page as "datePage", f.date_x as "dateX", f.date_y as "dateY",
+              f.signature_page as "signaturePage", f.signature_x as "signatureX", f.signature_y as "signatureY",
+              f.amount_page as "amountPage", f.amount_x as "amountX", f.amount_y as "amountY",
+              f.placements,
               COALESCE(stats.total_investors, 0)::int as "totalInvestors",
               COALESCE(stats.total_aum, 0)::float as "totalAUM"
        FROM funds f
@@ -35,6 +42,13 @@ export class FundsService {
       `SELECT f.id, f.name, f.description, f.image_url as image, f.start_date as "startDate", f.status, f.note,
               f.bank_name as "bankName", f.account_number as "accountNumber", f.routing_number as "routingNumber", 
               f.beneficiary_name as "beneficiaryName", f.bank_address as "bankAddress",
+              f.subscription_doc_path as "subscriptionDocPath", f.anchor_name as "anchorName", 
+              f.anchor_date as "anchorDate", f.anchor_signature as "anchorSignature", f.anchor_amount as "anchorAmount",
+              f.name_page as "namePage", f.name_x as "nameX", f.name_y as "nameY",
+              f.date_page as "datePage", f.date_x as "dateX", f.date_y as "dateY",
+              f.signature_page as "signaturePage", f.signature_x as "signatureX", f.signature_y as "signatureY",
+              f.amount_page as "amountPage", f.amount_x as "amountX", f.amount_y as "amountY",
+              f.placements,
               COALESCE(stats.total_investors, 0)::int as "totalInvestors",
               COALESCE(stats.total_aum, 0)::float as "totalAUM"
        FROM funds f
@@ -76,13 +90,37 @@ export class FundsService {
     routingNumber?: string;
     beneficiaryName?: string;
     bankAddress?: string;
+    subscriptionDocPath?: string;
+    anchorName?: string;
+    anchorDate?: string;
+    anchorSignature?: string;
+    anchorAmount?: string;
+    namePage?: number;
+    nameX?: number;
+    nameY?: number;
+    datePage?: number;
+    dateX?: number;
+    dateY?: number;
+    signaturePage?: number;
+    signatureX?: number;
+    signatureY?: number;
+    amountPage?: number;
+    amountX?: number;
+    amountY?: number;
+    placements?: any[];
   }) {
     const result = await db.query(
       `INSERT INTO funds (
         name, description, image_url, start_date, status, note, 
         min_investment, unit_price, bank_name, account_number, 
-        routing_number, beneficiary_name, bank_address
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+        routing_number, beneficiary_name, bank_address,
+        subscription_doc_path, anchor_name, anchor_date, anchor_signature, anchor_amount,
+        name_page, name_x, name_y,
+        date_page, date_x, date_y,
+        signature_page, signature_x, signature_y,
+        amount_page, amount_x, amount_y,
+        placements
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31) RETURNING *`,
       [
         data.name, 
         data.description, 
@@ -96,7 +134,25 @@ export class FundsService {
         data.accountNumber || null,
         data.routingNumber || null,
         data.beneficiaryName || null,
-        data.bankAddress || null
+        data.bankAddress || null,
+        data.subscriptionDocPath || null,
+        data.anchorName || null,
+        data.anchorDate || null,
+        data.anchorSignature || null,
+        data.anchorAmount || null,
+        data.namePage || null,
+        data.nameX || null,
+        data.nameY || null,
+        data.datePage || null,
+        data.dateX || null,
+        data.dateY || null,
+        data.signaturePage || null,
+        data.signatureX || null,
+        data.signatureY || null,
+        data.amountPage || null,
+        data.amountX || null,
+        data.amountY || null,
+        data.placements ? JSON.stringify(data.placements) : null
       ]
     );
     return result.rows[0];
@@ -116,6 +172,24 @@ export class FundsService {
     routingNumber: string;
     beneficiaryName: string;
     bankAddress: string;
+    subscriptionDocPath: string;
+    anchorName: string;
+    anchorDate: string;
+    anchorSignature: string;
+    anchorAmount: string;
+    namePage: number;
+    nameX: number;
+    nameY: number;
+    datePage: number;
+    dateX: number;
+    dateY: number;
+    signaturePage: number;
+    signatureX: number;
+    signatureY: number;
+    amountPage: number;
+    amountX: number;
+    amountY: number;
+    placements: any[];
   }>) {
     const updates: string[] = ['updated_at = NOW()'];
     const values: any[] = [];
@@ -172,6 +246,78 @@ export class FundsService {
     if (data.bankAddress !== undefined) {
       updates.push(`bank_address = $${paramIndex++}`);
       values.push(data.bankAddress);
+    }
+    if (data.subscriptionDocPath !== undefined) {
+      updates.push(`subscription_doc_path = $${paramIndex++}`);
+      values.push(data.subscriptionDocPath);
+    }
+    if (data.anchorName !== undefined) {
+      updates.push(`anchor_name = $${paramIndex++}`);
+      values.push(data.anchorName);
+    }
+    if (data.anchorDate !== undefined) {
+      updates.push(`anchor_date = $${paramIndex++}`);
+      values.push(data.anchorDate);
+    }
+    if (data.anchorSignature !== undefined) {
+      updates.push(`anchor_signature = $${paramIndex++}`);
+      values.push(data.anchorSignature);
+    }
+    if (data.anchorAmount !== undefined) {
+      updates.push(`anchor_amount = $${paramIndex++}`);
+      values.push(data.anchorAmount);
+    }
+    if (data.namePage !== undefined) {
+      updates.push(`name_page = $${paramIndex++}`);
+      values.push(data.namePage);
+    }
+    if (data.nameX !== undefined) {
+      updates.push(`name_x = $${paramIndex++}`);
+      values.push(data.nameX);
+    }
+    if (data.nameY !== undefined) {
+      updates.push(`name_y = $${paramIndex++}`);
+      values.push(data.nameY);
+    }
+    if (data.datePage !== undefined) {
+      updates.push(`date_page = $${paramIndex++}`);
+      values.push(data.datePage);
+    }
+    if (data.dateX !== undefined) {
+      updates.push(`date_x = $${paramIndex++}`);
+      values.push(data.dateX);
+    }
+    if (data.dateY !== undefined) {
+      updates.push(`date_y = $${paramIndex++}`);
+      values.push(data.dateY);
+    }
+    if (data.signaturePage !== undefined) {
+      updates.push(`signature_page = $${paramIndex++}`);
+      values.push(data.signaturePage);
+    }
+    if (data.signatureX !== undefined) {
+      updates.push(`signature_x = $${paramIndex++}`);
+      values.push(data.signatureX);
+    }
+    if (data.signatureY !== undefined) {
+      updates.push(`signature_y = $${paramIndex++}`);
+      values.push(data.signatureY);
+    }
+    if (data.amountPage !== undefined) {
+      updates.push(`amount_page = $${paramIndex++}`);
+      values.push(data.amountPage);
+    }
+    if (data.amountX !== undefined) {
+      updates.push(`amount_x = $${paramIndex++}`);
+      values.push(data.amountX);
+    }
+    if (data.amountY !== undefined) {
+      updates.push(`amount_y = $${paramIndex++}`);
+      values.push(data.amountY);
+    }
+    if (data.placements !== undefined) {
+      updates.push(`placements = $${paramIndex++}`);
+      values.push(data.placements ? JSON.stringify(data.placements) : null);
     }
 
     if (values.length === 0) return this.getFundById(id);
