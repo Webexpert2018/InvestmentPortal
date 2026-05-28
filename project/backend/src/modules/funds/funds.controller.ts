@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterc
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { fundImageStorage } from '../../config/cloudinary.config';
+import { fundImageStorage, fundDocumentStorage, cloudinary } from '../../config/cloudinary.config';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FundsService } from './funds.service';
@@ -60,6 +60,52 @@ export class FundsController {
     await this.fundsService.updateFund(id, { image_url: imageUrl });
     console.log(`✅ Fund Image Uploaded: ${id} -> ${imageUrl}`);
     return { message: 'Fund image uploaded successfully', imageUrl };
+  }
+
+  @Post(':id/subscription-document')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadSubscriptionDoc(@Param('id') id: string, @UploadedFile() file: any) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+
+    if (!file.originalname.match(/\.(pdf)$/i)) {
+      throw new BadRequestException('Only PDF files are allowed!');
+    }
+
+    try {
+      console.log('☁️ Cloudinary: Uploading PDF template as RAW .dat to bypass PDF Strict restrictions...');
+      
+      const uploadPromise = new Promise<any>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: 'investment-portal/fund-documents',
+            resource_type: 'raw',
+            public_id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 10)}.dat`
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+        uploadStream.end(file.buffer);
+      });
+
+      const uploadResult = await uploadPromise;
+      const filePath = uploadResult.secure_url;
+
+      await this.fundsService.updateFund(id, { subscriptionDocPath: filePath });
+      console.log(`✅ Fund Subscription Document Uploaded: ${id} -> ${filePath}`);
+      return { message: 'Subscription document uploaded successfully', filePath };
+    } catch (err: any) {
+      console.error('❌ Cloudinary Upload failed:', err);
+      throw new BadRequestException('Failed to upload file to Cloud storage');
+    }
   }
 
   @Patch(':id')

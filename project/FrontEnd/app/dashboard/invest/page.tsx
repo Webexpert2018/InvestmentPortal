@@ -55,13 +55,8 @@ export default function InvestPage() {
   const [saving, setSaving] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [userIraAccounts, setUserIraAccounts] = useState<any[]>([]);
-  const [subscriptionDocs, setSubscriptionDocs] = useState<any[]>([
-    { name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB' },
-    { name: 'SA-BWell-Fund.pdf', pages: 12, lastModified: 'Oct 12, 2025', size: '138 KB' }
-  ]);
-  const [selectedSubDoc, setSelectedSubDoc] = useState<any | null>({
-    name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB'
-  });
+  const [subscriptionDocs, setSubscriptionDocs] = useState<any[]>([]);
+  const [selectedSubDoc, setSelectedSubDoc] = useState<any | null>(null);
   const [selectedPage, setSelectedPage] = useState<number>(1);
   const [zoom, setZoom] = useState<number>(100);
   const [lastEnvelopeId, setLastEnvelopeId] = useState<string | null>(null);
@@ -69,6 +64,13 @@ export default function InvestPage() {
   const [currentInvestment, setCurrentInvestment] = useState<any>(null);
   const [justFinishedSigning, setJustFinishedSigning] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setToken(localStorage.getItem('token'));
+    }
+  }, []);
 
   // Check for DocuSign completion and handle fresh start
   useEffect(() => {
@@ -199,6 +201,31 @@ export default function InvestPage() {
     return funds.find(f => f.id === selectedFundId);
   }, [funds, selectedFundId]);
 
+  useEffect(() => {
+    if (selectedFund) {
+      if (selectedFund.subscriptionDocPath) {
+        const docs = [
+          {
+            name: selectedFund.subscriptionDocPath,
+            pages: 1,
+            lastModified: `Uploaded ${new Date(selectedFund.updatedAt || selectedFund.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+            size: 'Custom PDF',
+            isCustom: true
+          }
+        ];
+        setSubscriptionDocs(docs);
+        setSelectedSubDoc(docs[0]);
+      } else {
+        const docs = [
+          { name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB', isCustom: false },
+          { name: 'SA-BWell-Fund.pdf', pages: 12, lastModified: 'Oct 12, 2025', size: '138 KB', isCustom: false }
+        ];
+        setSubscriptionDocs(docs);
+        setSelectedSubDoc(docs[0]);
+      }
+    }
+  }, [selectedFund]);
+
   const dynamicAccounts = useMemo(() => {
     const list: any[] = [
       {
@@ -231,7 +258,10 @@ export default function InvestPage() {
           apiClient.getMyIRAAccount().catch(() => null),
           apiClient.getNavSummary().catch(() => null),
         ]);
-        setFunds(fundsData);
+        const activeFunds = Array.isArray(fundsData)
+          ? fundsData.filter((fund: any) => fund.status?.toLowerCase() !== 'draft' && fund.status?.toLowerCase() !== 'closed')
+          : [];
+        setFunds(activeFunds);
         setExistingFlows(flowsData);
         setUserIraAccounts(Array.isArray(iraData) ? iraData : (iraData ? [iraData] : []));
 
@@ -239,8 +269,8 @@ export default function InvestPage() {
           setUnitPrice(navData.currentNav);
         }
 
-        if (fundsData.length > 0 && !selectedFundId) {
-          setSelectedFundId(fundsData[0].id);
+        if (activeFunds.length > 0 && !selectedFundId) {
+          setSelectedFundId(activeFunds[0].id);
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -409,7 +439,9 @@ export default function InvestPage() {
   const handleDownload = () => {
     if (!selectedSubDoc) return;
     const link = document.createElement('a');
-    link.href = `/documents/subscription/${selectedSubDoc.name}`;
+    link.href = selectedSubDoc.isCustom
+      ? (selectedSubDoc.name.startsWith('http') ? `${BASE_URL}/api/documents/subscription/preview/custom?url=${encodeURIComponent(selectedSubDoc.name)}&token=${token || ''}` : `${BASE_URL}/api/documents/subscription/preview/${selectedSubDoc.name}?token=${token || ''}`)
+      : `/documents/subscription/${selectedSubDoc.name}`;
     link.download = selectedSubDoc.name;
     document.body.appendChild(link);
     link.click();
@@ -848,7 +880,10 @@ export default function InvestPage() {
                 >
                   {selectedSubDoc ? (
                     <iframe
-                      src={`/documents/subscription/${selectedSubDoc.name}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH`}
+                      src={selectedSubDoc?.isCustom
+                        ? (selectedSubDoc.name.startsWith('http') ? `${BASE_URL}/api/documents/subscription/preview/custom?url=${encodeURIComponent(selectedSubDoc.name)}&token=${token || ''}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH` : `${BASE_URL}/api/documents/subscription/preview/${selectedSubDoc.name}?token=${token || ''}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH`)
+                        : `/documents/subscription/${selectedSubDoc.name}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH`
+                      }
                       key={`${selectedSubDoc.name}-${selectedPage}`}
                       className="w-full h-full border-none absolute inset-0 bg-white"
                       title="Document Preview"

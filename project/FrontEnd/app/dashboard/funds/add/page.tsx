@@ -7,6 +7,10 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
+import dynamic from 'next/dynamic';
+
+const VisualPdfEditor = dynamic(() => import('@/components/VisualPdfEditor').then(mod => mod.VisualPdfEditor), { ssr: false });
+
 
 export default function AddFundPage() {
   const router = useRouter();
@@ -32,6 +36,21 @@ export default function AddFundPage() {
     beneficiaryName: '',
     bankAddress: '',
   });
+
+  const [subDocFile, setSubDocFile] = useState<File | null>(null);
+  const [namePage, setNamePage] = useState<number | null>(null);
+  const [nameX, setNameX] = useState<number | null>(null);
+  const [nameY, setNameY] = useState<number | null>(null);
+  const [datePage, setDatePage] = useState<number | null>(null);
+  const [dateX, setDateX] = useState<number | null>(null);
+  const [dateY, setDateY] = useState<number | null>(null);
+  const [signaturePage, setSignaturePage] = useState<number | null>(null);
+  const [signatureX, setSignatureX] = useState<number | null>(null);
+  const [signatureY, setSignatureY] = useState<number | null>(null);
+  const [amountPage, setAmountPage] = useState<number | null>(null);
+  const [amountX, setAmountX] = useState<number | null>(null);
+  const [amountY, setAmountY] = useState<number | null>(null);
+  const [placements, setPlacements] = useState<any[]>([]);
 
   const descriptionMaxLength = 500;
   const noteMaxLength = 1000;
@@ -134,10 +153,27 @@ export default function AddFundPage() {
         routingNumber,
         beneficiaryName,
         bankAddress,
+        namePage: subDocFile ? namePage : null,
+        nameX: subDocFile ? nameX : null,
+        nameY: subDocFile ? nameY : null,
+        datePage: subDocFile ? datePage : null,
+        dateX: subDocFile ? dateX : null,
+        dateY: subDocFile ? dateY : null,
+        signaturePage: subDocFile ? signaturePage : null,
+        signatureX: subDocFile ? signatureX : null,
+        signatureY: subDocFile ? signatureY : null,
+        amountPage: subDocFile ? amountPage : null,
+        amountX: subDocFile ? amountX : null,
+        amountY: subDocFile ? amountY : null,
+        placements: subDocFile ? placements : null,
       });
 
       if (fundImage && fund.id) {
         await apiClient.uploadFundImage(fund.id, fundImage);
+      }
+
+      if (subDocFile && fund.id) {
+        await apiClient.uploadSubscriptionDocument(fund.id, subDocFile);
       }
 
       toast.success(`Fund ${status === 'Draft' ? 'saved as draft' : 'published'} successfully`);
@@ -431,6 +467,62 @@ export default function AddFundPage() {
                   <p className="text-red-500 text-xs mt-1">{errors.bankAddress}</p>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Subscription Document Section */}
+          <div className="border-t border-gray-100 pt-8 mb-8">
+            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-2">Subscription Document</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Optionally upload a custom PDF subscription document for this fund. If left blank, the portal's default Operating Agreement and Subscription Agreement documents will be used.
+            </p>
+            
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Upload PDF Document</label>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors text-sm font-medium text-gray-700">
+                    <span>Choose File</span>
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setSubDocFile(e.target.files[0]);
+                        }
+                      }}
+                    />
+                  </label>
+                  <span className="text-sm text-gray-500">
+                    {subDocFile ? subDocFile.name : 'No file chosen (Using system defaults)'}
+                  </span>
+                </div>
+              </div>
+
+              {subDocFile && (
+                <div className="mt-4">
+                  <VisualPdfEditor
+                    file={subDocFile}
+                    initialValues={{ placements: placements }}
+                    onChange={(coords) => {
+                      setNamePage(coords.namePage);
+                      setNameX(coords.nameX);
+                      setNameY(coords.nameY);
+                      setDatePage(coords.datePage);
+                      setDateX(coords.dateX);
+                      setDateY(coords.dateY);
+                      setSignaturePage(coords.signaturePage);
+                      setSignatureX(coords.signatureX);
+                      setSignatureY(coords.signatureY);
+                      setAmountPage(coords.amountPage);
+                      setAmountX(coords.amountX);
+                      setAmountY(coords.amountY);
+                      setPlacements(coords.placements);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

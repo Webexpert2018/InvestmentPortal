@@ -109,7 +109,8 @@ export class DocusignController {
         investorName,
         fundName,
         investmentAmount,
-        finalReturnUrl
+        finalReturnUrl,
+        fundId
       );
 
       console.log(`[DocusignController] Successfully created signing URL: ${result.envelopeId}`);

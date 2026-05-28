@@ -580,6 +580,31 @@ class ApiClient {
     return data;
   }
 
+  async uploadSubscriptionDocument(fundId: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers: HeadersInit = {};
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${API_URL}/funds/${fundId}/subscription-document`, {
+      method: 'POST',
+      body: formData,
+      headers: headers,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'An error occurred during upload');
+    }
+    return data;
+  }
+
   async updateFund(id: string, data: any) {
     return this.request<any>(`/funds/${id}`, {
       method: 'PATCH',
