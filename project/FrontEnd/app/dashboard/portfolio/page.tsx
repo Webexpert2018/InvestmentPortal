@@ -2,14 +2,27 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { MoreVertical, Loader2, ArrowUpDown } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 
 export default function PortfolioPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo'>('investments');
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo'>(
+    tabParam === 'fundInfo' ? 'fundInfo' : 'investments'
+  );
+
+  useEffect(() => {
+    if (tabParam === 'fundInfo') {
+      setActiveTab('fundInfo');
+    } else if (tabParam === 'investments') {
+      setActiveTab('investments');
+    }
+  }, [tabParam]);
+
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [investments, setInvestments] = useState<any[]>([]);
@@ -240,7 +253,7 @@ export default function PortfolioPage() {
               {funds.map((fund) => (
                 <Link
                   key={fund.id}
-                  href={`/dashboard/funds/${fund.id}`}
+                  href={`/dashboard/funds/${fund.id}?from=portfolio`}
                   className="group flex flex-col sm:flex-row items-center rounded-2xl bg-[#F7F8FA] p-5 sm:p-6 transition hover:bg-[#F1F2F5] hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] duration-300"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center gap-6 w-full">
