@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -180,6 +180,8 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromParam = searchParams ? searchParams.get('from') : null;
   const { user, logout, loading } = useAuth();
 
   // Use external state if provided, otherwise use internal state
@@ -243,7 +245,12 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
                   pathname?.startsWith(item.href + '/')) ||
                 (item.href === '/dashboard/portfolio' &&
                   pathname?.startsWith('/dashboard/funds/') &&
-                  currentRole === 'investor');
+                  currentRole === 'investor' &&
+                  fromParam !== 'invest') ||
+                (item.href === '/dashboard/invest' &&
+                  pathname?.startsWith('/dashboard/funds/') &&
+                  currentRole === 'investor' &&
+                  fromParam === 'invest');
 
               return (
                 <Link

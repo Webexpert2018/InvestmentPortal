@@ -25,10 +25,21 @@ export default function FundOverviewPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
+  const fromParam = searchParams.get('from');
   const [activeTab, setActiveTab] = useState<'overview' | 'documents' | 'bankDetails'>(
     tabParam === 'documents' ? 'documents' :
       tabParam === 'bankDetails' ? 'bankDetails' : 'overview'
   );
+
+  const handleBack = () => {
+    if (fromParam === 'invest') {
+      router.push('/dashboard/invest?step=chooseFund');
+    } else if (fromParam === 'portfolio') {
+      router.push('/dashboard/portfolio?tab=fundInfo');
+    } else {
+      router.back();
+    }
+  };
   const [fund, setFund] = useState<any>(null);
   const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -185,7 +196,7 @@ export default function FundOverviewPage() {
     return (
       <DashboardLayout>
         <div className="p-6">
-          <button onClick={() => router.back()} className="mb-4 flex items-center gap-2 text-gray-600">
+          <button onClick={handleBack} className="mb-4 flex items-center gap-2 text-gray-600">
             <ChevronLeft className="h-5 w-5" /> Back
           </button>
           <div className="bg-white p-8 rounded-lg text-center">
@@ -200,30 +211,40 @@ export default function FundOverviewPage() {
     <DashboardLayout>
       <div className="p-4 sm:p-8 bg-[#F9FAFB] min-h-screen">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <button
-            onClick={() => router.back()}
-            className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200 group flex-shrink-0"
-            title="Go back"
-          >
-            <ChevronLeft className="h-6 w-6 text-gray-600 transition-transform group-hover:-translate-x-0.5" />
-          </button>
-          <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight truncate">{fund.name}</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Fund Details</p>
+        <div className="mb-8">
+          {/* Back button row */}
+          <div className="mb-4">
+            <button
+              onClick={handleBack}
+              className="p-1.5 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200 group flex items-center gap-1.5 w-fit"
+              title="Go back"
+            >
+              <ChevronLeft className="h-5 w-5 text-gray-600 transition-transform group-hover:-translate-x-0.5" />
+              <span className="text-sm font-semibold text-[#1F3B6E] pr-2">
+                {fromParam === 'invest' ? 'Back to Investment' : 'Back'}
+              </span>
+            </button>
           </div>
 
-          {!isInvestor && (
-            <div className="ml-auto">
-              <Button
-                onClick={() => router.push(`/dashboard/funds/${params.id}/documents/upload`)}
-                className="bg-[#FCD34D] hover:bg-[#fbbf24] text-[#1F3B6E] px-6 py-2 rounded-full font-bold flex items-center gap-2"
-              >
-                <Plus className="h-5 w-5" />
-                Upload Doc.
-              </Button>
+          {/* Heading row */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight truncate">{fund.name}</h1>
+              <p className="text-sm text-gray-500 mt-0.5">Fund Details</p>
             </div>
-          )}
+
+            {!isInvestor && (
+              <div className="ml-auto">
+                <Button
+                  onClick={() => router.push(`/dashboard/funds/${params.id}/documents/upload`)}
+                  className="bg-[#FCD34D] hover:bg-[#fbbf24] text-[#1F3B6E] px-6 py-2 rounded-full font-bold flex items-center gap-2"
+                >
+                  <Plus className="h-5 w-5" />
+                  Upload Doc.
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Tabs */}

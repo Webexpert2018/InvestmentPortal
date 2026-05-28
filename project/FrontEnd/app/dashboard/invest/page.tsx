@@ -86,6 +86,14 @@ export default function InvestPage() {
     if (savedEnvelopeId) {
       setLastEnvelopeId(savedEnvelopeId);
     }
+
+    const urlStep = searchParams?.get('step');
+    if (urlStep) {
+      const validSteps: Step[] = ['chooseFund', 'fundingAccount', 'investmentAmount', 'signDocuments', 'fundingInstructions', 'investmentStatus'];
+      if (validSteps.includes(urlStep as Step)) {
+        setStep(urlStep as Step);
+      }
+    }
   }, [searchParams]);
 
   useEffect(() => {
@@ -532,17 +540,16 @@ export default function InvestPage() {
           {funds.map((fund) => {
             const selected = fund.id === selectedFundId;
             return (
-              <button
+              <div
                 key={fund.id}
-                type="button"
                 onClick={() => setSelectedFundId(fund.id)}
-                className={`flex w-full items-center rounded-sm bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : ''
+                className={`flex w-full items-center rounded-xl bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : 'border border-transparent hover:border-gray-200'
                   }`}
               >
                 <img src={getFullImageUrl(fund.image)}
                   alt={fund.name}
                   className="mr-6 h-24 w-40 rounded-lg object-cover" />
-                <div className="flex flex-col">
+                <div className="flex flex-col flex-grow">
                   <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F]">
                     {fund.name}
                   </h3>
@@ -563,8 +570,18 @@ export default function InvestPage() {
                       {fund.note}
                     </p>
                   )}
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/dashboard/funds/${fund.id}?from=invest`);
+                    }}
+                    className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-[#274583] hover:text-[#1F3B6E] hover:underline cursor-pointer transition-colors w-fit"
+                  >
+                    View Fund Details
+                    <Eye className="h-3.5 w-3.5 ml-1 text-[#274583]" />
+                  </span>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
