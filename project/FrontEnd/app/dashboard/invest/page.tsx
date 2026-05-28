@@ -48,6 +48,7 @@ export default function InvestPage() {
   const [funds, setFunds] = useState<any[]>([]);
   const [existingFlows, setExistingFlows] = useState<any[]>([]);
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
+  const [toggledFundId, setToggledFundId] = useState<string | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>('personal');
   const [amount, setAmount] = useState<string>('25000');
   const [unitPrice, setUnitPrice] = useState<number>(0);
@@ -271,6 +272,9 @@ export default function InvestPage() {
 
         if (activeFunds.length > 0 && !selectedFundId) {
           setSelectedFundId(activeFunds[0].id);
+        }
+        if (activeFunds.length > 0 && !toggledFundId) {
+          setToggledFundId(activeFunds[0].id);
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -575,16 +579,40 @@ export default function InvestPage() {
               <div
                 key={fund.id}
                 onClick={() => setSelectedFundId(fund.id)}
-                className={`flex w-full items-center rounded-xl bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : 'border border-transparent hover:border-gray-200'
+                className={`flex w-full items-start rounded-xl bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : 'border border-transparent hover:border-gray-200'
                   }`}
               >
-                <img src={getFullImageUrl(fund.image)}
+                <img
+                  src={getFullImageUrl(fund.image)}
                   alt={fund.name}
-                  className="mr-6 h-24 w-40 rounded-lg object-cover" />
-                <div className="flex flex-col flex-grow">
-                  <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F]">
-                    {fund.name}
-                  </h3>
+                  className="mr-6 h-24 w-40 rounded-lg object-cover flex-shrink-0"
+                />
+                <div className="flex-grow min-w-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F] truncate">
+                      {fund.name}
+                    </h3>
+                    
+                    {/* Toggle Switch */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setToggledFundId(toggledFundId === fund.id ? null : fund.id);
+                      }}
+                      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        toggledFundId === fund.id ? 'bg-[#274583]' : 'bg-[#E5E5EA]'
+                      }`}
+                      title={toggledFundId === fund.id ? "Hide details" : "Show details"}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          toggledFundId === fund.id ? 'translate-x-4' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
                   <div className="flex items-center gap-3 mt-1.5 mb-2">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${fund.status === 'Closed' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
                       }`}>
@@ -602,21 +630,83 @@ export default function InvestPage() {
                       {fund.note}
                     </p>
                   )}
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(`/dashboard/funds/${fund.id}?from=invest`);
-                    }}
-                    className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-[#274583] hover:text-[#1F3B6E] hover:underline cursor-pointer transition-colors w-fit"
-                  >
-                    View Fund Details
-                    <Eye className="h-3.5 w-3.5 ml-1 text-[#274583]" />
-                  </span>
                 </div>
               </div>
             );
           })}
         </div>
+
+        {/* Dynamic Toggled Fund Details Section */}
+        {(() => {
+          const toggledFund = funds.find(f => f.id === toggledFundId);
+          if (!toggledFund) return null;
+          return (
+            <div className="mt-8 border-t border-[#E5E5EA] pt-8 animate-fadeIn">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="h-5 w-1 bg-[#274583] rounded-full"></div>
+                <h3 className="font-goudy text-lg sm:text-xl font-bold text-[#1F1F1F]">
+                  Fund Information: {toggledFund.name}
+                </h3>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Column: Image and Start Date */}
+                <div className="space-y-4">
+                  <img
+                    src={getFullImageUrl(toggledFund.image)}
+                    alt={toggledFund.name}
+                    className="w-full h-48 rounded-xl object-cover shadow-sm border border-[#E5E5EA]"
+                  />
+                  <div className="bg-[#F7F8FA] p-4 rounded-xl border border-[#E5E5EA]">
+                    <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Start Date</p>
+                    <p className="text-sm font-bold text-[#1F1F1F] mt-1">
+                      {toggledFund.startDate ? new Date(toggledFund.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Middle & Right Column: Description & Wire Instructions */}
+                <div className="lg:col-span-2 space-y-6">
+                  <div>
+                    <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider mb-2">Description</p>
+                    <p className="text-sm text-[#4B4B4B] leading-relaxed whitespace-pre-line bg-[#F7F8FA] p-4 rounded-xl border border-[#E5E5EA]">
+                      {toggledFund.description || 'Secure institutional-grade Bitcoin strategies.'}
+                    </p>
+                  </div>
+
+                  {/* Wire Instructions Details */}
+                  <div>
+                    <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider mb-3">Custodian Wire Instructions</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 bg-[#F7F8FA] p-5 rounded-xl border border-[#E5E5EA]">
+                      <div>
+                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Bank Name</p>
+                        <p className="text-xs font-bold text-[#1F1F1F] mt-1">{toggledFund.bankName || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Account Number</p>
+                        <p className="text-xs font-bold text-[#1F1F1F] mt-1 tracking-wider">{toggledFund.accountNumber || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Routing Number (ABA)</p>
+                        <p className="text-xs font-bold text-[#1F1F1F] mt-1">{toggledFund.routingNumber || 'N/A'}</p>
+                      </div>
+                      <div className="sm:col-span-2 md:col-span-3 border-t border-[#E5E5EA] pt-4 mt-2">
+                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Beneficiary Name</p>
+                        <p className="text-xs font-bold text-[#1F1F1F] mt-1">{toggledFund.beneficiaryName || 'N/A'}</p>
+                      </div>
+                      {toggledFund.bankAddress && (
+                        <div className="sm:col-span-2 md:col-span-3 border-t border-[#E5E5EA] pt-4">
+                          <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Custodian Address</p>
+                          <p className="text-xs font-bold text-[#1F1F1F] mt-1 leading-relaxed whitespace-pre-line">{toggledFund.bankAddress}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </>
   );
