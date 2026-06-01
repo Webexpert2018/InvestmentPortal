@@ -356,14 +356,15 @@ export class DocusignService {
           // Standard DocuSign coordinate grid assumes default PDF coordinates (usually standard Letter size 612x792).
           const width = 612;
           const height = 792;
-          const xPos = Math.round((placement.xPercent / 100) * width).toString();
-          const yPos = Math.round((placement.yPercent / 100) * height).toString();
 
           if (placement.type === 'signature') {
             const sig = new ds.SignHere();
             sig.pageNumber = pageStr;
-            sig.xPosition = xPos;
-            sig.yPosition = yPos;
+            // Offset signature tab (default width ~80px, height ~30px) to center it on the clicked coordinate
+            const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 40);
+            const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 15);
+            sig.xPosition = adjustedX.toString();
+            sig.yPosition = adjustedY.toString();
             sig.documentId = '1';
             sig.recipientId = '1';
             sig.tabLabel = `Signature_${idx + 1}`;
@@ -371,8 +372,11 @@ export class DocusignService {
           } else if (placement.type === 'name') {
             const nameTab = new ds.Text();
             nameTab.pageNumber = pageStr;
-            nameTab.xPosition = xPos;
-            nameTab.yPosition = yPos;
+            // Offset text tab (default width ~120px, height ~20px) to center it on the clicked coordinate
+            const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 60);
+            const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
+            nameTab.xPosition = adjustedX.toString();
+            nameTab.yPosition = adjustedY.toString();
             nameTab.value = documentName;
             nameTab.font = 'TimesNewRoman';
             nameTab.fontSize = 'Size11';
@@ -384,8 +388,11 @@ export class DocusignService {
           } else if (placement.type === 'amount') {
             const amountTab = new ds.Text();
             amountTab.pageNumber = pageStr;
-            amountTab.xPosition = xPos;
-            amountTab.yPosition = yPos;
+            // Offset text tab (default width ~100px, height ~20px) to center it on the clicked coordinate
+            const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 50);
+            const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
+            amountTab.xPosition = adjustedX.toString();
+            amountTab.yPosition = adjustedY.toString();
             amountTab.value = `$${investmentAmount.toLocaleString('en-US')}`;
             amountTab.font = 'TimesNewRoman';
             amountTab.fontSize = 'Size11';
@@ -397,8 +404,11 @@ export class DocusignService {
           } else if (placement.type === 'date') {
             const dateTab = new ds.Text();
             dateTab.pageNumber = pageStr;
-            dateTab.xPosition = xPos;
-            dateTab.yPosition = yPos;
+            // Offset text tab (default width ~100px, height ~20px) to center it on the clicked coordinate
+            const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 50);
+            const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
+            dateTab.xPosition = adjustedX.toString();
+            dateTab.yPosition = adjustedY.toString();
             dateTab.value = new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
             dateTab.font = 'TimesNewRoman';
             dateTab.fontSize = 'Size11';
@@ -420,8 +430,9 @@ export class DocusignService {
         const nameTab = new ds.Text();
         if (fund.name_page && fund.name_x !== null && fund.name_y !== null) {
           nameTab.pageNumber = fund.name_page.toString();
-          nameTab.xPosition = fund.name_x.toString();
-          nameTab.yPosition = fund.name_y.toString();
+          // Offset text tab (default width ~120px, height ~20px)
+          nameTab.xPosition = Math.max(0, fund.name_x - 60).toString();
+          nameTab.yPosition = Math.max(0, fund.name_y - 10).toString();
         } else {
           nameTab.anchorString = nameAnchor;
           nameTab.anchorUnits = 'pixels';
@@ -441,8 +452,9 @@ export class DocusignService {
         const amountTab = new ds.Text();
         if (fund.amount_page && fund.amount_x !== null && fund.amount_y !== null) {
           amountTab.pageNumber = fund.amount_page.toString();
-          amountTab.xPosition = fund.amount_x.toString();
-          amountTab.yPosition = fund.amount_y.toString();
+          // Offset text tab (default width ~100px, height ~20px)
+          amountTab.xPosition = Math.max(0, fund.amount_x - 50).toString();
+          amountTab.yPosition = Math.max(0, fund.amount_y - 10).toString();
         } else {
           amountTab.anchorString = amountAnchor;
           amountTab.anchorUnits = 'pixels';
@@ -462,8 +474,9 @@ export class DocusignService {
         const dateTab = new ds.Text();
         if (fund.date_page && fund.date_x !== null && fund.date_y !== null) {
           dateTab.pageNumber = fund.date_page.toString();
-          dateTab.xPosition = fund.date_x.toString();
-          dateTab.yPosition = fund.date_y.toString();
+          // Offset text tab (default width ~100px, height ~20px)
+          dateTab.xPosition = Math.max(0, fund.date_x - 50).toString();
+          dateTab.yPosition = Math.max(0, fund.date_y - 10).toString();
         } else {
           dateTab.anchorString = dateAnchor;
           dateTab.anchorUnits = 'pixels';
@@ -483,8 +496,9 @@ export class DocusignService {
         const signatureTab = new ds.SignHere();
         if (fund.signature_page && fund.signature_x !== null && fund.signature_y !== null) {
           signatureTab.pageNumber = fund.signature_page.toString();
-          signatureTab.xPosition = fund.signature_x.toString();
-          signatureTab.yPosition = fund.signature_y.toString();
+          // Offset signature tab (default width ~80px, height ~30px)
+          signatureTab.xPosition = Math.max(0, fund.signature_x - 40).toString();
+          signatureTab.yPosition = Math.max(0, fund.signature_y - 15).toString();
         } else {
           signatureTab.anchorString = signatureAnchor;
           signatureTab.anchorUnits = 'pixels';
