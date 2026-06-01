@@ -2,12 +2,27 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { MoreVertical, Loader2, ArrowUpDown } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 
 export default function PortfolioPage() {
-  const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo'>('investments');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo'>(
+    tabParam === 'fundInfo' ? 'fundInfo' : 'investments'
+  );
+
+  useEffect(() => {
+    if (tabParam === 'fundInfo') {
+      setActiveTab('fundInfo');
+    } else if (tabParam === 'investments') {
+      setActiveTab('investments');
+    }
+  }, [tabParam]);
+
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [investments, setInvestments] = useState<any[]>([]);
@@ -37,7 +52,10 @@ export default function PortfolioPage() {
 
       setInvestments(investmentsData);
       setRedemptions(redemptionsData);
-      setFunds(fundsData);
+      const activeFunds = Array.isArray(fundsData)
+        ? fundsData.filter((fund: any) => fund.status?.toLowerCase() !== 'draft' && fund.status?.toLowerCase() !== 'closed')
+        : [];
+      setFunds(activeFunds);
 
       const totalInvested = investmentsData
         .filter((inv: any) => inv.is_reconciled)
@@ -238,7 +256,7 @@ export default function PortfolioPage() {
               {funds.map((fund) => (
                 <Link
                   key={fund.id}
-                  href={`/dashboard/funds/${fund.id}`}
+                  href={`/dashboard/funds/${fund.id}?from=portfolio`}
                   className="group flex flex-col sm:flex-row items-center rounded-2xl bg-[#F7F8FA] p-5 sm:p-6 transition hover:bg-[#F1F2F5] hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] duration-300"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center gap-6 w-full">
@@ -329,7 +347,7 @@ export default function PortfolioPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
-                    {sortedInvestments.map((row) => {
+                    {sortedInvestments.map((row, index) => {
                       // Get redemptions for this specific investment
                       const rowRedemptions = redemptions || [];
                       const redeemedUnits = rowRedemptions
@@ -349,7 +367,11 @@ export default function PortfolioPage() {
                       const gainPercent = costBasis > 0 ? (gainLoss / costBasis) * 100 : 0;
 
                       return (
-                        <tr key={row.id} className="hover:bg-gray-50">
+                        <tr
+                          key={row.id}
+                          className="hover:bg-slate-50/80 cursor-pointer transition-colors duration-150"
+                          onClick={() => router.push(`/dashboard/portfolio/${row.id}`)}
+                        >
                           <td className="px-4 py-3 text-[#1F1F1F] font-medium">{row.fund_name}</td>
                           <td className="px-4 py-3 text-[#4B4B4B]">{row.account_type}</td>
                           <td className="px-4 py-3 text-[#4B4B4B] text-right">{row.units.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
@@ -369,7 +391,7 @@ export default function PortfolioPage() {
                               {row.is_reconciled ? 'Completed' : 'Pending'}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-4 py-3 text-right" onClick={(event) => event.stopPropagation()}>
                             <div className="relative inline-block text-left" data-portfolio-action-menu="true">
                               <button
                                 type="button"
@@ -386,7 +408,9 @@ export default function PortfolioPage() {
                               </button>
 
                               {openActionMenuId === row.id && (
-                                <div className="absolute right-0 top-full z-20 mt-1 w-[150px] rounded-[6px] border border-[#ECECEC] bg-white py-1 shadow-[0_6px_16px_rgba(0,0,0,0.08)]">
+                                <div className={`absolute right-0 z-20 w-[150px] rounded-[6px] border border-[#ECECEC] bg-white py-1 shadow-[0_6px_16px_rgba(0,0,0,0.08)] ${
+                                  index === sortedInvestments.length - 1 ? 'bottom-full mb-1' : 'top-full mt-1'
+                                }`}>
                                   <Link
                                     href={`/dashboard/portfolio/${row.id}`}
                                     className="block px-3 py-2 text-left text-[12px] text-[#5F5F5F] hover:bg-[#F8F8F8]"

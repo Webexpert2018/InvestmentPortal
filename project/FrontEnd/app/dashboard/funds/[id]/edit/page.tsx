@@ -8,6 +8,10 @@ import { useRouter, useParams } from 'next/navigation';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+const VisualPdfEditor = dynamic(() => import('@/components/VisualPdfEditor').then(mod => mod.VisualPdfEditor), { ssr: false });
+
 
 export default function EditFundPage() {
   const router = useRouter();
@@ -27,6 +31,29 @@ export default function EditFundPage() {
   const [bankAddress, setBankAddress] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setToken(localStorage.getItem('token'));
+    }
+  }, []);
+
+  const [subDocFile, setSubDocFile] = useState<File | null>(null);
+  const [subDocPath, setSubDocPath] = useState<string | null>(null);
+  const [namePage, setNamePage] = useState<number | null>(null);
+  const [nameX, setNameX] = useState<number | null>(null);
+  const [nameY, setNameY] = useState<number | null>(null);
+  const [datePage, setDatePage] = useState<number | null>(null);
+  const [dateX, setDateX] = useState<number | null>(null);
+  const [dateY, setDateY] = useState<number | null>(null);
+  const [signaturePage, setSignaturePage] = useState<number | null>(null);
+  const [signatureX, setSignatureX] = useState<number | null>(null);
+  const [signatureY, setSignatureY] = useState<number | null>(null);
+  const [amountPage, setAmountPage] = useState<number | null>(null);
+  const [amountX, setAmountX] = useState<number | null>(null);
+  const [amountY, setAmountY] = useState<number | null>(null);
+  const [placements, setPlacements] = useState<any[]>([]);
   const [errors, setErrors] = useState({
     fundName: '',
     startDate: '',
@@ -65,6 +92,20 @@ export default function EditFundPage() {
       setRoutingNumber(data.routingNumber || '');
       setBeneficiaryName(data.beneficiaryName || '');
       setBankAddress(data.bankAddress || '');
+      setSubDocPath(data.subscriptionDocPath || null);
+      setNamePage(data.namePage || null);
+      setNameX(data.nameX !== undefined ? data.nameX : null);
+      setNameY(data.nameY !== undefined ? data.nameY : null);
+      setDatePage(data.datePage || null);
+      setDateX(data.dateX !== undefined ? data.dateX : null);
+      setDateY(data.dateY !== undefined ? data.dateY : null);
+      setSignaturePage(data.signaturePage || null);
+      setSignatureX(data.signatureX !== undefined ? data.signatureX : null);
+      setSignatureY(data.signatureY !== undefined ? data.signatureY : null);
+      setAmountPage(data.amountPage || null);
+      setAmountX(data.amountX !== undefined ? data.amountX : null);
+      setAmountY(data.amountY !== undefined ? data.amountY : null);
+      setPlacements(data.placements || []);
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch fund details');
     } finally {
@@ -167,11 +208,30 @@ export default function EditFundPage() {
         routingNumber,
         beneficiaryName,
         bankAddress,
+        subscriptionDocPath: subDocFile ? undefined : subDocPath, // if cleared, clear path
+        namePage: (subDocFile || subDocPath) ? namePage : null,
+        nameX: (subDocFile || subDocPath) ? nameX : null,
+        nameY: (subDocFile || subDocPath) ? nameY : null,
+        datePage: (subDocFile || subDocPath) ? datePage : null,
+        dateX: (subDocFile || subDocPath) ? dateX : null,
+        dateY: (subDocFile || subDocPath) ? dateY : null,
+        signaturePage: (subDocFile || subDocPath) ? signaturePage : null,
+        signatureX: (subDocFile || subDocPath) ? signatureX : null,
+        signatureY: (subDocFile || subDocPath) ? signatureY : null,
+        amountPage: (subDocFile || subDocPath) ? amountPage : null,
+        amountX: (subDocFile || subDocPath) ? amountX : null,
+        amountY: (subDocFile || subDocPath) ? amountY : null,
+        placements: (subDocFile || subDocPath) ? placements : null,
       });
 
       // 2. Upload image if selected
       if (selectedFile) {
         await apiClient.uploadFundImage(params.id as string, selectedFile);
+      }
+
+      // 3. Upload subscription document if selected
+      if (subDocFile) {
+        await apiClient.uploadSubscriptionDocument(params.id as string, subDocFile);
       }
 
       toast.success('Fund updated successfully');
@@ -350,6 +410,89 @@ export default function EditFundPage() {
                 <option value="Closed">Closed</option>
                 <option value="Draft">Draft</option>
               </select>
+            </div>
+          </div>
+
+          {/* Subscription Document Section */}
+          <div className="border-t border-gray-100 pt-8 mb-8 pb-8 border-b">
+            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-2">Subscription Document</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Optionally upload a custom PDF subscription document for this fund. If left blank, the portal's default Operating Agreement and Subscription Agreement documents will be used.
+            </p>
+            
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Upload PDF Document</label>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors text-sm font-medium text-gray-700">
+                    <span>Choose File</span>
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setSubDocFile(e.target.files[0]);
+                          setSubDocPath(null); // Clear previous path to show new preview name
+                        }
+                      }}
+                    />
+                  </label>
+                  <span className="text-sm text-gray-500 flex items-center gap-2">
+                    {subDocFile ? subDocFile.name : subDocPath ? `${subDocPath}` : 'No file chosen (Using system defaults)'}
+                    {(subDocFile || subDocPath) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSubDocFile(null);
+                          setSubDocPath(null);
+                        }}
+                        className="text-red-500 hover:text-red-700 text-xs ml-2 font-medium"
+                      >
+                        Remove Custom Document
+                      </button>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {(subDocFile || subDocPath) && (
+                <div className="mt-4">
+                  <VisualPdfEditor
+                    file={subDocFile || (subDocPath ? (subDocPath.startsWith('http') ? `${BASE_URL}/api/documents/subscription/preview/custom?url=${encodeURIComponent(subDocPath)}&token=${token || ''}` : `${BASE_URL}/api/documents/subscription/preview/${subDocPath}?token=${token || ''}`) : null)}
+                    initialValues={{
+                      namePage: namePage || undefined,
+                      nameX: nameX !== null ? nameX : undefined,
+                      nameY: nameY !== null ? nameY : undefined,
+                      datePage: datePage || undefined,
+                      dateX: dateX !== null ? dateX : undefined,
+                      dateY: dateY !== null ? dateY : undefined,
+                      signaturePage: signaturePage || undefined,
+                      signatureX: signatureX !== null ? signatureX : undefined,
+                      signatureY: signatureY !== null ? signatureY : undefined,
+                      amountPage: amountPage || undefined,
+                      amountX: amountX !== null ? amountX : undefined,
+                      amountY: amountY !== null ? amountY : undefined,
+                      placements: placements
+                    }}
+                    onChange={(coords) => {
+                      setNamePage(coords.namePage);
+                      setNameX(coords.nameX);
+                      setNameY(coords.nameY);
+                      setDatePage(coords.datePage);
+                      setDateX(coords.dateX);
+                      setDateY(coords.dateY);
+                      setSignaturePage(coords.signaturePage);
+                      setSignatureX(coords.signatureX);
+                      setSignatureY(coords.signatureY);
+                      setAmountPage(coords.amountPage);
+                      setAmountX(coords.amountX);
+                      setAmountY(coords.amountY);
+                      setPlacements(coords.placements);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

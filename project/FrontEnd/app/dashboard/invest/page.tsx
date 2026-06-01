@@ -48,6 +48,7 @@ export default function InvestPage() {
   const [funds, setFunds] = useState<any[]>([]);
   const [existingFlows, setExistingFlows] = useState<any[]>([]);
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
+  const [toggledFundId, setToggledFundId] = useState<string | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>('personal');
   const [amount, setAmount] = useState<string>('25000');
   const [unitPrice, setUnitPrice] = useState<number>(0);
@@ -55,13 +56,8 @@ export default function InvestPage() {
   const [saving, setSaving] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [userIraAccounts, setUserIraAccounts] = useState<any[]>([]);
-  const [subscriptionDocs, setSubscriptionDocs] = useState<any[]>([
-    { name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB' },
-    { name: 'SA-BWell-Fund.pdf', pages: 12, lastModified: 'Oct 12, 2025', size: '138 KB' }
-  ]);
-  const [selectedSubDoc, setSelectedSubDoc] = useState<any | null>({
-    name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB'
-  });
+  const [subscriptionDocs, setSubscriptionDocs] = useState<any[]>([]);
+  const [selectedSubDoc, setSelectedSubDoc] = useState<any | null>(null);
   const [selectedPage, setSelectedPage] = useState<number>(1);
   const [zoom, setZoom] = useState<number>(100);
   const [lastEnvelopeId, setLastEnvelopeId] = useState<string | null>(null);
@@ -69,6 +65,13 @@ export default function InvestPage() {
   const [currentInvestment, setCurrentInvestment] = useState<any>(null);
   const [justFinishedSigning, setJustFinishedSigning] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setToken(localStorage.getItem('token'));
+    }
+  }, []);
 
   // Check for DocuSign completion and handle fresh start
   useEffect(() => {
@@ -85,6 +88,14 @@ export default function InvestPage() {
     const savedEnvelopeId = localStorage.getItem('last_envelope_id');
     if (savedEnvelopeId) {
       setLastEnvelopeId(savedEnvelopeId);
+    }
+
+    const urlStep = searchParams?.get('step');
+    if (urlStep) {
+      const validSteps: Step[] = ['chooseFund', 'fundingAccount', 'investmentAmount', 'signDocuments', 'fundingInstructions', 'investmentStatus'];
+      if (validSteps.includes(urlStep as Step)) {
+        setStep(urlStep as Step);
+      }
     }
   }, [searchParams]);
 
@@ -191,6 +202,31 @@ export default function InvestPage() {
     return funds.find(f => f.id === selectedFundId);
   }, [funds, selectedFundId]);
 
+  useEffect(() => {
+    if (selectedFund) {
+      if (selectedFund.subscriptionDocPath) {
+        const docs = [
+          {
+            name: selectedFund.subscriptionDocPath,
+            pages: 1,
+            lastModified: `Uploaded ${new Date(selectedFund.updatedAt || selectedFund.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+            size: 'Custom PDF',
+            isCustom: true
+          }
+        ];
+        setSubscriptionDocs(docs);
+        setSelectedSubDoc(docs[0]);
+      } else {
+        const docs = [
+          { name: 'OA-BWell-Fund.pdf', pages: 26, lastModified: 'Oct 12, 2025', size: '384 KB', isCustom: false },
+          { name: 'SA-BWell-Fund.pdf', pages: 12, lastModified: 'Oct 12, 2025', size: '138 KB', isCustom: false }
+        ];
+        setSubscriptionDocs(docs);
+        setSelectedSubDoc(docs[0]);
+      }
+    }
+  }, [selectedFund]);
+
   const dynamicAccounts = useMemo(() => {
     const list: any[] = [
       {
@@ -223,7 +259,10 @@ export default function InvestPage() {
           apiClient.getMyIRAAccount().catch(() => null),
           apiClient.getNavSummary().catch(() => null),
         ]);
-        setFunds(fundsData);
+        const activeFunds = Array.isArray(fundsData)
+          ? fundsData.filter((fund: any) => fund.status?.toLowerCase() !== 'draft' && fund.status?.toLowerCase() !== 'closed')
+          : [];
+        setFunds(activeFunds);
         setExistingFlows(flowsData);
         setUserIraAccounts(Array.isArray(iraData) ? iraData : (iraData ? [iraData] : []));
 
@@ -231,8 +270,11 @@ export default function InvestPage() {
           setUnitPrice(navData.currentNav);
         }
 
-        if (fundsData.length > 0 && !selectedFundId) {
-          setSelectedFundId(fundsData[0].id);
+        if (activeFunds.length > 0 && !selectedFundId) {
+          setSelectedFundId(activeFunds[0].id);
+        }
+        if (activeFunds.length > 0 && !toggledFundId) {
+          setToggledFundId(activeFunds[0].id);
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -401,7 +443,9 @@ export default function InvestPage() {
   const handleDownload = () => {
     if (!selectedSubDoc) return;
     const link = document.createElement('a');
-    link.href = `/documents/subscription/${selectedSubDoc.name}`;
+    link.href = selectedSubDoc.isCustom
+      ? (selectedSubDoc.name.startsWith('http') ? `${BASE_URL}/api/documents/subscription/preview/custom?url=${encodeURIComponent(selectedSubDoc.name)}&token=${token || ''}` : `${BASE_URL}/api/documents/subscription/preview/${selectedSubDoc.name}?token=${token || ''}`)
+      : `/documents/subscription/${selectedSubDoc.name}`;
     link.download = selectedSubDoc.name;
     document.body.appendChild(link);
     link.click();
@@ -532,20 +576,48 @@ export default function InvestPage() {
           {funds.map((fund) => {
             const selected = fund.id === selectedFundId;
             return (
-              <button
+              <div
                 key={fund.id}
-                type="button"
                 onClick={() => setSelectedFundId(fund.id)}
-                className={`flex w-full items-center rounded-sm bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : ''
+                className={`flex w-full items-start rounded-xl bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : 'border border-transparent hover:border-gray-200'
                   }`}
               >
-                <img src={getFullImageUrl(fund.image)}
+                <img
+                  src={getFullImageUrl(fund.image)}
                   alt={fund.name}
-                  className="mr-6 h-24 w-40 rounded-lg object-cover" />
-                <div className="flex flex-col">
-                  <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F]">
-                    {fund.name}
-                  </h3>
+                  className="mr-6 h-24 w-40 rounded-lg object-cover flex-shrink-0"
+                />
+                <div className="flex-grow min-w-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F] truncate">
+                      {fund.name}
+                    </h3>
+                    
+                    {/* Toggle Switch */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider select-none">
+                        View
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setToggledFundId(toggledFundId === fund.id ? null : fund.id);
+                        }}
+                        className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          toggledFundId === fund.id ? 'bg-[#274583]' : 'bg-[#E5E5EA]'
+                        }`}
+                        title={toggledFundId === fund.id ? "Hide details" : "Show details"}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                            toggledFundId === fund.id ? 'translate-x-4' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="flex items-center gap-3 mt-1.5 mb-2">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${fund.status === 'Closed' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
                       }`}>
@@ -564,10 +636,82 @@ export default function InvestPage() {
                     </p>
                   )}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
+
+        {/* Dynamic Toggled Fund Details Section */}
+        {(() => {
+          const toggledFund = funds.find(f => f.id === toggledFundId);
+          if (!toggledFund) return null;
+          return (
+            <div className="mt-8 border-t border-[#E5E5EA] pt-8 animate-fadeIn">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="h-5 w-1 bg-[#274583] rounded-full"></div>
+                <h3 className="font-goudy text-lg sm:text-xl font-bold text-[#1F1F1F]">
+                  Fund Information: {toggledFund.name}
+                </h3>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Column: Image and Start Date */}
+                <div className="space-y-4">
+                  <img
+                    src={getFullImageUrl(toggledFund.image)}
+                    alt={toggledFund.name}
+                    className="w-full h-48 rounded-xl object-cover shadow-sm border border-[#E5E5EA]"
+                  />
+                  <div className="bg-[#F7F8FA] p-4 rounded-xl border border-[#E5E5EA]">
+                    <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Start Date</p>
+                    <p className="text-sm font-bold text-[#1F1F1F] mt-1">
+                      {toggledFund.startDate ? new Date(toggledFund.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Middle & Right Column: Description & Wire Instructions */}
+                <div className="lg:col-span-2 space-y-6">
+                  <div>
+                    <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider mb-2">Description</p>
+                    <p className="text-sm text-[#4B4B4B] leading-relaxed whitespace-pre-line bg-[#F7F8FA] p-4 rounded-xl border border-[#E5E5EA]">
+                      {toggledFund.description || 'Secure institutional-grade Bitcoin strategies.'}
+                    </p>
+                  </div>
+
+                  {/* Wire Instructions Details */}
+                  <div>
+                    <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider mb-3">Custodian Wire Instructions</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 bg-[#F7F8FA] p-5 rounded-xl border border-[#E5E5EA]">
+                      <div>
+                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Bank Name</p>
+                        <p className="text-xs font-bold text-[#1F1F1F] mt-1">{toggledFund.bankName || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Account Number</p>
+                        <p className="text-xs font-bold text-[#1F1F1F] mt-1 tracking-wider">{toggledFund.accountNumber || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Routing Number (ABA)</p>
+                        <p className="text-xs font-bold text-[#1F1F1F] mt-1">{toggledFund.routingNumber || 'N/A'}</p>
+                      </div>
+                      <div className="sm:col-span-2 md:col-span-3 border-t border-[#E5E5EA] pt-4 mt-2">
+                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Beneficiary Name</p>
+                        <p className="text-xs font-bold text-[#1F1F1F] mt-1">{toggledFund.beneficiaryName || 'N/A'}</p>
+                      </div>
+                      {toggledFund.bankAddress && (
+                        <div className="sm:col-span-2 md:col-span-3 border-t border-[#E5E5EA] pt-4">
+                          <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Custodian Address</p>
+                          <p className="text-xs font-bold text-[#1F1F1F] mt-1 leading-relaxed whitespace-pre-line">{toggledFund.bankAddress}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </>
   );
@@ -831,7 +975,10 @@ export default function InvestPage() {
                 >
                   {selectedSubDoc ? (
                     <iframe
-                      src={`/documents/subscription/${selectedSubDoc.name}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH`}
+                      src={selectedSubDoc?.isCustom
+                        ? (selectedSubDoc.name.startsWith('http') ? `${BASE_URL}/api/documents/subscription/preview/custom?url=${encodeURIComponent(selectedSubDoc.name)}&token=${token || ''}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH` : `${BASE_URL}/api/documents/subscription/preview/${selectedSubDoc.name}?token=${token || ''}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH`)
+                        : `/documents/subscription/${selectedSubDoc.name}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH`
+                      }
                       key={`${selectedSubDoc.name}-${selectedPage}`}
                       className="w-full h-full border-none absolute inset-0 bg-white"
                       title="Document Preview"

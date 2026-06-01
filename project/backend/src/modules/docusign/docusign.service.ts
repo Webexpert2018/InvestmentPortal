@@ -4,6 +4,7 @@ import * as docusign from 'docusign-esign';
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
+import { db } from '../../config/database';
 
 /**
  * DocuSign Service handles the interaction with DocuSign eSignature API.
@@ -203,7 +204,8 @@ export class DocusignService {
     signerName: string,
     fundName: string,
     investmentAmount: number,
-    returnUrl: string
+    returnUrl: string,
+    fundId?: string
   ) {
     // If no token provided, use JWT system auth
     if (!accessToken || !accountId) {
@@ -213,6 +215,20 @@ export class DocusignService {
     }
 
     this.dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
+
+    // Fetch fund details to see if we have custom subscription documents and anchors
+    let fund: any = null;
+    try {
+      if (fundId) {
+        const res = await db.query('SELECT * FROM funds WHERE id = $1', [fundId]);
+        fund = res.rows[0];
+      } else {
+        const res = await db.query('SELECT * FROM funds WHERE name = $1', [fundName]);
+        fund = res.rows[0];
+      }
+    } catch (dbErr) {
+      this.logger.error('Failed to query fund details from database', dbErr);
+    }
 
     // Parse names for IRA/Entity accounts
     let documentName = signerName;
@@ -238,168 +254,377 @@ export class DocusignService {
     const envelopesApi = new ds.EnvelopesApi(this.dsApiClient);
 
     const safeFundName = fundName.replace(/[^a-z0-9]/gi, '-');
-    const docPaths = [
-      { name: 'Operating Agreement', filename: `OA-${safeFundName}.pdf`, id: '1' },
-      { name: 'Subscription Agreement', filename: `SA-${safeFundName}.pdf`, id: '2' }
-    ];
+    let docPaths = [];
+    let defaultDocPaths = [];
+    let isCustomDoc = false;
 
-    // Default fallbacks if fund-specific files are missing
-    const defaultDocPaths = [
-      { name: 'Operating Agreement', filename: 'OA-BWell-Fund.pdf', id: '1' },
-      { name: 'Subscription Agreement', filename: 'SA-BWell-Fund.pdf', id: '2' }
-    ];
-
-    const documents = docPaths.map((docInfo, index) => {
-      // Possible path locations on Vercel and Local
-      const pathsToTry = [
-        path.resolve(process.cwd(), 'public/subscription-documents', docInfo.filename),
-        path.resolve(__dirname, '..', '..', '..', 'public/subscription-documents', docInfo.filename),
-        // Try default fallback if specific fund doc is missing
-        path.resolve(process.cwd(), 'public/subscription-documents', defaultDocPaths[index].filename),
-        path.resolve(__dirname, '..', '..', '..', 'public/subscription-documents', defaultDocPaths[index].filename)
+    if (fund && fund.subscription_doc_path) {
+      isCustomDoc = true;
+      docPaths = [
+        { name: 'Subscription Agreement', filename: fund.subscription_doc_path, id: '1' }
       ];
+      defaultDocPaths = [
+        { name: 'Subscription Agreement', filename: fund.subscription_doc_path, id: '1' }
+      ];
+    } else {
+      docPaths = [
+        { name: 'Operating Agreement', filename: `OA-${safeFundName}.pdf`, id: '1' },
+        { name: 'Subscription Agreement', filename: `SA-${safeFundName}.pdf`, id: '2' }
+      ];
+      defaultDocPaths = [
+        { name: 'Operating Agreement', filename: 'OA-BWell-Fund.pdf', id: '1' },
+        { name: 'Subscription Agreement', filename: 'SA-BWell-Fund.pdf', id: '2' }
+      ];
+    }
 
-      let filePath = pathsToTry[0];
-      let found = false;
+    const documents = await Promise.all(
+      docPaths.map(async (docInfo, index) => {
+        let docBase64: string;
+        let fileExtension = 'pdf';
 
-      for (const p of pathsToTry) {
-        if (fs.existsSync(p)) {
-          filePath = p;
-          found = true;
-          break;
+        if (docInfo.filename.startsWith('http://') || docInfo.filename.startsWith('https://')) {
+          this.logger.log(`Using custom cloud document: ${docInfo.filename}`);
+          try {
+            const response = await axios.get(docInfo.filename, { responseType: 'arraybuffer' });
+            docBase64 = Buffer.from(response.data).toString('base64');
+            fileExtension = 'pdf';
+          } catch (downloadErr: any) {
+            this.logger.error(`Failed to download custom document from ${docInfo.filename}`, downloadErr);
+            docBase64 = Buffer.from(`${docInfo.name} Content for ${fundName}`).toString('base64');
+            fileExtension = 'txt';
+          }
+        } else {
+          // Possible path locations on Vercel and Local
+          const pathsToTry = [
+            path.resolve(process.cwd(), 'public/subscription-documents', docInfo.filename),
+            path.resolve(__dirname, '..', '..', '..', 'public/subscription-documents', docInfo.filename)
+          ];
+
+          // Add fallback only if it's NOT a custom document
+          if (!isCustomDoc && defaultDocPaths[index]) {
+            pathsToTry.push(
+              path.resolve(process.cwd(), 'public/subscription-documents', defaultDocPaths[index].filename),
+              path.resolve(__dirname, '..', '..', '..', 'public/subscription-documents', defaultDocPaths[index].filename)
+            );
+          }
+
+          let filePath = pathsToTry[0];
+          let found = false;
+
+          for (const p of pathsToTry) {
+            if (fs.existsSync(p)) {
+              filePath = p;
+              found = true;
+              break;
+            }
+          }
+
+          if (found) {
+            this.logger.log(`Using document from ${filePath}`);
+            docBase64 = fs.readFileSync(filePath).toString('base64');
+            fileExtension = 'pdf';
+          } else {
+            this.logger.warn(`Document not found for ${fundName} (searched ${pathsToTry.join(', ')}), using placeholder.`);
+            docBase64 = Buffer.from(`${docInfo.name} Content for ${fundName}`).toString('base64');
+            fileExtension = 'txt';
+          }
         }
-      }
 
-      let docBase64: string;
-      if (found) {
-        this.logger.log(`Using document from ${filePath}`);
-        docBase64 = fs.readFileSync(filePath).toString('base64');
-      } else {
-        this.logger.warn(`Document not found for ${fundName} (searched ${pathsToTry.join(', ')}), using placeholder.`);
-        docBase64 = Buffer.from(`${docInfo.name} Content for ${fundName}`).toString('base64');
-      }
-
-      const doc = new ds.Document();
-      doc.documentBase64 = docBase64;
-      doc.name = docInfo.name;
-      doc.fileExtension = fs.existsSync(filePath) ? 'pdf' : 'txt';
-      doc.documentId = docInfo.id;
-      return doc;
-    });
+        const doc = new ds.Document();
+        doc.documentBase64 = docBase64;
+        doc.name = docInfo.name;
+        doc.fileExtension = fileExtension;
+        doc.documentId = docInfo.id;
+        return doc;
+      })
+    );
 
     // --- Create Tabs for Signer ---
-    // Surgical anchoring based on provided screenshots to avoid Company/Operating Member sections.
-
-    // 1. OA First Page Name
-    const startNameTab = new ds.Text();
-    startNameTab.anchorString = '(the "Investor Member"';
-    startNameTab.anchorUnits = 'pixels';
-    
-    // Dynamically center the name on the blank underline
-    const textWidth = (documentName || '').length * 6.5;
-    const calculatedOffset = Math.round(-200 + Math.max(0, (200 - textWidth) / 2));
-    startNameTab.anchorXOffset = calculatedOffset.toString();
-    
-    startNameTab.anchorYOffset = '-8'; // Moved up a bit
-    startNameTab.value = documentName;
-    startNameTab.font = 'TimesNewRoman';
-    startNameTab.fontSize = 'Size11';
-    startNameTab.tabLabel = 'Initial Investor Name';
-    startNameTab.locked = 'true';
-    startNameTab.documentId = '1';
-    startNameTab.recipientId = '1';
-
-    // 2. SA Signature Block (Anchored to "INVESTOR:")
-    const saSignature = new ds.SignHere();
-    saSignature.anchorString = 'INVESTOR:';
-    saSignature.anchorUnits = 'pixels';
-    saSignature.anchorXOffset = '100';
-    saSignature.anchorYOffset = '55'; // 2 lines down
-    saSignature.anchorMatchWholeWord = 'true';
-    saSignature.documentId = '2';
-    saSignature.recipientId = '1';
-
-    const saAmount = new ds.Text();
-    saAmount.anchorString = 'INVESTOR:';
-    saAmount.anchorUnits = 'pixels';
-    saAmount.anchorXOffset = '120';
-    saAmount.anchorYOffset = '22'; // 1 line down
-    saAmount.value = `$${investmentAmount.toLocaleString('en-US')}`;
-    saAmount.font = 'TimesNewRoman';
-    saAmount.fontSize = 'Size11';
-    saAmount.tabLabel = 'Investment Amount';
-    saAmount.locked = 'true';
-    saAmount.documentId = '2';
-    saAmount.recipientId = '1';
-
-    const saName = new ds.Text();
-    saName.anchorString = 'INVESTOR:';
-    saName.anchorUnits = 'pixels';
-    saName.anchorXOffset = '50';
-    saName.anchorYOffset = '88'; // 3 lines down
-    saName.value = documentName;
-    saName.font = 'TimesNewRoman';
-    saName.fontSize = 'Size11';
-    saName.tabLabel = 'SA Investor Name';
-    saName.locked = 'true';
-    saName.documentId = '2';
-    saName.recipientId = '1';
-
-    const saDate = new ds.Text();
-    saDate.anchorString = 'INVESTOR:';
-    saDate.anchorUnits = 'pixels';
-    saDate.anchorXOffset = '50';
-    saDate.anchorYOffset = '122'; // 4 lines down
-    saDate.value = new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
-    saDate.font = 'TimesNewRoman';
-    saDate.fontSize = 'Size11';
-    saDate.tabLabel = 'SA Date';
-    saDate.locked = 'true';
-    saDate.anchorMatchWholeWord = 'true';
-    saDate.documentId = '2';
-    saDate.recipientId = '1';
-
-    // 3. OA Signature Block (Anchored to "INVESTOR MEMBER:")
-    const oaSignature = new ds.SignHere();
-    oaSignature.anchorString = 'INVESTOR MEMBER:';
-    oaSignature.anchorUnits = 'pixels';
-    oaSignature.anchorXOffset = '100';
-    oaSignature.anchorYOffset = '25'; // 1 line down
-    oaSignature.anchorMatchWholeWord = 'true';
-    oaSignature.documentId = '1';
-    oaSignature.recipientId = '1';
-
-    const oaDate = new ds.Text();
-    oaDate.anchorString = 'INVESTOR MEMBER:';
-    oaDate.anchorUnits = 'pixels';
-    oaDate.anchorXOffset = '50';
-    oaDate.anchorYOffset = '65'; // 2 lines down
-    oaDate.value = new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
-    oaDate.font = 'TimesNewRoman';
-    oaDate.fontSize = 'Size11';
-    oaDate.tabLabel = 'OA Date';
-    oaDate.locked = 'true';
-    oaDate.anchorMatchWholeWord = 'true';
-    oaDate.documentId = '1';
-    oaDate.recipientId = '1';
-
-    const oaName = new ds.Text();
-    oaName.anchorString = 'INVESTOR MEMBER:';
-    oaName.anchorUnits = 'pixels';
-    oaName.anchorXOffset = '50';
-    oaName.anchorYOffset = '105'; // 3 lines down
-    oaName.value = documentName;
-    oaName.font = 'TimesNewRoman';
-    oaName.fontSize = 'Size11';
-    oaName.tabLabel = 'OA Investor Name';
-    oaName.locked = 'true';
-    oaName.documentId = '1';
-    oaName.recipientId = '1';
-
     const tabs = new ds.Tabs();
-    tabs.signHereTabs = [saSignature, oaSignature];
-    tabs.dateSignedTabs = [saDate, oaDate];
-    tabs.textTabs = [startNameTab, saAmount, saName, oaName];
+
+    if (isCustomDoc && fund) {
+      const signHereTabs: any[] = [];
+      const textTabs: any[] = [];
+
+      if (fund.placements && Array.isArray(fund.placements) && fund.placements.length > 0) {
+        this.logger.log(`Mapping ${fund.placements.length} custom placements for fund.`);
+        
+        fund.placements.forEach((placement: any, idx: number) => {
+          const pageStr = placement.page.toString();
+          
+          // Convert percentages back to DocuSign pixels.
+          // Standard DocuSign coordinate grid assumes default PDF coordinates (usually standard Letter size 612x792).
+          const width = 612;
+          const height = 792;
+
+          if (placement.type === 'signature') {
+            const sig = new ds.SignHere();
+            sig.pageNumber = pageStr;
+            // Offset signature tab (default width ~80px, height ~30px) to center it on the clicked coordinate
+            const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 40);
+            const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 15);
+            sig.xPosition = adjustedX.toString();
+            sig.yPosition = adjustedY.toString();
+            sig.documentId = '1';
+            sig.recipientId = '1';
+            sig.tabLabel = `Signature_${idx + 1}`;
+            signHereTabs.push(sig);
+          } else if (placement.type === 'name') {
+            const nameTab = new ds.Text();
+            nameTab.pageNumber = pageStr;
+            // Offset text tab (default width ~120px, height ~20px) to center it on the clicked coordinate
+            const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 60);
+            const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
+            nameTab.xPosition = adjustedX.toString();
+            nameTab.yPosition = adjustedY.toString();
+            nameTab.value = documentName;
+            nameTab.font = 'TimesNewRoman';
+            nameTab.fontSize = 'Size11';
+            nameTab.tabLabel = `InvestorName_${idx + 1}`;
+            nameTab.locked = 'true';
+            nameTab.documentId = '1';
+            nameTab.recipientId = '1';
+            textTabs.push(nameTab);
+          } else if (placement.type === 'amount') {
+            const amountTab = new ds.Text();
+            amountTab.pageNumber = pageStr;
+            // Offset text tab (default width ~100px, height ~20px) to center it on the clicked coordinate
+            const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 50);
+            const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
+            amountTab.xPosition = adjustedX.toString();
+            amountTab.yPosition = adjustedY.toString();
+            amountTab.value = `$${investmentAmount.toLocaleString('en-US')}`;
+            amountTab.font = 'TimesNewRoman';
+            amountTab.fontSize = 'Size11';
+            amountTab.tabLabel = `InvestmentAmount_${idx + 1}`;
+            amountTab.locked = 'true';
+            amountTab.documentId = '1';
+            amountTab.recipientId = '1';
+            textTabs.push(amountTab);
+          } else if (placement.type === 'date') {
+            const dateTab = new ds.Text();
+            dateTab.pageNumber = pageStr;
+            // Offset text tab (default width ~100px, height ~20px) to center it on the clicked coordinate
+            const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 50);
+            const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
+            dateTab.xPosition = adjustedX.toString();
+            dateTab.yPosition = adjustedY.toString();
+            dateTab.value = new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+            dateTab.font = 'TimesNewRoman';
+            dateTab.fontSize = 'Size11';
+            dateTab.tabLabel = `DateSigned_${idx + 1}`;
+            dateTab.locked = 'true';
+            dateTab.documentId = '1';
+            dateTab.recipientId = '1';
+            textTabs.push(dateTab);
+          }
+        });
+      } else {
+        // Create tabs dynamically using configured anchor tags or absolute coordinates
+        const nameAnchor = fund.anchor_name || '{{NAME}}';
+        const dateAnchor = fund.anchor_date || '{{DATE}}';
+        const signatureAnchor = fund.anchor_signature || '{{SIGNATURE}}';
+        const amountAnchor = fund.anchor_amount || '{{AMOUNT}}';
+
+        // 1. Investor Name Tab
+        const nameTab = new ds.Text();
+        if (fund.name_page && fund.name_x !== null && fund.name_y !== null) {
+          nameTab.pageNumber = fund.name_page.toString();
+          // Offset text tab (default width ~120px, height ~20px)
+          nameTab.xPosition = Math.max(0, fund.name_x - 60).toString();
+          nameTab.yPosition = Math.max(0, fund.name_y - 10).toString();
+        } else {
+          nameTab.anchorString = nameAnchor;
+          nameTab.anchorUnits = 'pixels';
+          nameTab.anchorXOffset = '10';
+          nameTab.anchorYOffset = '-4';
+        }
+        nameTab.value = documentName;
+        nameTab.font = 'TimesNewRoman';
+        nameTab.fontSize = 'Size11';
+        nameTab.tabLabel = 'Dynamic Investor Name';
+        nameTab.locked = 'true';
+        nameTab.documentId = '1';
+        nameTab.recipientId = '1';
+        textTabs.push(nameTab);
+
+        // 2. Investment Amount Tab
+        const amountTab = new ds.Text();
+        if (fund.amount_page && fund.amount_x !== null && fund.amount_y !== null) {
+          amountTab.pageNumber = fund.amount_page.toString();
+          // Offset text tab (default width ~100px, height ~20px)
+          amountTab.xPosition = Math.max(0, fund.amount_x - 50).toString();
+          amountTab.yPosition = Math.max(0, fund.amount_y - 10).toString();
+        } else {
+          amountTab.anchorString = amountAnchor;
+          amountTab.anchorUnits = 'pixels';
+          amountTab.anchorXOffset = '10';
+          amountTab.anchorYOffset = '-4';
+        }
+        amountTab.value = `$${investmentAmount.toLocaleString('en-US')}`;
+        amountTab.font = 'TimesNewRoman';
+        amountTab.fontSize = 'Size11';
+        amountTab.tabLabel = 'Dynamic Investment Amount';
+        amountTab.locked = 'true';
+        amountTab.documentId = '1';
+        amountTab.recipientId = '1';
+        textTabs.push(amountTab);
+
+        // 3. Date Signed Tab
+        const dateTab = new ds.Text();
+        if (fund.date_page && fund.date_x !== null && fund.date_y !== null) {
+          dateTab.pageNumber = fund.date_page.toString();
+          // Offset text tab (default width ~100px, height ~20px)
+          dateTab.xPosition = Math.max(0, fund.date_x - 50).toString();
+          dateTab.yPosition = Math.max(0, fund.date_y - 10).toString();
+        } else {
+          dateTab.anchorString = dateAnchor;
+          dateTab.anchorUnits = 'pixels';
+          dateTab.anchorXOffset = '10';
+          dateTab.anchorYOffset = '-4';
+        }
+        dateTab.value = new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+        dateTab.font = 'TimesNewRoman';
+        dateTab.fontSize = 'Size11';
+        dateTab.tabLabel = 'Dynamic Date';
+        dateTab.locked = 'true';
+        dateTab.documentId = '1';
+        dateTab.recipientId = '1';
+        textTabs.push(dateTab);
+
+        // 4. Signature Tab
+        const signatureTab = new ds.SignHere();
+        if (fund.signature_page && fund.signature_x !== null && fund.signature_y !== null) {
+          signatureTab.pageNumber = fund.signature_page.toString();
+          // Offset signature tab (default width ~80px, height ~30px)
+          signatureTab.xPosition = Math.max(0, fund.signature_x - 40).toString();
+          signatureTab.yPosition = Math.max(0, fund.signature_y - 15).toString();
+        } else {
+          signatureTab.anchorString = signatureAnchor;
+          signatureTab.anchorUnits = 'pixels';
+          signatureTab.anchorXOffset = '10';
+          signatureTab.anchorYOffset = '10';
+        }
+        signatureTab.documentId = '1';
+        signatureTab.recipientId = '1';
+        signHereTabs.push(signatureTab);
+      }
+
+      tabs.signHereTabs = signHereTabs;
+      tabs.textTabs = textTabs;
+    } else {
+      // --- Original BWell Fallback Anchors ---
+      
+      // 1. OA First Page Name
+      const startNameTab = new ds.Text();
+      startNameTab.anchorString = '(the "Investor Member"';
+      startNameTab.anchorUnits = 'pixels';
+      
+      // Dynamically center the name on the blank underline
+      const textWidth = (documentName || '').length * 6.5;
+      const calculatedOffset = Math.round(-200 + Math.max(0, (200 - textWidth) / 2));
+      startNameTab.anchorXOffset = calculatedOffset.toString();
+      
+      startNameTab.anchorYOffset = '-8'; // Moved up a bit
+      startNameTab.value = documentName;
+      startNameTab.font = 'TimesNewRoman';
+      startNameTab.fontSize = 'Size11';
+      startNameTab.tabLabel = 'Initial Investor Name';
+      startNameTab.locked = 'true';
+      startNameTab.documentId = '1';
+      startNameTab.recipientId = '1';
+
+      // 2. SA Signature Block (Anchored to "INVESTOR:")
+      const saSignature = new ds.SignHere();
+      saSignature.anchorString = 'INVESTOR:';
+      saSignature.anchorUnits = 'pixels';
+      saSignature.anchorXOffset = '100';
+      saSignature.anchorYOffset = '55'; // 2 lines down
+      saSignature.anchorMatchWholeWord = 'true';
+      saSignature.documentId = '2';
+      saSignature.recipientId = '1';
+
+      const saAmount = new ds.Text();
+      saAmount.anchorString = 'INVESTOR:';
+      saAmount.anchorUnits = 'pixels';
+      saAmount.anchorXOffset = '120';
+      saAmount.anchorYOffset = '22'; // 1 line down
+      saAmount.value = `$${investmentAmount.toLocaleString('en-US')}`;
+      saAmount.font = 'TimesNewRoman';
+      saAmount.fontSize = 'Size11';
+      saAmount.tabLabel = 'Investment Amount';
+      saAmount.locked = 'true';
+      saAmount.documentId = '2';
+      saAmount.recipientId = '1';
+
+      const saName = new ds.Text();
+      saName.anchorString = 'INVESTOR:';
+      saName.anchorUnits = 'pixels';
+      saName.anchorXOffset = '50';
+      saName.anchorYOffset = '88'; // 3 lines down
+      saName.value = documentName;
+      saName.font = 'TimesNewRoman';
+      saName.fontSize = 'Size11';
+      saName.tabLabel = 'SA Investor Name';
+      saName.locked = 'true';
+      saName.documentId = '2';
+      saName.recipientId = '1';
+
+      const saDate = new ds.Text();
+      saDate.anchorString = 'INVESTOR:';
+      saDate.anchorUnits = 'pixels';
+      saDate.anchorXOffset = '50';
+      saDate.anchorYOffset = '122'; // 4 lines down
+      saDate.value = new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+      saDate.font = 'TimesNewRoman';
+      saDate.fontSize = 'Size11';
+      saDate.tabLabel = 'SA Date';
+      saDate.locked = 'true';
+      saDate.anchorMatchWholeWord = 'true';
+      saDate.documentId = '2';
+      saDate.recipientId = '1';
+
+      // 3. OA Signature Block (Anchored to "INVESTOR MEMBER:")
+      const oaSignature = new ds.SignHere();
+      oaSignature.anchorString = 'INVESTOR MEMBER:';
+      oaSignature.anchorUnits = 'pixels';
+      oaSignature.anchorXOffset = '100';
+      oaSignature.anchorYOffset = '25'; // 1 line down
+      oaSignature.anchorMatchWholeWord = 'true';
+      oaSignature.documentId = '1';
+      oaSignature.recipientId = '1';
+
+      const oaDate = new ds.Text();
+      oaDate.anchorString = 'INVESTOR MEMBER:';
+      oaDate.anchorUnits = 'pixels';
+      oaDate.anchorXOffset = '50';
+      oaDate.anchorYOffset = '65'; // 2 lines down
+      oaDate.value = new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+      oaDate.font = 'TimesNewRoman';
+      oaDate.fontSize = 'Size11';
+      oaDate.tabLabel = 'OA Date';
+      oaDate.locked = 'true';
+      oaDate.anchorMatchWholeWord = 'true';
+      oaDate.documentId = '1';
+      oaDate.recipientId = '1';
+
+      const oaName = new ds.Text();
+      oaName.anchorString = 'INVESTOR MEMBER:';
+      oaName.anchorUnits = 'pixels';
+      oaName.anchorXOffset = '50';
+      oaName.anchorYOffset = '105'; // 3 lines down
+      oaName.value = documentName;
+      oaName.font = 'TimesNewRoman';
+      oaName.fontSize = 'Size11';
+      oaName.tabLabel = 'OA Investor Name';
+      oaName.locked = 'true';
+      oaName.documentId = '1';
+      oaName.recipientId = '1';
+
+      tabs.signHereTabs = [saSignature, oaSignature];
+      tabs.dateSignedTabs = [saDate, oaDate];
+      tabs.textTabs = [startNameTab, saAmount, saName, oaName];
+    }
 
     const signer = new ds.Signer();
     signer.email = signerEmail;

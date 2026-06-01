@@ -104,7 +104,8 @@ export default function AdminAssignedInvestorsPage() {
             avatar: inv.profile_image_url || "",
             hasNewMessage: (conv?.unread_count || 0) > 0,
             status: inv.status || 'active',
-            kyc_status: inv.kyc_status || 'pending'
+            kyc_status: inv.kyc_status || 'pending',
+            accountStatus: inv.accountStatus
           }
         })
         setInvestors(mapped)
@@ -118,7 +119,7 @@ export default function AdminAssignedInvestorsPage() {
     if (user) fetchData()
   }, [user])
 
-  const { active, ira, pending, suspended } = useMemo(() => {
+  const { active, ira, pending, suspendedLogin, suspendedIra } = useMemo(() => {
     let filtered = investors.filter((inv) => {
       const matchesQuery = `${inv.name} ${inv.email} ${inv.accountType} ${inv.kyc} ${inv.date}`.toLowerCase().includes(query.toLowerCase())
       const matchesKyc = kycFilter === "All" || inv.kyc === kycFilter
@@ -144,10 +145,24 @@ export default function AdminAssignedInvestorsPage() {
     }
 
     return {
-      active: filtered.filter(i => i.status !== 'pending' && i.status !== 'suspended' && !i.accountType.toUpperCase().includes('IRA')),
-      ira: filtered.filter(i => i.status !== 'pending' && i.status !== 'suspended' && i.accountType.toUpperCase().includes('IRA')),
+      active: filtered.filter(i => 
+        i.status !== 'pending' && 
+        i.status !== 'suspended' && 
+        i.accountStatus !== 'suspended' &&
+        (i.accountType?.toLowerCase() === 'personal' || !i.accountType)
+      ),
+      ira: filtered.filter(i => 
+        i.status !== 'pending' && 
+        i.status !== 'suspended' && 
+        i.accountStatus !== 'suspended' &&
+        i.accountType && i.accountType.toLowerCase() !== 'personal'
+      ),
       pending: filtered.filter(i => i.status === 'pending'),
-      suspended: filtered.filter(i => i.status === 'suspended')
+      suspendedLogin: filtered.filter(i => i.status === 'suspended'),
+      suspendedIra: filtered.filter(i => 
+        i.accountType && i.accountType.toLowerCase() !== 'personal' && 
+        i.accountStatus === 'suspended'
+      )
     }
   }, [investors, query, kycFilter, typeFilter, sortConfig])
 
@@ -169,7 +184,7 @@ export default function AdminAssignedInvestorsPage() {
             <p className="mt-1 text-[13px] text-[#8E8E93] font-helvetica">View and manage assigned investor accounts.</p>
           </div>
           <button
-            onClick={() => exportCsv([...active, ...ira, ...pending, ...suspended])}
+            onClick={() => exportCsv([...active, ...ira, ...pending, ...suspendedLogin, ...suspendedIra])}
             className="h-[40px] w-full sm:w-auto rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] shadow-sm hover:shadow-md transition-shadow font-helvetica"
           >
             Export List
@@ -412,11 +427,11 @@ export default function AdminAssignedInvestorsPage() {
 
                   <tr className="bg-white">
                     <td colSpan={7} className="px-3 py-8 pt-10">
-                      <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Suspended Accounts</h2>
+                      <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Suspended Login Accounts</h2>
                     </td>
                   </tr>
-                  {!loading && suspended.length > 0 ? (
-                    suspended.map((inv) => (
+                  {!loading && suspendedLogin.length > 0 ? (
+                    suspendedLogin.map((inv) => (
                       <tr
                         key={`${inv.id}-${inv.accountType}`}
                         onClick={(e) => {
@@ -455,7 +470,55 @@ export default function AdminAssignedInvestorsPage() {
                       </tr>
                     ))
                   ) : !loading && (
-                    <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm">No suspended accounts found.</td></tr>
+                    <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm">No suspended login accounts found.</td></tr>
+                  )}
+
+                  <tr className="bg-white">
+                    <td colSpan={7} className="px-3 py-8 pt-10">
+                      <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Suspended IRA Accounts</h2>
+                    </td>
+                  </tr>
+                  {!loading && suspendedIra.length > 0 ? (
+                    suspendedIra.map((inv) => (
+                      <tr
+                        key={`${inv.id}-${inv.accountType}`}
+                        onClick={(e) => {
+                          if (!(e.target as Element).closest('a') && !(e.target as Element).closest('button')) {
+                            router.push(`/dashboard/investor/${inv.id}`);
+                          }
+                        }}
+                        className="group hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                      >
+                        <td className="px-3 py-4 border-b border-[#F5F5F5]">
+                          <div className="flex items-center gap-3 opacity-50">
+                            {inv.avatar ? (
+                              <img src={inv.avatar} alt={inv.name} className="w-[34px] h-[34px] rounded-full object-cover" />
+                            ) : (
+                              <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[12px] font-semibold font-helvetica border border-[#E5E7EB]">
+                                {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                              </div>
+                            )}
+                            <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{inv.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate opacity-50">{inv.email}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">{inv.accountType}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] opacity-50">
+                          <span className={`text-[13px] font-semibold font-helvetica whitespace-nowrap text-red-500`}>
+                            Suspended
+                          </span>
+                        </td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">-</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">{inv.date}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-right">
+                          <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Account suspended">
+                            <MessageSquare className="h-[18px] w-[18px]" />
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : !loading && (
+                    <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm">No suspended IRA accounts found.</td></tr>
                   )}
                 </tbody>
               </table>

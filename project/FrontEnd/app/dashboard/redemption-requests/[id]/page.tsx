@@ -136,7 +136,7 @@ export default function RedemptionRequestDetailsPage() {
                   ${redemption.status === 'Pending' ? 'bg-orange-50 text-orange-600 border-orange-100' : ''}
                   ${redemption.status === 'Approved' ? 'bg-green-50 text-green-600 border-green-100' : ''}
                   ${redemption.status === 'Rejected' ? 'bg-red-50 text-red-600 border-red-100' : ''}
-                  ${redemption.status === 'Settled' ? 'bg-blue-50 text-blue-600 border-blue-100' : ''}
+                  ${redemption.status === 'Settled' || redemption.status === 'Processed' ? 'bg-blue-50 text-blue-600 border-blue-100' : ''}
                   ${redemption.status === 'Cancelled' ? 'bg-gray-50 text-gray-500 border-gray-100' : ''}
                 `}
               >

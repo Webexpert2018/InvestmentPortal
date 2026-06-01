@@ -64,7 +64,7 @@ export class AuthService {
 
       if (existingInvestor.rows.length > 0) {
         const investor = existingInvestor.rows[0];
-        if (investor.status === 'pending' || investor.status === 'inactive') {
+        if (investor.status === 'pending' || investor.status === 'prospect') {
           // Allow pending or inactive investors to signup manually
           isUpgradingPending = true;
           upgradeUserId = investor.id;
@@ -507,7 +507,7 @@ export class AuthService {
     if (!existing) return { available: true };
 
     // If it's an investor, check if they are pending or inactive. Pending/Inactive investors can still signup.
-    if (existing.tableName === 'investors' && (existing.user.status === 'pending' || existing.user.status === 'inactive')) {
+    if (existing.tableName === 'investors' && (existing.user.status === 'pending' || existing.user.status === 'prospect')) {
       return { available: true };
     }
 

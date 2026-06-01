@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, UseInterceptors, UploadedFile, Body, Res, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Query, UseInterceptors, UploadedFile, Body, Res, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { extname, join } from 'path';
@@ -453,7 +453,25 @@ export class DocumentsController {
   }
 
   @Get('subscription/preview/:filename')
-  async previewSubscriptionDoc(@Param('filename') filename: string, @Res() res: Response) {
+  async previewSubscriptionDoc(
+    @Param('filename') filename: string,
+    @Query('url') url: string,
+    @Res() res: Response
+  ) {
+    const targetUrl = url || (filename.startsWith('http://') || filename.startsWith('https://') ? filename : null);
+
+    if (targetUrl) {
+      try {
+        const response = await axios.get(targetUrl, { responseType: 'stream' });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline; filename=subscription-agreement.pdf');
+        return response.data.pipe(res);
+      } catch (err: any) {
+        console.error('Failed to stream PDF from Cloudinary:', err);
+        return res.status(500).send('Failed to load PDF from Cloud');
+      }
+    }
+
     const isVercel = process.env.VERCEL === '1';
     const docsDir = join(process.cwd(), 'public', 'subscription-documents');
     const filePath = join(docsDir, filename);

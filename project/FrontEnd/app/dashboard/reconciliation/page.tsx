@@ -130,11 +130,13 @@ export default function ReconciliationPage() {
         if (rec.id === id) {
           const newInternal = amount;
           const newDiff = rec.custodian - newInternal;
+          const isMatched = Math.abs(newDiff) < 0.01;
           return {
             ...rec,
             internal: newInternal,
             difference: newDiff,
-            status: newDiff === 0 ? 'Matched' : 'Mismatch'
+            status: isMatched ? 'Matched' : 'Mismatch',
+            isReconciled: isMatched ? rec.isReconciled : false
           };
         }
         return rec;
@@ -334,10 +336,9 @@ export default function ReconciliationPage() {
                       <td className="px-6 py-4 text-gray-900 font-medium text-right whitespace-nowrap">{formatCurrency(record.custodian)}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <input
+                           <input
                             type="text"
                             defaultValue={record.internal === 0 ? '' : record.internal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            disabled={record.isReconciled === true}
                             onFocus={(e) => {
                               // Strip commas and currency symbols for easier editing
                               e.target.value = e.target.value.replace(/[^0-9.]/g, '');
@@ -359,10 +360,7 @@ export default function ReconciliationPage() {
                                 e.target.value = record.internal === 0 ? '' : record.internal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                               }
                             }}
-                            className={cn(
-                              "w-40 px-3 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#1F3B6E] font-medium text-right transition-all",
-                              record.isReconciled === true ? "bg-gray-50 text-gray-400 border-transparent cursor-not-allowed" : "bg-white text-gray-900"
-                            )}
+                            className="w-40 px-3 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#1F3B6E] font-medium text-right transition-all bg-white text-gray-900 focus:border-[#1F3B6E]"
                           />
                           {savingId === record.id ? (
                             <Loader2 className="h-4 w-4 animate-spin text-blue-500" />

@@ -196,7 +196,7 @@ class ApiClient {
     });
   }
 
-  async addInvestorToPipeline(data: { name: string, email: string, phone?: string }) {
+  async addInvestorToPipeline(data: { name: string, email: string, phone?: string, assignedIrId?: string }) {
     return this.request<any>('/pipeline/investors', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -206,6 +206,10 @@ class ApiClient {
   async getAllUsers() {
     return this.request<any[]>('/users');
   }
+  //aetapi
+  // async getExternalAccounts() {
+  //   return this.request<any>('/users/external-accounts');
+  // }
 
   async getKycReviewQueue() {
     return this.request<any[]>('/users/kyc-queue');
@@ -564,6 +568,31 @@ class ApiClient {
     }
 
     const response = await fetch(`${API_URL}/funds/${fundId}/image`, {
+      method: 'POST',
+      body: formData,
+      headers: headers,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'An error occurred during upload');
+    }
+    return data;
+  }
+
+  async uploadSubscriptionDocument(fundId: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers: HeadersInit = {};
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${API_URL}/funds/${fundId}/subscription-document`, {
       method: 'POST',
       body: formData,
       headers: headers,
@@ -1239,6 +1268,13 @@ class ApiClient {
     return this.request<{ success: boolean; status: string }>(`/meetings/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
+    });
+  }
+
+  async updateMeeting(id: string, data: { title: string; description?: string; scheduled_date: string; duration_minutes?: number; meeting_link?: string; participant_ids: string[] }) {
+    return this.request<any>(`/meetings/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
     });
   }
 }

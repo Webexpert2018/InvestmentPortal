@@ -23,30 +23,30 @@ export class UsersController {
   }
 
   @Put('profile')
-async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDto) {
-  // Check current profile to see if names are actually changing
-  const currentProfile = await this.usersService.getProfile(user.userId);
-  const firstNameChanged = updateDto.firstName !== undefined && updateDto.firstName !== currentProfile.firstName;
-  const lastNameChanged = updateDto.lastName !== undefined && updateDto.lastName !== currentProfile.lastName;
+  async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDto) {
+    // Check current profile to see if names are actually changing
+    const currentProfile = await this.usersService.getProfile(user.userId);
+    const firstNameChanged = updateDto.firstName !== undefined && updateDto.firstName !== currentProfile.firstName;
+    const lastNameChanged = updateDto.lastName !== undefined && updateDto.lastName !== currentProfile.lastName;
 
-  // Restrict name changes to only admin/executive_admin
-  const isAdmin = ['admin', 'executive_admin'].includes(user.role?.trim().toLowerCase());
-  if (!isAdmin && (firstNameChanged || lastNameChanged)) {
-    throw new BadRequestException('You do not have permission to change your name. Please contact support.');
-  }
-
-  if (updateDto.dob) {
-    const birthDate = new Date(updateDto.dob);
-    const today = new Date();
-
-    // Normalize today (remove time)
-    today.setHours(0, 0, 0, 0);
-
-    // ❌ Only block future dates
-    if (birthDate > today) {
-      throw new BadRequestException('Future date is not allowed');
+    // Restrict name changes to investors only (allow admin, executive_admin, accountant)
+    const isInvestor = user.role?.trim().toLowerCase() === 'investor';
+    if (isInvestor && (firstNameChanged || lastNameChanged)) {
+      throw new BadRequestException('You do not have permission to change your name. Please contact support.');
     }
-  }
+
+    if (updateDto.dob) {
+      const birthDate = new Date(updateDto.dob);
+      const today = new Date();
+
+      // Normalize today (remove time)
+      today.setHours(0, 0, 0, 0);
+
+      // ❌ Only block future dates
+      if (birthDate > today) {
+        throw new BadRequestException('Future date is not allowed');
+      }
+    }
 
     return this.usersService.updateProfile(
       user.userId,
@@ -163,6 +163,12 @@ async updateProfile(@CurrentUser() user: any, @Body() updateDto: UpdateProfileDt
   async getAssignedInvestors(@CurrentUser() user: any) {
     return this.usersService.getAssignedInvestors(user.userId);
   }
+  //aetapi
+  // @Get('external-accounts')
+  // @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
+  // async getExternalAccounts() {
+  //   return this.usersService.getExternalAccounts();
+  // }
 
   @Get(':id')
   async getUserById(@Param('id') id: string, @CurrentUser() user: any) {

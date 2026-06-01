@@ -81,12 +81,14 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
     const createdAt = new Date(redemption.created_at).toLocaleString();
     const updatedAt = new Date(redemption.updated_at).toLocaleString();
 
+    const isSettledOrProcessed = status === 'Settled' || status === 'Processed';
+
     const steps = [
       { title: '1. Request Submitted', date: createdAt, state: 'done' },
       { title: '2. In Review', date: (status === 'Pending') ? 'Under Review' : updatedAt, state: (status === 'Pending') ? 'active' : 'done' },
-      { title: '3. Approved by Admin', date: (status === 'Approved' || status === 'Settled') ? updatedAt : (status === 'Pending' ? 'Awaiting...' : 'N/A'), state: (status === 'Approved') ? 'active' : (status === 'Settled' ? 'done' : 'pending') },
-      { title: '4. Wire Initiated', date: (status === 'Settled') ? updatedAt : (['Pending', 'Approved'].includes(status) ? 'Awaiting...' : 'N/A'), state: (status === 'Settled') ? 'done' : 'pending' },
-      { title: '5. Settled', date: (status === 'Settled') ? updatedAt : (['Pending', 'Approved'].includes(status) ? 'Awaiting...' : 'N/A'), state: (status === 'Settled') ? 'active' : 'pending' },
+      { title: '3. Approved by Admin', date: (status === 'Approved' || isSettledOrProcessed) ? updatedAt : (status === 'Pending' ? 'Awaiting...' : 'N/A'), state: (status === 'Approved') ? 'active' : (isSettledOrProcessed ? 'done' : 'pending') },
+      { title: '4. Wire Initiated', date: isSettledOrProcessed ? updatedAt : (['Pending', 'Approved'].includes(status) ? 'Awaiting...' : 'N/A'), state: isSettledOrProcessed ? 'done' : 'pending' },
+      { title: '5. Settled', date: isSettledOrProcessed ? updatedAt : (['Pending', 'Approved'].includes(status) ? 'Awaiting...' : 'N/A'), state: isSettledOrProcessed ? 'done' : 'pending' },
     ];
 
     if (status === 'Cancelled' || status === 'Rejected') {

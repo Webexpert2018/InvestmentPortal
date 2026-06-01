@@ -78,7 +78,7 @@ export default function RedemptionAmountPage() {
         const isUnitsIssued = h.status === 'Units Issued';
         const unitsIssuedAt = h.units_issued_at ? new Date(h.units_issued_at) : null;
         const isOldEnough = unitsIssuedAt && unitsIssuedAt <= threeYearsAgo;
-        
+
         return hasUnits && isUnitsIssued && isOldEnough;
       });
 
@@ -483,7 +483,7 @@ export default function RedemptionAmountPage() {
             </div>
 
             <div className="space-y-4">
-           
+
               <div>
                 <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Bank Name</label>
                 <input
@@ -494,7 +494,7 @@ export default function RedemptionAmountPage() {
                 />
                 {newBankErrors.bank_name && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.bank_name}</p>}
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-[#8E8E93] captial tracking-wider mb-1">Beneficiary Name</label>
                 <input
@@ -516,18 +516,18 @@ export default function RedemptionAmountPage() {
                 />
                 {newBankErrors.account_number && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.account_number}</p>}
               </div>
-              
-                <div>
-                  <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Routing Number (ABA)</label>
-                  <input
-                    type="text"
-                    value={newBank.routing_number}
-                    onChange={(e) => setNewBank(prev => ({ ...prev, routing_number: e.target.value.replace(/\D/g, '') }))}
-                    className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] ${newBankErrors.routing_number ? 'border-red-500' : 'border-[#E5E5EA]'}`}
-                  />
-                  {newBankErrors.routing_number && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.routing_number}</p>}
-                </div>
-              
+
+              <div>
+                <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Routing Number (ABA)</label>
+                <input
+                  type="text"
+                  value={newBank.routing_number}
+                  onChange={(e) => setNewBank(prev => ({ ...prev, routing_number: e.target.value.replace(/\D/g, '') }))}
+                  className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] ${newBankErrors.routing_number ? 'border-red-500' : 'border-[#E5E5EA]'}`}
+                />
+                {newBankErrors.routing_number && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.routing_number}</p>}
+              </div>
+
 
               <div>
                 <label className="block text-sm font-medium text-[#8E8E93] capital tracking-wider mb-1">Bank Address</label>
@@ -570,7 +570,7 @@ export default function RedemptionAmountPage() {
 
                     if (!newBank.routing_number) {
                       errors.routing_number = 'Required';
-                    } 
+                    }
                     // else if (!/^\d{9}$/.test(newBank.routing_number)) {
                     //   errors.routing_number = '9 digits';
                     // }
