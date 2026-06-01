@@ -222,7 +222,7 @@ export class AuthService {
     try {
       // 1. Try finding in users table first (Admin)
       let result = await db.query(
-        'SELECT id, email, password_hash, role, first_name, last_name, status, phone FROM users WHERE email = $1',
+        'SELECT id, email, password_hash, role, first_name, last_name, status, phone, profile_image_url FROM users WHERE email = $1',
         [email]
       );
 
