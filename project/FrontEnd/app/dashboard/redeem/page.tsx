@@ -1,17 +1,29 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { MoreVertical, Loader2, Search, ExternalLink, XCircle } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-type Status = 'Settled' | 'Pending' | 'Rejected' | 'Approved' | 'Cancelled';
+type Status = 'Settled' | 'Pending' | 'Rejected' | 'Approved' | 'Cancelled' | 'Processed';
 
 function statusClass(status: Status) {
   switch (status) {
     case 'Settled':
+    case 'Processed':
     case 'Approved':
       return 'bg-[#E8FBF1] text-[#1F7A4D] border border-[#B7EB8F]';
     case 'Rejected':
@@ -23,11 +35,14 @@ function statusClass(status: Status) {
 }
 
 export default function RedeemPage() {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [redemptions, setRedemptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [redemptionToCancel, setRedemptionToCancel] = useState<any | null>(null);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -46,17 +61,21 @@ export default function RedeemPage() {
     }
   };
 
-  const handleCancelRequest = async (id: string) => {
-    if (!confirm('Are you sure you want to cancel this redemption request?')) return;
+  const handleCancelRequest = async () => {
+    if (!redemptionToCancel) return;
 
     try {
-      await apiClient.cancelRedemption(id);
+      setCancelling(true);
+      await apiClient.cancelRedemption(redemptionToCancel.id);
       toast.success('Redemption request cancelled successfully');
       setActiveMenuId(null);
+      setRedemptionToCancel(null);
       fetchData();
     } catch (error: any) {
       console.error('Error cancelling redemption:', error);
       toast.error(error.message || 'Failed to cancel request');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -98,7 +117,7 @@ export default function RedeemPage() {
         </div>
 
         <div className="overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100">
-          <div className="overflow-x-auto bg-white p-6">
+          <div className="overflow-x-auto bg-white p-6 pb-20">
             <table className="min-w-full text-xs text-[#4B4B4B]">
               <thead className="bg-[#F8FAFC] text-[13px] capitalize tracking-normal text-[#8E8E93]">
                 <tr className="border-b border-gray-100">
@@ -123,8 +142,12 @@ export default function RedeemPage() {
                     </td>
                   </tr>
                 ) : currentRows.length > 0 ? (
-                  currentRows.map((row) => (
-                    <tr key={row.id} className="hover:bg-[#F9FAFB]/50 transition-colors group">
+                  currentRows.map((row, index) => (
+                    <tr
+                      key={row.id}
+                      onClick={() => router.push(`/dashboard/redemption/${row.id}`)}
+                      className="hover:bg-[#F9FAFB]/50 cursor-pointer transition-colors group"
+                    >
                       <td className="px-6 py-4 align-middle font-bold text-[#1F1F1F] whitespace-nowrap">
                         RED-{row.id.substring(0, 6).toUpperCase()}
                       </td>
@@ -152,9 +175,10 @@ export default function RedeemPage() {
                         <div className="relative flex justify-end">
                           <button
                             type="button"
-                            onClick={() =>
-                              setActiveMenuId((prev) => (prev === row.id ? null : row.id))
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuId((prev) => (prev === row.id ? null : row.id));
+                            }}
                             className="rounded-full p-2 text-gray-400 hover:bg-[#F3F4F6] hover:text-[#1F1F1F] transition-all"
                           >
                             <MoreVertical className="h-4 w-4" />
@@ -164,9 +188,17 @@ export default function RedeemPage() {
                             <>
                               <div
                                 className="fixed inset-0 z-10"
-                                onClick={() => setActiveMenuId(null)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveMenuId(null);
+                                }}
                               />
-                              <div className="absolute right-0 top-full z-20 mt-2 w-48 rounded-xl border border-gray-100 bg-white py-2 text-[12px] text-[#4B4B4B] shadow-xl animate-in fade-in slide-in-from-top-1 duration-200">
+                              <div
+                                onClick={(e) => e.stopPropagation()}
+                                className={`absolute right-0 z-20 w-48 rounded-xl border border-gray-100 bg-white py-2 text-[12px] text-[#4B4B4B] shadow-xl animate-in fade-in duration-200 ${
+                                  index === currentRows.length - 1 ? 'bottom-full mb-2 slide-in-from-bottom-1' : 'top-full mt-2 slide-in-from-top-1'
+                                }`}
+                              >
                                 <div className="px-4 py-1 text-[10px] font-bold text-gray-300 uppercase tracking-widest border-b border-gray-50 mb-1">
                                   Management
                                 </div>
@@ -181,7 +213,11 @@ export default function RedeemPage() {
                                 {row.status === 'Pending' && (
                                   <button
                                     type="button"
-                                    onClick={() => handleCancelRequest(row.id)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setRedemptionToCancel(row);
+                                      setActiveMenuId(null);
+                                    }}
                                     className="flex items-center gap-2 w-full px-4 py-2.5 text-left hover:bg-red-50 text-red-500 transition-colors font-medium border-t border-gray-50 mt-1"
                                   >
                                     <XCircle className="h-3.5 w-3.5" />
@@ -245,6 +281,46 @@ export default function RedeemPage() {
             </button>
           </div>
         </div>
+        
+        <AlertDialog open={!!redemptionToCancel} onOpenChange={(isOpen) => !isOpen && setRedemptionToCancel(null)}>
+          <AlertDialogContent className="bg-white rounded-[20px] border-none shadow-2xl p-8 max-w-[520px]">
+            <div className="absolute right-6 top-6 text-[#9FA3A9] cursor-pointer hover:text-gray-600 transition-colors" onClick={() => setRedemptionToCancel(null)}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-goudy text-[28px] text-[#1F1F1F] font-normal">Cancel Redemption</AlertDialogTitle>
+              <div className="mt-4 space-y-3">
+                <p className="text-[#4B4B4B] text-[16px] leading-relaxed font-goudy">
+                  Are you sure you want to cancel the redemption request <span className="font-bold text-[#1F1F1F]">"RED-{redemptionToCancel?.id.substring(0, 6).toUpperCase()}"</span> for <span className="font-bold text-[#1F1F1F]">{redemptionToCancel?.fund_name}</span>?
+                </p>
+                <p className="text-[#4B4B4B] text-[16px] leading-relaxed font-goudy">
+                  This action will stop the redemption process and cannot be undone.
+                </p>
+              </div>
+            </AlertDialogHeader>
+
+            <AlertDialogFooter className="mt-10 flex items-center justify-center sm:justify-end gap-3 sm:space-x-0">
+              <AlertDialogCancel
+                className="h-[46px] min-w-[130px] rounded-full bg-[#FFF5E9] border-none text-[#4B4B4B] text-[15px] font-semibold hover:bg-[#FFEBD4] transition-all"
+              >
+                Go Back
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleCancelRequest}
+                disabled={cancelling}
+                className="h-[46px] min-w-[150px] rounded-full bg-[#FFD64B] hover:bg-[#FFCC21] text-[#4B4B4B] text-[15px] font-bold border-none shadow-sm transition-all"
+              >
+                {cancelling ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Cancelling...
+                  </>
+                ) : "Yes, Cancel Request"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
