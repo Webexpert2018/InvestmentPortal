@@ -71,6 +71,7 @@ export class DocusignController {
       accountId?: string;
       investmentAmount: number;
       accountType: string;
+      investorAccountId?: string;
       iraMetadata?: {
         custodian?: string;
         type?: string;
@@ -79,13 +80,13 @@ export class DocusignController {
     }
   ) {
     try {
-      const { fundId, fundName, accessToken, accountId, investmentAmount, accountType, iraMetadata, returnUrl } = body;
+      const { fundId, fundName, accessToken, accountId, investmentAmount, accountType, investorAccountId, iraMetadata, returnUrl } = body;
 
       if (!fundId || !investmentAmount) {
         throw new BadRequestException('Missing required fund or amount details');
       }
 
-      console.log(`[DocusignController] Initiating signing URL for user ${user.userId}, fund ${fundId}`);
+      console.log(`[DocusignController] Initiating signing URL for user ${user.userId}, fund ${fundId}, accountId ${investorAccountId || 'personal'}`);
 
       // Fetch full user profile to get accurate name and email
       const profile = await this.usersService.getProfile(user.userId);
@@ -110,7 +111,9 @@ export class DocusignController {
         fundName,
         investmentAmount,
         finalReturnUrl,
-        fundId
+        fundId,
+        user.userId,
+        investorAccountId
       );
 
       console.log(`[DocusignController] Successfully created signing URL: ${result.envelopeId}`);

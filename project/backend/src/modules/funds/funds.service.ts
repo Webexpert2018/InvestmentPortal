@@ -8,13 +8,18 @@ export class FundsService {
       `SELECT f.id, f.name, f.description, f.image_url as image, f.start_date as "startDate", f.status, f.note,
               f.bank_name as "bankName", f.account_number as "accountNumber", f.routing_number as "routingNumber", 
               f.beneficiary_name as "beneficiaryName", f.bank_address as "bankAddress",
-              f.subscription_doc_path as "subscriptionDocPath", f.anchor_name as "anchorName", 
+              f.subscription_doc_path as "subscriptionDocPath", f.oa_doc_path as "oaDocPath", f.anchor_name as "anchorName", 
               f.anchor_date as "anchorDate", f.anchor_signature as "anchorSignature", f.anchor_amount as "anchorAmount",
               f.name_page as "namePage", f.name_x as "nameX", f.name_y as "nameY",
               f.date_page as "datePage", f.date_x as "dateX", f.date_y as "dateY",
               f.signature_page as "signaturePage", f.signature_x as "signatureX", f.signature_y as "signatureY",
               f.amount_page as "amountPage", f.amount_x as "amountX", f.amount_y as "amountY",
               f.placements,
+              f.oa_placements as "oaPlacements",
+              f.oa_name_page as "oaNamePage", f.oa_name_x as "oaNameX", f.oa_name_y as "oaNameY",
+              f.oa_date_page as "oaDatePage", f.oa_date_x as "oaDateX", f.oa_date_y as "oaDateY",
+              f.oa_signature_page as "oaSignaturePage", f.oa_signature_x as "oaSignatureX", f.oa_signature_y as "oaSignatureY",
+              f.oa_amount_page as "oaAmountPage", f.oa_amount_x as "oaAmountX", f.oa_amount_y as "oaAmountY",
               COALESCE(stats.total_investors, 0)::int as "totalInvestors",
               COALESCE(stats.total_aum, 0)::float as "totalAUM"
        FROM funds f
@@ -42,13 +47,18 @@ export class FundsService {
       `SELECT f.id, f.name, f.description, f.image_url as image, f.start_date as "startDate", f.status, f.note,
               f.bank_name as "bankName", f.account_number as "accountNumber", f.routing_number as "routingNumber", 
               f.beneficiary_name as "beneficiaryName", f.bank_address as "bankAddress",
-              f.subscription_doc_path as "subscriptionDocPath", f.anchor_name as "anchorName", 
+              f.subscription_doc_path as "subscriptionDocPath", f.oa_doc_path as "oaDocPath", f.anchor_name as "anchorName", 
               f.anchor_date as "anchorDate", f.anchor_signature as "anchorSignature", f.anchor_amount as "anchorAmount",
               f.name_page as "namePage", f.name_x as "nameX", f.name_y as "nameY",
               f.date_page as "datePage", f.date_x as "dateX", f.date_y as "dateY",
               f.signature_page as "signaturePage", f.signature_x as "signatureX", f.signature_y as "signatureY",
               f.amount_page as "amountPage", f.amount_x as "amountX", f.amount_y as "amountY",
               f.placements,
+              f.oa_placements as "oaPlacements",
+              f.oa_name_page as "oaNamePage", f.oa_name_x as "oaNameX", f.oa_name_y as "oaNameY",
+              f.oa_date_page as "oaDatePage", f.oa_date_x as "oaDateX", f.oa_date_y as "oaDateY",
+              f.oa_signature_page as "oaSignaturePage", f.oa_signature_x as "oaSignatureX", f.oa_signature_y as "oaSignatureY",
+              f.oa_amount_page as "oaAmountPage", f.oa_amount_x as "oaAmountX", f.oa_amount_y as "oaAmountY",
               COALESCE(stats.total_investors, 0)::int as "totalInvestors",
               COALESCE(stats.total_aum, 0)::float as "totalAUM"
        FROM funds f
@@ -91,6 +101,7 @@ export class FundsService {
     beneficiaryName?: string;
     bankAddress?: string;
     subscriptionDocPath?: string;
+    oaDocPath?: string;
     anchorName?: string;
     anchorDate?: string;
     anchorSignature?: string;
@@ -108,19 +119,37 @@ export class FundsService {
     amountX?: number;
     amountY?: number;
     placements?: any[];
+    oaNamePage?: number;
+    oaNameX?: number;
+    oaNameY?: number;
+    oaDatePage?: number;
+    oaDateX?: number;
+    oaDateY?: number;
+    oaSignaturePage?: number;
+    oaSignatureX?: number;
+    oaSignatureY?: number;
+    oaAmountPage?: number;
+    oaAmountX?: number;
+    oaAmountY?: number;
+    oaPlacements?: any[];
   }) {
     const result = await db.query(
       `INSERT INTO funds (
         name, description, image_url, start_date, status, note, 
         min_investment, unit_price, bank_name, account_number, 
         routing_number, beneficiary_name, bank_address,
-        subscription_doc_path, anchor_name, anchor_date, anchor_signature, anchor_amount,
+        subscription_doc_path, oa_doc_path, anchor_name, anchor_date, anchor_signature, anchor_amount,
         name_page, name_x, name_y,
         date_page, date_x, date_y,
         signature_page, signature_x, signature_y,
         amount_page, amount_x, amount_y,
-        placements
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31) RETURNING *`,
+        placements,
+        oa_name_page, oa_name_x, oa_name_y,
+        oa_date_page, oa_date_x, oa_date_y,
+        oa_signature_page, oa_signature_x, oa_signature_y,
+        oa_amount_page, oa_amount_x, oa_amount_y,
+        oa_placements
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45) RETURNING *`,
       [
         data.name, 
         data.description, 
@@ -136,6 +165,7 @@ export class FundsService {
         data.beneficiaryName || null,
         data.bankAddress || null,
         data.subscriptionDocPath || null,
+        data.oaDocPath || null,
         data.anchorName || null,
         data.anchorDate || null,
         data.anchorSignature || null,
@@ -152,7 +182,20 @@ export class FundsService {
         data.amountPage || null,
         data.amountX || null,
         data.amountY || null,
-        data.placements ? JSON.stringify(data.placements) : null
+        data.placements ? JSON.stringify(data.placements) : null,
+        data.oaNamePage || null,
+        data.oaNameX || null,
+        data.oaNameY || null,
+        data.oaDatePage || null,
+        data.oaDateX || null,
+        data.oaDateY || null,
+        data.oaSignaturePage || null,
+        data.oaSignatureX || null,
+        data.oaSignatureY || null,
+        data.oaAmountPage || null,
+        data.oaAmountX || null,
+        data.oaAmountY || null,
+        data.oaPlacements ? JSON.stringify(data.oaPlacements) : null
       ]
     );
     return result.rows[0];
@@ -173,6 +216,7 @@ export class FundsService {
     beneficiaryName: string;
     bankAddress: string;
     subscriptionDocPath: string;
+    oaDocPath: string;
     anchorName: string;
     anchorDate: string;
     anchorSignature: string;
@@ -190,6 +234,19 @@ export class FundsService {
     amountX: number;
     amountY: number;
     placements: any[];
+    oaNamePage: number;
+    oaNameX: number;
+    oaNameY: number;
+    oaDatePage: number;
+    oaDateX: number;
+    oaDateY: number;
+    oaSignaturePage: number;
+    oaSignatureX: number;
+    oaSignatureY: number;
+    oaAmountPage: number;
+    oaAmountX: number;
+    oaAmountY: number;
+    oaPlacements: any[];
   }>) {
     const updates: string[] = ['updated_at = NOW()'];
     const values: any[] = [];
@@ -250,6 +307,10 @@ export class FundsService {
     if (data.subscriptionDocPath !== undefined) {
       updates.push(`subscription_doc_path = $${paramIndex++}`);
       values.push(data.subscriptionDocPath);
+    }
+    if (data.oaDocPath !== undefined) {
+      updates.push(`oa_doc_path = $${paramIndex++}`);
+      values.push(data.oaDocPath);
     }
     if (data.anchorName !== undefined) {
       updates.push(`anchor_name = $${paramIndex++}`);
@@ -318,6 +379,58 @@ export class FundsService {
     if (data.placements !== undefined) {
       updates.push(`placements = $${paramIndex++}`);
       values.push(data.placements ? JSON.stringify(data.placements) : null);
+    }
+    if (data.oaNamePage !== undefined) {
+      updates.push(`oa_name_page = $${paramIndex++}`);
+      values.push(data.oaNamePage);
+    }
+    if (data.oaNameX !== undefined) {
+      updates.push(`oa_name_x = $${paramIndex++}`);
+      values.push(data.oaNameX);
+    }
+    if (data.oaNameY !== undefined) {
+      updates.push(`oa_name_y = $${paramIndex++}`);
+      values.push(data.oaNameY);
+    }
+    if (data.oaDatePage !== undefined) {
+      updates.push(`oa_date_page = $${paramIndex++}`);
+      values.push(data.oaDatePage);
+    }
+    if (data.oaDateX !== undefined) {
+      updates.push(`oa_date_x = $${paramIndex++}`);
+      values.push(data.oaDateX);
+    }
+    if (data.oaDateY !== undefined) {
+      updates.push(`oa_date_y = $${paramIndex++}`);
+      values.push(data.oaDateY);
+    }
+    if (data.oaSignaturePage !== undefined) {
+      updates.push(`oa_signature_page = $${paramIndex++}`);
+      values.push(data.oaSignaturePage);
+    }
+    if (data.oaSignatureX !== undefined) {
+      updates.push(`oa_signature_x = $${paramIndex++}`);
+      values.push(data.oaSignatureX);
+    }
+    if (data.oaSignatureY !== undefined) {
+      updates.push(`oa_signature_y = $${paramIndex++}`);
+      values.push(data.oaSignatureY);
+    }
+    if (data.oaAmountPage !== undefined) {
+      updates.push(`oa_amount_page = $${paramIndex++}`);
+      values.push(data.oaAmountPage);
+    }
+    if (data.oaAmountX !== undefined) {
+      updates.push(`oa_amount_x = $${paramIndex++}`);
+      values.push(data.oaAmountX);
+    }
+    if (data.oaAmountY !== undefined) {
+      updates.push(`oa_amount_y = $${paramIndex++}`);
+      values.push(data.oaAmountY);
+    }
+    if (data.oaPlacements !== undefined) {
+      updates.push(`oa_placements = $${paramIndex++}`);
+      values.push(data.oaPlacements ? JSON.stringify(data.oaPlacements) : null);
     }
 
     if (values.length === 0) return this.getFundById(id);
