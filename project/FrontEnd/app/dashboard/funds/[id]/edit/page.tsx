@@ -41,6 +41,8 @@ export default function EditFundPage() {
 
   const [subDocFile, setSubDocFile] = useState<File | null>(null);
   const [subDocPath, setSubDocPath] = useState<string | null>(null);
+  const [oaDocFile, setOaDocFile] = useState<File | null>(null);
+  const [oaDocPath, setOaDocPath] = useState<string | null>(null);
   const [namePage, setNamePage] = useState<number | null>(null);
   const [nameX, setNameX] = useState<number | null>(null);
   const [nameY, setNameY] = useState<number | null>(null);
@@ -54,6 +56,19 @@ export default function EditFundPage() {
   const [amountX, setAmountX] = useState<number | null>(null);
   const [amountY, setAmountY] = useState<number | null>(null);
   const [placements, setPlacements] = useState<any[]>([]);
+  const [oaPlacements, setOaPlacements] = useState<any[]>([]);
+  const [oaNamePage, setOaNamePage] = useState<number | null>(null);
+  const [oaNameX, setOaNameX] = useState<number | null>(null);
+  const [oaNameY, setOaNameY] = useState<number | null>(null);
+  const [oaDatePage, setOaDatePage] = useState<number | null>(null);
+  const [oaDateX, setOaDateX] = useState<number | null>(null);
+  const [oaDateY, setOaDateY] = useState<number | null>(null);
+  const [oaSignaturePage, setOaSignaturePage] = useState<number | null>(null);
+  const [oaSignatureX, setOaSignatureX] = useState<number | null>(null);
+  const [oaSignatureY, setOaSignatureY] = useState<number | null>(null);
+  const [oaAmountPage, setOaAmountPage] = useState<number | null>(null);
+  const [oaAmountX, setOaAmountX] = useState<number | null>(null);
+  const [oaAmountY, setOaAmountY] = useState<number | null>(null);
   const [errors, setErrors] = useState({
     fundName: '',
     startDate: '',
@@ -93,6 +108,7 @@ export default function EditFundPage() {
       setBeneficiaryName(data.beneficiaryName || '');
       setBankAddress(data.bankAddress || '');
       setSubDocPath(data.subscriptionDocPath || null);
+      setOaDocPath(data.oaDocPath || null);
       setNamePage(data.namePage || null);
       setNameX(data.nameX !== undefined ? data.nameX : null);
       setNameY(data.nameY !== undefined ? data.nameY : null);
@@ -106,6 +122,19 @@ export default function EditFundPage() {
       setAmountX(data.amountX !== undefined ? data.amountX : null);
       setAmountY(data.amountY !== undefined ? data.amountY : null);
       setPlacements(data.placements || []);
+      setOaPlacements(data.oaPlacements || []);
+      setOaNamePage(data.oaNamePage || null);
+      setOaNameX(data.oaNameX !== undefined ? data.oaNameX : null);
+      setOaNameY(data.oaNameY !== undefined ? data.oaNameY : null);
+      setOaDatePage(data.oaDatePage || null);
+      setOaDateX(data.oaDateX !== undefined ? data.oaDateX : null);
+      setOaDateY(data.oaDateY !== undefined ? data.oaDateY : null);
+      setOaSignaturePage(data.oaSignaturePage || null);
+      setOaSignatureX(data.oaSignatureX !== undefined ? data.oaSignatureX : null);
+      setOaSignatureY(data.oaSignatureY !== undefined ? data.oaSignatureY : null);
+      setOaAmountPage(data.oaAmountPage || null);
+      setOaAmountX(data.oaAmountX !== undefined ? data.oaAmountX : null);
+      setOaAmountY(data.oaAmountY !== undefined ? data.oaAmountY : null);
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch fund details');
     } finally {
@@ -187,6 +216,16 @@ export default function EditFundPage() {
       isValid = false;
     }
 
+    if (!subDocFile && !subDocPath) {
+      toast.error('Subscription Agreement document is required');
+      isValid = false;
+    }
+
+    if (!oaDocFile && !oaDocPath) {
+      toast.error('Operating Agreement document is required');
+      isValid = false;
+    }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -209,6 +248,7 @@ export default function EditFundPage() {
         beneficiaryName,
         bankAddress,
         subscriptionDocPath: subDocFile ? undefined : subDocPath, // if cleared, clear path
+        oaDocPath: oaDocFile ? undefined : oaDocPath,
         namePage: (subDocFile || subDocPath) ? namePage : null,
         nameX: (subDocFile || subDocPath) ? nameX : null,
         nameY: (subDocFile || subDocPath) ? nameY : null,
@@ -222,6 +262,20 @@ export default function EditFundPage() {
         amountX: (subDocFile || subDocPath) ? amountX : null,
         amountY: (subDocFile || subDocPath) ? amountY : null,
         placements: (subDocFile || subDocPath) ? placements : null,
+        
+        oaNamePage: (oaDocFile || oaDocPath) ? oaNamePage : null,
+        oaNameX: (oaDocFile || oaDocPath) ? oaNameX : null,
+        oaNameY: (oaDocFile || oaDocPath) ? oaNameY : null,
+        oaDatePage: (oaDocFile || oaDocPath) ? oaDatePage : null,
+        oaDateX: (oaDocFile || oaDocPath) ? oaDateX : null,
+        oaDateY: (oaDocFile || oaDocPath) ? oaDateY : null,
+        oaSignaturePage: (oaDocFile || oaDocPath) ? oaSignaturePage : null,
+        oaSignatureX: (oaDocFile || oaDocPath) ? oaSignatureX : null,
+        oaSignatureY: (oaDocFile || oaDocPath) ? oaSignatureY : null,
+        oaAmountPage: (oaDocFile || oaDocPath) ? oaAmountPage : null,
+        oaAmountX: (oaDocFile || oaDocPath) ? oaAmountX : null,
+        oaAmountY: (oaDocFile || oaDocPath) ? oaAmountY : null,
+        oaPlacements: (oaDocFile || oaDocPath) ? oaPlacements : null,
       });
 
       // 2. Upload image if selected
@@ -232,6 +286,11 @@ export default function EditFundPage() {
       // 3. Upload subscription document if selected
       if (subDocFile) {
         await apiClient.uploadSubscriptionDocument(params.id as string, subDocFile);
+      }
+
+      // 4. Upload OA document if selected
+      if (oaDocFile) {
+        await apiClient.uploadOADocument(params.id as string, oaDocFile);
       }
 
       toast.success('Fund updated successfully');
@@ -413,11 +472,94 @@ export default function EditFundPage() {
             </div>
           </div>
 
+          {/* Operating Agreement Section */}
+          <div className="border-t border-gray-100 pt-8 mb-8 pb-8 border-b">
+            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-2">Operating Agreement (OA) <span className="text-red-500">*</span></h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Upload the required PDF Operating Agreement for this fund.
+            </p>
+            
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Upload PDF Document</label>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors text-sm font-medium text-gray-700">
+                    <span>Choose File</span>
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setOaDocFile(e.target.files[0]);
+                          setOaDocPath(null);
+                        }
+                      }}
+                    />
+                  </label>
+                  <span className="text-sm text-gray-500 flex items-center gap-2">
+                    {oaDocFile ? oaDocFile.name : oaDocPath ? `${oaDocPath}` : 'No file chosen (Using system defaults)'}
+                    {(oaDocFile || oaDocPath) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOaDocFile(null);
+                          setOaDocPath(null);
+                        }}
+                        className="text-red-500 hover:text-red-700 text-xs ml-2 font-medium"
+                      >
+                        Remove Custom Document
+                      </button>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {(oaDocFile || oaDocPath) && (
+                <div className="mt-4">
+                  <VisualPdfEditor
+                    file={oaDocFile || (oaDocPath ? (oaDocPath.startsWith('http') ? `${BASE_URL}/api/documents/subscription/preview/custom?url=${encodeURIComponent(oaDocPath)}&token=${token || ''}` : `${BASE_URL}/api/documents/subscription/preview/${oaDocPath}?token=${token || ''}`) : null)}
+                    initialValues={{
+                      namePage: oaNamePage || undefined,
+                      nameX: oaNameX !== null ? oaNameX : undefined,
+                      nameY: oaNameY !== null ? oaNameY : undefined,
+                      datePage: oaDatePage || undefined,
+                      dateX: oaDateX !== null ? oaDateX : undefined,
+                      dateY: oaDateY !== null ? oaDateY : undefined,
+                      signaturePage: oaSignaturePage || undefined,
+                      signatureX: oaSignatureX !== null ? oaSignatureX : undefined,
+                      signatureY: oaSignatureY !== null ? oaSignatureY : undefined,
+                      amountPage: oaAmountPage || undefined,
+                      amountX: oaAmountX !== null ? oaAmountX : undefined,
+                      amountY: oaAmountY !== null ? oaAmountY : undefined,
+                      placements: oaPlacements
+                    }}
+                    onChange={(coords) => {
+                      setOaNamePage(coords.namePage);
+                      setOaNameX(coords.nameX);
+                      setOaNameY(coords.nameY);
+                      setOaDatePage(coords.datePage);
+                      setOaDateX(coords.dateX);
+                      setOaDateY(coords.dateY);
+                      setOaSignaturePage(coords.signaturePage);
+                      setOaSignatureX(coords.signatureX);
+                      setOaSignatureY(coords.signatureY);
+                      setOaAmountPage(coords.amountPage);
+                      setOaAmountX(coords.amountX);
+                      setOaAmountY(coords.amountY);
+                      setOaPlacements(coords.placements);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Subscription Document Section */}
           <div className="border-t border-gray-100 pt-8 mb-8 pb-8 border-b">
-            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-2">Subscription Document</h3>
+            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-2">Subscription Document <span className="text-red-500">*</span></h3>
             <p className="text-sm text-gray-500 mb-6">
-              Optionally upload a custom PDF subscription document for this fund. If left blank, the portal's default Operating Agreement and Subscription Agreement documents will be used.
+              Upload the required PDF subscription document for this fund.
             </p>
             
             <div className="grid grid-cols-1 gap-6">

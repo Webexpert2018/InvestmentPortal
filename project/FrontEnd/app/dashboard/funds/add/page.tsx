@@ -38,6 +38,7 @@ export default function AddFundPage() {
   });
 
   const [subDocFile, setSubDocFile] = useState<File | null>(null);
+  const [oaDocFile, setOaDocFile] = useState<File | null>(null);
   const [namePage, setNamePage] = useState<number | null>(null);
   const [nameX, setNameX] = useState<number | null>(null);
   const [nameY, setNameY] = useState<number | null>(null);
@@ -51,6 +52,19 @@ export default function AddFundPage() {
   const [amountX, setAmountX] = useState<number | null>(null);
   const [amountY, setAmountY] = useState<number | null>(null);
   const [placements, setPlacements] = useState<any[]>([]);
+  const [oaPlacements, setOaPlacements] = useState<any[]>([]);
+  const [oaNamePage, setOaNamePage] = useState<number | null>(null);
+  const [oaNameX, setOaNameX] = useState<number | null>(null);
+  const [oaNameY, setOaNameY] = useState<number | null>(null);
+  const [oaDatePage, setOaDatePage] = useState<number | null>(null);
+  const [oaDateX, setOaDateX] = useState<number | null>(null);
+  const [oaDateY, setOaDateY] = useState<number | null>(null);
+  const [oaSignaturePage, setOaSignaturePage] = useState<number | null>(null);
+  const [oaSignatureX, setOaSignatureX] = useState<number | null>(null);
+  const [oaSignatureY, setOaSignatureY] = useState<number | null>(null);
+  const [oaAmountPage, setOaAmountPage] = useState<number | null>(null);
+  const [oaAmountX, setOaAmountX] = useState<number | null>(null);
+  const [oaAmountY, setOaAmountY] = useState<number | null>(null);
 
   const descriptionMaxLength = 500;
   const noteMaxLength = 1000;
@@ -121,6 +135,16 @@ export default function AddFundPage() {
       isValid = false;
     }
 
+    if (!subDocFile) {
+      toast.error('Subscription Agreement document is required');
+      isValid = false;
+    }
+
+    if (!oaDocFile) {
+      toast.error('Operating Agreement document is required');
+      isValid = false;
+    }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -166,6 +190,20 @@ export default function AddFundPage() {
         amountX: subDocFile ? amountX : null,
         amountY: subDocFile ? amountY : null,
         placements: subDocFile ? placements : null,
+
+        oaNamePage: oaDocFile ? oaNamePage : null,
+        oaNameX: oaDocFile ? oaNameX : null,
+        oaNameY: oaDocFile ? oaNameY : null,
+        oaDatePage: oaDocFile ? oaDatePage : null,
+        oaDateX: oaDocFile ? oaDateX : null,
+        oaDateY: oaDocFile ? oaDateY : null,
+        oaSignaturePage: oaDocFile ? oaSignaturePage : null,
+        oaSignatureX: oaDocFile ? oaSignatureX : null,
+        oaSignatureY: oaDocFile ? oaSignatureY : null,
+        oaAmountPage: oaDocFile ? oaAmountPage : null,
+        oaAmountX: oaDocFile ? oaAmountX : null,
+        oaAmountY: oaDocFile ? oaAmountY : null,
+        oaPlacements: oaDocFile ? oaPlacements : null,
       });
 
       if (fundImage && fund.id) {
@@ -174,6 +212,10 @@ export default function AddFundPage() {
 
       if (subDocFile && fund.id) {
         await apiClient.uploadSubscriptionDocument(fund.id, subDocFile);
+      }
+
+      if (oaDocFile && fund.id) {
+        await apiClient.uploadOADocument(fund.id, oaDocFile);
       }
 
       toast.success(`Fund ${status === 'Draft' ? 'saved as draft' : 'published'} successfully`);
@@ -470,11 +512,78 @@ export default function AddFundPage() {
             </div>
           </div>
 
-          {/* Subscription Document Section */}
-          <div className="border-t border-gray-100 pt-8 mb-8">
-            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-2">Subscription Document</h3>
+          {/* Operating Agreement Section */}
+          <div className="border-t border-gray-100 pt-8 mb-8 pb-8 border-b">
+            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-2">Operating Agreement (OA) <span className="text-red-500">*</span></h3>
             <p className="text-sm text-gray-500 mb-6">
-              Optionally upload a custom PDF subscription document for this fund. If left blank, the portal's default Operating Agreement and Subscription Agreement documents will be used.
+              Upload the required PDF Operating Agreement for this fund.
+            </p>
+            
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Upload PDF Document</label>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors text-sm font-medium text-gray-700">
+                    <span>Choose File</span>
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setOaDocFile(e.target.files[0]);
+                        }
+                      }}
+                    />
+                  </label>
+                  <span className="text-sm text-gray-500 flex items-center gap-2">
+                    {oaDocFile ? oaDocFile.name : 'No file chosen (Using system defaults)'}
+                    {oaDocFile && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOaDocFile(null);
+                        }}
+                        className="text-red-500 hover:text-red-700 text-xs ml-2 font-medium"
+                      >
+                        Remove Custom Document
+                      </button>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {oaDocFile && (
+                <div className="mt-4">
+                  <VisualPdfEditor
+                    file={oaDocFile}
+                    initialValues={{ placements: oaPlacements }}
+                    onChange={(coords) => {
+                      setOaNamePage(coords.namePage);
+                      setOaNameX(coords.nameX);
+                      setOaNameY(coords.nameY);
+                      setOaDatePage(coords.datePage);
+                      setOaDateX(coords.dateX);
+                      setOaDateY(coords.dateY);
+                      setOaSignaturePage(coords.signaturePage);
+                      setOaSignatureX(coords.signatureX);
+                      setOaSignatureY(coords.signatureY);
+                      setOaAmountPage(coords.amountPage);
+                      setOaAmountX(coords.amountX);
+                      setOaAmountY(coords.amountY);
+                      setOaPlacements(coords.placements);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Subscription Document Section */}
+          <div className="border-t border-gray-100 pt-8 mb-8 border-b pb-8">
+            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-2">Subscription Document <span className="text-red-500">*</span></h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Upload the required PDF subscription document for this fund.
             </p>
             
             <div className="grid grid-cols-1 gap-6">

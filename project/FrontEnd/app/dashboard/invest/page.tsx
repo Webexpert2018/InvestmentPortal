@@ -371,6 +371,7 @@ export default function InvestPage() {
         fundName: selectedFund.name,
         investmentAmount: investmentAmount,
         accountType: finalAccountType,
+        investorAccountId: selectedAccountId || undefined,
         iraMetadata: isIra ? {
           custodian: selectedIra?.custodian_name,
           type: selectedIra?.account_type
