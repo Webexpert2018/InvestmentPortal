@@ -112,6 +112,11 @@ export default function FundsPage() {
   }, [searchQuery]);
 
   const handleDelete = (fundId: number) => {
+    const fund = fundsData.find(f => f.id === fundId);
+    if (fund && (fund.totalInvestors > 0 || (fund.totalAUM && parseFloat(fund.totalAUM) > 0))) {
+      toast.error('Cannot delete this fund because there are active or past investments associated with it.');
+      return;
+    }
     setSelectedFund(fundId);
     setShowDeleteModal(true);
   };

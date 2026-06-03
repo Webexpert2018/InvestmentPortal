@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { db } from '../../config/database';
 
 @Injectable()
@@ -448,6 +448,12 @@ export class FundsService {
   }
 
   async deleteFund(id: string) {
+    const checkInvestments = await db.query('SELECT COUNT(*)::int as count FROM investments WHERE fund_id = $1', [id]);
+    const count = checkInvestments.rows[0]?.count || 0;
+    if (count > 0) {
+      throw new BadRequestException('Cannot delete this fund because there are active or past investments associated with it.');
+    }
+
     const result = await db.query('DELETE FROM funds WHERE id = $1 RETURNING id', [id]);
     if (result.rowCount === 0) {
       throw new NotFoundException('Fund not found');

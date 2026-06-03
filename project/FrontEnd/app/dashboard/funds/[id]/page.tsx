@@ -137,6 +137,10 @@ export default function FundOverviewPage() {
   };
 
   const handleDelete = () => {
+    if (fund && (fund.totalInvestors > 0 || (fund.totalAUM && parseFloat(fund.totalAUM) > 0))) {
+      toast.error('Cannot delete this fund because there are active or past investments associated with it.');
+      return;
+    }
     setShowDeleteModal(true);
     setShowDropdown(false);
   };
@@ -503,7 +507,7 @@ export default function FundOverviewPage() {
 
               <div className="space-y-6">
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Beneficiary Name</p>
+                  <p className="text-sm text-gray-500 mb-1">For Benefit Of</p>
                   <p className="font-medium text-gray-900">{fund.beneficiaryName || 'N/A'}</p>
                 </div>
                 <div>
