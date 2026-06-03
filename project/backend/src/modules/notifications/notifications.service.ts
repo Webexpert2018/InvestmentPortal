@@ -88,25 +88,28 @@ export class NotificationsService {
 
   async getNotifications(userId: string, role: string) {
     try {
-      let query = `
-        SELECT * FROM notifications
-        WHERE (user_id = $1 OR target_role = $2)
-      `;
-      const params: any[] = [userId, role];
-
-      // Temporarily disable notifications for accountants as requested
       const userRole = (role || '').toLowerCase();
       if (userRole === 'accountant') {
-        query = `
-          SELECT * FROM notifications
-          WHERE FALSE
-        `;
-        params.length = 0; // Clear params to avoid binding error
+        return [];
       }
 
-      query += ' ORDER BY created_at DESC LIMIT 50';
+      const query = `
+        (
+          SELECT * FROM notifications
+          WHERE is_read = FALSE AND (user_id = $1 OR target_role = $2)
+          ORDER BY created_at DESC
+        )
+        UNION ALL
+        (
+          SELECT * FROM notifications
+          WHERE is_read = TRUE AND (user_id = $1 OR target_role = $2)
+          ORDER BY created_at DESC
+          LIMIT 50
+        )
+        ORDER BY created_at DESC
+      `;
       
-      const result = await db.query(query, params);
+      const result = await db.query(query, [userId, role]);
       return result.rows;
     } catch (error) {
       console.error('❌ Error fetching notifications:', error);
