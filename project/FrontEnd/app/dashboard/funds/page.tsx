@@ -121,6 +121,16 @@ export default function FundsPage() {
     setShowDeleteModal(true);
   };
 
+  const handleToggleStatus = async (fundId: number, newStatus: 'Active' | 'Closed') => {
+    try {
+      await apiClient.updateFund(fundId.toString(), { status: newStatus });
+      toast.success(`Fund status updated to ${newStatus} successfully`);
+      fetchFunds();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update fund status');
+    }
+  };
+
   const confirmDelete = async () => {
     if (!selectedFund) return;
     try {
@@ -221,7 +231,7 @@ export default function FundsPage() {
                               <MoreVertical className="h-5 w-5 text-gray-600" />
                             </button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-32 bg-white z-50">
+                          <DropdownMenuContent align="end" className="w-36 bg-white z-50">
                             <DropdownMenuItem asChild>
                               <Link
                                 href={`/dashboard/funds/${fund.id}`}
@@ -238,6 +248,21 @@ export default function FundsPage() {
                                 Edit
                               </Link>
                             </DropdownMenuItem>
+                            {fund.status === 'Active' ? (
+                              <DropdownMenuItem
+                                onClick={() => handleToggleStatus(fund.id, 'Closed')}
+                                className="w-full px-4 py-2 text-[#DC2626] cursor-pointer focus:text-[#DC2626]"
+                              >
+                                Close Fund
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem
+                                onClick={() => handleToggleStatus(fund.id, 'Active')}
+                                className="w-full px-4 py-2 text-[#059669] cursor-pointer focus:text-[#059669]"
+                              >
+                                Open Fund
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem
                               onClick={() => handleDelete(fund.id)}
                               className="w-full px-4 py-2 text-red-600 cursor-pointer focus:text-red-700"

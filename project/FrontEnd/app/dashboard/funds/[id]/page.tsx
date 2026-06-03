@@ -157,6 +157,18 @@ export default function FundOverviewPage() {
     }
   };
 
+  const handleToggleStatus = async (newStatus: 'Active' | 'Closed') => {
+    try {
+      await apiClient.updateFund(params.id as string, { status: newStatus });
+      toast.success(`Fund status updated to ${newStatus} successfully`);
+      fetchFundDetails();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update fund status');
+    } finally {
+      setShowDropdown(false);
+    }
+  };
+
   const handleDownload = async (docId: string, fileName: string) => {
     try {
       const token = localStorage.getItem('token');
@@ -338,13 +350,28 @@ export default function FundOverviewPage() {
                               className="fixed inset-0 z-10"
                               onClick={() => setShowDropdown(false)}
                             />
-                            <div className="absolute right-0 top-full mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+                            <div className="absolute right-0 top-full mt-2 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
                               <Link
                                 href={`/dashboard/funds/${params.id}/edit`}
                                 className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
                               >
                                 Edit
                               </Link>
+                              {fund.status === 'Active' ? (
+                                <button
+                                  onClick={() => handleToggleStatus('Closed')}
+                                  className="w-full px-4 py-2 text-left text-xs font-medium text-[#DC2626] hover:bg-gray-50 transition-colors"
+                                >
+                                  Close Fund
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleToggleStatus('Active')}
+                                  className="w-full px-4 py-2 text-left text-xs font-medium text-[#059669] hover:bg-gray-50 transition-colors"
+                                >
+                                  Open Fund
+                                </button>
+                              )}
                               <button
                                 onClick={handleDelete}
                                 className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
