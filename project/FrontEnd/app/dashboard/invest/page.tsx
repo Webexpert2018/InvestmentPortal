@@ -697,7 +697,7 @@ export default function InvestPage() {
                         <p className="text-xs font-bold text-[#1F1F1F] mt-1">{toggledFund.routingNumber || 'N/A'}</p>
                       </div>
                       <div className="sm:col-span-2 md:col-span-3 border-t border-[#E5E5EA] pt-4 mt-2">
-                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Beneficiary Name</p>
+                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">For Benefit Of</p>
                         <p className="text-xs font-bold text-[#1F1F1F] mt-1">{toggledFund.beneficiaryName || 'N/A'}</p>
                       </div>
                       {toggledFund.bankAddress && (

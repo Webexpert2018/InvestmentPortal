@@ -180,11 +180,6 @@ export default function EditFundPage() {
       isValid = false;
     }
 
-    if (!note.trim()) {
-      newErrors.note = 'Note is required';
-      isValid = false;
-    }
-
     if (!bankName.trim()) {
       newErrors.bankName = 'Bank name is required';
       isValid = false;
@@ -207,7 +202,7 @@ export default function EditFundPage() {
     }
 
     if (!beneficiaryName.trim()) {
-      newErrors.beneficiaryName = 'Beneficiary name is required';
+      newErrors.beneficiaryName = 'For Benefit Of name is required';
       isValid = false;
     }
 
@@ -697,10 +692,10 @@ export default function EditFundPage() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Beneficiary Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">For Benefit Of</label>
                 <input
                   type="text"
-                  placeholder="Enter beneficiary name"
+                  placeholder="Enter for benefit of name"
                   value={beneficiaryName}
                   onChange={(e) => {
                     setBeneficiaryName(e.target.value);

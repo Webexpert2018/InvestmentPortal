@@ -140,7 +140,7 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
       try {
         const page = await pdfDoc.getPage(pageNumber);
         
-        const desiredWidth = 560; 
+        const desiredWidth = 850; 
         const viewport = page.getViewport({ scale: 1 });
         const scale = desiredWidth / viewport.width;
         const scaledViewport = page.getViewport({ scale });
@@ -604,12 +604,16 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
                 const ToolIcon = tool.icon;
                 const isDragging = draggingFieldId === placement.id;
                 const absoluteIndex = placements.findIndex(p => p.id === placement.id) + 1;
+                const shortLabel = placement.type === 'signature' ? 'Sig' :
+                                   placement.type === 'name' ? 'Name' :
+                                   placement.type === 'date' ? 'Date' :
+                                   placement.type === 'amount' ? 'Amt' : tool.label;
 
                 return (
                   <div
                     key={placement.id}
-                    className={`absolute flex items-center gap-1.5 px-3 py-1.5 rounded-lg border shadow-md font-semibold text-xs -translate-x-1/2 -translate-y-1/2 select-none transition-shadow group ${
-                      isDragging ? 'shadow-xl cursor-grabbing' : 'cursor-grab hover:shadow-lg'
+                    className={`absolute flex items-center gap-1 px-1.5 py-0.5 rounded border shadow-sm font-medium text-[10px] -translate-x-1/2 -translate-y-1/2 select-none transition-shadow group ${
+                      isDragging ? 'shadow-lg cursor-grabbing' : 'cursor-grab hover:shadow-md'
                     } ${tool.bg} ${tool.color} ${tool.border}`}
                     style={{
                       left: `${placement.xPercent}%`,
@@ -620,18 +624,18 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
                     onMouseDown={(e) => handleMouseDown(e, placement.id)}
                     title="Drag to reposition this field"
                   >
-                    <ToolIcon className="h-3.5 w-3.5" />
-                    <span>{tool.label} #{absoluteIndex}</span>
+                    <ToolIcon className="h-2.5 w-2.5" />
+                    <span>{shortLabel} #{absoluteIndex}</span>
                     
                     {/* Inline Delete Button */}
                     <button
                       type="button"
                       onMouseDown={(e) => e.stopPropagation()} 
                       onClick={() => removePlacement(placement.id)}
-                      className="ml-1.5 p-0.5 rounded hover:bg-black/10 text-gray-400 hover:text-red-600 transition-colors"
+                      className="ml-1 p-0.5 rounded hover:bg-black/10 text-gray-400 hover:text-red-600 transition-colors"
                       title={`Remove field`}
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="h-2.5 w-2.5" />
                     </button>
                   </div>
                 );
