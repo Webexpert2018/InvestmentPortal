@@ -66,8 +66,15 @@ export default function AddFundPage() {
   const [oaAmountX, setOaAmountX] = useState<number | null>(null);
   const [oaAmountY, setOaAmountY] = useState<number | null>(null);
 
-  const descriptionMaxLength = 500;
+  const descriptionMaxLength = 2500;
+  const descriptionMaxWords = 800;
   const noteMaxLength = 1000;
+
+  const countWords = (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return 0;
+    return trimmed.split(/\s+/).length;
+  };
 
   const validateForm = () => {
     const newErrors = {
@@ -96,6 +103,9 @@ export default function AddFundPage() {
 
     if (!description.trim()) {
       newErrors.description = 'Description is required';
+      isValid = false;
+    } else if (countWords(description) > descriptionMaxWords) {
+      newErrors.description = `Description cannot exceed ${descriptionMaxWords} words`;
       isValid = false;
     }
 
@@ -341,11 +351,11 @@ export default function AddFundPage() {
                     }}
                     maxLength={descriptionMaxLength}
                     rows={4}
-                    className={`w-full px-4 py-2 pb-6 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.description ? 'border-red-500' : 'border-gray-200'
+                    className={`w-full px-4 py-2 pb-8 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.description ? 'border-red-500' : 'border-gray-200'
                       }`}
                   />
                   <span className="absolute bottom-2 right-3 text-xs text-gray-400">
-                    {description.length}/{descriptionMaxLength}
+                    {countWords(description)}/{descriptionMaxWords} words | {description.length}/{descriptionMaxLength} chars
                   </span>
                 </div>
                 {errors.description && (
