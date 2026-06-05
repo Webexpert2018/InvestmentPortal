@@ -305,12 +305,12 @@ export default function FundOverviewPage() {
             <div className="bg-white rounded-lg shadow-sm p-8">
               <div className="flex flex-col lg:flex-row items-start gap-8">
                 {/* Left Side - Image */}
-                <div className="w-full lg:w-[450px] flex-shrink-0">
+                <div className="w-full lg:w-[450px] lg:h-[560px] flex-shrink-0">
                   {fund.image ? (
                     <img
                       src={getFullImageUrl(fund.image) || ''}
                       alt={fund.name}
-                      className="w-full h-[240px] sm:h-[280px] object-cover rounded-lg shadow-sm"
+                      className="w-full h-[100%] object-cover rounded-lg shadow-sm"
                     />
                   ) : (
                     <div className="w-full h-[240px] sm:h-[280px] bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center rounded-lg">
@@ -566,8 +566,8 @@ export default function FundOverviewPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {documents.map((doc) => (
-                      <tr 
-                        key={doc.id} 
+                      <tr
+                        key={doc.id}
                         className="hover:bg-gray-50 cursor-pointer"
                         onClick={() => router.push(`/dashboard/funds/${params.id}/documents/${doc.id}`)}
                       >
