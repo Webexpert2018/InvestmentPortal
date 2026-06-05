@@ -1,5 +1,10 @@
-import { Pool } from 'pg';
+import { Pool, types } from 'pg';
 import * as dotenv from 'dotenv';
+
+// Force node-postgres to return raw string values for DATE columns (OID 1082)
+// to prevent local timezone shifts in Node server and clients.
+types.setTypeParser(1082, (val) => val);
+
 
 // Load env vars only in local development
 if (process.env.NODE_ENV !== 'production' && process.env.VERCEL !== '1') {

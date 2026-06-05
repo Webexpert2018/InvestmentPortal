@@ -1077,7 +1077,7 @@ export default function IRAPage() {
                     disabled={loading}
                     className="flex items-center gap-2 rounded-full bg-[#FFC63F] px-10 py-2.5 text-sm font-bold text-[#1F1F1F] hover:bg-[#F2B62F] transition-all shadow-md"
                   >
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create'}
                   </button>
                 </div>
               </div>
