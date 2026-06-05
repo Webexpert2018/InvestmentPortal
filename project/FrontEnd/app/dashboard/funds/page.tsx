@@ -69,7 +69,8 @@ export default function FundsPage() {
       return date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
-        year: 'numeric'
+        year: 'numeric',
+        timeZone: 'UTC'
       });
     } catch {
       return dateString;

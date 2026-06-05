@@ -625,7 +625,7 @@ export default function InvestPage() {
                       {fund.status || 'Active'}
                     </span>
                     <span className="text-[10px] text-[#8E8E93] font-medium lowercase">
-                      Created: {fund.startDate ? new Date(fund.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                      Created: {fund.startDate ? new Date(fund.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : 'N/A'}
                     </span>
                   </div>
                   <p className="text-[11px] text-[#4B4B4B] line-clamp-2 max-w-sm">
@@ -666,7 +666,7 @@ export default function InvestPage() {
                   <div className="bg-[#F7F8FA] p-4 rounded-xl border border-[#E5E5EA]">
                     <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Start Date</p>
                     <p className="text-sm font-bold text-[#1F1F1F] mt-1">
-                      {toggledFund.startDate ? new Date(toggledFund.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                      {toggledFund.startDate ? new Date(toggledFund.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : 'N/A'}
                     </p>
                   </div>
                 </div>
