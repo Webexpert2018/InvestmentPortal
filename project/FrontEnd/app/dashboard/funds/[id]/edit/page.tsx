@@ -81,9 +81,7 @@ export default function EditFundPage() {
     bankAddress: '',
   });
 
-  const maxDescriptionLength = 2500;
-  const maxDescriptionWords = 800;
-  const maxNoteLength = 1000;
+
 
   const countWords = (text: string) => {
     const trimmed = text.trim();
@@ -184,9 +182,6 @@ export default function EditFundPage() {
 
     if (!description.trim()) {
       newErrors.description = 'Description is required';
-      isValid = false;
-    } else if (countWords(description) > maxDescriptionWords) {
-      newErrors.description = `Description cannot exceed ${maxDescriptionWords} words`;
       isValid = false;
     }
 
@@ -411,15 +406,12 @@ export default function EditFundPage() {
                 <textarea
                   value={description}
                   onChange={(e) => {
-                    if (e.target.value.length <= maxDescriptionLength) {
-                      setDescription(e.target.value);
-                      if (errors.description) {
-                        setErrors({ ...errors, description: '' });
-                      }
+                    setDescription(e.target.value);
+                    if (errors.description) {
+                      setErrors({ ...errors, description: '' });
                     }
                   }}
                   rows={4}
-                  maxLength={maxDescriptionLength}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${
                     errors.description ? 'border-red-500' : 'border-gray-200'
                   }`}
@@ -431,7 +423,7 @@ export default function EditFundPage() {
                     )}
                   </div>
                   <span className="text-xs text-gray-500">
-                    {countWords(description)}/{maxDescriptionWords} words | {description.length}/{maxDescriptionLength} chars
+                    {countWords(description)} words | {description.length} chars
                   </span>
                 </div>
               </div>
@@ -472,15 +464,12 @@ export default function EditFundPage() {
                 <textarea
                   value={note}
                   onChange={(e) => {
-                    if (e.target.value.length <= maxNoteLength) {
-                      setNote(e.target.value);
-                      if (errors.note) {
-                        setErrors({ ...errors, note: '' });
-                      }
+                    setNote(e.target.value);
+                    if (errors.note) {
+                      setErrors({ ...errors, note: '' });
                     }
                   }}
                   rows={4}
-                  maxLength={maxNoteLength}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${
                     errors.note ? 'border-red-500' : 'border-gray-200'
                   }`}
@@ -492,7 +481,7 @@ export default function EditFundPage() {
                     )}
                   </div>
                   <span className="text-xs text-gray-500">
-                    {note.length}/{maxNoteLength}
+                    {note.length} chars
                   </span>
                 </div>
               </div>

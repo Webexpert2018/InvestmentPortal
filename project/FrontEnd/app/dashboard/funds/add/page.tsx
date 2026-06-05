@@ -66,9 +66,7 @@ export default function AddFundPage() {
   const [oaAmountX, setOaAmountX] = useState<number | null>(null);
   const [oaAmountY, setOaAmountY] = useState<number | null>(null);
 
-  const descriptionMaxLength = 2500;
-  const descriptionMaxWords = 800;
-  const noteMaxLength = 1000;
+
 
   const countWords = (text: string) => {
     const trimmed = text.trim();
@@ -103,9 +101,6 @@ export default function AddFundPage() {
 
     if (!description.trim()) {
       newErrors.description = 'Description is required';
-      isValid = false;
-    } else if (countWords(description) > descriptionMaxWords) {
-      newErrors.description = `Description cannot exceed ${descriptionMaxWords} words`;
       isValid = false;
     }
 
@@ -342,20 +337,17 @@ export default function AddFundPage() {
                     placeholder="Enter description"
                     value={description}
                     onChange={(e) => {
-                      if (e.target.value.length <= descriptionMaxLength) {
-                        setDescription(e.target.value);
-                        if (errors.description) {
-                          setErrors({ ...errors, description: '' });
-                        }
+                      setDescription(e.target.value);
+                      if (errors.description) {
+                        setErrors({ ...errors, description: '' });
                       }
                     }}
-                    maxLength={descriptionMaxLength}
                     rows={4}
                     className={`w-full px-4 py-2 pb-8 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.description ? 'border-red-500' : 'border-gray-200'
                       }`}
                   />
                   <span className="absolute bottom-2 right-3 text-xs text-gray-400">
-                    {countWords(description)}/{descriptionMaxWords} words | {description.length}/{descriptionMaxLength} chars
+                    {countWords(description)} words | {description.length} chars
                   </span>
                 </div>
                 {errors.description && (
@@ -402,20 +394,17 @@ export default function AddFundPage() {
                     placeholder="Add a private note visible only to you"
                     value={note}
                     onChange={(e) => {
-                      if (e.target.value.length <= noteMaxLength) {
-                        setNote(e.target.value);
-                        if (errors.note) {
-                          setErrors({ ...errors, note: '' });
-                        }
+                      setNote(e.target.value);
+                      if (errors.note) {
+                        setErrors({ ...errors, note: '' });
                       }
                     }}
-                    maxLength={noteMaxLength}
                     rows={4}
                     className={`w-full px-4 py-2 pb-6 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.note ? 'border-red-500' : 'border-gray-200'
                       }`}
                   />
                   <span className="absolute bottom-2 right-3 text-xs text-gray-400">
-                    {note.length}/{noteMaxLength}
+                    {note.length} chars
                   </span>
                 </div>
                 {errors.note && (
