@@ -81,8 +81,15 @@ export default function EditFundPage() {
     bankAddress: '',
   });
 
-  const maxDescriptionLength = 500;
+  const maxDescriptionLength = 2500;
+  const maxDescriptionWords = 800;
   const maxNoteLength = 1000;
+
+  const countWords = (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return 0;
+    return trimmed.split(/\s+/).length;
+  };
 
   useEffect(() => {
     if (params.id) {
@@ -178,10 +185,8 @@ export default function EditFundPage() {
     if (!description.trim()) {
       newErrors.description = 'Description is required';
       isValid = false;
-    }
-
-    if (!note.trim()) {
-      newErrors.note = 'Note is required';
+    } else if (countWords(description) > maxDescriptionWords) {
+      newErrors.description = `Description cannot exceed ${maxDescriptionWords} words`;
       isValid = false;
     }
 
@@ -207,7 +212,7 @@ export default function EditFundPage() {
     }
 
     if (!beneficiaryName.trim()) {
-      newErrors.beneficiaryName = 'Beneficiary name is required';
+      newErrors.beneficiaryName = 'For Benefit Of name is required';
       isValid = false;
     }
 
@@ -383,9 +388,19 @@ export default function EditFundPage() {
                 <input
                   type="text"
                   value={fundName}
-                  onChange={(e) => setFundName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent"
+                  onChange={(e) => {
+                    setFundName(e.target.value);
+                    if (errors.fundName) {
+                      setErrors({ ...errors, fundName: '' });
+                    }
+                  }}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${
+                    errors.fundName ? 'border-red-500' : 'border-gray-200'
+                  }`}
                 />
+                {errors.fundName && (
+                  <p className="text-red-500 text-xs mt-1">{errors.fundName}</p>
+                )}
               </div>
 
               {/* Description */}
@@ -398,15 +413,25 @@ export default function EditFundPage() {
                   onChange={(e) => {
                     if (e.target.value.length <= maxDescriptionLength) {
                       setDescription(e.target.value);
+                      if (errors.description) {
+                        setErrors({ ...errors, description: '' });
+                      }
                     }
                   }}
                   rows={4}
                   maxLength={maxDescriptionLength}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${
+                    errors.description ? 'border-red-500' : 'border-gray-200'
+                  }`}
                 />
-                <div className="flex justify-end mt-1">
+                <div className="flex justify-between mt-1">
+                  <div>
+                    {errors.description && (
+                      <p className="text-red-500 text-xs">{errors.description}</p>
+                    )}
+                  </div>
                   <span className="text-xs text-gray-500">
-                    {description.length}/{maxDescriptionLength}
+                    {countWords(description)}/{maxDescriptionWords} words | {description.length}/{maxDescriptionLength} chars
                   </span>
                 </div>
               </div>
@@ -422,11 +447,21 @@ export default function EditFundPage() {
                   <input
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="date-input w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent pr-10"
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      if (errors.startDate) {
+                        setErrors({ ...errors, startDate: '' });
+                      }
+                    }}
+                    className={`date-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent pr-10 ${
+                      errors.startDate ? 'border-red-500' : 'border-gray-200'
+                    }`}
                   />
                   <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                 </div>
+                {errors.startDate && (
+                  <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>
+                )}
               </div>
 
               {/* Note */}
@@ -439,13 +474,23 @@ export default function EditFundPage() {
                   onChange={(e) => {
                     if (e.target.value.length <= maxNoteLength) {
                       setNote(e.target.value);
+                      if (errors.note) {
+                        setErrors({ ...errors, note: '' });
+                      }
                     }
                   }}
                   rows={4}
                   maxLength={maxNoteLength}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${
+                    errors.note ? 'border-red-500' : 'border-gray-200'
+                  }`}
                 />
-                <div className="flex justify-end mt-1">
+                <div className="flex justify-between mt-1">
+                  <div>
+                    {errors.note && (
+                      <p className="text-red-500 text-xs">{errors.note}</p>
+                    )}
+                  </div>
                   <span className="text-xs text-gray-500">
                     {note.length}/{maxNoteLength}
                   </span>
@@ -697,10 +742,10 @@ export default function EditFundPage() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Beneficiary Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">For Benefit Of</label>
                 <input
                   type="text"
-                  placeholder="Enter beneficiary name"
+                  placeholder="Enter for benefit of name"
                   value={beneficiaryName}
                   onChange={(e) => {
                     setBeneficiaryName(e.target.value);
