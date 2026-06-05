@@ -17,6 +17,10 @@ export class EmailService {
     return url.replace(/\/$/, '');
   }
 
+  private getSupportEmail(): string {
+    return this.configService.get<string>('SUPPORT_EMAIL') || 'portal@ovaliacapital.com';
+  }
+
   async sendPasswordResetOtp(email: string, otp: string, showCode: boolean = true) {
     const title = 'Verify Your Identity';
     const subject = 'Password Reset Code - Ovalia Capital';
@@ -63,6 +67,7 @@ export class EmailService {
     const title = 'Welcome to Ovalia Capital';
     const subject = 'Your Journey Begins - Welcome to Ovalia Capital!';
     const frontendUrl = this.getFrontendUrl();
+    const supportEmail = this.getSupportEmail();
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Welcome Aboard, ${firstName}!</h1>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
@@ -110,7 +115,7 @@ export class EmailService {
       </div>
 
       <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 20px;">
-        Need help? Contact our support team at <a href="mailto:support@ovaliacapital.com" style="color: #2A4474; text-decoration: none;">support@ovaliacapital.com</a>
+        Need help? Contact our support team at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
       </p>
     `;
     await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
@@ -163,6 +168,7 @@ export class EmailService {
     const flow = role.toLowerCase() === 'accountant' ? 'accountant' : 'admin';
     const buttonText = flow === 'accountant' ? 'Login to Accountant Portal' : 'Login to Admin Portal';
     const frontendUrl = this.getFrontendUrl();
+    const supportEmail = this.getSupportEmail();
 
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Welcome to the Team, ${fullName}!</h1>
@@ -196,7 +202,7 @@ export class EmailService {
       </div>
 
       <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 20px;">
-        Need assistance? Please contact your system administrator or reach out to support at <a href="mailto:support@ovaliacapital.com" style="color: #2A4474; text-decoration: none;">support@ovaliacapital.com</a>
+        Need assistance? Please contact your system administrator or reach out to support at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
       </p>
     `;
     await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
@@ -207,6 +213,7 @@ export class EmailService {
     const subject = 'You have been invited to join the Ovalia Capital';
     const frontendUrl = this.getFrontendUrl();
     const inviteLink = `${frontendUrl}/auth/investor-signup?invite=${token}`;
+    const supportEmail = this.getSupportEmail();
 
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Exclusive Invitation</h1>
@@ -241,7 +248,7 @@ export class EmailService {
       </div>
 
       <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 20px;">
-        Need help? Contact our support team at <a href="mailto:support@ovaliacapital.com" style="color: #2A4474; text-decoration: none;">support@ovaliacapital.com</a>
+        Need help? Contact our support team at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
       </p>
     `;
     await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
@@ -249,6 +256,7 @@ export class EmailService {
 
   async sendCustomEmail(email: string, fullName: string, subject: string, body: string) {
     const title = subject;
+    const supportEmail = this.getSupportEmail();
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">${subject}</h1>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
@@ -259,7 +267,7 @@ export class EmailService {
       </div>
       
       <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 20px;">
-        Need help? Contact our support team at <a href="mailto:support@ovaliacapital.com" style="color: #2A4474; text-decoration: none;">support@ovaliacapital.com</a>
+        Need help? Contact our support team at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
       </p>
     `;
     await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
