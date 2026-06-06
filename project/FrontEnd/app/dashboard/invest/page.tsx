@@ -580,14 +580,14 @@ export default function InvestPage() {
               <div
                 key={fund.id}
                 onClick={() => setSelectedFundId(fund.id)}
-                className={`flex flex-col sm:flex-row w-full items-start rounded-xl bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : 'border border-transparent hover:border-gray-200'
+                className={`flex flex-col sm:flex-row md:flex-col xl:flex-row w-full items-start rounded-xl bg-[#F7F8FA] px-5 py-5 sm:px-6 sm:py-6 text-left transition hover:bg-[#F1F2F5] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : 'border border-transparent hover:border-gray-200'
                   }`}
               >
-                <div className="mb-4 sm:mb-0 sm:mr-6 h-32 sm:h-24 w-full sm:w-40 flex-shrink-0 bg-white rounded-lg overflow-hidden border border-[#E5E5EA] flex items-center justify-center shadow-sm">
+                <div className="mb-4 sm:mb-0 md:mb-5 xl:mb-0 sm:mr-6 md:mr-0 xl:mr-6 h-40 sm:h-28 md:h-48 xl:h-28 w-full sm:w-48 md:w-full xl:w-48 flex-shrink-0 bg-white rounded-xl overflow-hidden border border-[#E5E5EA] flex items-center justify-center shadow-sm">
                   <img
                     src={getFullImageUrl(fund.image)}
                     alt={fund.name}
-                    className="max-w-full max-h-full object-contain p-1"
+                    className="max-w-full max-h-full object-contain p-2"
                   />
                 </div>
                 <div className="flex-grow min-w-0 w-full">
