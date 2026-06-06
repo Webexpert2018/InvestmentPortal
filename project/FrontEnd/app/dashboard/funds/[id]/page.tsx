@@ -303,17 +303,19 @@ export default function FundOverviewPage() {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm p-8">
-              <div className="flex flex-col xl:flex-row items-start gap-8">
+              <div className="flex flex-col lg:flex-row items-start gap-8">
                 {/* Left Side - Image */}
-                <div className="w-full md:w-[300px] lg:w-[450px] lg:h-[560px] flex-shrink-0">
+                <div className="w-full lg:w-[350px] xl:w-[400px] flex-shrink-0">
                   {fund.image ? (
-                    <img
-                      src={getFullImageUrl(fund.image) || ''}
-                      alt={fund.name}
-                      className="w-full h-[100%] object-cover rounded-lg shadow-sm"
-                    />
+                    <div className="w-full aspect-[4/3] bg-white rounded-xl shadow-sm border border-[#E5E5EA] flex items-center justify-center overflow-hidden">
+                      <img
+                        src={getFullImageUrl(fund.image) || ''}
+                        alt={fund.name}
+                        className="max-w-full max-h-full object-contain p-4"
+                      />
+                    </div>
                   ) : (
-                    <div className="w-full h-[240px] sm:h-[280px] bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center rounded-lg">
+                    <div className="w-full aspect-[4/3] bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center rounded-xl shadow-sm border border-[#E5E5EA]">
                       <span className="text-4xl font-bold text-white opacity-20">No Image</span>
                     </div>
                   )}
