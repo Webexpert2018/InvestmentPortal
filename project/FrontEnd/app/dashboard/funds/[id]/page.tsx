@@ -303,9 +303,9 @@ export default function FundOverviewPage() {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm p-8">
-              <div className="flex flex-col lg:flex-row items-start gap-8">
+              <div className="flex flex-col xl:flex-row items-start gap-8">
                 {/* Left Side - Image */}
-                <div className="w-full lg:w-[450px] lg:h-[560px] flex-shrink-0">
+                <div className="w-full md:w-[300px] lg:w-[450px] lg:h-[560px] flex-shrink-0">
                   {fund.image ? (
                     <img
                       src={getFullImageUrl(fund.image) || ''}
