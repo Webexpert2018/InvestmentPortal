@@ -580,20 +580,22 @@ export default function InvestPage() {
               <div
                 key={fund.id}
                 onClick={() => setSelectedFundId(fund.id)}
-                className={`flex w-full items-start rounded-xl bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : 'border border-transparent hover:border-gray-200'
+                className={`flex flex-col sm:flex-row w-full items-start rounded-xl bg-[#F7F8FA] px-6 py-6 text-left transition hover:bg-[#F1F2F5] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : 'border border-transparent hover:border-gray-200'
                   }`}
               >
-                <img
-                  src={getFullImageUrl(fund.image)}
-                  alt={fund.name}
-                  className="mr-6 h-24 w-40 rounded-lg object-cover flex-shrink-0"
-                />
-                <div className="flex-grow min-w-0">
+                <div className="mb-4 sm:mb-0 sm:mr-6 h-32 sm:h-24 w-full sm:w-40 flex-shrink-0 bg-white rounded-lg overflow-hidden border border-[#E5E5EA] flex items-center justify-center shadow-sm">
+                  <img
+                    src={getFullImageUrl(fund.image)}
+                    alt={fund.name}
+                    className="max-w-full max-h-full object-contain p-1"
+                  />
+                </div>
+                <div className="flex-grow min-w-0 w-full">
                   <div className="flex items-start justify-between gap-4">
                     <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F] truncate">
                       {fund.name}
                     </h3>
-                    
+
                     {/* Toggle Switch */}
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider select-none">
@@ -605,15 +607,13 @@ export default function InvestPage() {
                           e.stopPropagation();
                           setToggledFundId(toggledFundId === fund.id ? null : fund.id);
                         }}
-                        className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                          toggledFundId === fund.id ? 'bg-[#274583]' : 'bg-[#E5E5EA]'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${toggledFundId === fund.id ? 'bg-[#274583]' : 'bg-[#E5E5EA]'
+                          }`}
                         title={toggledFundId === fund.id ? "Hide details" : "Show details"}
                       >
                         <span
-                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                            toggledFundId === fund.id ? 'translate-x-4' : 'translate-x-0'
-                          }`}
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${toggledFundId === fund.id ? 'translate-x-4' : 'translate-x-0'
+                            }`}
                         />
                       </button>
                     </div>
@@ -654,15 +654,17 @@ export default function InvestPage() {
                   Fund Information: {toggledFund.name}
                 </h3>
               </div>
-              
+
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Image and Start Date */}
                 <div className="space-y-4">
-                  <img
-                    src={getFullImageUrl(toggledFund.image)}
-                    alt={toggledFund.name}
-                    className="w-full h-48 rounded-xl object-cover shadow-sm border border-[#E5E5EA]"
-                  />
+                  <div className="w-full h-60 rounded-xl shadow-sm border border-[#E5E5EA] bg-white flex items-center justify-center overflow-hidden">
+                    <img
+                      src={getFullImageUrl(toggledFund.image)}
+                      alt={toggledFund.name}
+                      className="max-w-full max-h-full object-contain p-2"
+                    />
+                  </div>
                   <div className="bg-[#F7F8FA] p-4 rounded-xl border border-[#E5E5EA]">
                     <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Start Date</p>
                     <p className="text-sm font-bold text-[#1F1F1F] mt-1">
@@ -752,8 +754,8 @@ export default function InvestPage() {
               onClick={() => setSelectedAccountId(account.id)}
               className={`flex w-full flex-col items-start rounded-2xl px-6 py-5 text-left transition ${selected
                 ? 'bg-white shadow-md ring-2 ring-[#274583] ring-offset-2'
-                : isSuspended 
-                  ? 'bg-gray-50 opacity-60 cursor-not-allowed border-red-100' 
+                : isSuspended
+                  ? 'bg-gray-50 opacity-60 cursor-not-allowed border-red-100'
                   : 'bg-white shadow-sm hover:shadow-md border border-[#E5E5EA]'
                 }`}
             >
