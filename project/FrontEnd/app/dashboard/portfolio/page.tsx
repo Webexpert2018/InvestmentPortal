@@ -7,6 +7,13 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { MoreVertical, Loader2, ArrowUpDown } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 
+const getFullImageUrl = (imagePath: string | null | undefined): string | undefined => {
+  if (!imagePath) return undefined;
+  if (imagePath.startsWith('http')) return imagePath;
+  if (imagePath.startsWith('/images/') || imagePath.startsWith('/documents/')) return imagePath;
+  return `${BASE_URL}${imagePath}`;
+};
+
 export default function PortfolioPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -260,15 +267,11 @@ export default function PortfolioPage() {
                   className="group flex flex-col sm:flex-row items-center rounded-2xl bg-[#F7F8FA] p-5 sm:p-6 transition hover:bg-[#F1F2F5] hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] duration-300"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center gap-6 w-full">
-                    <div className="flex-shrink-0 w-full sm:w-56">
+                    <div className="flex-shrink-0 w-full sm:w-56 h-40 sm:h-32 bg-white rounded-xl overflow-hidden border border-[#E5E5EA] flex items-center justify-center shadow-sm">
                       <img
-                        src={
-                          fund.image_url
-                            ? (fund.image_url.startsWith('http') ? fund.image_url : `${BASE_URL}${fund.image_url}`)
-                            : "/images/strive_funds.jpg"
-                        }
+                        src={getFullImageUrl(fund.image) || "/images/strive_funds.jpg"}
                         alt={fund.name}
-                        className="h-40 sm:h-32 w-full sm:w-56 rounded-xl object-cover shadow-sm"
+                        className="w-full h-full object-contain p-2"
                       />
                     </div>
                     <div className="flex-grow py-2 sm:py-0">

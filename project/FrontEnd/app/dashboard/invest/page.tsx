@@ -587,7 +587,7 @@ export default function InvestPage() {
                   <img
                     src={getFullImageUrl(fund.image)}
                     alt={fund.name}
-                    className="max-w-full max-h-full object-contain p-2"
+                    className="w-full h-full object-contain p-2"
                   />
                 </div>
                 <div className="flex-grow min-w-0 w-full">
@@ -662,7 +662,7 @@ export default function InvestPage() {
                     <img
                       src={getFullImageUrl(toggledFund.image)}
                       alt={toggledFund.name}
-                      className="max-w-full max-h-full object-contain p-2"
+                      className="w-full h-full object-contain p-2"
                     />
                   </div>
                   <div className="bg-[#F7F8FA] p-4 rounded-xl border border-[#E5E5EA]">
