@@ -133,7 +133,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="p-3 md:p-6">
         {/* Header */}
         <div className="mb-6">
           <button
@@ -146,7 +146,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div>
-              <div className="flex items-center gap-3 mb-1">
+              <div className="sm:flex items-center gap-3 mb-1 space-y-2 sm:space-y-0">
                 <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] font-goudy tracking-tight">{requestData.requestId}</h1>
                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${getStatusColor(requestData.status)}`}>
                   {requestData.status}

@@ -128,7 +128,7 @@ export default function EditDocumentPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-8 max-w-5xl mx-auto">
+      <div className="p-4 md:p-8 max-w-5xl mx-auto">
         {/* Breadcrumb/Back */}
         <div className="mb-8">
           <button
@@ -145,7 +145,7 @@ export default function EditDocumentPage() {
         </div>
 
         <form onSubmit={handleUpdate} className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm  p-4 md:p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               {/* Document Type */}
               <div className="space-y-2">
@@ -220,9 +220,8 @@ export default function EditDocumentPage() {
               <label className="text-sm font-medium text-gray-700">Replace Document (Optional)</label>
               <div
                 onClick={() => document.getElementById("file-replace")?.click()}
-                className={`border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center cursor-pointer transition-all ${
-                  file ? "border-[#FCD34D] bg-[#FFFBEB]" : "border-gray-200 hover:border-[#FCD34D] hover:bg-gray-50"
-                }`}
+                className={`border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center cursor-pointer transition-all ${file ? "border-[#FCD34D] bg-[#FFFBEB]" : "border-gray-200 hover:border-[#FCD34D] hover:bg-gray-50"
+                  }`}
               >
                 <input
                   type="file"

@@ -385,7 +385,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
           </div>
 
           {/* Profile Content */}
-          <div className="p-2 sm:p-6">
+          <div className="p-3 sm:p-6">
             {activeTab === 'basic' && (
               <div className="space-y-8">
                 <div className="flex flex-col lg:flex-row gap-8">
@@ -715,25 +715,25 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     {/* Invitation History Box - Full Width or Custom */}
                     <div className="mt-5 pt-5 mb-5 border-t border-gray-50">
                       <div className="space-y-4">                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Invitation History</span>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info className="h-3.5 w-3.5 text-gray-300 cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
-                                  <p className="text-[11px] font-medium">Each invitation link is valid for 3 days from the time it was sent.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          {investorData.invitationLogs?.length > 0 && (
-                            <span className="text-[10px] font-bold bg-[#FFF9EE] text-[#D1A94C] border border-[#FEF3C7] px-3 py-1 rounded-full shadow-sm">
-                              {investorData.invitationLogs.length} {investorData.invitationLogs.length === 1 ? 'Invite' : 'Invites'} Total
-                            </span>
-                          )}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Invitation History</span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-3.5 w-3.5 text-gray-300 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
+                                <p className="text-[11px] font-medium">Each invitation link is valid for 3 days from the time it was sent.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
+                        {investorData.invitationLogs?.length > 0 && (
+                          <span className="text-[10px] font-bold bg-[#FFF9EE] text-[#D1A94C] border border-[#FEF3C7] px-3 py-1 rounded-full shadow-sm">
+                            {investorData.invitationLogs.length} {investorData.invitationLogs.length === 1 ? 'Invite' : 'Invites'} Total
+                          </span>
+                        )}
+                      </div>
 
 
                         {investorData.invitationLogs?.length > 0 ? (
@@ -750,7 +750,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                       ACTIVE LINK
                                     </div>
                                   )}
-                                  
+
                                   <div className="flex items-center justify-between mb-4">
                                     <div className={`p-2 rounded-lg ${isLatest && !isExpired ? 'bg-amber-100 text-amber-700' : 'bg-gray-200 text-gray-500'}`}>
                                       <Mail className="h-4 w-4" />

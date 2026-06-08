@@ -59,7 +59,7 @@ export default function UploadDocumentPage() {
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
-      
+
       if (droppedFile.size === 0) {
         toast({
           title: "Error",
@@ -76,7 +76,7 @@ export default function UploadDocumentPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      
+
       if (selectedFile.size === 0) {
         toast({
           title: "Error",
@@ -137,7 +137,7 @@ export default function UploadDocumentPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-8 max-w-5xl mx-auto">
+      <div className="p-4 md:p-8 max-w-5xl mx-auto">
         {/* Breadcrumb/Back */}
         <div className="mb-8">
           <button
@@ -154,7 +154,7 @@ export default function UploadDocumentPage() {
         </div>
 
         <form onSubmit={handleUpload} className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm  p-4 md:p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               {/* Document Type */}
               <div className="space-y-2">
@@ -231,9 +231,8 @@ export default function UploadDocumentPage() {
               onDragEnter={handleDragEnter}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center cursor-pointer transition-all ${
-                file ? "border-[#FCD34D] bg-[#FFFBEB]" : isDragging ? "border-[#FCD34D] bg-[#FFFBEB]" : "border-gray-200 hover:border-[#FCD34D] hover:bg-gray-50"
-              }`}
+              className={`border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center cursor-pointer transition-all ${file ? "border-[#FCD34D] bg-[#FFFBEB]" : isDragging ? "border-[#FCD34D] bg-[#FFFBEB]" : "border-gray-200 hover:border-[#FCD34D] hover:bg-gray-50"
+                }`}
             >
               <input
                 type="file"

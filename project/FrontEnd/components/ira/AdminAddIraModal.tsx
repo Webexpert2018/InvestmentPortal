@@ -215,7 +215,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
             <div className="flex flex-col gap-8">
 
               {/* SECTION: Investor Profile (Read-Only) */}
-              <div className="rounded-[16px] border border-[#F0F0F0] bg-[#FAFAFA] p-0 md:p-6">
+              <div className="rounded-[16px] border border-[#F0F0F0] bg-[#FAFAFA] p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <User className="h-4 w-4 text-[#D1A94C]" />
                   <h3 className="text-[15px] font-bold text-[#1F1F1F] font-goudy">Investor Profile (Non-Editable)</h3>
