@@ -16,6 +16,63 @@ import { AdminAddIraModal } from '@/components/ira/AdminAddIraModal';
 import { AdminEditProfileModal } from '@/components/investor/AdminEditProfileModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
+const formatPhoneDisplay = (phoneStr: string | null | undefined): string => {
+  if (!phoneStr) return '';
+  const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
+  const matchedCode = COUNTRY_CODES.find(code => {
+    const prefix = code.split(' ')[0];
+    return phoneStr.startsWith(prefix) || phoneStr.startsWith(code);
+  });
+  if (!matchedCode) return phoneStr;
+  let prefix = matchedCode;
+  let localNumber = '';
+  if (phoneStr.startsWith(matchedCode)) {
+    prefix = matchedCode;
+    localNumber = phoneStr.slice(matchedCode.length).trim();
+  } else {
+    const cleanPrefix = matchedCode.split(' ')[0];
+    if (phoneStr.startsWith(cleanPrefix)) {
+      prefix = matchedCode;
+      localNumber = phoneStr.slice(cleanPrefix.length).trim();
+    }
+  }
+  let digits = localNumber.replace(/\D/g, '');
+  if (prefix.includes('+1')) {
+    if (digits.length === 11 && digits.startsWith('1')) {
+      digits = digits.slice(1);
+    }
+  } else if (prefix.includes('+91')) {
+    if ((digits.length === 12 || digits.length === 13) && digits.startsWith('91')) {
+      digits = digits.slice(2);
+    }
+    if (digits.length === 11 && digits.startsWith('0')) {
+      digits = digits.slice(1);
+    }
+  } else if (prefix.includes('+44')) {
+    if ((digits.length === 12 || digits.length === 13) && digits.startsWith('44')) {
+      digits = digits.slice(2);
+    }
+  }
+  const isUK = prefix.includes('+44');
+  const maxDigits = isUK ? 11 : 10;
+  if (digits.length > maxDigits) {
+    digits = digits.slice(0, maxDigits);
+  }
+  let formatted = '';
+  if (digits.length === 0) {
+    formatted = '';
+  } else if (digits.length <= 3) {
+    formatted = `(${digits}`;
+  } else if (digits.length <= 6) {
+    formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  } else if (digits.length <= 10) {
+    formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  } else {
+    formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 11)}`;
+  }
+  return `${prefix} ${formatted}`.trim();
+};
+
 export default function InvestorProfilePage({ params }: { params: { id: string } }) {
   const { user } = useAuth();
   const isAdmin = user?.role && ['admin', 'executive_admin', 'fund_admin', 'investor_relations'].includes(user.role.trim().toLowerCase());
@@ -510,7 +567,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
                       <div className="space-y-1.5">
                         <span className="text-xs font-bold text-gray-400">Phone Number</span>
-                        <p className="text-sm font-bold text-gray-900">{investorData.phone || 'Not provided'}</p>
+                        <p className="text-sm font-bold text-gray-900">{formatPhoneDisplay(investorData.phone) || 'Not provided'}</p>
                       </div>
 
                       <div className="space-y-1.5">

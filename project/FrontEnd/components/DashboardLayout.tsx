@@ -41,9 +41,14 @@ const isRouteAuthorized = (pathname: string, userRole: string | null | undefined
     pathname === '/dashboard/redeem' || pathname.startsWith('/dashboard/redeem/') ||
     pathname === '/dashboard/ira' || pathname.startsWith('/dashboard/ira/') ||
     pathname === '/dashboard/document-vault' || pathname.startsWith('/dashboard/document-vault/') ||
-    pathname === '/dashboard/kyc-verification' || pathname.startsWith('/dashboard/kyc-verification/')
+    pathname === '/dashboard/kyc-verification'
   ) {
     return role === 'investor';
+  }
+
+  // --- KYC Verification detail page for admin/staff ---
+  if (pathname.startsWith('/dashboard/kyc-verification/')) {
+    return role === 'admin' || role === 'executive_admin' || role === 'compliance';
   }
 
   // --- Accountant Only Sections ---

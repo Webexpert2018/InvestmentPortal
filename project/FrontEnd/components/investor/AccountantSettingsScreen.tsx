@@ -42,6 +42,47 @@ const TAB_LIST: { id: AcctTab; label: string }[] = [
 
 const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
 
+const cleanPhoneInput = (value: string, countryCode: string) => {
+  let digits = value.replace(/\D/g, '');
+  if (countryCode.includes('+1')) {
+    if (digits.length === 11 && digits.startsWith('1')) {
+      digits = digits.slice(1);
+    }
+  } else if (countryCode.includes('+91')) {
+    if ((digits.length === 12 || digits.length === 13) && digits.startsWith('91')) {
+      digits = digits.slice(2);
+    }
+    if (digits.length === 11 && digits.startsWith('0')) {
+      digits = digits.slice(1);
+    }
+  } else if (countryCode.includes('+44')) {
+    if ((digits.length === 12 || digits.length === 13) && digits.startsWith('44')) {
+      digits = digits.slice(2);
+    }
+  }
+  return digits;
+};
+
+const formatPhoneNumber = (value: string, countryCode: string) => {
+  let digits = cleanPhoneInput(value, countryCode);
+  const isUK = countryCode.includes('+44');
+  const maxDigits = isUK ? 11 : 10;
+  if (digits.length > maxDigits) {
+    digits = digits.slice(0, maxDigits);
+  }
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) {
+    return `(${digits}`;
+  }
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  }
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  }
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 11)}`;
+};
+
 const SESSIONS: Session[] = [];
 
 function PasswordInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
@@ -153,7 +194,7 @@ export function AccountantSettingsScreen() {
             : fullPhone;
 
           setCountryCode(matchedCode);
-          setPhone(localNumber.replace(/\D/g, ''));
+          setPhone(formatPhoneNumber(localNumber, matchedCode));
 
           setDob(formatDateForInput(userData.dob));
           setProfileImageUrl(userData.profileImageUrl || '');
@@ -264,12 +305,10 @@ export function AccountantSettingsScreen() {
       errs.email = 'Invalid email format';
     }
 
-    if (!phone.trim()) {
+    const cleanNumber = phone.replace(/\D/g, '');
+    if (!cleanNumber) {
       errs.phone = 'Phone number is required';
-    } else if (!isDigitsOnly(phone)) {
-      errs.phone = 'Phone number must contain only digits';
     } else {
-      const cleanNumber = phone.trim();
       if (countryCode === '+1 (USA)') {
         if (cleanNumber.length !== 10) errs.phone = 'USA phone number must be 10 digits';
       } else if (countryCode === '+44 (UK)') {
@@ -485,7 +524,9 @@ export function AccountantSettingsScreen() {
                   <select
                     value={countryCode}
                     onChange={(e) => {
-                      setCountryCode(e.target.value);
+                      const newCode = e.target.value;
+                      setCountryCode(newCode);
+                      setPhone(formatPhoneNumber(phone, newCode));
                       setProfileErrors((p) => ({ ...p, phone: '' }));
                     }}
                     className="h-[42px] w-full appearance-none rounded-[8px] border border-[#E5E7EB] bg-white pl-3 pr-7 text-[13px] text-[#374151] outline-none font-helvetica"
@@ -498,12 +539,12 @@ export function AccountantSettingsScreen() {
                 </div>
                 <input
                   type="tel"
-                  inputMode="numeric"
                   placeholder="Enter phone number"
                   value={phone}
                   onChange={(e) => {
-                    const val = e.target.value;
-                    if (isDigitsOnly(val)) { setPhone(val); setProfileErrors((p) => ({ ...p, phone: '' })); }
+                    const val = formatPhoneNumber(e.target.value, countryCode);
+                    setPhone(val);
+                    setProfileErrors((p) => ({ ...p, phone: '' }));
                   }}
                   className={`h-[42px] w-full rounded-[8px] border ${profileErrors.phone ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white px-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
                 />

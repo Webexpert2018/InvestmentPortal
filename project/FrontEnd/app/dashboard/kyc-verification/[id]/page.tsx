@@ -8,6 +8,63 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 
+const formatPhoneDisplay = (phoneStr: string | null | undefined): string => {
+  if (!phoneStr) return '';
+  const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
+  const matchedCode = COUNTRY_CODES.find(code => {
+    const prefix = code.split(' ')[0];
+    return phoneStr.startsWith(prefix) || phoneStr.startsWith(code);
+  });
+  if (!matchedCode) return phoneStr;
+  let prefix = matchedCode;
+  let localNumber = '';
+  if (phoneStr.startsWith(matchedCode)) {
+    prefix = matchedCode;
+    localNumber = phoneStr.slice(matchedCode.length).trim();
+  } else {
+    const cleanPrefix = matchedCode.split(' ')[0];
+    if (phoneStr.startsWith(cleanPrefix)) {
+      prefix = matchedCode;
+      localNumber = phoneStr.slice(cleanPrefix.length).trim();
+    }
+  }
+  let digits = localNumber.replace(/\D/g, '');
+  if (prefix.includes('+1')) {
+    if (digits.length === 11 && digits.startsWith('1')) {
+      digits = digits.slice(1);
+    }
+  } else if (prefix.includes('+91')) {
+    if ((digits.length === 12 || digits.length === 13) && digits.startsWith('91')) {
+      digits = digits.slice(2);
+    }
+    if (digits.length === 11 && digits.startsWith('0')) {
+      digits = digits.slice(1);
+    }
+  } else if (prefix.includes('+44')) {
+    if ((digits.length === 12 || digits.length === 13) && digits.startsWith('44')) {
+      digits = digits.slice(2);
+    }
+  }
+  const isUK = prefix.includes('+44');
+  const maxDigits = isUK ? 11 : 10;
+  if (digits.length > maxDigits) {
+    digits = digits.slice(0, maxDigits);
+  }
+  let formatted = '';
+  if (digits.length === 0) {
+    formatted = '';
+  } else if (digits.length <= 3) {
+    formatted = `(${digits}`;
+  } else if (digits.length <= 6) {
+    formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  } else if (digits.length <= 10) {
+    formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  } else {
+    formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 11)}`;
+  }
+  return `${prefix} ${formatted}`.trim();
+};
+
 export default function AdminKycVerificationPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [investorData, setInvestorData] = useState<any>(null);
@@ -177,7 +234,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Phone Number</span>
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-gray-400" />
-                      <p className="text-base font-bold text-gray-900">{investorData.phone || '(+1) 4589 6992'}</p>
+                      <p className="text-base font-bold text-gray-900">{formatPhoneDisplay(investorData.phone) || '(+1) 4589 6992'}</p>
                     </div>
                   </div>
 
@@ -222,7 +279,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                       <p className="text-base font-bold text-gray-900 max-w-2xl leading-relaxed">
                         {investorData.addressLine1 || '123 Market St. Suite 450 San Francisco, CA 94103'}{investorData.addressLine2 ? `, ${investorData.addressLine2}` : ''}
                         {investorData.city ? `, ${investorData.city}` : ''} {investorData.state ? `, ${investorData.state}` : ''} {investorData.zipCode}
-                        {investorData.phone ? ` (${investorData.phone.substring(0, 3)}) ${investorData.phone.substring(3)}` : ''}
+                        {investorData.phone ? ` ${formatPhoneDisplay(investorData.phone)}` : ''}
                       </p>
                     </div>
                   </div>
