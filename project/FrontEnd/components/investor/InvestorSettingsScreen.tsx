@@ -70,6 +70,47 @@ const tabs: Array<{ id: Exclude<SettingsTab, 'add-account'>; label: string }> = 
 
 const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
 
+const cleanPhoneInput = (value: string, countryCode: string) => {
+  let digits = value.replace(/\D/g, '');
+  if (countryCode.includes('+1')) {
+    if (digits.length === 11 && digits.startsWith('1')) {
+      digits = digits.slice(1);
+    }
+  } else if (countryCode.includes('+91')) {
+    if ((digits.length === 12 || digits.length === 13) && digits.startsWith('91')) {
+      digits = digits.slice(2);
+    }
+    if (digits.length === 11 && digits.startsWith('0')) {
+      digits = digits.slice(1);
+    }
+  } else if (countryCode.includes('+44')) {
+    if ((digits.length === 12 || digits.length === 13) && digits.startsWith('44')) {
+      digits = digits.slice(2);
+    }
+  }
+  return digits;
+};
+
+const formatPhoneNumber = (value: string, countryCode: string) => {
+  let digits = cleanPhoneInput(value, countryCode);
+  const isUK = countryCode.includes('+44');
+  const maxDigits = isUK ? 11 : 10;
+  if (digits.length > maxDigits) {
+    digits = digits.slice(0, maxDigits);
+  }
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) {
+    return `(${digits}`;
+  }
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  }
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  }
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 11)}`;
+};
+
 const defaultProfile = {
   firstName: '',
   lastName: '',
@@ -337,7 +378,7 @@ export function InvestorSettingsScreen() {
             lastName: userData.lastName || '',
             email: userData.email || '',
             countryCode: matchedCode,
-            phoneNumber: localNumber.replace(/\D/g, ''), // Only digits
+            phoneNumber: formatPhoneNumber(localNumber, matchedCode),
             dob: formatDateForInput(userData.dob),
             addressLine1: userData.addressLine1 || '',
             addressLine2: userData.addressLine2 || '',
@@ -478,7 +519,7 @@ export function InvestorSettingsScreen() {
       errors.email = 'Enter a valid email';
     }
     const phoneError = (() => {
-      const cleanNumber = profile.phoneNumber.trim();
+      const cleanNumber = profile.phoneNumber.replace(/\D/g, '');
       if (!cleanNumber || COUNTRY_CODES.includes(cleanNumber)) return 'Phone number is required';
 
       if (profile.countryCode === '+1 (USA)') {
@@ -676,7 +717,12 @@ export function InvestorSettingsScreen() {
                     <select
                       value={profile.countryCode}
                       onChange={(event) => {
-                        setProfile((prev) => ({ ...prev, countryCode: event.target.value }));
+                        const newCode = event.target.value;
+                        setProfile((prev) => ({
+                          ...prev,
+                          countryCode: newCode,
+                          phoneNumber: formatPhoneNumber(prev.phoneNumber, newCode),
+                        }));
                         setProfileErrors((prev) => ({ ...prev, phoneNumber: undefined }));
                       }}
                       className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none"
@@ -692,7 +738,7 @@ export function InvestorSettingsScreen() {
                     placeholder="Enter phone number"
                     value={profile.phoneNumber}
                     onChange={(event) => {
-                      const val = event.target.value.replace(/\D/g, ''); // Only digits
+                      const val = formatPhoneNumber(event.target.value, profile.countryCode);
                       setProfile((prev) => ({
                         ...prev,
                         phoneNumber: val,
