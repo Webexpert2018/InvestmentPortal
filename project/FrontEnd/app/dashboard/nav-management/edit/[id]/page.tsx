@@ -42,8 +42,8 @@ export default function EditNAVEntryPage() {
       const data = await apiClient.getNavEntryById(id);
       setFormData({
         effectiveDate: data.effective_date,
-        totalFundValue: data.total_fund_value.toString(),
-        totalUnits: data.total_units.toString(),
+        totalFundValue: parseFloat(data.total_fund_value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        totalUnits: parseFloat(data.total_units).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }),
         navPerUnit: data.nav_per_unit.toString(),
         note: data.note || '',
         status: data.status,
@@ -73,7 +73,7 @@ export default function EditNAVEntryPage() {
     return {
       quarter: `Q${quarter} ${date.getFullYear()}`,
       date: item.effective_date,
-      value: `$${parseFloat(item.nav_per_unit).toFixed(2)}`
+      value: `$${parseFloat(item.nav_per_unit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     };
   });
 
@@ -86,8 +86,9 @@ export default function EditNAVEntryPage() {
 
       // Auto-calculate NAV per Unit when Total Fund Value and Total Units are entered
       if (field === 'totalFundValue' || field === 'totalUnits') {
-        const fundValue = parseFloat(field === 'totalFundValue' ? value : updated.totalFundValue);
-        const units = parseFloat(field === 'totalUnits' ? value : updated.totalUnits);
+        const rawValue = value.replace(/[^0-9.]/g, '');
+        const fundValue = parseFloat(field === 'totalFundValue' ? rawValue : updated.totalFundValue.replace(/[^0-9.]/g, ''));
+        const units = parseFloat(field === 'totalUnits' ? rawValue : updated.totalUnits.replace(/[^0-9.]/g, ''));
 
         if (!isNaN(fundValue) && !isNaN(units) && units > 0) {
           updated.navPerUnit = (fundValue / units).toFixed(2);
@@ -123,8 +124,8 @@ export default function EditNAVEntryPage() {
       const payload = {
         effective_date: formData.effectiveDate,
         total_fund_value: parseFloat(formData.totalFundValue.replace(/[^0-9.]/g, '')),
-        total_units: parseFloat(formData.totalUnits),
-        nav_per_unit: parseFloat(formData.navPerUnit),
+        total_units: parseFloat(formData.totalUnits.replace(/[^0-9.]/g, '')),
+        nav_per_unit: parseFloat(formData.navPerUnit.replace(/[^0-9.]/g, '')),
         note: formData.note,
         status: status,
       };
@@ -238,6 +239,16 @@ export default function EditNAVEntryPage() {
                       placeholder="$0.00"
                       value={formData.totalFundValue}
                       onChange={(e) => handleInputChange('totalFundValue', e.target.value)}
+                      onBlur={(e) => {
+                        const raw = e.target.value.replace(/[^0-9.]/g, '');
+                        const num = parseFloat(raw);
+                        if (!isNaN(num)) {
+                          handleInputChange('totalFundValue', num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                        }
+                      }}
+                      onFocus={(e) => {
+                        e.target.value = e.target.value.replace(/,/g, '');
+                      }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent"
                     />
                   </div>
@@ -254,6 +265,16 @@ export default function EditNAVEntryPage() {
                       placeholder="Enter total units"
                       value={formData.totalUnits}
                       onChange={(e) => handleInputChange('totalUnits', e.target.value)}
+                      onBlur={(e) => {
+                        const raw = e.target.value.replace(/[^0-9.]/g, '');
+                        const num = parseFloat(raw);
+                        if (!isNaN(num)) {
+                          handleInputChange('totalUnits', num.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }));
+                        }
+                      }}
+                      onFocus={(e) => {
+                        e.target.value = e.target.value.replace(/,/g, '');
+                      }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent"
                     />
                   </div>
@@ -265,7 +286,7 @@ export default function EditNAVEntryPage() {
                     <input
                       type="text"
                       placeholder="$0.00"
-                      value={formData.navPerUnit}
+                      value={formData.navPerUnit ? parseFloat(formData.navPerUnit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
                       readOnly
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
                     />
