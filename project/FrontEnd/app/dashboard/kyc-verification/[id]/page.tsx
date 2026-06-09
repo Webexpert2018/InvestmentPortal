@@ -234,26 +234,26 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Phone Number</span>
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-gray-400" />
-                      <p className="text-base font-bold text-gray-900">{formatPhoneDisplay(investorData.phone) || '(+1) 4589 6992'}</p>
+                      <p className="text-base font-bold text-gray-900">{formatPhoneDisplay(investorData.phone) || 'Not set'}</p>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Tax ID</span>
-                    <p className="text-base font-bold text-gray-900">{investorData.taxId || '56235895656'}</p>
+                    <p className="text-base font-bold text-gray-900">{investorData.taxId || 'Not set'}</p>
                   </div>
 
                   <div className="space-y-1.5">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Date of Birth</span>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-gray-400" />
-                      <p className="text-base font-bold text-gray-900">{investorData.dob ? new Date(investorData.dob).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Oct 25, 1977'}</p>
+                      <p className="text-base font-bold text-gray-900">{investorData.dob ? new Date(investorData.dob).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not set'}</p>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Account Type</span>
-                    <p className="text-base font-bold text-gray-900">{investorData.accountType || 'Roth IRA'}</p>
+                    <p className="text-base font-bold text-gray-900">{investorData.accountType || 'Personal Account'}</p>
                   </div>
 
                   <div className="space-y-1.5">
@@ -277,9 +277,9 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
                       <p className="text-base font-bold text-gray-900 max-w-2xl leading-relaxed">
-                        {investorData.addressLine1 || '123 Market St. Suite 450 San Francisco, CA 94103'}{investorData.addressLine2 ? `, ${investorData.addressLine2}` : ''}
-                        {investorData.city ? `, ${investorData.city}` : ''} {investorData.state ? `, ${investorData.state}` : ''} {investorData.zipCode}
-                        {investorData.phone ? ` ${formatPhoneDisplay(investorData.phone)}` : ''}
+                        {investorData.addressLine1 || investorData.addressLine2 || investorData.city || investorData.state || investorData.zipCode ? (
+                          `${investorData.addressLine1 || ''}${investorData.addressLine2 ? `, ${investorData.addressLine2}` : ''}${investorData.city ? `, ${investorData.city}` : ''}${investorData.state ? `, ${investorData.state}` : ''}${investorData.zipCode ? ` ${investorData.zipCode}` : ''}`
+                        ) : 'Not set'}
                       </p>
                     </div>
                   </div>
@@ -310,55 +310,55 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                                 </span>
                               </div>
                             </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={async () => {
-                                try {
-                                  const token = localStorage.getItem('token');
-                                  const viewUrl = `${apiClient.getApiUrl()}/documents/${doc.id}/view?token=${encodeURIComponent(token || '')}`;
-                                  window.open(viewUrl, '_blank');
-                                } catch (err) {
-                                  console.error('View error:', err);
-                                  toast.error('Failed to view document');
-                                }
-                              }}
-                              className="p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-white rounded-lg transition-all"
-                              title="View"
-                            >
-                              <FileText className="h-5 w-5" />
-                            </button>
-                            <button
-                              onClick={async () => {
-                                try {
-                                  const token = localStorage.getItem('token');
-                                  const response = await fetch(`${apiClient.getApiUrl()}/documents/${doc.id}/download`, {
-                                    headers: {
-                                      'Authorization': `Bearer ${token}`
-                                    }
-                                  });
-                                  if (!response.ok) throw new Error('Download failed');
-                                  const blob = await response.blob();
-                                  const url = window.URL.createObjectURL(blob);
-                                  const a = document.createElement('a');
-                                  a.href = url;
-                                  a.download = doc.file_name;
-                                  document.body.appendChild(a);
-                                  a.click();
-                                  document.body.removeChild(a);
-                                  window.URL.revokeObjectURL(url);
-                                } catch (err) {
-                                  console.error('Download error:', err);
-                                  toast.error('Failed to download document');
-                                }
-                              }}
-                              className="p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-white rounded-lg transition-all"
-                              title="Download"
-                            >
-                              <Download className="h-5 w-5" />
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const token = localStorage.getItem('token');
+                                    const viewUrl = `${apiClient.getApiUrl()}/documents/${doc.id}/view?token=${encodeURIComponent(token || '')}`;
+                                    window.open(viewUrl, '_blank');
+                                  } catch (err) {
+                                    console.error('View error:', err);
+                                    toast.error('Failed to view document');
+                                  }
+                                }}
+                                className="p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-white rounded-lg transition-all"
+                                title="View"
+                              >
+                                <FileText className="h-5 w-5" />
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const token = localStorage.getItem('token');
+                                    const response = await fetch(`${apiClient.getApiUrl()}/documents/${doc.id}/download`, {
+                                      headers: {
+                                        'Authorization': `Bearer ${token}`
+                                      }
+                                    });
+                                    if (!response.ok) throw new Error('Download failed');
+                                    const blob = await response.blob();
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = doc.file_name;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    window.URL.revokeObjectURL(url);
+                                  } catch (err) {
+                                    console.error('Download error:', err);
+                                    toast.error('Failed to download document');
+                                  }
+                                }}
+                                className="p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-white rounded-lg transition-all"
+                                title="Download"
+                              >
+                                <Download className="h-5 w-5" />
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        ))
                     ) : (
                       <div className="col-span-full py-10 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
                         <p className="text-gray-400 font-medium">No documents uploaded yet.</p>

@@ -11,26 +11,32 @@ export class StatsService {
         db.query("SELECT COUNT(*) FROM investments WHERE status != 'Units Issued'"),
         db.query("SELECT COUNT(*) FROM redemptions WHERE status != 'Processed'"),
         db.query(`
-          WITH reconciled_investments AS (
+          WITH current_nav AS (
+            SELECT COALESCE(nav_per_unit, 0) as nav_per_unit 
+            FROM fund_nav_history 
+            WHERE status = 'active' 
+            ORDER BY effective_date DESC 
+            LIMIT 1
+          ),
+          reconciled_investments AS (
             SELECT 
-              SUM(estimated_units) as total_units,
-              SUM(COALESCE(revised_amount, investment_amount)) as total_value
+              SUM(estimated_units) as total_units
             FROM investments 
             WHERE is_reconciled = true
           ),
           reconciled_redemptions AS (
             SELECT 
-              SUM(units) as total_redeemed_units,
-              SUM(amount) as total_redeemed_value
+              SUM(units) as total_redeemed_units
             FROM redemptions
             WHERE is_reconciled = true
           )
           SELECT 
             (COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) as total_units,
-            (COALESCE(inv.total_value, 0) - COALESCE(red.total_redeemed_value, 0)) as total_value
+            ((COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) * COALESCE(nav.nav_per_unit, 0)) as total_value
           FROM (SELECT 1) dummy
           LEFT JOIN reconciled_investments inv ON true
           LEFT JOIN reconciled_redemptions red ON true
+          LEFT JOIN current_nav nav ON true
         `),
         db.query(`
           SELECT 
@@ -74,9 +80,15 @@ export class StatsService {
   async getInvestorStats(userId: string) {
     try {
       const result = await db.query(`
-        WITH reconciled_investments AS (
+        WITH current_nav AS (
+          SELECT COALESCE(nav_per_unit, 0) as nav_per_unit 
+          FROM fund_nav_history 
+          WHERE status = 'active' 
+          ORDER BY effective_date DESC 
+          LIMIT 1
+        ),
+        reconciled_investments AS (
           SELECT 
-            SUM(COALESCE(revised_amount, investment_amount)) as total_value,
             SUM(estimated_units) as total_units,
             SUM(investment_amount) as total_invested
           FROM investments
@@ -90,12 +102,13 @@ export class StatsService {
           WHERE investor_id = $1 AND is_reconciled = true
         )
         SELECT 
-          (COALESCE(inv.total_value, 0) - COALESCE(red.total_redeemed_value, 0)) as total_value,
+          ((COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) * COALESCE(nav.nav_per_unit, 0)) as total_value,
           (COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) as total_units,
           (COALESCE(inv.total_invested, 0) - COALESCE(red.total_redeemed_value, 0)) as total_invested
         FROM (SELECT 1) dummy
         LEFT JOIN reconciled_investments inv ON true
         LEFT JOIN reconciled_redemptions red ON true
+        LEFT JOIN current_nav nav ON true
       `, [userId]);
 
       const { total_value, total_units, total_invested } = result.rows[0];

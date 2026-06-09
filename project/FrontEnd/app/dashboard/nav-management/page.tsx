@@ -171,7 +171,7 @@ export default function NAVManagementPage() {
 
   // Stats data
   const stats = [
-    { label: 'Current NAV', value: summary ? `$${summary.currentNav.toFixed(2)}` : '$0.00' },
+    { label: 'Current NAV', value: summary ? `$${summary.currentNav.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00' },
     { label: 'Total Fund Value', value: summary ? formatCurrency(summary.totalFundValue) : '$0.00' },
     { label: '30-Day BTC Trend', value: btcStats.change ? `${btcStats.change >= 0 ? '+' : ''}${btcStats.change.toFixed(1)}%` : '+0.0%', isPositive: btcStats.change >= 0 },
     { label: 'Investor Count', value: summary ? summary.investorCount.toLocaleString() : '0' },
@@ -295,7 +295,9 @@ export default function NAVManagementPage() {
               </div>
 
               <div className="mb-4">
-                <p className="text-2xl font-bold text-gray-900">${navStats.value.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(navStats.value)}
+                </p>
                 <p className={`text-sm ${navStats.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {navStats.range} {navStats.change >= 0 ? '+' : ''}{navStats.change.toFixed(1)}%
                 </p>
@@ -336,7 +338,7 @@ export default function NAVManagementPage() {
                                 {new Date(payload[0].payload.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                               </p>
                               <p className="text-sm font-bold text-gray-900">
-                                NAV: ${Number(payload[0].value).toFixed(2)}
+                                NAV: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(payload[0].value))}
                               </p>
                             </div>
                           );

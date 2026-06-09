@@ -70,9 +70,6 @@ export default function PortfolioPage() {
       const totalUnits = investmentsData
         .filter((inv: any) => inv.is_reconciled)
         .reduce((sum: number, inv: any) => sum + parseFloat(inv.estimated_units), 0);
-      const currentValue = investmentsData
-        .filter((inv: any) => inv.is_reconciled)
-        .reduce((sum: number, inv: any) => sum + parseFloat(inv.revised_amount || inv.investment_amount), 0);
 
       const totalRedeemedUnits = redemptionsData
         .filter((r: any) => r.is_reconciled)
@@ -82,11 +79,13 @@ export default function PortfolioPage() {
         .filter((r: any) => r.is_reconciled)
         .reduce((sum: number, r: any) => sum + parseFloat(r.amount || 0), 0);
 
+      const netUnits = Math.max(0, totalUnits - totalRedeemedUnits);
+
       setStats({
         totalInvested: Math.max(0, totalInvested - totalRedeemedValue), // Net invested
-        totalUnits: Math.max(0, totalUnits - totalRedeemedUnits),
+        totalUnits: netUnits,
         currentNav: navSummary.currentNav,
-        currentValue: Math.max(0, currentValue - totalRedeemedValue),
+        currentValue: netUnits * navSummary.currentNav,
       });
     } catch (error) {
       console.error('Error fetching portfolio data:', error);
@@ -361,10 +360,10 @@ export default function PortfolioPage() {
                         .filter((r: any) => r.investment_id === row.id && r.is_reconciled)
                         .reduce((sum: number, r: any) => sum + parseFloat(r.amount || 0), 0);
 
-                      const units = parseFloat(row.estimated_units) - redeemedUnits;
+                      const units = Math.max(0, parseFloat(row.estimated_units) - redeemedUnits);
                       const currentNav = stats.currentNav;
-                      const currentValue = parseFloat(row.revised_amount || (parseFloat(row.estimated_units) * currentNav)) - redeemedAmount;
-                      const costBasis = parseFloat(row.investment_amount) - redeemedAmount;
+                      const currentValue = units * currentNav;
+                      const costBasis = Math.max(0, parseFloat(row.investment_amount) - redeemedAmount);
                       const gainLoss = currentValue - costBasis;
                       const gainPositive = gainLoss >= 0;
                       const gainPercent = costBasis > 0 ? (gainLoss / costBasis) * 100 : 0;
@@ -377,13 +376,13 @@ export default function PortfolioPage() {
                         >
                           <td className="px-4 py-3 text-[#1F1F1F] font-medium">{row.fund_name}</td>
                           <td className="px-4 py-3 text-[#4B4B4B]">{row.account_type}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{row.units.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(row.currentNav)}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(row.currentValue)}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(row.costBasis)}</td>
+                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{units.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
+                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(currentNav)}</td>
+                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(currentValue)}</td>
+                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(costBasis)}</td>
                           <td className="px-4 py-3 font-medium">
-                            <span className={row.gainLossValue >= 0 ? 'text-[#2BB673]' : 'text-[#E04343]'}>
-                              {row.gainLossValue >= 0 ? '+' : ''}{formatCurrency(row.gainLossValue)} ({(row.costBasis > 0 ? (row.gainLossValue / row.costBasis) * 100 : 0).toFixed(2)}%)
+                            <span className={gainPositive ? 'text-[#2BB673]' : 'text-[#E04343]'}>
+                              {gainPositive ? '+' : ''}{formatCurrency(gainLoss)} ({gainPercent.toFixed(2)}%)
                             </span>
                           </td>
                           <td className="px-4 py-3">
