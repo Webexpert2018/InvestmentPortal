@@ -336,7 +336,7 @@ export default function EditFundPage() {
         {/* Form */}
         <div className="bg-white rounded-lg shadow-sm p-5 md:p-8">
           {/* Upload Image */}
-          <div className="sm:flex items-center gap-6 mb-8">
+          <div className="sm:flex items-center gap-6 mb-8 space-y-4 md:space-y-0">
             <div className="relative group">
               <div className="w-32 h-32 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
                 {previewImage ? (
