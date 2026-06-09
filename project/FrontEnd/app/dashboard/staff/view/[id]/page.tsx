@@ -173,13 +173,13 @@ export default function ViewStaffPage() {
         </div>
 
         {/* Column 1: Profile Photo */}
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col xl:flex-row gap-8">
           <div className="flex-shrink-0">
             <div className="w-[240px] h-[340px] rounded-xl overflow-hidden shadow-md relative bg-gray-100">
               {staff.profile_image_url ? (
-                <Image 
-                  src={staff.profile_image_url} 
-                  alt={staff.full_name} 
+                <Image
+                  src={staff.profile_image_url}
+                  alt={staff.full_name}
                   fill
                   className="object-cover"
                 />
@@ -283,15 +283,15 @@ export default function ViewStaffPage() {
                                 >
                                   <MoreVertical className="h-4 w-4 text-gray-400" />
                                 </button>
-                                
+
                                 {activeDropdown === investor.id && (
                                   <>
-                                    <div 
+                                    <div
                                       className="fixed inset-0 z-10"
                                       onClick={() => setActiveDropdown(null)}
                                     />
                                     <div className="absolute right-0 top-full mt-2 w-36 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-20">
-                                      <Link 
+                                      <Link
                                         href={`/dashboard/investor/${investor.id}`}
                                         className="block w-full px-4 py-2 text-left text-[13px] text-gray-700 hover:bg-gray-50 transition-colors"
                                       >
