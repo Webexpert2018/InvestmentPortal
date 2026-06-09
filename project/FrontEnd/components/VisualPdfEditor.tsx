@@ -63,7 +63,7 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
   const [activeTool, setActiveTool] = useState<FieldType | null>(null);
   const [placements, setPlacements] = useState<PlacedField[]>([]);
   const [pageDimensions, setPageDimensions] = useState<{ originalWidth: number; originalHeight: number } | null>(null);
-  
+
   const pageContainerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const hasInitializedRef = useRef<boolean>(false);
@@ -110,7 +110,7 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
 
         const loadingTask = window.pdfjsLib.getDocument(url);
         const pdf = await loadingTask.promise;
-        
+
         if (active) {
           setPdfDoc(pdf);
           setNumPages(pdf.numPages);
@@ -139,8 +139,8 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
     async function renderPage() {
       try {
         const page = await pdfDoc.getPage(pageNumber);
-        
-        const desiredWidth = 850; 
+
+        const desiredWidth = 850;
         const viewport = page.getViewport({ scale: 1 });
         const scale = desiredWidth / viewport.width;
         const scaledViewport = page.getViewport({ scale });
@@ -321,7 +321,7 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
       namePage: primaryName ? primaryName.page : null,
       nameX: primaryName ? Math.round((primaryName.xPercent / 100) * width) : null,
       nameY: primaryName ? Math.round((primaryName.yPercent / 100) * height) : null,
-      
+
       datePage: primaryDate ? primaryDate.page : null,
       dateX: primaryDate ? Math.round((primaryDate.xPercent / 100) * width) : null,
       dateY: primaryDate ? Math.round((primaryDate.yPercent / 100) * height) : null,
@@ -417,7 +417,7 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
     };
 
     setPlacements(prev => [...prev, newField]);
-    setActiveTool(null); 
+    setActiveTool(null);
   };
 
   const removePlacement = (id: string) => {
@@ -432,7 +432,7 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
   ];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+    <div className="flex flex-col lg:flex-row gap-6 bg-white rounded-2xl border border-gray-100 p-3 md:p-6 shadow-sm">
       {/* Sidebar Tool selection */}
       <div className="w-full lg:w-72 flex flex-col gap-5 border-r border-gray-100 pr-6">
         <div>
@@ -454,11 +454,10 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
                 key={tool.type}
                 type="button"
                 onClick={() => setActiveTool(isActive ? null : tool.type)}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-semibold text-left transition-all ${
-                  isActive
-                    ? 'border-[#FCD34D] bg-[#FEF3E2] text-gray-900 shadow-sm ring-1 ring-[#FCD34D]'
-                    : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
-                }`}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-semibold text-left transition-all ${isActive
+                  ? 'border-[#FCD34D] bg-[#FEF3E2] text-gray-900 shadow-sm ring-1 ring-[#FCD34D]'
+                  : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <div className={`p-1.5 rounded-lg ${tool.bg} ${tool.color}`}>
@@ -531,7 +530,7 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
       </div>
 
       {/* PDF Viewport Workspace */}
-      <div className="flex-1 flex flex-col items-center gap-4 bg-gray-50 rounded-2xl p-6 border border-gray-100 overflow-hidden min-h-[500px]">
+      <div className="flex-1 flex flex-col items-center gap-4 bg-gray-50 rounded-2xl p-6 border border-gray-100 overflow-auto min-h-[500px]">
         {/* Navigation Bar */}
         <div className="flex items-center justify-between w-full border-b border-gray-200/60 pb-4">
           <div className="flex items-center gap-2">
@@ -569,12 +568,11 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
 
         {/* Visual Workspace Canvas container */}
         <div className="relative flex-1 flex items-center justify-center p-4 w-full">
-          <div 
+          <div
             ref={pageContainerRef}
             onClick={handlePageClick}
-            className={`relative shadow-lg border border-gray-200 bg-white select-none ${
-              activeTool ? 'cursor-crosshair' : 'cursor-default'
-            }`}
+            className={`relative shadow-lg border border-gray-200 bg-white select-none ${activeTool ? 'cursor-crosshair' : 'cursor-default'
+              }`}
             style={{ maxWidth: '100%', minWidth: '400px' }}
           >
             {file ? (
@@ -605,16 +603,15 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
                 const isDragging = draggingFieldId === placement.id;
                 const absoluteIndex = placements.findIndex(p => p.id === placement.id) + 1;
                 const shortLabel = placement.type === 'signature' ? 'Sig' :
-                                   placement.type === 'name' ? 'Name' :
-                                   placement.type === 'date' ? 'Date' :
-                                   placement.type === 'amount' ? 'Amt' : tool.label;
+                  placement.type === 'name' ? 'Name' :
+                    placement.type === 'date' ? 'Date' :
+                      placement.type === 'amount' ? 'Amt' : tool.label;
 
                 return (
                   <div
                     key={placement.id}
-                    className={`absolute flex items-center gap-1 px-1.5 py-0.5 rounded border shadow-sm font-medium text-[10px] -translate-x-1/2 -translate-y-1/2 select-none transition-shadow group ${
-                      isDragging ? 'shadow-lg cursor-grabbing' : 'cursor-grab hover:shadow-md'
-                    } ${tool.bg} ${tool.color} ${tool.border}`}
+                    className={`absolute flex items-center gap-1 px-1.5 py-0.5 rounded border shadow-sm font-medium text-[10px] -translate-x-1/2 -translate-y-1/2 select-none transition-shadow group ${isDragging ? 'shadow-lg cursor-grabbing' : 'cursor-grab hover:shadow-md'
+                      } ${tool.bg} ${tool.color} ${tool.border}`}
                     style={{
                       left: `${placement.xPercent}%`,
                       top: `${placement.yPercent}%`,
@@ -626,11 +623,11 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
                   >
                     <ToolIcon className="h-2.5 w-2.5" />
                     <span>{shortLabel} #{absoluteIndex}</span>
-                    
+
                     {/* Inline Delete Button */}
                     <button
                       type="button"
-                      onMouseDown={(e) => e.stopPropagation()} 
+                      onMouseDown={(e) => e.stopPropagation()}
                       onClick={() => removePlacement(placement.id)}
                       className="ml-1 p-0.5 rounded hover:bg-black/10 text-gray-400 hover:text-red-600 transition-colors"
                       title={`Remove field`}

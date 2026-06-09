@@ -246,7 +246,7 @@ export default function AddFundPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="p-4 lg:p-6">
         {/* Header */}
         <div className="mb-8">
           <button
@@ -512,7 +512,7 @@ export default function AddFundPage() {
             <p className="text-sm text-gray-500 mb-6">
               Upload the required PDF Operating Agreement for this fund.
             </p>
-            
+
             <div className="grid grid-cols-1 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Upload PDF Document</label>
@@ -579,7 +579,7 @@ export default function AddFundPage() {
             <p className="text-sm text-gray-500 mb-6">
               Upload the required PDF subscription document for this fund.
             </p>
-            
+
             <div className="grid grid-cols-1 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Upload PDF Document</label>

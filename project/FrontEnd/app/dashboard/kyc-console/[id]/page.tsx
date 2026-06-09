@@ -47,7 +47,7 @@ export default function KYCProfilePage({ params }: PageProps) {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="p-4 lg:p-6">
         {/* Header */}
         <div className="mb-6">
           <button
@@ -80,7 +80,7 @@ export default function KYCProfilePage({ params }: PageProps) {
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">{profile.name}</h1>
                   <p className="text-gray-500">Joined date: {profile.joinedDate}</p>
                 </div>
-                
+
                 {/* Action Buttons */}
                 <div className="flex gap-3 mt-4 lg:mt-0">
                   <Button
@@ -159,7 +159,7 @@ export default function KYCProfilePage({ params }: PageProps) {
         {/* Assign Investor Relation Modal */}
         {showAssignModal && (
           <>
-            <div 
+            <div
               className="fixed inset-0 bg-black bg-opacity-50 z-40"
               onClick={() => setShowAssignModal(false)}
             />
@@ -210,7 +210,7 @@ export default function KYCProfilePage({ params }: PageProps) {
         {/* Reject Request Modal */}
         {showRejectModal && (
           <>
-            <div 
+            <div
               className="fixed inset-0 bg-black bg-opacity-50 z-40"
               onClick={() => setShowRejectModal(false)}
             />
@@ -271,7 +271,7 @@ export default function KYCProfilePage({ params }: PageProps) {
         {/* Approve Request Modal */}
         {showApproveModal && (
           <>
-            <div 
+            <div
               className="fixed inset-0 bg-black bg-opacity-50 z-40"
               onClick={() => setShowApproveModal(false)}
             />
