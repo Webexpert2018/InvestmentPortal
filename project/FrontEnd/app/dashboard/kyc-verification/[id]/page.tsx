@@ -154,9 +154,9 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
         {/* Dedicated Verification Card */}
         <div className="bg-white rounded-3xl shadow-sm border border-[#F1F1F1] overflow-hidden">
           <div className="p-8 lg:p-12">
-            <div className="flex flex-col lg:flex-row gap-12">
+            <div className="flex flex-col xl:flex-row gap-8 lg:gap-12">
               {/* Left: Large Profile Image */}
-              <div className="w-full lg:w-[350px] shrink-0">
+              <div className="w-full max-w-[200px] mx-auto md:max-w-[250px] lg:max-w-none lg:w-[350px] lg:mx-0 shrink-0">
                 <div className="relative aspect-[4/5] rounded-[32px] overflow-hidden border border-gray-100 bg-gray-50 shadow-sm">
                   {investorData.profileImageUrl ? (
                     <Image
@@ -179,15 +179,17 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
               </div>
 
               {/* Right: Detailed Information */}
-              <div className="flex-1 space-y-10">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                  <div>
-                    <h2 className="text-4xl font-bold text-[#1F1F1F] tracking-tight">{investorData.firstName} {investorData.lastName}</h2>
+              <div className="flex-1 space-y-8 lg:space-y-10 min-w-0">
+                <div className="flex flex-wrap items-start sm:items-center justify-between gap-6">
+                  <div className="flex-1 min-w-[240px] max-w-full">
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1F1F1F] tracking-tight truncate" title={`${investorData.firstName} ${investorData.lastName}`}>
+                      {investorData.firstName} {investorData.lastName}
+                    </h2>
                     <p className="text-gray-500 mt-2 font-medium">Joined date: {new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                   </div>
 
                   {/* Dedicated Action Buttons */}
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-3 w-full sm:w-auto shrink-0">
                     <button
                       onClick={async () => {
                         setShowAssignModal(true);
