@@ -155,7 +155,21 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
               <p className="text-gray-500 font-medium">Submitted Date: <span className="text-gray-900">{requestData.submittedDate}</span></p>
             </div>
             <div className="flex flex-wrap gap-3">
-              {requestData.status !== 'Units Issued' ? (
+              {requestData.status === 'Rejected' ? (
+                <Button
+                  disabled
+                  className="bg-red-100 text-red-600 px-8 py-3 rounded-xl font-bold shadow-none h-auto cursor-default opacity-100 border border-red-200"
+                >
+                  Rejected
+                </Button>
+              ) : requestData.status === 'Units Issued' ? (
+                <Button
+                  disabled
+                  className="bg-[#E5E5EA] text-[#8E8E93] px-8 py-3 rounded-xl font-bold shadow-none h-auto cursor-default opacity-100 border border-[#D1D1D6]"
+                >
+                  Completed
+                </Button>
+              ) : (
                 <>
                   <Button
                     onClick={() => setShowApproveModal(true)}
@@ -170,13 +184,6 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                     Reject
                   </Button>
                 </>
-              ) : (
-                <Button
-                  disabled
-                  className="bg-[#E5E5EA] text-[#8E8E93] px-8 py-3 rounded-xl font-bold shadow-none h-auto cursor-default opacity-100 border border-[#D1D1D6]"
-                >
-                  Completed
-                </Button>
               )}
             </div>
           </div>

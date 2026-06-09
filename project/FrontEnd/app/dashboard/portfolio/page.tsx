@@ -386,11 +386,14 @@ export default function PortfolioPage() {
                             </span>
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.is_reconciled
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                              }`}>
-                              {row.is_reconciled ? 'Completed' : 'Pending'}
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              row.status === 'Rejected'
+                                ? 'bg-red-100 text-red-800'
+                                : row.is_reconciled
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {row.status === 'Rejected' ? 'Rejected' : row.is_reconciled ? 'Completed' : row.status || 'Pending'}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right" onClick={(event) => event.stopPropagation()}>

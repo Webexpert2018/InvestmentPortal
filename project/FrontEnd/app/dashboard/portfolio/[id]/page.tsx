@@ -151,7 +151,7 @@ export default function PortfolioFundDetailsPage() {
         type: 'Subscription',
         amount: investment.investment_amount,
         units: parseFloat(investment.estimated_units).toLocaleString(undefined, { maximumFractionDigits: 4 }),
-        status: 'Pending', // Reverted back to Pending as requested
+        status: investment.status === 'Rejected' ? 'Rejected' : investment.is_reconciled ? 'Completed' : (investment.status || 'Pending'),
       },
     ];
   }, [investment]);
@@ -502,7 +502,13 @@ export default function PortfolioFundDetailsPage() {
                       <td className="px-4 py-3 text-[#4B4B4B]">{tx.type}</td>
                       <td className="px-4 py-3 text-[#4B4B4B]">{formatCurrency(tx.amount)}</td>
                       <td className="px-4 py-3 text-[#4B4B4B]">{tx.units}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-[#E29F3A]">{tx.status}</td>
+                        <td className={`px-4 py-3 text-sm font-medium ${
+                          tx.status === 'Rejected'
+                            ? 'text-red-600'
+                            : tx.status === 'Completed'
+                            ? 'text-green-600'
+                            : 'text-[#E29F3A]'
+                        }`}>{tx.status}</td>
                     </tr>
                   ))}
                 </tbody>
