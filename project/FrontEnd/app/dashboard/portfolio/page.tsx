@@ -82,7 +82,7 @@ export default function PortfolioPage() {
       const netUnits = Math.max(0, totalUnits - totalRedeemedUnits);
 
       setStats({
-        totalInvested: Math.max(0, totalInvested - totalRedeemedValue), // Net invested
+        totalInvested: totalInvested - totalRedeemedValue, // Net invested
         totalUnits: netUnits,
         currentNav: navSummary.currentNav,
         currentValue: netUnits * navSummary.currentNav,
@@ -363,7 +363,7 @@ export default function PortfolioPage() {
                       const units = Math.max(0, parseFloat(row.estimated_units) - redeemedUnits);
                       const currentNav = stats.currentNav;
                       const currentValue = units * currentNav;
-                      const costBasis = Math.max(0, parseFloat(row.investment_amount) - redeemedAmount);
+                      const costBasis = parseFloat(row.investment_amount) - redeemedAmount;
                       const gainLoss = currentValue - costBasis;
                       const gainPositive = gainLoss >= 0;
                       const gainPercent = costBasis > 0 ? (gainLoss / costBasis) * 100 : 0;
