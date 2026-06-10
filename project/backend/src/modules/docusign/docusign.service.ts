@@ -185,6 +185,7 @@ export class DocusignService {
       accountId,
       signerEmail,
       signerName,
+      signerName,
       'Test Fund',
       10000,
       this.configService.get<string>('FRONTEND_URL')! + '/dashboard/funds?signing=complete'
@@ -194,14 +195,12 @@ export class DocusignService {
   /**
    * Creates an envelope for a specific investment and returns the embedded signing URL.
    */
-  /**
-   * Creates an envelope for a specific investment and returns the embedded signing URL.
-   */
   async createEnvelopeForInvestment(
     accessToken: string | null,
     accountId: string | null,
     signerEmail: string,
     signerName: string,
+    investorName: string,
     fundName: string,
     investmentAmount: number,
     returnUrl: string,
@@ -258,23 +257,11 @@ export class DocusignService {
     }
 
     // Parse names for IRA/Entity accounts
-    let documentName = signerName;
+    let documentName = investorName;
     let signatureName = signerName;
 
-    if (signerName.toLowerCase().includes('fbo')) {
-      const fboIndex = signerName.toUpperCase().indexOf('FBO');
-      if (fboIndex !== -1) {
-        // 1. For the document: Replace everything before FBO with AET
-        documentName = 'AET ' + signerName.substring(fboIndex);
-        
-        // 2. For signature: Extract only the full name of the investor
-        let afterFbo = signerName.substring(fboIndex + 3).trim();
-        afterFbo = afterFbo.replace(/\s+(Defined Benefit Plan|DB Plan|Traditional IRA|Traditional|Roth IRA|Roth SEP|SEP IRA|Roth|SEP|IRA|401k|Account)$/i, '').trim();
-        signatureName = afterFbo;
-      }
-    } else {
-      signatureName = signerName.replace(/\s+(Defined Benefit Plan|DB Plan|Traditional IRA|Traditional|Roth IRA|Roth SEP|SEP IRA|Roth|SEP|IRA|401k|Account)$/i, '').trim();
-    }
+    // Clean up signatureName if it contains IRA/Account suffixes
+    signatureName = signerName.replace(/\s+(Defined Benefit Plan|DB Plan|Traditional IRA|Traditional|Roth IRA|Roth SEP|SEP IRA|Roth|SEP|IRA|401k|Account)$/i, '').trim();
 
     // Use any to avoid lint errors with mismatching @types/docusign-esign
     const ds = docusign as any;

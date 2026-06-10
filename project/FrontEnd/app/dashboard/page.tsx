@@ -267,10 +267,17 @@ export default function DashboardPage() {
       .filter(inv => !inv.account_id && inv.is_reconciled)
       .reduce((sum, inv) => sum + parseFloat(inv.revised_amount || (parseFloat(inv.estimated_units) * (investorStats.currentNav || 0))), 0);
 
+    let baseName = 'Personal Account';
+    if (user?.investorType === 'entity') {
+      baseName = 'Entity Account';
+    } else if (user?.investorType === 'minor') {
+      baseName = 'Minor Account';
+    }
+
     const list: any[] = [
       {
         id: 'personal',
-        name: 'Personal Account',
+        name: baseName,
         subtitle: `Total Value: ${formatter.format(personalValue)}`,
         status: 'active'
       },

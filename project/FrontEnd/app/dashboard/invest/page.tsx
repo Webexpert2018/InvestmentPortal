@@ -228,10 +228,17 @@ export default function InvestPage() {
   }, [selectedFund]);
 
   const dynamicAccounts = useMemo(() => {
+    let baseLabel = 'Personal Account';
+    if (user?.investorType === 'entity') {
+      baseLabel = 'Entity Account';
+    } else if (user?.investorType === 'minor') {
+      baseLabel = 'Minor Account';
+    }
+
     const list: any[] = [
       {
         id: 'personal',
-        label: 'Personal Account',
+        label: baseLabel,
         value: 'Cash / Checking',
         status: 'active'
       },

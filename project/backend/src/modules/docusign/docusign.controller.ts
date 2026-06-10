@@ -95,8 +95,23 @@ export class DocusignController {
 
       // Calculate Investor Name based on account type
       let investorName = clientName;
-      if (accountType !== 'personal' && iraMetadata) {
-        const custodian = iraMetadata.custodian || 'AET';
+      let signerName = clientName;
+
+      if (profile.investorType === 'minor') {
+        if (profile.parentName) {
+          investorName = `${profile.parentName} FBO ${clientName}`;
+          signerName = profile.parentName;
+        }
+      } else if (profile.investorType === 'entity') {
+        investorName = profile.entityName || clientName;
+        if (profile.parentName) {
+          signerName = profile.parentName;
+        }
+      } else if (accountType !== 'personal' && iraMetadata) {
+        let custodian = (iraMetadata.custodian || 'AET').trim();
+        if (/American\s+Estate\s+&\s+Tr?ust/i.test(custodian)) {
+          custodian = 'AET';
+        }
         const type = iraMetadata.type || 'IRA';
         investorName = `${custodian} FBO ${clientName} ${type}`;
       }
@@ -107,6 +122,7 @@ export class DocusignController {
         accessToken ?? null,
         accountId ?? null,
         signerEmail,
+        signerName,
         investorName,
         fundName,
         investmentAmount,
