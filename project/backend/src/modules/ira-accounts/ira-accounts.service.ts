@@ -242,13 +242,12 @@ export class AccountsService {
         const address1 = dto.physicalAddress1 || investor?.address_line1 || '123 Main St';
         const address2 = dto.physicalAddress2 || investor?.address_line2 || '';
 
-        const userPayload = {
+        const userPayload: any = {
           ssn: sanitizedSsn,
           rep_id: '100217',
           email: dto.email || investor?.email || userEmail,
           first_name: firstName,
           last_name: lastName,
-          date_of_birth: dob,
           send_email: false,
           address_1: address1,
           address_2: address2 || address1,
@@ -257,6 +256,10 @@ export class AccountsService {
           zip: this.sanitizeZipCode(dto.zipCode || investor?.zip_code),
           marital_status: this.mapMaritalStatus(dto.maritalStatus || 'Single')
         };
+
+        if (investor?.investor_type !== 'minor') {
+          userPayload.date_of_birth = dob;
+        }
 
         const userResponse = await this.makeSignedRequest('POST', 'api/v3/users', '/users', userPayload);
         externalId = userResponse?.data?.id?.toString() || null;

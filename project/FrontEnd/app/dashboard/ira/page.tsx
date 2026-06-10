@@ -413,14 +413,16 @@ export default function IRAPage() {
           <div className="flex gap-3 sm:justify-end justify-auto">
             <button
               onClick={() => setShowTransferModal(true)}
-              className="inline-flex items-center gap-2 border border-[#E5E7EB] bg-white px-5 py-2 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors"
+              disabled={user?.investorType === 'entity'}
+              className="inline-flex items-center gap-2 border border-[#E5E7EB] bg-white px-5 py-2 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <History className="h-4 w-4 text-[#D1A94C]" />
               Transfer In
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 py-2 rounded-full text-sm font-medium shadow-md hover:opacity-90 transition-opacity"
+              disabled={user?.investorType === 'entity'}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 py-2 rounded-full text-sm font-medium shadow-md hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="h-4 w-4" />
               New Account
@@ -429,7 +431,17 @@ export default function IRAPage() {
         </div>
 
         {/* Main Content Area */}
-        {view === 'list' ? (
+        {user?.investorType === 'entity' ? (
+          <div className="mt-6 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm p-12 text-center flex flex-col items-center justify-center gap-4">
+            <div className="h-16 w-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center">
+              <Info className="h-8 w-8" />
+            </div>
+            <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F]">IRA Accounts Not Available</h3>
+            <p className="max-w-md text-[14px] text-[#8E8E93] font-helvetica leading-relaxed">
+              IRA accounts cannot be created for Entity accounts.
+            </p>
+          </div>
+        ) : view === 'list' ? (
           <div className="mt-6 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
