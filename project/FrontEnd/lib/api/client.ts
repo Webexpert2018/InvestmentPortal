@@ -164,6 +164,12 @@ class ApiClient {
     });
   }
 
+  async logout() {
+    return this.request<any>('/auth/logout', {
+      method: 'POST',
+    });
+  }
+
   async getSessions() {
     return this.request<any[]>('/sessions');
   }

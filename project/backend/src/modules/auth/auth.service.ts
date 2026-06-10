@@ -629,4 +629,10 @@ export class AuthService {
       tax_id: investor.tax_id
     };
   }
+
+  async logout(sessionId: string, userId: string) {
+    if (sessionId && userId) {
+      await this.sessionsService.revokeSession(sessionId, userId);
+    }
+  }
 }

@@ -32,7 +32,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string, role?: string) => Promise<void>;
   signup: (data: any) => Promise<void>;
-  logout: () => void;
+  logout: () => void | Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isAccountant: boolean;
@@ -94,8 +94,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/dashboard');
   };
 
-  const logout = () => {
+  const logout = async () => {
     const role = user?.role;
+    try {
+      await apiClient.logout();
+    } catch (err) {
+      console.error('Failed to revoke session on backend:', err);
+    }
     localStorage.removeItem('token');
     setUser(null);
     setSessionExpired(false);

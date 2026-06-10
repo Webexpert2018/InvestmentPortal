@@ -1,5 +1,6 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException, Req } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsDateString, IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 
@@ -313,5 +314,15 @@ export class AuthController {
       throw new BadRequestException('Email is required');
     }
     return this.authService.checkEmailAvailability(body.email);
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async logout(@Req() req: any) {
+    if (req.user && req.user.sessionId) {
+      await this.authService.logout(req.user.sessionId, req.user.userId);
+    }
+    return { success: true, message: 'Logged out successfully' };
   }
 }
