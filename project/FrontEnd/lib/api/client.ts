@@ -170,6 +170,17 @@ class ApiClient {
     });
   }
 
+  async getSubaccounts() {
+    return this.request<any[]>('/users/subaccounts');
+  }
+
+  async createSubaccount(data: any) {
+    return this.request<any>('/users/subaccounts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async getSessions() {
     return this.request<any[]>('/sessions');
   }

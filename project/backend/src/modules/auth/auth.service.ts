@@ -233,8 +233,10 @@ export class AuthService {
         result = await db.query(
           `SELECT i.*, 
                   ir.full_name as assigned_ir_name, 
-                  acc.full_name as assigned_accountant_name 
+                  acc.full_name as assigned_accountant_name,
+                  parent.full_name as parent_name
            FROM investors i 
+           LEFT JOIN investors parent ON i.parent_id = parent.id
            LEFT JOIN (
              SELECT id, full_name FROM staff
              UNION
@@ -339,6 +341,11 @@ export class AuthService {
           kycStatus: user.kyc_status || 'unverified',
           assignedIrName: user.assigned_ir_name || null,
           assignedAccountantName: user.assigned_accountant_name || null,
+          investorType: user.investor_type || 'personal',
+          entityName: user.entity_name || '',
+          entityType: user.entity_type || '',
+          parentId: user.parent_id || null,
+          parentName: user.parent_name || null,
         },
         token,
       };

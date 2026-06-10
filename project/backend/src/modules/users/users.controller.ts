@@ -147,6 +147,16 @@ export class UsersController {
     );
   }
 
+  @Get('subaccounts')
+  async getSubaccounts(@CurrentUser() user: any) {
+    return this.usersService.getSubaccounts(user.userId);
+  }
+
+  @Post('subaccounts')
+  async createSubaccount(@CurrentUser() user: any, @Body() body: any) {
+    return this.usersService.createSubaccount(user.userId, body);
+  }
+
   @Get()
   @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
   async getAllUsers(@CurrentUser() user: any) {

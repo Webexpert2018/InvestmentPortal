@@ -179,8 +179,11 @@ export class UsersService implements OnModuleInit {
           i.notif_invest_activity, i.notif_funding_conf, i.notif_doc_uploads, i.notif_kyc_updates, i.notif_announcements, i.notif_sms_invest_conf, i.notif_sms_security,
           i.notif_alerts, i.notif_nav_recalc, i.notif_sms_announcements, i.notif_sms_alerts, i.notif_sms_doc_uploads, i.notif_sms_nav_recalc, i.notif_sms_funding_conf, i.notif_sms_tax_forms,
           i.pref_send_by_email, i.pref_tax_forms_alert, i.pref_auto_download, i.pref_paperless,
-          i.pref_format, i.pref_frequency
+          i.pref_format, i.pref_frequency,
+          i.investor_type as "investorType", i.entity_name as "entityName", i.entity_type as "entityType", i.parent_id as "parentId",
+          parent.full_name as "parentName"
         FROM investors i
+        LEFT JOIN investors parent ON i.parent_id = parent.id
         LEFT JOIN (
           SELECT id, full_name FROM staff
           UNION
@@ -253,7 +256,12 @@ export class UsersService implements OnModuleInit {
       pref_auto_download: user.pref_auto_download,
       pref_paperless: user.pref_paperless,
       pref_format: user.pref_format,
-      pref_frequency: user.pref_frequency
+      pref_frequency: user.pref_frequency,
+      investorType: user.investorType || 'personal',
+      entityName: user.entityName || '',
+      entityType: user.entityType || '',
+      parentId: user.parentId || null,
+      parentName: user.parentName || null,
     };
   }
 
@@ -1261,4 +1269,120 @@ export class UsersService implements OnModuleInit {
   //     throw new InternalServerErrorException(error.response?.data || error.message || 'Failed to fetch external accounts');
   //   }
   // }
+
+  async getSubaccounts(parentId: string) {
+    const result = await db.query(
+      `SELECT id, email, full_name as "fullName", phone, dob, address_line1 as "addressLine1", address_line2 as "addressLine2",
+              city, state, zip_code as "zipCode", country, tax_id as "taxId", kyc_status as "kycStatus",
+              investor_type as "investorType", entity_name as "entityName", entity_type as "entityType", status
+       FROM investors
+       WHERE parent_id = $1
+       ORDER BY created_at DESC`,
+      [parentId]
+    );
+    return result.rows;
+  }
+
+  async createSubaccount(parentId: string, data: any) {
+    const {
+      email,
+      password,
+      investorType, // 'minor' or 'entity'
+      // Minor fields:
+      firstName,
+      lastName,
+      dob,
+      phone,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      zipCode,
+      country,
+      taxId,
+      // Entity fields:
+      entityName,
+      entityType,
+    } = data;
+
+    const emailClean = email.toLowerCase().trim();
+
+    // Check if email already exists in users, investors, or staff table
+    const [existingUser, existingInvestor, existingStaff] = await Promise.all([
+      db.query('SELECT id FROM users WHERE email = $1', [emailClean]),
+      db.query('SELECT id FROM investors WHERE email = $1', [emailClean]),
+      db.query('SELECT id FROM staff WHERE email = $1', [emailClean])
+    ]);
+
+    if (existingUser.rows.length > 0 || existingInvestor.rows.length > 0 || existingStaff.rows.length > 0) {
+      throw new ConflictException('User with this email already exists');
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const subaccountId = crypto.randomUUID();
+
+    // Get the first stage for the onboarding pipeline
+    const pipelineRes = await db.query("SELECT id FROM pipeline_stages ORDER BY order_index ASC LIMIT 1");
+    const firstStageId = pipelineRes.rows[0]?.id || null;
+
+    let finalEntityName = entityName || null;
+    let finalEntityType = entityType || null;
+    let finalFirstName = firstName || null;
+    let finalLastName = lastName || null;
+    let finalDob = dob || null;
+
+    if (investorType === 'minor') {
+      finalEntityName = null;
+      finalEntityType = null;
+    } else if (investorType === 'entity') {
+      finalFirstName = null;
+      finalLastName = null;
+      finalDob = null;
+    }
+
+    let fullName = '';
+    if (investorType === 'minor') {
+      fullName = `${finalFirstName} ${finalLastName || ''}`.trim();
+    } else {
+      fullName = finalEntityName || '';
+    }
+
+    await db.query(
+      `INSERT INTO investors (
+        id, email, full_name, password_hash, phone, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, status,
+        investor_type, entity_name, entity_type, parent_id, pipeline_stage_id
+      )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+       RETURNING id, email, full_name, investor_type`,
+      [
+        subaccountId,
+        emailClean,
+        fullName,
+        passwordHash,
+        phone || null,
+        finalDob,
+        addressLine1 || null,
+        addressLine2 || null,
+        city || null,
+        state || null,
+        zipCode || null,
+        country || null,
+        taxId || null,
+        'active',
+        investorType,
+        finalEntityName,
+        finalEntityType,
+        parentId,
+        firstStageId
+      ]
+    );
+
+    try {
+      await this.emailService.sendWelcomeEmail(emailClean, fullName, 'investor', password);
+    } catch (err) {
+      console.error(`Failed to send welcome email to subaccount ${emailClean}:`, err);
+    }
+
+    return { success: true, message: 'Sub-account created successfully' };
+  }
 }

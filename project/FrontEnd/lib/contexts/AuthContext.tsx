@@ -25,6 +25,11 @@ interface User {
   kycStatus?: string;
   assignedIrName?: string;
   assignedAccountantName?: string;
+  investorType?: string;
+  entityName?: string;
+  entityType?: string;
+  parentId?: string | null;
+  parentName?: string | null;
 }
 
 interface AuthContextType {

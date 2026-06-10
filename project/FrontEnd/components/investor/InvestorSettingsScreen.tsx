@@ -1,7 +1,7 @@
 'use client';
 
 import { ChangeEvent, useMemo, useRef, useState, useEffect } from 'react';
-import { CalendarDays, ChevronDown, ChevronLeft, Plus, Upload, Eye, EyeOff, Loader2, MoreHorizontal, RefreshCcw, LogOut } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronLeft, Plus, Upload, Eye, EyeOff, Loader2, MoreHorizontal, RefreshCcw, LogOut, X } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
@@ -27,7 +27,8 @@ type SettingsTab =
   | 'accounts'
   | 'bank-accounts'
   | 'add-account'
-  | 'add-bank-account';
+  | 'add-bank-account'
+  | 'sub-accounts';
 
 type SessionItem = {
   id: string;
@@ -66,6 +67,7 @@ const tabs: Array<{ id: Exclude<SettingsTab, 'add-account'>; label: string }> = 
   { id: 'notifications', label: 'Notifications' },
   // { id: 'accounts', label: 'Account Switcher' },
   { id: 'bank-accounts', label: 'Bank Accounts' },
+  { id: 'sub-accounts', label: 'Sub Accounts' },
 ];
 
 const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
@@ -109,6 +111,33 @@ const formatPhoneNumber = (value: string, countryCode: string) => {
     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
   }
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 11)}`;
+};
+
+const formatTaxIdDisplay = (taxId: string, type: string) => {
+  if (!taxId) return '-';
+  const clean = taxId.replace(/\D/g, '');
+  if (clean.length !== 9) return taxId;
+  if (type === 'minor') {
+    return `${clean.slice(0, 3)}-${clean.slice(3, 5)}-${clean.slice(5)}`;
+  } else {
+    return `${clean.slice(0, 2)}-${clean.slice(2)}`;
+  }
+};
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return '-';
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString;
+    return d.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC'
+    });
+  } catch {
+    return dateString;
+  }
 };
 
 const defaultProfile = {
@@ -265,6 +294,32 @@ export function InvestorSettingsScreen() {
   const [sessionToRevoke, setSessionToRevoke] = useState<SessionItem | null>(null);
   const [isConfirmRevokeOpen, setIsConfirmRevokeOpen] = useState(false);
 
+  const [subaccounts, setSubaccounts] = useState<any[]>([]);
+  const [subaccountsLoading, setSubaccountsLoading] = useState(false);
+  const [selectedSubaccount, setSelectedSubaccount] = useState<any>(null);
+  const [subAccountMode, setSubAccountMode] = useState<'list' | 'add'>('list');
+  const [subAccountType, setSubAccountType] = useState<'minor' | 'entity'>('minor');
+  const [subForm, setSubForm] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    dob: '',
+    phone: '',
+    countryCode: '+1 (USA)',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: 'US',
+    taxId: '',
+    entityName: '',
+    entityType: 'LLC',
+  });
+  const [subFormErrors, setSubFormErrors] = useState<Record<string, string>>({});
+  const [subFormSaving, setSubFormSaving] = useState(false);
+
   const countries = useMemo(() => {
     const allCountries = Country.getAllCountries();
     // Sort countries with USA at the top
@@ -286,6 +341,32 @@ export function InvestorSettingsScreen() {
     if (!countryObj || !stateObj) return [];
     return City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode);
   }, [profile.country, profile.state, countries, states]);
+
+  const subStates = useMemo(() => {
+    if (!subForm.country) return [];
+    const countryObj = countries.find(c => c.isoCode === subForm.country || c.name === subForm.country);
+    return countryObj ? State.getStatesOfCountry(countryObj.isoCode) : [];
+  }, [subForm.country, countries]);
+
+  const subCities = useMemo(() => {
+    if (!subForm.country || !subForm.state) return [];
+    const countryObj = countries.find(c => c.isoCode === subForm.country || c.name === subForm.country);
+    const stateObj = subStates.find(s => s.isoCode === subForm.state || s.name === subForm.state);
+    if (!countryObj || !stateObj) return [];
+    return City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode);
+  }, [subForm.country, subForm.state, countries, subStates]);
+
+  const loadSubaccounts = async () => {
+    try {
+      setSubaccountsLoading(true);
+      const data = await apiClient.getSubaccounts();
+      setSubaccounts(data);
+    } catch (err) {
+      console.error('Error loading subaccounts:', err);
+    } finally {
+      setSubaccountsLoading(false);
+    }
+  };
 
   const profileImageInputRef = useRef<HTMLInputElement | null>(null);
   const [loading, setLoading] = useState(true);
@@ -431,6 +512,7 @@ export function InvestorSettingsScreen() {
     loadProfile();
     loadBankAccounts();
     loadSessions();
+    loadSubaccounts();
   }, []);
 
   const [notifications, setNotifications] = useState({
@@ -1378,6 +1460,488 @@ export function InvestorSettingsScreen() {
   //   </SectionCard>
   // );
 
+  const renderSubAccountsTab = () => {
+    if (subAccountMode === 'add') {
+      return (
+        <SectionCard>
+          <div className="flex items-center justify-between border-b border-[#ECEDEF] p-4">
+            <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F]">Add Sub Account</h3>
+            <button
+              type="button"
+              onClick={() => {
+                setSubAccountMode('list');
+                setSubFormErrors({});
+              }}
+              className="h-[32px] rounded-full bg-[#ECEDEF] px-5 text-[12px] text-[#4B4B4B] hover:bg-[#D8D9DE]"
+            >
+              Back to List
+            </button>
+          </div>
+
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            const errors: Record<string, string> = {};
+            if (!subForm.email.trim()) errors.email = 'Email is required';
+            if (!subForm.password.trim()) errors.password = 'Password is required';
+
+            const cleanNumber = subForm.phone.replace(/\D/g, '');
+            if (subForm.phone && cleanNumber) {
+              let phoneError = '';
+              if (subForm.countryCode.includes('+1')) {
+                if (cleanNumber.length !== 10) phoneError = 'USA phone number must be 10 digits';
+              } else if (subForm.countryCode.includes('+44')) {
+                if (cleanNumber.length < 10 || cleanNumber.length > 11) phoneError = 'UK phone number must be 10-11 digits';
+              } else if (subForm.countryCode.includes('+91')) {
+                if (cleanNumber.length !== 10) phoneError = 'India phone number must be 10 digits';
+              }
+              if (phoneError) {
+                errors.phone = phoneError;
+              }
+            }
+
+            const cleanTax = subForm.taxId.replace(/\D/g, '');
+            if (subForm.taxId && cleanTax.length !== 9) {
+              errors.taxId = 'Tax ID must be exactly 9 digits';
+            }
+
+            if (subAccountType === 'minor') {
+              if (!subForm.firstName.trim()) errors.firstName = 'First name is required';
+              if (!subForm.lastName.trim()) errors.lastName = 'Last name is required';
+              if (!subForm.dob.trim()) errors.dob = 'Date of birth is required';
+              if (!subForm.addressLine1.trim()) errors.addressLine1 = 'Street address line 1 is required';
+              if (!subForm.city.trim()) errors.city = 'City is required';
+              if (!subForm.state.trim()) errors.state = 'State is required';
+              if (!subForm.zipCode.trim()) errors.zipCode = 'ZIP code is required';
+              if (!subForm.country.trim()) errors.country = 'Country is required';
+              if (!subForm.taxId.trim()) errors.taxId = 'Tax ID (SSN) is required';
+            } else {
+              if (!subForm.entityName.trim()) errors.entityName = 'Legal Entity Name is required';
+              if (!subForm.entityType.trim()) errors.entityType = 'Entity Type is required';
+              if (!subForm.taxId.trim()) errors.taxId = 'Tax ID (EIN) is required';
+              if (!subForm.addressLine1.trim()) errors.addressLine1 = 'Street address line 1 is required';
+              if (!subForm.city.trim()) errors.city = 'City is required';
+              if (!subForm.state.trim()) errors.state = 'State is required';
+              if (!subForm.zipCode.trim()) errors.zipCode = 'ZIP code is required';
+              if (!subForm.country.trim()) errors.country = 'Country is required';
+            }
+
+            if (Object.keys(errors).length > 0) {
+              setSubFormErrors(errors);
+              return;
+            }
+
+            setSubFormSaving(true);
+            try {
+              const payload = {
+                ...subForm,
+                taxId: subForm.taxId.replace(/\D/g, ''),
+                phone: subForm.phone ? `${subForm.countryCode} ${subForm.phone}`.trim() : null,
+                investorType: subAccountType,
+                entityName: subAccountType === 'minor' ? null : subForm.entityName,
+                entityType: subAccountType === 'minor' ? null : subForm.entityType,
+                firstName: subAccountType === 'entity' ? null : subForm.firstName,
+                lastName: subAccountType === 'entity' ? null : subForm.lastName,
+                dob: subAccountType === 'entity' ? null : subForm.dob,
+              };
+              await apiClient.createSubaccount(payload);
+              toast({ title: 'Success', description: 'Sub-account created successfully', variant: 'success' });
+              setSubForm({
+                email: '',
+                password: '',
+                firstName: '',
+                lastName: '',
+                dob: '',
+                phone: '',
+                countryCode: '+1 (USA)',
+                addressLine1: '',
+                addressLine2: '',
+                city: '',
+                state: '',
+                zipCode: '',
+                country: 'US',
+                taxId: '',
+                entityName: '',
+                entityType: 'LLC',
+              });
+              setSubAccountMode('list');
+              loadSubaccounts();
+            } catch (err: any) {
+              toast({ title: 'Error', description: err.message || 'Failed to create sub-account', variant: 'destructive' });
+            } finally {
+              setSubFormSaving(false);
+            }
+          }} className="p-4 sm:p-5 space-y-4">
+            <div className="w-full sm:w-1/2">
+              <FieldLabel>Sub-Account Type</FieldLabel>
+              <div className="relative">
+                <select
+                  value={subAccountType}
+                  onChange={(e) => {
+                    setSubAccountType(e.target.value as 'minor' | 'entity');
+                    setSubFormErrors({});
+                  }}
+                  className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none focus:border-[#274583]"
+                >
+                  <option value="minor">Minor</option>
+                  <option value="entity">Entity</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {subAccountType === 'minor' ? (
+                <>
+                  <div>
+                    <FieldLabel>First Name</FieldLabel>
+                    <TextInput
+                      className={subFormErrors.firstName ? '!border-[#E05252]' : ''}
+                      placeholder="Minor's first name"
+                      value={subForm.firstName}
+                      onChange={(e) => {
+                        setSubForm(prev => ({ ...prev, firstName: e.target.value }));
+                        setSubFormErrors(prev => ({ ...prev, firstName: '' }));
+                      }}
+                    />
+                    {subFormErrors.firstName && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.firstName}</p>}
+                  </div>
+                  <div>
+                    <FieldLabel>Last Name</FieldLabel>
+                    <TextInput
+                      className={subFormErrors.lastName ? '!border-[#E05252]' : ''}
+                      placeholder="Minor's last name"
+                      value={subForm.lastName}
+                      onChange={(e) => {
+                        setSubForm(prev => ({ ...prev, lastName: e.target.value }));
+                        setSubFormErrors(prev => ({ ...prev, lastName: '' }));
+                      }}
+                    />
+                    {subFormErrors.lastName && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.lastName}</p>}
+                  </div>
+                  <div>
+                    <FieldLabel>Date of Birth</FieldLabel>
+                    <TextInput
+                      type="date"
+                      className={subFormErrors.dob ? '!border-[#E05252]' : ''}
+                      value={subForm.dob}
+                      onChange={(e) => {
+                        setSubForm(prev => ({ ...prev, dob: e.target.value }));
+                        setSubFormErrors(prev => ({ ...prev, dob: '' }));
+                      }}
+                    />
+                    {subFormErrors.dob && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.dob}</p>}
+                  </div>
+                  <div>
+                    <FieldLabel>Phone Number</FieldLabel>
+                    <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-2">
+                      <div className="relative">
+                        <select
+                          value={subForm.countryCode}
+                          onChange={(event) => {
+                            const newCode = event.target.value;
+                            setSubForm((prev) => ({
+                              ...prev,
+                              countryCode: newCode,
+                              phone: formatPhoneNumber(prev.phone, newCode),
+                            }));
+                            setSubFormErrors((prev) => ({ ...prev, phone: '' }));
+                          }}
+                          className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none"
+                        >
+                          {COUNTRY_CODES.map(code => (
+                            <option key={code} value={code}>{code}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
+                      </div>
+                      <TextInput
+                        className={subFormErrors.phone ? '!border-[#E05252]' : ''}
+                        placeholder="Enter phone number"
+                        value={subForm.phone}
+                        onChange={(event) => {
+                          const val = formatPhoneNumber(event.target.value, subForm.countryCode);
+                          setSubForm((prev) => ({
+                            ...prev,
+                            phone: val,
+                          }));
+                          setSubFormErrors((prev) => ({ ...prev, phone: '' }));
+                        }}
+                      />
+                    </div>
+                    {subFormErrors.phone && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.phone}</p>}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <FieldLabel>Legal Entity Name</FieldLabel>
+                    <TextInput
+                      className={subFormErrors.entityName ? '!border-[#E05252]' : ''}
+                      placeholder="Legal Entity Name"
+                      value={subForm.entityName}
+                      onChange={(e) => {
+                        setSubForm(prev => ({ ...prev, entityName: e.target.value }));
+                        setSubFormErrors(prev => ({ ...prev, entityName: '' }));
+                      }}
+                    />
+                    {subFormErrors.entityName && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.entityName}</p>}
+                  </div>
+                  <div>
+                    <FieldLabel>Entity Type</FieldLabel>
+                    <div className="relative">
+                      <select
+                        value={subForm.entityType}
+                        onChange={(e) => setSubForm(prev => ({ ...prev, entityType: e.target.value }))}
+                        className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none focus:border-[#274583]"
+                      >
+                        <option value="LLC">LLC</option>
+                        <option value="Corporation">Corporation</option>
+                        <option value="Trust">Trust</option>
+                        <option value="Partnership">Partnership</option>
+                        <option value="Nonprofit">Nonprofit</option>
+                        <option value="Others">Others</option>
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div>
+                <FieldLabel>Email</FieldLabel>
+                <TextInput
+                  type="email"
+                  className={subFormErrors.email ? '!border-[#E05252]' : ''}
+                  placeholder="Sub-account email"
+                  value={subForm.email}
+                  onChange={(e) => {
+                    setSubForm(prev => ({ ...prev, email: e.target.value }));
+                    setSubFormErrors(prev => ({ ...prev, email: '' }));
+                  }}
+                />
+                {subFormErrors.email && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.email}</p>}
+              </div>
+              <div>
+                <FieldLabel>Password</FieldLabel>
+                <PasswordInput
+                  className={subFormErrors.password ? '!border-[#E05252]' : ''}
+                  placeholder="Sub-account password"
+                  value={subForm.password}
+                  onChange={(e) => {
+                    setSubForm(prev => ({ ...prev, password: e.target.value }));
+                    setSubFormErrors(prev => ({ ...prev, password: '' }));
+                  }}
+                />
+                {subFormErrors.password && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.password}</p>}
+              </div>
+
+              <div>
+                <FieldLabel>Tax ID ({subAccountType === 'minor' ? 'SSN' : 'EIN'})</FieldLabel>
+                <TextInput
+                  className={subFormErrors.taxId ? '!border-[#E05252]' : ''}
+                  placeholder={subAccountType === 'minor' ? 'XXX-XX-XXXX' : 'XX-XXXXXXX'}
+                  value={subForm.taxId}
+                  onChange={(e) => {
+                    let val = e.target.value.replace(/\D/g, '');
+                    if (val.length > 9) val = val.slice(0, 9);
+                    let formatted = val;
+                    if (subAccountType === 'minor') {
+                      if (val.length > 3 && val.length <= 5) {
+                        formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                      } else if (val.length > 5) {
+                        formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+                      }
+                    } else {
+                      if (val.length > 2) {
+                        formatted = `${val.slice(0, 2)}-${val.slice(2)}`;
+                      }
+                    }
+                    setSubForm(prev => ({ ...prev, taxId: formatted }));
+                    setSubFormErrors(prev => ({ ...prev, taxId: '' }));
+                  }}
+                />
+                {subFormErrors.taxId && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.taxId}</p>}
+              </div>
+            </div>
+
+            <div className="border-t border-[#ECEDEF] pt-4 mt-4">
+              <h4 className="text-[13px] font-semibold text-[#1F1F1F] mb-3">Full Address</h4>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <FieldLabel>Street Address Line 1</FieldLabel>
+                  <TextInput
+                    className={subFormErrors.addressLine1 ? '!border-[#E05252]' : ''}
+                    placeholder="Street Address Line 1"
+                    value={subForm.addressLine1}
+                    onChange={(e) => {
+                      setSubForm(prev => ({ ...prev, addressLine1: e.target.value }));
+                      setSubFormErrors(prev => ({ ...prev, addressLine1: '' }));
+                    }}
+                  />
+                  {subFormErrors.addressLine1 && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.addressLine1}</p>}
+                </div>
+                <div>
+                  <FieldLabel>Street Address Line 2</FieldLabel>
+                  <TextInput
+                    placeholder="Street Address Line 2"
+                    value={subForm.addressLine2}
+                    onChange={(e) => setSubForm(prev => ({ ...prev, addressLine2: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Country</FieldLabel>
+                  <Combobox
+                    options={countries.map(c => ({ value: c.isoCode, label: c.name }))}
+                    value={subForm.country}
+                    onChange={(val) => {
+                      setSubForm((prev) => ({ ...prev, country: val, state: '', city: '' }));
+                      setSubFormErrors((prev) => ({ ...prev, country: '' }));
+                    }}
+                    placeholder="Select Country"
+                    className={cn("w-full", subFormErrors.country && "!border-[#E05252]")}
+                  />
+                  {subFormErrors.country && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.country}</p>}
+                </div>
+                <div>
+                  <FieldLabel>State</FieldLabel>
+                  <Combobox
+                    options={subStates.map(s => ({ value: s.isoCode, label: s.name }))}
+                    value={subForm.state}
+                    onChange={(val) => {
+                      setSubForm((prev) => ({ ...prev, state: val, city: '' }));
+                      setSubFormErrors((prev) => ({ ...prev, state: '' }));
+                    }}
+                    placeholder="Select State"
+                    className={cn("w-full", subFormErrors.state && "!border-[#E05252]")}
+                    disabled={!subForm.country}
+                  />
+                  {subFormErrors.state && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.state}</p>}
+                </div>
+                <div>
+                  <FieldLabel>City</FieldLabel>
+                  <Combobox
+                    options={subCities.map(c => ({ value: c.name, label: c.name }))}
+                    value={subForm.city}
+                    onChange={(val) => {
+                      setSubForm((prev) => ({ ...prev, city: val }));
+                      setSubFormErrors((prev) => ({ ...prev, city: '' }));
+                    }}
+                    placeholder="Select City"
+                    className={cn("w-full", subFormErrors.city && "!border-[#E05252]")}
+                    disabled={!subForm.state}
+                  />
+                  {subFormErrors.city && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.city}</p>}
+                </div>
+                <div>
+                  <FieldLabel>ZIP Code</FieldLabel>
+                  <TextInput
+                    className={subFormErrors.zipCode ? '!border-[#E05252]' : ''}
+                    placeholder="ZIP Code"
+                    value={subForm.zipCode}
+                    onChange={(e) => {
+                      setSubForm(prev => ({ ...prev, zipCode: e.target.value }));
+                      setSubFormErrors(prev => ({ ...prev, zipCode: '' }));
+                    }}
+                  />
+                  {subFormErrors.zipCode && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.zipCode}</p>}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-[#ECEDEF]">
+              <button
+                type="button"
+                onClick={() => {
+                  setSubAccountMode('list');
+                  setSubFormErrors({});
+                }}
+                className="h-[36px] rounded-full border border-[#E5E5EA] px-6 text-[12px] font-medium text-[#4B4B4B] hover:bg-[#F9FAFB]"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={subFormSaving}
+                className="flex h-[36px] items-center justify-center gap-2 rounded-full bg-[#274583] px-6 text-[12px] font-medium text-white hover:bg-[#1E3565] disabled:opacity-50"
+              >
+                {subFormSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                Create Sub Account
+              </button>
+            </div>
+          </form>
+        </SectionCard>
+      );
+    }
+
+    return (
+      <SectionCard>
+        <div className="flex items-center justify-between border-b border-[#ECEDEF] p-4">
+          <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F]">My Sub Accounts</h3>
+          <button
+            type="button"
+            onClick={() => setSubAccountMode('add')}
+            className="h-[32px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] hover:bg-[#FAD980]"
+          >
+            Add Sub Account
+          </button>
+        </div>
+
+        <div className="p-4 sm:p-5">
+          {subaccountsLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-6 w-6 animate-spin text-[#274583]" />
+              <span className="ml-2 text-[12px] text-[#4B4B4B]">Loading sub-accounts...</span>
+            </div>
+          ) : subaccounts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <p className="text-[14px] text-[#4B4B4B]">No sub-accounts added yet.</p>
+              <p className="mt-1 text-[12px] text-[#A2A5AA]">Add your minor or entity sub-accounts to manage investments on their behalf.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-[12px] text-[#4B4B4B]">
+                <thead>
+                  <tr className="border-b border-[#ECEDEF] text-[11px] text-[#7B8088]">
+                    <th className="py-2 pr-3">Name</th>
+                    <th className="py-2 pr-3">Email</th>
+                    <th className="py-2 pr-3">Type</th>
+                    <th className="py-2 pr-3">Tax ID</th>
+                    <th className="py-2 pr-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subaccounts.map((sub) => (
+                    <tr
+                      key={sub.id}
+                      onClick={() => setSelectedSubaccount(sub)}
+                      className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] cursor-pointer transition-colors"
+                    >
+                      <td className="py-3 pr-3 font-medium text-[#1F1F1F]">{sub.fullName || sub.entityName || '-'}</td>
+                      <td className="py-3 pr-3">{sub.email}</td>
+                      <td className="py-3 pr-3 capitalize">{sub.investorType}</td>
+                      <td className="py-3 pr-3">{formatTaxIdDisplay(sub.taxId, sub.investorType)}</td>
+                      <td className="py-3 pr-3 text-right">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedSubaccount(sub);
+                          }}
+                          className="text-[12px] font-semibold text-[#274583] hover:underline"
+                        >
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+    );
+  };
+
   const renderBankAccountsTab = () => (
     <SectionCard>
       <div className="flex items-center justify-between border-b border-[#ECEDEF] p-3">
@@ -1909,6 +2473,7 @@ export function InvestorSettingsScreen() {
         {activeTab === 'notifications' && renderNotificationsTab()}
         {/* {activeTab === 'accounts' && renderAccountsTab()} */}
         {activeTab === 'bank-accounts' && renderBankAccountsTab()}
+        {activeTab === 'sub-accounts' && renderSubAccountsTab()}
         {activeTab === 'add-account' && renderAddAccount()}
         {activeTab === 'add-bank-account' && renderAddBankAccount()}
       </div>
@@ -1950,6 +2515,122 @@ export function InvestorSettingsScreen() {
               >
                 {isDeletingBank && <Loader2 className="h-4 w-4 animate-spin" />}
                 Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedSubaccount && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="relative w-full max-w-[650px] rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[#ECEDEF] px-6 py-4">
+              <div>
+                <h3 className="text-[16px] font-bold text-[#1F1F1F]">Sub Account Details</h3>
+                <p className="text-[11px] text-[#8E8E93] mt-0.5 capitalize">
+                  {selectedSubaccount.investorType} Account
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedSubaccount(null)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 max-h-[70vh] overflow-y-auto">
+              <div className="grid gap-6">
+                <div>
+                  <h4 className="text-[13px] font-semibold text-[#1F1F1F] mb-3 pb-1 border-b border-[#ECEDEF]">
+                    Basic Information
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedSubaccount.investorType === 'minor' ? (
+                      <>
+                        <div className="border-b border-[#F2F3F5] pb-2">
+                          <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Full Name</p>
+                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.fullName || '-'}</p>
+                        </div>
+                        <div className="border-b border-[#F2F3F5] pb-2">
+                          <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Date of Birth</p>
+                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{formatDate(selectedSubaccount.dob)}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="border-b border-[#F2F3F5] pb-2">
+                          <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Legal Entity Name</p>
+                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.entityName || '-'}</p>
+                        </div>
+                        <div className="border-b border-[#F2F3F5] pb-2">
+                          <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Entity Type</p>
+                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.entityType || '-'}</p>
+                        </div>
+                      </>
+                    )}
+                    <div className="border-b border-[#F2F3F5] pb-2">
+                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Email Address</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.email || '-'}</p>
+                    </div>
+                    <div className="border-b border-[#F2F3F5] pb-2">
+                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Phone Number</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.phone || '-'}</p>
+                    </div>
+                    <div className="border-b border-[#F2F3F5] pb-2 col-span-2">
+                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">
+                        Tax ID ({selectedSubaccount.investorType === 'minor' ? 'SSN' : 'EIN'})
+                      </p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">
+                        {formatTaxIdDisplay(selectedSubaccount.taxId, selectedSubaccount.investorType)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-[13px] font-semibold text-[#1F1F1F] mb-3 pb-1 border-b border-[#ECEDEF]">
+                    Address Details
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="border-b border-[#F2F3F5] pb-2">
+                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Street Address 1</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.addressLine1 || '-'}</p>
+                    </div>
+                    <div className="border-b border-[#F2F3F5] pb-2">
+                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Street Address 2</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.addressLine2 || '-'}</p>
+                    </div>
+                    <div className="border-b border-[#F2F3F5] pb-2">
+                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">City</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.city || '-'}</p>
+                    </div>
+                    <div className="border-b border-[#F2F3F5] pb-2">
+                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">State / Province</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.state || '-'}</p>
+                    </div>
+                    <div className="border-b border-[#F2F3F5] pb-2">
+                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">ZIP / Postal Code</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.zipCode || '-'}</p>
+                    </div>
+                    <div className="border-b border-[#F2F3F5] pb-2">
+                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Country</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.country || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end border-t border-[#ECEDEF] px-6 py-4">
+              <button
+                onClick={() => setSelectedSubaccount(null)}
+                className="h-[36px] rounded-full bg-[#FFF3D6] px-6 text-[12px] font-semibold text-[#4B4B4B] hover:bg-[#FCEBAE] transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>
