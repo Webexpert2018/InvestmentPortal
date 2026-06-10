@@ -423,4 +423,12 @@ export class AccountsService {
       throw new InternalServerErrorException('Failed to update account status');
     }
   }
+
+  async verifySubaccount(subaccountId: string, parentId: string): Promise<boolean> {
+    const result = await db.query(
+      'SELECT id FROM investors WHERE id = $1::uuid AND parent_id = $2::uuid',
+      [subaccountId, parentId]
+    );
+    return result.rows.length > 0;
+  }
 }

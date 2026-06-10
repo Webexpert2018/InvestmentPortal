@@ -174,6 +174,10 @@ class ApiClient {
     return this.request<any[]>('/users/subaccounts');
   }
 
+  async getIraAccountsForUser(userId: string) {
+    return this.request<any[]>(`/ira-accounts/user/${userId}`);
+  }
+
   async createSubaccount(data: any) {
     return this.request<any>('/users/subaccounts', {
       method: 'POST',

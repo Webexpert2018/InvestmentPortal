@@ -8,7 +8,7 @@ import { CurrentUser } from '../../decorators/current-user.decorator';
 @Controller('api/ira-accounts')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AccountsController {
-  constructor(private readonly accountsService: AccountsService) {}
+  constructor(private readonly accountsService: AccountsService) { }
 
   @Get('my')
   async getMyIraAccount(@CurrentUser() user: any) {
@@ -29,14 +29,24 @@ export class AccountsController {
     @Headers('authorization') authHeader: string,
   ) {
     const token = authHeader?.replace('Bearer ', '');
-    
+
     let targetUserId = user.userId;
-    
-    // If admin/staff and targetUserId is provided, use it
+
+    // If admin/staff and targetUserId is provided, use it. Also allow parent if targetUserId is their subaccount.
     const adminRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant'];
     if (dto.targetUserId && dto.targetUserId !== user.userId) {
-      if (!adminRoles.includes(user.role)) {
-        throw new ForbiddenException('Only administrators can create accounts for other users');
+      let authorized = false;
+      if (adminRoles.includes(user.role)) {
+        authorized = true;
+      } else {
+        const checkResult = await this.accountsService.verifySubaccount(dto.targetUserId, user.userId);
+        if (checkResult) {
+          authorized = true;
+        }
+      }
+
+      if (!authorized) {
+        throw new ForbiddenException('Only administrators or parents can create accounts for other users');
       }
       targetUserId = dto.targetUserId;
     }
@@ -48,7 +58,11 @@ export class AccountsController {
   async getUserIraAccounts(@Param('id') id: string, @CurrentUser() user: any) {
     const adminRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant'];
     if (!adminRoles.includes(user.role)) {
-      throw new ForbiddenException('Only administrators can view other users\' IRA accounts');
+      // Allow parent investor to view their own subaccount's IRA accounts
+      const isParent = await this.accountsService.verifySubaccount(id, user.userId);
+      if (!isParent) {
+        throw new ForbiddenException('Not authorized to view IRA accounts for this user');
+      }
     }
     return this.accountsService.getMyIraAccount(id);
   }

@@ -320,6 +320,159 @@ export function InvestorSettingsScreen() {
   const [subFormErrors, setSubFormErrors] = useState<Record<string, string>>({});
   const [subFormSaving, setSubFormSaving] = useState(false);
 
+  // IRA Modal states for minor subaccounts
+  const [showAddIraModal, setShowAddIraModal] = useState(false);
+  const [iraForm, setIraForm] = useState({
+    accountType: 'Traditional IRA',
+    accountNumber: '',
+    custodian: '',
+    beneficiary: '',
+    accountHolderName: '',
+    ssn: '',
+    middleName: '',
+    suffix: '',
+    maritalStatus: 'single',
+    mailingAddressSame: true,
+    mailingAddress1: '',
+    mailingAddress2: '',
+    mailingCity: '',
+    mailingState: '',
+    mailingZipCode: '',
+    mailingCountry: '',
+  });
+  const [accountTypes, setAccountTypes] = useState<any[]>([]);
+  const [iraLoading, setIraLoading] = useState(false);
+  const [iraErrors, setIraErrors] = useState<{ [key: string]: string }>({});
+
+  const fetchAccountTypes = async () => {
+    try {
+      const data = await apiClient.getIraAccountTypes();
+      setAccountTypes(data);
+    } catch (error) {
+      console.error('Failed to fetch account types:', error);
+    }
+  };
+
+  const handleOpenAddIraModal = (sub: any) => {
+    fetchAccountTypes();
+    setIraForm({
+      accountType: 'Traditional IRA',
+      accountNumber: '',
+      custodian: '',
+      beneficiary: '',
+      accountHolderName: sub.fullName || '',
+      ssn: sub.taxId || '',
+      middleName: '',
+      suffix: '',
+      maritalStatus: 'single',
+      mailingAddressSame: true,
+      mailingAddress1: sub.addressLine1 || '',
+      mailingAddress2: sub.addressLine2 || '',
+      mailingCity: sub.city || '',
+      mailingState: sub.state || '',
+      mailingZipCode: sub.zipCode || '',
+      mailingCountry: sub.country || '',
+    });
+    setIraErrors({});
+    setShowAddIraModal(true);
+  };
+
+  useEffect(() => {
+    if (iraForm.mailingAddressSame && selectedSubaccount) {
+      setIraForm(prev => ({
+        ...prev,
+        mailingAddress1: selectedSubaccount.addressLine1 || '',
+        mailingAddress2: selectedSubaccount.addressLine2 || '',
+        mailingCity: selectedSubaccount.city || '',
+        mailingState: selectedSubaccount.state || '',
+        mailingZipCode: selectedSubaccount.zipCode || '',
+        mailingCountry: selectedSubaccount.country || '',
+      }));
+    }
+  }, [iraForm.mailingAddressSame, selectedSubaccount]);
+
+  const handleSaveIRA = async () => {
+    const e: { [k: string]: string } = {};
+    if (!iraForm.accountType.trim()) e.accountType = 'Please enter account type.';
+    if (!iraForm.maritalStatus) e.maritalStatus = 'Please select marital status.';
+    const ssnDigits = iraForm.ssn.replace(/[^0-9]/g, '');
+    if (!iraForm.ssn.trim()) e.ssn = 'Please enter Social Security Number.';
+    else if (ssnDigits.length !== 9) e.ssn = 'SSN must contain 9 digits.';
+
+    if (!iraForm.mailingAddressSame) {
+      if (!iraForm.mailingAddress1?.trim()) e.mailingAddress1 = 'Please enter mailing address.';
+      if (!iraForm.mailingCity?.trim()) e.mailingCity = 'Please enter city.';
+      if (!iraForm.mailingState?.trim()) e.mailingState = 'Please select state.';
+      if (!iraForm.mailingCountry?.trim()) e.mailingCountry = 'Please select country.';
+      if (!iraForm.mailingZipCode?.trim()) e.mailingZipCode = 'Please enter zip code.';
+    }
+
+    setIraErrors(e);
+    if (Object.keys(e).length > 0) {
+      toast({
+        title: 'Validation failed',
+        description: 'Missing or invalid fields: ' + Object.keys(e).join(', '),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIraLoading(true);
+    try {
+      const parts = (selectedSubaccount?.fullName || '').trim().split(/\s+/);
+      const firstName = parts[0] || '';
+      const lastName = parts.slice(1).join(' ') || '';
+
+      await apiClient.createIRAAccount({
+        targetUserId: selectedSubaccount.id,
+        accountType: iraForm.accountType,
+        accountNumber: iraForm.accountNumber,
+        custodian: iraForm.custodian,
+        beneficiary: iraForm.beneficiary,
+        middleName: iraForm.middleName,
+        suffix: iraForm.suffix,
+        maritalStatus: iraForm.maritalStatus,
+        mailingAddressSame: iraForm.mailingAddressSame,
+        mailingAddress1: iraForm.mailingAddress1,
+        mailingAddress2: iraForm.mailingAddress2,
+        mailingCity: iraForm.mailingCity,
+        mailingState: State.getStateByCodeAndCountry(iraForm.mailingState, iraForm.mailingCountry)?.name || iraForm.mailingState,
+        mailingZipCode: iraForm.mailingZipCode,
+        mailingCountry: Country.getCountryByCode(iraForm.mailingCountry)?.name || iraForm.mailingCountry,
+        ssn: iraForm.ssn,
+        firstName: firstName,
+        lastName: lastName,
+        email: selectedSubaccount.email,
+        dob: selectedSubaccount.dob,
+        phone: selectedSubaccount.phone,
+        taxId: selectedSubaccount.taxId,
+        physicalAddress1: selectedSubaccount.addressLine1,
+        physicalAddress2: selectedSubaccount.addressLine2,
+        city: selectedSubaccount.city,
+        state: selectedSubaccount.state,
+        zipCode: selectedSubaccount.zipCode,
+        country: selectedSubaccount.country,
+      });
+
+      toast({
+        title: 'IRA saved',
+        description: 'IRA account saved locally and synced successfully.',
+        variant: 'success'
+      });
+
+      setShowAddIraModal(false);
+      setSelectedSubaccount(null);
+    } catch (error: any) {
+      toast({
+        title: error?.status === 409 ? 'Duplicate Account Type' : 'Error',
+        description: error?.message || 'Failed to save IRA account',
+        variant: 'destructive'
+      });
+    } finally {
+      setIraLoading(false);
+    }
+  };
+
   const countries = useMemo(() => {
     const allCountries = Country.getAllCountries();
     // Sort countries with USA at the top
@@ -355,6 +508,12 @@ export function InvestorSettingsScreen() {
     if (!countryObj || !stateObj) return [];
     return City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode);
   }, [subForm.country, subForm.state, countries, subStates]);
+
+  const iraStates = useMemo(() => {
+    if (!iraForm.mailingCountry) return [];
+    const countryObj = countries.find(c => c.isoCode === iraForm.mailingCountry || c.name === iraForm.mailingCountry);
+    return countryObj ? State.getStatesOfCountry(countryObj.isoCode) : [];
+  }, [iraForm.mailingCountry, countries]);
 
   const loadSubaccounts = async () => {
     try {
@@ -997,7 +1156,7 @@ export function InvestorSettingsScreen() {
                   try {
                     const countryObj = Country.getAllCountries().find(c => c.isoCode === profile.country || c.name === profile.country);
                     const countryName = countryObj?.name || profile.country;
-                    
+
                     let stateName = profile.state;
                     if (countryObj && profile.state) {
                       const stateObj = State.getStatesOfCountry(countryObj.isoCode).find(s => s.isoCode === profile.state || s.name === profile.state);
@@ -1237,7 +1396,7 @@ export function InvestorSettingsScreen() {
               Terminate Session?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-[14px] text-[#6B7280]">
-              Are you sure you want to log out from <span className="font-medium text-[#1F1F1F]">{sessionToRevoke?.name}</span>? 
+              Are you sure you want to log out from <span className="font-medium text-[#1F1F1F]">{sessionToRevoke?.name}</span>?
               This will immediately end the session on that device.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -1249,7 +1408,7 @@ export function InvestorSettingsScreen() {
               onClick={async (e) => {
                 e.preventDefault();
                 if (!sessionToRevoke) return;
-                
+
                 try {
                   setRevokingSessionId(sessionToRevoke.id);
                   setIsConfirmRevokeOpen(false);
@@ -2625,13 +2784,264 @@ export function InvestorSettingsScreen() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end border-t border-[#ECEDEF] px-6 py-4">
+            <div className="flex items-center justify-end gap-3 border-t border-[#ECEDEF] px-6 py-4">
+              {selectedSubaccount.investorType === 'minor' && (
+                <button
+                  onClick={() => handleOpenAddIraModal(selectedSubaccount)}
+                  className="h-[36px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 text-[12px] font-semibold text-[#1F1F1F] shadow-sm hover:opacity-90 transition-opacity"
+                >
+                  Create IRA
+                </button>
+              )}
               <button
                 onClick={() => setSelectedSubaccount(null)}
                 className="h-[36px] rounded-full bg-[#FFF3D6] px-6 text-[12px] font-semibold text-[#4B4B4B] hover:bg-[#FCEBAE] transition-colors"
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── ADD IRA MODAL ─── */}
+      {showAddIraModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-8 py-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1]">
+                  <Plus className="h-5 w-5 text-[#D1A94C]" />
+                </div>
+                <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] font-goudy">Open New IRA Account for Minor</h2>
+              </div>
+              <button
+                onClick={() => setShowAddIraModal(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAFAFA] text-[#9CA3AF] hover:bg-[#F3F4F6] transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-8">
+              <div className="flex flex-col gap-8">
+                {/* Account Details */}
+                <div>
+                  <h3 className="text-[14px] font-semibold text-[#1F1F1F] mb-4 font-goudy border-b pb-1">Account Details</h3>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Account Type</label>
+                      <Combobox
+                        options={accountTypes.map(t => ({ label: t.name, value: t.name }))}
+                        value={iraForm.accountType}
+                        onChange={val => setIraForm({ ...iraForm, accountType: val })}
+                        placeholder="Select Account Type"
+                      />
+                      {iraErrors.accountType && <p className="mt-1 text-[11px] text-red-500">{iraErrors.accountType}</p>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Personal Profile */}
+                <div>
+                  <h3 className="text-[14px] font-semibold text-[#1F1F1F] mb-4 font-goudy border-b pb-1">Personal Profile</h3>
+                  <div className="grid gap-4 md:grid-cols-2 mb-4">
+                    <div>
+                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">First Name (from subaccount)</label>
+                      <input
+                        type="text"
+                        value={selectedSubaccount?.fullName?.trim().split(/\s+/)[0] || ''}
+                        disabled
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F3F4F6] text-[#9CA3AF]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Last Name (from subaccount)</label>
+                      <input
+                        type="text"
+                        value={selectedSubaccount?.fullName?.trim().split(/\s+/).slice(1).join(' ') || ''}
+                        disabled
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F3F4F6] text-[#9CA3AF]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2 mb-4">
+                    <div>
+                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Middle Name</label>
+                      <input
+                        type="text"
+                        placeholder="Enter middle name"
+                        value={iraForm.middleName}
+                        onChange={e => setIraForm({ ...iraForm, middleName: e.target.value })}
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Suffix</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Jr, Sr"
+                        value={iraForm.suffix}
+                        onChange={e => setIraForm({ ...iraForm, suffix: e.target.value })}
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Marital Status</label>
+                      <select
+                        value={iraForm.maritalStatus}
+                        disabled={selectedSubaccount?.investorType === 'minor'}
+                        onChange={e => setIraForm({ ...iraForm, maritalStatus: e.target.value })}
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all disabled:bg-gray-100 disabled:text-gray-500"
+                      >
+                        <option value="single">Single</option>
+                        <option value="married">Married</option>
+                        <option value="divorced">Divorced</option>
+                        <option value="widowed">Widowed</option>
+                      </select>
+                      {iraErrors.maritalStatus && <p className="mt-1 text-[11px] text-red-500">{iraErrors.maritalStatus}</p>}
+                    </div>
+
+                    <div>
+                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Social Security Number</label>
+                      <input
+                        type="text"
+                        placeholder="000-00-0000"
+                        maxLength={11}
+                        value={iraForm.ssn}
+                        onChange={e => {
+                          let val = e.target.value.replace(/\D/g, '');
+                          if (val.length > 9) val = val.slice(0, 9);
+                          let formatted = val;
+                          if (val.length > 3 && val.length <= 5) {
+                            formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                          } else if (val.length > 5) {
+                            formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+                          }
+                          setIraForm({ ...iraForm, ssn: formatted });
+                        }}
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                      />
+                      {iraErrors.ssn && <p className="mt-1 text-[11px] text-red-500">{iraErrors.ssn}</p>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mailing Address */}
+                <div>
+                  <div className="flex items-center justify-between mb-4 border-b pb-1">
+                    <h3 className="text-[14px] font-semibold text-[#1F1F1F] font-goudy">Mailing Address</h3>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="mailingAddressSame"
+                        checked={iraForm.mailingAddressSame}
+                        onChange={e => setIraForm({ ...iraForm, mailingAddressSame: e.target.checked })}
+                        className="rounded border-[#E5E7EB] text-[#D1A94C] focus:ring-[#D1A94C]"
+                      />
+                      <label htmlFor="mailingAddressSame" className="text-[12px] font-medium text-[#4B4B4B] font-helvetica">
+                        Same as physical address
+                      </label>
+                    </div>
+                  </div>
+
+                  {!iraForm.mailingAddressSame && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="col-span-2">
+                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Street Address 1</label>
+                        <input
+                          type="text"
+                          placeholder="Street Address Line 1"
+                          value={iraForm.mailingAddress1}
+                          onChange={e => setIraForm({ ...iraForm, mailingAddress1: e.target.value })}
+                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
+                        />
+                        {iraErrors.mailingAddress1 && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingAddress1}</p>}
+                      </div>
+
+                      <div className="col-span-2">
+                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Street Address 2</label>
+                        <input
+                          type="text"
+                          placeholder="Apartment, suite, unit, etc. (optional)"
+                          value={iraForm.mailingAddress2}
+                          onChange={e => setIraForm({ ...iraForm, mailingAddress2: e.target.value })}
+                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Country</label>
+                        <Combobox
+                          options={countries.map(c => ({ label: c.name, value: c.isoCode }))}
+                          value={iraForm.mailingCountry}
+                          onChange={val => setIraForm({ ...iraForm, mailingCountry: val, mailingState: '', mailingCity: '' })}
+                          placeholder="Select Country"
+                        />
+                        {iraErrors.mailingCountry && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingCountry}</p>}
+                      </div>
+
+                      <div>
+                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">State / Province</label>
+                        <Combobox
+                          options={iraStates.map(s => ({ label: s.name, value: s.isoCode }))}
+                          value={iraForm.mailingState}
+                          onChange={val => setIraForm({ ...iraForm, mailingState: val, mailingCity: '' })}
+                          placeholder="Select State"
+                          disabled={!iraForm.mailingCountry}
+                        />
+                        {iraErrors.mailingState && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingState}</p>}
+                      </div>
+
+                      <div>
+                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">City</label>
+                        <input
+                          type="text"
+                          placeholder="City"
+                          value={iraForm.mailingCity}
+                          onChange={e => setIraForm({ ...iraForm, mailingCity: e.target.value })}
+                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
+                        />
+                        {iraErrors.mailingCity && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingCity}</p>}
+                      </div>
+
+                      <div>
+                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">ZIP / Postal Code</label>
+                        <input
+                          type="text"
+                          placeholder="ZIP Code"
+                          value={iraForm.mailingZipCode}
+                          onChange={e => setIraForm({ ...iraForm, mailingZipCode: e.target.value })}
+                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
+                        />
+                        {iraErrors.mailingZipCode && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingZipCode}</p>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex justify-end gap-3 mt-8 border-t pt-5">
+                <button
+                  onClick={() => setShowAddIraModal(false)}
+                  className="px-6 h-[40px] rounded-full border border-gray-300 text-[13px] font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveIRA}
+                  disabled={iraLoading}
+                  className="px-6 h-[40px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] text-[13px] font-semibold text-[#1F1F1F] shadow-md hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2"
+                >
+                  {iraLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Create IRA
+                </button>
+              </div>
             </div>
           </div>
         </div>
