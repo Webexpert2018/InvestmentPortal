@@ -15,11 +15,23 @@ export class InvestmentsService {
 
   async createInvestment(userId: string, data: any) {
     const {
-      fundId, accountId, accountType, investmentAmount, unitPrice, status,
+      fundId, accountId, accountType, investmentAmount, status,
       documentSigned, awaitingFunding, fundsReceived, unitsIssued, envelopeId
     } = data;
 
     try {
+      // Check if accountId is a subaccount of the logged-in user
+      let targetUserId = userId;
+      let finalAccountId = accountId;
+
+      if (accountId && accountId !== 'personal') {
+        const subRes = await db.query('SELECT id, parent_id FROM investors WHERE id = $1', [accountId]);
+        if (subRes.rows.length > 0 && subRes.rows[0].parent_id === userId) {
+          targetUserId = accountId;
+          finalAccountId = null;
+        }
+      }
+
       // 1. Fetch latest active NAV to ensure price accuracy
       const navResult = await db.query(
         `SELECT nav_per_unit FROM fund_nav_history 
@@ -52,7 +64,7 @@ export class InvestmentsService {
       `;
 
       const values = [
-        userId, fundId, accountId || null, accountType,
+        targetUserId, fundId, finalAccountId || null, accountType,
         investmentAmount, processingFee, totalAmount,
         unitPrice, estimatedUnits,
         investmentAmount, // revised_amount initially matches investment_amount
@@ -163,7 +175,7 @@ export class InvestmentsService {
             `INSERT INTO investor_documents (investor_id, file_name, file_url, document_type, file_size, description)
              VALUES ($1, $2, $3, $4, $5, $6)`,
             [
-              userId,
+              targetUserId,
               fileName,
               fileUrl,
               'subscription_agreement',
@@ -202,7 +214,7 @@ export class InvestmentsService {
         SELECT i.*, f.name as fund_name 
         FROM investments i
         JOIN funds f ON i.fund_id = f.id
-        WHERE i.user_id = $1
+        WHERE i.user_id = $1 OR i.user_id IN (SELECT id FROM investors WHERE parent_id = $1)
         ORDER BY i.created_at DESC
       `;
       const result = await db.query(query, [userId]);
@@ -248,7 +260,12 @@ export class InvestmentsService {
         }
       }
 
-      query += ` WHERE id = $${paramCount++} ${isAdmin ? '' : 'AND user_id = $' + paramCount++} RETURNING *`;
+      if (isAdmin) {
+        query += ` WHERE id = $${paramCount++} RETURNING *`;
+      } else {
+        query += ` WHERE id = $${paramCount++} AND (user_id = $${paramCount} OR user_id IN (SELECT id FROM investors WHERE parent_id = $${paramCount})) RETURNING *`;
+        paramCount++;
+      }
       values.push(investmentId);
       if (!isAdmin) values.push(userId);
 
@@ -285,7 +302,7 @@ export class InvestmentsService {
         LEFT JOIN users u ON i.user_id = u.id
         LEFT JOIN investors inv ON i.user_id = inv.id
         LEFT JOIN ira_accounts ira ON i.user_id = ira.user_id
-        WHERE i.id = $1 ${isAdmin ? '' : 'AND i.user_id = $2'}
+        WHERE i.id = $1 ${isAdmin ? '' : 'AND (i.user_id = $2 OR i.user_id IN (SELECT id FROM investors WHERE parent_id = $2))'}
       `;
       const params = isAdmin ? [investmentId] : [investmentId, userId];
       const result = await db.query(query, params);

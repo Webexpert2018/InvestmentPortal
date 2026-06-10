@@ -56,6 +56,7 @@ export default function InvestPage() {
   const [saving, setSaving] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [userIraAccounts, setUserIraAccounts] = useState<any[]>([]);
+  const [subaccounts, setSubaccounts] = useState<any[]>([]);
   const [subscriptionDocs, setSubscriptionDocs] = useState<any[]>([]);
   const [selectedSubDoc, setSelectedSubDoc] = useState<any | null>(null);
   const [selectedPage, setSelectedPage] = useState<number>(1);
@@ -254,16 +255,27 @@ export default function InvestPage() {
       });
     });
 
+    subaccounts.forEach((sub) => {
+      const isEntity = sub.investorType === 'entity';
+      list.push({
+        id: sub.id,
+        label: isEntity ? (sub.entityName || sub.fullName) : sub.fullName,
+        value: isEntity ? `${sub.entityType || 'Entity'} Account` : 'Minor Account',
+        status: sub.status || 'active'
+      });
+    });
+
     return list;
-  }, [userIraAccounts]);
+  }, [userIraAccounts, subaccounts, user]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [fundsData, flowsData, iraData, navData] = await Promise.all([
+        const [fundsData, flowsData, iraData, subaccountsData, navData] = await Promise.all([
           apiClient.getFunds(),
           apiClient.getMyFundFlows(),
           apiClient.getMyIRAAccount().catch(() => null),
+          apiClient.getSubaccounts().catch(() => []),
           apiClient.getNavSummary().catch(() => null),
         ]);
         const activeFunds = Array.isArray(fundsData)
@@ -272,6 +284,7 @@ export default function InvestPage() {
         setFunds(activeFunds);
         setExistingFlows(flowsData);
         setUserIraAccounts(Array.isArray(iraData) ? iraData : (iraData ? [iraData] : []));
+        setSubaccounts(Array.isArray(subaccountsData) ? subaccountsData : []);
 
         if (navData && typeof navData.currentNav === 'number') {
           setUnitPrice(navData.currentNav);
@@ -357,14 +370,24 @@ export default function InvestPage() {
 
     setIsSigning(true);
     try {
-      const isIra = selectedAccountId !== 'personal';
+      const isIra = selectedAccountId !== 'personal' && userIraAccounts.some(a => a.id === selectedAccountId);
+      const isSub = selectedAccountId !== 'personal' && subaccounts.some(s => s.id === selectedAccountId);
       const selectedIra = userIraAccounts.find(a => a.id === selectedAccountId);
-      const finalAccountType = isIra ? (selectedIra?.account_type || 'ira') : 'personal';
+      const selectedSub = subaccounts.find(s => s.id === selectedAccountId);
+
+      let finalAccountType = 'personal';
+      if (isIra) {
+        finalAccountType = selectedIra?.account_type || 'ira';
+      } else if (isSub) {
+        finalAccountType = selectedSub?.investorType || 'personal';
+      } else if (user?.investorType === 'minor' || user?.investorType === 'entity') {
+        finalAccountType = user.investorType;
+      }
 
       // Save draft investment details to localStorage before leaving the page
       const draftInvestment = {
         fundId: selectedFundId,
-        accountId: isIra ? (selectedAccountId ?? undefined) : undefined,
+        accountId: (isIra || isSub) ? (selectedAccountId ?? undefined) : undefined,
         accountType: finalAccountType,
         amount: amount,
         unitPrice: unitPrice,

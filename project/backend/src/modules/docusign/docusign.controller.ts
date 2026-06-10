@@ -88,32 +88,57 @@ export class DocusignController {
 
       console.log(`[DocusignController] Initiating signing URL for user ${user.userId}, fund ${fundId}, accountId ${investorAccountId || 'personal'}`);
 
-      // Fetch full user profile to get accurate name and email
-      const profile = await this.usersService.getProfile(user.userId);
-      const clientName = `${profile.firstName} ${profile.lastName}`;
-      const signerEmail = profile.email;
+      // Fetch full user profile to get accurate name and email of the signer
+      const parentProfile: any = await this.usersService.getProfile(user.userId);
+      const profile = parentProfile;
+      const parentClientName = `${parentProfile.firstName || ''} ${parentProfile.lastName || ''}`.trim() || parentProfile.full_name || '';
+      const signerEmail = parentProfile.email;
 
       // Calculate Investor Name based on account type
-      let investorName = clientName;
-      let signerName = clientName;
+      let investorName = parentClientName;
+      let signerName = parentClientName;
 
-      if (profile.investorType === 'minor') {
-        if (profile.parentName) {
-          investorName = `${profile.parentName} FBO ${clientName}`;
-          signerName = profile.parentName;
+      // Check if this investment is being made on behalf of a subaccount
+      let subaccountProfile: any = null;
+      if (investorAccountId && investorAccountId !== 'personal') {
+        try {
+          const profileRes: any = await this.usersService.getProfile(investorAccountId);
+          if (profileRes && profileRes.parentId === user.userId) {
+            subaccountProfile = profileRes;
+          }
+        } catch (e) {
+          // Fall back to treating as an IRA/other account
         }
-      } else if (profile.investorType === 'entity') {
-        investorName = profile.entityName || clientName;
-        if (profile.parentName) {
-          signerName = profile.parentName;
+      }
+
+      if (subaccountProfile) {
+        const subclientName = `${subaccountProfile.firstName || ''} ${subaccountProfile.lastName || ''}`.trim() || subaccountProfile.full_name || '';
+        if (subaccountProfile.investorType === 'minor') {
+          investorName = `${parentClientName} FBO ${subclientName}`;
+          signerName = parentClientName;
+        } else if (subaccountProfile.investorType === 'entity') {
+          investorName = subaccountProfile.entityName || subclientName;
+          signerName = parentClientName;
         }
-      } else if (accountType !== 'personal' && iraMetadata) {
-        let custodian = (iraMetadata.custodian || 'AET').trim();
-        if (/American\s+Estate\s+&\s+Tr?ust/i.test(custodian)) {
-          custodian = 'AET';
+      } else {
+        if (profile.investorType === 'minor') {
+          if (profile.parentName) {
+            investorName = `${profile.parentName} FBO ${parentClientName}`;
+            signerName = profile.parentName;
+          }
+        } else if (profile.investorType === 'entity') {
+          investorName = profile.entityName || parentClientName;
+          if (profile.parentName) {
+            signerName = profile.parentName;
+          }
+        } else if (accountType !== 'personal' && iraMetadata) {
+          let custodian = (iraMetadata.custodian || 'AET').trim();
+          if (/American\s+Estate\s+&\s+Tr?ust/i.test(custodian)) {
+            custodian = 'AET';
+          }
+          const type = iraMetadata.type || 'IRA';
+          investorName = `${custodian} FBO ${parentClientName} ${type}`;
         }
-        const type = iraMetadata.type || 'IRA';
-        investorName = `${custodian} FBO ${clientName} ${type}`;
       }
 
       const finalReturnUrl = returnUrl || `${process.env.FRONTEND_URL}/dashboard/invest?signing=complete&fundId=${fundId}`;
@@ -128,7 +153,7 @@ export class DocusignController {
         investmentAmount,
         finalReturnUrl,
         fundId,
-        user.userId,
+        subaccountProfile ? subaccountProfile.id : user.userId,
         investorAccountId
       );
 

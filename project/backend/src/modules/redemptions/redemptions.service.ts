@@ -24,7 +24,7 @@ export class RedemptionsService {
 
       const currentNav = parseFloat(navResult.rows[0].nav_per_unit);
 
-      // 2. Validate investment exists and belongs to user
+      // 2. Validate investment exists and belongs to user or their subaccounts
       // Note: investments table still uses 'user_id' as the column name
       const invQuery = `
         SELECT 
@@ -39,33 +39,33 @@ export class RedemptionsService {
           WHERE is_reconciled = true
           GROUP BY investment_id
         ) red_sums ON i.id = red_sums.investment_id
-        WHERE i.id = $1 AND i.user_id = $2
+        WHERE i.id = $1 AND (i.user_id = $2 OR i.user_id IN (SELECT id FROM investors WHERE parent_id = $2))
       `;
       const invResult = await db.query(invQuery, [investment_id, userId]);
-
+ 
       if (invResult.rows.length === 0) {
         throw new NotFoundException('Investment not found.');
       }
-
+ 
       const investment = invResult.rows[0];
-
+ 
       // Check status
       if (investment.status !== 'Units Issued') {
         throw new BadRequestException('Only investments with "Units Issued" status can be redeemed.');
       }
-
+ 
       // Check holding period (3 years from units_issued_at)
       const threeYearsAgo = new Date();
       threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
       const unitsIssuedAt = investment.units_issued_at ? new Date(investment.units_issued_at) : null;
-
+ 
       if (!unitsIssuedAt || unitsIssuedAt > threeYearsAgo) {
         throw new BadRequestException('Investments must be held for at least 3 years after units are issued before they can be redeemed.');
       }
-
+ 
       // 3. Calculate units to be redeemed
       const units = parseFloat(amount) / currentNav;
-
+ 
       // 3. Validation: Check if user has enough units
       const availableUnits = parseFloat(investment.remaining_units);
       if (units > availableUnits) {
@@ -73,7 +73,7 @@ export class RedemptionsService {
           `Insufficient units. requested: ${units.toFixed(4)}, available: ${availableUnits.toFixed(4)}`
         );
       }
-
+ 
       // 4. Create redemption request
       // Note: redemptions table has been updated to use 'investor_id'
       const query = `
@@ -82,7 +82,7 @@ export class RedemptionsService {
         RETURNING *
       `;
       const result = await db.query(query, [
-        userId,
+        investment.user_id, // Store the subaccount's ID (the actual owner) as investor_id
         investment_id,
         amount,
         units,
@@ -116,7 +116,7 @@ export class RedemptionsService {
         FROM redemptions r
         JOIN investments i ON r.investment_id = i.id
         JOIN funds f ON i.fund_id = f.id
-        WHERE r.investor_id = $1
+        WHERE r.investor_id = $1 OR r.investor_id IN (SELECT id FROM investors WHERE parent_id = $1)
         ORDER BY r.created_at DESC
       `;
       const result = await db.query(query, [userId]);
@@ -159,7 +159,7 @@ export class RedemptionsService {
         JOIN investments i ON r.investment_id = i.id
         JOIN funds f ON i.fund_id = f.id
         JOIN investors inv ON r.investor_id = inv.id
-        WHERE r.id = $1 AND r.investor_id = $2
+        WHERE r.id = $1 AND (r.investor_id = $2 OR r.investor_id IN (SELECT id FROM investors WHERE parent_id = $2))
       `;
       const result = await db.query(query, [id, userId]);
       if (result.rows.length === 0) {
@@ -207,7 +207,7 @@ export class RedemptionsService {
       const query = `
         UPDATE redemptions 
         SET status = 'Cancelled', updated_at = CURRENT_TIMESTAMP 
-        WHERE id = $1 AND investor_id = $2 AND status = 'Pending'
+        WHERE id = $1 AND (investor_id = $2 OR investor_id IN (SELECT id FROM investors WHERE parent_id = $2)) AND status = 'Pending'
         RETURNING *
       `;
       const result = await db.query(query, [id, userId]);
