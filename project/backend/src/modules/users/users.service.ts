@@ -493,18 +493,21 @@ export class UsersService implements OnModuleInit {
         SELECT id AS user_id, NULL::uuid as account_id, 'Personal' AS account_type, LOWER(status) as account_status FROM investors WHERE status != 'prospect'
         UNION
         SELECT 
-          user_id, 
-          id as account_id, 
-          account_type,
-          LOWER(status) as account_status
-        FROM ira_accounts
+          ira.user_id, 
+          ira.id as account_id, 
+          ira.account_type,
+          LOWER(ira.status) as account_status
+        FROM ira_accounts ira
+        JOIN investors i ON ira.user_id = i.id
+        WHERE LOWER(i.status) != 'suspended'
       )
       SELECT 
         i.id, i.full_name, i.email, i.phone, i.status, i.kyc_status,
         i.profile_image_url, i.created_at,
         ua.account_type,
         ua.account_id as "accountId",
-        ua.account_status as "accountStatus"
+        ua.account_status as "accountStatus",
+        i.investor_type as "investorType"
       FROM user_accounts ua
       JOIN investors i ON ua.user_id = i.id
       WHERE (i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1) AND i.status != 'prospect'
@@ -525,11 +528,13 @@ export class UsersService implements OnModuleInit {
         SELECT id AS user_id, NULL::uuid as account_id, 'Personal' AS account_type, LOWER(status) as account_status FROM investors WHERE status != 'prospect'
         UNION
         SELECT 
-          user_id, 
-          id as account_id, 
-          account_type,
-          LOWER(status) as account_status
-        FROM ira_accounts
+          ira.user_id, 
+          ira.id as account_id, 
+          ira.account_type,
+          LOWER(ira.status) as account_status
+        FROM ira_accounts ira
+        JOIN investors i ON ira.user_id = i.id
+        WHERE LOWER(i.status) != 'suspended'
       ),
       investment_sums AS (
         SELECT 

@@ -22,6 +22,8 @@ type Investor = {
   status: string
   accountStatus?: 'active' | 'suspended'
   kyc_status: string
+  investorType?: string
+  accountId?: string
 }
 
 const AVATARS = [
@@ -105,7 +107,9 @@ export default function AdminAssignedInvestorsPage() {
             hasNewMessage: (conv?.unread_count || 0) > 0,
             status: inv.status || 'active',
             kyc_status: inv.kyc_status || 'pending',
-            accountStatus: inv.accountStatus
+            accountStatus: inv.accountStatus,
+            investorType: inv.investorType || 'personal',
+            accountId: inv.accountId
           }
         })
         setInvestors(mapped)
@@ -302,7 +306,9 @@ export default function AdminAssignedInvestorsPage() {
                           </div>
                         </td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate">{inv.email}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.accountType}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap capitalize">
+                          {inv.investorType || 'Personal'}
+                        </td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5]">
                           <span className={`text-[13px] font-semibold font-helvetica whitespace-nowrap ${kycColor(inv.kyc)}`}>
                             {inv.kyc}
@@ -406,7 +412,9 @@ export default function AdminAssignedInvestorsPage() {
                           </div>
                         </td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate opacity-60">{inv.email}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-60">{inv.accountType}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-60 capitalize">
+                          {inv.investorType || 'Personal'}
+                        </td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] opacity-60">
                           <span className={`text-[13px] font-semibold font-helvetica whitespace-nowrap ${kycColor(inv.kyc)}`}>
                             {inv.kyc}
@@ -454,7 +462,9 @@ export default function AdminAssignedInvestorsPage() {
                           </div>
                         </td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate opacity-50">{inv.email}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">{inv.accountType}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50 capitalize">
+                          {inv.investorType || 'Personal'}
+                        </td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] opacity-50">
                           <span className={`text-[13px] font-semibold font-helvetica whitespace-nowrap text-red-500`}>
                             Suspended
