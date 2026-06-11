@@ -217,7 +217,10 @@ export default function InvestorPage() {
   );
 
   const pendingInvestors = filteredInvestors.filter(i => i.status?.toLowerCase() === 'pending');
-  const suspendedInvestors = filteredInvestors.filter(i => i.status?.toLowerCase() === 'suspended'); // Login Suspended
+  const suspendedInvestors = filteredInvestors.filter(i =>
+    i.status?.toLowerCase() === 'suspended' &&
+    (i.accountType?.toLowerCase() === 'personal' || !i.accountType)
+  ); // Login Suspended - personal rows only
   const suspendedIraInvestors = filteredInvestors.filter(i =>
     i.accountType &&
     i.accountType.toLowerCase() !== 'personal' &&
@@ -875,7 +878,7 @@ export default function InvestorPage() {
                                   <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
                                 </td>
                                 <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType || 'Personal'}</span>
+                                  <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap capitalize">{investor.investorType || 'Personal'}</span>
                                 </td>
                                 <td className="px-3 sm:px-4 lg:px-6 py-4">
                                   <span className="text-[11px] font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">Pending</span>
@@ -1004,7 +1007,7 @@ export default function InvestorPage() {
                                   <span className="text-sm text-gray-400 font-medium">{investor.email}</span>
                                 </td>
                                 <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="text-sm text-gray-400 font-medium">{investor.accountType}</span>
+                                  <span className="text-sm text-gray-400 font-medium capitalize">{investor.investorType || 'Personal'}</span>
                                 </td>
                                 <td className="px-3 sm:px-4 lg:px-6 py-4">
                                   <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[11px] font-bold bg-red-50 text-red-500 border border-red-100 italic">
