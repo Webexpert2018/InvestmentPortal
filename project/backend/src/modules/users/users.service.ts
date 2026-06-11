@@ -558,6 +558,7 @@ export class UsersService implements OnModuleInit {
         ua.account_type as "accountType",
         ua.account_id as "accountId",
         ua.account_status as "accountStatus",
+        i.investor_type as "investorType",
         (COALESCE(inv_s.total_invested, 0) - COALESCE(red_s.total_redeemed_value, 0)) as total_invested,
         (COALESCE(inv_s.total_units, 0) - COALESCE(red_s.total_redeemed_units, 0)) as total_units,
         i.assigned_ir_id, s.full_name as assigned_ir_name,
@@ -587,6 +588,7 @@ export class UsersService implements OnModuleInit {
     return result.rows.map((user) => ({
       ...user,
       accountType: user.accountType,
+      investorType: user.investorType || 'personal',
       firstName: user.firstName,
       lastName: user.lastName,
       invested: `$${parseFloat(user.total_invested).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,

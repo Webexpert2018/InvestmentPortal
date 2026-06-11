@@ -27,6 +27,7 @@ interface Investor {
   accountStatus?: 'active' | 'suspended';
   accountType?: string;
   accountId?: string;
+  investorType?: string;
   assigned_ir_name?: string;
   assigned_accountant_name?: string;
 }
@@ -618,7 +619,9 @@ export default function InvestorPage() {
                                 <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
                               </td>
                               <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType || 'Personal'}</span>
+                                <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap capitalize">
+                                  {investor.investorType || 'Personal'}
+                                </span>
                               </td>
                               <td className="px-3 sm:px-4 lg:px-6 py-4">
                                 {investor.accountStatus === 'suspended' ? (
