@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     );
 
     let user = result.rows[0];
-    
+
     // 2. If not found in users, try staff table
     if (!user) {
       result = await db.query(
@@ -37,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         [payload.userId]
       );
       user = result.rows[0];
-      
+
       if (user && user.full_name) {
         const [firstName, ...lastNameParts] = user.full_name.split(' ');
         user.first_name = firstName;
@@ -48,11 +48,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // 3. If not found in users or staff, try investors table
     if (!user) {
       result = await db.query(
-        'SELECT id, email, role, full_name, status FROM investors WHERE id = $1',
+        `SELECT id, email, 'investor' as role, full_name, status FROM investors WHERE id = $1`,
         [payload.userId]
       );
       user = result.rows[0];
-      
+
       // Map full_name to firstName/lastName for consistency
       if (user && user.full_name) {
         const [firstName, ...lastNameParts] = user.full_name.split(' ');
@@ -76,7 +76,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         'SELECT is_revoked FROM user_sessions WHERE id = $1',
         [payload.sessionId]
       );
-      
+
       const session = sessionResult.rows[0];
       if (session && session.is_revoked) {
         throw new UnauthorizedException('Session has been revoked');

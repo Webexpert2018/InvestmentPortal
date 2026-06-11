@@ -213,7 +213,7 @@ export default function RedemptionAmountPage() {
         <button
           type="button"
           onClick={handleContinue}
-          disabled={submitting || (step === 'amount' && (numericAmount <= 0 || !selectedHoldingId || isOverLimit))}
+          disabled={submitting || (step === 'amount' && (numericAmount <= 0 || !selectedHoldingId || isOverLimit || !selectedBankId))}
           className="rounded-full bg-[#FBCB4B] px-8 py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60 flex items-center gap-2"
         >
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -329,6 +329,11 @@ export default function RedemptionAmountPage() {
                 </div>
               </button>
             </div>
+            {!selectedBankId && (
+              <p className="mt-3 text-[11px] font-semibold text-red-500 flex items-center gap-1">
+                <span>⚠</span> A destination bank account is required to continue.
+              </p>
+            )}
           </div>
         </div>
 
@@ -522,7 +527,8 @@ export default function RedemptionAmountPage() {
                 <input
                   type="text"
                   value={newBank.routing_number}
-                  onChange={(e) => setNewBank(prev => ({ ...prev, routing_number: e.target.value.replace(/\D/g, '') }))}
+                  onChange={(e) => setNewBank(prev => ({ ...prev, routing_number: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
+                  maxLength={9}
                   className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] ${newBankErrors.routing_number ? 'border-red-500' : 'border-[#E5E5EA]'}`}
                 />
                 {newBankErrors.routing_number && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.routing_number}</p>}
@@ -535,8 +541,9 @@ export default function RedemptionAmountPage() {
                   value={newBank.bank_address}
                   onChange={(e) => setNewBank(prev => ({ ...prev, bank_address: e.target.value }))}
                   rows={2}
-                  className="w-full rounded border border-[#E5E5EA] px-3 py-2 text-sm outline-none focus:border-[#274583]"
+                  className={`w-full rounded border px-3 py-2 text-sm outline-none focus:border-[#274583] ${newBankErrors.bank_address ? 'border-red-500' : 'border-[#E5E5EA]'}`}
                 />
+                {newBankErrors.bank_address && <p className="text-[10px] text-red-500 mt-1">{newBankErrors.bank_address}</p>}
               </div>
 
               <div>
@@ -570,10 +577,9 @@ export default function RedemptionAmountPage() {
 
                     if (!newBank.routing_number) {
                       errors.routing_number = 'Required';
+                    } else if (!/^\d{9}$/.test(newBank.routing_number)) {
+                      errors.routing_number = 'Routing number must be exactly 9 digits';
                     }
-                    // else if (!/^\d{9}$/.test(newBank.routing_number)) {
-                    //   errors.routing_number = '9 digits';
-                    // }
 
                     if (!newBank.bank_address.trim()) errors.bank_address = 'Required';
 
@@ -609,9 +615,9 @@ export default function RedemptionAmountPage() {
                         fieldErrors.account_number = '8-17 digits required';
                       }
 
-                      // if (msg.includes('Routing number')) {
-                      //   fieldErrors.routing_number = '9 digits required';
-                      // }
+                      if (msg.includes('Routing number')) {
+                        fieldErrors.routing_number = '9 digits required';
+                      }
 
                       if (Object.keys(fieldErrors).length > 0) {
                         setNewBankErrors(fieldErrors);

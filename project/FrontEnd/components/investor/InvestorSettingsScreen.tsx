@@ -2243,7 +2243,10 @@ export function InvestorSettingsScreen() {
                 placeholder="Enter account number"
                 disabled={bankAccountMode === 'view'}
                 value={bankAdd.account_number}
-                onChange={(e) => setBankAdd(prev => ({ ...prev, account_number: e.target.value.replace(/\D/g, '') }))}
+                onChange={(e) => {
+                  setBankAdd(prev => ({ ...prev, account_number: e.target.value.replace(/\D/g, '') }));
+                  if (bankAddErrors.account_number) setBankAddErrors(prev => { const n = { ...prev }; delete n.account_number; return n; });
+                }}
                 className={bankAddErrors.account_number ? '!border-[#E05252]' : ''}
               />
               {bankAddErrors.account_number && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.account_number}</p>}
@@ -2254,7 +2257,10 @@ export function InvestorSettingsScreen() {
                 placeholder="Enter routing number"
                 disabled={bankAccountMode === 'view'}
                 value={bankAdd.routing_number}
-                onChange={(e) => setBankAdd(prev => ({ ...prev, routing_number: e.target.value.replace(/\D/g, '') }))}
+                onChange={(e) => {
+                  setBankAdd(prev => ({ ...prev, routing_number: e.target.value.replace(/\D/g, '').slice(0, 9) }));
+                  if (bankAddErrors.routing_number) setBankAddErrors(prev => { const n = { ...prev }; delete n.routing_number; return n; });
+                }}
                 className={bankAddErrors.routing_number ? '!border-[#E05252]' : ''}
               />
               {bankAddErrors.routing_number && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.routing_number}</p>}
@@ -2355,6 +2361,8 @@ export function InvestorSettingsScreen() {
                   const routingRegex = /^\d{9}$/;
                   if (!bankAdd.routing_number) {
                     errors.routing_number = 'Routing number is required';
+                  } else if (!routingRegex.test(bankAdd.routing_number)) {
+                    errors.routing_number = 'Routing number must be exactly 9 digits';
                   }
 
                   if (!bankAdd.bank_address.trim()) {

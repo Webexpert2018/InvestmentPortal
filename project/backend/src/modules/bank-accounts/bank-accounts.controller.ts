@@ -76,10 +76,9 @@ return this.bankAccountsService.update(user.userId, id, data, user);
 
         if (!data.routing_number?.trim()) {
           errors.push('Routing number is required');
-        } 
-        // else if (!isValidRouting(data.routing_number)) {
-        //   errors.push('Routing number must be 9 digits');
-        // }
+        } else if (!isValidRouting(data.routing_number)) {
+          errors.push('Routing number must be 9 digits');
+        }
 
       if (!data.bank_address || !data.bank_address.trim()) errors.push('Bank address is required');
     } else {
