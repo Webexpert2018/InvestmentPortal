@@ -59,7 +59,7 @@ export class SessionsService {
       }
 
       // Format login time
-      const loginTime = createdAt.toLocaleDateString() + ' ' + createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const loginTime = createdAt.toISOString();
 
       return {
         id: session.id,
