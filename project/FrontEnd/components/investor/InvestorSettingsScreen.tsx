@@ -272,6 +272,18 @@ const formatDateForInput = (dateStr: string | null | undefined) => {
   }
 };
 
+const formatSessionDate = (dateStr: string | null | undefined) => {
+  if (!dateStr) return '';
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  } catch (e) {
+    return dateStr;
+  }
+};
+
 export function InvestorSettingsScreen() {
   const { user, refreshUser, updateUser, profileTimestamp } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
@@ -1355,7 +1367,7 @@ export function InvestorSettingsScreen() {
                       {session.subtitle}
                     </p>
                     <p className="mt-0.5 text-[9px] text-[#A2A5AA]">
-                      Logged in: {session.signedInAt}
+                      Logged in: {formatSessionDate(session.signedInAt)}
                     </p>
                   </div>
                   <button
