@@ -801,20 +801,36 @@ export class DocusignService {
   }
 
   /**
-   * Fetches the combined PDF for a given envelope.
+   * Fetches the list of documents inside an envelope.
    */
-  async getEnvelopeDocument(accessToken: string, accountId: string, envelopeId: string) {
+  async getEnvelopeDocumentsList(accessToken: string, accountId: string, envelopeId: string) {
     this.dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
     const ds = docusign as any;
     const envelopesApi = new ds.EnvelopesApi(this.dsApiClient);
 
     try {
-      // documentId 'combined' returns everything as one PDF
-      const results = await envelopesApi.getDocument(accountId, envelopeId, 'combined');
+      const results = await envelopesApi.listDocuments(accountId, envelopeId);
+      return results.envelopeDocuments || [];
+    } catch (error: any) {
+      this.logger.error('Error fetching DocuSign documents list:', error.response?.body || error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetches a specific PDF for a given envelope and document ID.
+   */
+  async getEnvelopeDocument(accessToken: string, accountId: string, envelopeId: string, documentId: string = 'combined') {
+    this.dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
+    const ds = docusign as any;
+    const envelopesApi = new ds.EnvelopesApi(this.dsApiClient);
+
+    try {
+      const results = await envelopesApi.getDocument(accountId, envelopeId, documentId);
       // The SDK returns the document content as a string/buffer
       return results;
     } catch (error: any) {
-      this.logger.error('Error fetching DocuSign document:', error.response?.body || error.message);
+      this.logger.error(`Error fetching DocuSign document ${documentId}:`, error.response?.body || error.message);
       throw error;
     }
   }

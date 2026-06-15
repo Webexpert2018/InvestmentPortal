@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, X, ChevronDown, Loader2 } from 'lucide-react';
+import { ChevronLeft, X, ChevronDown, Loader2, FileText, Download, Eye } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/api/client';
@@ -19,6 +19,8 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [requestData, setRequestData] = useState<any>(null);
+  const [matchedOA, setMatchedOA] = useState<any>(null);
+  const [matchedSA, setMatchedSA] = useState<any>(null);
 
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -46,7 +48,108 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
           beneficiaryName: data.beneficiary_name || 'N/A',
           bankAddress: data.bank_address || 'N/A',
           fundName: data.fund_name || 'N/A',
+          documentSigned: data.document_signed,
         });
+
+        if (data?.user_id) {
+          try {
+            const [docs, userInvestments] = await Promise.all([
+              apiClient.getInvestorDocuments(data.user_id),
+              apiClient.getInvestorInvestments(data.user_id)
+            ]);
+
+            // Helper to check if document belongs to the same fund
+            const isDocumentForFund = (d: any) => {
+              if (d.description?.includes(params.id) || d.file_name?.includes(params.id)) {
+                return true;
+              }
+
+              // Extract UUID from file name or description to find matching investment
+              const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+              const matchFile = d.file_name?.match(uuidRegex);
+              const matchDesc = d.description?.match(uuidRegex);
+              const matchedInvId = matchFile?.[0] || matchDesc?.[0];
+
+              if (matchedInvId) {
+                const inv = userInvestments.find((i: any) => i.id === matchedInvId);
+                if (inv) {
+                  return inv.fund_id === data.fund_id;
+                }
+              }
+
+              // Fallback: match fund name words
+              if (data.fund_name) {
+                const cleanFundName = data.fund_name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const cleanFileName = d.file_name?.toLowerCase().replace(/[^a-z0-9]/g, '') || '';
+                const cleanDesc = d.description?.toLowerCase().replace(/[^a-z0-9]/g, '') || '';
+                if (cleanFileName.includes(cleanFundName) || cleanDesc.includes(cleanFundName)) {
+                  return true;
+                }
+              }
+
+              return false;
+            };
+
+            // Filter all documents matching this investment ID
+            const investmentDocs = docs.filter((d: any) => 
+              d.description?.includes(params.id) || 
+              d.file_name?.includes(params.id)
+            );
+
+            // Find OA and SA
+            let oa = investmentDocs.find((d: any) => 
+              d.document_type === 'operating_agreement' || 
+              d.file_name?.toLowerCase().includes('operating_agreement') ||
+              d.file_name?.toLowerCase().includes('oa')
+            );
+            
+            const sa = investmentDocs.find((d: any) => 
+              d.document_type === 'subscription_agreement' || 
+              d.file_name?.toLowerCase().includes('subscription_agreement') ||
+              d.file_name?.toLowerCase().includes('sa')
+            );
+
+            // If no OA is found for this specific investment, look for any signed OA for this investor belonging to the same fund
+            if (!oa) {
+              oa = docs.find((d: any) => 
+                (d.document_type === 'operating_agreement' || 
+                 d.file_name?.toLowerCase().includes('operating_agreement') ||
+                 d.file_name?.toLowerCase().includes('oa')) &&
+                isDocumentForFund(d)
+              );
+
+              // If still not found, fallback to the first signed combined/subscription document of the same fund (which contains the OA)
+              if (!oa) {
+                const saDocs = docs.filter((d: any) => 
+                  (d.document_type === 'subscription_agreement' || 
+                   d.file_name?.toLowerCase().includes('subscription_agreement') ||
+                   d.file_name?.toLowerCase().includes('sa')) &&
+                  isDocumentForFund(d)
+                );
+                // Filter out the current investment's SA doc to find previous ones
+                const otherSAs = saDocs.filter((d: any) => 
+                  !d.description?.includes(params.id) && 
+                  !d.file_name?.includes(params.id)
+                );
+                if (otherSAs.length > 0) {
+                  // The earliest one is the first investment in this fund, which contains the OA
+                  oa = otherSAs[otherSAs.length - 1];
+                }
+              }
+            }
+
+            // Fallback: if there's only one combined doc matching this investment
+            if (!oa && !sa && investmentDocs.length > 0) {
+              setMatchedOA(investmentDocs[0]);
+              setMatchedSA(investmentDocs[0]);
+            } else {
+              setMatchedOA(oa || null);
+              setMatchedSA(sa || null);
+            }
+          } catch (docError) {
+            console.error('Failed to fetch matched document:', docError);
+          }
+        }
         setError(null);
       } catch (err: any) {
         console.error('Failed to fetch investment details:', err);
@@ -60,6 +163,20 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
       fetchDetails();
     }
   }, [params.id]);
+
+  const handleViewDoc = (doc: any) => {
+    if (!doc) return;
+    const token = localStorage.getItem('token');
+    const fileUrl = `${apiClient.getApiUrl()}/documents/${doc.id}/view?token=${encodeURIComponent(token || '')}`;
+    window.open(fileUrl, '_blank');
+  };
+
+  const handleDownloadDoc = (doc: any) => {
+    if (!doc) return;
+    const token = localStorage.getItem('token');
+    const fileUrl = `${apiClient.getApiUrl()}/documents/${doc.id}/download?token=${encodeURIComponent(token || '')}`;
+    window.open(fileUrl, '_blank');
+  };
 
   const wireInstructions = {
     bankName: requestData?.bankName || 'N/A',
@@ -230,6 +347,83 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Bank Name</p>
                   <p className="font-bold text-gray-900">{requestData.bankName}</p>
                 </div>
+
+                 {/* Signed Documents Section */}
+                {requestData.documentSigned && (matchedOA || matchedSA) ? (
+                  <div className="sm:col-span-2 pt-6 border-t border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Signed Documents</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Signed OA Card */}
+                      {matchedOA && (
+                        <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-[#FCD34D] hover:bg-amber-50/10 transition-all duration-200 group">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2.5 rounded-lg bg-amber-50 text-[#92400E] group-hover:scale-110 transition-transform">
+                              <FileText className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-gray-900 leading-none mb-1">Signed OA</p>
+                              <p className="text-[10px] font-medium text-gray-400">Operating Agreement</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleViewDoc(matchedOA)}
+                              className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="View Document"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDownloadDoc(matchedOA)}
+                              className="p-1.5 text-gray-400 hover:text-[#2BB673] hover:bg-green-50 rounded-lg transition-colors"
+                              title="Download Document"
+                            >
+                              <Download className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Signed SA Card */}
+                      {matchedSA && (
+                        <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-[#FCD34D] hover:bg-amber-50/10 transition-all duration-200 group">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2.5 rounded-lg bg-amber-50 text-[#92400E] group-hover:scale-110 transition-transform">
+                              <FileText className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-gray-900 leading-none mb-1">Signed SA</p>
+                              <p className="text-[10px] font-medium text-gray-400">Subscription Agreement</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleViewDoc(matchedSA)}
+                              className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="View Document"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDownloadDoc(matchedSA)}
+                              className="p-1.5 text-gray-400 hover:text-[#2BB673] hover:bg-green-50 rounded-lg transition-colors"
+                              title="Download Document"
+                            >
+                              <Download className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="sm:col-span-2 pt-6 border-t border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Signed Documents</p>
+                    <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 text-center">
+                      <p className="text-xs text-gray-500 font-medium">No signed documents available for this request.</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

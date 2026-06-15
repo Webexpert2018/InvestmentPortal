@@ -101,33 +101,95 @@ export class InvestmentsService {
         // Don't fail the whole request if audit logging fails
       }
 
-      // Auto-save signed document into the Document Vault!
+      // Auto-save signed documents into the Document Vault!
       try {
-        let pdfBuffer: Buffer | null = null;
-        let fileName = `Signed_Subscription_Agreement_${investment.id}.pdf`;
+        let savedDocsCount = 0;
 
         if (envelopeId) {
           try {
             const tokenData = await this.docusignService.getAccessTokenJWT();
-            const pdfData = await this.docusignService.getEnvelopeDocument(
-              tokenData.accessToken, 
-              tokenData.accountId, 
+            const docsList = await this.docusignService.getEnvelopeDocumentsList(
+              tokenData.accessToken,
+              tokenData.accountId,
               envelopeId
             );
 
-            if (typeof pdfData === 'string') {
-              pdfBuffer = Buffer.from(pdfData, 'base64');
-            } else if (Buffer.isBuffer(pdfData)) {
-              pdfBuffer = pdfData;
-            } else {
-              pdfBuffer = Buffer.from(pdfData as any);
+            for (const docInfo of docsList) {
+              if (docInfo.documentId === 'certificate' || docInfo.documentId === 'combined') {
+                continue;
+              }
+
+              try {
+                const pdfData = await this.docusignService.getEnvelopeDocument(
+                  tokenData.accessToken,
+                  tokenData.accountId,
+                  envelopeId,
+                  docInfo.documentId
+                );
+
+                let pdfBuffer: Buffer;
+                if (typeof pdfData === 'string') {
+                  pdfBuffer = Buffer.from(pdfData, 'base64');
+                } else if (Buffer.isBuffer(pdfData)) {
+                  pdfBuffer = pdfData;
+                } else {
+                  pdfBuffer = Buffer.from(pdfData as any);
+                }
+
+                // Determine document type (operating_agreement or subscription_agreement)
+                let documentType = 'subscription_agreement';
+                let fileName = `Signed_Subscription_Agreement_${investment.id}.pdf`;
+                
+                const lowerName = docInfo.name?.toLowerCase() || '';
+                if (lowerName.includes('operating agreement') || lowerName.includes('oa')) {
+                  documentType = 'operating_agreement';
+                  fileName = `Signed_Operating_Agreement_${investment.id}.pdf`;
+                }
+
+                const cloudinaryUpload = () => {
+                  return new Promise((resolve, reject) => {
+                    const uploadStream = cloudinary.uploader.upload_stream(
+                      {
+                        folder: 'investment-portal/kyc-docs',
+                        resource_type: 'auto',
+                        public_id: `vault-auto-${documentType}-${investment.id}`,
+                      },
+                      (error, result) => {
+                        if (error) return reject(error);
+                        resolve(result);
+                      }
+                    );
+                    uploadStream.end(pdfBuffer);
+                  });
+                };
+
+                const uploadResult: any = await cloudinaryUpload();
+                const fileUrl = uploadResult.secure_url;
+
+                await db.query(
+                  `INSERT INTO investor_documents (investor_id, file_name, file_url, document_type, file_size, description)
+                   VALUES ($1, $2, $3, $4, $5, $6)`,
+                  [
+                    targetUserId,
+                    fileName,
+                    fileUrl,
+                    documentType,
+                    pdfBuffer.length,
+                    `Auto-Saved Document Vault Record for Investment ID: ${investment.id}`
+                  ]
+                );
+                savedDocsCount++;
+              } catch (singleDocErr) {
+                console.warn(`⚠️ Failed to process document ${docInfo.documentId} from envelope:`, singleDocErr);
+              }
             }
           } catch (dsError) {
-            console.warn('⚠️ Failed to fetch signed document from DocuSign, falling back to template:', dsError);
+            console.warn('⚠️ Failed to fetch signed documents from DocuSign, falling back to template:', dsError);
           }
         }
 
-        if (!pdfBuffer) {
+        // Fallback if no documents were saved from DocuSign
+        if (savedDocsCount === 0) {
           const pathsToTry = [
             path.resolve(process.cwd(), 'public/subscription-documents/SA-BWell-Fund.pdf'),
             path.resolve(__dirname, '..', '..', '..', 'public/subscription-documents/SA-BWell-Fund.pdf')
@@ -145,44 +207,42 @@ export class InvestmentsService {
           }
 
           if (found) {
-            pdfBuffer = fs.readFileSync(fallbackPath);
-            fileName = `Subscription_Agreement_${investment.id}.pdf`;
+            const pdfBuffer = fs.readFileSync(fallbackPath);
+            const fileName = `Subscription_Agreement_${investment.id}.pdf`;
+
+            const cloudinaryUpload = () => {
+              return new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                  {
+                    folder: 'investment-portal/kyc-docs',
+                    resource_type: 'auto',
+                    public_id: `vault-auto-subscription_agreement-${investment.id}`,
+                  },
+                  (error, result) => {
+                    if (error) return reject(error);
+                    resolve(result);
+                  }
+                );
+                uploadStream.end(pdfBuffer);
+              });
+            };
+
+            const uploadResult: any = await cloudinaryUpload();
+            const fileUrl = uploadResult.secure_url;
+
+            await db.query(
+              `INSERT INTO investor_documents (investor_id, file_name, file_url, document_type, file_size, description)
+               VALUES ($1, $2, $3, $4, $5, $6)`,
+              [
+                targetUserId,
+                fileName,
+                fileUrl,
+                'subscription_agreement',
+                pdfBuffer.length,
+                `Auto-Saved Document Vault Record for Investment ID: ${investment.id}`
+              ]
+            );
           }
-        }
-
-        if (pdfBuffer) {
-          const cloudinaryUpload = () => {
-            return new Promise((resolve, reject) => {
-              const uploadStream = cloudinary.uploader.upload_stream(
-                {
-                  folder: 'investment-portal/kyc-docs',
-                  resource_type: 'auto',
-                  public_id: `vault-auto-${investment.id}`,
-                },
-                (error, result) => {
-                  if (error) return reject(error);
-                  resolve(result);
-                }
-              );
-              uploadStream.end(pdfBuffer);
-            });
-          };
-
-          const uploadResult: any = await cloudinaryUpload();
-          const fileUrl = uploadResult.secure_url;
-
-          await db.query(
-            `INSERT INTO investor_documents (investor_id, file_name, file_url, document_type, file_size, description)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
-            [
-              targetUserId,
-              fileName,
-              fileUrl,
-              'subscription_agreement',
-              pdfBuffer.length,
-              `Auto-Saved Document Vault Record for Investment ID: ${investment.id}`
-            ]
-          );
         }
       } catch (vaultError) {
         console.warn('⚠️ Failed to auto-save document to vault in createInvestment:', vaultError);
