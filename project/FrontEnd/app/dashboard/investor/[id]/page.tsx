@@ -309,6 +309,38 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     // Refresh other data if needed
   };
 
+  const handleViewDocument = (doc: any) => {
+    if (!doc) return;
+    const token = localStorage.getItem('token');
+    const viewUrl = `${apiClient.getApiUrl()}/documents/${doc.id}/view?token=${encodeURIComponent(token || '')}`;
+    window.open(viewUrl, '_blank');
+  };
+
+  const handleDownloadDocument = async (doc: any) => {
+    if (!doc) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${apiClient.getApiUrl()}/documents/${doc.id}/download`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!response.ok) throw new Error('Download failed');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.file_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download error:', err);
+      toast.error('Failed to download document');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6 font-helvetica">
@@ -969,8 +1001,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
                 {/* Funding Table */}
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
+                  <div className="overflow-x-auto">                    <table className="w-full">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
@@ -981,6 +1012,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Cost Basis</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Gain/Loss</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Action</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">OA</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">SA</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-100">
@@ -990,6 +1023,92 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           const gainLossValue = currentValue - costBasisValue;
                           const gainLossPercent = costBasisValue > 0 ? (gainLossValue / costBasisValue) * 100 : 0;
                           const isGain = gainLossValue >= 0;
+
+                          // Filter documents matching this investment ID
+                          const investmentDocs = kycDocuments.filter((d: any) => 
+                            d.description?.includes(fund.id) || 
+                            d.file_name?.includes(fund.id)
+                          );
+
+                          // Helper to check if document belongs to the same fund
+                          const isDocumentForFund = (d: any) => {
+                            if (d.description?.includes(fund.id) || d.file_name?.includes(fund.id)) {
+                              return true;
+                            }
+
+                            // Extract UUID from file name or description to find matching investment
+                            const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+                            const matchFile = d.file_name?.match(uuidRegex);
+                            const matchDesc = d.description?.match(uuidRegex);
+                            const matchedInvId = matchFile?.[0] || matchDesc?.[0];
+
+                            if (matchedInvId) {
+                              const inv = fundingHistory.find((i: any) => i.id === matchedInvId);
+                              if (inv) {
+                                return inv.fund_id === fund.fund_id;
+                              }
+                            }
+
+                            // Fallback: match fund name words
+                            if (fund.fund_name) {
+                              const cleanFundName = fund.fund_name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                              const cleanFileName = d.file_name?.toLowerCase().replace(/[^a-z0-9]/g, '') || '';
+                              const cleanDesc = d.description?.toLowerCase().replace(/[^a-z0-9]/g, '') || '';
+                              if (cleanFileName.includes(cleanFundName) || cleanDesc.includes(cleanFundName)) {
+                                return true;
+                              }
+                            }
+
+                            return false;
+                          };
+
+                          // Find OA and SA
+                          let oa = investmentDocs.find((d: any) => 
+                            d.document_type === 'operating_agreement' || 
+                            d.file_name?.toLowerCase().includes('operating_agreement') ||
+                            d.file_name?.toLowerCase().includes('oa')
+                          );
+                          
+                          const sa = investmentDocs.find((d: any) => 
+                            d.document_type === 'subscription_agreement' || 
+                            d.file_name?.toLowerCase().includes('subscription_agreement') ||
+                            d.file_name?.toLowerCase().includes('sa')
+                          );
+
+                          // If no OA is found for this specific investment, look for any signed OA for this investor belonging to the same fund
+                          if (!oa) {
+                            oa = kycDocuments.find((d: any) => 
+                              (d.document_type === 'operating_agreement' || 
+                               d.file_name?.toLowerCase().includes('operating_agreement') ||
+                               d.file_name?.toLowerCase().includes('oa')) &&
+                              isDocumentForFund(d)
+                            );
+
+                            // If still not found, fallback to the first signed combined/subscription document of the same fund (which contains the OA)
+                            if (!oa) {
+                              const saDocs = kycDocuments.filter((d: any) => 
+                                (d.document_type === 'subscription_agreement' || 
+                                 d.file_name?.toLowerCase().includes('subscription_agreement') ||
+                                 d.file_name?.toLowerCase().includes('sa')) &&
+                                isDocumentForFund(d)
+                              );
+                              const otherSAs = saDocs.filter((d: any) => 
+                                !d.description?.includes(fund.id) && 
+                                !d.file_name?.includes(fund.id)
+                              );
+                              if (otherSAs.length > 0) {
+                                // The earliest one is the first investment in this fund, which contains the OA
+                                oa = otherSAs[otherSAs.length - 1];
+                              }
+                            }
+                          }
+
+                          let finalOA = oa;
+                          let finalSA = sa;
+                          if (!oa && !sa && investmentDocs.length > 0) {
+                            finalOA = investmentDocs[0];
+                            finalSA = investmentDocs[0];
+                          }
 
                           return (
                             <tr key={fund.id} className="hover:bg-gray-50 transition-colors">
@@ -1011,6 +1130,50 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 >
                                   View Fund Details
                                 </Link>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                {finalOA ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      onClick={() => handleViewDocument(finalOA)}
+                                      className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                                      title="View Operating Agreement"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDownloadDocument(finalOA)}
+                                      className="p-1.5 text-gray-400 hover:text-[#2BB673] hover:bg-green-50 rounded-lg transition-colors"
+                                      title="Download Operating Agreement"
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-gray-400 italic">Not signed</span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                {finalSA ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      onClick={() => handleViewDocument(finalSA)}
+                                      className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                                      title="View Subscription Agreement"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDownloadDocument(finalSA)}
+                                      className="p-1.5 text-gray-400 hover:text-[#2BB673] hover:bg-green-50 rounded-lg transition-colors"
+                                      title="Download Subscription Agreement"
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-gray-400 italic">Not signed</span>
+                                )}
                               </td>
                             </tr>
                           );
