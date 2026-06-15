@@ -871,113 +871,119 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
               </div>
             )}
 
-            {activeTab === 'kyc' && (
-              <div className="space-y-8">
-                <div className={`rounded-2xl border px-6 py-5 md:flex items-center md:justify-between ${investorData.kycStatus === 'approved' ? 'bg-green-50 border-green-100' : 'bg-orange-50 border-orange-100'}`}>
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-xl ${investorData.kycStatus === 'approved' ? 'bg-green-100' : 'bg-orange-100'}`}>
-                      <Shield className={`h-6 w-6 ${investorData.kycStatus === 'approved' ? 'text-green-600' : 'text-orange-600'}`} />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900 text-lg capitalize">{investorData.kycStatus || 'pending verification'}</h3>
-                      <p className="text-sm text-gray-500">Investor has uploaded {kycDocuments.length} mandatory documents for review.</p>
-                    </div>
-                  </div>
-                  {investorData.kycStatus !== 'approved' && (
-                    <button
-                      onClick={async () => {
-                        try {
-                          await apiClient.updateKycStatus(params.id, 'approved');
-                          toast.success('KYC Approved');
-                          const profile = await apiClient.getUserById(params.id);
-                          setInvestorData(profile);
-                        } catch (err) {
-                          toast.error('Failed to approve KYC');
-                        }
-                      }}
-                      className="px-6 py-2.5 mt-2 md:mt-0 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95"
-                    >
-                      Approve KYC
-                    </button>
-                  )}
-                </div>
+            {activeTab === 'kyc' && (() => {
+              const verificationDocs = kycDocuments.filter((doc: any) => 
+                ['tax_return_y1', 'tax_return_y2', 'balance_sheet'].includes(doc.document_type)
+              );
 
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Verification Documents</h4>
-                  {kycDocuments.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {kycDocuments.map((doc, index) => (
-                        <div key={index} className="group relative flex flex-col p-5 bg-white border border-gray-100 rounded-2xl hover:border-red-200 hover:shadow-xl hover:shadow-red-50/50 transition-all">
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="p-3 bg-red-50 rounded-xl">
-                              <FileText className="w-6 h-6 text-red-500" />
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    const token = localStorage.getItem('token');
-                                    const viewUrl = `${apiClient.getApiUrl()}/documents/${doc.id}/view?token=${encodeURIComponent(token || '')}`;
-                                    window.open(viewUrl, '_blank');
-                                  } catch (err) {
-                                    console.error('View error:', err);
-                                  }
-                                }}
-                                className="p-2 bg-gray-50 text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors"
-                                title="View"
-                              >
-                                <FileText className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    const token = localStorage.getItem('token');
-                                    const response = await fetch(`${apiClient.getApiUrl()}/documents/${doc.id}/download`, {
-                                      headers: {
-                                        'Authorization': `Bearer ${token}`
-                                      }
-                                    });
-                                    if (!response.ok) throw new Error('Download failed');
-                                    const blob = await response.blob();
-                                    const url = window.URL.createObjectURL(blob);
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = doc.file_name;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                    window.URL.revokeObjectURL(url);
-                                  } catch (err) {
-                                    console.error('Download error:', err);
-                                    toast.error('Failed to download document');
-                                  }
-                                }}
-                                className="p-2 bg-gray-50 text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors"
-                                title="Download"
-                              >
-                                <Download className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-xs font-bold text-red-400 uppercase tracking-tight">{getDocTypeName(doc.document_type)}</p>
-                            <p className="text-sm font-bold text-gray-900 truncate">{doc.file_name}</p>
-                            <p className="text-[10px] text-gray-400 font-medium">Uploaded on {new Date(doc.uploaded_at).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="p-12 text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
-                      <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <FileText className="w-8 h-8 text-gray-300" />
+              return (
+                <div className="space-y-8">
+                  <div className={`rounded-2xl border px-6 py-5 md:flex items-center md:justify-between ${investorData.kycStatus === 'approved' ? 'bg-green-50 border-green-100' : 'bg-orange-50 border-orange-100'}`}>
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-xl ${investorData.kycStatus === 'approved' ? 'bg-green-100' : 'bg-orange-100'}`}>
+                        <Shield className={`h-6 w-6 ${investorData.kycStatus === 'approved' ? 'text-green-600' : 'text-orange-600'}`} />
                       </div>
-                      <p className="text-gray-500 font-medium">No documents uploaded yet.</p>
+                      <div>
+                        <h3 className="font-bold text-gray-900 text-lg capitalize">{investorData.kycStatus || 'pending verification'}</h3>
+                        <p className="text-sm text-gray-500">Investor has uploaded {verificationDocs.length} mandatory documents for review.</p>
+                      </div>
                     </div>
-                  )}
+                    {investorData.kycStatus !== 'approved' && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            await apiClient.updateKycStatus(params.id, 'approved');
+                            toast.success('KYC Approved');
+                            const profile = await apiClient.getUserById(params.id);
+                            setInvestorData(profile);
+                          } catch (err) {
+                            toast.error('Failed to approve KYC');
+                          }
+                        }}
+                        className="px-6 py-2.5 mt-2 md:mt-0 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95"
+                      >
+                        Approve KYC
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Verification Documents</h4>
+                    {verificationDocs.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {verificationDocs.map((doc, index) => (
+                          <div key={index} className="group relative flex flex-col p-5 bg-white border border-gray-100 rounded-2xl hover:border-red-200 hover:shadow-xl hover:shadow-red-50/50 transition-all">
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="p-3 bg-red-50 rounded-xl">
+                                <FileText className="w-6 h-6 text-red-500" />
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const token = localStorage.getItem('token');
+                                      const viewUrl = `${apiClient.getApiUrl()}/documents/${doc.id}/view?token=${encodeURIComponent(token || '')}`;
+                                      window.open(viewUrl, '_blank');
+                                    } catch (err) {
+                                      console.error('View error:', err);
+                                    }
+                                  }}
+                                  className="p-2 bg-gray-50 text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors"
+                                  title="View"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const token = localStorage.getItem('token');
+                                      const response = await fetch(`${apiClient.getApiUrl()}/documents/${doc.id}/download`, {
+                                        headers: {
+                                          'Authorization': `Bearer ${token}`
+                                        }
+                                      });
+                                      if (!response.ok) throw new Error('Download failed');
+                                      const blob = await response.blob();
+                                      const url = window.URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = doc.file_name;
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      document.body.removeChild(a);
+                                      window.URL.revokeObjectURL(url);
+                                    } catch (err) {
+                                      console.error('Download error:', err);
+                                      toast.error('Failed to download document');
+                                    }
+                                  }}
+                                  className="p-2 bg-gray-50 text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors"
+                                  title="Download"
+                                >
+                                  <Download className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-xs font-bold text-red-400 uppercase tracking-tight">{getDocTypeName(doc.document_type)}</p>
+                              <p className="text-sm font-bold text-gray-900 truncate">{doc.file_name}</p>
+                              <p className="text-[10px] text-gray-400 font-medium">Uploaded on {new Date(doc.uploaded_at).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-12 text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                        <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                          <FileText className="w-8 h-8 text-gray-300" />
+                        </div>
+                        <p className="text-gray-500 font-medium">No documents uploaded yet.</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {activeTab === 'funding' && (
               <div className="space-y-6">
