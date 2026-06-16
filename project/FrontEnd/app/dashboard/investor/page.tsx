@@ -181,6 +181,8 @@ export default function InvestorPage() {
         return 'bg-[#FFF9EE] text-[#F59E0B] border-[#FEF3C7]';
       case 'rejected':
         return 'bg-[#FEF2F2] text-[#EF4444] border-[#FEE2E2]';
+      case 'unverified':
+        return 'bg-gray-100 text-gray-500 border-gray-200';
       default:
         return 'bg-gray-100 text-gray-500 border-gray-200';
     }
@@ -196,9 +198,13 @@ export default function InvestorPage() {
 
     // Account Type Filter logic
     const investorAccType = investor.accountType || 'Personal';
+    const investorInvType = investor.investorType || 'personal';
+
     const matchesAccountType = !accountTypeFilter || (
-      accountTypeFilter === 'IRA'
-        ? investorAccType.toLowerCase() !== 'personal'
+      accountTypeFilter.toLowerCase() === 'personal'
+        ? (investorInvType.toLowerCase() === 'personal' && investorAccType.toLowerCase() === 'personal')
+        : (accountTypeFilter.toLowerCase() === 'minor' || accountTypeFilter.toLowerCase() === 'entity')
+        ? (investorInvType.toLowerCase() === accountTypeFilter.toLowerCase() && investorAccType.toLowerCase() === 'personal')
         : investorAccType.toLowerCase() === accountTypeFilter.toLowerCase()
     );
 
@@ -476,6 +482,7 @@ export default function InvestorPage() {
                   <option value="approved">Approved</option>
                   <option value="pending">Pending</option>
                   <option value="rejected">Rejected</option>
+                  <option value="unverified">Unverified</option>
                 </select>
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] pointer-events-none" />
               </div>
@@ -488,14 +495,14 @@ export default function InvestorPage() {
                   className="appearance-none w-full lg:w-auto pl-5 pr-10 py-3 bg-[#F9FAFB] border rounded-full text-sm font-medium text-[#4B5563] cursor-pointer focus:ring-2 focus:ring-[#FCD34D] transition-all min-w-[150px]"
                 >
                   <option value="">Account Type</option>
-                  <option value="Personal">Personal</option>
-                  <option value="Traditional">Traditional</option>
-                  <option value="Roth">Roth</option>
-                  <option value="Roth SEP">Roth SEP</option>
+                  <option value="personal">Personal</option>
+                  <option value="entity">Entity</option>
+                  <option value="minor">Minor</option>
                   <option value="SEP">SEP</option>
-                  <option value="Rollover">Rollover</option>
+                  <option value="Roth SEP">Roth SEP</option>
                   <option value="DB Plan">DB Plan</option>
-                  <option value="IRA">Any IRA</option>
+                  <option value="Roth IRA">Roth IRA</option>
+                  <option value="Traditional IRA">Traditional IRA</option>
                 </select>
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] pointer-events-none" />
               </div>

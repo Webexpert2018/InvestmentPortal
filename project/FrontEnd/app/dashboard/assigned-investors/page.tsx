@@ -126,8 +126,16 @@ export default function AdminAssignedInvestorsPage() {
   const { active, ira, pending, suspendedLogin, suspendedIra } = useMemo(() => {
     let filtered = investors.filter((inv) => {
       const matchesQuery = `${inv.name} ${inv.email} ${inv.accountType} ${inv.kyc} ${inv.date}`.toLowerCase().includes(query.toLowerCase())
-      const matchesKyc = kycFilter === "All" || inv.kyc === kycFilter
-      const matchesType = typeFilter === "All" || inv.accountType === typeFilter
+      const matchesKyc = kycFilter === "All" || inv.kyc.toLowerCase() === kycFilter.toLowerCase()
+      const invAccType = inv.accountType || 'Personal';
+      const invInvType = inv.investorType || 'personal';
+      const matchesType = typeFilter === "All" || (
+        typeFilter.toLowerCase() === 'personal'
+          ? (invInvType.toLowerCase() === 'personal' && invAccType.toLowerCase() === 'personal')
+          : (typeFilter.toLowerCase() === 'minor' || typeFilter.toLowerCase() === 'entity')
+          ? (invInvType.toLowerCase() === typeFilter.toLowerCase() && invAccType.toLowerCase() === 'personal')
+          : invAccType.toLowerCase() === typeFilter.toLowerCase()
+      );
       return matchesQuery && matchesKyc && matchesType
     })
 
@@ -176,6 +184,7 @@ export default function AdminAssignedInvestorsPage() {
   const kycColor = (s: string) => {
     if (s === "Approved") return "text-[#16A66A]"
     if (s === "Pending") return "text-[#E5A000]"
+    if (s === "Unverified") return "text-gray-500"
     return "text-[#EF4444]"
   }
 
@@ -229,9 +238,11 @@ export default function AdminAssignedInvestorsPage() {
                 >
                   <option value="All">Account Type</option>
                   <option value="Personal">Personal</option>
-                  <option value="SEP IRA">SEP IRA</option>
-                  <option value="Roth SEP IRA">Roth SEP IRA</option>
-                  <option value="DB Plan IRA">DB Plan IRA</option>
+                  <option value="Entity">Entity</option>
+                  <option value="Minor">Minor</option>
+                  <option value="SEP">SEP</option>
+                  <option value="Roth SEP">Roth SEP</option>
+                  <option value="DB Plan">DB Plan</option>
                   <option value="Roth IRA">Roth IRA</option>
                   <option value="Traditional IRA">Traditional IRA</option>
                 </select>
