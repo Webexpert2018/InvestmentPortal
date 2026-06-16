@@ -36,6 +36,13 @@ export default function PortfolioPage() {
   const [redemptions, setRedemptions] = useState<any[]>([]);
   const [funds, setFunds] = useState<any[]>([]);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortConfig]);
+
   const [stats, setStats] = useState({
     totalInvested: 0,
     totalUnits: 0,
@@ -349,114 +356,138 @@ export default function PortfolioPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
-                    {sortedInvestments.map((row, index) => {
-                      // Get redemptions for this specific investment
-                      const rowRedemptions = redemptions || [];
-                      const redeemedUnits = rowRedemptions
-                        .filter((r: any) => r.investment_id === row.id && r.is_reconciled)
-                        .reduce((sum: number, r: any) => sum + parseFloat(r.units || 0), 0);
+                    {(() => {
+                      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+                      const paginatedInvestments = sortedInvestments.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+                      return paginatedInvestments.map((row, index) => {
+                        // Get redemptions for this specific investment
+                        const rowRedemptions = redemptions || [];
+                        const redeemedUnits = rowRedemptions
+                          .filter((r: any) => r.investment_id === row.id && r.is_reconciled)
+                          .reduce((sum: number, r: any) => sum + parseFloat(r.units || 0), 0);
 
-                      const redeemedAmount = rowRedemptions
-                        .filter((r: any) => r.investment_id === row.id && r.is_reconciled)
-                        .reduce((sum: number, r: any) => sum + parseFloat(r.amount || 0), 0);
+                        const redeemedAmount = rowRedemptions
+                          .filter((r: any) => r.investment_id === row.id && r.is_reconciled)
+                          .reduce((sum: number, r: any) => sum + parseFloat(r.amount || 0), 0);
 
-                      const units = Math.max(0, parseFloat(row.estimated_units) - redeemedUnits);
-                      const currentNav = stats.currentNav;
-                      const currentValue = units * currentNav;
-                      const costBasis = parseFloat(row.investment_amount) - redeemedAmount;
-                      const gainLoss = currentValue - costBasis;
-                      const gainPositive = gainLoss >= 0;
-                      const gainPercent = costBasis > 0 ? (gainLoss / costBasis) * 100 : 0;
+                        const units = Math.max(0, parseFloat(row.estimated_units) - redeemedUnits);
+                        const currentNav = stats.currentNav;
+                        const currentValue = units * currentNav;
+                        const costBasis = parseFloat(row.investment_amount) - redeemedAmount;
+                        const gainLoss = currentValue - costBasis;
+                        const gainPositive = gainLoss >= 0;
+                        const gainPercent = costBasis > 0 ? (gainLoss / costBasis) * 100 : 0;
 
-                      return (
-                        <tr
-                          key={row.id}
-                          className="hover:bg-slate-50/80 cursor-pointer transition-colors duration-150"
-                          onClick={() => router.push(`/dashboard/portfolio/${row.id}`)}
-                        >
-                          <td className="px-4 py-3 text-[#1F1F1F] font-medium">{row.fund_name}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B]">{row.account_type}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{units.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(currentNav)}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(currentValue)}</td>
-                          <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(costBasis)}</td>
-                          <td className="px-4 py-3 font-medium">
-                            <span className={gainPositive ? 'text-[#2BB673]' : 'text-[#E04343]'}>
-                              {gainPositive ? '+' : ''}{formatCurrency(gainLoss)} ({gainPercent.toFixed(2)}%)
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              row.status === 'Rejected'
-                                ? 'bg-red-100 text-red-800'
-                                : row.is_reconciled
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {row.status === 'Rejected' ? 'Rejected' : row.is_reconciled ? 'Completed' : row.status || 'Pending'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-right" onClick={(event) => event.stopPropagation()}>
-                            <div className="relative inline-block text-left" data-portfolio-action-menu="true">
-                              <button
-                                type="button"
-                                aria-label="Open actions"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  setOpenActionMenuId((current) =>
-                                    current === row.id ? null : row.id,
-                                  );
-                                }}
-                                className="inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-gray-100"
-                              >
-                                <MoreVertical className="h-4 w-4 text-[#777777]" />
-                              </button>
+                        return (
+                          <tr
+                            key={row.id}
+                            className="hover:bg-slate-50/80 cursor-pointer transition-colors duration-150"
+                            onClick={() => router.push(`/dashboard/portfolio/${row.id}`)}
+                          >
+                            <td className="px-4 py-3 text-[#1F1F1F] font-medium">{row.fund_name}</td>
+                            <td className="px-4 py-3 text-[#4B4B4B]">{row.account_type}</td>
+                            <td className="px-4 py-3 text-[#4B4B4B] text-right">{units.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
+                            <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(currentNav)}</td>
+                            <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(currentValue)}</td>
+                            <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(costBasis)}</td>
+                            <td className="px-4 py-3 font-medium">
+                              <span className={gainPositive ? 'text-[#2BB673]' : 'text-[#E04343]'}>
+                                {gainPositive ? '+' : ''}{formatCurrency(gainLoss)} ({gainPercent.toFixed(2)}%)
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                row.status === 'Rejected'
+                                  ? 'bg-red-100 text-red-800'
+                                  : row.is_reconciled
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {row.status === 'Rejected' ? 'Rejected' : row.is_reconciled ? 'Completed' : row.status || 'Pending'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right" onClick={(event) => event.stopPropagation()}>
+                              <div className="relative inline-block text-left" data-portfolio-action-menu="true">
+                                <button
+                                  type="button"
+                                  aria-label="Open actions"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setOpenActionMenuId((current) =>
+                                      current === row.id ? null : row.id,
+                                    );
+                                  }}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-gray-100"
+                                >
+                                  <MoreVertical className="h-4 w-4 text-[#777777]" />
+                                </button>
 
-                              {openActionMenuId === row.id && (
-                                <div className={`absolute right-0 z-20 w-[150px] rounded-[6px] border border-[#ECECEC] bg-white py-1 shadow-[0_6px_16px_rgba(0,0,0,0.08)] ${
-                                  index === sortedInvestments.length - 1 ? 'bottom-full mb-1' : 'top-full mt-1'
-                                }`}>
-                                  <Link
-                                    href={`/dashboard/portfolio/${row.id}`}
-                                    className="block px-3 py-2 text-left text-[12px] text-[#5F5F5F] hover:bg-[#F8F8F8]"
-                                  >
-                                    View Fund Details
-                                  </Link>
-                                  {/* <button
-                                    className="w-full block px-3 py-2 text-left text-[12px] text-[#5F5F5F] hover:bg-[#F8F8F8]"
-                                    onClick={() => alert('Request sent!')}
-                                  >
-                                    Send Request
-                                  </button> */}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                                {openActionMenuId === row.id && (
+                                  <div className={`absolute right-0 z-20 w-[150px] rounded-[6px] border border-[#ECECEC] bg-white py-1 shadow-[0_6px_16px_rgba(0,0,0,0.08)] ${
+                                    index === paginatedInvestments.length - 1 ? 'bottom-full mb-1' : 'top-full mt-1'
+                                  }`}>
+                                    <Link
+                                      href={`/dashboard/portfolio/${row.id}`}
+                                      className="block px-3 py-2 text-left text-[12px] text-[#5F5F5F] hover:bg-[#F8F8F8]"
+                                    >
+                                      View Fund Details
+                                    </Link>
+                                    {/* <button
+                                      className="w-full block px-3 py-2 text-left text-[12px] text-[#5F5F5F] hover:bg-[#F8F8F8]"
+                                      onClick={() => alert('Request sent!')}
+                                    >
+                                      Send Request
+                                    </button> */}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      });
+                    })()}
                   </tbody>
                 </table>
               </div>
 
               <div className="mt-4 flex flex-col items-center justify-center gap-6 text-sm text-[#8E8E93]">
-                <span className="font-medium text-[#6B7280]">Showing 1-{investments.length} of {investments.length}</span>
-                <div className="flex items-center gap-2">
-                  <button className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all">
-                    Previous
-                  </button>
-                  <div className="flex items-center gap-2 shadow-sm rounded-full bg-[#F9FAFB] p-1">
-                    <button className="w-9 h-9 rounded-lg bg-[#1F3B6E] text-sm font-bold text-white shadow-md scale-105 transition-all">
-                      1
+                <span className="font-medium text-[#6B7280]">
+                  Showing {sortedInvestments.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                  {Math.min(currentPage * ITEMS_PER_PAGE, sortedInvestments.length)} of {sortedInvestments.length}
+                </span>
+                {Math.ceil(sortedInvestments.length / ITEMS_PER_PAGE) > 1 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
+                    >
+                      Previous
                     </button>
-                    <button className="w-9 h-9 rounded-lg text-sm font-bold text-[#4B5563] hover:bg-white transition-all">
-                      2
+                    <div className="flex items-center gap-2 shadow-sm rounded-full bg-[#F9FAFB] p-1">
+                      {Array.from({ length: Math.ceil(sortedInvestments.length / ITEMS_PER_PAGE) }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${
+                            currentPage === page
+                              ? 'bg-[#1F3B6E] text-white shadow-md scale-105'
+                              : 'text-[#4B5563] hover:bg-white'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(sortedInvestments.length / ITEMS_PER_PAGE)))}
+                      disabled={currentPage === Math.ceil(sortedInvestments.length / ITEMS_PER_PAGE)}
+                      className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
+                    >
+                      Next
                     </button>
                   </div>
-                  <button className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all">
-                    Next
-                  </button>
-                </div>
+                )}
               </div>
             </div>
           </div>
