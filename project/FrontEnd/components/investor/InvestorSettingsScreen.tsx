@@ -155,6 +155,9 @@ const defaultProfile = {
   country: 'US',
   ssn: '*** ** ***',
   profileImageUrl: '',
+  investorType: 'personal',
+  entityName: '',
+  entityType: '',
 };
 
 const defaultPassword = {
@@ -288,6 +291,9 @@ export function InvestorSettingsScreen() {
   const { user, refreshUser, updateUser, profileTimestamp } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [profile, setProfile] = useState(defaultProfile);
+  const isEntity = profile.investorType === 'entity' || user?.investorType === 'entity';
+  const entityName = profile.entityName || user?.entityName || '';
+  const entityType = profile.entityType || user?.entityType || '';
   const [password, setPassword] = useState(defaultPassword);
   const [savingNotif, setSavingNotif] = useState(false);
   const [sessions, setSessions] = useState<SessionItem[]>(initialSessions);
@@ -640,6 +646,9 @@ export function InvestorSettingsScreen() {
             country: countryIso || 'US',
             ssn: userData.taxId || '*** ** ***',
             profileImageUrl: userData.profileImageUrl || '',
+            investorType: userData.investorType || 'personal',
+            entityName: userData.entityName || '',
+            entityType: userData.entityType || '',
           });
 
           // Sync notification settings
@@ -922,15 +931,19 @@ export function InvestorSettingsScreen() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <FieldLabel>First Name</FieldLabel>
+                <FieldLabel>{isEntity ? 'Legal Entity Name' : 'First Name'}</FieldLabel>
                 <TextInput
                   className={profileErrors.firstName ? '!border-[#E05252]' : ''}
-                  placeholder="Enter first name"
-                  value={profile.firstName}
+                  placeholder={isEntity ? 'Enter legal entity name' : 'Enter first name'}
+                  value={isEntity ? entityName : profile.firstName}
                   disabled
-                  title="First name cannot be changed directly"
+                  title={isEntity ? 'Legal entity name cannot be changed directly' : 'First name cannot be changed directly'}
                   onChange={(event) => {
-                    setProfile((prev) => ({ ...prev, firstName: event.target.value }));
+                    if (isEntity) {
+                      setProfile((prev) => ({ ...prev, entityName: event.target.value }));
+                    } else {
+                      setProfile((prev) => ({ ...prev, firstName: event.target.value }));
+                    }
                     setProfileErrors((prev) => ({ ...prev, firstName: undefined }));
                   }}
                 />
@@ -938,15 +951,19 @@ export function InvestorSettingsScreen() {
                 <p className="mt-1 text-[9px] text-[#A2A5AA]">Legal name cannot be changed directly due to KYC regulations. Please contact support.</p>
               </div>
               <div>
-                <FieldLabel>Last Name</FieldLabel>
+                <FieldLabel>{isEntity ? 'Entity Type' : 'Last Name'}</FieldLabel>
                 <TextInput
                   className={profileErrors.lastName ? '!border-[#E05252]' : ''}
-                  placeholder="Enter last name"
-                  value={profile.lastName}
+                  placeholder={isEntity ? 'Enter entity type' : 'Enter last name'}
+                  value={isEntity ? entityType : profile.lastName}
                   disabled
-                  title="Last name cannot be changed directly"
+                  title={isEntity ? 'Entity type cannot be changed directly' : 'Last name cannot be changed directly'}
                   onChange={(event) => {
-                    setProfile((prev) => ({ ...prev, lastName: event.target.value }));
+                    if (isEntity) {
+                      setProfile((prev) => ({ ...prev, entityType: event.target.value }));
+                    } else {
+                      setProfile((prev) => ({ ...prev, lastName: event.target.value }));
+                    }
                     setProfileErrors((prev) => ({ ...prev, lastName: undefined }));
                   }}
                 />
