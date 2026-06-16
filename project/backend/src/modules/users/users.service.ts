@@ -170,7 +170,7 @@ export class UsersService implements OnModuleInit {
     if (!user) {
       result = await db.query(`
         SELECT 
-          i.id, i.email, 'investor' as role, i.full_name, i.phone, i.status, i.created_at as "createdAt",
+          i.id, i.email, 'investor' as role, i.full_name, COALESCE(i.phone, parent.phone) as phone, i.status, i.created_at as "createdAt",
           i.dob, i.address_line1 as "addressLine1", i.address_line2 as "addressLine2", 
           i.city, i.state, i.zip_code as "zipCode", i.country, i.tax_id as "taxId", 
           i.profile_image_url as "profileImageUrl", i.kyc_status as "kycStatus",
@@ -502,7 +502,7 @@ export class UsersService implements OnModuleInit {
         WHERE LOWER(i.status) != 'suspended'
       )
       SELECT 
-        i.id, i.full_name, i.email, i.phone, i.status, i.kyc_status,
+        i.id, i.full_name, i.email, COALESCE(i.phone, parent.phone) as phone, i.status, i.kyc_status,
         i.profile_image_url, i.created_at,
         ua.account_type,
         ua.account_id as "accountId",
@@ -510,6 +510,7 @@ export class UsersService implements OnModuleInit {
         i.investor_type as "investorType"
       FROM user_accounts ua
       JOIN investors i ON ua.user_id = i.id
+      LEFT JOIN investors parent ON i.parent_id = parent.id
       WHERE (i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1) AND i.status != 'prospect'
       ORDER BY i.created_at DESC
     `, [staffId]);
@@ -558,7 +559,7 @@ export class UsersService implements OnModuleInit {
         GROUP BY r.investor_id, CASE WHEN LOWER(inv.account_type) = 'personal' OR inv.account_type IS NULL THEN 'Personal' ELSE inv.account_type END
       )
       SELECT 
-        i.id, i.email, i.role, i.full_name as "firstName", '' as "lastName", i.phone, i.status, i.created_at as "createdAt", 
+        i.id, i.email, i.role, i.full_name as "firstName", '' as "lastName", COALESCE(i.phone, parent.phone) as phone, i.status, i.created_at as "createdAt", 
         i.kyc_status as "kycStatus", i.profile_image_url as "profileImageUrl",
         ua.account_type as "accountType",
         ua.account_id as "accountId",
@@ -570,6 +571,7 @@ export class UsersService implements OnModuleInit {
         i.assigned_accountant_id, acc.full_name as assigned_accountant_name
       FROM user_accounts ua
       JOIN investors i ON ua.user_id = i.id AND i.status != 'prospect'
+      LEFT JOIN investors parent ON i.parent_id = parent.id
       LEFT JOIN investment_sums inv_s ON ua.user_id = inv_s.user_id AND ua.account_type = inv_s.account_type
       LEFT JOIN redemption_sums red_s ON ua.user_id = red_s.user_id AND ua.account_type = red_s.account_type
       LEFT JOIN (
@@ -610,13 +612,14 @@ export class UsersService implements OnModuleInit {
 
     const result = await db.query(`
       SELECT 
-        id, email, 'investor' as role, full_name as "firstName", '' as "lastName", phone, status, created_at as "createdAt", 
-        kyc_status as "kycStatus", profile_image_url as "profileImageUrl"
-      FROM investors
-      WHERE status != 'prospect'
+        i.id, i.email, 'investor' as role, i.full_name as "firstName", '' as "lastName", COALESCE(i.phone, parent.phone) as phone, i.status, i.created_at as "createdAt", 
+        i.kyc_status as "kycStatus", i.profile_image_url as "profileImageUrl"
+      FROM investors i
+      LEFT JOIN investors parent ON i.parent_id = parent.id
+      WHERE i.status != 'prospect'
       ORDER BY 
-        CASE WHEN kyc_status = 'pending' THEN 0 ELSE 1 END,
-        created_at DESC
+        CASE WHEN i.kyc_status = 'pending' THEN 0 ELSE 1 END,
+        i.created_at DESC
     `);
 
     return result.rows.map((user) => ({
@@ -663,7 +666,7 @@ export class UsersService implements OnModuleInit {
     if (!user) {
       result = await db.query(`
         SELECT 
-          i.id, i.email, 'investor' as role, i.full_name, i.phone, i.status, i.created_at as "createdAt",
+          i.id, i.email, 'investor' as role, i.full_name, COALESCE(i.phone, parent.phone) as phone, i.status, i.created_at as "createdAt",
           i.dob, i.address_line1 as "addressLine1", i.address_line2 as "addressLine2", 
           i.city, i.state, i.zip_code as "zipCode", i.country, 
           i.tax_id as "taxId", i.profile_image_url as "profileImageUrl", i.kyc_status as "kycStatus", i.assigned_ir_id,
@@ -673,6 +676,7 @@ export class UsersService implements OnModuleInit {
           acc.full_name as assigned_accountant_name, acc.email as assigned_accountant_email,
           (SELECT json_agg(inv ORDER BY inv.sent_at DESC) FROM investor_invitations inv WHERE inv.investor_id = i.id) as "invitationLogs"
         FROM investors i
+        LEFT JOIN investors parent ON i.parent_id = parent.id
         LEFT JOIN (
           SELECT id, full_name, email FROM staff
           UNION
@@ -1279,12 +1283,13 @@ export class UsersService implements OnModuleInit {
 
   async getSubaccounts(parentId: string) {
     const result = await db.query(
-      `SELECT id, email, full_name as "fullName", phone, dob, address_line1 as "addressLine1", address_line2 as "addressLine2",
-              city, state, zip_code as "zipCode", country, tax_id as "taxId", kyc_status as "kycStatus",
-              investor_type as "investorType", entity_name as "entityName", entity_type as "entityType", status
-       FROM investors
-       WHERE parent_id = $1
-       ORDER BY created_at DESC`,
+      `SELECT i.id, i.email, i.full_name as "fullName", COALESCE(i.phone, parent.phone) as phone, i.dob, i.address_line1 as "addressLine1", i.address_line2 as "addressLine2",
+              i.city, i.state, i.zip_code as "zipCode", i.country, i.tax_id as "taxId", i.kyc_status as "kycStatus",
+              i.investor_type as "investorType", i.entity_name as "entityName", i.entity_type as "entityType", i.status
+       FROM investors i
+       LEFT JOIN investors parent ON i.parent_id = parent.id
+       WHERE i.parent_id = $1
+       ORDER BY i.created_at DESC`,
       [parentId]
     );
     return result.rows;

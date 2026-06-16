@@ -17,7 +17,7 @@ export class CrmService {
         i.id, 
         i.full_name as "fullName", 
         i.email, 
-        i.phone, 
+        COALESCE(i.phone, parent.phone) as phone, 
         i.created_at as "dateJoined",
         i.status,
         COALESCE(
@@ -25,6 +25,7 @@ export class CrmService {
           '[]'
         ) as "fundIds"
       FROM investors i
+      LEFT JOIN investors parent ON i.parent_id = parent.id
       WHERE i.status = 'active'
       ORDER BY i.created_at DESC
     `);

@@ -232,6 +232,7 @@ export class AuthService {
       if (!user) {
         result = await db.query(
           `SELECT i.*, 
+                  COALESCE(i.phone, parent.phone) as phone,
                   ir.full_name as assigned_ir_name, 
                   acc.full_name as assigned_accountant_name,
                   parent.full_name as parent_name

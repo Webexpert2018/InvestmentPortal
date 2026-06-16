@@ -92,8 +92,9 @@ export class StaffService {
 
   async findAssignedInvestors(staffId: string) {
     const result = await db.query(
-      `SELECT i.id, i.full_name, i.email, i.phone, i.status, i.kyc_status, i.created_at, i.updated_at
+      `SELECT i.id, i.full_name, i.email, COALESCE(i.phone, parent.phone) as phone, i.status, i.kyc_status, i.created_at, i.updated_at
        FROM investors i
+       LEFT JOIN investors parent ON i.parent_id = parent.id
        WHERE i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1
        ORDER BY i.updated_at DESC`,
       [staffId]

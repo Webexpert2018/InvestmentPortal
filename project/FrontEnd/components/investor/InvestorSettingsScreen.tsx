@@ -1802,45 +1802,6 @@ export function InvestorSettingsScreen() {
                     />
                     {subFormErrors.dob && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.dob}</p>}
                   </div>
-                  <div>
-                    <FieldLabel>Phone Number</FieldLabel>
-                    <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-2">
-                      <div className="relative">
-                        <select
-                          value={subForm.countryCode}
-                          onChange={(event) => {
-                            const newCode = event.target.value;
-                            setSubForm((prev) => ({
-                              ...prev,
-                              countryCode: newCode,
-                              phone: formatPhoneNumber(prev.phone, newCode),
-                            }));
-                            setSubFormErrors((prev) => ({ ...prev, phone: '' }));
-                          }}
-                          className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none"
-                        >
-                          {COUNTRY_CODES.map(code => (
-                            <option key={code} value={code}>{code}</option>
-                          ))}
-                        </select>
-                        <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
-                      </div>
-                      <TextInput
-                        className={subFormErrors.phone ? '!border-[#E05252]' : ''}
-                        placeholder="Enter phone number"
-                        value={subForm.phone}
-                        onChange={(event) => {
-                          const val = formatPhoneNumber(event.target.value, subForm.countryCode);
-                          setSubForm((prev) => ({
-                            ...prev,
-                            phone: val,
-                          }));
-                          setSubFormErrors((prev) => ({ ...prev, phone: '' }));
-                        }}
-                      />
-                    </div>
-                    {subFormErrors.phone && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.phone}</p>}
-                  </div>
                 </>
               ) : (
                 <>
@@ -1904,6 +1865,46 @@ export function InvestorSettingsScreen() {
                   }}
                 />
                 {subFormErrors.password && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.password}</p>}
+              </div>
+
+              <div>
+                <FieldLabel>Phone Number</FieldLabel>
+                <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-2">
+                  <div className="relative">
+                    <select
+                      value={subForm.countryCode}
+                      onChange={(event) => {
+                        const newCode = event.target.value;
+                        setSubForm((prev) => ({
+                          ...prev,
+                          countryCode: newCode,
+                          phone: formatPhoneNumber(prev.phone, newCode),
+                        }));
+                        setSubFormErrors((prev) => ({ ...prev, phone: '' }));
+                      }}
+                      className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none"
+                    >
+                      {COUNTRY_CODES.map(code => (
+                        <option key={code} value={code}>{code}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
+                  </div>
+                  <TextInput
+                    className={subFormErrors.phone ? '!border-[#E05252]' : ''}
+                    placeholder="Enter phone number"
+                    value={subForm.phone}
+                    onChange={(event) => {
+                      const val = formatPhoneNumber(event.target.value, subForm.countryCode);
+                      setSubForm((prev) => ({
+                        ...prev,
+                        phone: val,
+                      }));
+                      setSubFormErrors((prev) => ({ ...prev, phone: '' }));
+                    }}
+                  />
+                </div>
+                {subFormErrors.phone && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.phone}</p>}
               </div>
 
               <div>
