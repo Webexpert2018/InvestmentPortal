@@ -83,6 +83,12 @@ export class UsersController {
       updateDto.notif_sms_tax_forms,
       updateDto.pref_send_by_email,
       updateDto.pref_tax_forms_alert,
+      undefined, // pref_auto_download
+      undefined, // pref_paperless
+      undefined, // pref_format
+      undefined, // pref_frequency
+      updateDto.entityName,
+      updateDto.entityType,
     );
   }
 
@@ -144,6 +150,12 @@ export class UsersController {
       updateDto.notif_sms_tax_forms,
       updateDto.pref_send_by_email,
       updateDto.pref_tax_forms_alert,
+      undefined, // pref_auto_download
+      undefined, // pref_paperless
+      undefined, // pref_format
+      undefined, // pref_frequency
+      updateDto.entityName,
+      updateDto.entityType,
     );
   }
 
@@ -340,6 +352,12 @@ export class UsersController {
       updateDto.notif_sms_tax_forms,
       updateDto.pref_send_by_email,
       updateDto.pref_tax_forms_alert,
+      undefined, // pref_auto_download
+      undefined, // pref_paperless
+      undefined, // pref_format
+      undefined, // pref_frequency
+      updateDto.entityName,
+      updateDto.entityType,
     );
   }
 

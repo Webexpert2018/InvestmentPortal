@@ -58,9 +58,11 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
         stateCode = stateObj?.isoCode || stateCode;
       }
 
+      const isEntity = investor?.investorType === 'entity';
+
       setForm({
-        firstName: investor.firstName || '',
-        lastName: investor.lastName || '',
+        firstName: isEntity ? (investor.entityName || investor.firstName || '') : (investor.firstName || ''),
+        lastName: isEntity ? (investor.entityType || investor.lastName || '') : (investor.lastName || ''),
         email: investor.email || '',
         phone: phone,
         phoneCode: phoneCode,
@@ -79,8 +81,15 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
 
   const validate = () => {
     const e: { [k: string]: string } = {};
-    if (!form.firstName.trim()) e.firstName = 'First name is required.';
-    if (!form.lastName.trim()) e.lastName = 'Last name is required.';
+    const isEntity = investor?.investorType === 'entity';
+
+    if (isEntity) {
+      if (!form.firstName.trim()) e.firstName = 'Legal entity name is required.';
+      if (!form.lastName.trim()) e.lastName = 'Entity type is required.';
+    } else {
+      if (!form.firstName.trim()) e.firstName = 'First name is required.';
+      if (!form.lastName.trim()) e.lastName = 'Last name is required.';
+    }
     if (form.phone && !/^\d+$/.test(form.phone.replace(/\D/g, ''))) e.phone = 'Invalid phone number.';
     
     if (form.taxId) {
@@ -99,11 +108,11 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
       const countryObj = Country.getCountryByCode(form.country);
       const stateObj = State.getStateByCodeAndCountry(form.state, form.country);
 
-      const updatedData = {
-        firstName: form.firstName,
-        lastName: form.lastName,
+      const isEntity = investor?.investorType === 'entity';
+
+      const updatedData: any = {
         phone: `${form.phoneCode} ${form.phone}`.trim(),
-        dob: form.dob,
+        dob: isEntity ? null : form.dob,
         addressLine1: form.addressLine1,
         addressLine2: form.addressLine2,
         city: form.city,
@@ -112,6 +121,16 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
         country: countryObj?.name || form.country,
         taxId: form.taxId.replace(/\D/g, '')
       };
+
+      if (isEntity) {
+        updatedData.entityName = form.firstName;
+        updatedData.entityType = form.lastName;
+        updatedData.firstName = form.firstName;
+        updatedData.lastName = form.lastName;
+      } else {
+        updatedData.firstName = form.firstName;
+        updatedData.lastName = form.lastName;
+      }
 
       const res = await apiClient.updateUser(investor.id, updatedData);
       
@@ -168,18 +187,48 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
           <div className="grid gap-6">
             {/* Basic Identity */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField 
-                label="First Name" 
-                value={form.firstName} 
-                onChange={v => setForm({ ...form, firstName: v })} 
-                error={errors.firstName}
-              />
-              <InputField 
-                label="Last Name" 
-                value={form.lastName} 
-                onChange={v => setForm({ ...form, lastName: v })} 
-                error={errors.lastName}
-              />
+              {investor?.investorType === 'entity' ? (
+                <>
+                  <InputField 
+                    label="Legal Entity Name" 
+                    value={form.firstName} 
+                    onChange={v => setForm({ ...form, firstName: v })} 
+                    error={errors.firstName}
+                  />
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Entity Type</label>
+                    <select
+                      value={form.lastName}
+                      onChange={e => setForm({ ...form, lastName: e.target.value })}
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none transition-all focus:ring-2 focus:ring-amber-200 focus:border-amber-400"
+                    >
+                      <option value="">Select Entity Type</option>
+                      <option value="LLC">LLC</option>
+                      <option value="Corporation">Corporation</option>
+                      <option value="Trust">Trust</option>
+                      <option value="Partnership">Partnership</option>
+                      <option value="Nonprofit">Nonprofit</option>
+                      <option value="Others">Others</option>
+                    </select>
+                    {errors.lastName && <p className="mt-1 text-[10px] text-red-500">{errors.lastName}</p>}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <InputField 
+                    label="First Name" 
+                    value={form.firstName} 
+                    onChange={v => setForm({ ...form, firstName: v })} 
+                    error={errors.firstName}
+                  />
+                  <InputField 
+                    label="Last Name" 
+                    value={form.lastName} 
+                    onChange={v => setForm({ ...form, lastName: v })} 
+                    error={errors.lastName}
+                  />
+                </>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

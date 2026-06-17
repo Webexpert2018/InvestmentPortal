@@ -11,6 +11,14 @@ export class UpdateProfileDto {
 
   @IsString()
   @IsOptional()
+  entityName?: string;
+
+  @IsString()
+  @IsOptional()
+  entityType?: string;
+
+  @IsString()
+  @IsOptional()
   phone?: string;
 
   @IsString()

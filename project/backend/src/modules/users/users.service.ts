@@ -304,6 +304,8 @@ export class UsersService implements OnModuleInit {
     pref_paperless?: boolean,
     pref_format?: string,
     pref_frequency?: string,
+    entityName?: string,
+    entityType?: string,
   ) {
     // Determine which tables handle this user and update all of them for consistency
     const tablesFound: { name: string; type: 'split' | 'full' }[] = [];
@@ -342,17 +344,30 @@ export class UsersService implements OnModuleInit {
 
       // Handle names based on table structure
       if (nameFieldType === 'full') {
-        if (firstName !== undefined || lastName !== undefined) {
-          const currentRes = await db.query(`SELECT full_name FROM ${tableName} WHERE id = $1`, [userId]);
-          const currentFullName = currentRes.rows[0]?.full_name || '';
-          const [currFirst, ...currLastParts] = currentFullName.split(' ');
+        const currentRes = await db.query(`SELECT full_name, investor_type, entity_name, entity_type FROM ${tableName} WHERE id = $1`, [userId]);
+        const currentData = currentRes.rows[0] || {};
+        const currentInvestorType = currentData.investor_type || 'personal';
 
-          const finalFirst = firstName !== undefined ? firstName : currFirst;
-          const finalLast = lastName !== undefined ? lastName : currLastParts.join(' ');
-          const fullName = `${finalFirst} ${finalLast}`.trim();
+        if (currentInvestorType === 'entity') {
+          // For entity, full_name is the entityName
+          const finalEntityName = entityName !== undefined ? entityName : (firstName !== undefined ? firstName : currentData.entity_name);
+          if (finalEntityName !== undefined) {
+            updates.push(`full_name = $${paramIndex++}`);
+            values.push(finalEntityName);
+          }
+        } else {
+          // For personal/minor
+          if (firstName !== undefined || lastName !== undefined) {
+            const currentFullName = currentData.full_name || '';
+            const [currFirst, ...currLastParts] = currentFullName.split(' ');
 
-          updates.push(`full_name = $${paramIndex++}`);
-          values.push(fullName);
+            const finalFirst = firstName !== undefined ? firstName : currFirst;
+            const finalLast = lastName !== undefined ? lastName : currLastParts.join(' ');
+            const fullName = `${finalFirst} ${finalLast}`.trim();
+
+            updates.push(`full_name = $${paramIndex++}`);
+            values.push(fullName);
+          }
         }
       } else {
         if (firstName !== undefined) {
@@ -402,6 +417,8 @@ export class UsersService implements OnModuleInit {
         pref_paperless,
         pref_format,
         pref_frequency,
+        entity_name: entityName,
+        entity_type: entityType,
       };
 
       // Filter fields based on table availability to prevent SQL errors
@@ -409,7 +426,9 @@ export class UsersService implements OnModuleInit {
       const staffNotifs = ['notif_doc_uploaded', 'notif_missing_doc', 'notif_investor_msg', 'notif_reminder'];
       const investorNotifs = [...staffNotifs, 'notif_invest_activity', 'notif_funding_conf', 'notif_doc_uploads', 'notif_kyc_updates', 'notif_announcements', 'notif_sms_invest_conf', 'notif_sms_security', 'notif_alerts', 'notif_nav_recalc', 'notif_sms_announcements', 'notif_sms_alerts', 'notif_sms_doc_uploads', 'notif_sms_nav_recalc', 'notif_sms_funding_conf', 'notif_sms_tax_forms', 'pref_send_by_email', 'pref_tax_forms_alert', 'pref_auto_download', 'pref_paperless', 'pref_format', 'pref_frequency'];
 
-      const allowedColumns = tableName === 'investors' ? [...commonFields, ...investorNotifs] : [...commonFields, ...staffNotifs];
+      const allowedColumns = tableName === 'investors' 
+        ? [...commonFields, ...investorNotifs, 'entity_name', 'entity_type'] 
+        : [...commonFields, ...staffNotifs];
 
       for (const [colName, val] of Object.entries(fieldMap)) {
         if (val !== undefined && allowedColumns.includes(colName)) {
@@ -421,7 +440,7 @@ export class UsersService implements OnModuleInit {
       values.push(userId);
 
       const returning = tableName === 'investors'
-        ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, notif_alerts, notif_nav_recalc, notif_sms_announcements, notif_sms_alerts, notif_sms_doc_uploads, notif_sms_nav_recalc, notif_sms_funding_conf, notif_sms_tax_forms, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency'
+        ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, notif_alerts, notif_nav_recalc, notif_sms_announcements, notif_sms_alerts, notif_sms_doc_uploads, notif_sms_nav_recalc, notif_sms_funding_conf, notif_sms_tax_forms, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency, investor_type, entity_name, entity_type'
         : tableName === 'staff'
           ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder'
           : 'id, email, first_name, last_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder';
@@ -446,8 +465,8 @@ export class UsersService implements OnModuleInit {
       id: user.id,
       email: user.email,
       role: user.role,
-      firstName: finalTable.type === 'full' ? user.full_name?.split(' ')[0] : user.first_name,
-      lastName: finalTable.type === 'full' ? user.full_name?.split(' ').slice(1).join(' ') : user.last_name,
+      firstName: finalTable.type === 'full' ? (user.investor_type === 'entity' ? user.entity_name : user.full_name?.split(' ')[0]) : user.first_name,
+      lastName: finalTable.type === 'full' ? (user.investor_type === 'entity' ? user.entity_type : user.full_name?.split(' ').slice(1).join(' ')) : user.last_name,
       phone: user.phone,
       status: user.status,
       dob: user.dob,
@@ -482,7 +501,10 @@ export class UsersService implements OnModuleInit {
       pref_auto_download: user.pref_auto_download,
       pref_paperless: user.pref_paperless,
       pref_format: user.pref_format,
-      pref_frequency: user.pref_frequency
+      pref_frequency: user.pref_frequency,
+      investorType: user.investor_type || 'personal',
+      entityName: user.entity_name || '',
+      entityType: user.entity_type || '',
     };
   }
 
@@ -674,6 +696,7 @@ export class UsersService implements OnModuleInit {
           i.last_invite_sent_at as "lastInviteSentAt", i.last_invite_sent_by_name as "lastInviteSentByName",
           ir.full_name as assigned_ir_name, ir.email as assigned_ir_email,
           acc.full_name as assigned_accountant_name, acc.email as assigned_accountant_email,
+          i.investor_type as "investorType", i.entity_name as "entityName", i.entity_type as "entityType", i.parent_id as "parentId",
           (SELECT json_agg(inv ORDER BY inv.sent_at DESC) FROM investor_invitations inv WHERE inv.investor_id = i.id) as "invitationLogs"
         FROM investors i
         LEFT JOIN investors parent ON i.parent_id = parent.id
@@ -731,7 +754,11 @@ export class UsersService implements OnModuleInit {
       assignedAccountantEmail: user.assigned_accountant_email,
       lastInviteSentAt: user.lastInviteSentAt,
       lastInviteSentByName: user.lastInviteSentByName,
-      invitationLogs: user.invitationLogs || []
+      invitationLogs: user.invitationLogs || [],
+      investorType: user.investorType || 'personal',
+      entityName: user.entityName || '',
+      entityType: user.entityType || '',
+      parentId: user.parentId || null,
     };
   }
 
