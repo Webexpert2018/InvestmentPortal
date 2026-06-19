@@ -166,7 +166,9 @@ export class UsersController {
 
   @Post('subaccounts')
   async createSubaccount(@CurrentUser() user: any, @Body() body: any) {
-    return this.usersService.createSubaccount(user.userId, body);
+    const isAdmin = ['admin', 'executive_admin', 'fund_admin', 'investor_relations'].includes(user.role);
+    const parentId = (isAdmin && body.parentId) ? body.parentId : user.userId;
+    return this.usersService.createSubaccount(parentId, body);
   }
 
   @Get()

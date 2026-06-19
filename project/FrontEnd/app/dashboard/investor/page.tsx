@@ -11,6 +11,7 @@ import Image from 'next/image';
 import { Country, State, City } from 'country-state-city';
 import { Combobox } from '@/components/ui/combobox';
 import { AdminAddIraModal } from '@/components/ira/AdminAddIraModal';
+import { AdminAddSubaccountModal } from '@/components/investor/AdminAddSubaccountModal';
 
 interface Investor {
   id: string;
@@ -51,6 +52,9 @@ export default function InvestorPage() {
   const [selectedInvestorId, setSelectedInvestorId] = useState<string | null>(null);
   const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
   const [showAdminIraModal, setShowAdminIraModal] = useState(false);
+  const [showAddSubaccountModal, setShowAddSubaccountModal] = useState(false);
+
+  const selectedInvestor = investors.find(inv => inv.id === selectedInvestorId);
 
   useEffect(() => {
     setActivePage(1);
@@ -438,6 +442,17 @@ export default function InvestorPage() {
             >
               <Plus className="h-4 w-4" />
               Add IRA Account
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAddSubaccountModal(true);
+              }}
+              disabled={!selectedInvestorId || selectedInvestor?.investorType !== 'personal' || selectedInvestor?.status !== 'active'}
+              className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Subaccount
             </button>
             <button
               onClick={(e) => {
@@ -1229,6 +1244,18 @@ export default function InvestorPage() {
           isOpen={showAdminIraModal}
           targetInvestorId={selectedInvestorId}
           onClose={() => setShowAdminIraModal(false)}
+          onSuccess={() => {
+            fetchInvestors();
+          }}
+        />
+      )}
+
+      {/* Admin Add Subaccount Modal */}
+      {showAddSubaccountModal && selectedInvestorId && (
+        <AdminAddSubaccountModal
+          isOpen={showAddSubaccountModal}
+          targetInvestorId={selectedInvestorId}
+          onClose={() => setShowAddSubaccountModal(false)}
           onSuccess={() => {
             fetchInvestors();
           }}

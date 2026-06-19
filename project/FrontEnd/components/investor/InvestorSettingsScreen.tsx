@@ -2644,22 +2644,30 @@ export function InvestorSettingsScreen() {
       {activeTab !== 'add-account' && (
         <div className="mt-4 border-b border-[#E5E5EA]">
           <div className="flex items-center gap-8 overflow-x-auto pb-0">
-            {tabs.map((tab) => {
-              const selected = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`relative shrink-0 pb-[10px] font-goudy text-[16px] leading-5 ${selected ? 'text-[#274583]' : 'text-[#8E8E93]'}`}
-                >
-                  {tab.label}
-                  {selected && (
-                    <span className="absolute bottom-0 left-1/2 h-[2px] w-[34px] -translate-x-1/2 rounded-full bg-[#FBCB4B]" />
-                  )}
-                </button>
-              );
-            })}
+            {tabs
+              .filter((tab) => {
+                if (tab.id === 'sub-accounts') {
+                  const type = profile.investorType || user?.investorType || 'personal';
+                  return type === 'personal';
+                }
+                return true;
+              })
+              .map((tab) => {
+                const selected = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative shrink-0 pb-[10px] font-goudy text-[16px] leading-5 ${selected ? 'text-[#274583]' : 'text-[#8E8E93]'}`}
+                  >
+                    {tab.label}
+                    {selected && (
+                      <span className="absolute bottom-0 left-1/2 h-[2px] w-[34px] -translate-x-1/2 rounded-full bg-[#FBCB4B]" />
+                    )}
+                  </button>
+                );
+              })}
           </div>
         </div>
       )}
@@ -2670,7 +2678,7 @@ export function InvestorSettingsScreen() {
         {activeTab === 'notifications' && renderNotificationsTab()}
         {/* {activeTab === 'accounts' && renderAccountsTab()} */}
         {activeTab === 'bank-accounts' && renderBankAccountsTab()}
-        {activeTab === 'sub-accounts' && renderSubAccountsTab()}
+        {activeTab === 'sub-accounts' && (profile.investorType || user?.investorType || 'personal') === 'personal' && renderSubAccountsTab()}
         {activeTab === 'add-account' && renderAddAccount()}
         {activeTab === 'add-bank-account' && renderAddBankAccount()}
       </div>
