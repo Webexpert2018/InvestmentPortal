@@ -15,6 +15,16 @@ import { Roles } from '../../decorators/roles.decorator';
 export class FundsController {
   constructor(private readonly fundsService: FundsService) {}
 
+  @Get('old-funds')
+  findOldFunds() {
+    return this.fundsService.getOldFunds();
+  }
+
+  @Get('old-funds/:id')
+  findOldFundById(@Param('id') id: string) {
+    return this.fundsService.getOldFundById(parseInt(id));
+  }
+
   @Get()
   findAll() {
     return this.fundsService.getAllFunds();

@@ -27,6 +27,12 @@ export class InvestmentsController {
     return this.investmentsService.getMyInvestments(user.userId);
   }
 
+  @Get('my-old')
+  async getMyOldInvestments(@CurrentUser() user: any) {
+    if (!user.email) throw new UnauthorizedException('User email not found');
+    return this.investmentsService.getMyOldInvestments(user.email);
+  }
+
   @Get('investor/:id')
   @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
   async getInvestorInvestments(@CurrentUser() user: any, @Param('id') id: string) {

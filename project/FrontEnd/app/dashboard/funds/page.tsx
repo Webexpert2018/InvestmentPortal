@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, MoreVertical, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, MoreVertical, X, ChevronLeft, ChevronRight, Briefcase, DollarSign, Users, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import Link from 'next/link';
@@ -18,16 +18,24 @@ import {
 
 export default function FundsPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'current' | 'old'>('current');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedFund, setSelectedFund] = useState<number | null>(null);
 
   const [fundsData, setFundsData] = useState<any[]>([]);
+  const [oldFundsData, setOldFundsData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingOld, setIsLoadingOld] = useState(false);
+
+  // States for old fund details modal
+  const [selectedOldFund, setSelectedOldFund] = useState<any | null>(null);
+  const [showOldDetailsModal, setShowOldDetailsModal] = useState(false);
 
   useEffect(() => {
     fetchFunds();
+    fetchOldFunds();
   }, []);
 
   const fetchFunds = async () => {
@@ -39,6 +47,18 @@ export default function FundsPage() {
       toast.error(error.message || 'Failed to fetch funds');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchOldFunds = async () => {
+    setIsLoadingOld(true);
+    try {
+      const data = await apiClient.getOldFunds();
+      setOldFundsData(data);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to fetch old funds');
+    } finally {
+      setIsLoadingOld(false);
     }
   };
 
@@ -98,6 +118,7 @@ export default function FundsPage() {
       .toUpperCase();
   };
 
+  // Pagination for Active Funds
   const itemsPerPage = 7;
   const filteredFunds = fundsData.filter(fund =>
     (fund.name || '').toLowerCase().includes(searchQuery.toLowerCase())
@@ -107,10 +128,20 @@ export default function FundsPage() {
   const endIndex = startIndex + itemsPerPage;
   const currentFunds = filteredFunds.slice(startIndex, endIndex);
 
-  // Reset to first page when searching
+  // Pagination for Old Funds
+  const oldItemsPerPage = 6;
+  const filteredOldFunds = oldFundsData.filter(fund =>
+    (fund.projectName || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const totalOldPages = Math.ceil(filteredOldFunds.length / oldItemsPerPage);
+  const oldStartIndex = (currentPage - 1) * oldItemsPerPage;
+  const oldEndIndex = oldStartIndex + oldItemsPerPage;
+  const currentOldFunds = filteredOldFunds.slice(oldStartIndex, oldEndIndex);
+
+  // Reset to first page when searching or changing tabs
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, activeTab]);
 
   const handleDelete = (fundId: number) => {
     const fund = fundsData.find(f => f.id === fundId);
@@ -163,14 +194,44 @@ export default function FundsPage() {
           </Button>
         </div>
 
-        <div className="bg-white p-2">
+        {/* Tab Switcher */}
+        <div className="flex border-b border-gray-100 mb-6 bg-white rounded-t-2xl px-4">
+          <button
+            onClick={() => {
+              setActiveTab('current');
+              setSearchQuery('');
+            }}
+            className={`px-6 py-4 font-bold text-sm transition-all border-b-2 -mb-[2px] ${
+              activeTab === 'current'
+                ? 'border-[#1F3B6E] text-[#1F3B6E]'
+                : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            Active Funds
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('old');
+              setSearchQuery('');
+            }}
+            className={`px-6 py-4 font-bold text-sm transition-all border-b-2 -mb-[2px] ${
+              activeTab === 'old'
+                ? 'border-[#1F3B6E] text-[#1F3B6E]'
+                : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            Old Platform Funds
+          </button>
+        </div>
+
+        <div className="bg-white p-4 rounded-b-2xl shadow-sm border border-gray-50">
           {/* Search */}
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="relative max-w-md">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
                 type="text"
-                placeholder="Find something here..."
+                placeholder={activeTab === 'current' ? "Find active fund..." : "Find old platform fund..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/10 focus:border-[#1F3B6E] transition-all"
@@ -178,147 +239,255 @@ export default function FundsPage() {
             </div>
           </div>
 
-          {/* Table */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full border-collapse">
-                <thead className="bg-gray-50/50 border-b border-gray-100">
-                  <tr>
-                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Fund Name</th>
-                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Fund Start Date</th>
-                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Total Investors</th>
-                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Total AUM</th>
-                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Status</th>
-                    <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap pr-12 text-center">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {currentFunds.map((fund) => (
-                    <tr 
-                      key={fund.id} 
-                      className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
-                      onClick={() => router.push(`/dashboard/funds/${fund.id}`)}
-                    >
-                      <td className="px-6 py-5 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          {fund.image ? (
-                            <img
-                              src={getFullImageUrl(fund.image) || ''}
-                              alt={fund.name}
-                              className="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                              {getInitials(fund.name)}
-                            </div>
-                          )}
-                          <span className="font-medium text-gray-900">{fund.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-5 text-[13px] text-gray-600 font-medium whitespace-nowrap">{formatDate(fund.startDate)}</td>
-                      <td className="px-6 py-5 text-[13px] text-gray-900 font-bold whitespace-nowrap">{fund.totalInvestors}</td>
-                      <td className="px-6 py-5 text-[13px] font-bold text-[#1F3B6E] whitespace-nowrap">
-                        {formatAUM(fund.totalAUM)}
-                      </td>
-                      <td className="px-6 py-5 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusColor(fund.status)}`}>
-                          {fund.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-5 text-center whitespace-nowrap pr-12" onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                              <MoreVertical className="h-5 w-5 text-gray-600" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-36 bg-white z-50">
-                            <DropdownMenuItem asChild>
-                              <Link
-                                href={`/dashboard/funds/${fund.id}`}
-                                className="w-full px-4 py-2 cursor-pointer"
-                              >
-                                View
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link
-                                href={`/dashboard/funds/${fund.id}/edit`}
-                                className="w-full px-4 py-2 cursor-pointer"
-                              >
-                                Edit
-                              </Link>
-                            </DropdownMenuItem>
-                            {fund.status === 'Active' ? (
-                              <DropdownMenuItem
-                                onClick={() => handleToggleStatus(fund.id, 'Closed')}
-                                className="w-full px-4 py-2 text-[#DC2626] cursor-pointer focus:text-[#DC2626]"
-                              >
-                                Close Fund
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem
-                                onClick={() => handleToggleStatus(fund.id, 'Active')}
-                                className="w-full px-4 py-2 text-[#059669] cursor-pointer focus:text-[#059669]"
-                              >
-                                Open Fund
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(fund.id)}
-                              className="w-full px-4 py-2 text-red-600 cursor-pointer focus:text-red-700"
-                            >
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
+          {activeTab === 'current' ? (
+            /* Current Funds Table */
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full border-collapse">
+                  <thead className="bg-gray-50/50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Fund Name</th>
+                      <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Fund Start Date</th>
+                      <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Total Investors</th>
+                      <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Total AUM</th>
+                      <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Status</th>
+                      <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap pr-12 text-center">Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              {currentFunds.length === 0 && !isLoading && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">No funds found matching "{searchQuery}"</p>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {currentFunds.map((fund) => (
+                      <tr 
+                        key={fund.id} 
+                        className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
+                        onClick={() => router.push(`/dashboard/funds/${fund.id}`)}
+                      >
+                        <td className="px-6 py-5 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            {fund.image ? (
+                              <img
+                                src={getFullImageUrl(fund.image) || ''}
+                                alt={fund.name}
+                                className="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                                {getInitials(fund.name)}
+                              </div>
+                            )}
+                            <span className="font-medium text-gray-900">{fund.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 text-[13px] text-gray-600 font-medium whitespace-nowrap">{formatDate(fund.startDate)}</td>
+                        <td className="px-6 py-5 text-[13px] text-gray-900 font-bold whitespace-nowrap">{fund.totalInvestors}</td>
+                        <td className="px-6 py-5 text-[13px] font-bold text-[#1F3B6E] whitespace-nowrap">
+                          {formatAUM(fund.totalAUM)}
+                        </td>
+                        <td className="px-6 py-5 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusColor(fund.status)}`}>
+                            {fund.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-5 text-center whitespace-nowrap pr-12" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                <MoreVertical className="h-5 w-5 text-gray-600" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-36 bg-white z-50">
+                              <DropdownMenuItem asChild>
+                                <Link
+                                  href={`/dashboard/funds/${fund.id}`}
+                                  className="w-full px-4 py-2 cursor-pointer"
+                                >
+                                  View
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link
+                                  href={`/dashboard/funds/${fund.id}/edit`}
+                                  className="w-full px-4 py-2 cursor-pointer"
+                                >
+                                  Edit
+                                </Link>
+                              </DropdownMenuItem>
+                              {fund.status === 'Active' ? (
+                                <DropdownMenuItem
+                                  onClick={() => handleToggleStatus(fund.id, 'Closed')}
+                                  className="w-full px-4 py-2 text-[#DC2626] cursor-pointer focus:text-[#DC2626]"
+                                >
+                                  Close Fund
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem
+                                  onClick={() => handleToggleStatus(fund.id, 'Active')}
+                                  className="w-full px-4 py-2 text-[#059669] cursor-pointer focus:text-[#059669]"
+                                >
+                                  Open Fund
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(fund.id)}
+                                className="w-full px-4 py-2 text-red-600 cursor-pointer focus:text-red-700"
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {currentFunds.length === 0 && !isLoading && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">No active funds found matching "{searchQuery}"</p>
+                  </div>
+                )}
+                {isLoading && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">Loading funds...</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Active Funds Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-4 px-6 py-6 border-t border-gray-100 font-helvetica">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 px-3 py-2 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </button>
+
+                  <div className="flex gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === page
+                          ? 'bg-[#1F3B6E] text-white shadow-sm'
+                          : 'text-gray-400 hover:bg-gray-50'
+                          }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center gap-1 px-3 py-2 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
                 </div>
               )}
             </div>
-
-            <div className="flex items-center justify-center gap-4 px-6 py-6 border-t border-gray-100 font-helvetica">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="flex items-center gap-1 px-3 py-2 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Previous
-              </button>
-
-              <div className="flex gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === page
-                      ? 'bg-[#1F3B6E] text-white shadow-sm'
-                      : 'text-gray-400 hover:bg-gray-50'
-                      }`}
+          ) : (
+            /* Old Funds Cards Grid */
+            <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {currentOldFunds.map((fund) => (
+                  <div 
+                    key={fund.projectId}
+                    onClick={() => {
+                      setSelectedOldFund(fund);
+                      setShowOldDetailsModal(true);
+                    }}
+                    className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
                   >
-                    {page}
-                  </button>
+                    <div>
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4B5563] to-[#9CA3AF] flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                            {getInitials(fund.projectName)}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-gray-900 leading-snug">{fund.projectName}</h3>
+                            <span className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">{fund.projectType}</span>
+                          </div>
+                        </div>
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-100">
+                          {fund.status}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 my-4 pt-2 border-t border-gray-50">
+                        <div>
+                          <p className="text-[11px] text-gray-400 font-semibold uppercase">Total Capital</p>
+                          <p className="text-base font-bold text-gray-900">{fund.totalCapital}</p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] text-gray-400 font-semibold uppercase">Distributions</p>
+                          <p className="text-base font-bold text-[#1F3B6E]">{fund.distributionsToDate}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-2 text-xs text-gray-500">
+                      <span>Investors: <strong className="text-gray-900">{fund.totalInvestors}</strong></span>
+                      <span>Closed: <strong className="text-gray-700">{formatDate(fund.closingDate)}</strong></span>
+                    </div>
+                  </div>
                 ))}
               </div>
 
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="flex items-center gap-1 px-3 py-2 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </button>
+              {currentOldFunds.length === 0 && !isLoadingOld && (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">No old platform funds found matching "{searchQuery}"</p>
+                </div>
+              )}
+              {isLoadingOld && (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">Loading old funds...</p>
+                </div>
+              )}
+
+              {/* Old Funds Pagination */}
+              {totalOldPages > 1 && (
+                <div className="flex items-center justify-center gap-4 px-6 py-6 border-t border-gray-100 mt-6 font-helvetica">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 px-3 py-2 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </button>
+
+                  <div className="flex gap-1">
+                    {Array.from({ length: totalOldPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === page
+                          ? 'bg-[#1F3B6E] text-white shadow-sm'
+                          : 'text-gray-400 hover:bg-gray-50'
+                          }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalOldPages, prev + 1))}
+                    disabled={currentPage === totalOldPages}
+                    className="flex items-center gap-1 px-3 py-2 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -349,6 +518,107 @@ export default function FundsPage() {
                 className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-8 py-2 rounded-full font-medium"
               >
                 Yes, Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Old Fund Details Modal */}
+      {showOldDetailsModal && selectedOldFund && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full mx-4 relative shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
+            <button
+              onClick={() => setShowOldDetailsModal(false)}
+              className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            
+            {/* Modal Header */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-lg shadow-md">
+                {getInitials(selectedOldFund.projectName)}
+              </div>
+              <div>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-100 mb-1">
+                  {selectedOldFund.status}
+                </span>
+                <h2 className="text-2xl font-bold text-gray-900 font-goudy">{selectedOldFund.projectName}</h2>
+              </div>
+            </div>
+
+            {/* Modal Content - Attributes Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 mb-8">
+              <div className="flex items-start gap-3">
+                <Briefcase className="h-5 w-5 text-gray-400 mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Project ID / Type</p>
+                  <p className="text-sm font-bold text-gray-900">
+                    ID: {selectedOldFund.projectId} &bull; <span className="uppercase">{selectedOldFund.projectType}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <DollarSign className="h-5 w-5 text-gray-400 mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Total Capital</p>
+                  <p className="text-sm font-bold text-gray-900">{selectedOldFund.totalCapital}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <DollarSign className="h-5 w-5 text-[#1F3B6E] mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Distributions To Date</p>
+                  <p className="text-sm font-bold text-[#1F3B6E]">{selectedOldFund.distributionsToDate}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <Users className="h-5 w-5 text-gray-400 mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Total Investors</p>
+                  <p className="text-sm font-bold text-gray-900">{selectedOldFund.totalInvestors}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Closing Date</p>
+                  <p className="text-sm font-bold text-gray-900">{formatDate(selectedOldFund.closingDate)}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Exit Date</p>
+                  <p className="text-sm font-bold text-gray-900">
+                    {selectedOldFund.exitDate ? formatDate(selectedOldFund.exitDate) : 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 sm:col-span-2 border-t border-gray-100 pt-4 mt-2">
+                <div>
+                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Published Status</p>
+                  <p className="text-xs text-gray-600 font-medium">
+                    This old fund is marked as **{selectedOldFund.published === 'TRUE' ? 'Published' : 'Unpublished'}** in the database for tracking, but will remain closed and hidden on the investor side.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end">
+              <Button
+                onClick={() => setShowOldDetailsModal(false)}
+                className="bg-[#1F3B6E] hover:bg-[#15294e] text-white px-8 py-2.5 rounded-full font-bold shadow-md transition-all active:scale-95"
+              >
+                Close Details
               </Button>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { MoreVertical, Loader2, ArrowUpDown } from 'lucide-react';
+import { MoreVertical, Loader2, ArrowUpDown, X } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 
 const getFullImageUrl = (imagePath: string | null | undefined): string | undefined => {
@@ -18,8 +18,8 @@ export default function PortfolioPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo'>(
-    tabParam === 'fundInfo' ? 'fundInfo' : 'investments'
+  const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo' | 'oldInvestments'>(
+    tabParam === 'fundInfo' ? 'fundInfo' : tabParam === 'oldInvestments' ? 'oldInvestments' : 'investments'
   );
 
   useEffect(() => {
@@ -27,6 +27,8 @@ export default function PortfolioPage() {
       setActiveTab('fundInfo');
     } else if (tabParam === 'investments') {
       setActiveTab('investments');
+    } else if (tabParam === 'oldInvestments') {
+      setActiveTab('oldInvestments');
     }
   }, [tabParam]);
 
@@ -39,6 +41,11 @@ export default function PortfolioPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
+  // Old Investments States
+  const [oldInvestments, setOldInvestments] = useState<any[]>([]);
+  const [selectedOldInvestment, setSelectedOldInvestment] = useState<any | null>(null);
+  const [showOldInvestmentModal, setShowOldInvestmentModal] = useState(false);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [sortConfig]);
@@ -50,22 +57,75 @@ export default function PortfolioPage() {
     currentValue: 0,
   });
 
+  const oldStats = useMemo(() => {
+    let totalInvested = 0;
+    const uniqueFunds = new Set<string>();
+    let totalShares = 0;
+
+    oldInvestments.forEach(inv => {
+      const val = parseFloat((inv.investmentAmount || '').replace(/[^0-9.-]/g, ''));
+      if (!isNaN(val)) totalInvested += val;
+
+      if (inv.projectName) uniqueFunds.add(inv.projectName);
+
+      const sh = parseFloat(inv.shares || '0');
+      if (!isNaN(sh)) totalShares += sh;
+    });
+
+    return {
+      totalInvested,
+      fundCount: uniqueFunds.size,
+      totalShares
+    };
+  }, [oldInvestments]);
+
   useEffect(() => {
     fetchData();
   }, []);
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return '';
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [investmentsData, navSummary, fundsData, redemptionsData] = await Promise.all([
+      const [investmentsData, navSummary, fundsData, redemptionsData, oldInvestmentsData] = await Promise.all([
         apiClient.getMyInvestments(),
         apiClient.getNavSummary(),
         apiClient.getFunds(),
         apiClient.getMyRedemptions(),
+        apiClient.getMyOldInvestments().catch(err => {
+          console.warn('⚠️ Failed to fetch old investments:', err);
+          return [];
+        })
       ]);
 
       setInvestments(investmentsData);
       setRedemptions(redemptionsData);
+      setOldInvestments(oldInvestmentsData || []);
+      
       const activeFunds = Array.isArray(fundsData)
         ? fundsData.filter((fund: any) => fund.status?.toLowerCase() !== 'draft' && fund.status?.toLowerCase() !== 'closed')
         : [];
@@ -214,6 +274,19 @@ export default function PortfolioPage() {
                 <span className="absolute bottom-0 left-1/2 h-[2px] w-[38px] -translate-x-1/2 bg-[#FFC63F]" />
               )}
             </button>
+            {oldInvestments && oldInvestments.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('oldInvestments')}
+                className={`pb-3 font-medium relative ${activeTab === 'oldInvestments' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'
+                  }`}
+              >
+                Old Platform Investments
+                {activeTab === 'oldInvestments' && (
+                  <span className="absolute bottom-0 left-1/2 h-[2px] w-[38px] -translate-x-1/2 bg-[#FFC63F]" />
+                )}
+              </button>
+            )}
           </div>
 
           {activeTab === 'investments' && (
@@ -260,6 +333,31 @@ export default function PortfolioPage() {
                     </p>
                   );
                 })()}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'oldInvestments' && (
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+                <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+                  Total Legacy Invested
+                </p>
+                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(oldStats.totalInvested)}</p>
+              </div>
+              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+                <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+                  Legacy Funds
+                </p>
+                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{oldStats.fundCount}</p>
+              </div>
+              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+                <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+                  Total Legacy Shares
+                </p>
+                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">
+                  {oldStats.totalShares.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}
+                </p>
               </div>
             </div>
           )}
@@ -492,7 +590,192 @@ export default function PortfolioPage() {
             </div>
           </div>
         )}
+
+        {activeTab === 'oldInvestments' && oldInvestments && oldInvestments.length > 0 && (
+          <div className="space-y-6">
+            {/* Old Platform Investments Table */}
+            <div className="rounded-2xl border border-[#F2F2F2] bg-white px-6 pb-6 pt-6">
+              <div className="mb-4">
+                <h2 className="text-lg font-bold text-[#1F3B6E] font-goudy">Old Platform Investments</h2>
+                <p className="text-xs text-gray-500 font-medium">Historical investments transferred from the previous platform.</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
+                    <tr>
+                      <th className="px-4 py-3 whitespace-nowrap">Fund Name</th>
+                      <th className="px-4 py-3 whitespace-nowrap">Status</th>
+                      <th className="px-4 py-3 text-right whitespace-nowrap">Investment Amount</th>
+                      <th className="px-4 py-3 whitespace-nowrap">Placed On</th>
+                      <th className="px-4 py-3 whitespace-nowrap">Received On</th>
+                      <th className="px-4 py-3 text-right whitespace-nowrap">Shares</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-sm">
+                    {oldInvestments.map((row) => (
+                      <tr
+                        key={row.investmentOwnershipId}
+                        className="hover:bg-slate-50/80 cursor-pointer transition-colors duration-150"
+                        onClick={() => {
+                          setSelectedOldInvestment(row);
+                          setShowOldInvestmentModal(true);
+                        }}
+                      >
+                        <td className="px-4 py-3 text-[#1F1F1F] font-semibold">{row.projectName}</td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            {row.investmentStatus}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right text-[#1F3B6E] font-bold">{row.investmentAmount}</td>
+                        <td className="px-4 py-3 text-gray-600">{formatDate(row.placedOn)}</td>
+                        <td className="px-4 py-3 text-gray-600">{row.receivedOn ? formatDate(row.receivedOn) : 'N/A'}</td>
+                        <td className="px-4 py-3 text-right text-gray-600">{row.shares || '0'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Old Investment Details Modal */}
+      {showOldInvestmentModal && selectedOldInvestment && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full mx-4 relative shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200 text-[#1F1F1F]">
+            <button
+              onClick={() => setShowOldInvestmentModal(false)}
+              className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-sm shadow-md">
+                {getInitials(selectedOldInvestment.projectName)}
+              </div>
+              <div>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-800 border border-gray-200">
+                  {selectedOldInvestment.investmentStatus}
+                </span>
+                <h2 className="text-xl font-bold font-goudy mt-1">{selectedOldInvestment.projectName}</h2>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 mb-8">
+              <div>
+                <p className="text-[11px] text-gray-400 font-semibold uppercase">Investment Ownership ID</p>
+                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.investmentOwnershipId}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-gray-400 font-semibold uppercase">Project ID</p>
+                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.projectId}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-gray-400 font-semibold uppercase">Investment Amount</p>
+                <p className="text-sm font-bold text-[#1F3B6E]">{selectedOldInvestment.investmentAmount}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-gray-400 font-semibold uppercase">Shares</p>
+                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.shares}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-gray-400 font-semibold uppercase">Ownership</p>
+                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.ownership}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-gray-400 font-semibold uppercase">% of Proceeds</p>
+                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.ofProceeds || 'N/A'}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-gray-400 font-semibold uppercase">Placed On</p>
+                <p className="text-sm font-bold text-gray-900">{formatDate(selectedOldInvestment.placedOn)}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-gray-400 font-semibold uppercase">Received On</p>
+                <p className="text-sm font-bold text-gray-900">
+                  {selectedOldInvestment.receivedOn ? formatDate(selectedOldInvestment.receivedOn) : 'N/A'}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-gray-400 font-semibold uppercase">Payment Method</p>
+                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.investmentDistributionPaymentMethod || 'N/A'}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-gray-400 font-semibold uppercase">Default Dist. Method</p>
+                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.profileDefaultDistributionMethod || 'N/A'}</p>
+              </div>
+
+              <div className="sm:col-span-2 border-t border-gray-100 pt-4 mt-2">
+                <p className="text-[11px] text-gray-400 font-semibold uppercase">Investor Profile Details</p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Legal Name: <strong>{selectedOldInvestment.investorProfileLegalName}</strong> (Profile ID: {selectedOldInvestment.investorProfileId})
+                </p>
+                <p className="text-xs text-gray-600">
+                  Entity: <strong>{selectedOldInvestment.internalEntity}</strong> (Entity ID: {selectedOldInvestment.internalEntityId})
+                </p>
+              </div>
+            </div>
+
+            {/* Legacy Distributions Section */}
+            <div className="border-t border-gray-100 pt-6 mb-6">
+              <h3 className="text-base font-bold text-[#1F3B6E] font-goudy mb-3">Legacy Distributions</h3>
+              {selectedOldInvestment.distributions && selectedOldInvestment.distributions.length > 0 ? (
+                <div className="max-h-48 overflow-y-auto border border-gray-100 rounded-2xl">
+                  <table className="min-w-full text-left text-xs">
+                    <thead className="bg-gray-50 text-[#8E8E93] font-semibold border-b border-gray-100 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-2.5">Type</th>
+                        <th className="px-4 py-2.5 text-right">Return of Capital</th>
+                        <th className="px-4 py-2.5 text-right">Calculated Amount</th>
+                        <th className="px-4 py-2.5">Start Date</th>
+                        <th className="px-4 py-2.5">End Date</th>
+                        <th className="px-4 py-2.5">Pay Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 text-[#1F1F1F]">
+                      {selectedOldInvestment.distributions.map((dist: any) => (
+                        <tr key={dist.distributionId} className="hover:bg-gray-50/50">
+                          <td className="px-4 py-2.5 font-medium">{dist.distributionType || 'N/A'}</td>
+                          <td className="px-4 py-2.5 text-right font-semibold text-gray-700">{dist.returnOfCapital || '$-'}</td>
+                          <td className="px-4 py-2.5 text-right font-bold text-[#2BB673]">{dist.calculatedAmount || '$-'}</td>
+                          <td className="px-4 py-2.5 text-gray-500">{formatDate(dist.batchStartDate)}</td>
+                          <td className="px-4 py-2.5 text-gray-500">{formatDate(dist.batchEndDate)}</td>
+                          <td className="px-4 py-2.5 text-gray-600 font-semibold">{formatDate(dist.batchPayDate)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="bg-gray-50/50 rounded-2xl border border-gray-100 p-4 text-center text-xs text-gray-400 font-medium">
+                  No legacy distribution records found for this investment.
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowOldInvestmentModal(false)}
+                className="bg-[#1F3B6E] hover:bg-[#15294e] text-white px-8 py-2.5 rounded-full font-bold shadow-md transition-all active:scale-95 text-sm"
+              >
+                Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

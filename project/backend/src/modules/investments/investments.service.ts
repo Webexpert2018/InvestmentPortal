@@ -285,6 +285,71 @@ export class InvestmentsService {
     }
   }
 
+  async getMyOldInvestments(email: string) {
+    try {
+      const query = `
+        SELECT 
+          project_id as "projectId",
+          project_name as "projectName",
+          project_status as "projectStatus",
+          internal_entity_id as "internalEntityId",
+          internal_entity as "internalEntity",
+          class_id as "classId",
+          class_name as "className",
+          investor_profile_id as "investorProfileId",
+          investor_profile_legal_name as "investorProfileLegalName",
+          email_address as "emailAddress",
+          investment_ownership_id as "investmentOwnershipId",
+          investment_status as "investmentStatus",
+          investment_amount as "investmentAmount",
+          placed_on as "placedOn",
+          received_on as "receivedOn",
+          shares,
+          ownership,
+          _of_proceeds as "ofProceeds",
+          investment_distribution_payment_method as "investmentDistributionPaymentMethod",
+          profile_default_distribution_method as "profileDefaultDistributionMethod"
+        FROM old_investments
+        WHERE email_address = $1
+        ORDER BY placed_on DESC
+      `;
+      const result = await db.query(query, [email]);
+      const investments = result.rows;
+
+      if (investments.length > 0) {
+        const ownershipIds = investments.map(inv => inv.investmentOwnershipId);
+        
+        const distQuery = `
+          SELECT 
+            distribution_id as "distributionId",
+            investment_id as "investmentId",
+            distribution_type as "distributionType",
+            calculated_amount as "calculatedAmount",
+            return_of_capital as "returnOfCapital",
+            batch_start_date as "batchStartDate",
+            batch_end_date as "batchEndDate",
+            batch_pay_date as "batchPayDate"
+          FROM distributions
+          WHERE investment_id = ANY($1)
+          ORDER BY batch_pay_date DESC
+        `;
+        const distResult = await db.query(distQuery, [ownershipIds]);
+        const distributions = distResult.rows;
+
+        investments.forEach(inv => {
+          inv.distributions = distributions.filter(
+            d => Number(d.investmentId) === Number(inv.investmentOwnershipId)
+          );
+        });
+      }
+
+      return investments;
+    } catch (error) {
+      console.error('❌ Error fetching old investments:', error);
+      throw new InternalServerErrorException('Failed to fetch old investments');
+    }
+  }
+
   async updateInvestmentStatus(userId: string, investmentId: string, data: any, role?: string) {
     const { status, documentSigned } = data;
     const isAdmin = ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant'].includes(role || '');

@@ -561,6 +561,14 @@ class ApiClient {
     return this.request<any[]>('/funds');
   }
 
+  async getOldFunds() {
+    return this.request<any[]>('/funds/old-funds');
+  }
+
+  async getOldFundById(id: number) {
+    return this.request<any>(`/funds/old-funds/${id}`);
+  }
+
   async getIraAccountTypes() {
     return this.request<any[]>('/ira-accounts/types');
   }
@@ -678,6 +686,10 @@ class ApiClient {
 
   async getMyInvestments() {
     return this.request<any[]>('/investments/my');
+  }
+
+  async getMyOldInvestments() {
+    return this.request<any[]>('/investments/my-old');
   }
 
   async getAllInvestments() {

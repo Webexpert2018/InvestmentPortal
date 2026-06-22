@@ -460,4 +460,34 @@ export class FundsService {
     }
     return { message: 'Fund deleted successfully' };
   }
+
+  async getOldFunds() {
+    const result = await db.query(
+      `SELECT project_id as "projectId", project_name as "projectName", project_type as "projectType",
+              status, total_capital as "totalCapital", distributions_to_date as "distributionsToDate",
+              total_investors as "totalInvestors", closing_date as "closingDate", exit_date as "exitDate",
+              published
+       FROM old_funds
+       ORDER BY project_name ASC`
+    );
+    return result.rows;
+  }
+
+  async getOldFundById(id: number) {
+    const result = await db.query(
+      `SELECT project_id as "projectId", project_name as "projectName", project_type as "projectType",
+              status, total_capital as "totalCapital", distributions_to_date as "distributionsToDate",
+              total_investors as "totalInvestors", closing_date as "closingDate", exit_date as "exitDate",
+              published
+       FROM old_funds
+       WHERE project_id = $1`,
+      [id]
+    );
+    const fund = result.rows[0];
+    if (!fund) {
+      throw new NotFoundException('Old fund not found');
+    }
+    return fund;
+  }
 }
+
