@@ -125,7 +125,7 @@ export default function PortfolioPage() {
       setInvestments(investmentsData);
       setRedemptions(redemptionsData);
       setOldInvestments(oldInvestmentsData || []);
-      
+
       const activeFunds = Array.isArray(fundsData)
         ? fundsData.filter((fund: any) => fund.status?.toLowerCase() !== 'draft' && fund.status?.toLowerCase() !== 'closed')
         : [];
@@ -347,7 +347,7 @@ export default function PortfolioPage() {
               </div>
               <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                  Legacy Funds
+                  Legacy Investments
                 </p>
                 <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{oldStats.fundCount}</p>
               </div>
@@ -494,13 +494,12 @@ export default function PortfolioPage() {
                               </span>
                             </td>
                             <td className="px-4 py-3">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                row.status === 'Rejected'
-                                  ? 'bg-red-100 text-red-800'
-                                  : row.is_reconciled
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 'Rejected'
+                                ? 'bg-red-100 text-red-800'
+                                : row.is_reconciled
                                   ? 'bg-green-100 text-green-800'
                                   : 'bg-yellow-100 text-yellow-800'
-                              }`}>
+                                }`}>
                                 {row.status === 'Rejected' ? 'Rejected' : row.is_reconciled ? 'Completed' : row.status || 'Pending'}
                               </span>
                             </td>
@@ -521,9 +520,8 @@ export default function PortfolioPage() {
                                 </button>
 
                                 {openActionMenuId === row.id && (
-                                  <div className={`absolute right-0 z-20 w-[150px] rounded-[6px] border border-[#ECECEC] bg-white py-1 shadow-[0_6px_16px_rgba(0,0,0,0.08)] ${
-                                    index === paginatedInvestments.length - 1 ? 'bottom-full mb-1' : 'top-full mt-1'
-                                  }`}>
+                                  <div className={`absolute right-0 z-20 w-[150px] rounded-[6px] border border-[#ECECEC] bg-white py-1 shadow-[0_6px_16px_rgba(0,0,0,0.08)] ${index === paginatedInvestments.length - 1 ? 'bottom-full mb-1' : 'top-full mt-1'
+                                    }`}>
                                     <Link
                                       href={`/dashboard/portfolio/${row.id}`}
                                       className="block px-3 py-2 text-left text-[12px] text-[#5F5F5F] hover:bg-[#F8F8F8]"
@@ -567,11 +565,10 @@ export default function PortfolioPage() {
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page)}
-                          className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${
-                            currentPage === page
-                              ? 'bg-[#1F3B6E] text-white shadow-md scale-105'
-                              : 'text-[#4B5563] hover:bg-white'
-                          }`}
+                          className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${currentPage === page
+                            ? 'bg-[#1F3B6E] text-white shadow-md scale-105'
+                            : 'text-[#4B5563] hover:bg-white'
+                            }`}
                         >
                           {page}
                         </button>
@@ -651,7 +648,7 @@ export default function PortfolioPage() {
             >
               <X className="h-5 w-5" />
             </button>
-            
+
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-sm shadow-md">
                 {getInitials(selectedOldInvestment.projectName)}
