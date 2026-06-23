@@ -29,9 +29,7 @@ export default function FundsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingOld, setIsLoadingOld] = useState(false);
 
-  // States for old fund details modal
-  const [selectedOldFund, setSelectedOldFund] = useState<any | null>(null);
-  const [showOldDetailsModal, setShowOldDetailsModal] = useState(false);
+
 
   useEffect(() => {
     fetchFunds();
@@ -129,7 +127,7 @@ export default function FundsPage() {
   const currentFunds = filteredFunds.slice(startIndex, endIndex);
 
   // Pagination for Old Funds
-  const oldItemsPerPage = 6;
+  const oldItemsPerPage = 7;
   const filteredOldFunds = oldFundsData.filter(fund =>
     (fund.projectName || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -390,68 +388,74 @@ export default function FundsPage() {
               )}
             </div>
           ) : (
-            /* Old Funds Cards Grid */
-            <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {currentOldFunds.map((fund) => (
-                  <div 
-                    key={fund.projectId}
-                    onClick={() => {
-                      setSelectedOldFund(fund);
-                      setShowOldDetailsModal(true);
-                    }}
-                    className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4B5563] to-[#9CA3AF] flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                            {getInitials(fund.projectName)}
+            /* Old Funds Table */
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full border-collapse">
+                  <thead className="bg-gray-50/50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Fund Name</th>
+                      <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Closing Date</th>
+                      <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Total Investors</th>
+                      <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Total Capital</th>
+                      <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Distributions</th>
+                      <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {currentOldFunds.map((fund) => (
+                      <tr 
+                        key={fund.projectId} 
+                        className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
+                        onClick={() => router.push(`/dashboard/funds/old/${fund.projectId}`)}
+                      >
+                        <td className="px-6 py-5 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4B5563] to-[#9CA3AF] flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                              {getInitials(fund.projectName)}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-gray-900">{fund.projectName}</span>
+                              <span className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">{fund.projectType}</span>
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="font-bold text-gray-900 leading-snug">{fund.projectName}</h3>
-                            <span className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">{fund.projectType}</span>
-                          </div>
-                        </div>
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-100">
-                          {fund.status}
-                        </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4 my-4 pt-2 border-t border-gray-50">
-                        <div>
-                          <p className="text-[11px] text-gray-400 font-semibold uppercase">Total Capital</p>
-                          <p className="text-base font-bold text-gray-900">{fund.totalCapital}</p>
-                        </div>
-                        <div>
-                          <p className="text-[11px] text-gray-400 font-semibold uppercase">Distributions</p>
-                          <p className="text-base font-bold text-[#1F3B6E]">{fund.distributionsToDate}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-2 text-xs text-gray-500">
-                      <span>Investors: <strong className="text-gray-900">{fund.totalInvestors}</strong></span>
-                      <span>Closed: <strong className="text-gray-700">{formatDate(fund.closingDate)}</strong></span>
-                    </div>
+                        </td>
+                        <td className="px-6 py-5 text-[13px] text-gray-600 font-medium whitespace-nowrap">
+                          {formatDate(fund.closingDate)}
+                        </td>
+                        <td className="px-6 py-5 text-[13px] text-gray-900 font-bold whitespace-nowrap">
+                          {fund.totalInvestors}
+                        </td>
+                        <td className="px-6 py-5 text-[13px] font-bold text-gray-900 whitespace-nowrap">
+                          {fund.totalCapital}
+                        </td>
+                        <td className="px-6 py-5 text-[13px] font-bold text-[#1F3B6E] whitespace-nowrap">
+                          {fund.distributionsToDate}
+                        </td>
+                        <td className="px-6 py-5 whitespace-nowrap">
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-100">
+                            {fund.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {currentOldFunds.length === 0 && !isLoadingOld && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">No old platform funds found matching "{searchQuery}"</p>
                   </div>
-                ))}
+                )}
+                {isLoadingOld && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">Loading old funds...</p>
+                  </div>
+                )}
               </div>
-
-              {currentOldFunds.length === 0 && !isLoadingOld && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">No old platform funds found matching "{searchQuery}"</p>
-                </div>
-              )}
-              {isLoadingOld && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">Loading old funds...</p>
-                </div>
-              )}
 
               {/* Old Funds Pagination */}
               {totalOldPages > 1 && (
-                <div className="flex items-center justify-center gap-4 px-6 py-6 border-t border-gray-100 mt-6 font-helvetica">
+                <div className="flex items-center justify-center gap-4 px-6 py-6 border-t border-gray-100 font-helvetica">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
@@ -518,107 +522,6 @@ export default function FundsPage() {
                 className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-8 py-2 rounded-full font-medium"
               >
                 Yes, Delete
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Old Fund Details Modal */}
-      {showOldDetailsModal && selectedOldFund && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full mx-4 relative shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
-            <button
-              onClick={() => setShowOldDetailsModal(false)}
-              className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            
-            {/* Modal Header */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-lg shadow-md">
-                {getInitials(selectedOldFund.projectName)}
-              </div>
-              <div>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-100 mb-1">
-                  {selectedOldFund.status}
-                </span>
-                <h2 className="text-2xl font-bold text-gray-900 font-goudy">{selectedOldFund.projectName}</h2>
-              </div>
-            </div>
-
-            {/* Modal Content - Attributes Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 mb-8">
-              <div className="flex items-start gap-3">
-                <Briefcase className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Project ID / Type</p>
-                  <p className="text-sm font-bold text-gray-900">
-                    ID: {selectedOldFund.projectId} &bull; <span className="uppercase">{selectedOldFund.projectType}</span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <DollarSign className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Total Capital</p>
-                  <p className="text-sm font-bold text-gray-900">{selectedOldFund.totalCapital}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <DollarSign className="h-5 w-5 text-[#1F3B6E] mt-0.5" />
-                <div>
-                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Distributions To Date</p>
-                  <p className="text-sm font-bold text-[#1F3B6E]">{selectedOldFund.distributionsToDate}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Users className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Total Investors</p>
-                  <p className="text-sm font-bold text-gray-900">{selectedOldFund.totalInvestors}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Closing Date</p>
-                  <p className="text-sm font-bold text-gray-900">{formatDate(selectedOldFund.closingDate)}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Exit Date</p>
-                  <p className="text-sm font-bold text-gray-900">
-                    {selectedOldFund.exitDate ? formatDate(selectedOldFund.exitDate) : 'N/A'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 sm:col-span-2 border-t border-gray-100 pt-4 mt-2">
-                <div>
-                  <p className="text-[11px] text-gray-400 font-semibold uppercase">Published Status</p>
-                  <p className="text-xs text-gray-600 font-medium">
-                    This old fund is marked as **{selectedOldFund.published === 'TRUE' ? 'Published' : 'Unpublished'}** in the database for tracking, but will remain closed and hidden on the investor side.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex justify-end">
-              <Button
-                onClick={() => setShowOldDetailsModal(false)}
-                className="bg-[#1F3B6E] hover:bg-[#15294e] text-white px-8 py-2.5 rounded-full font-bold shadow-md transition-all active:scale-95"
-              >
-                Close Details
               </Button>
             </div>
           </div>
