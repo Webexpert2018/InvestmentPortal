@@ -644,7 +644,7 @@ export default function PortfolioPage() {
       {/* Old Investment Details Modal */}
       {showOldInvestmentModal && selectedOldInvestment && (
         <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full mx-4 relative shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200 text-[#1F1F1F]">
+          <div className="bg-white rounded-3xl p-6 max-w-2xl w-full mx-4 relative shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200 text-[#1F1F1F]">
             <button
               onClick={() => setShowOldInvestmentModal(false)}
               className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
@@ -652,7 +652,7 @@ export default function PortfolioPage() {
               <X className="h-5 w-5" />
             </button>
             
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-sm shadow-md">
                 {getInitials(selectedOldInvestment.projectName)}
               </div>
@@ -664,7 +664,7 @@ export default function PortfolioPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50/50 p-5 rounded-2xl border border-gray-100 mb-4">
               <div>
                 <p className="text-[11px] text-gray-400 font-semibold uppercase">Investment Ownership ID</p>
                 <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.investmentOwnershipId}</p>
@@ -717,7 +717,7 @@ export default function PortfolioPage() {
                 <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.profileDefaultDistributionMethod || 'N/A'}</p>
               </div>
 
-              <div className="sm:col-span-2 border-t border-gray-100 pt-4 mt-2">
+              <div className="sm:col-span-2 border-t border-gray-100 pt-3 mt-1">
                 <p className="text-[11px] text-gray-400 font-semibold uppercase">Investor Profile Details</p>
                 <p className="text-xs text-gray-600 mt-1">
                   Legal Name: <strong>{selectedOldInvestment.investorProfileLegalName}</strong> (Profile ID: {selectedOldInvestment.investorProfileId})
@@ -729,10 +729,10 @@ export default function PortfolioPage() {
             </div>
 
             {/* Legacy Distributions Section */}
-            <div className="border-t border-gray-100 pt-6 mb-6">
-              <h3 className="text-base font-bold text-[#1F3B6E] font-goudy mb-3">Legacy Distributions</h3>
+            <div className="border-t border-gray-100 pt-4 mb-4">
+              <h3 className="text-base font-bold text-[#1F3B6E] font-goudy mb-2.5">Legacy Distributions</h3>
               {selectedOldInvestment.distributions && selectedOldInvestment.distributions.length > 0 ? (
-                <div className="max-h-48 overflow-y-auto border border-gray-100 rounded-2xl">
+                <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-2xl">
                   <table className="min-w-full text-left text-xs">
                     <thead className="bg-gray-50 text-[#8E8E93] font-semibold border-b border-gray-100 sticky top-0">
                       <tr>
