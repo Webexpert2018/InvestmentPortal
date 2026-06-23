@@ -487,7 +487,113 @@ export class FundsService {
     if (!fund) {
       throw new NotFoundException('Old fund not found');
     }
+
+    // Step 1: Find unique investor profile IDs from old_investments matching this project ID
+    const uniqueIdsResult = await db.query(
+      `SELECT DISTINCT investor_profile_id as "investorProfileId"
+       FROM old_investments
+       WHERE project_id = $1`,
+      [id]
+    );
+
+    const investorsList: any[] = [];
+
+    // Step 2: Fetch details for those investors by their unique investor profile ID from old_investments
+    for (const row of uniqueIdsResult.rows) {
+      const profileId = row.investorProfileId;
+      
+      const detailsResult = await db.query(
+        `SELECT investor_profile_legal_name as "fullName",
+                email_address as "email",
+                investment_amount as "amount",
+                shares,
+                investment_status as "status"
+         FROM old_investments
+         WHERE investor_profile_id = $1 AND project_id = $2`,
+        [profileId, id]
+      );
+
+      if (detailsResult.rows.length > 0) {
+        // Aggregate/calculate total investment and total shares for this investor in this fund
+        let totalInvestment = 0;
+        let totalShares = 0;
+        
+        detailsResult.rows.forEach(invRow => {
+          const numAmount = parseFloat(invRow.amount?.replace(/[\$,]/g, '') || '0');
+          const numShares = parseFloat(invRow.shares || '0');
+          totalInvestment += numAmount;
+          totalShares += numShares;
+        });
+
+        // Use the first row for name & email
+        const primaryRow = detailsResult.rows[0];
+
+        investorsList.push({
+          id: null,
+          fullName: primaryRow.fullName,
+          email: primaryRow.email,
+          phone: null,
+          profileImageUrl: null,
+          kycStatus: 'verified', 
+          status: primaryRow.status || 'Accepted',
+          externalId: String(profileId),
+          isRegistered: false,
+          totalInvestment: '$' + totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          totalShares: totalShares.toFixed(2)
+        });
+      }
+    }
+
+    fund.investors = investorsList;
     return fund;
+  }
+
+  async getOldFundInvestor(fundId: number, profileId: number) {
+    const result = await db.query(
+      `SELECT investor_profile_legal_name as "fullName",
+              email_address as "email",
+              investment_amount as "amount",
+              shares,
+              ownership,
+              placed_on as "placedOn",
+              received_on as "receivedOn",
+              investment_status as "status"
+       FROM old_investments
+       WHERE project_id = $1 AND investor_profile_id = $2`,
+      [fundId, profileId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundException('Investor records not found for this fund');
+    }
+
+    let totalInvestment = 0;
+    let totalShares = 0;
+    
+    result.rows.forEach(invRow => {
+      const numAmount = parseFloat(invRow.amount?.replace(/[\$,]/g, '') || '0');
+      const numShares = parseFloat(invRow.shares || '0');
+      totalInvestment += numAmount;
+      totalShares += numShares;
+    });
+
+    const primaryRow = result.rows[0];
+
+    return {
+      fullName: primaryRow.fullName,
+      email: primaryRow.email,
+      profileId: String(profileId),
+      totalInvestment: '$' + totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      totalShares: totalShares.toFixed(2),
+      investments: result.rows.map(r => ({
+        amount: r.amount,
+        shares: r.shares,
+        ownership: r.ownership,
+        placedOn: r.placedOn,
+        receivedOn: r.receivedOn,
+        status: r.status
+      }))
+    };
   }
 }
 

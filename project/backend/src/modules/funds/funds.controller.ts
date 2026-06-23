@@ -25,6 +25,14 @@ export class FundsController {
     return this.fundsService.getOldFundById(parseInt(id));
   }
 
+  @Get('old-funds/:id/investors/:profileId')
+  findOldFundInvestor(
+    @Param('id') id: string,
+    @Param('profileId') profileId: string
+  ) {
+    return this.fundsService.getOldFundInvestor(parseInt(id), parseInt(profileId));
+  }
+
   @Get()
   findAll() {
     return this.fundsService.getAllFunds();

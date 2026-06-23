@@ -255,6 +255,75 @@ export default function OldFundDetailPage() {
           </div>
 
         </div>
+
+        {/* Associated Investors Section (Expanded Full Width) */}
+        <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6 mt-8">
+          <div className="flex items-center justify-between border-b border-gray-50 pb-3">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-gray-500" />
+              <h3 className="text-lg font-bold text-gray-900 font-goudy">Associated Investors</h3>
+            </div>
+            <span className="inline-flex items-center justify-center bg-gray-100 text-gray-800 text-xs font-bold px-2.5 py-0.5 rounded-full">
+              {fund.investors ? fund.investors.length : 0}
+            </span>
+          </div>
+
+          {fund.investors && fund.investors.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investor</th>
+                    <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Profile ID</th>
+                    <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Investment</th>
+                    <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Shares</th>
+                    <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {fund.investors.map((investor: any, idx: number) => (
+                    <tr 
+                      key={idx} 
+                      className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/dashboard/funds/old/${params.id}/investor/${investor.externalId}`)}
+                    >
+                      <td className="py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                            {getInitials(investor.fullName)}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-gray-900 leading-snug">{investor.fullName}</span>
+                            <span className="text-[11px] text-gray-500">{investor.email}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 text-left text-sm font-mono text-gray-500">
+                        {investor.externalId}
+                      </td>
+                      <td className="py-4 text-right text-sm font-semibold text-gray-900">
+                        {investor.totalInvestment}
+                      </td>
+                      <td className="py-4 text-right text-sm font-medium text-gray-600">
+                        {investor.totalShares}
+                      </td>
+                      <td className="py-4 text-right">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-600 border border-emerald-100">
+                          {investor.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-sm text-gray-400 font-medium">No associated investors found for this legacy fund.</p>
+            </div>
+          )}
+        </div>
+
       </div>
     </DashboardLayout>
   );
