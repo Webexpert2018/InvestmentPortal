@@ -573,6 +573,10 @@ class ApiClient {
     return this.request<any>(`/funds/old-funds/${fundId}/investors/${profileId}`);
   }
 
+  async getOldFundDistributionBatch(fundId: number, batchId: number) {
+    return this.request<any[]>(`/funds/old-funds/${fundId}/distributions/${batchId}`);
+  }
+
   async getIraAccountTypes() {
     return this.request<any[]>('/ira-accounts/types');
   }

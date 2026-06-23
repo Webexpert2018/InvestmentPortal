@@ -14,6 +14,23 @@ export default function OldFundDetailPage() {
   const [fund, setFund] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'investors' | 'distributions'>('investors');
+  const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
+  const [selectedBatchData, setSelectedBatchData] = useState<any[]>([]);
+  const [isBatchLoading, setIsBatchLoading] = useState(false);
+
+  const handleBatchClick = async (batchId: number) => {
+    setSelectedBatchId(batchId);
+    setIsBatchLoading(true);
+    try {
+      const fundId = parseInt(params.id as string, 10);
+      const data = await apiClient.getOldFundDistributionBatch(fundId, batchId);
+      setSelectedBatchData(data);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to fetch batch distributions');
+    } finally {
+      setIsBatchLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (params.id) {
@@ -264,7 +281,11 @@ export default function OldFundDetailPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-50 pb-4">
             <div className="flex items-center gap-6">
               <button
-                onClick={() => setActiveTab('investors')}
+                onClick={() => {
+                  setActiveTab('investors');
+                  setSelectedBatchId(null);
+                  setSelectedBatchData([]);
+                }}
                 className={`flex items-center gap-2 pb-2 border-b-2 font-bold transition-all text-base ${
                   activeTab === 'investors'
                     ? 'border-[#1F3B6E] text-[#1F3B6E]'
@@ -279,7 +300,11 @@ export default function OldFundDetailPage() {
               </button>
 
               <button
-                onClick={() => setActiveTab('distributions')}
+                onClick={() => {
+                  setActiveTab('distributions');
+                  setSelectedBatchId(null);
+                  setSelectedBatchData([]);
+                }}
                 className={`flex items-center gap-2 pb-2 border-b-2 font-bold transition-all text-base ${
                   activeTab === 'distributions'
                     ? 'border-[#1F3B6E] text-[#1F3B6E]'
@@ -355,59 +380,135 @@ export default function OldFundDetailPage() {
 
           {/* Distributions Tab content */}
           {activeTab === 'distributions' && (
-            fund.distributions && fund.distributions.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Batch ID</th>
-                      <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Type</th>
-                      <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Period Start</th>
-                      <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Period End</th>
-                      <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Pay Date</th>
-                      <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Status</th>
-                      <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {fund.distributions.map((dist: any, idx: number) => (
-                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="py-4 text-left text-sm font-mono text-gray-500">
-                          {dist.distributionBatchId}
-                        </td>
-                        <td className="py-4 text-left text-sm font-semibold text-gray-900 leading-snug">
-                          {dist.distributionType}
-                        </td>
-                        <td className="py-4 text-center text-sm text-gray-600">
-                          {formatDate(dist.periodStartDate)}
-                        </td>
-                        <td className="py-4 text-center text-sm text-gray-600">
-                          {formatDate(dist.periodEndDate)}
-                        </td>
-                        <td className="py-4 text-center text-sm text-gray-600">
-                          {formatDate(dist.payDate)}
-                        </td>
-                        <td className="py-4 text-right">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase border ${
-                            dist.status?.toLowerCase() === 'distributed'
-                              ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                              : 'bg-gray-50 text-gray-500 border-gray-100'
-                          }`}>
-                            {dist.status || 'Pending'}
-                          </span>
-                        </td>
-                        <td className="py-4 text-right text-sm font-bold text-gray-900">
-                          {dist.totalAmount}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            isBatchLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1F3B6E]"></div>
+              </div>
+            ) : selectedBatchId !== null ? (
+              // Batch detail view (navigated like a directory)
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-gray-50 pb-3">
+                  <button
+                    onClick={() => {
+                      setSelectedBatchId(null);
+                      setSelectedBatchData([]);
+                    }}
+                    className="flex items-center gap-1.5 text-sm font-semibold text-[#1F3B6E] hover:text-[#1F3B6E]/80 transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Back to Distributions
+                  </button>
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Batch #{selectedBatchId} Detail Breakdown
+                  </span>
+                </div>
+
+                {selectedBatchData && selectedBatchData.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b border-gray-100">
+                          <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investor</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investment Amount</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Calculated Amount</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Distributed Amount</th>
+                          <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Send Method</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {selectedBatchData.map((row: any, idx: number) => (
+                          <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="py-4 text-left">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold text-gray-900 leading-snug">{row.investorName}</span>
+                                <span className="text-[11px] font-mono text-gray-500">ID: {row.investorProfileId}</span>
+                              </div>
+                            </td>
+                            <td className="py-4 text-right text-sm font-semibold text-gray-900">
+                              {row.investmentAmount}
+                            </td>
+                            <td className="py-4 text-right text-sm font-bold text-[#1F3B6E]">
+                              {row.calculatedAmount}
+                            </td>
+                            <td className="py-4 text-right text-sm font-bold text-emerald-600">
+                              {row.distributedAmount}
+                            </td>
+                            <td className="py-4 text-center">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-50 text-gray-600 border border-gray-100">
+                                {row.sendMethod}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-gray-400 font-medium">No records found for this distribution batch.</p>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <p className="text-sm text-gray-400 font-medium">No distributions found for this legacy fund.</p>
-              </div>
+              // Batch list view
+              fund.distributions && fund.distributions.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Batch ID</th>
+                        <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Type</th>
+                        <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Period Start</th>
+                        <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Period End</th>
+                        <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Pay Date</th>
+                        <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Status</th>
+                        <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {fund.distributions.map((dist: any, idx: number) => (
+                        <tr 
+                          key={idx} 
+                          className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                          onClick={() => handleBatchClick(dist.distributionBatchId)}
+                        >
+                          <td className="py-4 text-left text-sm font-mono text-gray-500">
+                            {dist.distributionBatchId}
+                          </td>
+                          <td className="py-4 text-left text-sm font-semibold text-gray-900 leading-snug">
+                            {dist.distributionType}
+                          </td>
+                          <td className="py-4 text-center text-sm text-gray-600">
+                            {formatDate(dist.periodStartDate)}
+                          </td>
+                          <td className="py-4 text-center text-sm text-gray-600">
+                            {formatDate(dist.periodEndDate)}
+                          </td>
+                          <td className="py-4 text-center text-sm text-gray-600">
+                            {formatDate(dist.payDate)}
+                          </td>
+                          <td className="py-4 text-right">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase border ${
+                              dist.status?.toLowerCase() === 'distributed'
+                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                : 'bg-gray-50 text-gray-500 border-gray-100'
+                            }`}>
+                              {dist.status || 'Pending'}
+                            </span>
+                          </td>
+                          <td className="py-4 text-right text-sm font-bold text-gray-900">
+                            {dist.totalAmount}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-sm text-gray-400 font-medium">No distributions found for this legacy fund.</p>
+                </div>
+              )
             )
           )}
 

@@ -645,5 +645,52 @@ export class FundsService {
       }))
     };
   }
+
+  async getOldFundDistributionBatch(fundId: number, batchId: number) {
+    const result = await db.query(
+      `SELECT investor_profile_id as "investorProfileId",
+              investor_profile_legal_name as "investorName",
+              calculated_amount as "calculatedAmount",
+              return_of_capital as "returnOfCapital",
+              investment_amount as "investmentAmount",
+              send_method as "sendMethod"
+       FROM distributions
+       WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+
+    const investorsMap = new Map<number, any>();
+    for (const row of result.rows) {
+      const pid = row.investorProfileId;
+      const calcAmt = parseFloat(row.calculatedAmount?.replace(/[\$,]/g, '') || '0');
+      const rocAmt = parseFloat(row.returnOfCapital?.replace(/[\$,]/g, '') || '0');
+      const invAmt = parseFloat(row.investmentAmount?.replace(/[\$,]/g, '') || '0');
+
+      if (!investorsMap.has(pid)) {
+        investorsMap.set(pid, {
+          investorProfileId: pid,
+          investorName: row.investorName,
+          calculatedAmountNumeric: 0,
+          returnOfCapitalNumeric: 0,
+          investmentAmountNumeric: 0,
+          sendMethod: row.sendMethod || 'Check'
+        });
+      }
+
+      const inst = investorsMap.get(pid);
+      if (!isNaN(calcAmt)) inst.calculatedAmountNumeric += calcAmt;
+      if (!isNaN(rocAmt)) inst.returnOfCapitalNumeric += rocAmt;
+      if (!isNaN(invAmt)) inst.investmentAmountNumeric += invAmt;
+    }
+
+    return Array.from(investorsMap.values()).map(inv => ({
+      investorProfileId: String(inv.investorProfileId),
+      investorName: inv.investorName,
+      calculatedAmount: '$' + inv.calculatedAmountNumeric.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      distributedAmount: '$' + inv.returnOfCapitalNumeric.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      investmentAmount: '$' + inv.investmentAmountNumeric.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      sendMethod: inv.sendMethod
+    }));
+  }
 }
 

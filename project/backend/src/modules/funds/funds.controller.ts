@@ -33,6 +33,14 @@ export class FundsController {
     return this.fundsService.getOldFundInvestor(parseInt(id), parseInt(profileId));
   }
 
+  @Get('old-funds/:id/distributions/:batchId')
+  findOldFundDistributionBatch(
+    @Param('id') id: string,
+    @Param('batchId') batchId: string
+  ) {
+    return this.fundsService.getOldFundDistributionBatch(parseInt(id), parseInt(batchId));
+  }
+
   @Get()
   findAll() {
     return this.fundsService.getAllFunds();
