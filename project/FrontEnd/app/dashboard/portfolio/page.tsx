@@ -61,6 +61,7 @@ export default function PortfolioPage() {
     let totalInvested = 0;
     const uniqueFunds = new Set<string>();
     let totalShares = 0;
+    let totalDistributions = 0;
 
     oldInvestments.forEach(inv => {
       const val = parseFloat((inv.investmentAmount || '').replace(/[^0-9.-]/g, ''));
@@ -70,12 +71,20 @@ export default function PortfolioPage() {
 
       const sh = parseFloat(inv.shares || '0');
       if (!isNaN(sh)) totalShares += sh;
+
+      if (inv.distributions && Array.isArray(inv.distributions)) {
+        inv.distributions.forEach((d: any) => {
+          const dVal = parseFloat((d.returnOfCapital || '').replace(/[^0-9.-]/g, ''));
+          if (!isNaN(dVal)) totalDistributions += dVal;
+        });
+      }
     });
 
     return {
       totalInvested,
       fundCount: uniqueFunds.size,
-      totalShares
+      totalShares,
+      totalDistributions
     };
   }, [oldInvestments]);
 
@@ -338,7 +347,7 @@ export default function PortfolioPage() {
           )}
 
           {activeTab === 'oldInvestments' && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
                   Total Legacy Invested
@@ -347,7 +356,13 @@ export default function PortfolioPage() {
               </div>
               <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                  Legacy Investments
+                  Total Legacy Distributions
+                </p>
+                <p className="mt-3 text-2xl font-semibold text-[#2BB673]">{formatCurrency(oldStats.totalDistributions)}</p>
+              </div>
+              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+                <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+                  Legacy Funds
                 </p>
                 <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{oldStats.fundCount}</p>
               </div>
@@ -601,6 +616,7 @@ export default function PortfolioPage() {
                   <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
                     <tr>
                       <th className="px-4 py-3 whitespace-nowrap">Fund Name</th>
+                      <th className="px-4 py-3 whitespace-nowrap">Investor Name</th>
                       <th className="px-4 py-3 whitespace-nowrap">Status</th>
                       <th className="px-4 py-3 text-right whitespace-nowrap">Investment Amount</th>
                       <th className="px-4 py-3 whitespace-nowrap">Placed On</th>
@@ -619,6 +635,7 @@ export default function PortfolioPage() {
                         }}
                       >
                         <td className="px-4 py-3 text-[#1F1F1F] font-semibold">{row.projectName}</td>
+                        <td className="px-4 py-3 text-[#4B4B4B]">{row.investorProfileLegalName || 'N/A'}</td>
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                             {row.investmentStatus}

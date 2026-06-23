@@ -126,16 +126,25 @@ export default function OldFundInvestorDetailPage() {
           </div>
 
           <div className="flex-1 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               
               {/* Profile Details */}
               <div className="space-y-1.5">
                 <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Investor Details</span>
                 <h3 className="text-lg font-bold text-gray-900 leading-snug">{investorData.fullName}</h3>
                 <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                  <Mail className="h-4 w-4" />
-                  <span>{investorData.email}</span>
+                  <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <span className="truncate">{investorData.email}</span>
                 </div>
+              </div>
+
+              {/* Total Investments Count */}
+              <div className="space-y-1.5">
+                <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Investments</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-gray-900">{investorData.totalInvestmentsCount}</span>
+                </div>
+                <p className="text-sm text-gray-500">Historical count of legacy transactions</p>
               </div>
 
               {/* Aggregated Total Capital */}
@@ -145,6 +154,15 @@ export default function OldFundInvestorDetailPage() {
                   <span className="text-2xl font-bold text-gray-900">{investorData.totalInvestment}</span>
                 </div>
                 <p className="text-sm text-gray-500">Aggregated historical total across all funds</p>
+              </div>
+
+              {/* Total Distributed Amount */}
+              <div className="space-y-1.5">
+                <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Distributed</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-[#2BB673]">{investorData.totalDistributedAmount}</span>
+                </div>
+                <p className="text-sm text-gray-500">Total historical return of capital</p>
               </div>
 
               {/* Aggregated Shares */}

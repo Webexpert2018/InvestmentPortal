@@ -725,6 +725,22 @@ export class FundsService {
 
     const primaryRow = result.rows[0];
 
+    // Fetch total distributed amount from distributions table by investor profile id
+    const distResult = await db.query(
+      `SELECT return_of_capital as "returnOfCapital"
+       FROM distributions
+       WHERE investor_profile_id = $1`,
+      [profileId]
+    );
+
+    let totalDistributed = 0;
+    distResult.rows.forEach(distRow => {
+      const numDist = parseFloat(distRow.returnOfCapital?.replace(/[\$,]/g, '') || '0');
+      if (!isNaN(numDist)) {
+        totalDistributed += numDist;
+      }
+    });
+
     return {
       fullName: primaryRow.fullName,
       email: primaryRow.email,
@@ -732,6 +748,8 @@ export class FundsService {
       projectName: 'All Funds',
       totalInvestment: '$' + totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       totalShares: totalShares.toFixed(2),
+      totalInvestmentsCount: result.rows.length,
+      totalDistributedAmount: '$' + totalDistributed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       investments: result.rows.map(r => ({
         amount: r.amount,
         shares: r.shares,
