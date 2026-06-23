@@ -545,6 +545,54 @@ export class FundsService {
     }
 
     fund.investors = investorsList;
+
+    // Fetch and aggregate distributions by distribution_batch_id
+    const distResult = await db.query(
+      `SELECT distribution_batch_id as "distributionBatchId",
+              distribution_type as "distributionType",
+              batch_status as "status",
+              batch_pay_date as "payDate",
+              batch_start_date as "periodStartDate",
+              batch_end_date as "periodEndDate",
+              calculated_amount as "amount"
+       FROM distributions
+       WHERE project_id = $1`,
+      [id]
+    );
+
+    const batchesMap = new Map<number, any>();
+    for (const row of distResult.rows) {
+      const batchId = row.distributionBatchId;
+      const numAmount = parseFloat(row.amount?.replace(/[\$,]/g, '') || '0');
+
+      if (!batchesMap.has(batchId)) {
+        batchesMap.set(batchId, {
+          distributionBatchId: batchId,
+          distributionType: row.distributionType,
+          status: row.status,
+          payDate: row.payDate,
+          periodStartDate: row.periodStartDate,
+          periodEndDate: row.periodEndDate,
+          totalAmountNumeric: 0
+        });
+      }
+
+      const batch = batchesMap.get(batchId);
+      if (!isNaN(numAmount)) {
+        batch.totalAmountNumeric += numAmount;
+      }
+    }
+
+    fund.distributions = Array.from(batchesMap.values()).map(b => ({
+      distributionBatchId: b.distributionBatchId,
+      distributionType: b.distributionType,
+      status: b.status,
+      payDate: b.payDate,
+      periodStartDate: b.periodStartDate,
+      periodEndDate: b.periodEndDate,
+      totalAmount: '$' + b.totalAmountNumeric.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    }));
+
     return fund;
   }
 
