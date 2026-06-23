@@ -557,7 +557,8 @@ export class FundsService {
               ownership,
               placed_on as "placedOn",
               received_on as "receivedOn",
-              investment_status as "status"
+              investment_status as "status",
+              project_name as "projectName"
        FROM old_investments
        WHERE project_id = $1 AND investor_profile_id = $2`,
       [fundId, profileId]
@@ -583,6 +584,7 @@ export class FundsService {
       fullName: primaryRow.fullName,
       email: primaryRow.email,
       profileId: String(profileId),
+      projectName: primaryRow.projectName,
       totalInvestment: '$' + totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       totalShares: totalShares.toFixed(2),
       investments: result.rows.map(r => ({

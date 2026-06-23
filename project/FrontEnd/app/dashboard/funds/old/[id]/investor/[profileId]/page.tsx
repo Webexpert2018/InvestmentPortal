@@ -130,31 +130,31 @@ export default function OldFundInvestorDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
               {/* Profile Details */}
-              <div className="space-y-1">
-                <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider block">Investor Details</span>
+              <div className="space-y-1.5">
+                <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Investor Details</span>
                 <h3 className="text-lg font-bold text-gray-900 leading-snug">{investorData.fullName}</h3>
-                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <Mail className="h-3.5 w-3.5" />
+                <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                  <Mail className="h-4 w-4" />
                   <span>{investorData.email}</span>
                 </div>
               </div>
 
               {/* Aggregated Total Capital */}
-              <div className="space-y-1">
-                <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider block">Total Investment</span>
+              <div className="space-y-1.5">
+                <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Investment</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-bold text-gray-900">{investorData.totalInvestment}</span>
                 </div>
-                <p className="text-xs text-gray-500">Aggregated historical total</p>
+                <p className="text-sm text-gray-500">Aggregated historical total on this fund</p>
               </div>
 
               {/* Aggregated Shares */}
-              <div className="space-y-1">
-                <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider block">Total Shares Held</span>
+              <div className="space-y-1.5">
+                <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Shares Held</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-bold text-gray-900">{investorData.totalShares}</span>
                 </div>
-                <p className="text-xs text-gray-500">Aggregated historical shares</p>
+                <p className="text-sm text-gray-500">Aggregated historical shares on this fund</p>
               </div>
 
             </div>
@@ -164,7 +164,9 @@ export default function OldFundInvestorDetailPage() {
         {/* Investments list Table */}
         <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
           <div className="border-b border-gray-50 pb-3 flex justify-between items-center">
-            <h3 className="text-lg font-bold text-gray-900 font-goudy">Fund Investments</h3>
+            <h3 className="text-lg font-bold text-gray-900 font-goudy">
+              Fund Investments - {investorData.projectName}
+            </h3>
             <span className="inline-flex items-center justify-center bg-blue-50 text-[#1F3B6E] text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-100">
               {investorData.investments ? investorData.investments.length : 0} Record(s)
             </span>
