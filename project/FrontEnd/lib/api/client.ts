@@ -573,6 +573,10 @@ class ApiClient {
     return this.request<any>(`/funds/old-funds/${fundId}/investors/${profileId}`);
   }
 
+  async getOldInvestorAllFunds(profileId: number) {
+    return this.request<any>(`/funds/old-funds/investors-all/${profileId}`);
+  }
+
   async getOldFundDistributionBatch(fundId: number, batchId: number) {
     return this.request<any[]>(`/funds/old-funds/${fundId}/distributions/${batchId}`);
   }

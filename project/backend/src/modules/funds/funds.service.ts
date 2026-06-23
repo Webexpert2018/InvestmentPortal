@@ -692,5 +692,56 @@ export class FundsService {
       sendMethod: inv.sendMethod
     }));
   }
+
+  async getOldInvestorAllFunds(profileId: number) {
+    const result = await db.query(
+      `SELECT investor_profile_legal_name as "fullName",
+              email_address as "email",
+              investment_amount as "amount",
+              shares,
+              ownership,
+              placed_on as "placedOn",
+              received_on as "receivedOn",
+              investment_status as "status",
+              project_name as "projectName"
+       FROM old_investments
+       WHERE investor_profile_id = $1`,
+      [profileId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundException('Investor records not found');
+    }
+
+    let totalInvestment = 0;
+    let totalShares = 0;
+    
+    result.rows.forEach(invRow => {
+      const numAmount = parseFloat(invRow.amount?.replace(/[\$,]/g, '') || '0');
+      const numShares = parseFloat(invRow.shares || '0');
+      totalInvestment += numAmount;
+      totalShares += numShares;
+    });
+
+    const primaryRow = result.rows[0];
+
+    return {
+      fullName: primaryRow.fullName,
+      email: primaryRow.email,
+      profileId: String(profileId),
+      projectName: 'All Funds',
+      totalInvestment: '$' + totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      totalShares: totalShares.toFixed(2),
+      investments: result.rows.map(r => ({
+        amount: r.amount,
+        shares: r.shares,
+        ownership: r.ownership,
+        placedOn: r.placedOn,
+        receivedOn: r.receivedOn,
+        status: r.status,
+        projectName: r.projectName
+      }))
+    };
+  }
 }
 

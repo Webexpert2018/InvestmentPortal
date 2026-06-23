@@ -17,6 +17,23 @@ export default function OldFundDetailPage() {
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
   const [selectedBatchData, setSelectedBatchData] = useState<any[]>([]);
   const [isBatchLoading, setIsBatchLoading] = useState(false);
+  const [selectedInvestorId, setSelectedInvestorId] = useState<number | null>(null);
+  const [selectedInvestorData, setSelectedInvestorData] = useState<any>(null);
+  const [isInvestorLoading, setIsInvestorLoading] = useState(false);
+
+  const handleInvestorClick = async (profileId: number) => {
+    setSelectedInvestorId(profileId);
+    setIsInvestorLoading(true);
+    try {
+      const fundId = parseInt(params.id as string, 10);
+      const data = await apiClient.getOldFundInvestor(fundId, profileId);
+      setSelectedInvestorData(data);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to fetch investor details');
+    } finally {
+      setIsInvestorLoading(false);
+    }
+  };
 
   const handleBatchClick = async (batchId: number) => {
     setSelectedBatchId(batchId);
@@ -93,8 +110,8 @@ export default function OldFundDetailPage() {
     return (
       <DashboardLayout>
         <div className="p-6">
-          <button 
-            onClick={() => router.push('/dashboard/funds')} 
+          <button
+            onClick={() => router.push('/dashboard/funds')}
             className="mb-4 flex items-center gap-2 text-gray-600 font-semibold"
           >
             <ChevronLeft className="h-5 w-5" /> Back to Funds
@@ -137,10 +154,10 @@ export default function OldFundDetailPage() {
 
         {/* Main Details Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Left / Main Section (Col span 2) */}
           <div className="lg:col-span-2 space-y-6">
-            
+
             {/* Overview / Banner Card */}
             <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col md:flex-row gap-6 items-start">
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#4B5563] to-[#9CA3AF] flex-shrink-0 flex items-center justify-center text-white font-bold text-2xl shadow-md">
@@ -167,9 +184,9 @@ export default function OldFundDetailPage() {
             {/* Key Metrics Grid */}
             <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
               <h3 className="text-lg font-bold text-gray-900 font-goudy border-b border-gray-50 pb-3">Fund Financial Summary</h3>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                
+
                 {/* Metric 1 */}
                 <div className="flex items-start gap-3.5 p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
                   <div className="p-2.5 bg-white rounded-xl text-gray-500 shadow-sm">
@@ -223,11 +240,11 @@ export default function OldFundDetailPage() {
 
           {/* Right Sidebar Section */}
           <div className="space-y-6">
-            
+
             {/* Timeline Info Card */}
             <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
               <h3 className="text-lg font-bold text-gray-900 font-goudy border-b border-gray-50 pb-3">Lifecycle Timeline</h3>
-              
+
               <div className="space-y-5">
                 <div className="flex items-start gap-3">
                   <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
@@ -276,7 +293,7 @@ export default function OldFundDetailPage() {
 
         {/* Associated Investors & Distributions Section (Expanded Full Width) */}
         <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6 mt-8">
-          
+
           {/* Tab switcher header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-50 pb-4">
             <div className="flex items-center gap-6">
@@ -285,12 +302,13 @@ export default function OldFundDetailPage() {
                   setActiveTab('investors');
                   setSelectedBatchId(null);
                   setSelectedBatchData([]);
+                  setSelectedInvestorId(null);
+                  setSelectedInvestorData(null);
                 }}
-                className={`flex items-center gap-2 pb-2 border-b-2 font-bold transition-all text-base ${
-                  activeTab === 'investors'
-                    ? 'border-[#1F3B6E] text-[#1F3B6E]'
-                    : 'border-transparent text-gray-400 hover:text-gray-600'
-                }`}
+                className={`flex items-center gap-2 pb-2 border-b-2 font-bold transition-all text-base ${activeTab === 'investors'
+                  ? 'border-[#1F3B6E] text-[#1F3B6E]'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                  }`}
               >
                 <Users className="h-5 w-5" />
                 <span>Associated Investors</span>
@@ -304,12 +322,13 @@ export default function OldFundDetailPage() {
                   setActiveTab('distributions');
                   setSelectedBatchId(null);
                   setSelectedBatchData([]);
+                  setSelectedInvestorId(null);
+                  setSelectedInvestorData(null);
                 }}
-                className={`flex items-center gap-2 pb-2 border-b-2 font-bold transition-all text-base ${
-                  activeTab === 'distributions'
-                    ? 'border-[#1F3B6E] text-[#1F3B6E]'
-                    : 'border-transparent text-gray-400 hover:text-gray-600'
-                }`}
+                className={`flex items-center gap-2 pb-2 border-b-2 font-bold transition-all text-base ${activeTab === 'distributions'
+                  ? 'border-[#1F3B6E] text-[#1F3B6E]'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                  }`}
               >
                 <DollarSign className="h-5 w-5" />
                 <span>Distributions</span>
@@ -322,59 +341,159 @@ export default function OldFundDetailPage() {
 
           {/* Investors Tab content */}
           {activeTab === 'investors' && (
-            fund.investors && fund.investors.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investor</th>
-                      <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Profile ID</th>
-                      <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Investment</th>
-                      <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Shares</th>
-                      <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {fund.investors.map((investor: any, idx: number) => (
-                      <tr 
-                        key={idx} 
-                        className="hover:bg-gray-50/50 transition-colors cursor-pointer"
-                        onClick={() => router.push(`/dashboard/funds/old/${params.id}/investor/${investor.externalId}`)}
-                      >
-                        <td className="py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                              {getInitials(investor.fullName)}
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-sm font-semibold text-gray-900 leading-snug">{investor.fullName}</span>
-                              <span className="text-[11px] text-gray-500">{investor.email}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 text-left text-sm font-mono text-gray-500">
-                          {investor.externalId}
-                        </td>
-                        <td className="py-4 text-right text-sm font-semibold text-gray-900">
-                          {investor.totalInvestment}
-                        </td>
-                        <td className="py-4 text-right text-sm font-medium text-gray-600">
-                          {investor.totalShares}
-                        </td>
-                        <td className="py-4 text-right">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-600 border border-emerald-100">
-                            {investor.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            isInvestorLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1F3B6E]"></div>
+              </div>
+            ) : selectedInvestorId !== null && selectedInvestorData ? (
+              // Investor detail view (navigated like a directory)
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-50 pb-3 gap-3">
+                  <button
+                    onClick={() => {
+                      setSelectedInvestorId(null);
+                      setSelectedInvestorData(null);
+                    }}
+                    className="flex items-center gap-1.5 text-sm font-semibold text-[#1F3B6E] hover:text-[#1F3B6E]/80 transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Back to Investors
+                  </button>
+                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Investor ID: {selectedInvestorData.profileId} &bull; {selectedInvestorData.email}
+                  </span>
+                </div>
+
+                {/* Compact summary cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
+                  <div className="space-y-1">
+                    <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Investment on this fund</span>
+                    <span className="text-xl font-bold text-gray-900">{selectedInvestorData.totalInvestment}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Shares Held on this fund</span>
+                    <span className="text-xl font-bold text-gray-900">{selectedInvestorData.totalShares}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-50 pb-3 gap-4">
+                  <h4 className="text-base font-bold text-[#1F3B6E] font-goudy">
+                    Investment Records for {selectedInvestorData.fullName}
+                  </h4>
+                  <button
+                    onClick={() => router.push(`/dashboard/funds/old/${params.id}/investor/${selectedInvestorId}`)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#1F3B6E] to-[#4A5D90] text-white hover:from-[#1F3B6E]/90 hover:to-[#4A5D90]/90 transition-all rounded-xl text-xs font-bold shadow-sm"
+                  >
+                    View Global Investor Profile
+                  </button>
+                </div>
+
+                {selectedInvestorData.investments && selectedInvestorData.investments.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b border-gray-100">
+                          <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pl-3 w-[8%]">No.</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[18%] pr-4">Investment Amount</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[12%] pr-4">Shares</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[12%] pr-4">Ownership</th>
+                          <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[18%]">Placed On</th>
+                          <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[18%]">Received On</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pr-3 w-[14%]">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {selectedInvestorData.investments.map((inv: any, idx: number) => (
+                          <tr key={idx} className="bg-blue-50/20 hover:bg-blue-50/40 transition-all border-l-4 border-[#1F3B6E] group">
+                            <td className="py-4 pl-3 text-sm font-bold text-[#1F3B6E] text-left w-[8%]">
+                              #{idx + 1}
+                            </td>
+                            <td className="py-4 text-right text-sm font-bold text-gray-900 w-[18%] pr-4">
+                              {inv.amount}
+                            </td>
+                            <td className="py-4 text-right text-sm font-medium text-gray-700 w-[12%] pr-4">
+                              {inv.shares || '0.00'}
+                            </td>
+                            <td className="py-4 text-right text-sm font-medium text-gray-500 w-[12%] pr-4">
+                              {inv.ownership || '0.00%'}
+                            </td>
+                            <td className="py-4 text-center text-sm text-gray-600 font-medium w-[18%]">
+                              {formatDate(inv.placedOn)}
+                            </td>
+                            <td className="py-4 text-center text-sm text-gray-600 font-medium w-[18%]">
+                              {formatDate(inv.receivedOn)}
+                            </td>
+                            <td className="py-4 text-right pr-3 w-[14%]">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                {inv.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-gray-400 font-medium">No investment records found for this investor.</p>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <p className="text-sm text-gray-400 font-medium">No associated investors found for this legacy fund.</p>
-              </div>
+              fund.investors && fund.investors.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investor</th>
+                        <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Profile ID</th>
+                        <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Investment</th>
+                        <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Shares</th>
+                        <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {fund.investors.map((investor: any, idx: number) => (
+                        <tr
+                          key={idx}
+                          className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                          onClick={() => handleInvestorClick(investor.externalId)}
+                        >
+                          <td className="py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                                {getInitials(investor.fullName)}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold text-gray-900 leading-snug">{investor.fullName}</span>
+                                <span className="text-[11px] text-gray-500">{investor.email}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-4 text-left text-sm font-mono text-gray-500">
+                            {investor.externalId}
+                          </td>
+                          <td className="py-4 text-right text-sm font-semibold text-gray-900">
+                            {investor.totalInvestment}
+                          </td>
+                          <td className="py-4 text-right text-sm font-medium text-gray-600">
+                            {investor.totalShares}
+                          </td>
+                          <td className="py-4 text-right">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-600 border border-emerald-100">
+                              {investor.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-sm text-gray-400 font-medium">No associated investors found for this legacy fund.</p>
+                </div>
+              )
             )
           )}
 
@@ -467,8 +586,8 @@ export default function OldFundDetailPage() {
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       {fund.distributions.map((dist: any, idx: number) => (
-                        <tr 
-                          key={idx} 
+                        <tr
+                          key={idx}
                           className="hover:bg-gray-50/50 transition-colors cursor-pointer"
                           onClick={() => handleBatchClick(dist.distributionBatchId)}
                         >
@@ -488,11 +607,10 @@ export default function OldFundDetailPage() {
                             {formatDate(dist.payDate)}
                           </td>
                           <td className="py-4 text-right">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase border ${
-                              dist.status?.toLowerCase() === 'distributed'
-                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                : 'bg-gray-50 text-gray-500 border-gray-100'
-                            }`}>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase border ${dist.status?.toLowerCase() === 'distributed'
+                              ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                              : 'bg-gray-50 text-gray-500 border-gray-100'
+                              }`}>
                               {dist.status || 'Pending'}
                             </span>
                           </td>

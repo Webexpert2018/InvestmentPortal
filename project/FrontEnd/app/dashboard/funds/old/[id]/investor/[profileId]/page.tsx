@@ -15,20 +15,19 @@ export default function OldFundInvestorDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (params.id && params.profileId) {
+    if (params.profileId) {
       fetchInvestorDetails();
     }
-  }, [params.id, params.profileId]);
+  }, [params.profileId]);
 
   const fetchInvestorDetails = async () => {
     setIsLoading(true);
     try {
-      const fundId = parseInt(params.id as string, 10);
       const profileId = parseInt(params.profileId as string, 10);
-      if (isNaN(fundId) || isNaN(profileId)) {
+      if (isNaN(profileId)) {
         throw new Error('Invalid parameters');
       }
-      const data = await apiClient.getOldFundInvestor(fundId, profileId);
+      const data = await apiClient.getOldInvestorAllFunds(profileId);
       setInvestorData(data);
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch investor investment details');
@@ -145,7 +144,7 @@ export default function OldFundInvestorDetailPage() {
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-bold text-gray-900">{investorData.totalInvestment}</span>
                 </div>
-                <p className="text-sm text-gray-500">Aggregated historical total on this fund</p>
+                <p className="text-sm text-gray-500">Aggregated historical total across all funds</p>
               </div>
 
               {/* Aggregated Shares */}
@@ -154,7 +153,7 @@ export default function OldFundInvestorDetailPage() {
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-bold text-gray-900">{investorData.totalShares}</span>
                 </div>
-                <p className="text-sm text-gray-500">Aggregated historical shares on this fund</p>
+                <p className="text-sm text-gray-500">Aggregated historical shares across all funds</p>
               </div>
 
             </div>
@@ -165,7 +164,7 @@ export default function OldFundInvestorDetailPage() {
         <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
           <div className="border-b border-gray-50 pb-3 flex justify-between items-center">
             <h3 className="text-lg font-bold text-gray-900 font-goudy">
-              Fund Investments - {investorData.projectName}
+              Investments across All Funds
             </h3>
             <span className="inline-flex items-center justify-center bg-blue-50 text-[#1F3B6E] text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-100">
               {investorData.investments ? investorData.investments.length : 0} Record(s)
@@ -178,6 +177,7 @@ export default function OldFundInvestorDetailPage() {
                 <thead>
                   <tr className="border-b border-gray-100">
                     <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">No.</th>
+                    <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pl-3">Fund</th>
                     <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investment Amount</th>
                     <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Shares</th>
                     <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Ownership</th>
@@ -191,6 +191,9 @@ export default function OldFundInvestorDetailPage() {
                     <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                       <td className="py-4 text-sm font-medium text-gray-400 text-left">
                         #{idx + 1}
+                      </td>
+                      <td className="py-4 text-left text-sm font-semibold text-[#1F3B6E] pl-3">
+                        {inv.projectName}
                       </td>
                       <td className="py-4 text-right text-sm font-bold text-gray-900">
                         {inv.amount}
@@ -219,7 +222,7 @@ export default function OldFundInvestorDetailPage() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-sm text-gray-400 font-medium">No investments found for this investor in this fund.</p>
+              <p className="text-sm text-gray-400 font-medium">No investments found for this investor.</p>
             </div>
           )}
         </div>
