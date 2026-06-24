@@ -694,20 +694,88 @@ export class FundsService {
   }
 
   async getOldInvestorAllFunds(profileId: number) {
-    const result = await db.query(
+    // 1. Fetch info for this specific profile first to keep metadata consistent
+    const profileInfoRes = await db.query(
       `SELECT investor_profile_legal_name as "fullName",
-              email_address as "email",
-              investment_amount as "amount",
-              shares,
-              ownership,
-              placed_on as "placedOn",
-              received_on as "receivedOn",
-              investment_status as "status",
-              project_name as "projectName"
+              email_address as "email"
        FROM old_investments
-       WHERE investor_profile_id = $1`,
+       WHERE investor_profile_id = $1
+       LIMIT 1`,
       [profileId]
     );
+
+    if (profileInfoRes.rows.length === 0) {
+      throw new NotFoundException('Investor records not found');
+    }
+
+    const profileInfo = profileInfoRes.rows[0];
+    const email = profileInfo.email;
+
+    // 2. Check profile type in old_inv_profile_type table
+    const typeRes = await db.query(
+      `SELECT profile_type FROM old_inv_profile_type WHERE profile_id = $1`,
+      [profileId]
+    );
+    const profileType = typeRes.rows[0]?.profile_type;
+    const isIndividual = profileType === 'Individual';
+
+    let result;
+    let distResult;
+
+    if (isIndividual && email) {
+      // Fetch investments on email basis
+      result = await db.query(
+        `SELECT investor_profile_legal_name as "fullName",
+                email_address as "email",
+                investment_amount as "amount",
+                shares,
+                ownership,
+                placed_on as "placedOn",
+                received_on as "receivedOn",
+                investment_status as "status",
+                project_name as "projectName"
+         FROM old_investments
+         WHERE email_address = $1`,
+        [email]
+      );
+
+      // Fetch all unique profile IDs sharing this email to get all their distributions
+      const profileIdsRes = await db.query(
+        `SELECT DISTINCT investor_profile_id as "id" FROM old_investments WHERE email_address = $1`,
+        [email]
+      );
+      const profileIds = profileIdsRes.rows.map(r => r.id);
+
+      distResult = await db.query(
+        `SELECT return_of_capital as "returnOfCapital"
+         FROM distributions
+         WHERE investor_profile_id = ANY($1)`,
+        [profileIds]
+      );
+    } else {
+      // Fetch investments strictly on ID basis
+      result = await db.query(
+        `SELECT investor_profile_legal_name as "fullName",
+                email_address as "email",
+                investment_amount as "amount",
+                shares,
+                ownership,
+                placed_on as "placedOn",
+                received_on as "receivedOn",
+                investment_status as "status",
+                project_name as "projectName"
+         FROM old_investments
+         WHERE investor_profile_id = $1`,
+        [profileId]
+      );
+
+      distResult = await db.query(
+        `SELECT return_of_capital as "returnOfCapital"
+         FROM distributions
+         WHERE investor_profile_id = $1`,
+        [profileId]
+      );
+    }
 
     if (result.rows.length === 0) {
       throw new NotFoundException('Investor records not found');
@@ -723,16 +791,6 @@ export class FundsService {
       totalShares += numShares;
     });
 
-    const primaryRow = result.rows[0];
-
-    // Fetch total distributed amount from distributions table by investor profile id
-    const distResult = await db.query(
-      `SELECT return_of_capital as "returnOfCapital"
-       FROM distributions
-       WHERE investor_profile_id = $1`,
-      [profileId]
-    );
-
     let totalDistributed = 0;
     distResult.rows.forEach(distRow => {
       const numDist = parseFloat(distRow.returnOfCapital?.replace(/[\$,]/g, '') || '0');
@@ -742,8 +800,8 @@ export class FundsService {
     });
 
     return {
-      fullName: primaryRow.fullName,
-      email: primaryRow.email,
+      fullName: profileInfo.fullName,
+      email: profileInfo.email,
       profileId: String(profileId),
       projectName: 'All Funds',
       totalInvestment: '$' + totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
@@ -757,7 +815,8 @@ export class FundsService {
         placedOn: r.placedOn,
         receivedOn: r.receivedOn,
         status: r.status,
-        projectName: r.projectName
+        projectName: r.projectName,
+        investorName: r.fullName
       }))
     };
   }

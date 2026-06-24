@@ -196,6 +196,7 @@ export default function OldFundInvestorDetailPage() {
                   <tr className="border-b border-gray-100">
                     <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">No.</th>
                     <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pl-3">Fund</th>
+                    <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pl-3">Investor Name</th>
                     <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investment Amount</th>
                     <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Shares</th>
                     <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Ownership</th>
@@ -212,6 +213,9 @@ export default function OldFundInvestorDetailPage() {
                       </td>
                       <td className="py-4 text-left text-sm font-semibold text-[#1F3B6E] pl-3">
                         {inv.projectName}
+                      </td>
+                      <td className="py-4 text-left text-sm font-medium text-gray-600 pl-3">
+                        {inv.investorName || 'N/A'}
                       </td>
                       <td className="py-4 text-right text-sm font-bold text-gray-900">
                         {inv.amount}
