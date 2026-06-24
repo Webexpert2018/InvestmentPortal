@@ -466,7 +466,7 @@ export default function OldFundDetailPage() {
                               </div>
                               <div className="flex flex-col">
                                 <span className="text-sm font-semibold text-gray-900 leading-snug">{investor.fullName}</span>
-                                <span className="text-[11px] text-gray-500">{investor.email}</span>
+                                <span className="text-xs text-gray-600 mt-0.5">{investor.email}</span>
                               </div>
                             </div>
                           </td>

@@ -104,6 +104,9 @@ export class InvestmentsService {
       // Auto-save signed documents into the Document Vault!
       try {
         let savedDocsCount = 0;
+        const fundRes = await db.query('SELECT name FROM funds WHERE id = $1', [fundId]);
+        const fundName = fundRes.rows.length > 0 ? fundRes.rows[0].name : 'Fund';
+        const cleanFundName = fundName.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 
         if (envelopeId) {
           try {
@@ -138,12 +141,12 @@ export class InvestmentsService {
 
                 // Determine document type (operating_agreement or subscription_agreement)
                 let documentType = 'subscription_agreement';
-                let fileName = `Signed_Subscription_Agreement_${investment.id}.pdf`;
+                let fileName = `SA-${cleanFundName}.pdf`;
                 
                 const lowerName = docInfo.name?.toLowerCase() || '';
                 if (lowerName.includes('operating agreement') || lowerName.includes('oa')) {
                   documentType = 'operating_agreement';
-                  fileName = `Signed_Operating_Agreement_${investment.id}.pdf`;
+                  fileName = `OA-${cleanFundName}.pdf`;
                 }
 
                 const cloudinaryUpload = () => {
@@ -208,7 +211,7 @@ export class InvestmentsService {
 
           if (found) {
             const pdfBuffer = fs.readFileSync(fallbackPath);
-            const fileName = `Subscription_Agreement_${investment.id}.pdf`;
+            const fileName = `SA-${cleanFundName}.pdf`;
 
             const cloudinaryUpload = () => {
               return new Promise((resolve, reject) => {
