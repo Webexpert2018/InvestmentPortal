@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronLeft, Briefcase, DollarSign, Users, Calendar, Info, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Briefcase, DollarSign, Users, Calendar, Info, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useRouter, useParams } from 'next/navigation';
@@ -20,6 +20,7 @@ export default function OldFundDetailPage() {
   const [selectedInvestorId, setSelectedInvestorId] = useState<number | null>(null);
   const [selectedInvestorData, setSelectedInvestorData] = useState<any>(null);
   const [isInvestorLoading, setIsInvestorLoading] = useState(false);
+  const [selectedClassName, setSelectedClassName] = useState<string | null>(null);
 
   const handleInvestorClick = async (profileId: number) => {
     setSelectedInvestorId(profileId);
@@ -300,6 +301,7 @@ export default function OldFundDetailPage() {
               <button
                 onClick={() => {
                   setActiveTab('investors');
+                  setSelectedClassName(null);
                   setSelectedBatchId(null);
                   setSelectedBatchData([]);
                   setSelectedInvestorId(null);
@@ -320,6 +322,7 @@ export default function OldFundDetailPage() {
               <button
                 onClick={() => {
                   setActiveTab('distributions');
+                  setSelectedClassName(null);
                   setSelectedBatchId(null);
                   setSelectedBatchData([]);
                   setSelectedInvestorId(null);
@@ -439,61 +442,169 @@ export default function OldFundDetailPage() {
                   </div>
                 )}
               </div>
-            ) : (
+            ) : selectedClassName === null ? (
+              // Classes table view
               fund.investors && fund.investors.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investor</th>
-                        <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Profile ID</th>
-                        <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Investment</th>
-                        <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Shares</th>
-                        <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {fund.investors.map((investor: any, idx: number) => (
-                        <tr
-                          key={idx}
-                          className="hover:bg-gray-50/50 transition-colors cursor-pointer"
-                          onClick={() => handleInvestorClick(investor.externalId)}
-                        >
-                          <td className="py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                                {getInitials(investor.fullName)}
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-sm font-semibold text-gray-900 leading-snug">{investor.fullName}</span>
-                                <span className="text-xs text-gray-600 mt-0.5">{investor.email}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-4 text-left text-sm font-mono text-gray-500">
-                            {investor.externalId}
-                          </td>
-                          <td className="py-4 text-right text-sm font-semibold text-gray-900">
-                            {investor.totalInvestment}
-                          </td>
-                          <td className="py-4 text-right text-sm font-medium text-gray-600">
-                            {investor.totalShares}
-                          </td>
-                          <td className="py-4 text-right">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-600 border border-emerald-100">
-                              {investor.status}
-                            </span>
-                          </td>
+                <div className="space-y-6">
+                  <div className="mb-2">
+                    <h3 className="text-lg font-bold text-gray-900 font-goudy pb-2 border-b border-gray-100">Share Classes</h3>
+                    <p className="text-xs text-gray-500 mt-1">Select a class to view its associated investors.</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b border-gray-100">
+                          <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Class Name</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Investment</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Ownership</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Shares</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">No. of Investors</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {(() => {
+                          const counts: Record<string, { count: number; totalInvestment: number; totalShares: number }> = {};
+                          fund.investors.forEach((inv: any) => {
+                            const cls = inv.className || 'Default Class';
+                            if (!counts[cls]) {
+                              counts[cls] = { count: 0, totalInvestment: 0, totalShares: 0 };
+                            }
+                            counts[cls].count += 1;
+                            const numAmount = parseFloat(inv.totalInvestment?.replace(/[\$,]/g, '') || '0');
+                            const numShares = parseFloat(inv.totalShares || '0');
+                            counts[cls].totalInvestment += numAmount;
+                            counts[cls].totalShares += numShares;
+                          });
+                          const totalCap = parseFloat(fund?.totalCapital?.replace(/[\$,]/g, '') || '0');
+                          return Object.entries(counts).map(([name, data], idx) => {
+                            const classOwnershipPercent = totalCap > 0 ? ((data.totalInvestment / totalCap) * 100).toFixed(2) + '%' : '0.00%';
+                            return (
+                              <tr
+                                key={idx}
+                                onClick={() => setSelectedClassName(name)}
+                                className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                              >
+                                <td className="py-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                                      {name[0] || 'C'}
+                                    </div>
+                                    <span className="text-sm font-semibold text-gray-900 leading-snug">{name}</span>
+                                  </div>
+                                </td>
+                                <td className="py-4 text-right text-sm font-bold text-gray-900">
+                                  {'$' + data.totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </td>
+                                <td className="py-4 text-right text-sm font-semibold text-gray-900 font-mono">
+                                  {classOwnershipPercent}
+                                </td>
+                                <td className="py-4 text-right text-sm font-medium text-gray-600">
+                                  {data.totalShares.toFixed(2)}
+                                </td>
+                                <td className="py-4 text-right text-sm font-semibold text-gray-900">
+                                  {data.count} {data.count === 1 ? 'Investor' : 'Investors'}
+                                </td>
+                              </tr>
+                            );
+                          });
+                        })()}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
                   <p className="text-sm text-gray-400 font-medium">No associated investors found for this legacy fund.</p>
                 </div>
               )
+            ) : (
+              // Grouped investors view
+              (() => {
+                const filteredInvestors = fund.investors.filter((inv: any) => (inv.className || 'Default Class') === selectedClassName);
+                return (
+                  <div className="space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-4 gap-3">
+                      <button
+                        onClick={() => setSelectedClassName(null)}
+                        className="flex items-center gap-1.5 text-sm font-semibold text-[#1F3B6E] hover:text-[#1F3B6E]/80 transition-colors"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Back to Classes
+                      </button>
+                      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Class: {selectedClassName} &bull; {filteredInvestors.length} {filteredInvestors.length === 1 ? 'Investor' : 'Investors'}
+                      </span>
+                    </div>
+                    {filteredInvestors.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse">
+                          <thead>
+                            <tr className="border-b border-gray-100">
+                              <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investor</th>
+                              <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Profile ID</th>
+                              <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Investment</th>
+                              <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">% of Class</th>
+                              <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Ownership</th>
+                              <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Shares</th>
+                              <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-50">
+                            {filteredInvestors.map((investor: any, idx: number) => {
+                              const invAmount = parseFloat(investor.totalInvestment?.replace(/[\$,]/g, '') || '0');
+                              const totalCap = parseFloat(fund?.totalCapital?.replace(/[\$,]/g, '') || '0');
+                              const ownershipPercent = totalCap > 0 ? ((invAmount / totalCap) * 100).toFixed(2) + '%' : '0.00%';
+                              return (
+                                <tr
+                                  key={idx}
+                                  className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                                  onClick={() => handleInvestorClick(investor.externalId)}
+                                >
+                                  <td className="py-4">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                                        {getInitials(investor.fullName)}
+                                      </div>
+                                      <div className="flex flex-col">
+                                        <span className="text-sm font-semibold text-gray-900 leading-snug">{investor.fullName}</span>
+                                        <span className="text-xs text-gray-600 mt-0.5">{investor.email}</span>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="py-4 text-left text-sm font-mono text-gray-500">
+                                    {investor.externalId}
+                                  </td>
+                                  <td className="py-4 text-right text-sm font-semibold text-gray-900">
+                                    {investor.totalInvestment}
+                                  </td>
+                                  <td className="py-4 text-right text-sm font-semibold text-gray-900">
+                                    {investor.totalOwnership || '0.00%'}
+                                  </td>
+                                  <td className="py-4 text-right text-sm font-semibold text-gray-900 font-mono">
+                                    {ownershipPercent}
+                                  </td>
+                                  <td className="py-4 text-right text-sm font-medium text-gray-600">
+                                    {investor.totalShares}
+                                  </td>
+                                  <td className="py-4 text-right">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                      {investor.status}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-sm text-gray-400 font-medium">No investors found in this class.</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()
             )
           )}
 

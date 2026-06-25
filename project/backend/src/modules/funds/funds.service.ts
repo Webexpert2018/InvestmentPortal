@@ -507,7 +507,9 @@ export class FundsService {
                 email_address as "email",
                 investment_amount as "amount",
                 shares,
-                investment_status as "status"
+                ownership,
+                investment_status as "status",
+                class_name as "className"
          FROM old_investments
          WHERE investor_profile_id = $1 AND project_id = $2`,
         [profileId, id]
@@ -517,12 +519,15 @@ export class FundsService {
         // Aggregate/calculate total investment and total shares for this investor in this fund
         let totalInvestment = 0;
         let totalShares = 0;
+        let totalOwnership = 0;
         
         detailsResult.rows.forEach(invRow => {
           const numAmount = parseFloat(invRow.amount?.replace(/[\$,]/g, '') || '0');
           const numShares = parseFloat(invRow.shares || '0');
+          const numOwnership = parseFloat(invRow.ownership?.replace(/%/g, '') || '0');
           totalInvestment += numAmount;
           totalShares += numShares;
+          totalOwnership += numOwnership;
         });
 
         // Use the first row for name & email
@@ -539,7 +544,9 @@ export class FundsService {
           externalId: String(profileId),
           isRegistered: false,
           totalInvestment: '$' + totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          totalShares: totalShares.toFixed(2)
+          totalShares: totalShares.toFixed(2),
+          totalOwnership: totalOwnership.toFixed(2) + '%',
+          className: primaryRow.className || 'Default Class'
         });
       }
     }
