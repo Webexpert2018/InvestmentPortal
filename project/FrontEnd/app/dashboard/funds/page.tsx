@@ -199,11 +199,10 @@ export default function FundsPage() {
               setActiveTab('current');
               setSearchQuery('');
             }}
-            className={`px-6 py-4 font-bold text-sm transition-all border-b-2 -mb-[2px] ${
-              activeTab === 'current'
-                ? 'border-[#1F3B6E] text-[#1F3B6E]'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
-            }`}
+            className={`px-6 py-4 font-bold text-sm transition-all border-b-2 -mb-[2px] ${activeTab === 'current'
+              ? 'border-[#1F3B6E] text-[#1F3B6E]'
+              : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}
           >
             Active Funds
           </button>
@@ -212,13 +211,12 @@ export default function FundsPage() {
               setActiveTab('old');
               setSearchQuery('');
             }}
-            className={`px-6 py-4 font-bold text-sm transition-all border-b-2 -mb-[2px] ${
-              activeTab === 'old'
-                ? 'border-[#1F3B6E] text-[#1F3B6E]'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
-            }`}
+            className={`px-6 py-4 font-bold text-sm transition-all border-b-2 -mb-[2px] ${activeTab === 'old'
+              ? 'border-[#1F3B6E] text-[#1F3B6E]'
+              : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}
           >
-            Old Platform Funds
+            Previous Platform Funds
           </button>
         </div>
 
@@ -229,7 +227,7 @@ export default function FundsPage() {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
                 type="text"
-                placeholder={activeTab === 'current' ? "Find active fund..." : "Find old platform fund..."}
+                placeholder={activeTab === 'current' ? "Find active fund..." : "Find Previous platform fund..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/10 focus:border-[#1F3B6E] transition-all"
@@ -254,8 +252,8 @@ export default function FundsPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {currentFunds.map((fund) => (
-                      <tr 
-                        key={fund.id} 
+                      <tr
+                        key={fund.id}
                         className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
                         onClick={() => router.push(`/dashboard/funds/${fund.id}`)}
                       >
@@ -404,8 +402,8 @@ export default function FundsPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {currentOldFunds.map((fund) => (
-                      <tr 
-                        key={fund.projectId} 
+                      <tr
+                        key={fund.projectId}
                         className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
                         onClick={() => router.push(`/dashboard/funds/old/${fund.projectId}`)}
                       >
@@ -443,12 +441,12 @@ export default function FundsPage() {
                 </table>
                 {currentOldFunds.length === 0 && !isLoadingOld && (
                   <div className="text-center py-12">
-                    <p className="text-gray-500">No old platform funds found matching "{searchQuery}"</p>
+                    <p className="text-gray-500">No Previous Platform Funds found matching "{searchQuery}"</p>
                   </div>
                 )}
                 {isLoadingOld && (
                   <div className="text-center py-12">
-                    <p className="text-gray-500">Loading old funds...</p>
+                    <p className="text-gray-500">Loading previous funds...</p>
                   </div>
                 )}
               </div>
