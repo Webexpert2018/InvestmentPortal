@@ -843,6 +843,16 @@ export class FundsService {
     totalAmount: number;
     sendMethod: string;
   }) {
+    // 0. Auto-sync schema columns and data types on production DB if missing or narrow
+    try {
+      await db.query(`ALTER TABLE distributions ADD COLUMN IF NOT EXISTS dashboard_description VARCHAR(255);`);
+      await db.query(`ALTER TABLE distributions ADD COLUMN IF NOT EXISTS send_method VARCHAR(50);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN send_method TYPE VARCHAR(50);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN batch_description TYPE VARCHAR(255);`);
+    } catch (err) {
+      console.warn('Schema auto-sync notice:', err);
+    }
+
     // 1. Verify that the old fund exists
     const fundRes = await db.query(
       `SELECT project_name as "projectName", status as "projectStatus", total_capital as "totalCapital"
@@ -965,8 +975,8 @@ export class FundsService {
         '$-', // $25 (fees)
         null, // $26 (waterfall_fees)
         null, // $27 (sideletters)
-        this.truncateString(data.batchDescription || null, 25), // $28 (batch_description)
-        this.truncateString(data.sendMethod || 'Check', 5), // $29 (send_method)
+        this.truncateString(data.batchDescription || null, 255), // $28 (batch_description)
+        this.truncateString(data.sendMethod || 'Check', 50), // $29 (send_method)
         null, // $30 (investor_gl_account)
         this.truncateString(data.dashboardDescription || null, 255) // $31 (dashboard_description)
       ];
@@ -991,6 +1001,16 @@ export class FundsService {
     totalAmount: number;
     sendMethod: string;
   }) {
+    // 0. Auto-sync schema columns and data types on production DB if missing or narrow
+    try {
+      await db.query(`ALTER TABLE distributions ADD COLUMN IF NOT EXISTS dashboard_description VARCHAR(255);`);
+      await db.query(`ALTER TABLE distributions ADD COLUMN IF NOT EXISTS send_method VARCHAR(50);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN send_method TYPE VARCHAR(50);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN batch_description TYPE VARCHAR(255);`);
+    } catch (err) {
+      console.warn('Schema auto-sync notice:', err);
+    }
+
     // 1. Verify batch exists and is NOT approved
     const batchRes = await db.query(
       `SELECT DISTINCT batch_status as "status" FROM distributions WHERE project_id = $1 AND distribution_batch_id = $2`,
@@ -1123,8 +1143,8 @@ export class FundsService {
         '$-', // $25 (fees)
         null, // $26 (waterfall_fees)
         null, // $27 (sideletters)
-        this.truncateString(data.batchDescription || null, 25), // $28 (batch_description)
-        this.truncateString(data.sendMethod || 'Check', 5), // $29 (send_method)
+        this.truncateString(data.batchDescription || null, 255), // $28 (batch_description)
+        this.truncateString(data.sendMethod || 'Check', 50), // $29 (send_method)
         null, // $30 (investor_gl_account)
         this.truncateString(data.dashboardDescription || null, 255) // $31 (dashboard_description)
       ];
