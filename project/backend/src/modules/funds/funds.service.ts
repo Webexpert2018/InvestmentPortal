@@ -846,9 +846,13 @@ export class FundsService {
     // 0. Auto-sync schema columns and data types on production DB if missing or narrow
     try {
       await db.query(`ALTER TABLE distributions ADD COLUMN IF NOT EXISTS dashboard_description VARCHAR(255);`);
-      await db.query(`ALTER TABLE distributions ADD COLUMN IF NOT EXISTS send_method VARCHAR(50);`);
-      await db.query(`ALTER TABLE distributions ALTER COLUMN send_method TYPE VARCHAR(50);`);
+      await db.query(`ALTER TABLE distributions ADD COLUMN IF NOT EXISTS send_method VARCHAR(100);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN send_method TYPE VARCHAR(100);`);
       await db.query(`ALTER TABLE distributions ALTER COLUMN batch_description TYPE VARCHAR(255);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN batch_status TYPE VARCHAR(100);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN calculated_amount TYPE VARCHAR(100);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN return_of_capital TYPE VARCHAR(100);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN investment_amount TYPE VARCHAR(100);`);
     } catch (err) {
       console.warn('Schema auto-sync notice:', err);
     }
@@ -1004,9 +1008,13 @@ export class FundsService {
     // 0. Auto-sync schema columns and data types on production DB if missing or narrow
     try {
       await db.query(`ALTER TABLE distributions ADD COLUMN IF NOT EXISTS dashboard_description VARCHAR(255);`);
-      await db.query(`ALTER TABLE distributions ADD COLUMN IF NOT EXISTS send_method VARCHAR(50);`);
-      await db.query(`ALTER TABLE distributions ALTER COLUMN send_method TYPE VARCHAR(50);`);
+      await db.query(`ALTER TABLE distributions ADD COLUMN IF NOT EXISTS send_method VARCHAR(100);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN send_method TYPE VARCHAR(100);`);
       await db.query(`ALTER TABLE distributions ALTER COLUMN batch_description TYPE VARCHAR(255);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN batch_status TYPE VARCHAR(100);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN calculated_amount TYPE VARCHAR(100);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN return_of_capital TYPE VARCHAR(100);`);
+      await db.query(`ALTER TABLE distributions ALTER COLUMN investment_amount TYPE VARCHAR(100);`);
     } catch (err) {
       console.warn('Schema auto-sync notice:', err);
     }
