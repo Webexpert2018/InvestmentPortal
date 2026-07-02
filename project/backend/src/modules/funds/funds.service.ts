@@ -488,109 +488,100 @@ export class FundsService {
       throw new NotFoundException('Old fund not found');
     }
 
-    // Step 1: Find unique investor profile IDs from old_investments matching this project ID
-    const uniqueIdsResult = await db.query(
-      `SELECT DISTINCT investor_profile_id as "investorProfileId"
-       FROM old_investments
-       WHERE project_id = $1`,
+    // Fetch all registered emails safely
+    const registeredEmailsSet = new Set<string>();
+    try {
+      const registeredEmailsRes = await db.query(`SELECT LOWER(TRIM(email)) as email FROM investors WHERE email IS NOT NULL`);
+      registeredEmailsRes.rows.forEach((r: any) => {
+        if (r.email) registeredEmailsSet.add(r.email);
+      });
+    } catch (err) {
+      console.warn('Could not fetch registered investor emails:', err);
+    }
+
+    // Step 1: Fetch all investments for this fund in a single query (avoiding N+1 timeouts on Vercel)
+    const allInvestmentsRes = await db.query(
+      `SELECT * FROM old_investments WHERE project_id = $1`,
       [id]
     );
 
-    // Fetch all registered emails from investors table to match against legacy investors
-    const registeredEmailsRes = await db.query(`SELECT LOWER(TRIM(email)) as email FROM investors WHERE email IS NOT NULL`);
-    const registeredEmailsSet = new Set(registeredEmailsRes.rows.map((r: any) => r.email));
+    const profileGroups = new Map<string, any[]>();
+    for (const row of allInvestmentsRes.rows) {
+      const pid = String(row.investor_profile_id || '');
+      if (!pid) continue;
+      if (!profileGroups.has(pid)) {
+        profileGroups.set(pid, []);
+      }
+      profileGroups.get(pid)!.push(row);
+    }
 
     const investorsList: any[] = [];
+    for (const [pid, rows] of profileGroups.entries()) {
+      let totalInvestment = 0;
+      let totalShares = 0;
+      let totalOwnership = 0;
 
-    // Step 2: Fetch details for those investors by their unique investor profile ID from old_investments
-    for (const row of uniqueIdsResult.rows) {
-      const profileId = row.investorProfileId;
-      
-      const detailsResult = await db.query(
-        `SELECT investor_profile_legal_name as "fullName",
-                email_address as "email",
-                investment_amount as "amount",
-                shares,
-                ownership,
-                investment_status as "status",
-                class_name as "className"
-         FROM old_investments
-         WHERE investor_profile_id = $1 AND project_id = $2`,
-        [profileId, id]
-      );
+      rows.forEach(invRow => {
+        const numAmount = parseFloat((invRow.investment_amount || invRow.amount)?.replace(/[\$,]/g, '') || '0');
+        const numShares = parseFloat(invRow.shares || '0');
+        const numOwnership = parseFloat(invRow.ownership?.replace(/%/g, '') || '0');
+        totalInvestment += numAmount;
+        totalShares += numShares;
+        totalOwnership += numOwnership;
+      });
 
-      if (detailsResult.rows.length > 0) {
-        // Aggregate/calculate total investment and total shares for this investor in this fund
-        let totalInvestment = 0;
-        let totalShares = 0;
-        let totalOwnership = 0;
-        
-        detailsResult.rows.forEach(invRow => {
-          const numAmount = parseFloat(invRow.amount?.replace(/[\$,]/g, '') || '0');
-          const numShares = parseFloat(invRow.shares || '0');
-          const numOwnership = parseFloat(invRow.ownership?.replace(/%/g, '') || '0');
-          totalInvestment += numAmount;
-          totalShares += numShares;
-          totalOwnership += numOwnership;
-        });
+      const primaryRow = rows[0];
+      const emailVal = primaryRow.email_address || primaryRow.email || '';
+      const cleanEmail = emailVal.trim().toLowerCase();
 
-        // Use the first row for name & email
-        const primaryRow = detailsResult.rows[0];
-        const cleanEmail = primaryRow.email?.trim().toLowerCase() || '';
-
-        investorsList.push({
-          id: null,
-          fullName: primaryRow.fullName,
-          email: primaryRow.email,
-          phone: null,
-          profileImageUrl: null,
-          kycStatus: 'verified', 
-          status: primaryRow.status || 'Accepted',
-          externalId: String(profileId),
-          isRegistered: registeredEmailsSet.has(cleanEmail),
-          totalInvestment: '$' + totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          totalShares: totalShares.toFixed(2),
-          totalOwnership: totalOwnership.toFixed(2) + '%',
-          className: primaryRow.className || 'Default Class'
-        });
-      }
+      investorsList.push({
+        id: null,
+        fullName: primaryRow.investor_profile_legal_name || primaryRow.fullName || 'Unknown Investor',
+        email: emailVal,
+        phone: null,
+        profileImageUrl: null,
+        kycStatus: 'verified',
+        status: primaryRow.investment_status || primaryRow.status || 'Accepted',
+        externalId: pid,
+        isRegistered: registeredEmailsSet.has(cleanEmail),
+        totalInvestment: '$' + totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        totalShares: totalShares.toFixed(2),
+        totalOwnership: totalOwnership.toFixed(2) + '%',
+        className: primaryRow.class_name || primaryRow.className || 'Default Class'
+      });
     }
 
     fund.investors = investorsList;
 
-    // Fetch and aggregate distributions by distribution_batch_id (exclude draft '0' and rejected '3')
-    const distResult = await db.query(
-      `SELECT distribution_batch_id as "distributionBatchId",
-              distribution_type as "distributionType",
-              batch_status as "status",
-              batch_pay_date as "payDate",
-              batch_start_date as "periodStartDate",
-              batch_end_date as "periodEndDate",
-              calculated_amount as "amount",
-              batch_description as "batchDescription",
-              dashboard_description as "dashboardDescription",
-              send_method as "sendMethod"
-       FROM distributions
-       WHERE project_id = $1 AND batch_status NOT IN ('0', '3', 'Draft', 'Rejected')`,
-      [id]
-    );
+    // Fetch distributions using safe SELECT * to prevent 500 schema mismatch errors if new columns are missing on Vercel DB
+    let distRows: any[] = [];
+    try {
+      const distResult = await db.query(
+        `SELECT * FROM distributions WHERE project_id = $1 AND batch_status NOT IN ('0', '3', 'Draft', 'Rejected')`,
+        [id]
+      );
+      distRows = distResult.rows;
+    } catch (err) {
+      console.warn('Could not query distributions table:', err);
+    }
 
     const batchesMap = new Map<number, any>();
-    for (const row of distResult.rows) {
-      const batchId = row.distributionBatchId;
-      const numAmount = parseFloat(row.amount?.replace(/[\$,]/g, '') || '0');
+    for (const row of distRows) {
+      const batchId = row.distribution_batch_id || row.distributionBatchId;
+      if (batchId === undefined || batchId === null) continue;
+      const numAmount = parseFloat((row.calculated_amount || row.amount)?.replace(/[\$,]/g, '') || '0');
 
       if (!batchesMap.has(batchId)) {
         batchesMap.set(batchId, {
           distributionBatchId: batchId,
-          distributionType: row.distributionType,
-          status: row.status,
-          payDate: row.payDate,
-          periodStartDate: row.periodStartDate,
-          periodEndDate: row.periodEndDate,
-          batchDescription: row.batchDescription,
-          dashboardDescription: row.dashboardDescription,
-          sendMethod: row.sendMethod,
+          distributionType: row.distribution_type || row.distributionType || 'Distribution',
+          status: row.batch_status || row.status || 'Distributed',
+          payDate: row.batch_pay_date || row.payDate || '',
+          periodStartDate: row.batch_start_date || row.periodStartDate || '',
+          periodEndDate: row.batch_end_date || row.periodEndDate || '',
+          batchDescription: row.batch_description || row.batchDescription || '',
+          dashboardDescription: row.dashboard_description || row.dashboardDescription || '',
+          sendMethod: row.send_method || row.sendMethod || 'Check',
           totalAmountNumeric: 0
         });
       }
@@ -669,32 +660,25 @@ export class FundsService {
 
   async getOldFundDistributionBatch(fundId: number, batchId: number) {
     const result = await db.query(
-      `SELECT investor_profile_id as "investorProfileId",
-              investor_profile_legal_name as "investorName",
-              calculated_amount as "calculatedAmount",
-              return_of_capital as "returnOfCapital",
-              investment_amount as "investmentAmount",
-              send_method as "sendMethod"
-       FROM distributions
-       WHERE project_id = $1 AND distribution_batch_id = $2`,
+      `SELECT * FROM distributions WHERE project_id = $1 AND distribution_batch_id = $2`,
       [fundId, batchId]
     );
 
     const investorsMap = new Map<number, any>();
     for (const row of result.rows) {
-      const pid = row.investorProfileId;
-      const calcAmt = parseFloat(row.calculatedAmount?.replace(/[\$,]/g, '') || '0');
-      const rocAmt = parseFloat(row.returnOfCapital?.replace(/[\$,]/g, '') || '0');
-      const invAmt = parseFloat(row.investmentAmount?.replace(/[\$,]/g, '') || '0');
+      const pid = row.investor_profile_id || row.investorProfileId;
+      const calcAmt = parseFloat((row.calculated_amount || row.calculatedAmount)?.replace(/[\$,]/g, '') || '0');
+      const rocAmt = parseFloat((row.return_of_capital || row.returnOfCapital)?.replace(/[\$,]/g, '') || '0');
+      const invAmt = parseFloat((row.investment_amount || row.investmentAmount)?.replace(/[\$,]/g, '') || '0');
 
       if (!investorsMap.has(pid)) {
         investorsMap.set(pid, {
           investorProfileId: pid,
-          investorName: row.investorName,
+          investorName: row.investor_profile_legal_name || row.investorName || 'Unknown Investor',
           calculatedAmountNumeric: 0,
           returnOfCapitalNumeric: 0,
           investmentAmountNumeric: 0,
-          sendMethod: row.sendMethod || 'Check'
+          sendMethod: row.send_method || row.sendMethod || 'Check'
         });
       }
 
