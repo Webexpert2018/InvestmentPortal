@@ -86,14 +86,14 @@ export class FundsService {
     return fund;
   }
 
-  async createFund(data: { 
-    name: string; 
-    description: string; 
-    image_url: string; 
-    start_date?: string; 
-    status?: string; 
-    note?: string; 
-    min_investment?: number; 
+  async createFund(data: {
+    name: string;
+    description: string;
+    image_url: string;
+    start_date?: string;
+    status?: string;
+    note?: string;
+    min_investment?: number;
     unit_price?: number;
     bankName?: string;
     accountNumber?: string;
@@ -151,13 +151,13 @@ export class FundsService {
         oa_placements
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45) RETURNING *`,
       [
-        data.name, 
-        data.description, 
-        data.image_url, 
-        data.start_date || new Date().toISOString().split('T')[0], 
-        data.status || 'Active', 
+        data.name,
+        data.description,
+        data.image_url,
+        data.start_date || new Date().toISOString().split('T')[0],
+        data.status || 'Active',
         data.note || '',
-        data.min_investment || 0, 
+        data.min_investment || 0,
         data.unit_price || 1.00,
         data.bankName || null,
         data.accountNumber || null,
@@ -201,14 +201,14 @@ export class FundsService {
     return result.rows[0];
   }
 
-  async updateFund(id: string, data: Partial<{ 
-    name: string; 
-    description: string; 
-    image_url: string; 
-    start_date: string; 
-    status: string; 
-    note: string; 
-    min_investment: number; 
+  async updateFund(id: string, data: Partial<{
+    name: string;
+    description: string;
+    image_url: string;
+    start_date: string;
+    status: string;
+    note: string;
+    min_investment: number;
     unit_price: number;
     bankName: string;
     accountNumber: string;
@@ -630,7 +630,7 @@ export class FundsService {
 
     let totalInvestment = 0;
     let totalShares = 0;
-    
+
     result.rows.forEach(invRow => {
       const numAmount = parseFloat(invRow.amount?.replace(/[\$,]/g, '') || '0');
       const numShares = parseFloat(invRow.shares || '0');
@@ -657,6 +657,8 @@ export class FundsService {
       }))
     };
   }
+
+
 
   async getOldFundDistributionBatch(fundId: number, batchId: number) {
     const result = await db.query(
@@ -788,7 +790,7 @@ export class FundsService {
 
     let totalInvestment = 0;
     let totalShares = 0;
-    
+
     result.rows.forEach(invRow => {
       const numAmount = parseFloat(invRow.amount?.replace(/[\$,]/g, '') || '0');
       const numShares = parseFloat(invRow.shares || '0');
@@ -931,7 +933,7 @@ export class FundsService {
       const inv = parsedInvestments[idx];
       const proRataAmount = calculatedAmounts[idx];
       const formattedCalculatedAmount = '$' + proRataAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      
+
       const prefReturn = '$-';
       const retCapital = formattedCalculatedAmount;
 
@@ -1089,7 +1091,7 @@ export class FundsService {
       const inv = parsedInvestments[idx];
       const proRataAmount = calculatedAmounts[idx];
       const formattedCalculatedAmount = '$' + proRataAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      
+
       const prefReturn = '$-';
       const retCapital = formattedCalculatedAmount;
 
