@@ -496,6 +496,10 @@ export class FundsService {
       [id]
     );
 
+    // Fetch all registered emails from investors table to match against legacy investors
+    const registeredEmailsRes = await db.query(`SELECT LOWER(TRIM(email)) as email FROM investors WHERE email IS NOT NULL`);
+    const registeredEmailsSet = new Set(registeredEmailsRes.rows.map((r: any) => r.email));
+
     const investorsList: any[] = [];
 
     // Step 2: Fetch details for those investors by their unique investor profile ID from old_investments
@@ -532,6 +536,7 @@ export class FundsService {
 
         // Use the first row for name & email
         const primaryRow = detailsResult.rows[0];
+        const cleanEmail = primaryRow.email?.trim().toLowerCase() || '';
 
         investorsList.push({
           id: null,
@@ -542,7 +547,7 @@ export class FundsService {
           kycStatus: 'verified', 
           status: primaryRow.status || 'Accepted',
           externalId: String(profileId),
-          isRegistered: false,
+          isRegistered: registeredEmailsSet.has(cleanEmail),
           totalInvestment: '$' + totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           totalShares: totalShares.toFixed(2),
           totalOwnership: totalOwnership.toFixed(2) + '%',
@@ -553,7 +558,7 @@ export class FundsService {
 
     fund.investors = investorsList;
 
-    // Fetch and aggregate distributions by distribution_batch_id
+    // Fetch and aggregate distributions by distribution_batch_id (exclude draft '0' and rejected '3')
     const distResult = await db.query(
       `SELECT distribution_batch_id as "distributionBatchId",
               distribution_type as "distributionType",
@@ -561,9 +566,12 @@ export class FundsService {
               batch_pay_date as "payDate",
               batch_start_date as "periodStartDate",
               batch_end_date as "periodEndDate",
-              calculated_amount as "amount"
+              calculated_amount as "amount",
+              batch_description as "batchDescription",
+              dashboard_description as "dashboardDescription",
+              send_method as "sendMethod"
        FROM distributions
-       WHERE project_id = $1`,
+       WHERE project_id = $1 AND batch_status NOT IN ('0', '3', 'Draft', 'Rejected')`,
       [id]
     );
 
@@ -580,6 +588,9 @@ export class FundsService {
           payDate: row.payDate,
           periodStartDate: row.periodStartDate,
           periodEndDate: row.periodEndDate,
+          batchDescription: row.batchDescription,
+          dashboardDescription: row.dashboardDescription,
+          sendMethod: row.sendMethod,
           totalAmountNumeric: 0
         });
       }
@@ -597,8 +608,11 @@ export class FundsService {
       payDate: b.payDate,
       periodStartDate: b.periodStartDate,
       periodEndDate: b.periodEndDate,
-      totalAmount: '$' + b.totalAmountNumeric.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    }));
+      batchDescription: b.batchDescription,
+      dashboardDescription: b.dashboardDescription,
+      sendMethod: b.sendMethod,
+      totalAmount: '$' + Number(b.totalAmountNumeric.toFixed(2)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    })).sort((a, b) => Number(b.distributionBatchId) - Number(a.distributionBatchId));
 
     return fund;
   }
@@ -756,7 +770,7 @@ export class FundsService {
       distResult = await db.query(
         `SELECT return_of_capital as "returnOfCapital"
          FROM distributions
-         WHERE investor_profile_id = ANY($1)`,
+         WHERE investor_profile_id = ANY($1) AND batch_status IN ('1', 'Distributed')`,
         [profileIds]
       );
     } else {
@@ -779,7 +793,7 @@ export class FundsService {
       distResult = await db.query(
         `SELECT return_of_capital as "returnOfCapital"
          FROM distributions
-         WHERE investor_profile_id = $1`,
+         WHERE investor_profile_id = $1 AND batch_status IN ('1', 'Distributed')`,
         [profileId]
       );
     }
@@ -825,6 +839,444 @@ export class FundsService {
         projectName: r.projectName,
         investorName: r.fullName
       }))
+    };
+  }
+
+  private truncateString(str: string | null | undefined, maxLength: number): string | null {
+    if (str === null || str === undefined) return null;
+    return str.substring(0, maxLength);
+  }
+
+  async createOldFundDistribution(fundId: number, data: {
+    distributionType: string;
+    batchDescription?: string;
+    dashboardDescription?: string;
+    periodStartDate: string;
+    batchEndDate: string;
+    batchPayDate: string;
+    totalAmount: number;
+    sendMethod: string;
+  }) {
+    // 1. Verify that the old fund exists
+    const fundRes = await db.query(
+      `SELECT project_name as "projectName", status as "projectStatus", total_capital as "totalCapital"
+       FROM old_funds
+       WHERE project_id = $1`,
+      [fundId]
+    );
+    const fund = fundRes.rows[0];
+    if (!fund) {
+      throw new NotFoundException('Old fund not found');
+    }
+
+    // 2. Fetch all investments for this fund
+    const investmentsRes = await db.query(
+      `SELECT * FROM old_investments WHERE project_id = $1`,
+      [fundId]
+    );
+    const investments = investmentsRes.rows;
+    if (investments.length === 0) {
+      throw new BadRequestException('No investments found for this fund to distribute to.');
+    }
+
+    // 3. Calculate sum of investment amounts
+    let totalInvestmentsAmount = 0;
+    const parsedInvestments = investments.map(inv => {
+      const amtStr = inv.investment_amount || '$0';
+      const numAmt = parseFloat(amtStr.replace(/[\$,]/g, '')) || 0;
+      totalInvestmentsAmount += numAmt;
+      return {
+        ...inv,
+        numAmt
+      };
+    });
+
+    if (totalInvestmentsAmount === 0) {
+      throw new BadRequestException('Total investment amount of the fund is zero.');
+    }
+
+    // 4. Generate new batch ID and start distribution ID
+    const batchIdRes = await db.query(`SELECT COALESCE(MAX(distribution_batch_id), 0) + 1 as "newBatchId" FROM distributions`);
+    const newBatchId = batchIdRes.rows[0].newBatchId;
+
+    const startDistIdRes = await db.query(`SELECT COALESCE(MAX(distribution_id), 0) as "maxDistId" FROM distributions`);
+    let nextDistId = startDistIdRes.rows[0].maxDistId + 1;
+
+    // 5. Insert each distribution row
+    const queryText = `
+      INSERT INTO distributions (
+        project_id, project_name, project_status, internal_entity_id, internal_entity,
+        class_id, class_name, distribution_type, distribution_batch_id, batch_status,
+        batch_start_date, batch_end_date, batch_pay_date, distribution_id, investment_id,
+        investor_profile_id, investor_profile_legal_name, investment_amount, investment_placed_on_date,
+        calculated_amount, preferred_return, return_of_capital, excess_cash, promote,
+        fees, waterfall_fees, sideletters, batch_description, send_method, investor_gl_account, dashboard_description
+      ) VALUES (
+        $1, $2, $3, $4, $5,
+        $6, $7, $8, $9, $10,
+        $11, $12, $13, $14, $15,
+        $16, $17, $18, $19, $20,
+        $21, $22, $23, $24, $25,
+        $26, $27, $28, $29, $30, $31
+      )
+    `;
+
+    // Calculate unrounded pro-rata amounts and round at final stage
+    const fundCapitalNum = parseFloat(fund.totalCapital?.replace(/[\$,]/g, '') || '0');
+    const divisorAmount = fundCapitalNum > 0 ? fundCapitalNum : totalInvestmentsAmount;
+    const calculatedAmounts = parsedInvestments.map(inv => {
+      const rawAmt = (inv.numAmt / divisorAmount) * data.totalAmount;
+      return Number(rawAmt.toFixed(2));
+    });
+
+    const currentSum = Number(calculatedAmounts.reduce((sum, val) => sum + val, 0).toFixed(2));
+    const targetTotal = Number(data.totalAmount.toFixed(2));
+    const diff = Number((targetTotal - currentSum).toFixed(2));
+
+    if (diff !== 0 && calculatedAmounts.length > 0) {
+      let maxIdx = 0;
+      for (let i = 1; i < parsedInvestments.length; i++) {
+        if (parsedInvestments[i].numAmt > parsedInvestments[maxIdx].numAmt) {
+          maxIdx = i;
+        }
+      }
+      calculatedAmounts[maxIdx] = Number((calculatedAmounts[maxIdx] + diff).toFixed(2));
+    }
+
+    for (let idx = 0; idx < parsedInvestments.length; idx++) {
+      const inv = parsedInvestments[idx];
+      const proRataAmount = calculatedAmounts[idx];
+      const formattedCalculatedAmount = '$' + proRataAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      
+      const prefReturn = '$-';
+      const retCapital = formattedCalculatedAmount;
+
+      const values = [
+        fundId, // $1
+        this.truncateString(inv.project_name || fund.projectName, 46), // $2
+        this.truncateString(inv.project_status || fund.projectStatus, 9), // $3
+        inv.internal_entity_id, // $4
+        this.truncateString(inv.internal_entity, 29), // $5
+        inv.class_id, // $6
+        this.truncateString(inv.class_name, 7), // $7
+        this.truncateString(data.distributionType, 17), // $8
+        newBatchId, // $9
+        'Pending for Approval', // $10 (batch_status)
+        data.periodStartDate, // $11
+        data.batchEndDate, // $12
+        data.batchPayDate, // $13
+        nextDistId++, // $14 (distribution_id)
+        inv.investment_ownership_id, // $15 (investment_id)
+        inv.investor_profile_id, // $16
+        this.truncateString(inv.investor_profile_legal_name, 66), // $17
+        this.truncateString(inv.investment_amount, 45), // $18
+        inv.placed_on, // $19
+        this.truncateString(formattedCalculatedAmount, 45), // $20 (calculated_amount)
+        this.truncateString(prefReturn, 6), // $21 (preferred_return)
+        this.truncateString(retCapital, 45), // $22 (return_of_capital)
+        '$-', // $23 (excess_cash)
+        '$-', // $24 (promote)
+        '$-', // $25 (fees)
+        null, // $26 (waterfall_fees)
+        null, // $27 (sideletters)
+        this.truncateString(data.batchDescription || null, 25), // $28 (batch_description)
+        this.truncateString(data.sendMethod || 'Check', 5), // $29 (send_method)
+        null, // $30 (investor_gl_account)
+        this.truncateString(data.dashboardDescription || null, 255) // $31 (dashboard_description)
+      ];
+
+      await db.query(queryText, values);
+    }
+
+    return {
+      message: 'Distribution batch added successfully',
+      batchId: newBatchId,
+      totalDistributed: '$' + data.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    };
+  }
+
+  async updateOldFundDistribution(fundId: number, batchId: number, data: {
+    distributionType: string;
+    batchDescription?: string;
+    dashboardDescription?: string;
+    periodStartDate: string;
+    batchEndDate: string;
+    batchPayDate: string;
+    totalAmount: number;
+    sendMethod: string;
+  }) {
+    // 1. Verify batch exists and is NOT approved
+    const batchRes = await db.query(
+      `SELECT DISTINCT batch_status as "status" FROM distributions WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+    if (batchRes.rows.length === 0) {
+      throw new NotFoundException('Distribution batch not found');
+    }
+    if (batchRes.rows[0].status === '1') {
+      throw new BadRequestException('Approved distribution batches cannot be modified');
+    }
+
+    // 2. Fetch all investments for this fund to recalculate
+    const investmentsRes = await db.query(
+      `SELECT * FROM old_investments WHERE project_id = $1`,
+      [fundId]
+    );
+    const investments = investmentsRes.rows;
+    if (investments.length === 0) {
+      throw new BadRequestException('No investments found for this fund.');
+    }
+
+    let totalInvestmentsAmount = 0;
+    const parsedInvestments = investments.map(inv => {
+      const amtStr = inv.investment_amount || '$0';
+      const numAmt = parseFloat(amtStr.replace(/[\$,]/g, '')) || 0;
+      totalInvestmentsAmount += numAmt;
+      return { ...inv, numAmt };
+    });
+
+    if (totalInvestmentsAmount === 0) {
+      throw new BadRequestException('Total investment amount of the fund is zero.');
+    }
+
+    // Get distribution IDs to preserve order
+    const minDistIdRes = await db.query(
+      `SELECT MIN(distribution_id) as "minDistId" FROM distributions WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+    let nextDistId = minDistIdRes.rows[0].minDistId;
+    if (!nextDistId) {
+      const startDistIdRes = await db.query(`SELECT COALESCE(MAX(distribution_id), 0) as "maxDistId" FROM distributions`);
+      nextDistId = startDistIdRes.rows[0].maxDistId + 1;
+    }
+
+    // Delete existing records
+    await db.query(
+      `DELETE FROM distributions WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+
+    // Insert updated records
+    const queryText = `
+      INSERT INTO distributions (
+        project_id, project_name, project_status, internal_entity_id, internal_entity,
+        class_id, class_name, distribution_type, distribution_batch_id, batch_status,
+        batch_start_date, batch_end_date, batch_pay_date, distribution_id, investment_id,
+        investor_profile_id, investor_profile_legal_name, investment_amount, investment_placed_on_date,
+        calculated_amount, preferred_return, return_of_capital, excess_cash, promote,
+        fees, waterfall_fees, sideletters, batch_description, send_method, investor_gl_account, dashboard_description
+      ) VALUES (
+        $1, $2, $3, $4, $5,
+        $6, $7, $8, $9, $10,
+        $11, $12, $13, $14, $15,
+        $16, $17, $18, $19, $20,
+        $21, $22, $23, $24, $25,
+        $26, $27, $28, $29, $30, $31
+      )
+    `;
+
+    const fundRes = await db.query(
+      `SELECT project_name as "projectName", status as "projectStatus" FROM old_funds WHERE project_id = $1`,
+      [fundId]
+    );
+    const fund = fundRes.rows[0] || { projectName: 'Old Fund', projectStatus: 'Closed' };
+
+    // Calculate unrounded pro-rata amounts and round at final stage
+    const calculatedAmounts = parsedInvestments.map(inv => {
+      const rawAmt = (inv.numAmt / totalInvestmentsAmount) * data.totalAmount;
+      return Number(rawAmt.toFixed(2));
+    });
+
+    const currentSum = Number(calculatedAmounts.reduce((sum, val) => sum + val, 0).toFixed(2));
+    const targetTotal = Number(data.totalAmount.toFixed(2));
+    const diff = Number((targetTotal - currentSum).toFixed(2));
+
+    if (diff !== 0 && calculatedAmounts.length > 0) {
+      let maxIdx = 0;
+      for (let i = 1; i < parsedInvestments.length; i++) {
+        if (parsedInvestments[i].numAmt > parsedInvestments[maxIdx].numAmt) {
+          maxIdx = i;
+        }
+      }
+      calculatedAmounts[maxIdx] = Number((calculatedAmounts[maxIdx] + diff).toFixed(2));
+    }
+
+    for (let idx = 0; idx < parsedInvestments.length; idx++) {
+      const inv = parsedInvestments[idx];
+      const proRataAmount = calculatedAmounts[idx];
+      const formattedCalculatedAmount = '$' + proRataAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      
+      const prefReturn = '$-';
+      const retCapital = formattedCalculatedAmount;
+
+      const values = [
+        fundId, // $1
+        this.truncateString(inv.project_name || fund.projectName, 46), // $2
+        this.truncateString(inv.project_status || fund.projectStatus, 9), // $3
+        inv.internal_entity_id, // $4
+        this.truncateString(inv.internal_entity, 29), // $5
+        inv.class_id, // $6
+        this.truncateString(inv.class_name, 7), // $7
+        this.truncateString(data.distributionType, 17), // $8
+        batchId, // $9
+        'Pending for Approval', // $10 (batch_status)
+        data.periodStartDate, // $11
+        data.batchEndDate, // $12
+        data.batchPayDate, // $13
+        nextDistId++, // $14 (distribution_id)
+        inv.investment_ownership_id, // $15 (investment_id)
+        inv.investor_profile_id, // $16
+        this.truncateString(inv.investor_profile_legal_name, 66), // $17
+        this.truncateString(inv.investment_amount, 45), // $18
+        inv.placed_on, // $19
+        this.truncateString(formattedCalculatedAmount, 45), // $20 (calculated_amount)
+        this.truncateString(prefReturn, 6), // $21 (preferred_return)
+        this.truncateString(retCapital, 45), // $22 (return_of_capital)
+        '$-', // $23 (excess_cash)
+        '$-', // $24 (promote)
+        '$-', // $25 (fees)
+        null, // $26 (waterfall_fees)
+        null, // $27 (sideletters)
+        this.truncateString(data.batchDescription || null, 25), // $28 (batch_description)
+        this.truncateString(data.sendMethod || 'Check', 5), // $29 (send_method)
+        null, // $30 (investor_gl_account)
+        this.truncateString(data.dashboardDescription || null, 255) // $31 (dashboard_description)
+      ];
+
+      await db.query(queryText, values);
+    }
+
+    return {
+      message: 'Distribution batch updated successfully',
+      batchId,
+      totalDistributed: '$' + data.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    };
+  }
+
+  async submitOldFundDistribution(fundId: number, batchId: number) {
+    // 1. Verify that the batch exists
+    const batchRes = await db.query(
+      `SELECT DISTINCT batch_status as "status" FROM distributions WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+
+    if (batchRes.rows.length === 0) {
+      throw new NotFoundException('Distribution batch not found');
+    }
+
+    if (batchRes.rows[0].status !== '0') {
+      throw new BadRequestException('Only draft distribution batches can be sent for approval');
+    }
+
+    // 2. Update status of the batch to '2' (Pending Approval) in the distributions table
+    await db.query(
+      `UPDATE distributions 
+       SET batch_status = 'Pending for Approval' 
+       WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+
+    return {
+      message: 'Distribution batch sent for approval successfully',
+      batchId
+    };
+  }
+
+  async approveOldFundDistribution(fundId: number, batchId: number) {
+    // 1. Verify that the batch exists and get its total amount
+    const batchRes = await db.query(
+      `SELECT calculated_amount FROM distributions WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+
+    if (batchRes.rows.length === 0) {
+      throw new NotFoundException('Distribution batch not found');
+    }
+
+    // Check if it's already approved
+    const firstRowStatus = await db.query(
+      `SELECT DISTINCT batch_status as "status" FROM distributions WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+    if (firstRowStatus.rows[0]?.status === '1' || firstRowStatus.rows[0]?.status === 'Distributed') {
+      throw new BadRequestException('Distribution batch is already approved');
+    }
+
+    let batchTotal = 0;
+    for (const row of batchRes.rows) {
+      const amt = parseFloat(row.calculated_amount?.replace(/[\$,]/g, '') || '0');
+      if (!isNaN(amt)) {
+        batchTotal += amt;
+      }
+    }
+
+    // 2. Update status of the batch to 'Distributed' in the distributions table
+    await db.query(
+      `UPDATE distributions 
+       SET batch_status = 'Distributed' 
+       WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+
+    // 3. Update the distributions_to_date in the old_funds table
+    const currentDistRes = await db.query(`SELECT distributions_to_date as "dist" FROM old_funds WHERE project_id = $1`, [fundId]);
+    const currentDistStr = currentDistRes.rows[0]?.dist || '$0';
+    const currentDistNum = parseFloat(currentDistStr.replace(/[\$,]/g, '')) || 0;
+    const newDistNum = currentDistNum + batchTotal;
+    const newDistStr = '$' + newDistNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    await db.query(
+      `UPDATE old_funds SET distributions_to_date = $1 WHERE project_id = $2`,
+      [newDistStr, fundId]
+    );
+
+    return {
+      message: 'Distribution batch approved successfully',
+      batchId,
+      totalDistributed: newDistStr
+    };
+  }
+
+  async rejectOldFundDistribution(fundId: number, batchId: number) {
+    // Verify batch exists
+    const batchRes = await db.query(
+      `SELECT DISTINCT batch_status as "status" FROM distributions WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+    if (batchRes.rows.length === 0) {
+      throw new NotFoundException('Distribution batch not found');
+    }
+    if (batchRes.rows[0].status === '1' || batchRes.rows[0].status === 'Distributed') {
+      throw new BadRequestException('Approved distribution batches cannot be rejected');
+    }
+
+    // Change status to 'Rejected' — records are preserved
+    await db.query(
+      `UPDATE distributions SET batch_status = 'Rejected' WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+
+    return {
+      message: 'Distribution batch rejected successfully',
+      batchId
+    };
+  }
+
+  async deleteOldFundDistribution(fundId: number, batchId: number) {
+    const firstRowStatus = await db.query(
+      `SELECT DISTINCT batch_status as "status" FROM distributions WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+    if (firstRowStatus.rows.length === 0) {
+      throw new NotFoundException('Distribution batch not found');
+    }
+    await db.query(
+      `DELETE FROM distributions WHERE project_id = $1 AND distribution_batch_id = $2`,
+      [fundId, batchId]
+    );
+    return {
+      message: 'Distribution batch deleted successfully',
+      batchId
     };
   }
 }

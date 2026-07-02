@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile, BadRequestException, Put } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -46,6 +46,67 @@ export class FundsController {
     @Param('batchId') batchId: string
   ) {
     return this.fundsService.getOldFundDistributionBatch(parseInt(id), parseInt(batchId));
+  }
+
+  @Post('old-funds/:id/distributions')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  createOldFundDistribution(
+    @Param('id') id: string,
+    @Body() body: any
+  ) {
+    return this.fundsService.createOldFundDistribution(parseInt(id), body);
+  }
+
+  @Put('old-funds/:id/distributions/:batchId/submit')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  submitOldFundDistribution(
+    @Param('id') id: string,
+    @Param('batchId') batchId: string
+  ) {
+    return this.fundsService.submitOldFundDistribution(parseInt(id), parseInt(batchId));
+  }
+
+  @Put('old-funds/:id/distributions/:batchId')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  updateOldFundDistribution(
+    @Param('id') id: string,
+    @Param('batchId') batchId: string,
+    @Body() body: any
+  ) {
+    return this.fundsService.updateOldFundDistribution(parseInt(id), parseInt(batchId), body);
+  }
+
+  @Put('old-funds/:id/distributions/:batchId/approve')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  approveOldFundDistribution(
+    @Param('id') id: string,
+    @Param('batchId') batchId: string
+  ) {
+    return this.fundsService.approveOldFundDistribution(parseInt(id), parseInt(batchId));
+  }
+
+  @Put('old-funds/:id/distributions/:batchId/reject')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  rejectOldFundDistribution(
+    @Param('id') id: string,
+    @Param('batchId') batchId: string
+  ) {
+    return this.fundsService.rejectOldFundDistribution(parseInt(id), parseInt(batchId));
+  }
+
+  @Delete('old-funds/:id/distributions/:batchId')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  deleteOldFundDistribution(
+    @Param('id') id: string,
+    @Param('batchId') batchId: string
+  ) {
+    return this.fundsService.deleteOldFundDistribution(parseInt(id), parseInt(batchId));
   }
 
   @Get()

@@ -581,6 +581,44 @@ class ApiClient {
     return this.request<any[]>(`/funds/old-funds/${fundId}/distributions/${batchId}`);
   }
 
+  async createOldFundDistribution(fundId: number, data: any) {
+    return this.request<any>(`/funds/old-funds/${fundId}/distributions`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async submitOldFundDistribution(fundId: number, batchId: number) {
+    return this.request<any>(`/funds/old-funds/${fundId}/distributions/${batchId}/submit`, {
+      method: 'PUT',
+    });
+  }
+
+  async updateOldFundDistribution(fundId: number, batchId: number, data: any) {
+    return this.request<any>(`/funds/old-funds/${fundId}/distributions/${batchId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async approveOldFundDistribution(fundId: number, batchId: number) {
+    return this.request<any>(`/funds/old-funds/${fundId}/distributions/${batchId}/approve`, {
+      method: 'PUT',
+    });
+  }
+
+  async rejectOldFundDistribution(fundId: number, batchId: number) {
+    return this.request<any>(`/funds/old-funds/${fundId}/distributions/${batchId}/reject`, {
+      method: 'PUT',
+    });
+  }
+
+  async deleteOldFundDistribution(fundId: number, batchId: number) {
+    return this.request<any>(`/funds/old-funds/${fundId}/distributions/${batchId}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getIraAccountTypes() {
     return this.request<any[]>('/ira-accounts/types');
   }

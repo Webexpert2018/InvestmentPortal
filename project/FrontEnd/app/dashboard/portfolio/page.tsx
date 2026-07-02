@@ -290,7 +290,7 @@ export default function PortfolioPage() {
                 className={`pb-3 font-medium relative ${activeTab === 'oldInvestments' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'
                   }`}
               >
-                Old Platform Investments
+                Previous Platform Investments
                 {activeTab === 'oldInvestments' && (
                   <span className="absolute bottom-0 left-1/2 h-[2px] w-[38px] -translate-x-1/2 bg-[#FFC63F]" />
                 )}

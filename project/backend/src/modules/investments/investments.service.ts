@@ -333,7 +333,7 @@ export class InvestmentsService {
             batch_end_date as "batchEndDate",
             batch_pay_date as "batchPayDate"
           FROM distributions
-          WHERE investment_id = ANY($1)
+          WHERE investment_id = ANY($1) AND batch_status IN ('1', 'Distributed')
           ORDER BY batch_pay_date DESC
         `;
         const distResult = await db.query(distQuery, [ownershipIds]);
