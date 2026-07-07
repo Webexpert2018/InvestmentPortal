@@ -80,10 +80,7 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setVideoLoaded(true);
-    }, 2000);
-    return () => clearTimeout(timer);
+    // Rely on video onCanPlay rather than a blind timer so the image doesn't vanish prematurely
   }, []);
 
   useEffect(() => {
@@ -302,29 +299,29 @@ export default function HomePage() {
         {/* ── HERO SECTION ── */}
         <section id="home" className="relative py-40 px-4 sm:px-6 lg:px-8 flex items-center justify-center min-h-[90vh] overflow-hidden">
 
-          {/* 🔹 Background Image (initial load) */}
+          {/* 🔹 Background Image (always visible as fallback / base layer) */}
           <div className="absolute inset-0 z-0">
             <img
               src="/images/investor_meeting.jpg" // your image
               alt="background"
-              className={`w-full h-full object-cover transition-opacity duration-3000 ${videoLoaded ? 'opacity-0' : 'opacity-700'
-                }`}
+              className="w-full h-full object-cover opacity-70 transition-opacity duration-1000"
             />
           </div>
 
           {/* 🔹 Background Video */}
           <video
-            className={`absolute inset-0 w-full h-full object-cover  z-0 transition-opacity duration-1000 ${videoLoaded ? 'opacity-700' : 'opacity-0'
-              }`}
+            className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ${
+              videoLoaded ? 'opacity-80' : 'opacity-0'
+            }`}
             src="/video/intro_video.mp4"
             autoPlay
             loop
             muted
             playsInline
             preload="auto"
-            poster="/video/intro_video.mp4"
+            poster="/images/investor_meeting.jpg"
             onCanPlay={() => {
-              setTimeout(() => setVideoLoaded(true), 1500);
+              setVideoLoaded(true);
             }}
           />
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
@@ -21,7 +21,7 @@ const STEP_LABELS = ['Set Profile', 'Address', 'Email Verification', 'Tax Info.'
 
 const countryCodes = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
 
-export default function InvestorSignupPage() {
+function InvestorSignupForm() {
   const router = useRouter();
   const { signup } = useAuth();
 
@@ -98,7 +98,15 @@ export default function InvestorSignupPage() {
         lastName: data.lastName || '',
         phoneNumber: parsedNumber,
         phoneCountryCode: parsedCode,
-        dob: data.dob ? new Date(data.dob).toISOString().split('T')[0] : '',
+        dob: (() => {
+          if (!data.dob) return '';
+          try {
+            const d = new Date(data.dob);
+            return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+          } catch {
+            return '';
+          }
+        })(),
         addressLine1: data.address_line1 || '',
         addressLine2: data.address_line2 || '',
         city: data.city || '',
@@ -381,8 +389,6 @@ export default function InvestorSignupPage() {
   };
 
   const handleFinalSubmit = async () => {
-    debugger;
-    // console.log();
     setLoading(true);
     setGlobalError('');
 
@@ -888,6 +894,18 @@ export default function InvestorSignupPage() {
 
     return null;
   }
+}
+
+export default function InvestorSignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#F1F1F1] px-4">
+        <Loader2 className="h-8 w-8 animate-spin text-yellow-500" />
+      </div>
+    }>
+      <InvestorSignupForm />
+    </Suspense>
+  );
 }
 
 function FormField({ label, error, children }: { label: string; error?: string; children: ReactNode }) {

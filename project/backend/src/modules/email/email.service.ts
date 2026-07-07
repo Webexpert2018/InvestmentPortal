@@ -9,12 +9,16 @@ export class EmailService {
   constructor(private configService: ConfigService) { }
 
   private getFrontendUrl(): string {
-    const url = this.configService.get<string>('FRONTEND_URL');
-    if (!url) {
-      this.logger.error('FRONTEND_URL environment variable is not defined!');
-      return '';
-    }
+    const url = this.configService.get<string>('FRONTEND_URL') || 'https://investmentportalfrontend.vercel.app';
     return url.replace(/\/$/, '');
+  }
+
+  private getPublicLogoUrl(): string {
+    let url = this.configService.get<string>('FRONTEND_URL') || 'https://investmentportalfrontend.vercel.app';
+    if (url.includes('localhost') || url.includes('127.0.0.1') || !url.startsWith('http')) {
+      url = 'https://investmentportalfrontend.vercel.app';
+    }
+    return `${url.replace(/\/$/, '')}/images/logo.png`;
   }
 
   private getSupportEmail(): string {
@@ -292,7 +296,7 @@ export class EmailService {
           <!-- Logo Section -->
           <tr>
             <td style="padding: 40px 40px 20px; text-align: center;">
-              <img src="${frontendUrl}/images/logo.png" alt="Ovalia Capital" style="width:100px; height: auto; display: block; margin: 0 auto;">
+              <img src="${this.getPublicLogoUrl()}" alt="Ovalia Capital" style="width:100px; height: auto; display: block; margin: 0 auto;">
             </td>
           </tr>
           <!-- Main Content -->
