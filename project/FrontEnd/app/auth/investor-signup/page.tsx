@@ -544,7 +544,7 @@ function InvestorSignupForm() {
           </p>
         </div>
       ) : (
-        <div className="mx-auto flex min-h-[752px] w-full max-w-[1230px] items-center justify-center p-3 md:p-6 md:p-10">
+        <div className="relative z-10 mx-auto flex min-h-[752px] w-full max-w-[1230px] items-center justify-center p-3 md:p-6 md:p-10">
           <div className="w-full rounded-md bg-[#FCFCFC] shadow-xl">
             <div className="border-b border-[#EBEBEB] px-6 pt-6">
               <div className="mb-4 flex justify-center">
