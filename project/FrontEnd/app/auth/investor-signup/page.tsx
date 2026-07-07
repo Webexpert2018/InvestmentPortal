@@ -2,6 +2,7 @@
 
 import { ReactNode, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -435,19 +436,27 @@ function InvestorSignupForm() {
   }, [currentStep]);
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
-      style={{ backgroundImage: "url('/images/login-bg.jpg')" }}
-    >
+    <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-[#0a192f]">
+      {/* 🔹 Background Image (priority preloaded) */}
+      <Image
+        src="/images/login-bg.jpg"
+        alt="Background"
+        fill
+        priority
+        className="object-cover object-center z-0"
+      />
 
       {!showProfileFlow ? (
-        <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
+        <div className="relative z-10 w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
           {/* Logo */}
           <a href="/" className="flex justify-center mb-3 sm:mb-4">
-            <img
+            <Image
               src="/images/logo.png"
               alt="Logo"
-              className="logo-container"
+              width={132}
+              height={132}
+              priority
+              className="logo-container object-contain"
             />
           </a>
 
