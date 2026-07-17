@@ -32,6 +32,59 @@ export class FundsController {
     return this.fundsService.getOldFundById(parseInt(id));
   }
 
+  @Get('old-funds/:id/waterfalls')
+  findOldFundWaterfalls(@Param('id') id: string) {
+    return this.fundsService.getOldFundWaterfalls(parseInt(id));
+  }
+
+  @Post('old-funds/:id/waterfalls')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  createOldFundWaterfall(@Param('id') id: string, @Body() body: { name: string }) {
+    return this.fundsService.createOldFundWaterfall(parseInt(id), body);
+  }
+
+  @Delete('old-funds/:id/waterfalls/:waterfallId')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  deleteOldFundWaterfall(@Param('id') id: string, @Param('waterfallId') waterfallId: string) {
+    return this.fundsService.deleteOldFundWaterfall(parseInt(id), parseInt(waterfallId));
+  }
+
+  @Post('old-funds/:id/waterfalls/:waterfallId/rules')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  createOldFundWaterfallRule(
+    @Param('id') id: string,
+    @Param('waterfallId') waterfallId: string,
+    @Body() body: any
+  ) {
+    return this.fundsService.createOldFundWaterfallRule(parseInt(id), parseInt(waterfallId), body);
+  }
+
+  @Put('old-funds/:id/waterfalls/:waterfallId/rules/:ruleId')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  updateOldFundWaterfallRule(
+    @Param('id') id: string,
+    @Param('waterfallId') waterfallId: string,
+    @Param('ruleId') ruleId: string,
+    @Body() body: any
+  ) {
+    return this.fundsService.updateOldFundWaterfallRule(parseInt(id), parseInt(waterfallId), parseInt(ruleId), body);
+  }
+
+  @Delete('old-funds/:id/waterfalls/:waterfallId/rules/:ruleId')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  deleteOldFundWaterfallRule(
+    @Param('id') id: string,
+    @Param('waterfallId') waterfallId: string,
+    @Param('ruleId') ruleId: string
+  ) {
+    return this.fundsService.deleteOldFundWaterfallRule(parseInt(id), parseInt(waterfallId), parseInt(ruleId));
+  }
+
   @Get('old-funds/:id/investors/:profileId')
   findOldFundInvestor(
     @Param('id') id: string,

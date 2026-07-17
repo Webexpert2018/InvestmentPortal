@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Briefcase, DollarSign, Users, Calendar, Info, ShieldCheck, Plus, X, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Briefcase, DollarSign, Users, Calendar, Info, ShieldCheck, Plus, X, Loader2, Layers, Split, ArrowRight, Trash2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useRouter, useParams } from 'next/navigation';
@@ -13,7 +13,7 @@ export default function OldFundDetailPage() {
   const params = useParams();
   const [fund, setFund] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'investors' | 'distributions'>('investors');
+  const [activeTab, setActiveTab] = useState<'investors' | 'distributions' | 'waterfalls'>('investors');
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
   const [actionBatchId, setActionBatchId] = useState<number | null>(null);
   const [selectedBatchData, setSelectedBatchData] = useState<any[]>([]);
@@ -22,6 +22,415 @@ export default function OldFundDetailPage() {
   const [selectedInvestorData, setSelectedInvestorData] = useState<any>(null);
   const [isInvestorLoading, setIsInvestorLoading] = useState(false);
   const [selectedClassName, setSelectedClassName] = useState<string | null>(null);
+
+  // Waterfall states
+  const [waterfallsList, setWaterfallsList] = useState<any[]>([]);
+  const [selectedWaterfall, setSelectedWaterfall] = useState<any>(null);
+  const [showAddWaterfallModal, setShowAddWaterfallModal] = useState(false);
+  const [waterfallName, setWaterfallName] = useState('');
+  const [showAddRuleModal, setShowAddRuleModal] = useState(false);
+  const [ruleName, setRuleName] = useState('');
+  const [ruleSection, setRuleSection] = useState('');
+  const [selectedRuleTemplate, setSelectedRuleTemplate] = useState<string | null>(null);
+  const [draftRule, setDraftRule] = useState<any>(null);
+
+  const handleAddWaterfall = async (addRuleImmediately: boolean = true) => {
+    if (!waterfallName.trim()) {
+      toast.error('Please enter a waterfall name');
+      return;
+    }
+    try {
+      const fundId = parseInt(params.id as string, 10);
+      const newWf = await apiClient.createOldFundWaterfall(fundId, { name: waterfallName.trim() });
+      const updatedList = [...waterfallsList, newWf];
+      setWaterfallsList(updatedList);
+      setSelectedWaterfall(newWf);
+      setShowAddWaterfallModal(false);
+      setWaterfallName('');
+      toast.success('Waterfall added successfully');
+      if (addRuleImmediately) {
+        setRuleName('');
+        setRuleSection('');
+        setSelectedRuleTemplate(null);
+        setShowAddRuleModal(true);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create waterfall');
+    }
+  };
+
+  const handleRemoveWaterfall = async (waterfallId: string) => {
+    try {
+      const fundId = parseInt(params.id as string, 10);
+      await apiClient.deleteOldFundWaterfall(fundId, parseInt(waterfallId, 10));
+      const filtered = waterfallsList.filter(w => w.id !== waterfallId);
+      setWaterfallsList(filtered);
+      if (selectedWaterfall?.id === waterfallId) {
+        setSelectedWaterfall(null);
+      }
+      toast.success('Waterfall deleted');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete waterfall');
+    }
+  };
+
+  const handleAddRule = () => {
+    if (!ruleName.trim()) {
+      toast.error('Please enter a rule name');
+      return;
+    }
+    if (!selectedRuleTemplate) {
+      toast.error('Please select a template for your rule');
+      return;
+    }
+    const isSplitOrHurdle = selectedRuleTemplate === 'Splits Template' || selectedRuleTemplate === 'Splits with Hurdles Template';
+    const newRule = {
+      id: 'draft_' + Date.now().toString(),
+      name: ruleName.trim(),
+      section: ruleSection.trim(),
+      template: selectedRuleTemplate,
+      splits: isSplitOrHurdle ? [
+        { id: 'draft_split_1', percentage: '', classes: ['gp'], method: '', subType: '' },
+        { id: 'draft_split_2', percentage: '', classes: ['gp fund'], method: '', subType: '' }
+      ] : [],
+      hurdles: selectedRuleTemplate === 'Splits with Hurdles Template' ? [
+        {
+          id: 'draft_hurdle_1',
+          classes: ['gp'],
+          type: '',
+          percentage: '',
+          amount: '',
+          ofClasses: ['gp'],
+          asSubTypes: [],
+          grossUpCashflow: false
+        }
+      ] : []
+    };
+    setDraftRule(newRule);
+    setShowAddRuleModal(false);
+    setRuleName('');
+    setRuleSection('');
+    setSelectedRuleTemplate(null);
+    toast.info(`Configure values for "${newRule.name}" below and click "Save & Add Rule" to finalize.`);
+  };
+
+  const handleSaveAndAddRule = async () => {
+    if (!draftRule || !selectedWaterfall) return;
+    const isSplitOrHurdle = draftRule.template === 'Splits Template' || draftRule.template === 'Splits with Hurdles Template';
+    if (isSplitOrHurdle && draftRule.splits) {
+      for (let i = 0; i < draftRule.splits.length; i++) {
+        const s = draftRule.splits[i];
+        if (s.percentage === undefined || s.percentage === '' || isNaN(parseFloat(s.percentage))) {
+          toast.error(`Please enter a valid percentage for split row #${i + 1}`);
+          return;
+        }
+        if (!s.method) {
+          toast.error(`Please select a method for split row #${i + 1}`);
+          return;
+        }
+        if (!s.subType) {
+          toast.error(`Please select a distribution sub-type for split row #${i + 1}`);
+          return;
+        }
+      }
+    }
+
+    if (draftRule.template === 'Splits with Hurdles Template' && draftRule.hurdles) {
+      for (let i = 0; i < draftRule.hurdles.length; i++) {
+        const h = draftRule.hurdles[i];
+        if (!h.classes || h.classes.length === 0) {
+          toast.error(`Please select receiving classes for hurdle row #${i + 1}`);
+          return;
+        }
+        if (!h.type) {
+          toast.error(`Please select a hurdle type in row #${i + 1}`);
+          return;
+        }
+        if (h.type === 'an IRR of...' || h.type === 'a Preferred Return of...' || h.type === 'a percentage equal to') {
+          if (!h.percentage || isNaN(parseFloat(h.percentage))) {
+            toast.error(`Please enter a valid percentage for hurdle row #${i + 1}`);
+            return;
+          }
+        }
+        if (h.type === 'an Equity Multiple of...') {
+          if (!h.amount || isNaN(parseFloat(h.amount))) {
+            toast.error(`Please enter a valid equity multiple number for hurdle row #${i + 1}`);
+            return;
+          }
+        }
+        if (h.type === 'a percentage equal to') {
+          if (!h.ofClasses || h.ofClasses.length === 0) {
+            toast.error(`Please select "of class(es)" for hurdle row #${i + 1}`);
+            return;
+          }
+          if (!h.asSubTypes || h.asSubTypes.length === 0) {
+            toast.error(`Please select at least one distribution sub-type check for hurdle row #${i + 1}`);
+            return;
+          }
+        }
+      }
+    }
+
+    try {
+      const fundId = parseInt(params.id as string, 10);
+      const savedRule = await apiClient.createOldFundWaterfallRule(fundId, parseInt(selectedWaterfall.id, 10), {
+        name: draftRule.name,
+        section: draftRule.section,
+        template: draftRule.template,
+        splits: draftRule.splits,
+        hurdles: draftRule.hurdles
+      });
+
+      const updatedRules = [...(selectedWaterfall.rules || []), savedRule];
+      const updatedWf = { ...selectedWaterfall, rules: updatedRules };
+      setSelectedWaterfall(updatedWf);
+      setWaterfallsList(waterfallsList.map(w => w.id === updatedWf.id ? updatedWf : w));
+      setDraftRule(null);
+      toast.success(`Rule "${savedRule.name}" added successfully!`);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save rule.');
+    }
+  };
+
+  const handleSaveRuleChanges = async (rule: any) => {
+    if (!selectedWaterfall) return;
+    try {
+      const fundId = parseInt(params.id as string, 10);
+      await apiClient.updateOldFundWaterfallRule(fundId, parseInt(selectedWaterfall.id, 10), parseInt(rule.id, 10), {
+        name: rule.name,
+        section: rule.section,
+        template: rule.template,
+        splits: rule.splits,
+        hurdles: rule.hurdles
+      });
+      toast.success(`Rule "${rule.name}" updated successfully!`);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save rule changes.');
+    }
+  };
+
+  const handleRemoveRule = async (ruleId: string) => {
+    if (!selectedWaterfall) return;
+    try {
+      const fundId = parseInt(params.id as string, 10);
+      await apiClient.deleteOldFundWaterfallRule(fundId, parseInt(selectedWaterfall.id, 10), parseInt(ruleId, 10));
+      const updatedRules = selectedWaterfall.rules.filter((r: any) => r.id !== ruleId);
+      const updatedWf = { ...selectedWaterfall, rules: updatedRules };
+      setSelectedWaterfall(updatedWf);
+      setWaterfallsList(waterfallsList.map(w => w.id === updatedWf.id ? updatedWf : w));
+      toast.success('Rule removed');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to remove rule.');
+    }
+  };
+
+  const handleUpdateSplit = (ruleId: string, splitId: string, field: string, value: any) => {
+    if (draftRule && draftRule.id === ruleId) {
+      const currentSplits = draftRule.splits || [];
+      const updatedSplits = currentSplits.map((split: any) => {
+        if (split.id !== splitId) return split;
+        return { ...split, [field]: value };
+      });
+      setDraftRule({ ...draftRule, splits: updatedSplits });
+      return;
+    }
+
+    if (!selectedWaterfall?.rules) return;
+    const updatedRules = selectedWaterfall.rules.map((rule: any) => {
+      if (rule.id !== ruleId) return rule;
+      const currentSplits = rule.splits || [];
+      const updatedSplits = currentSplits.map((split: any) => {
+        if (split.id !== splitId) return split;
+        return { ...split, [field]: value };
+      });
+      return { ...rule, splits: updatedSplits };
+    });
+    const updatedWf = { ...selectedWaterfall, rules: updatedRules };
+    setSelectedWaterfall(updatedWf);
+    setWaterfallsList(waterfallsList.map(wf => wf.id === updatedWf.id ? updatedWf : wf));
+  };
+
+  const handleSelectSplitClass = (ruleId: string, splitId: string, cls: string) => {
+    if (draftRule && draftRule.id === ruleId) {
+      const currentSplits = draftRule.splits || [];
+      const updatedSplits = currentSplits.map((split: any) => {
+        if (split.id !== splitId) return split;
+        return { ...split, classes: [cls] };
+      });
+      setDraftRule({ ...draftRule, splits: updatedSplits });
+      return;
+    }
+
+    if (!selectedWaterfall?.rules) return;
+    const updatedRules = selectedWaterfall.rules.map((rule: any) => {
+      if (rule.id !== ruleId) return rule;
+      const currentSplits = rule.splits || [];
+      const updatedSplits = currentSplits.map((split: any) => {
+        if (split.id !== splitId) return split;
+        return { ...split, classes: [cls] };
+      });
+      return { ...rule, splits: updatedSplits };
+    });
+    const updatedWf = { ...selectedWaterfall, rules: updatedRules };
+    setSelectedWaterfall(updatedWf);
+    setWaterfallsList(waterfallsList.map(wf => wf.id === updatedWf.id ? updatedWf : wf));
+  };
+
+  const handleAddSplitRow = (ruleId: string) => {
+    if (draftRule && draftRule.id === ruleId) {
+      const currentSplits = draftRule.splits || [];
+      const newSplit = {
+        id: Date.now().toString() + '_' + Math.random().toString(36).substr(2, 4),
+        percentage: '',
+        classes: [],
+        method: '',
+        subType: ''
+      };
+      setDraftRule({ ...draftRule, splits: [...currentSplits, newSplit] });
+      return;
+    }
+
+    if (!selectedWaterfall?.rules) return;
+    const updatedRules = selectedWaterfall.rules.map((rule: any) => {
+      if (rule.id !== ruleId) return rule;
+      const currentSplits = rule.splits || [];
+      const newSplit = {
+        id: Date.now().toString() + '_' + Math.random().toString(36).substr(2, 4),
+        percentage: '',
+        classes: [],
+        method: '',
+        subType: ''
+      };
+      return { ...rule, splits: [...currentSplits, newSplit] };
+    });
+    const updatedWf = { ...selectedWaterfall, rules: updatedRules };
+    setSelectedWaterfall(updatedWf);
+    setWaterfallsList(waterfallsList.map(wf => wf.id === updatedWf.id ? updatedWf : wf));
+  };
+
+  const handleRemoveSplitRow = (ruleId: string, splitId: string) => {
+    if (draftRule && draftRule.id === ruleId) {
+      const currentSplits = draftRule.splits || [];
+      setDraftRule({ ...draftRule, splits: currentSplits.filter((s: any) => s.id !== splitId) });
+      return;
+    }
+
+    if (!selectedWaterfall?.rules) return;
+    const updatedRules = selectedWaterfall.rules.map((rule: any) => {
+      if (rule.id !== ruleId) return rule;
+      const currentSplits = rule.splits || [];
+      return { ...rule, splits: currentSplits.filter((s: any) => s.id !== splitId) };
+    });
+    const updatedWf = { ...selectedWaterfall, rules: updatedRules };
+    setSelectedWaterfall(updatedWf);
+    setWaterfallsList(waterfallsList.map(wf => wf.id === updatedWf.id ? updatedWf : wf));
+  };
+
+  const handleUpdateHurdle = (ruleId: string, hurdleId: string, field: string, value: any) => {
+    if (draftRule && draftRule.id === ruleId) {
+      const currentHurdles = draftRule.hurdles || [];
+      const updatedHurdles = currentHurdles.map((hurdle: any) => {
+        if (hurdle.id !== hurdleId) return hurdle;
+        return { ...hurdle, [field]: value };
+      });
+      setDraftRule({ ...draftRule, hurdles: updatedHurdles });
+      return;
+    }
+
+    if (!selectedWaterfall?.rules) return;
+    const updatedRules = selectedWaterfall.rules.map((rule: any) => {
+      if (rule.id !== ruleId) return rule;
+      const currentHurdles = rule.hurdles || [];
+      const updatedHurdles = currentHurdles.map((hurdle: any) => {
+        if (hurdle.id !== hurdleId) return hurdle;
+        return { ...hurdle, [field]: value };
+      });
+      return { ...rule, hurdles: updatedHurdles };
+    });
+    const updatedWf = { ...selectedWaterfall, rules: updatedRules };
+    setSelectedWaterfall(updatedWf);
+    setWaterfallsList(waterfallsList.map(wf => wf.id === updatedWf.id ? updatedWf : wf));
+  };
+
+  const handleSelectHurdleClass = (ruleId: string, hurdleId: string, field: 'classes' | 'ofClasses', cls: string) => {
+    handleUpdateHurdle(ruleId, hurdleId, field, [cls]);
+  };
+
+  const handleToggleHurdleSubType = (ruleId: string, hurdleId: string, subType: string) => {
+    const getTargetRule = () => {
+      if (draftRule && draftRule.id === ruleId) return draftRule;
+      return selectedWaterfall?.rules?.find((r: any) => r.id === ruleId);
+    };
+    const rule = getTargetRule();
+    if (!rule) return;
+    const currentHurdles = rule.hurdles || [];
+    const targetHurdle = currentHurdles.find((h: any) => h.id === hurdleId);
+    if (!targetHurdle) return;
+
+    const currentList = targetHurdle.asSubTypes || [];
+    const newList = currentList.includes(subType)
+      ? currentList.filter((t: string) => t !== subType)
+      : [...currentList, subType];
+
+    handleUpdateHurdle(ruleId, hurdleId, 'asSubTypes', newList);
+  };
+
+  const handleAddHurdleRow = (ruleId: string) => {
+    if (draftRule && draftRule.id === ruleId) {
+      const currentHurdles = draftRule.hurdles || [];
+      const newHurdle = {
+        id: 'draft_hurdle_' + Date.now().toString() + '_' + Math.random().toString(36).substr(2, 4),
+        classes: ['gp'],
+        type: '',
+        percentage: '',
+        amount: '',
+        ofClasses: ['gp'],
+        asSubTypes: [],
+        grossUpCashflow: false
+      };
+      setDraftRule({ ...draftRule, hurdles: [...currentHurdles, newHurdle] });
+      return;
+    }
+
+    if (!selectedWaterfall?.rules) return;
+    const updatedRules = selectedWaterfall.rules.map((rule: any) => {
+      if (rule.id !== ruleId) return rule;
+      const currentHurdles = rule.hurdles || [];
+      const newHurdle = {
+        id: 'draft_hurdle_' + Date.now().toString() + '_' + Math.random().toString(36).substr(2, 4),
+        classes: ['gp'],
+        type: '',
+        percentage: '',
+        amount: '',
+        ofClasses: ['gp'],
+        asSubTypes: [],
+        grossUpCashflow: false
+      };
+      return { ...rule, hurdles: [...currentHurdles, newHurdle] };
+    });
+    const updatedWf = { ...selectedWaterfall, rules: updatedRules };
+    setSelectedWaterfall(updatedWf);
+    setWaterfallsList(waterfallsList.map(wf => wf.id === updatedWf.id ? updatedWf : wf));
+  };
+
+  const handleRemoveHurdleRow = (ruleId: string, hurdleId: string) => {
+    if (draftRule && draftRule.id === ruleId) {
+      const currentHurdles = draftRule.hurdles || [];
+      setDraftRule({ ...draftRule, hurdles: currentHurdles.filter((h: any) => h.id !== hurdleId) });
+      return;
+    }
+
+    if (!selectedWaterfall?.rules) return;
+    const updatedRules = selectedWaterfall.rules.map((rule: any) => {
+      if (rule.id !== ruleId) return rule;
+      const currentHurdles = rule.hurdles || [];
+      return { ...rule, hurdles: currentHurdles.filter((h: any) => h.id !== hurdleId) };
+    });
+    const updatedWf = { ...selectedWaterfall, rules: updatedRules };
+    setSelectedWaterfall(updatedWf);
+    setWaterfallsList(waterfallsList.map(wf => wf.id === updatedWf.id ? updatedWf : wf));
+  };
+
 
   // Add distribution batch state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -314,6 +723,19 @@ export default function OldFundDetailPage() {
     }
   }, [params.id]);
 
+  const fetchOldFundWaterfalls = async (fundId: number) => {
+    try {
+      const wfs = await apiClient.getOldFundWaterfalls(fundId);
+      setWaterfallsList(wfs || []);
+      if (selectedWaterfall) {
+        const updatedSelected = wfs?.find((w: any) => w.id === selectedWaterfall.id);
+        setSelectedWaterfall(updatedSelected || null);
+      }
+    } catch (error) {
+      console.error('Error fetching waterfalls:', error);
+    }
+  };
+
   const fetchOldFundDetails = async () => {
     setIsLoading(true);
     try {
@@ -323,6 +745,8 @@ export default function OldFundDetailPage() {
       }
       const data = await apiClient.getOldFundById(fundId);
       setFund(data);
+
+      await fetchOldFundWaterfalls(fundId);
 
       const pending = data.distributions?.find((d: any) => d.status === '2' || d.status === 'Pending for Approval');
       if (pending) {
@@ -616,6 +1040,28 @@ export default function OldFundDetailPage() {
                 <span>Distributions</span>
                 <span className="inline-flex items-center justify-center bg-gray-100 text-gray-800 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
                   {fund.distributions ? fund.distributions.filter((d: any) => d.status !== '0' && d.status !== 'Draft').length : 0}
+                </span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('waterfalls');
+                  setSelectedClassName(null);
+                  setSelectedBatchId(null);
+                  setSelectedBatchData([]);
+                  setSelectedInvestorId(null);
+                  setSelectedInvestorData(null);
+                  setSelectedWaterfall(null);
+                }}
+                className={`flex items-center gap-2 pb-2 border-b-2 font-bold transition-all text-base ${activeTab === 'waterfalls'
+                  ? 'border-[#1F3B6E] text-[#1F3B6E]'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                  }`}
+              >
+                <Split className="h-5 w-5" />
+                <span>Waterfalls</span>
+                <span className="inline-flex items-center justify-center bg-gray-100 text-gray-800 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
+                  {waterfallsList.length}
                 </span>
               </button>
             </div>
@@ -1172,6 +1618,880 @@ export default function OldFundDetailPage() {
             )
           )}
 
+          {/* Waterfalls Tab content */}
+          {activeTab === 'waterfalls' && (
+            !selectedWaterfall ? (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-4 gap-3">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 font-goudy">Configured Waterfalls</h3>
+                    <p className="text-sm text-gray-500 mt-0.5">Manage distribution structures, splits, and hurdles for this fund.</p>
+                  </div>
+                  <button
+                    onClick={() => { setWaterfallName(''); setShowAddWaterfallModal(true); }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#1F3B6E] to-[#4A5D90] text-white hover:from-[#1F3B6E]/90 hover:to-[#4A5D90]/90 transition-all rounded-xl text-xs font-bold shadow-sm self-start sm:self-auto"
+                  >
+                    <Plus className="h-4 w-4" /> Add Waterfall
+                  </button>
+                </div>
+
+                {waterfallsList.length === 0 ? (
+                  <div className="bg-gray-50/60 rounded-2xl p-12 border border-dashed border-gray-200 text-center space-y-4">
+                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 mx-auto text-[#1F3B6E]">
+                      <Split className="h-7 w-7" />
+                    </div>
+                    <div className="max-w-md mx-auto space-y-1">
+                      <h4 className="text-base font-bold text-gray-900">No Waterfalls Created Yet</h4>
+                      <p className="text-xs text-gray-500 leading-relaxed">
+                        Define waterfall structures with distribution templates, splits, and hurdles for this fund.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => { setWaterfallName(''); setShowAddWaterfallModal(true); }}
+                      className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#1F3B6E] hover:bg-[#1F3B6E]/90 text-white font-bold rounded-xl text-xs shadow-sm transition-all"
+                    >
+                      <Plus className="h-4 w-4" /> Add Waterfall
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {waterfallsList.map((wf) => (
+                      <div
+                        key={wf.id}
+                        onClick={() => setSelectedWaterfall(wf)}
+                        className="p-6 bg-white border border-gray-200 hover:border-[#1F3B6E] rounded-2xl shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between gap-6"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[#1F3B6E]/10 text-[#1F3B6E] flex items-center justify-center font-bold">
+                              <Layers className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <h4 className="text-base font-bold text-gray-900 group-hover:text-[#1F3B6E] transition-colors">{wf.name}</h4>
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                {wf.rules?.length || 0} {(wf.rules?.length || 0) === 1 ? 'Rule' : 'Rules'} Configured
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveWaterfall(wf.id);
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                            title="Delete waterfall"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between border-t border-gray-100 pt-3 text-xs font-bold text-[#1F3B6E]">
+                          <span>Configure Rules</span>
+                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-4 gap-3">
+                  <div>
+                    <button
+                      onClick={() => setSelectedWaterfall(null)}
+                      className="flex items-center gap-1.5 text-sm font-semibold text-[#1F3B6E] hover:text-[#1F3B6E]/80 transition-colors mb-2"
+                    >
+                      <ChevronLeft className="h-4 w-4" /> Back to Waterfalls List
+                    </button>
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-xl font-bold text-gray-900 font-goudy">{selectedWaterfall.name}</h3>
+                      <span className="px-3 py-0.5 bg-[#1F3B6E]/10 text-[#1F3B6E] text-xs font-bold rounded-full">
+                        {selectedWaterfall.rules?.length || 0} {(selectedWaterfall.rules?.length || 0) === 1 ? 'Rule' : 'Rules'}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setRuleName('');
+                      setRuleSection('');
+                      setSelectedRuleTemplate(null);
+                      setShowAddRuleModal(true);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#1F3B6E] to-[#4A5D90] text-white hover:from-[#1F3B6E]/90 hover:to-[#4A5D90]/90 transition-all rounded-xl text-xs font-bold shadow-sm self-start sm:self-auto"
+                  >
+                    <Plus className="h-4 w-4" /> Add Rule
+                  </button>
+                </div>
+
+                {(!selectedWaterfall.rules || selectedWaterfall.rules.length === 0) && !draftRule ? (
+                  <div className="bg-gray-50/60 rounded-2xl p-12 border border-dashed border-gray-200 text-center space-y-4">
+                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 mx-auto text-[#1F3B6E]">
+                      <Layers className="h-7 w-7" />
+                    </div>
+                    <div className="max-w-md mx-auto space-y-1">
+                      <h4 className="text-base font-bold text-gray-900">No Rules Added Yet</h4>
+                      <p className="text-xs text-gray-500 leading-relaxed">
+                        Add distribution rules to define splits or hurdle structures for this waterfall.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setRuleName('');
+                        setRuleSection('');
+                        setSelectedRuleTemplate(null);
+                        setShowAddRuleModal(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#1F3B6E] hover:bg-[#1F3B6E]/90 text-white font-bold rounded-xl text-xs shadow-sm transition-all"
+                    >
+                      <Plus className="h-4 w-4" /> Add First Rule
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Draft Rule Configuration Box (Add only after configuration) */}
+                    {draftRule && (
+                      <div className="bg-blue-50/30 border-2 border-[#1F3B6E]/40 rounded-2xl shadow-md overflow-hidden transition-all">
+                        <div className="p-4 bg-blue-100/50 border-b border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <span className="px-2.5 py-1 bg-[#1F3B6E] text-white font-bold text-xs rounded-full">New Draft</span>
+                            <div className="px-4 py-1.5 bg-white border border-blue-300 font-bold text-[#1F3B6E] text-sm rounded shadow-2xs">
+                              {draftRule.name}
+                            </div>
+                            {draftRule.section && (
+                              <span className="px-2 py-0.5 bg-blue-200/60 text-blue-900 rounded text-xs font-mono font-semibold">
+                                Section {draftRule.section}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 self-end sm:self-auto">
+                            <span className="px-3 py-1 bg-white text-[#1F3B6E] font-bold text-xs rounded-full border border-blue-200 shadow-2xs">
+                              {draftRule.template}
+                            </span>
+                            <button
+                              onClick={() => {
+                                setDraftRule(null);
+                                toast.info('Draft rule discarded');
+                              }}
+                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Discard Draft Rule"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="p-6 bg-white">
+                          {draftRule.template === 'Splits Template' ? (
+                            <div className="space-y-6">
+                              <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
+                                <span className="text-sm font-bold text-gray-800">Split distribution as follows:</span>
+                                <span className="text-xs font-semibold text-[#1F3B6E]">Configure splits below to finalize</span>
+                              </div>
+
+                              <div className="space-y-8">
+                                {(draftRule.splits || []).map((split: any, splitIdx: number) => (
+                                  <div key={split.id || splitIdx} className="space-y-4 relative pb-6 border-b border-gray-100 last:border-none last:pb-0">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                      <span className="font-bold text-gray-700 text-sm w-5">{splitIdx + 1}.</span>
+
+                                      <div className="w-48">
+                                        <div className="relative">
+                                          <input
+                                            type="number"
+                                            step="any"
+                                            placeholder=""
+                                            value={split.percentage || ''}
+                                            onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'percentage', e.target.value)}
+                                            className="w-full pl-3 pr-9 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                          />
+                                          <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 border-l border-gray-300 text-gray-600 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
+                                        </div>
+                                      </div>
+
+                                      <span className="text-sm text-gray-800 font-medium px-1">to class(es)</span>
+
+                                      <div className="w-64">
+                                        <div className="relative group/cls">
+                                          <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                            <span className="truncate uppercase font-semibold">
+                                              {split.classes && split.classes.length > 0
+                                                ? split.classes.join(', ')
+                                                : 'Select Class...'}
+                                            </span>
+                                            <span className="text-gray-400 text-xs">▼</span>
+                                          </div>
+                                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/cls:block space-y-1">
+                                            {['gp', 'gp fund'].map((cls) => {
+                                              const isSelected = (split.classes || []).includes(cls);
+                                              return (
+                                                <label
+                                                  key={cls}
+                                                  onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handleSelectSplitClass(draftRule.id, split.id, cls);
+                                                  }}
+                                                  className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase"
+                                                >
+                                                  <input
+                                                    type="radio"
+                                                    name={`split_class_${draftRule.id}_${split.id}`}
+                                                    checked={isSelected}
+                                                    onChange={() => { }}
+                                                    className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]"
+                                                  />
+                                                  <span>{cls}</span>
+                                                </label>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      <span className="text-sm text-gray-800 font-medium px-1">using</span>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-3 sm:pl-8">
+                                      <div className="w-64">
+                                        <select
+                                          value={split.method || ''}
+                                          onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'method', e.target.value)}
+                                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                        >
+                                          <option value="">Select Method...</option>
+                                          <option value="Prorata by Ownership">Prorata by Ownership</option>
+                                          <option value="Prorata by Unpaid Preferred Return">Prorata by Unpaid Preferred Return</option>
+                                          <option value="Equal distributions">Equal distributions</option>
+                                        </select>
+                                      </div>
+
+                                      <span className="text-gray-900 font-black text-lg px-1">•</span>
+
+                                      <div className="w-64">
+                                        <div className="space-y-1">
+                                          <label className="block text-xs font-semibold text-gray-700">
+                                            Distribution Sub-type *
+                                          </label>
+                                          <select
+                                            value={split.subType || ''}
+                                            onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'subType', e.target.value)}
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                          >
+                                            <option value="">Select ...</option>
+                                            <option value="Preferred Return">Preferred Return</option>
+                                            <option value="Return of Capital">Return of Capital</option>
+                                            <option value="Promote">Promote</option>
+                                            <option value="Fees">Fees</option>
+                                            <option value="Excess Cash">Excess Cash</option>
+                                          </select>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => setDraftRule(null)}
+                                  className="px-5 py-2 text-sm font-semibold rounded-xl"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  type="button"
+                                  onClick={handleSaveAndAddRule}
+                                  className="px-6 py-2.5 bg-gradient-to-r from-[#1F3B6E] to-[#3A568C] hover:from-[#1F3B6E]/90 hover:to-[#3A568C]/90 text-white font-bold text-sm rounded-xl shadow-md flex items-center gap-2"
+                                >
+                                  <Check className="h-4 w-4" /> Add Rule to Waterfall
+                                </Button>
+                              </div>
+                            </div>
+                          ) : draftRule.template === 'Splits with Hurdles Template' ? (
+                            <div className="space-y-6">
+                              {/* ── SPLITS SECTION ── */}
+                              <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
+                                <span className="text-sm font-bold text-gray-800">Split <span className="text-[#1F3B6E]">distribution</span> as follows:</span>
+                              </div>
+                              <div className="space-y-8">
+                                {(draftRule.splits || []).map((split: any, splitIdx: number) => (
+                                  <div key={split.id || splitIdx} className="space-y-4 relative pb-6 border-b border-gray-100 last:border-none last:pb-0">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                      <span className="font-bold text-gray-700 text-sm w-5">{splitIdx + 1}.</span>
+                                      <div className="w-48">
+                                        <div className="relative">
+                                          <input type="number" step="any" placeholder="" value={split.percentage || ''} onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'percentage', e.target.value)} className="w-full pl-3 pr-9 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
+                                          <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 border-l border-gray-300 text-gray-600 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
+                                        </div>
+                                      </div>
+                                      <span className="text-sm text-gray-800 font-medium px-1">to class(es)</span>
+                                      <div className="w-64">
+                                        <div className="relative group/scls">
+                                          <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                            <span className="truncate uppercase font-semibold">{split.classes && split.classes.length > 0 ? split.classes.join(', ') : 'Select Class...'}</span>
+                                            <span className="text-gray-400 text-xs">▼</span>
+                                          </div>
+                                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/scls:block space-y-1">
+                                            {['gp', 'gp fund'].map((cls) => {
+                                              const isSelected = (split.classes || []).includes(cls);
+                                              return (
+                                                <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectSplitClass(draftRule.id, split.id, cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase">
+                                                  <input type="radio" name={`sh_split_class_${draftRule.id}_${split.id}`} checked={isSelected} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]" />
+                                                  <span>{cls}</span>
+                                                </label>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <span className="text-sm text-gray-800 font-medium px-1">using</span>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-3 sm:pl-8">
+                                      <div className="w-64">
+                                        <select value={split.method || ''} onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'method', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]">
+                                          <option value="">Select Method...</option>
+                                          <option value="Prorata by Ownership">Prorata by Ownership</option>
+                                          <option value="Prorata by Unpaid Preferred Return">Prorata by Unpaid Preferred Return</option>
+                                          <option value="Equal distributions">Equal distributions</option>
+                                        </select>
+                                      </div>
+                                      <span className="text-gray-900 font-black text-lg px-1">•</span>
+                                      <div className="w-64">
+                                        <div className="space-y-1">
+                                          <label className="block text-xs font-semibold text-gray-700">Distribution Sub-type *</label>
+                                          <select value={split.subType || ''} onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'subType', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]">
+                                            <option value="">Select ...</option>
+                                            <option value="Preferred Return">Preferred Return</option>
+                                            <option value="Return of Capital">Return of Capital</option>
+                                            <option value="Promote">Promote</option>
+                                            <option value="Fees">Fees</option>
+                                            <option value="Excess Cash">Excess Cash</option>
+                                          </select>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* ── HURDLES SECTION ── */}
+                              <div className="flex items-center gap-4 border-b border-gray-100 pb-3 pt-2">
+                                <span className="text-sm font-bold text-gray-800">Until <span className="text-[#1F3B6E]">the following</span> happens:</span>
+                              </div>
+                              <div className="space-y-8">
+                                {(draftRule.hurdles || []).map((hurdle: any, hurdleIdx: number) => (
+                                  <div key={hurdle.id || hurdleIdx} className="space-y-3 relative pb-6 border-b border-gray-100 last:border-none last:pb-0">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                      <span className="font-bold text-gray-700 text-sm w-5">{hurdleIdx + 1}.</span>
+                                      {/* Receiving Class */}
+                                      <div className="w-44">
+                                        <div className="relative group/hcls">
+                                          <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                            <span className="truncate uppercase font-semibold text-xs">
+                                              {hurdle.classes && hurdle.classes.length > 0 ? hurdle.classes.join(', ') : 'Select Classes...'}
+                                            </span>
+                                            <span className="text-gray-400 text-xs">▼</span>
+                                          </div>
+                                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/hcls:block space-y-1">
+                                            {['gp', 'gp fund'].map((cls) => {
+                                              const isSelected = (hurdle.classes || []).includes(cls);
+                                              return (
+                                                <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectHurdleClass(draftRule.id, hurdle.id, 'classes', cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase">
+                                                  <input type="radio" name={`hurdle_class_${draftRule.id}_${hurdle.id}`} checked={isSelected} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]" />
+                                                  <span>{cls}</span>
+                                                </label>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <span className="text-sm text-gray-700 font-medium">receives</span>
+                                      {/* Hurdle Type */}
+                                      <div className="w-56">
+                                        <select value={hurdle.type || ''} onChange={(e) => handleUpdateHurdle(draftRule.id, hurdle.id, 'type', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]">
+                                          <option value="">Select receives type...</option>
+                                          <option value="an IRR of...">an IRR of...</option>
+                                          <option value="Return of its Capital">a Return of its Capital</option>
+                                          <option value="a Preferred Return of...">a Preferred Return of...</option>
+                                          <option value="its Preferred Return">its Preferred Return</option>
+                                          <option value="an Equity Multiple of...">an Equity Multiple of...</option>
+                                          <option value="a percentage equal to">a percentage equal to</option>
+                                        </select>
+                                      </div>
+                                      {/* IRR / Preferred Return / percentage equal to → % field */}
+                                      {['an IRR of...', 'a Preferred Return of...', 'a percentage equal to'].includes(hurdle.type) && (
+                                        <div className="w-36">
+                                          <div className="relative">
+                                            <input type="number" step="any" placeholder="%" value={hurdle.percentage || ''} onChange={(e) => handleUpdateHurdle(draftRule.id, hurdle.id, 'percentage', e.target.value)} className="w-full pl-3 pr-9 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
+                                            <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 border-l border-gray-300 text-gray-600 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {hurdle.type === 'an Equity Multiple of...' && (
+                                        <div className="w-36">
+                                          <input type="number" step="any" placeholder="e.g. 2.0" value={hurdle.amount || ''} onChange={(e) => handleUpdateHurdle(draftRule.id, hurdle.id, 'amount', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
+                                        </div>
+                                      )}
+                                      {/* Gross Up Cashflow */}
+                                    </div>
+                                    {/* Percentage of Classes extra options */}
+                                    {hurdle.type === 'a percentage equal to' && (
+                                      <div className="sm:pl-8 flex flex-wrap gap-6">
+                                        {/* ofClasses */}
+                                        <div className="w-44">
+                                          <label className="block text-xs font-semibold text-gray-600 mb-1">of class(es)</label>
+                                          <div className="relative group/ofcls">
+                                            <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                              <span className="truncate uppercase font-semibold text-xs">
+                                                {hurdle.ofClasses && hurdle.ofClasses.length > 0 ? hurdle.ofClasses.join(', ') : 'Select Class...'}
+                                              </span>
+                                              <span className="text-gray-400 text-xs">▼</span>
+                                            </div>
+                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/ofcls:block space-y-1">
+                                              {['gp', 'gp fund'].map((cls) => {
+                                                const isSelected = (hurdle.ofClasses || []).includes(cls);
+                                                return (
+                                                  <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectHurdleClass(draftRule.id, hurdle.id, 'ofClasses', cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase">
+                                                    <input type="checkbox" checked={isSelected} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]" />
+                                                    <span>{cls}</span>
+                                                  </label>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        </div>
+                                        {/* asSubTypes */}
+                                        <div>
+                                          <label className="block text-xs font-semibold text-gray-600 mb-1">as sub-type(s)</label>
+                                          <div className="flex flex-wrap gap-3">
+                                            {['Preferred Return', 'Return of Capital', 'Promote', 'Fees', 'Excess Cash'].map((sub) => {
+                                              const checked = (hurdle.asSubTypes || []).includes(sub);
+                                              return (
+                                                <label key={sub} className="flex items-center gap-1.5 cursor-pointer" onClick={() => handleToggleHurdleSubType(draftRule.id, hurdle.id, sub)}>
+                                                  <input type="checkbox" checked={checked} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E] rounded" />
+                                                  <span className="text-xs text-gray-700">{sub}</span>
+                                                </label>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                        {/* Gross Up – only for percentage equal to */}
+                                        <br />
+                                        <br />
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                          <input type="checkbox" checked={hurdle.grossUpCashflow || false} onChange={(e) => handleUpdateHurdle(draftRule.id, hurdle.id, 'grossUpCashflow', e.target.checked)} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E] rounded" />
+                                          <span className="text-sm text-gray-700">Gross Up</span>
+                                        </label>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                                <Button type="button" variant="outline" onClick={() => setDraftRule(null)} className="px-5 py-2 text-sm font-semibold rounded-xl">Cancel</Button>
+                                <Button type="button" onClick={handleSaveAndAddRule} className="px-6 py-2.5 bg-gradient-to-r from-[#1F3B6E] to-[#3A568C] hover:from-[#1F3B6E]/90 hover:to-[#3A568C]/90 text-white font-bold text-sm rounded-xl shadow-md flex items-center gap-2">
+                                  <Check className="h-4 w-4" /> Add Rule to Waterfall
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="py-6 text-center text-gray-400 text-sm">Unknown template</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Saved Rules List */}
+                    {selectedWaterfall.rules && selectedWaterfall.rules.length > 0 && (
+                      <div className="space-y-4">
+                        {selectedWaterfall.rules.map((rule: any, idx: number) => (
+                          <div
+                            key={rule.id}
+                            className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden transition-all"
+                          >
+                            <div className="p-4 bg-gray-50/70 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="flex items-center gap-3">
+                                <span className="font-bold text-gray-700 text-sm">{idx + 1}.</span>
+                                <div className="px-4 py-1.5 bg-white border border-gray-300 font-semibold text-gray-800 text-sm rounded shadow-2xs">
+                                  {rule.name || `Rule ${idx + 1}`}
+                                </div>
+                                {rule.section && (
+                                  <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-mono font-semibold">
+                                    Section {rule.section}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3 self-end sm:self-auto">
+                                <span className="px-3 py-1 bg-blue-50 text-blue-700 font-bold text-xs rounded-full border border-blue-100">
+                                  {rule.template}
+                                </span>
+                                <button
+                                  onClick={() => handleRemoveRule(rule.id)}
+                                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Remove Rule"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="p-6">
+                              {rule.template === 'Splits Template' ? (
+                                <div className="space-y-6">
+                                  <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
+                                    <span className="text-sm font-bold text-gray-800">Split distribution as follows:</span>
+                                    <span className="text-xs text-gray-500 font-medium">for split template</span>
+                                  </div>
+
+                                  <div className="space-y-8">
+                                    {(rule.splits && rule.splits.length > 0 ? rule.splits : [
+                                      { id: '1', percentage: '', classes: [], method: '', subType: '' },
+                                      { id: '2', percentage: '', classes: [], method: '', subType: '' }
+                                    ]).map((split: any, splitIdx: number) => (
+                                      <div key={split.id || splitIdx} className="space-y-4 relative pb-6 border-b border-gray-100 last:border-none last:pb-0">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                          <span className="font-bold text-gray-700 text-sm w-5">{splitIdx + 1}.</span>
+
+                                          <div className="w-48">
+                                            <div className="relative">
+                                              <input
+                                                type="number"
+                                                step="any"
+                                                placeholder=""
+                                                value={split.percentage || ''}
+                                                onChange={(e) => handleUpdateSplit(rule.id, split.id, 'percentage', e.target.value)}
+                                                className="w-full pl-3 pr-9 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                              />
+                                              <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 border-l border-gray-300 text-gray-600 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
+                                            </div>
+                                          </div>
+
+                                          <span className="text-sm text-gray-800 font-medium px-1">to class(es)</span>
+
+                                          <div className="w-64">
+                                            <div className="relative group/cls">
+                                              <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                                <span className="truncate uppercase font-semibold">
+                                                  {split.classes && split.classes.length > 0
+                                                    ? split.classes.join(', ')
+                                                    : 'Select Class...'}
+                                                </span>
+                                                <span className="text-gray-400 text-xs">▼</span>
+                                              </div>
+                                              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/cls:block space-y-1">
+                                                {['gp', 'gp fund'].map((cls) => {
+                                                  const isSelected = (split.classes || []).includes(cls);
+                                                  return (
+                                                    <label
+                                                      key={cls}
+                                                      onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleSelectSplitClass(rule.id, split.id, cls);
+                                                      }}
+                                                      className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase"
+                                                    >
+                                                      <input
+                                                        type="radio"
+                                                        name={`split_class_${rule.id}_${split.id}`}
+                                                        checked={isSelected}
+                                                        onChange={() => { }}
+                                                        className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]"
+                                                      />
+                                                      <span>{cls}</span>
+                                                    </label>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          <span className="text-sm text-gray-800 font-medium px-1">using</span>
+                                        </div>
+
+                                        <div className="flex flex-wrap items-center gap-3 sm:pl-8">
+                                          <div className="w-64">
+                                            <select
+                                              value={split.method || ''}
+                                              onChange={(e) => handleUpdateSplit(rule.id, split.id, 'method', e.target.value)}
+                                              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                            >
+                                              <option value="">Select Method...</option>
+                                              <option value="Prorata by Ownership">Prorata by Ownership</option>
+                                              <option value="Prorata by Unpaid Preferred Return">Prorata by Unpaid Preferred Return</option>
+                                              <option value="Equal distributions">Equal distributions</option>
+                                            </select>
+                                          </div>
+
+                                          <span className="text-gray-900 font-black text-lg px-1">•</span>
+
+                                          <div className="w-64">
+                                            <div className="space-y-1">
+                                              <label className="block text-xs font-semibold text-gray-700">
+                                                Distribution Sub-type *
+                                              </label>
+                                              <select
+                                                value={split.subType || ''}
+                                                onChange={(e) => handleUpdateSplit(rule.id, split.id, 'subType', e.target.value)}
+                                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                              >
+                                                <option value="">Select ...</option>
+                                                <option value="Preferred Return">Preferred Return</option>
+                                                <option value="Return of Capital">Return of Capital</option>
+                                                <option value="Promote">Promote</option>
+                                                <option value="Fees">Fees</option>
+                                                <option value="Excess Cash">Excess Cash</option>
+                                              </select>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <div className="pt-4 border-t border-gray-100 flex items-center justify-end">
+                                    <Button
+                                      type="button"
+                                      onClick={() => handleSaveRuleChanges(rule)}
+                                      className="px-5 py-2 bg-[#1F3B6E] hover:bg-[#1F3B6E]/90 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5"
+                                    >
+                                      <Check className="h-3.5 w-3.5" /> Save Changes
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : rule.template === 'Splits with Hurdles Template' ? (
+                                <div className="space-y-6">
+                                  {/* ── SPLITS SECTION ── */}
+                                  <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
+                                    <span className="text-sm font-bold text-gray-800">Split <span className="text-[#1F3B6E]">distribution</span> as follows:</span>
+                                  </div>
+                                  <div className="space-y-8">
+                                    {(rule.splits && rule.splits.length > 0 ? rule.splits : [
+                                      { id: '1', percentage: '', classes: [], method: '', subType: '' },
+                                      { id: '2', percentage: '', classes: [], method: '', subType: '' }
+                                    ]).map((split: any, splitIdx: number) => (
+                                      <div key={split.id || splitIdx} className="space-y-4 relative pb-6 border-b border-gray-100 last:border-none last:pb-0">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                          <span className="font-bold text-gray-700 text-sm w-5">{splitIdx + 1}.</span>
+
+                                          <div className="w-48">
+                                            <div className="relative">
+                                              <input
+                                                type="number"
+                                                step="any"
+                                                placeholder=""
+                                                value={split.percentage || ''}
+                                                onChange={(e) => handleUpdateSplit(rule.id, split.id, 'percentage', e.target.value)}
+                                                className="w-full pl-3 pr-9 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                              />
+                                              <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 border-l border-gray-300 text-gray-600 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
+                                            </div>
+                                          </div>
+
+                                          <span className="text-sm text-gray-800 font-medium px-1">to class(es)</span>
+
+                                          <div className="w-64">
+                                            <div className="relative group/cls2">
+                                              <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                                <span className="truncate uppercase font-semibold">
+                                                  {split.classes && split.classes.length > 0 ? split.classes.join(', ') : 'Select Class...'}
+                                                </span>
+                                                <span className="text-gray-400 text-xs">▼</span>
+                                              </div>
+                                              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/cls2:block space-y-1">
+                                                {['gp', 'gp fund'].map((cls) => {
+                                                  const isSelected = (split.classes || []).includes(cls);
+                                                  return (
+                                                    <label
+                                                      key={cls}
+                                                      onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleSelectSplitClass(rule.id, split.id, cls);
+                                                      }}
+                                                      className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase"
+                                                    >
+                                                      <input
+                                                        type="radio"
+                                                        name={`sh_split_class_${rule.id}_${split.id}`}
+                                                        checked={isSelected}
+                                                        onChange={() => { }}
+                                                        className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]"
+                                                      />
+                                                      <span>{cls}</span>
+                                                    </label>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          <span className="text-sm text-gray-800 font-medium px-1">using</span>
+
+                                          <div className="w-56">
+                                            <select
+                                              value={split.method || ''}
+                                              onChange={(e) => handleUpdateSplit(rule.id, split.id, 'method', e.target.value)}
+                                              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-750 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                            >
+                                              <option value="">Select Method...</option>
+                                              <option value="Prorata by Ownership">Prorata by Ownership</option>
+                                              <option value="Prorata by Unpaid Preferred Return">Prorata by Unpaid Preferred Return</option>
+                                              <option value="Prorata by Unpaid Capital">Prorata by Unpaid Capital</option>
+                                            </select>
+                                          </div>
+
+                                          <div className="space-y-1">
+                                            <label className="block text-xs font-semibold text-gray-700">Distribution Sub-type *</label>
+                                            <select
+                                              value={split.subType || ''}
+                                              onChange={(e) => handleUpdateSplit(rule.id, split.id, 'subType', e.target.value)}
+                                              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                            >
+                                              <option value="">Select ...</option>
+                                              <option value="Preferred Return">Preferred Return</option>
+                                              <option value="Return of Capital">Return of Capital</option>
+                                              <option value="Promote">Promote</option>
+                                              <option value="Fees">Fees</option>
+                                              <option value="Excess Cash">Excess Cash</option>
+                                            </select>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  {/* ── HURDLES SECTION ── */}
+                                  <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3 pt-2">
+                                    <span className="text-sm font-bold text-gray-800">Until <span className="text-[#1F3B6E]">the following</span> happens:</span>
+                                  </div>
+                                  <div className="space-y-8">
+                                    {(rule.hurdles || []).map((hurdle: any, hurdleIdx: number) => (
+                                      <div key={hurdle.id || hurdleIdx} className="space-y-3 relative pb-6 border-b border-gray-100 last:border-none last:pb-0">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                          <span className="font-bold text-gray-700 text-sm w-5">{hurdleIdx + 1}.</span>
+                                          {/* Receiving Class */}
+                                          <div className="w-44">
+                                            <div className="relative group/hcls2">
+                                              <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                                <span className="truncate uppercase font-semibold text-xs">
+                                                  {hurdle.classes && hurdle.classes.length > 0 ? hurdle.classes.join(', ') : 'Select Classes...'}
+                                                </span>
+                                                <span className="text-gray-400 text-xs">▼</span>
+                                              </div>
+                                              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/hcls2:block space-y-1">
+                                                {['gp', 'gp fund'].map((cls) => {
+                                                  const isSelected = (hurdle.classes || []).includes(cls);
+                                                  return (
+                                                    <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectHurdleClass(rule.id, hurdle.id, 'classes', cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase">
+                                                      <input type="radio" name={`hurdle_class_${rule.id}_${hurdle.id}`} checked={isSelected} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]" />
+                                                      <span>{cls}</span>
+                                                    </label>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <span className="text-sm text-gray-700 font-medium">receives</span>
+                                          {/* Hurdle Type */}
+                                          <div className="w-56">
+                                            <select value={hurdle.type || ''} onChange={(e) => handleUpdateHurdle(rule.id, hurdle.id, 'type', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]">
+                                              <option value="">Select receives type...</option>
+                                              <option value="an IRR of...">an IRR of...</option>
+                                              <option value="Return of its Capital">a Return of its Capital</option>
+                                              <option value="a Preferred Return of...">a Preferred Return of...</option>
+                                              <option value="its Preferred Return">its Preferred Return</option>
+                                              <option value="an Equity Multiple of...">an Equity Multiple of...</option>
+                                              <option value="a percentage equal to">a percentage equal to</option>
+                                            </select>
+                                          </div>
+                                          {/* IRR / Preferred Return / percentage → % field */}
+                                          {['an IRR of...', 'a Preferred Return of...', 'a percentage equal to'].includes(hurdle.type) && (
+                                            <div className="w-36">
+                                              <div className="relative">
+                                                <input type="number" step="any" placeholder="%" value={hurdle.percentage || ''} onChange={(e) => handleUpdateHurdle(rule.id, hurdle.id, 'percentage', e.target.value)} className="w-full pl-3 pr-9 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
+                                                <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 border-l border-gray-300 text-gray-600 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
+                                              </div>
+                                            </div>
+                                          )}
+                                          {/* Equity Multiple */}
+                                          {hurdle.type === 'an Equity Multiple of...' && (
+                                            <div className="w-36">
+                                              <input type="number" step="any" placeholder="e.g. 2.0" value={hurdle.amount || ''} onChange={(e) => handleUpdateHurdle(rule.id, hurdle.id, 'amount', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
+                                            </div>
+                                          )}
+                                          {/* Gross Up */}
+                                        </div>
+                                        {/* Percentage of Classes extra options */}
+                                        {hurdle.type === 'a percentage equal to' && (
+                                          <div className="sm:pl-8 flex flex-wrap gap-6">
+                                            <div className="w-44">
+                                              <label className="block text-xs font-semibold text-gray-600 mb-1">of class(es)</label>
+                                              <div className="relative group/ofcls2">
+                                                <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                                  <span className="truncate uppercase font-semibold text-xs">
+                                                    {hurdle.ofClasses && hurdle.ofClasses.length > 0 ? hurdle.ofClasses.join(', ') : 'Select Class...'}
+                                                  </span>
+                                                  <span className="text-gray-400 text-xs">▼</span>
+                                                </div>
+                                                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/ofcls2:block space-y-1">
+                                                  {['gp', 'gp fund'].map((cls) => {
+                                                    const isSelected = (hurdle.ofClasses || []).includes(cls);
+                                                    return (
+                                                      <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectHurdleClass(rule.id, hurdle.id, 'ofClasses', cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase">
+                                                        <input type="checkbox" checked={isSelected} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]" />
+                                                        <span>{cls}</span>
+                                                      </label>
+                                                    );
+                                                  })}
+                                                </div>
+                                              </div>
+                                            </div>
+                                            <div>
+                                              <label className="block text-xs font-semibold text-gray-600 mb-1">as sub-type(s)</label>
+                                              <div className="flex flex-wrap gap-3">
+                                                {['Preferred Return', 'Return of Capital', 'Promote', 'Fees', 'Excess Cash'].map((sub) => {
+                                                  const checked = (hurdle.asSubTypes || []).includes(sub);
+                                                  return (
+                                                    <label key={sub} className="flex items-center gap-1.5 cursor-pointer" onClick={() => handleToggleHurdleSubType(rule.id, hurdle.id, sub)}>
+                                                      <input type="checkbox" checked={checked} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E] rounded" />
+                                                      <span className="text-xs text-gray-700">{sub}</span>
+                                                    </label>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                            {/* Gross Up – only for percentage equal to */}
+                                            <br />
+                                            <br />
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                              <input type="checkbox" checked={hurdle.grossUpCashflow || false} onChange={(e) => handleUpdateHurdle(rule.id, hurdle.id, 'grossUpCashflow', e.target.checked)} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E] rounded" />
+                                              <span className="text-sm text-gray-700">Gross Up</span>
+                                            </label>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="pt-4 border-t border-gray-100 flex items-center justify-end">
+                                    <Button type="button" onClick={() => handleSaveRuleChanges(rule)} className="px-5 py-2 bg-[#1F3B6E] hover:bg-[#1F3B6E]/90 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5">
+                                      <Check className="h-3.5 w-3.5" /> Save Changes
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="py-6 text-center text-gray-400 text-sm">Unknown template</div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          )}
+
         </div>
 
       </div>
@@ -1631,6 +2951,184 @@ export default function OldFundDetailPage() {
                   Don't Delete
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Waterfall Modal */}
+      {showAddWaterfallModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity" onClick={() => setShowAddWaterfallModal(false)} />
+          <div className="relative bg-white rounded-3xl max-w-md w-full shadow-2xl border border-gray-100 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 font-goudy">Add Waterfall</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{fund?.projectName || 'Fund Waterfall'}</p>
+              </div>
+              <button onClick={() => setShowAddWaterfallModal(false)} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Waterfall Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Primary Fund Waterfall"
+                  value={waterfallName}
+                  onChange={(e) => setWaterfallName(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowAddWaterfallModal(false)}
+                className="px-5 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-semibold text-sm transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAddWaterfall(true)}
+                className="px-6 py-2 bg-gradient-to-r from-[#1F3B6E] to-[#4A5D90] hover:from-[#1F3B6E]/90 hover:to-[#4A5D90]/90 text-white rounded-xl font-semibold text-sm transition-all shadow-md"
+              >
+                Save & Add First Rule
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Rule Modal */}
+      {showAddRuleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity" onClick={() => setShowAddRuleModal(false)} />
+          <div className="relative bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-gray-100 flex flex-col overflow-hidden max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 font-goudy">Add Rule</h3>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">
+                  {selectedWaterfall?.name || 'Waterfall'}: Rule {(selectedWaterfall?.rules?.length || 0) + 1}
+                </p>
+              </div>
+              <button onClick={() => setShowAddRuleModal(false)} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Rule Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Pro-Rata Distribution"
+                    value={ruleName}
+                    onChange={(e) => setRuleName(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Operating Agreement Section Number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Section 4.2(a)"
+                    value={ruleSection}
+                    onChange={(e) => setRuleSection(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 pt-4">
+                <h4 className="text-base font-bold text-gray-900">Choose a template for your rule</h4>
+                <p className="text-xs text-gray-500 mt-1 mb-4">
+                  Select an example template as a base for your rule.
+                </p>
+
+                <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-xl p-3.5 mb-5 text-xs text-[#92400E] font-medium flex items-center justify-between">
+                  <span>You must have at least one class with a preferred return to use the <strong>Preferred Return template</strong></span>
+                </div>
+
+                <div className="space-y-3">
+                  {/* Option 1: Splits Template */}
+                  <div
+                    onClick={() => setSelectedRuleTemplate('Splits Template')}
+                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-4 ${selectedRuleTemplate === 'Splits Template'
+                      ? 'border-[#1F3B6E] bg-[#1F3B6E]/5 shadow-xs'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-gray-900">Splits Template</span>
+                        {selectedRuleTemplate === 'Splits Template' && (
+                          <span className="w-4 h-4 rounded-full bg-[#1F3B6E] text-white flex items-center justify-center text-[10px]">
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Distribute capital pro-rata across selected share classes according to fixed percentage splits.
+                      </p>
+                    </div>
+                    <ChevronRight className={`h-5 w-5 shrink-0 ${selectedRuleTemplate === 'Splits Template' ? 'text-[#1F3B6E]' : 'text-gray-400'}`} />
+                  </div>
+
+                  {/* Option 2: Splits with Hurdles Template */}
+                  <div
+                    onClick={() => setSelectedRuleTemplate('Splits with Hurdles Template')}
+                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-4 ${selectedRuleTemplate === 'Splits with Hurdles Template'
+                      ? 'border-[#1F3B6E] bg-[#1F3B6E]/5 shadow-xs'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-gray-900">Splits with Hurdles Template</span>
+                        {selectedRuleTemplate === 'Splits with Hurdles Template' && (
+                          <span className="w-4 h-4 rounded-full bg-[#1F3B6E] text-white flex items-center justify-center text-[10px]">
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Distribute capital up to specific IRR or return hurdles before splitting between GP and LPs.
+                      </p>
+                    </div>
+                    <ChevronRight className={`h-5 w-5 shrink-0 ${selectedRuleTemplate === 'Splits with Hurdles Template' ? 'text-[#1F3B6E]' : 'text-gray-400'}`} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowAddRuleModal(false)}
+                className="px-5 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-semibold text-sm transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleAddRule}
+                disabled={!selectedRuleTemplate}
+                className="px-6 py-2 bg-gradient-to-r from-[#1F3B6E] to-[#4A5D90] hover:from-[#1F3B6E]/90 hover:to-[#4A5D90]/90 text-white rounded-xl font-semibold text-sm transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Add Rule
+              </button>
             </div>
           </div>
         </div>

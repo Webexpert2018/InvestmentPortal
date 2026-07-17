@@ -619,6 +619,43 @@ class ApiClient {
     });
   }
 
+  async getOldFundWaterfalls(fundId: number) {
+    return this.request<any[]>(`/funds/old-funds/${fundId}/waterfalls`);
+  }
+
+  async createOldFundWaterfall(fundId: number, data: { name: string }) {
+    return this.request<any>(`/funds/old-funds/${fundId}/waterfalls`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteOldFundWaterfall(fundId: number, waterfallId: number) {
+    return this.request<any>(`/funds/old-funds/${fundId}/waterfalls/${waterfallId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async createOldFundWaterfallRule(fundId: number, waterfallId: number, data: any) {
+    return this.request<any>(`/funds/old-funds/${fundId}/waterfalls/${waterfallId}/rules`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateOldFundWaterfallRule(fundId: number, waterfallId: number, ruleId: number, data: any) {
+    return this.request<any>(`/funds/old-funds/${fundId}/waterfalls/${waterfallId}/rules/${ruleId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteOldFundWaterfallRule(fundId: number, waterfallId: number, ruleId: number) {
+    return this.request<any>(`/funds/old-funds/${fundId}/waterfalls/${waterfallId}/rules/${ruleId}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getIraAccountTypes() {
     return this.request<any[]>('/ira-accounts/types');
   }

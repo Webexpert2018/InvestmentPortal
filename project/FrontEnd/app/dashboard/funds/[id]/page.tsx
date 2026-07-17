@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, MoreVertical, X, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MoreVertical, X, Plus, Layers, Split, ArrowRight, Trash2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';

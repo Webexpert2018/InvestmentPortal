@@ -1301,5 +1301,171 @@ export class FundsService {
       batchId
     };
   }
+
+  // --- Waterfalls & Rules API Methods ---
+
+  async getOldFundWaterfalls(fundId: number) {
+    const wfRes = await db.query(
+      `SELECT id, project_id as "projectId", name, created_at as "createdAt"
+       FROM waterfalls
+       WHERE project_id = $1
+       ORDER BY id ASC`,
+      [fundId]
+    );
+
+    const waterfalls = wfRes.rows;
+    for (const wf of waterfalls) {
+      const rulesRes = await db.query(
+        `SELECT id, waterfall_id as "waterfallId", name, section, template, splits, hurdles, created_at as "createdAt"
+         FROM waterfall_rules
+         WHERE waterfall_id = $1
+         ORDER BY id ASC`,
+        [wf.id]
+      );
+      wf.rules = rulesRes.rows.map(r => ({
+        id: String(r.id),
+        name: r.name,
+        section: r.section || '',
+        template: r.template,
+        splits: typeof r.splits === 'string' ? JSON.parse(r.splits) : (r.splits || []),
+        hurdles: typeof r.hurdles === 'string' ? JSON.parse(r.hurdles) : (r.hurdles || [])
+      }));
+      wf.id = String(wf.id);
+    }
+    return waterfalls;
+  }
+
+  async createOldFundWaterfall(fundId: number, data: { name: string }) {
+    if (!data.name) {
+      throw new BadRequestException('Waterfall name is required');
+    }
+    const res = await db.query(
+      `INSERT INTO waterfalls (project_id, name)
+       VALUES ($1, $2)
+       RETURNING id, project_id as "projectId", name, created_at as "createdAt"`,
+      [fundId, data.name]
+    );
+    const wf = res.rows[0];
+    wf.id = String(wf.id);
+    wf.rules = [];
+    return wf;
+  }
+
+  async deleteOldFundWaterfall(fundId: number, waterfallId: number) {
+    const res = await db.query(
+      `DELETE FROM waterfalls WHERE project_id = $1 AND id = $2 RETURNING id`,
+      [fundId, waterfallId]
+    );
+    if (res.rowCount === 0) {
+      throw new NotFoundException('Waterfall not found');
+    }
+    return { message: 'Waterfall deleted successfully', waterfallId: String(waterfallId) };
+  }
+
+  async createOldFundWaterfallRule(fundId: number, waterfallId: number, data: {
+    name: string;
+    section?: string;
+    template: string;
+    splits?: any[];
+    hurdles?: any[];
+  }) {
+    const wfCheck = await db.query(`SELECT id FROM waterfalls WHERE project_id = $1 AND id = $2`, [fundId, waterfallId]);
+    if (wfCheck.rows.length === 0) {
+      throw new NotFoundException('Waterfall not found');
+    }
+
+    const res = await db.query(
+      `INSERT INTO waterfall_rules (waterfall_id, name, section, template, splits, hurdles)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, waterfall_id as "waterfallId", name, section, template, splits, hurdles, created_at as "createdAt"`,
+      [
+        waterfallId,
+        data.name || 'Rule',
+        data.section || '',
+        data.template || 'Splits Template',
+        JSON.stringify(data.splits || []),
+        JSON.stringify(data.hurdles || [])
+      ]
+    );
+    const rule = res.rows[0];
+    return {
+      id: String(rule.id),
+      name: rule.name,
+      section: rule.section || '',
+      template: rule.template,
+      splits: typeof rule.splits === 'string' ? JSON.parse(rule.splits) : (rule.splits || []),
+      hurdles: typeof rule.hurdles === 'string' ? JSON.parse(rule.hurdles) : (rule.hurdles || [])
+    };
+  }
+
+  async updateOldFundWaterfallRule(fundId: number, waterfallId: number, ruleId: number, data: {
+    name?: string;
+    section?: string;
+    template?: string;
+    splits?: any[];
+    hurdles?: any[];
+  }) {
+    const wfCheck = await db.query(`SELECT id FROM waterfalls WHERE project_id = $1 AND id = $2`, [fundId, waterfallId]);
+    if (wfCheck.rows.length === 0) {
+      throw new NotFoundException('Waterfall not found');
+    }
+
+    const updates: string[] = ['updated_at = NOW()'];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (data.name !== undefined) {
+      updates.push(`name = $${idx++}`);
+      values.push(data.name);
+    }
+    if (data.section !== undefined) {
+      updates.push(`section = $${idx++}`);
+      values.push(data.section);
+    }
+    if (data.template !== undefined) {
+      updates.push(`template = $${idx++}`);
+      values.push(data.template);
+    }
+    if (data.splits !== undefined) {
+      updates.push(`splits = $${idx++}`);
+      values.push(JSON.stringify(data.splits));
+    }
+    if (data.hurdles !== undefined) {
+      updates.push(`hurdles = $${idx++}`);
+      values.push(JSON.stringify(data.hurdles));
+    }
+
+    values.push(ruleId, waterfallId);
+    const res = await db.query(
+      `UPDATE waterfall_rules SET ${updates.join(', ')} WHERE id = $${idx++} AND waterfall_id = $${idx} RETURNING id, waterfall_id as "waterfallId", name, section, template, splits, hurdles`,
+      values
+    );
+
+    if (res.rowCount === 0) {
+      throw new NotFoundException('Rule not found');
+    }
+    const rule = res.rows[0];
+    return {
+      id: String(rule.id),
+      name: rule.name,
+      section: rule.section || '',
+      template: rule.template,
+      splits: typeof rule.splits === 'string' ? JSON.parse(rule.splits) : (rule.splits || []),
+      hurdles: typeof rule.hurdles === 'string' ? JSON.parse(rule.hurdles) : (rule.hurdles || [])
+    };
+  }
+
+  async deleteOldFundWaterfallRule(fundId: number, waterfallId: number, ruleId: number) {
+    const wfCheck = await db.query(`SELECT id FROM waterfalls WHERE project_id = $1 AND id = $2`, [fundId, waterfallId]);
+    if (wfCheck.rows.length === 0) {
+      throw new NotFoundException('Waterfall not found');
+    }
+
+    const res = await db.query(`DELETE FROM waterfall_rules WHERE waterfall_id = $1 AND id = $2 RETURNING id`, [waterfallId, ruleId]);
+    if (res.rowCount === 0) {
+      throw new NotFoundException('Rule not found');
+    }
+    return { message: 'Rule deleted successfully', ruleId: String(ruleId) };
+  }
 }
 
