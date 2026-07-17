@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import {
@@ -79,7 +79,40 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const isExecutiveAdmin = user?.role?.trim().toLowerCase() === 'executive_admin';
   const canEditProfile = user?.role && ['admin', 'executive_admin'].includes(user.role.trim().toLowerCase());
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('basic');
+  const searchParams = useSearchParams();
+  const tabParam = searchParams?.get('tab');
+  const fromParam = searchParams?.get('from');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (tabParam === 'funding' || tabParam === 'funding-history') return 'funding';
+    if (tabParam === 'kyc') return 'kyc';
+    if (tabParam === 'redemption') return 'redemption';
+    return 'basic';
+  });
+
+  useEffect(() => {
+    if (tabParam) {
+      if (tabParam === 'funding' || tabParam === 'funding-history') setActiveTab('funding');
+      else if (tabParam === 'kyc') setActiveTab('kyc');
+      else if (tabParam === 'redemption') setActiveTab('redemption');
+      else if (tabParam === 'basic') setActiveTab('basic');
+    }
+  }, [tabParam]);
+
+  const handleBack = () => {
+    if (fromParam === 'funding-requests') {
+      router.push('/dashboard/funding-requests');
+    } else if (fromParam === 'redemption-requests') {
+      router.push('/dashboard/redemption-requests');
+    } else if (fromParam === 'assigned-investors') {
+      router.push('/dashboard/assigned-investors');
+    } else if (fromParam === 'investor') {
+      router.push('/dashboard/investor');
+    } else if (typeof window !== 'undefined' && window.history.length > 2) {
+      router.back();
+    } else {
+      router.push(isAdmin ? '/dashboard/investor' : '/dashboard/assigned-investors');
+    }
+  };
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showAccountantModal, setShowAccountantModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
@@ -294,7 +327,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       setIsSuspending(true);
       await apiClient.deleteUser(params.id);
       toast.success('Invitation cancelled');
-      router.push(isAdmin ? '/dashboard/investor' : '/dashboard/assigned-investors');
+      handleBack();
     } catch (err: any) {
       toast.error(err.message || 'Failed to cancel invitation');
     } finally {
@@ -347,7 +380,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         {/* Header with Back Button */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push(isAdmin ? '/dashboard/investor' : '/dashboard/assigned-investors')}
+            onClick={handleBack}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <ChevronLeft className="h-5 w-5 text-gray-600" />

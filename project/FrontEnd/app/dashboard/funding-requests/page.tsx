@@ -196,10 +196,12 @@ export default function FundingRequestsPage() {
                 <tr className="bg-gray-50/50 border-b border-gray-100">
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Request ID</th>
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Investor Name</th>
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Account Type</th>
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Amount</th>
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Payment</th>
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Submitted Date</th>
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Status</th>
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Funding History</th>
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Action</th>
                 </tr>
               </thead>
@@ -242,12 +244,15 @@ export default function FundingRequestsPage() {
                               {initials}
                             </div>
                             <Link
-                              href={`/dashboard/investor/${request.user_id}`}
+                              href={`/dashboard/investor/${request.user_id}?from=funding-requests`}
                               className="font-bold text-gray-800 hover:text-[#1F3B6E] transition-colors"
                             >
                               {investorName}
                             </Link>
                           </div>
+                        </td>
+                        <td className="px-6 py-5 text-gray-700 font-medium whitespace-nowrap capitalize">
+                          {request.account_type || 'Personal'}
                         </td>
                         <td className="px-6 py-5 text-gray-900 font-bold whitespace-nowrap">
                           {formatCurrency(request.investment_amount)}
@@ -258,6 +263,13 @@ export default function FundingRequestsPage() {
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${getStatusColor(request.status || 'Pending')}`}>
                             {request.status || 'Pending'}
                           </span>
+                        </td>
+                        <td className="px-6 py-5 whitespace-nowrap">
+                          <Link href={`/dashboard/investor/${request.user_id}?tab=funding&from=funding-requests`}>
+                            <button className="px-5 py-2 bg-white border border-gray-200 text-[#1F3B6E] text-[11px] font-bold rounded-full hover:bg-[#1F3B6E] hover:text-white hover:border-[#1F3B6E] transition-all shadow-sm">
+                              View History
+                            </button>
+                          </Link>
                         </td>
                         <td className="px-6 py-5 whitespace-nowrap">
                           <Link href={`/dashboard/funding-requests/${request.id}`}>
@@ -271,7 +283,7 @@ export default function FundingRequestsPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-6 py-20 text-center">
+                    <td colSpan={9} className="px-6 py-20 text-center">
                       <div className="flex flex-col items-center justify-center text-gray-400">
                         <Search className="h-10 w-10 mb-2 opacity-20" />
                         <p className="text-sm">No funding requests found.</p>
