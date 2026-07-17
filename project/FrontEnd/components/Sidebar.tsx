@@ -21,6 +21,8 @@ import {
   Bitcoin,
   ChevronLeft,
   ChevronRight,
+  Stethoscope,
+  Target,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -154,6 +156,18 @@ const menuItems: MenuItem[] = [
     href: '/dashboard/crm-bulk-ops',
     icon: Users,
     roles: ['admin', 'executive_admin'],
+  },
+  {
+    title: 'Doctor Leads',
+    href: '/dashboard/doctor-leads',
+    icon: Stethoscope,
+    roles: ['admin', 'executive_admin', 'investor_relations'],
+  },
+  {
+    title: 'Doctor CRM',
+    href: '/dashboard/doctor-crm',
+    icon: Target,
+    roles: ['admin', 'executive_admin', 'investor_relations'],
   },
   {
     title: 'Staff',

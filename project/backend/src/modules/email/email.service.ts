@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SMTPClient } from 'smtp-client';
+import axios from 'axios';
 
 @Injectable()
 export class EmailService {
@@ -270,11 +271,14 @@ export class EmailService {
         ${body}
       </div>
       
-      <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 20px;">
+      <p style="margin: 30px 0 0; font-size: 13px; line-height: 1.6; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 20px;">
         Need help? Contact our support team at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
       </p>
+      <p style="margin: 10px 0 0; font-size: 11px; line-height: 1.5; color: #BEC3CC; text-align: center;">
+        You received this communication because you are an accredited medical professional or investor prospect. To unsubscribe or opt out of future webinar invitations, please reply with "UNSUBSCRIBE" in the subject line.
+      </p>
     `;
-    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+    await this.sendSendgridEmail(email, subject, this.getHtmlTemplate(content, title));
   }
 
   private getHtmlTemplate(content: string, title: string) {
@@ -320,13 +324,106 @@ export class EmailService {
     `;
   }
 
+  async sendSendgridEmail(to: string, subject: string, html: string) {
+    const sendgridApiKey = this.configService.get<string>('SENDGRID_API_KEY') || process.env.SENDGRID_API_KEY;
+    const from = this.configService.get<string>('SENDGRID_FROM') || this.configService.get<string>('EMAIL_FROM') || '"Ovalia Capital" <portal@ovaliacapital.com>';
+
+    if (!sendgridApiKey || !sendgridApiKey.startsWith('SG.')) {
+      this.logger.error('❌ SendGrid API Key missing or invalid when trying to send bulk doctor outreach.');
+      throw new Error('SendGrid API Key (SENDGRID_API_KEY) missing or invalid.');
+    }
+
+    const extractEmail = (str: string) => {
+      const match = str.match(/<(.+)>/);
+      return match ? match[1] : str.trim();
+    };
+
+    const extractName = (str: string) => {
+      const match = str.match(/^"(.+)"/);
+      if (match) return match[1];
+      const matchNoQuotes = str.match(/^([^<]+)\s*</);
+      return matchNoQuotes ? matchNoQuotes[1].trim() : 'Ovalia Capital';
+    };
+
+    const rawFrom = extractEmail(from);
+    const fromName = extractName(from);
+    const rawTo = extractEmail(to);
+
+    // Build plain text fallback from HTML to lower spam filter score
+    const plainText = html
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    try {
+      await axios.post(
+        'https://api.sendgrid.com/v3/mail/send',
+        {
+          personalizations: [
+            {
+              to: [{ email: rawTo }],
+              subject: subject,
+            },
+          ],
+          from: {
+            email: rawFrom,
+            name: fromName,
+          },
+          reply_to: {
+            email: rawFrom,
+            name: fromName,
+          },
+          content: [
+            {
+              type: 'text/plain',
+              value: plainText || subject,
+            },
+            {
+              type: 'text/html',
+              value: html,
+            },
+          ],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${sendgridApiKey}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      this.logger.log(`✅ [SendGrid API] Bulk campaign email sent successfully to ${rawTo}: ${subject}`);
+    } catch (sgError: any) {
+      const errMsg = sgError?.response?.data ? JSON.stringify(sgError.response.data) : sgError.message;
+      this.logger.error(`❌ [SendGrid API Error] Failed sending bulk email to ${rawTo}: ${errMsg}`, sgError.stack);
+      throw new Error(`SendGrid API Error: ${errMsg}`);
+    }
+  }
+
   async sendEmail(to: string, subject: string, html: string) {
+    const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('EMAIL_FROM') || '"Ovalia Capital" <portal@ovaliacapital.com>';
+
+    const extractEmail = (str: string) => {
+      const match = str.match(/<(.+)>/);
+      return match ? match[1] : str.trim();
+    };
+
+    const extractName = (str: string) => {
+      const match = str.match(/^"(.+)"/);
+      if (match) return match[1];
+      const matchNoQuotes = str.match(/^([^<]+)\s*</);
+      return matchNoQuotes ? matchNoQuotes[1].trim() : 'Ovalia Capital';
+    };
+
+    const rawFrom = extractEmail(from);
+    const rawTo = extractEmail(to);
+
+    // 2. Fallback / Standard SMTP method
     const host = this.configService.get<string>('SMTP_HOST') || this.configService.get<string>('EMAIL_HOST');
     const portString = this.configService.get<string>('SMTP_PORT') || this.configService.get<string>('EMAIL_PORT');
     const port = portString ? parseInt(portString, 10) : 587;
     const user = this.configService.get<string>('SMTP_USER') || this.configService.get<string>('EMAIL_USER');
     const pass = this.configService.get<string>('SMTP_PASS') || this.configService.get<string>('EMAIL_PASS');
-    const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('EMAIL_FROM') || '"Ovalia Capital" <noreply@ovaliacapital.com>';
 
     if (host && port && user && pass) {
       const client = new SMTPClient({ host, port });
@@ -342,14 +439,6 @@ export class EmailService {
 
         await client.authPlain({ username: user, password: pass });
 
-        const extractEmail = (str: string) => {
-          const match = str.match(/<(.+)>/);
-          return match ? match[1] : str.trim();
-        };
-
-        const rawFrom = extractEmail(from);
-        const rawTo = extractEmail(to);
-
         await client.mail({ from: rawFrom });
         await client.rcpt({ to: rawTo });
 
@@ -358,13 +447,13 @@ export class EmailService {
         await client.data(message);
         await client.quit();
 
-        this.logger.log(`✅ Email sent to ${to}: ${subject}`);
+        this.logger.log(`✅ [SMTP] Email sent to ${to}: ${subject}`);
       } catch (error: any) {
         this.logger.error(`❌ SMTP Error sending to ${to}: ${error.message}`, error.stack);
         throw new Error(`Could not send email to ${to}`);
       }
     } else {
-      this.logger.warn('⚠️ Email service configuration missing. Running in dummy mode.');
+      this.logger.warn('⚠️ Email service configuration missing (No SENDGRID_API_KEY or SMTP credentials). Running in dummy mode.');
       this.this_is_dummy_log(to, subject);
     }
   }
