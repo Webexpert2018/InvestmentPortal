@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ChevronDown, MoreVertical, Search, Loader2 } from 'lucide-react';
+import { ChevronDown, MoreVertical, Search, Loader2, Eye, Download, FileText } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -15,42 +15,12 @@ type VaultRow = {
   category: string;
   uploadedDate: string;
   fileUrl: string;
+  isLegacy?: boolean;
 };
-
-const allDocuments: VaultRow[] = [
-  {
-    id: 'k1-2025',
-    documentName: 'k-1_2025.pdf',
-    category: 'K-1',
-    uploadedDate: 'Dec 26, 2025',
-    fileUrl: '/images/document_details.jpg',
-  },
-  {
-    id: 'w9-update',
-    documentName: 'W-9_update8.pdf',
-    category: 'W-9',
-    uploadedDate: 'Dec 26, 2025',
-    fileUrl: '/images/document_details.jpg',
-  },
-  {
-    id: 'statement-q3-1',
-    documentName: 'Statement_Q3.pdf',
-    category: 'Statement',
-    uploadedDate: 'Dec 26, 2025',
-    fileUrl: '/images/document_details.jpg',
-  },
-  {
-    id: 'statement-q3-2',
-    documentName: 'Statement_Q3.pdf',
-    category: 'Statement',
-    uploadedDate: 'Dec 26, 2025',
-    fileUrl: '/images/document_details.jpg',
-  },
-];
 
 export default function DocumentVaultPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [documents, setDocuments] = useState<VaultRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,6 +44,8 @@ export default function DocumentVaultPage() {
   };
 
   useEffect(() => {
+    if (authLoading) return;
+
     const fetchDocs = async () => {
       try {
         setLoading(true);
@@ -90,7 +62,8 @@ export default function DocumentVaultPage() {
             day: 'numeric',
             year: 'numeric'
           }),
-          fileUrl: `${apiClient.getApiUrl()}/documents/${doc.id}/download`
+          fileUrl: `${apiClient.getApiUrl()}/documents/${doc.id}/download`,
+          isLegacy: !!doc.is_legacy,
         }));
         setDocuments(mapped);
       } catch (err) {
@@ -100,15 +73,18 @@ export default function DocumentVaultPage() {
       }
     };
     fetchDocs();
-  }, []);
+  }, [user, authLoading]);
+
+  const standardDocs = useMemo(() => documents.filter(d => !d.isLegacy), [documents]);
+  const legacyDocs = useMemo(() => documents.filter(d => d.isLegacy), [documents]);
 
   const categories = useMemo(() => {
-    const cats = new Set(documents.map(d => d.category));
+    const cats = new Set(standardDocs.map(d => d.category));
     return ['all', ...Array.from(cats)].sort();
-  }, [documents]);
+  }, [standardDocs]);
 
   const filtered = useMemo(() => {
-    return documents.filter((row) => {
+    return standardDocs.filter((row) => {
       const typeMatch = docType === 'all' || row.category === docType;
       const searchMatch =
         query.trim().length === 0 ||
@@ -117,7 +93,7 @@ export default function DocumentVaultPage() {
 
       return typeMatch && searchMatch;
     });
-  }, [documents, query, docType]);
+  }, [standardDocs, query, docType]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
@@ -317,6 +293,89 @@ export default function DocumentVaultPage() {
             </button>
           </div>
         </div>
+
+        {/* Legacy Platform Documents Section */}
+        {legacyDocs.length > 0 && (
+          <div className="mt-8 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm space-y-6">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+              <div>
+                <h2 className="font-goudy font-bold text-lg md:text-xl text-[#1F1F1F]">Legacy Platform Documents</h2>
+                <p className="text-xs text-[#8E8E93] mt-0.5">Historical documents imported from the previous investor portal</p>
+              </div>
+              <span className="text-xs bg-amber-50 text-amber-700 font-bold px-3 py-1 rounded-full border border-amber-200">
+                {legacyDocs.length} Legacy File(s)
+              </span>
+            </div>
+
+            <div className="overflow-x-auto pb-20 custom-scrollbar">
+              <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
+                <thead>
+                  <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
+                    <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
+                    <th className="px-3 py-3">Category</th>
+                    <th className="px-3 py-3">Uploaded Date</th>
+                    <th className="rounded-r-[6px] px-3 py-3 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {legacyDocs.map((row) => (
+                    <tr
+                      key={row.id}
+                      onClick={() => router.push(`/dashboard/document-vault/${row.id}`)}
+                      className="border-b border-[#F1F1F1] hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <td className="px-3 py-4">{row.documentName}</td>
+                      <td className="px-3 py-4">{row.category}</td>
+                      <td className="px-3 py-4">{row.uploadedDate}</td>
+                      <td className="relative px-3 py-4 text-center">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuId((prev) => (prev === row.id ? null : row.id));
+                          }}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5]"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </button>
+
+                        {activeMenuId === row.id && (
+                          <>
+                            <button
+                              type="button"
+                              aria-label="Close menu"
+                              className="fixed inset-0 z-10"
+                              onClick={() => setActiveMenuId(null)}
+                            />
+                            <div className="absolute right-6 top-11 z-20 w-[122px] rounded-[4px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)]">
+                              <Link
+                                href={`/dashboard/document-vault/${row.id}`}
+                                onClick={() => setActiveMenuId(null)}
+                                className="block px-3 py-2 text-[12px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
+                              >
+                                View Document
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleDownload(row.fileUrl, row.documentName);
+                                  setActiveMenuId(null);
+                                }}
+                                className="block w-full px-3 py-2 text-left text-[12px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
+                              >
+                                Download
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

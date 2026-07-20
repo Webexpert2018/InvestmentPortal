@@ -139,6 +139,43 @@ export class DocumentsController {
     return this.documentsService.getInvestorDocuments(investorId, user.userId, user.role);
   }
 
+  @Get('old-investor/:query')
+  async getOldInvestorDocuments(@Param('query') query: string) {
+    return this.documentsService.getOldInvestorDocuments(query);
+  }
+
+  @Get('old-investor/file/:id/view')
+  async viewOldInvestorDocument(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const doc = await this.documentsService.getOldInvestorDocumentById(id);
+      if (!doc) {
+        throw new BadRequestException('Document not found');
+      }
+      const s3Res = await this.documentsService.getOldDocumentS3Stream(doc.s3_key);
+      res.setHeader('Content-Type', s3Res.ContentType || 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${doc.file_name}"`);
+      (s3Res.Body as any).pipe(res);
+    } catch (err: any) {
+      res.status(500).send(`Failed to stream document: ${err.message}`);
+    }
+  }
+
+  @Get('old-investor/file/:id/download')
+  async downloadOldInvestorDocument(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const doc = await this.documentsService.getOldInvestorDocumentById(id);
+      if (!doc) {
+        throw new BadRequestException('Document not found');
+      }
+      const s3Res = await this.documentsService.getOldDocumentS3Stream(doc.s3_key);
+      res.setHeader('Content-Type', s3Res.ContentType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${doc.file_name}"`);
+      (s3Res.Body as any).pipe(res);
+    } catch (err: any) {
+      res.status(500).send(`Failed to download document: ${err.message}`);
+    }
+  }
+
   @Post('kyc/upload')
   @UseInterceptors(FileInterceptor('file', {
     storage: kycDocumentStorage,
@@ -206,10 +243,21 @@ export class DocumentsController {
   @Get(':id/view')
   async viewDocument(@Param('id') id: string, @Res() res: Response) {
     const doc = await this.documentsService.getDocumentById(id);
-    const cleanUrl = doc.file_url.split('?')[0];
+    const cleanUrl = doc.file_url ? doc.file_url.split('?')[0] : '';
     const extension = cleanUrl.split('.').pop()?.toLowerCase();
     const isPDF = extension === 'pdf';
     const contentType = isPDF ? 'application/pdf' : (extension?.match(/^(jpg|jpeg|png|gif|webp)$/) ? `image/${extension}` : 'application/octet-stream');
+
+    if (doc.s3_key) {
+      try {
+        const s3Res = await this.documentsService.getOldDocumentS3Stream(doc.s3_key);
+        res.setHeader('Content-Type', s3Res.ContentType || contentType);
+        res.setHeader('Content-Disposition', `inline; filename="${doc.file_name}"`);
+        return (s3Res.Body as any).pipe(res);
+      } catch (err: any) {
+        return res.status(500).send(`Failed to stream document from S3: ${err.message}`);
+      }
+    }
 
     if (doc.file_url.startsWith('http')) {
       try {
@@ -318,10 +366,21 @@ export class DocumentsController {
   @Get(':id/download')
   async downloadDocument(@Param('id') id: string, @Res() res: Response) {
     const doc = await this.documentsService.getDocumentById(id);
-    const cleanUrl = doc.file_url.split('?')[0];
+    const cleanUrl = doc.file_url ? doc.file_url.split('?')[0] : '';
     const extension = cleanUrl.split('.').pop()?.toLowerCase();
     const isPDF = extension === 'pdf';
     const contentType = isPDF ? 'application/pdf' : (extension?.match(/^(jpg|jpeg|png|gif|webp)$/) ? `image/${extension}` : 'application/octet-stream');
+
+    if (doc.s3_key) {
+      try {
+        const s3Res = await this.documentsService.getOldDocumentS3Stream(doc.s3_key);
+        res.setHeader('Content-Type', s3Res.ContentType || contentType);
+        res.setHeader('Content-Disposition', `attachment; filename="${doc.file_name}"`);
+        return (s3Res.Body as any).pipe(res);
+      } catch (err: any) {
+        return res.status(500).send(`Failed to download document from S3: ${err.message}`);
+      }
+    }
 
     if (doc.file_url.startsWith('http')) {
       try {

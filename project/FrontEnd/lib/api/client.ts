@@ -402,6 +402,10 @@ class ApiClient {
     return this.request<any[]>(`/documents/investor/${investorId}`);
   }
 
+  async getOldInvestorDocuments(query: string) {
+    return this.request<any[]>(`/documents/old-investor/${encodeURIComponent(query)}`);
+  }
+
   async getAllDocuments(status?: string) {
     const params = status ? `?status=${status}` : '';
     return this.request<any[]>(`/documents/all${params}`);

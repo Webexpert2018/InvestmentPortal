@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ChevronDown, MoreVertical, Search, Loader2 } from 'lucide-react';
+import { ChevronDown, MoreVertical, Search, Loader2, FileText, Eye, Download } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
@@ -30,6 +30,7 @@ type TaxVaultRow = {
   uploadedDate: string;
   investorName: string;
   investorAvatar?: string;
+  isLegacy?: boolean;
 };
 
 const statusClass: Record<TaxDocStatus, string> = {
@@ -39,7 +40,7 @@ const statusClass: Record<TaxDocStatus, string> = {
 };
 
 export default function TaxVaultPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
@@ -57,8 +58,9 @@ export default function TaxVaultPage() {
   const [docToDelete, setDocToDelete] = useState<TaxVaultRow | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
     fetchDocuments();
-  }, []);
+  }, [user, authLoading]);
 
 
 
@@ -83,6 +85,7 @@ export default function TaxVaultPage() {
         }),
         investorName: doc.investorName || 'N/A',
         investorAvatar: doc.investorAvatar || '',
+        isLegacy: !!doc.is_legacy,
       }));
 
       setDocuments(mappedRows);
@@ -156,17 +159,24 @@ export default function TaxVaultPage() {
     }
   };
 
-  const uniqueTypes = Array.from(new Set(documents.map(d => d.documentType).filter(Boolean)));
+  const standardDocuments = documents.filter(d => !d.isLegacy);
+  const legacyDocuments = documents.filter(d => d.isLegacy);
+
+  const uniqueTypes = Array.from(new Set(standardDocuments.map(d => d.documentType).filter(Boolean)));
   const documentTypes = ['All', ...uniqueTypes.sort()];
 
-  const uniqueYears = Array.from(new Set(documents.map(d => d.taxYear).filter(y => y && y !== 'N/A')));
+  const uniqueYears = Array.from(new Set(standardDocuments.map(d => d.taxYear).filter(y => y && y !== 'N/A')));
   const taxYears = ['All', ...uniqueYears.sort((a, b) => b.localeCompare(a))];
 
-  const filteredDocuments = documents.filter(doc => {
-    const searchStr = `${doc.fileName} ${doc.investorName} ${doc.documentType} ${doc.taxYear} ${doc.uploadedDate}`.toLowerCase();
-    const matchesSearch = searchStr.includes(searchQuery.toLowerCase());
+  const filteredDocuments = standardDocuments.filter((doc) => {
+    const matchesSearch =
+      doc.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.documentType?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.investorName?.toLowerCase().includes(searchQuery.toLowerCase());
+
     const matchesType = selectedType === 'All' || doc.documentType === selectedType;
     const matchesYear = selectedYear === 'All' || doc.taxYear === selectedYear;
+
     return matchesSearch && matchesType && matchesYear;
   });
 
@@ -445,6 +455,107 @@ export default function TaxVaultPage() {
             )}
           </div>
         </div>
+
+        {/* Legacy Platform Documents Section */}
+        {legacyDocuments.length > 0 && (
+          <div className="mt-8 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm space-y-6">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+              <div>
+                <h2 className="font-goudy font-bold text-lg md:text-xl text-[#1F1F1F]">Legacy Platform Documents</h2>
+                <p className="text-xs text-[#8E8E93] mt-0.5">Historical tax documents and K-1s imported from the legacy portal</p>
+              </div>
+              <span className="text-xs bg-amber-50 text-amber-700 font-bold px-3 py-1 rounded-full border border-amber-200">
+                {legacyDocuments.length} Legacy File(s)
+              </span>
+            </div>
+
+            <div className="overflow-x-auto -mx-4 sm:mx-0 custom-scrollbar">
+              <div className="min-w-[900px] sm:min-w-full inline-block align-middle px-4 sm:px-0">
+                <table className="w-full border-separate border-spacing-0 text-[13px] md:text-[14px] text-[#4B4B4B]">
+                  <thead>
+                    <tr className="bg-[#FAFAFA] text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap">
+                      {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF]">Investor</th>}
+                      <th className="px-4 py-3 border-b border-[#ECEDEF]">File Name</th>
+                      <th className="px-4 py-3 border-b border-[#ECEDEF]">Document Type</th>
+                      <th className="px-4 py-3 border-b border-[#ECEDEF]">Tax Year</th>
+                      <th className="px-4 py-3 border-b border-[#ECEDEF]">Uploaded Date</th>
+                      <th className="px-4 py-3 text-right border-b border-[#ECEDEF]">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {legacyDocuments.map((row, index) => (
+                      <tr
+                        key={row.id}
+                        onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
+                        className="border-b border-[#F1F1F1] hover:bg-gray-50/50 cursor-pointer transition-colors"
+                      >
+                        {user?.role !== 'investor' && (
+                          <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                            <div className="flex items-center gap-3">
+                              {row.investorAvatar ? (
+                                <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
+                              ) : (
+                                <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[11px] font-semibold font-helvetica border border-[#E5E7EB]">
+                                  {row.investorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                </div>
+                              )}
+                              <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{row.investorName}</span>
+                            </div>
+                          </td>
+                        )}
+                        <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
+                        <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.documentType || 'Tax Document'}</td>
+                        <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.taxYear}</td>
+                        <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.uploadedDate}</td>
+                        <td className="relative px-4 py-4 border-b border-[#F5F5F5] text-right">
+                          <button
+                            type="button"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuId((prev) => (prev === row.id ? null : row.id));
+                            }}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+
+                          {activeMenuId === row.id && (
+                            <>
+                              <button
+                                type="button"
+                                aria-label="Close menu"
+                                className="fixed inset-0 z-10"
+                                onClick={() => setActiveMenuId(null)}
+                              />
+                              <div className={`absolute right-6 z-20 w-[145px] rounded-[6px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100 ${
+                                index === legacyDocuments.length - 1 ? 'bottom-11' : 'top-11'
+                              }`}>
+                                <Link
+                                  href={`/dashboard/tax-vault/details/${row.id}`}
+                                  className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
+                                  onClick={() => setActiveMenuId(null)}
+                                >
+                                  View Document
+                                </Link>
+                                <button
+                                  type="button"
+                                  className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
+                                  onClick={() => handleDownload(row.id)}
+                                >
+                                  Download
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
 
         <AlertDialog open={!!docToDelete} onOpenChange={(isOpen) => !isOpen && setDocToDelete(null)}>
           <AlertDialogContent className="bg-white rounded-[20px] border-none shadow-2xl p-8 max-w-[520px]">

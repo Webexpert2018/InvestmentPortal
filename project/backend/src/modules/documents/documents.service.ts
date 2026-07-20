@@ -1,5 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { db } from '../../config/database';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+  },
+});
 
 @Injectable()
 export class DocumentsService {
@@ -30,7 +39,21 @@ export class DocumentsService {
     query += ` ORDER BY d.uploaded_at DESC`;
 
     const result = await db.query(query, params);
-    return result.rows;
+
+    const oldDocsRes = await db.query(`SELECT * FROM old_investor_documents ORDER BY created_at DESC`);
+    const legacyDocs = oldDocsRes.rows.map((d: any) => ({
+      id: d.id,
+      file_name: d.file_name,
+      file_url: d.file_url,
+      document_type: d.document_type || 'Legacy Document',
+      tax_year: d.tax_year,
+      uploaded_at: d.created_at,
+      investorName: d.investor_name || d.investor_profile_legal_name || 'Legacy Investor',
+      is_legacy: true,
+      s3_key: d.s3_key,
+    }));
+
+    return [...result.rows, ...legacyDocs];
   }
 
   async uploadFundDocument(fundId: string | null, data: {
@@ -113,13 +136,91 @@ export class DocumentsService {
     return result.rows;
   }
 
+  async getOldInvestorDocuments(searchTerm: string) {
+    if (!searchTerm || !searchTerm.trim()) return [];
+
+    const term = searchTerm.trim();
+    let email = term;
+    let legalName = term;
+    let profileId: number | null = parseInt(term, 10);
+
+    if (!isNaN(profileId)) {
+      const invRes = await db.query(
+        `SELECT DISTINCT email_address, investor_profile_legal_name 
+         FROM old_investments 
+         WHERE investor_profile_id = $1 
+         LIMIT 1`,
+        [profileId]
+      );
+      if (invRes.rows.length > 0) {
+        if (invRes.rows[0].email_address) email = invRes.rows[0].email_address;
+        if (invRes.rows[0].investor_profile_legal_name) legalName = invRes.rows[0].investor_profile_legal_name;
+      }
+    }
+
+    const result = await db.query(
+      `SELECT * FROM old_investor_documents 
+       WHERE investor_profile_id::text = $1 
+          OR email_address ILIKE $2 
+          OR investor_profile_legal_name ILIKE $3
+          OR email_address ILIKE $3
+          OR investor_profile_legal_name ILIKE $2
+       ORDER BY created_at DESC`,
+      [term, `%${email}%`, `%${legalName}%`]
+    );
+    return result.rows;
+  }
+
+  async getOldInvestorDocumentById(id: string) {
+    const result = await db.query('SELECT * FROM old_investor_documents WHERE id = $1', [id]);
+    return result.rows[0];
+  }
+
+  async getOldDocumentS3Stream(s3Key: string) {
+    const command = new GetObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET || 'investor-portal-old-docs',
+      Key: s3Key,
+    });
+    return await s3Client.send(command);
+  }
+
   async getMyDocuments(investorId: string) {
     // Both fund documents (if applicable) and personal investor documents
     const investorDocs = await this.getInvestorDocuments(investorId);
 
-    // Also include any specific fund documents that this investor might have access to?
-    // For now, just return investor_documents as that's what the vault expects for KYC/Tax docs.
-    return investorDocs;
+    // Look up email & full_name from investors or users table
+    let email = '';
+    let fullName = '';
+
+    const invRes = await db.query('SELECT email, full_name FROM investors WHERE id = $1', [investorId]);
+    if (invRes.rows.length > 0) {
+      email = invRes.rows[0].email || '';
+      fullName = invRes.rows[0].full_name || '';
+    } else {
+      const userRes = await db.query("SELECT email, TRIM(CONCAT(first_name, ' ', last_name)) as full_name FROM users WHERE id = $1", [investorId]);
+      if (userRes.rows.length > 0) {
+        email = userRes.rows[0].email || '';
+        fullName = userRes.rows[0].full_name || '';
+      }
+    }
+
+    let legacyDocs: any[] = [];
+    const searchStr = email || fullName || investorId;
+    if (searchStr) {
+      const oldDocs = await this.getOldInvestorDocuments(searchStr);
+      legacyDocs = oldDocs.map((d: any) => ({
+        id: d.id,
+        file_name: d.file_name,
+        file_url: d.file_url,
+        document_type: d.document_type || 'Legacy Document',
+        tax_year: d.tax_year,
+        uploaded_at: d.created_at,
+        is_legacy: true,
+        s3_key: d.s3_key,
+      }));
+    }
+
+    return [...investorDocs, ...legacyDocs];
   }
 
   async getDocumentById(id: string) {
@@ -131,6 +232,12 @@ export class DocumentsService {
 
     // Then check investor_documents
     result = await db.query('SELECT * FROM investor_documents WHERE id = $1', [id]);
+    if (result.rowCount && result.rowCount > 0) {
+      return result.rows[0];
+    }
+
+    // Check old_investor_documents
+    result = await db.query('SELECT * FROM old_investor_documents WHERE id = $1', [id]);
     if (result.rowCount && result.rowCount > 0) {
       return result.rows[0];
     }

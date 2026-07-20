@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronLeft, Users, Mail, ShieldAlert, Award, FileText, BadgeCheck, DollarSign, PieChart, Activity } from 'lucide-react';
+import { ChevronLeft, Users, Mail, ShieldAlert, Award, FileText, BadgeCheck, DollarSign, PieChart, Activity, Download, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useRouter, useParams } from 'next/navigation';
@@ -12,6 +12,7 @@ export default function OldFundInvestorDetailPage() {
   const router = useRouter();
   const params = useParams();
   const [investorData, setInvestorData] = useState<any>(null);
+  const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -27,8 +28,12 @@ export default function OldFundInvestorDetailPage() {
       if (isNaN(profileId)) {
         throw new Error('Invalid parameters');
       }
-      const data = await apiClient.getOldInvestorAllFunds(profileId);
+      const [data, docs] = await Promise.all([
+        apiClient.getOldInvestorAllFunds(profileId),
+        apiClient.getOldInvestorDocuments(params.profileId as string).catch(() => [])
+      ]);
       setInvestorData(data);
+      setDocuments(docs || []);
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch investor investment details');
     } finally {
@@ -249,6 +254,86 @@ export default function OldFundInvestorDetailPage() {
           )}
         </div>
 
+        {/* Legacy Documents Section */}
+        <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6 mt-8">
+          <div className="border-b border-gray-50 pb-3 flex justify-between items-center">
+            <h3 className="text-lg font-bold text-gray-900 font-goudy">
+              Legacy Investor Documents
+            </h3>
+            <span className="inline-flex items-center justify-center bg-amber-50 text-amber-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-amber-200">
+              {documents.length} Document(s)
+            </span>
+          </div>
+
+          {documents && documents.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">No.</th>
+                    <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider pl-3">Document Name</th>
+                    <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider pl-3">Type</th>
+                    <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Tax Year</th>
+                    <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Uploaded Date</th>
+                    <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {documents.map((doc: any, idx: number) => (
+                    <tr key={doc.id || idx} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="py-4 text-sm font-medium text-gray-400 text-left">
+                        #{idx + 1}
+                      </td>
+                      <td className="py-4 text-left text-sm font-semibold text-[#1F3B6E] pl-3 flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-amber-500 shrink-0" />
+                        <span className="truncate max-w-xs">{doc.file_name}</span>
+                      </td>
+                      <td className="py-4 text-left text-sm font-medium text-gray-600 pl-3">
+                        {doc.document_type || 'Tax Document'}
+                      </td>
+                      <td className="py-4 text-center text-sm font-medium text-gray-700">
+                        {doc.tax_year || 'N/A'}
+                      </td>
+                      <td className="py-4 text-center text-sm text-gray-600">
+                        {formatDate(doc.created_at)}
+                      </td>
+                      <td className="py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => {
+                              const token = localStorage.getItem('token');
+                              const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+                              window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${doc.id}/view${tokenParam}`, '_blank');
+                            }}
+                            className="p-2 text-gray-600 hover:text-[#1F3B6E] hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1 text-xs font-medium"
+                            title="View Document"
+                          >
+                            <Eye className="h-4 w-4" /> View
+                          </button>
+                          <button
+                            onClick={() => {
+                              const token = localStorage.getItem('token');
+                              const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+                              window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${doc.id}/download${tokenParam}`, '_blank');
+                            }}
+                            className="p-2 text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-medium"
+                            title="Download Document"
+                          >
+                            <Download className="h-4 w-4" /> Download
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-sm text-gray-400 font-medium">No legacy documents uploaded yet.</p>
+            </div>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );
