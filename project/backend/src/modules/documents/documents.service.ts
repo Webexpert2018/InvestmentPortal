@@ -26,7 +26,7 @@ export class DocumentsService {
       FROM investor_documents d
       JOIN investors i ON d.investor_id = i.id
     `;
-    const params = [];
+    const params: any[] = [];
 
     if (role === 'accountant' && userId) {
       query += ` WHERE i.assigned_accountant_id = $1 `;
@@ -40,7 +40,56 @@ export class DocumentsService {
 
     const result = await db.query(query, params);
 
-    const oldDocsRes = await db.query(`SELECT * FROM old_investor_documents ORDER BY created_at DESC`);
+    let oldDocsQuery = `SELECT * FROM old_investor_documents ORDER BY created_at DESC`;
+    let oldDocsParams: any[] = [];
+
+    if (role === 'accountant' && userId) {
+      oldDocsQuery = `
+        SELECT d.*
+        FROM old_investor_documents d
+        WHERE EXISTS (
+          SELECT 1 FROM investors i 
+          WHERE i.assigned_accountant_id = $1 
+            AND i.email IS NOT NULL 
+            AND TRIM(i.email) != ''
+            AND (
+              (d.email_address IS NOT NULL AND LOWER(TRIM(i.email)) = LOWER(TRIM(d.email_address)))
+              OR EXISTS (
+                SELECT 1 FROM old_investments oi
+                WHERE oi.investor_profile_id = d.investor_profile_id
+                  AND oi.email_address IS NOT NULL
+                  AND LOWER(TRIM(i.email)) = LOWER(TRIM(oi.email_address))
+              )
+            )
+        )
+        ORDER BY d.created_at DESC
+      `;
+      oldDocsParams = [userId];
+    } else if (role === 'investor' && userId) {
+      oldDocsQuery = `
+        SELECT d.*
+        FROM old_investor_documents d
+        WHERE EXISTS (
+          SELECT 1 FROM investors i 
+          WHERE i.id = $1 
+            AND i.email IS NOT NULL 
+            AND TRIM(i.email) != ''
+            AND (
+              (d.email_address IS NOT NULL AND LOWER(TRIM(i.email)) = LOWER(TRIM(d.email_address)))
+              OR EXISTS (
+                SELECT 1 FROM old_investments oi
+                WHERE oi.investor_profile_id = d.investor_profile_id
+                  AND oi.email_address IS NOT NULL
+                  AND LOWER(TRIM(i.email)) = LOWER(TRIM(oi.email_address))
+              )
+            )
+        )
+        ORDER BY d.created_at DESC
+      `;
+      oldDocsParams = [userId];
+    }
+
+    const oldDocsRes = await db.query(oldDocsQuery, oldDocsParams);
     const legacyDocs = oldDocsRes.rows.map((d: any) => ({
       id: d.id,
       file_name: d.file_name,
