@@ -183,6 +183,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     { id: 'basic', label: 'Basic Details' },
     { id: 'kyc', label: 'KYC Status' },
     { id: 'redemption', label: 'Redemption History' },
+    { id: 'legacy_docs', label: 'Legacy Documents' },
   ];
 
   const getStatusColor = (status: string) => {
@@ -1275,58 +1276,6 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       </div>
                     )}
                   </div>
-
-                  {/* Legacy Platform Documents */}
-                  {oldDocuments.length > 0 && (
-                    <div className="space-y-4 pt-6 border-t border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Legacy Platform Documents</h4>
-                        <span className="text-xs bg-amber-50 text-amber-700 font-bold px-2.5 py-0.5 rounded-full border border-amber-200">
-                          {oldDocuments.length} Legacy File(s)
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {oldDocuments.map((doc, index) => (
-                          <div key={doc.id || index} className="group relative flex flex-col p-5 bg-amber-50/20 border border-amber-100 rounded-2xl hover:border-amber-300 hover:shadow-xl hover:shadow-amber-50/50 transition-all">
-                            <div className="flex items-start justify-between mb-4">
-                              <div className="p-3 bg-amber-100 rounded-xl">
-                                <FileText className="w-6 h-6 text-amber-600" />
-                              </div>
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => {
-                                    const token = localStorage.getItem('token');
-                                    const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-                                    window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${doc.id}/view${tokenParam}`, '_blank');
-                                  }}
-                                  className="p-2 bg-white text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors border border-gray-100 shadow-sm"
-                                  title="View"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    const token = localStorage.getItem('token');
-                                    const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-                                    window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${doc.id}/download${tokenParam}`, '_blank');
-                                  }}
-                                  className="p-2 bg-white text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors border border-gray-100 shadow-sm"
-                                  title="Download"
-                                >
-                                  <Download className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-xs font-bold text-amber-600 uppercase tracking-tight">{doc.document_type || 'Tax Document'}</p>
-                              <p className="text-sm font-bold text-gray-900 truncate">{doc.file_name}</p>
-                              <p className="text-[10px] text-gray-400 font-medium">Uploaded on {new Date(doc.created_at).toLocaleDateString()}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })()}
@@ -1413,6 +1362,68 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'legacy_docs' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Legacy Documents</h4>
+                  {oldDocuments.length > 0 && (
+                    <span className="text-xs bg-amber-50 text-amber-700 font-bold px-2.5 py-0.5 rounded-full border border-amber-200">
+                      {oldDocuments.length} Legacy File(s)
+                    </span>
+                  )}
+                </div>
+                {oldDocuments.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {oldDocuments.map((doc, index) => (
+                      <div key={doc.id || index} className="group relative flex flex-col p-5 bg-amber-50/20 border border-amber-100 rounded-2xl hover:border-amber-300 hover:shadow-xl hover:shadow-amber-50/50 transition-all">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="p-3 bg-amber-100 rounded-xl">
+                            <FileText className="w-6 h-6 text-amber-600" />
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                const token = localStorage.getItem('token');
+                                const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+                                window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${doc.id}/view${tokenParam}`, '_blank');
+                              }}
+                              className="p-2 bg-white text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors border border-gray-100 shadow-sm"
+                              title="View"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                const token = localStorage.getItem('token');
+                                const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+                                window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${doc.id}/download${tokenParam}`, '_blank');
+                              }}
+                              className="p-2 bg-white text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors border border-gray-100 shadow-sm"
+                              title="Download"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-bold text-amber-600 uppercase tracking-tight">{doc.document_type || 'Tax Document'}</p>
+                          <p className="text-sm font-bold text-gray-900 truncate">{doc.file_name}</p>
+                          <p className="text-[10px] text-gray-400 font-medium">Uploaded on {new Date(doc.created_at).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                    <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                      <FileText className="w-6 h-6 text-gray-300" />
+                    </div>
+                    <p className="text-xs text-gray-500 font-medium">No legacy documents</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
