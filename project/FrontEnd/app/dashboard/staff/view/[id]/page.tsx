@@ -172,10 +172,11 @@ export default function ViewStaffPage() {
           </button>
         </div>
 
-        {/* Column 1: Profile Photo */}
-        <div className="flex flex-col xl:flex-row gap-8">
-          <div className="flex-shrink-0">
-            <div className="w-[240px] h-[340px] rounded-xl overflow-hidden shadow-md relative bg-gray-100">
+        {/* Top Header Summary Profile Card */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50/40 via-white to-gray-50/40 rounded-2xl border border-amber-100/60 shadow-xs mb-6">
+          {/* Left: Avatar & Name/Joined Date */}
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-amber-200/80 shadow-xs overflow-hidden bg-amber-100 shrink-0 flex items-center justify-center">
               {staff.profile_image_url ? (
                 <Image
                   src={staff.profile_image_url}
@@ -184,169 +185,196 @@ export default function ViewStaffPage() {
                   className="object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-[#274583] text-white text-[80px] font-bold">
+                <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-[#1F1F1F] text-xl sm:text-2xl font-extrabold tracking-tight">
                   {getInitials(staff.full_name)}
                 </div>
               )}
             </div>
+            <div className="flex flex-col min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1F1F1F] leading-tight truncate">
+                {staff.full_name}
+              </h2>
+              <p className="text-xs text-gray-500 font-medium mt-1 flex items-center gap-1">
+                Joined date: <span className="text-gray-800 font-semibold">{formatDate(staff.created_at)}</span>
+              </p>
+            </div>
           </div>
 
-          {/* Column 2: Content Details */}
-          <div className="flex-1">
-            {/* Header: Name, Date, Buttons */}
-            <div className="flex items-start justify-between mb-8">
-              <div>
-                <h1 className="text-[32px] font-serif font-medium text-[#1F1F1F] mb-1">{staff.full_name}</h1>
-                <p className="text-gray-500 text-sm">Joined date: {formatDate(staff.created_at)}</p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleDelete}
-                  className="bg-[#FFFBEB] hover:bg-[#FEF3C7] text-gray-500 px-8 py-2 rounded-full font-medium border-none shadow-none transition-all"
-                >
-                  Delete
-                </button>
-                <Link
-                  href={`/dashboard/staff/edit/${staff.id}`}
-                  className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-10 py-2 rounded-full font-medium border-none shadow-sm transition-all"
-                >
-                  Edit
-                </Link>
-              </div>
+          {/* Top Right: Action Buttons */}
+          <div className="flex items-center justify-start sm:justify-end gap-2 overflow-x-auto max-w-full pb-1 shrink-0">
+            <button
+              onClick={() => setIsDeleteModalOpen(true)}
+              className="h-9 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
+            >
+              Delete
+            </button>
+            <Link
+              href={`/dashboard/staff/edit/${staff.id}`}
+              className="h-9 px-6 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
+            >
+              Edit
+            </Link>
+          </div>
+        </div>
+
+        {/* Details Card Section */}
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 sm:p-6 space-y-4 mb-6">
+          <h3 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider pb-2 border-b border-gray-100">
+            Staff Details
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="space-y-0.5">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Email</span>
+              <a
+                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(staff.email || '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs sm:text-sm font-bold text-gray-900 truncate block hover:text-[#2A4474] hover:underline cursor-pointer transition-colors"
+                title="Click to compose email in Gmail"
+              >
+                {staff.email}
+              </a>
             </div>
 
-            {/* Fields Arrangement */}
-            <div className="grid grid-cols-2 gap-y-8 gap-x-12 mb-12">
-              <div>
-                <p className="text-[12px] tracking-wider text-gray-400 mb-2 font-bold">Email</p>
-                <p className="text-[18px] text-[#1F1F1F] font-medium">{staff.email}</p>
-              </div>
-              <div>
-                <p className="text-[12px] tracking-wider text-gray-400 mb-2 font-bold">Phone Number</p>
-                <p className="text-[18px] text-[#1F1F1F] font-medium">{formatPhoneDisplay(staff.phone) || '(Not set)'}</p>
-              </div>
-              <div className="col-span-1">
-                <p className="text-[12px] tracking-wider text-gray-400 mb-2 font-bold">Password</p>
-                <p className="text-[18px] text-[#1F1F1F] font-medium">••••••••</p>
-              </div>
-              <div className="col-span-1">
-                <p className="text-[12px] tracking-wider text-gray-400 mb-2 font-bold">Role</p>
-                <p className="text-[18px] text-[#1F1F1F] font-medium capitalize">{staff.role?.replace('_', ' ')}</p>
-              </div>
-              {staff.associated_fund_name && (
-                <div className="col-span-1">
-                  <p className="text-[12px] tracking-wider text-gray-400 mb-2 font-bold">Associated Fund</p>
-                  <p className="text-[18px] text-[#274583] font-medium">{staff.associated_fund_name}</p>
-                </div>
-              )}
+            <div className="space-y-0.5">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Phone Number</span>
+              <p
+                onClick={() => {
+                  if (staff.phone) {
+                    navigator.clipboard.writeText(staff.phone);
+                    toast.success('Phone number copied to clipboard');
+                  }
+                }}
+                className="text-xs sm:text-sm font-bold text-gray-900 cursor-pointer hover:text-amber-600 transition-colors block"
+                title="Click to copy phone number"
+              >
+                {formatPhoneDisplay(staff.phone) || '(Not set)'}
+              </p>
             </div>
 
-            {/* Assignments Table */}
-            {staff.role !== 'partnership' && (
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
-                <div className="bg-[#F8F9FA] border-b border-gray-100 px-6 py-4">
-                  <h3 className="text-[15px] font-bold text-[#1F1F1F]">Assigned Investors</h3>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="px-6 py-4 text-[11px] font-bold text-gray-500">Assigned Date</th>
-                        <th className="px-6 py-4 text-[11px] font-bold text-gray-500">Investor Name</th>
-                        <th className="px-6 py-4 text-[11px] font-bold text-gray-500 text-right pr-12">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {currentInvestors.length === 0 ? (
-                        <tr>
-                          <td colSpan={3} className="px-6 py-16 text-center text-gray-400 bg-white italic font-medium">
-                            No assigned investors yet
-                          </td>
-                        </tr>
-                      ) : (
-                        currentInvestors.map((investor) => (
-                          <tr key={investor.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 text-gray-600 text-sm">{formatDate(investor.updated_at || investor.created_at)}</td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#274583] flex items-center justify-center text-white font-semibold text-[11px]">
-                                  {getInitials(investor.full_name)}
-                                </div>
-                                <span className="text-[14px] font-medium text-[#1F1F1F]">{investor.full_name}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 text-right pr-12">
-                              <div className="relative inline-block text-left">
-                                <button
-                                  onClick={() => setActiveDropdown(activeDropdown === investor.id ? null : investor.id)}
-                                  className="p-1 hover:bg-gray-100 rounded-md transition-colors"
-                                >
-                                  <MoreVertical className="h-4 w-4 text-gray-400" />
-                                </button>
+            <div className="space-y-0.5">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Password</span>
+              <p className="text-xs sm:text-sm font-bold text-gray-900">••••••••</p>
+            </div>
 
-                                {activeDropdown === investor.id && (
-                                  <>
-                                    <div
-                                      className="fixed inset-0 z-10"
-                                      onClick={() => setActiveDropdown(null)}
-                                    />
-                                    <div className="absolute right-0 top-full mt-2 w-36 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-20">
-                                      <Link
-                                        href={`/dashboard/investor/${investor.id}`}
-                                        className="block w-full px-4 py-2 text-left text-[13px] text-gray-700 hover:bg-gray-50 transition-colors"
-                                      >
-                                        View Profile
-                                      </Link>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+            <div className="space-y-0.5">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Role</span>
+              <p className="text-xs sm:text-sm font-bold text-gray-900 capitalize">{staff.role?.replace('_', ' ')}</p>
+            </div>
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-end px-6 py-4 gap-4 border-t border-gray-50">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className={`flex items-center gap-1 text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      <span>Previous</span>
-                    </button>
-
-                    <div className="flex gap-1">
-                      {[...Array(totalPages)].map((_, i) => (
-                        <button
-                          key={i + 1}
-                          onClick={() => setCurrentPage(i + 1)}
-                          className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === i + 1 ? 'bg-[#1F3B6E] text-white' : 'text-gray-400 hover:bg-gray-100'}`}
-                        >
-                          {i + 1}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      className={`flex items-center gap-1 text-sm font-medium ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      <span>Next</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
+            {staff.associated_fund_name && (
+              <div className="space-y-0.5">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Associated Fund</span>
+                <p className="text-xs sm:text-sm font-bold text-[#2A4474]">{staff.associated_fund_name}</p>
               </div>
             )}
           </div>
         </div>
+
+        {/* Assignments Table Section */}
+        {staff.role !== 'partnership' && (
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 sm:p-6 space-y-4">
+            <h3 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider pb-2 border-b border-gray-100">
+              Assigned Investors
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Assigned Date</th>
+                    <th className="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Investor Name</th>
+                    <th className="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-right pr-6">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {currentInvestors.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="px-4 py-12 text-center text-xs text-gray-400 italic">
+                        No assigned investors yet
+                      </td>
+                    </tr>
+                  ) : (
+                    currentInvestors.map((investor) => (
+                      <tr key={investor.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 text-xs text-gray-600 font-medium">{formatDate(investor.updated_at || investor.created_at)}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full bg-[#274583] flex items-center justify-center text-white font-bold text-[10px] shrink-0">
+                              {getInitials(investor.full_name)}
+                            </div>
+                            <span className="text-xs font-bold text-[#1F1F1F]">{investor.full_name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right pr-6">
+                          <div className="relative inline-block text-left">
+                            <button
+                              onClick={() => setActiveDropdown(activeDropdown === investor.id ? null : investor.id)}
+                              className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                            >
+                              <MoreVertical className="h-4 w-4 text-gray-400" />
+                            </button>
+
+                            {activeDropdown === investor.id && (
+                              <>
+                                <div
+                                  className="fixed inset-0 z-10"
+                                  onClick={() => setActiveDropdown(null)}
+                                />
+                                <div className="absolute right-0 top-full mt-1 w-36 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-20">
+                                  <Link
+                                    href={`/dashboard/investor/${investor.id}`}
+                                    className="block w-full px-3 py-1.5 text-left text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                  >
+                                    View Profile
+                                  </Link>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-end pt-3 gap-3 border-t border-gray-100">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className={`flex items-center gap-1 text-xs font-bold ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-gray-800'}`}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>Previous</span>
+                </button>
+
+                <div className="flex gap-1">
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i + 1}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors ${currentPage === i + 1 ? 'bg-[#1F3B6E] text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className={`flex items-center gap-1 text-xs font-bold ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-gray-800'}`}
+                >
+                  <span>Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         <DeleteStaffModal
           isOpen={isDeleteModalOpen}

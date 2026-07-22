@@ -713,9 +713,9 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
             {activeTab === 'basic' && (
               <div className="space-y-5">
                 {/* Header Summary Profile Card */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50/40 via-white to-gray-50/40 rounded-2xl border border-amber-100/60 shadow-xs">
-                  {/* Left: Avatar & Name */}
-                  <div className="flex items-center gap-3 min-w-0">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center overflow-x-auto justify-between gap-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50/40 via-white to-gray-50/40 rounded-2xl border border-amber-100/60 shadow-xs w-full">
+                  {/* Left: Avatar & Name & Meta Info */}
+                  <div className="flex items-start gap-3 min-w-0 shrink-0">
                     <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-amber-200/80 shadow-xs overflow-hidden bg-amber-100 shrink-0 flex items-center justify-center">
                       {investorData.profileImageUrl ? (
                         <Image
@@ -732,9 +732,9 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-col min-w-0">
+                    <div className="flex flex-col min-w-0 shrink-0">
                       <div className="flex items-center gap-2">
-                        <h2 className="text-xl sm:text-2xl font-bold text-[#1F1F1F] leading-tight truncate">
+                        <h2 className="text-xl sm:text-2xl font-bold text-[#1F1F1F] leading-tight whitespace-nowrap">
                           {investorData.firstName} {investorData.lastName}
                         </h2>
                         {canEditProfile && (
@@ -749,15 +749,15 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       </div>
                       {/* Meta Info below Investor Name (stacked vertically) */}
                       <div className="flex flex-col gap-1 mt-1.5 text-xs text-gray-500 font-medium">
-                        <p className="flex items-center gap-1.5">
+                        <p className="flex items-center gap-1.5 whitespace-nowrap">
                           <Calendar className="h-3.5 w-3.5 shrink-0 text-amber-500" />
                           Joined date: <span className="text-gray-800 font-semibold">{new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         </p>
-                        <p className="flex items-center gap-1.5">
+                        <p className="flex items-center gap-1.5 whitespace-nowrap">
                           <Shield className="h-3.5 w-3.5 shrink-0 text-amber-500" />
                           Accountant: <span className="text-gray-900 font-bold">{investorData.assignedAccountantName || 'Not assigned'}</span>
                         </p>
-                        <p className="flex items-center gap-1.5">
+                        <p className="flex items-center gap-1.5 whitespace-nowrap">
                           <User className="h-3.5 w-3.5 shrink-0 text-amber-500" />
                           Investor Relation: <span className="text-gray-900 font-bold">{investorData.assignedIrName || 'Not assigned'}</span>
                         </p>
@@ -765,8 +765,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     </div>
                   </div>
 
-                  {/* Top Right: Action Buttons in one single line */}
-                  <div className="flex items-center justify-start sm:justify-end gap-2 overflow-x-auto max-w-full pb-1 shrink-0">
+                  {/* Right: Action Buttons in top right on large screens */}
+                  <div className="flex flex-wrap items-center justify-start lg:justify-end gap-2 w-full lg:w-auto shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-gray-100/80">
                     {(() => {
                       const isPending = investorData.status === 'pending';
 
