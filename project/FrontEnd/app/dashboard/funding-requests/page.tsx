@@ -265,7 +265,7 @@ export default function FundingRequestsPage() {
                           </span>
                         </td>
                         <td className="px-6 py-5 whitespace-nowrap">
-                          <Link href={`/dashboard/investor/${request.user_id}?tab=basic&from=funding-requests`}>
+                          <Link href={`/dashboard/investor/${request.user_id}?tab=funding&from=funding-requests`}>
                             <button className="px-5 py-2 bg-white border border-gray-200 text-[#1F3B6E] text-[11px] font-bold rounded-full hover:bg-[#1F3B6E] hover:text-white hover:border-[#1F3B6E] transition-all shadow-sm">
                               View History
                             </button>

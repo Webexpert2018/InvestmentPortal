@@ -906,11 +906,30 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           <div className="space-y-3">
                             <div className="space-y-0.5">
                               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Email</span>
-                              <p className="text-xs sm:text-sm font-bold text-gray-900 truncate">{investorData.email}</p>
+                              <a
+                                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(investorData.email || '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs sm:text-sm font-bold text-gray-900 truncate block hover:text-[#2A4474] hover:underline cursor-pointer transition-colors"
+                                title="Click to compose email in Gmail"
+                              >
+                                {investorData.email}
+                              </a>
                             </div>
                             <div className="space-y-0.5">
-                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Phone Number</span>
-                              <p className="text-xs sm:text-sm font-bold text-gray-900">{formatPhoneDisplay(investorData.phone) || 'Not provided'}</p>
+                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Phone Number</span>
+                              <p
+                                onClick={() => {
+                                  if (investorData.phone) {
+                                    navigator.clipboard.writeText(investorData.phone);
+                                    toast.success('Phone number copied to clipboard');
+                                  }
+                                }}
+                                className="text-xs sm:text-sm font-bold text-gray-900 cursor-pointer hover:text-amber-600 transition-colors block"
+                                title="Click to copy phone number"
+                              >
+                                {formatPhoneDisplay(investorData.phone) || 'Not provided'}
+                              </p>
                             </div>
                             <div className="space-y-0.5">
                               <div className="flex items-center justify-between">
