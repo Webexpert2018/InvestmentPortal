@@ -1434,6 +1434,32 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  // Doctor Campaign & Apollo Integration
+  async searchApolloProspects(data: { specialties: string; locations: string; seniorities: string; count: number }) {
+    return this.request<{ success: boolean; count: number; prospects: any[] }>('/webinar-campaign/apollo/search', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async bulkEnrichAndSaveProspects(data: { apolloIds: string[]; mockProfilesData?: any[] }) {
+    return this.request<{ success: boolean; enrichedCount: number; prospects: any[] }>('/webinar-campaign/apollo/bulk-enrich-save', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getSavedDoctorProspects(limit: number = 100) {
+    return this.request<{ success: boolean; count: number; prospects: any[] }>(`/webinar-campaign/prospects?limit=${limit}`);
+  }
+
+  async sendDoctorOutreachEmails(data: { prospectIds: string[]; customMessage?: string; mockProfilesData?: any[] }) {
+    return this.request<{ success: boolean; sentCount: number; failedCount: number; sentProspects: any[] }>('/webinar-campaign/send-outreach', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 

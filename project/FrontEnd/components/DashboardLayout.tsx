@@ -105,6 +105,14 @@ const isRouteAuthorized = (pathname: string, userRole: string | null | undefined
     return role === 'admin' || role === 'executive_admin';
   }
 
+  // --- Doctor Leads & Doctor CRM (Admin, Executive Admin, Investor Relations) ---
+  if (
+    pathname === '/dashboard/doctor-leads' || pathname.startsWith('/dashboard/doctor-leads/') ||
+    pathname === '/dashboard/doctor-crm' || pathname.startsWith('/dashboard/doctor-crm/')
+  ) {
+    return role === 'admin' || role === 'executive_admin' || role === 'investor_relations';
+  }
+
   // --- Staff Management (Admin, Executive Admin) ---
   if (pathname === '/dashboard/staff' || pathname.startsWith('/dashboard/staff/')) {
     return role === 'admin' || role === 'executive_admin';
