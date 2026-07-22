@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import {
-  ChevronLeft, X, ChevronDown, FileText, Download, Calendar, Mail, Phone,
+  ChevronLeft, X, ChevronDown, ChevronUp, FileText, Download, Calendar, Mail, Phone,
   Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle, Plus, Info, Pencil
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -83,17 +83,19 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const tabParam = searchParams?.get('tab');
   const fromParam = searchParams?.get('from');
   const [activeTab, setActiveTab] = useState(() => {
-    if (tabParam === 'funding' || tabParam === 'funding-history') return 'basic';
+    if (tabParam === 'funding' || tabParam === 'funding-history') return 'funding';
     if (tabParam === 'kyc') return 'kyc';
     if (tabParam === 'redemption') return 'redemption';
+    if (tabParam === 'legacy_docs' || tabParam === 'legacy') return 'legacy_docs';
     return 'basic';
   });
 
   useEffect(() => {
     if (tabParam) {
-      if (tabParam === 'funding' || tabParam === 'funding-history') setActiveTab('basic');
+      if (tabParam === 'funding' || tabParam === 'funding-history') setActiveTab('funding');
       else if (tabParam === 'kyc') setActiveTab('kyc');
       else if (tabParam === 'redemption') setActiveTab('redemption');
+      else if (tabParam === 'legacy_docs' || tabParam === 'legacy') setActiveTab('legacy_docs');
       else if (tabParam === 'basic') setActiveTab('basic');
     }
   }, [tabParam]);
@@ -179,9 +181,12 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     fetchData();
   }, [params.id]);
 
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
   const tabs = [
     { id: 'basic', label: 'Basic Details' },
     { id: 'kyc', label: 'KYC Status' },
+    { id: 'funding', label: 'Funding History' },
     { id: 'redemption', label: 'Redemption History' },
     { id: 'legacy_docs', label: 'Legacy Documents' },
   ];
@@ -708,450 +713,391 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
             {activeTab === 'basic' && (
               <div className="space-y-5">
                 {/* Header Summary Profile Card */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50/40 via-white to-gray-50/40 rounded-2xl border border-amber-100/60 shadow-xs">
-                  {/* Left: Avatar */}
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border border-amber-200/80 shadow-xs overflow-hidden bg-amber-100 shrink-0 flex items-center justify-center">
-                    {investorData.profileImageUrl ? (
-                      <Image
-                        src={investorData.profileImageUrl.startsWith('http')
-                          ? investorData.profileImageUrl
-                          : `${BASE_URL}${investorData.profileImageUrl.startsWith('/') ? '' : '/'}${investorData.profileImageUrl}`}
-                        alt="Profile"
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-[#1F1F1F] text-2xl sm:text-3xl font-extrabold tracking-tight">
-                        {(investorData.firstName?.[0] || '') + (investorData.lastName?.[0] || '')}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right: Info & Controls */}
-                  <div className="flex-1 min-w-0 space-y-2.5 w-full">
-                    {/* Name & Meta Info */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-xl sm:text-2xl font-bold text-[#1F1F1F] leading-tight">
-                            {investorData.firstName} {investorData.lastName}
-                          </h2>
-                          {canEditProfile && (
-                            <button
-                              onClick={() => setIsEditProfileModalOpen(true)}
-                              className="p-1 text-gray-400 hover:text-[#2A4474] hover:bg-amber-100 rounded-md transition-all"
-                              title="Edit Profile"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </button>
-                          )}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50/40 via-white to-gray-50/40 rounded-2xl border border-amber-100/60 shadow-xs">
+                  {/* Left: Avatar & Name */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-amber-200/80 shadow-xs overflow-hidden bg-amber-100 shrink-0 flex items-center justify-center">
+                      {investorData.profileImageUrl ? (
+                        <Image
+                          src={investorData.profileImageUrl.startsWith('http')
+                            ? investorData.profileImageUrl
+                            : `${BASE_URL}${investorData.profileImageUrl.startsWith('/') ? '' : '/'}${investorData.profileImageUrl}`}
+                          alt="Profile"
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-[#1F1F1F] text-xl sm:text-2xl font-extrabold tracking-tight">
+                          {(investorData.firstName?.[0] || '') + (investorData.lastName?.[0] || '')}
                         </div>
-                        {/* Investor other details */}
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-gray-500 font-medium">
-                          <p className="flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                            Joined date: <span className="text-gray-800 font-semibold">{new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                          </p>
-                          <span className="hidden sm:inline text-gray-300">•</span>
-                          <p className="flex items-center gap-1">
-                            <Shield className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                            Accountant: <span className="text-gray-900 font-bold">{investorData.assignedAccountantName || 'Not assigned'}</span>
-                          </p>
-                          <span className="hidden sm:inline text-gray-300">•</span>
-                          <p className="flex items-center gap-1">
-                            <User className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                            Investor Relation: <span className="text-gray-900 font-bold">{investorData.assignedIrName || 'Not assigned'}</span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action Controls Row - wrapping cleanly */}
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      {(() => {
-                        const isPending = investorData.status === 'pending';
-
-                        if (!isAdmin) return null;
-
-                        const inviteButtons = [
-                          <button
-                            key="send"
-                            onClick={handleSendInvite}
-                            disabled={isSendingInvite || !isPending}
-                            className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs ${isPending
-                              ? 'bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent'
-                              : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
-                              }`}
-                          >
-                            {isSendingInvite ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mail className="h-3.5 w-3.5" />}
-                            Send/Resend Invite
-                          </button>,
-                          <button
-                            key="cancel"
-                            onClick={() => setShowCancelModal(true)}
-                            disabled={isSuspending || !isPending}
-                            className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs ${isPending
-                              ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
-                              : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
-                              }`}
-                          >
-                            {isSuspending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
-                            Cancel Invite
-                          </button>
-                        ];
-
-                        const actionButtons = [
-                          <button
-                            key="forgot"
-                            onClick={handleForgotPassword}
-                            disabled={isResetting || isPending}
-                            className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs ${!isPending
-                              ? 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200'
-                              : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
-                              }`}
-                          >
-                            {isResetting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Shield className="h-3.5 w-3.5" />}
-                            Forgot Password
-                          </button>,
-                          <TooltipProvider key="suspend-provider">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  key="suspend"
-                                  onClick={() => setShowSuspendModal(true)}
-                                  disabled={isSuspending || isPending}
-                                  className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs ${!isPending
-                                    ? (investorData.status === 'suspended'
-                                      ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                      : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                                    )
-                                    : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
-                                    }`}
-                                >
-                                  {isSuspending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
-                                  {investorData.status === 'suspended' ? 'Activate Login' : 'Suspend Login'}
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
-                                <p className="text-[11px] font-medium">
-                                  {investorData.status === 'suspended'
-                                    ? 'Click here to activate user login.'
-                                    : 'Click here to suspend user login.'}
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>,
-                          <button
-                            key="assign"
-                            onClick={async () => {
-                              setShowAssignModal(true);
-                              setSelectedIrStaff(investorData.assignedIrId || '');
-                              setIrLoading(true);
-                              try {
-                                const res = await apiClient.getStaff('investor_relations', 1, 100);
-                                setIrStaffList(res.data || []);
-                              } catch (err) { console.error('Failed to fetch IR staff:', err); }
-                              finally { setIrLoading(false); }
-                            }}
-                            className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
-                          >
-                            {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
-                          </button>,
-                          <button
-                            key="assign-accountant"
-                            onClick={async () => {
-                              setShowAccountantModal(true);
-                              setSelectedAccountant(investorData.assignedAccountantId || '');
-                              setAccountantLoading(true);
-                              try {
-                                const res = await apiClient.getStaff('accountant', 1, 100);
-                                setAccountantList(res.data || []);
-                              } catch (err) { console.error('Failed to fetch accountants:', err); }
-                              finally { setAccountantLoading(false); }
-                            }}
-                            className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
-                          >
-                            {investorData.assignedAccountantId ? 'Change Accountant' : 'Assign Accountant'}
-                          </button>
-                        ];
-
-                        return isPending ? [...inviteButtons, ...actionButtons] : [...actionButtons, ...inviteButtons];
-                      })()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact & Personal Info Grid (Compressed) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4 py-4 px-4 sm:px-5 bg-gray-50/50 rounded-2xl border border-gray-100">
-                  <div className="space-y-0.5">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Email</span>
-                    <p className="text-xs sm:text-sm font-bold text-gray-900 truncate">{investorData.email}</p>
-                  </div>
-
-                  <div className="space-y-0.5">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Phone Number</span>
-                    <p className="text-xs sm:text-sm font-bold text-gray-900">{formatPhoneDisplay(investorData.phone) || 'Not provided'}</p>
-                  </div>
-
-                  <div className="space-y-0.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tax ID</span>
-                      {canEditProfile && (
-                        <button
-                          onClick={() => setIsEditProfileModalOpen(true)}
-                          className="p-0.5 text-gray-400 hover:text-[#2A4474] hover:bg-amber-50 rounded transition-all"
-                          title="Edit Tax ID"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
                       )}
                     </div>
-                    <p className="text-xs sm:text-sm font-bold text-gray-900">
-                      {investorData.taxId ? (investorData.taxId.length === 9 && !investorData.taxId.includes('-') ? `${investorData.taxId.slice(0, 3)}-${investorData.taxId.slice(3, 5)}-${investorData.taxId.slice(5)}` : investorData.taxId) : 'Not provided'}
-                    </p>
-                  </div>
-
-                  <div className="space-y-0.5">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Date of Birth</span>
-                    <p className="text-xs sm:text-sm font-bold text-gray-900">{investorData.dob ? new Date(investorData.dob).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not provided'}</p>
-                  </div>
-
-                  <div className="sm:col-span-2 lg:col-span-4 space-y-0.5 pt-2 border-t border-gray-200/60">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Address</span>
-                    <p className="text-xs sm:text-sm font-bold text-gray-900">
-                      {investorData.addressLine1 ? [
-                        investorData.addressLine1,
-                        investorData.addressLine2,
-                        investorData.city,
-                        investorData.state,
-                        investorData.zipCode,
-                        investorData.country
-                      ].filter(Boolean).join(', ') : 'Not provided'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Linked Custodian Accounts (Compressed) */}
-                <div className="space-y-3 pt-1">
-                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Linked Custodian Accounts</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    {iraAccounts.length > 0 ? iraAccounts.map((account: any) => {
-                      const totalInvested = fundingHistory
-                        .filter(f => f.is_reconciled && f.account_type === account.account_type)
-                        .reduce((sum, f) => sum + parseFloat(f.revised_amount || f.investment_amount || 0), 0);
-                      const totalRedeemed = redemptionHistory
-                        .filter(r => r.is_reconciled && fundingHistory.find(inv => inv.id === r.investment_id)?.account_type === account.account_type)
-                        .reduce((sum, r) => sum + parseFloat(r.amount), 0);
-                      const netValue = totalInvested - totalRedeemed;
-                      const isSuspended = account.status === 'suspended';
-
-                      return (
-                        <div key={account.id} className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${isSuspended ? 'bg-red-50/20 border-red-100 opacity-80' : 'bg-[#F9FAFB]/60 border-gray-100 hover:border-amber-200'}`}>
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">{account.account_type} Account</span>
-                              <p className="text-xs sm:text-sm font-bold text-gray-900">${netValue.toLocaleString()}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button
-                                      onClick={async () => {
-                                        const newStatus = isSuspended ? 'active' : 'suspended';
-                                        try {
-                                          await apiClient.updateIRAAccountStatus(account.id, newStatus);
-                                          toast.success(`Account ${newStatus === 'active' ? 'activated' : 'suspended'} successfully`);
-                                          const updatedAccounts = await apiClient.getUserIRAAccounts(params.id);
-                                          setIraAccounts(updatedAccounts);
-                                        } catch (err) {
-                                          toast.error('Failed to update account status');
-                                        }
-                                      }}
-                                      className={`px-3 py-1 text-[10px] font-bold rounded-full transition-all border flex items-center gap-1 shadow-xs active:scale-95 ${isSuspended
-                                        ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                                        : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                        }`}
-                                    >
-                                      {isSuspended ? <X className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
-                                      {isSuspended ? 'Suspended' : 'Activated'}
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
-                                    <p className="text-[11px] font-medium">
-                                      {isSuspended
-                                        ? 'Click here to activate this account.'
-                                        : 'Click here to suspend this account.'}
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between pt-1.5 border-t border-gray-100/60 mt-auto">
-                            <p className="text-[10px] text-gray-500 font-medium">#{account.account_number || 'N/A'}</p>
-                            <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${isSuspended ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                              <div className={`w-1 h-1 rounded-full ${isSuspended ? 'bg-red-500' : 'bg-green-500'}`} />
-                              {isSuspended ? 'Suspended' : 'Activated'}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }) : (
-                      <p className="text-xs text-gray-400 italic bg-gray-50/50 p-3 rounded-xl border border-gray-100">No linked accounts found</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Account Status & Staff Assignment Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-gray-100">
-                  <div className="space-y-0.5">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Account Status</span>
-                    {(() => {
-                      const status = investorData.status?.toLowerCase();
-                      if (status === 'pending') {
-                        return <p className="text-xs sm:text-sm font-bold capitalize text-amber-500">Pending</p>;
-                      }
-                      const isMainActive = status === 'active';
-                      const hasActiveIra = iraAccounts.some((acc: any) => acc.status === 'active');
-                      const isOverallActive = isMainActive || hasActiveIra;
-                      return (
-                        <p className={`text-xs sm:text-sm font-bold capitalize ${isOverallActive ? 'text-green-600' : 'text-red-600'}`}>
-                          {isOverallActive ? 'Active' : 'Suspended'}
-                        </p>
-                      );
-                    })()}
-                  </div>
-                  <div className="space-y-0.5">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Assigned Investor Relation</span>
-                    <p className="text-xs sm:text-sm font-bold text-gray-900">{investorData.assignedIrName || <span className="text-gray-400 italic">Not assigned</span>}</p>
-                  </div>
-                  <div className="space-y-0.5">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Assigned Accountant</span>
-                    <p className="text-xs sm:text-sm font-bold text-gray-900">{investorData.assignedAccountantName || <span className="text-gray-400 italic">Not assigned</span>}</p>
-                  </div>
-                </div>
-
-                {/* Invitation History Box */}
-                <div className="pt-3 border-t border-gray-100">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Invitation History</span>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="h-3.5 w-3.5 text-gray-300 cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
-                              <p className="text-[11px] font-medium">Each invitation link is valid for 3 days from the time it was sent.</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <h2 className="text-xl sm:text-2xl font-bold text-[#1F1F1F] leading-tight truncate">
+                          {investorData.firstName} {investorData.lastName}
+                        </h2>
+                        {canEditProfile && (
+                          <button
+                            onClick={() => setIsEditProfileModalOpen(true)}
+                            className="p-1 text-gray-400 hover:text-[#2A4474] hover:bg-amber-100 rounded-md transition-all shrink-0"
+                            title="Edit Profile"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
-                      {investorData.invitationLogs?.length > 0 && (
-                        <span className="text-[10px] font-bold bg-[#FFF9EE] text-[#D1A94C] border border-[#FEF3C7] px-2.5 py-0.5 rounded-full shadow-xs">
-                          {investorData.invitationLogs.length} {investorData.invitationLogs.length === 1 ? 'Invite' : 'Invites'} Total
-                        </span>
-                      )}
+                      {/* Meta Info below Investor Name (stacked vertically) */}
+                      <div className="flex flex-col gap-1 mt-1.5 text-xs text-gray-500 font-medium">
+                        <p className="flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                          Joined date: <span className="text-gray-800 font-semibold">{new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        </p>
+                        <p className="flex items-center gap-1.5">
+                          <Shield className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                          Accountant: <span className="text-gray-900 font-bold">{investorData.assignedAccountantName || 'Not assigned'}</span>
+                        </p>
+                        <p className="flex items-center gap-1.5">
+                          <User className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                          Investor Relation: <span className="text-gray-900 font-bold">{investorData.assignedIrName || 'Not assigned'}</span>
+                        </p>
+                      </div>
                     </div>
-
-                    {investorData.invitationLogs?.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {investorData.invitationLogs.map((log: any, idx: number) => {
-                          const sentDate = new Date(log.sent_at);
-                          const isExpired = Date.now() - sentDate.getTime() > 3 * 24 * 60 * 60 * 1000;
-                          const isLatest = idx === 0;
-
-                          return (
-                            <div key={idx} className={`relative group p-4 rounded-xl border transition-all ${isLatest && !isExpired ? 'bg-amber-50/30 border-amber-200 shadow-xs' : 'bg-gray-50 border-gray-100 opacity-90'}`}>
-                              {isLatest && !isExpired && (
-                                <div className="absolute -top-2 -right-2 bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-xs animate-pulse">
-                                  ACTIVE LINK
-                                </div>
-                              )}
-
-                              <div className="flex items-center justify-between mb-2">
-                                <div className={`p-1.5 rounded-md ${isLatest && !isExpired ? 'bg-amber-100 text-amber-700' : 'bg-gray-200 text-gray-500'}`}>
-                                  <Mail className="h-3.5 w-3.5" />
-                                </div>
-                                <span className={`text-[9px] font-bold uppercase tracking-tight px-2 py-0.5 rounded ${isExpired ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                                  {isExpired ? 'Expired' : 'Valid'}
-                                </span>
-                              </div>
-
-                              <div className="space-y-2">
-                                <div className="flex flex-col">
-                                  <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Sent On</span>
-                                  <p className="text-xs font-bold text-gray-900">
-                                    {sentDate.toLocaleString('en-US', {
-                                      month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                                    })}
-                                  </p>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100/50">
-                                  <div className="flex flex-col">
-                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">By Admin</span>
-                                    <p className="text-[10px] font-bold text-gray-700 truncate">{log.sent_by_name}</p>
-                                  </div>
-                                  <div className="flex flex-col">
-                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">To Investor</span>
-                                    <p className="text-[10px] font-bold text-gray-700 truncate">{investorData.firstName}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex flex-col items-center justify-center text-center">
-                        <Mail className="h-6 w-6 text-gray-300 mb-1" />
-                        <p className="text-xs text-gray-400 italic">No invitation records found for this investor.</p>
-                      </div>
-                    )}
                   </div>
-                </div>
 
-                {/* Bottom Master Status Toggle Button */}
-                {isExecutiveAdmin && investorData.status === 'suspended' && (
-                  <div className="flex-shrink-0 pt-2">
+                  {/* Top Right: Action Buttons in one single line */}
+                  <div className="flex items-center justify-start sm:justify-end gap-2 overflow-x-auto max-w-full pb-1 shrink-0">
                     {(() => {
-                      const hasInactive = iraAccounts.length > 0
-                        ? iraAccounts.some((acc: any) => acc.status !== 'active')
-                        : investorData.status !== 'active';
-                      return (
-                        <TooltipProvider>
+                      const isPending = investorData.status === 'pending';
+
+                      if (!isAdmin) return null;
+
+                      const inviteButtons = [
+                        <button
+                          key="send"
+                          onClick={handleSendInvite}
+                          disabled={isSendingInvite || !isPending}
+                          className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${isPending
+                            ? 'bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent'
+                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            }`}
+                        >
+                          {isSendingInvite ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mail className="h-3.5 w-3.5" />}
+                          Send/Resend Invite
+                        </button>,
+                        <button
+                          key="cancel"
+                          onClick={() => setShowCancelModal(true)}
+                          disabled={isSuspending || !isPending}
+                          className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${isPending
+                            ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
+                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            }`}
+                        >
+                          {isSuspending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
+                          Cancel Invite
+                        </button>
+                      ];
+
+                      const actionButtons = [
+                        <button
+                          key="forgot"
+                          onClick={handleForgotPassword}
+                          disabled={isResetting || isPending}
+                          className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${!isPending
+                            ? 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200'
+                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            }`}
+                        >
+                          {isResetting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Shield className="h-3.5 w-3.5" />}
+                          Forgot Password
+                        </button>,
+                        <TooltipProvider key="suspend-provider">
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
-                                onClick={handleMasterStatusToggle}
-                                disabled={isSuspending}
-                                className={`px-6 py-2.5 rounded-full text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-2 border ${hasInactive
-                                  ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                  : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                key="suspend"
+                                onClick={() => setShowSuspendModal(true)}
+                                disabled={isSuspending || isPending}
+                                className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${!isPending
+                                  ? (investorData.status === 'suspended'
+                                    ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                    : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                  )
+                                  : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
                                   }`}
                               >
-                                {isSuspending ? <Loader2 className="h-4 w-4 animate-spin" /> : (hasInactive ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />)}
-                                {hasInactive
-                                  ? (iraAccounts.length > 0 ? 'Activate Accounts' : 'Activate Account')
-                                  : (iraAccounts.length > 0 ? 'Suspend Accounts' : 'Suspend Account')}
+                                {isSuspending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
+                                {investorData.status === 'suspended' ? 'Activate Login' : 'Suspend Login'}
                               </button>
                             </TooltipTrigger>
                             <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
                               <p className="text-[11px] font-medium">
-                                {hasInactive
-                                  ? 'Click here to activate all linked accounts.'
-                                  : 'Click here to suspend all linked accounts.'}
+                                {investorData.status === 'suspended'
+                                  ? 'Click here to activate user login.'
+                                  : 'Click here to suspend user login.'}
                               </p>
                             </TooltipContent>
                           </Tooltip>
-                        </TooltipProvider>
-                      );
+                        </TooltipProvider>,
+                        <button
+                          key="assign"
+                          onClick={async () => {
+                            setShowAssignModal(true);
+                            setSelectedIrStaff(investorData.assignedIrId || '');
+                            setIrLoading(true);
+                            try {
+                              const res = await apiClient.getStaff('investor_relations', 1, 100);
+                              setIrStaffList(res.data || []);
+                            } catch (err) { console.error('Failed to fetch IR staff:', err); }
+                            finally { setIrLoading(false); }
+                          }}
+                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
+                        >
+                          {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
+                        </button>,
+                        <button
+                          key="assign-accountant"
+                          onClick={async () => {
+                            setShowAccountantModal(true);
+                            setSelectedAccountant(investorData.assignedAccountantId || '');
+                            setAccountantLoading(true);
+                            try {
+                              const res = await apiClient.getStaff('accountant', 1, 100);
+                              setAccountantList(res.data || []);
+                            } catch (err) { console.error('Failed to fetch accountants:', err); }
+                            finally { setAccountantLoading(false); }
+                          }}
+                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
+                        >
+                          {investorData.assignedAccountantId ? 'Change Accountant' : 'Assign Accountant'}
+                        </button>
+                      ];
+
+                      return isPending ? [...inviteButtons, ...actionButtons] : [...actionButtons, ...inviteButtons];
                     })()}
                   </div>
-                )}
+                </div>
+
+                {/* Combined Collapsible Container for All Three Sections */}
+                <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden flex flex-col transition-all">
+                  <button
+                    onClick={() => setIsDetailsOpen(!isDetailsOpen)}
+                    className="w-full px-4 sm:px-5 py-3.5 bg-gray-50/80 hover:bg-gray-100/80 flex items-center justify-between transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs sm:text-sm font-bold text-[#1F1F1F] uppercase tracking-wider">Account & Profile Details</span>
+                      <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+                        Personal, Custodian & Invitations
+                      </span>
+                    </div>
+                    <div className="p-1 rounded-md text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1">
+                      <span className="text-xs font-semibold text-gray-500">{isDetailsOpen ? 'Collapse' : 'Expand'}</span>
+                      {isDetailsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </div>
+                  </button>
+
+                  {isDetailsOpen && (
+                    <div className="p-4 sm:p-5 border-t border-gray-100 max-h-[380px] overflow-y-auto space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 items-start">
+                        {/* Section 1: Personal Details */}
+                        <div className="bg-gray-50/60 p-4 rounded-xl border border-gray-100 space-y-3">
+                          <h4 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider pb-1.5 border-b border-gray-200/60">Personal Details</h4>
+                          <div className="space-y-3">
+                            <div className="space-y-0.5">
+                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Email</span>
+                              <p className="text-xs sm:text-sm font-bold text-gray-900 truncate">{investorData.email}</p>
+                            </div>
+                            <div className="space-y-0.5">
+                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Phone Number</span>
+                              <p className="text-xs sm:text-sm font-bold text-gray-900">{formatPhoneDisplay(investorData.phone) || 'Not provided'}</p>
+                            </div>
+                            <div className="space-y-0.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tax ID</span>
+                                {canEditProfile && (
+                                  <button
+                                    onClick={() => setIsEditProfileModalOpen(true)}
+                                    className="p-0.5 text-gray-400 hover:text-[#2A4474] hover:bg-amber-50 rounded transition-all"
+                                    title="Edit Tax ID"
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                              <p className="text-xs sm:text-sm font-bold text-gray-900">
+                                {investorData.taxId ? (investorData.taxId.length === 9 && !investorData.taxId.includes('-') ? `${investorData.taxId.slice(0, 3)}-${investorData.taxId.slice(3, 5)}-${investorData.taxId.slice(5)}` : investorData.taxId) : 'Not provided'}
+                              </p>
+                            </div>
+                            <div className="space-y-0.5">
+                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Date of Birth</span>
+                              <p className="text-xs sm:text-sm font-bold text-gray-900">{investorData.dob ? new Date(investorData.dob).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not provided'}</p>
+                            </div>
+                            <div className="space-y-0.5 pt-1 border-t border-gray-200/60">
+                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Address</span>
+                              <p className="text-xs sm:text-sm font-bold text-gray-900">
+                                {investorData.addressLine1 ? [
+                                  investorData.addressLine1,
+                                  investorData.addressLine2,
+                                  investorData.city,
+                                  investorData.state,
+                                  investorData.zipCode,
+                                  investorData.country
+                                ].filter(Boolean).join(', ') : 'Not provided'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 2: Linked Custodian Accounts */}
+                        <div className="bg-gray-50/60 p-4 rounded-xl border border-gray-100 space-y-3">
+                          <div className="flex items-center justify-between pb-1.5 border-b border-gray-200/60">
+                            <h4 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider">Linked Custodian Accounts</h4>
+                            {iraAccounts.length > 0 && (
+                              <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+                                {iraAccounts.length}
+                              </span>
+                            )}
+                          </div>
+                          <div className="space-y-3">
+                            {iraAccounts.length > 0 ? iraAccounts.map((account: any) => {
+                              const totalInvested = fundingHistory
+                                .filter(f => f.is_reconciled && f.account_type === account.account_type)
+                                .reduce((sum, f) => sum + parseFloat(f.revised_amount || f.investment_amount || 0), 0);
+                              const totalRedeemed = redemptionHistory
+                                .filter(r => r.is_reconciled && fundingHistory.find(inv => inv.id === r.investment_id)?.account_type === account.account_type)
+                                .reduce((sum, r) => sum + parseFloat(r.amount), 0);
+                              const netValue = totalInvested - totalRedeemed;
+                              const isSuspended = account.status === 'suspended';
+
+                              return (
+                                <div key={account.id} className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${isSuspended ? 'bg-red-50/20 border-red-100 opacity-80' : 'bg-white border-gray-200/70 hover:border-amber-200'}`}>
+                                  <div className="flex items-start justify-between mb-2">
+                                    <div>
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">{account.account_type} Account</span>
+                                      <p className="text-xs font-bold text-gray-900">${netValue.toLocaleString()}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <button
+                                              onClick={async () => {
+                                                const newStatus = isSuspended ? 'active' : 'suspended';
+                                                try {
+                                                  await apiClient.updateIRAAccountStatus(account.id, newStatus);
+                                                  toast.success(`Account ${newStatus === 'active' ? 'activated' : 'suspended'} successfully`);
+                                                  const updatedAccounts = await apiClient.getUserIRAAccounts(params.id);
+                                                  setIraAccounts(updatedAccounts);
+                                                } catch (err) {
+                                                  toast.error('Failed to update account status');
+                                                }
+                                              }}
+                                              className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full transition-all border flex items-center gap-1 shadow-xs active:scale-95 ${isSuspended
+                                                ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                                : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                                }`}
+                                            >
+                                              {isSuspended ? <X className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
+                                              {isSuspended ? 'Suspended' : 'Activated'}
+                                            </button>
+                                          </TooltipTrigger>
+                                          <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
+                                            <p className="text-[11px] font-medium">
+                                              {isSuspended
+                                                ? 'Click here to activate this account.'
+                                                : 'Click here to suspend this account.'}
+                                            </p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 mt-auto">
+                                    <p className="text-[10px] text-gray-500 font-medium">#{account.account_number || 'N/A'}</p>
+                                    <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${isSuspended ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                      <div className={`w-1 h-1 rounded-full ${isSuspended ? 'bg-red-500' : 'bg-green-500'}`} />
+                                      {isSuspended ? 'Suspended' : 'Activated'}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }) : (
+                              <p className="text-xs text-gray-400 italic bg-white p-3 rounded-xl border border-gray-200/70 text-center">No linked accounts found</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Section 3: Invitation History */}
+                        <div className="bg-gray-50/60 p-4 rounded-xl border border-gray-100 space-y-3">
+                          <div className="flex items-center justify-between pb-1.5 border-b border-gray-200/60">
+                            <h4 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider">Invitation History</h4>
+                            {investorData.invitationLogs?.length > 0 && (
+                              <span className="text-[10px] font-bold bg-[#FFF9EE] text-[#D1A94C] border border-[#FEF3C7] px-2 py-0.5 rounded-full">
+                                {investorData.invitationLogs.length}
+                              </span>
+                            )}
+                          </div>
+                          <div className="space-y-3">
+                            {investorData.invitationLogs?.length > 0 ? (
+                              investorData.invitationLogs.map((log: any, idx: number) => {
+                                const sentDate = new Date(log.sent_at);
+                                const isExpired = Date.now() - sentDate.getTime() > 3 * 24 * 60 * 60 * 1000;
+                                const isLatest = idx === 0;
+
+                                return (
+                                  <div key={idx} className={`relative group p-3 rounded-xl border transition-all ${isLatest && !isExpired ? 'bg-amber-50/30 border-amber-200 shadow-xs' : 'bg-white border-gray-200/70 opacity-90'}`}>
+                                    {isLatest && !isExpired && (
+                                      <div className="absolute -top-2 -right-2 bg-green-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-xs animate-pulse">
+                                        ACTIVE LINK
+                                      </div>
+                                    )}
+
+                                    <div className="flex items-center justify-between mb-1.5">
+                                      <div className={`p-1 rounded-md ${isLatest && !isExpired ? 'bg-amber-100 text-amber-700' : 'bg-gray-200 text-gray-500'}`}>
+                                        <Mail className="h-3 w-3" />
+                                      </div>
+                                      <span className={`text-[9px] font-bold uppercase tracking-tight px-1.5 py-0.5 rounded ${isExpired ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                        {isExpired ? 'Expired' : 'Valid'}
+                                      </span>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                      <div className="flex flex-col">
+                                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Sent On</span>
+                                        <p className="text-xs font-bold text-gray-900">
+                                          {sentDate.toLocaleString('en-US', {
+                                            month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                                          })}
+                                        </p>
+                                      </div>
+
+                                      <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-gray-100">
+                                        <div className="flex flex-col">
+                                          <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">By Admin</span>
+                                          <p className="text-[10px] font-bold text-gray-700 truncate">{log.sent_by_name}</p>
+                                        </div>
+                                        <div className="flex flex-col">
+                                          <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">To Investor</span>
+                                          <p className="text-[10px] font-bold text-gray-700 truncate">{investorData.firstName}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <div className="bg-white rounded-xl p-3 border border-gray-200/70 flex flex-col items-center justify-center text-center">
+                                <Mail className="h-5 w-5 text-gray-300 mb-1" />
+                                <p className="text-xs text-gray-400 italic">No invitation records found.</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Embedded Funding History Section at Bottom of Basic Details Tab */}
                 <div className="mt-6 pt-6 border-t-2 border-gray-100 space-y-4">
@@ -1279,6 +1225,18 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 </div>
               );
             })()}
+
+            {activeTab === 'funding' && (
+              <div className="space-y-4 font-helvetica">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
+                    Funding History
+                  </h3>
+                </div>
+                {renderFundingHistorySection()}
+              </div>
+            )}
 
             {activeTab === 'redemption' && (
               <div className="space-y-6">
