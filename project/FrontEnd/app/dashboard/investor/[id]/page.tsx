@@ -391,11 +391,11 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-white overflow-hidden shadow-xs rounded-xl p-4 flex flex-col justify-between h-24 border border-gray-100 border-t-4 border-t-[#FCD34D] hover:shadow-md transition-all">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Profile Value</p>
-          <p className="text-xl sm:text-2xl font-bold text-[#1F1F1F]">${stats.totalValue.toLocaleString()}</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#1F1F1F]">${Number(stats.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
         </div>
         <div className="bg-white overflow-hidden shadow-xs rounded-xl p-4 flex flex-col justify-between h-24 border border-gray-100 border-t-4 border-t-[#2A4474] hover:shadow-md transition-all">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Units</p>
-          <p className="text-xl sm:text-2xl font-bold text-[#1F1F1F]">{stats.totalUnits.toFixed(2)}</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#1F1F1F]">{Number(stats.totalUnits || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</p>
         </div>
         <div className="bg-white overflow-hidden shadow-xs rounded-xl p-4 flex flex-col justify-between h-24 border border-gray-100 border-t-4 border-t-green-500 hover:shadow-md transition-all">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">YTD Return</p>
@@ -519,13 +519,13 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     <tr key={fund.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 whitespace-nowrap text-xs font-bold text-gray-900">{fund.fund_name}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-medium">{fund.account_type}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-medium">{parseFloat(fund.estimated_units).toFixed(2)}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-medium">${parseFloat(fund.unit_price).toFixed(2)}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-bold">${currentValue.toLocaleString()}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-medium">${costBasisValue.toLocaleString()}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-medium">{parseFloat(fund.estimated_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-medium">${parseFloat(fund.unit_price || 0).toFixed(2)}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-bold">${currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-medium">${costBasisValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-xs font-bold">
                         <span className={isGain ? 'text-green-600' : 'text-red-600'}>
-                          {isGain ? '+' : '-'}${Math.abs(gainLossValue).toLocaleString()} ({isGain ? '+' : ''}{gainLossPercent.toFixed(2)}%)
+                          {isGain ? '+' : '-'}${Math.abs(gainLossValue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({isGain ? '+' : ''}{gainLossPercent.toFixed(2)}%)
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-xs">
