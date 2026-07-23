@@ -325,7 +325,7 @@ export default function PortfolioPage() {
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
                   Total Units
                 </p>
-                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{stats.totalUnits.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</p>
+                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{stats.totalUnits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</p>
               </div>
               <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
