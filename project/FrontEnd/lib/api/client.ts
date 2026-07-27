@@ -1460,6 +1460,19 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  async generateDoctorSequence(data: { prospectId?: string; mockDoctorData?: any }) {
+    return this.request<{
+      success: boolean;
+      isAiGenerated: boolean;
+      provider: string;
+      doctor: any;
+      sequence: Array<{ day: number; title: string; subject: string; body: string }>;
+    }>('/webinar-campaign/generate-sequence', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 

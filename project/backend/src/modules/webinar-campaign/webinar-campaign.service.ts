@@ -1,5 +1,6 @@
 import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Cron } from '@nestjs/schedule';
 import axios from 'axios';
 import { db } from '../../config/database';
 import { EmailService } from '../email/email.service';
@@ -16,6 +17,10 @@ export interface DoctorProspectDto {
   isAlreadyEnriched?: boolean;
   emailStatus?: string;
   stage?: string;
+  apolloId?: string;
+  apollo_id?: string;
+  name?: string;
+  full_name?: string;
 }
 
 @Injectable()
@@ -235,7 +240,7 @@ export class WebinarCampaignService {
     if (apolloIds.length > 0) {
       try {
         const dbResult = await db.query(
-          `SELECT apollo_id, email, phone, email_status FROM doctor_prospects WHERE apollo_id = ANY($1)`,
+          `SELECT apollo_id, email, phone, email_status, stage FROM doctor_prospects WHERE apollo_id = ANY($1)`,
           [apolloIds]
         );
         for (const row of dbResult.rows) {
@@ -249,24 +254,16 @@ export class WebinarCampaignService {
     return profilesToCheck.map((p) => {
       const saved = existingMap.get(p.id);
       const isAlreadySaved = Boolean(saved);
-      let email = p.email;
-      let phone = p.phone;
+
+      let email = 'Email via Bulk Match Required';
+      let phone = 'Phone via Bulk Match Required';
 
       if (isAlreadySaved) {
-        email = saved.email || p.email;
-        phone = saved.phone || p.phone;
-        if (phone.includes('Bulk Match Required')) {
-          phone = phoneMap[p.id] || '+1 (555) 019-8821';
+        email = saved.email || 'ishadubey343@gmail.com';
+        phone = saved.phone || phoneMap[p.id] || '+1 (555) 019-8821';
+        if (email.includes('Bulk Match Required') || email.includes('@medical-verified.org')) {
+          email = 'ishadubey343@gmail.com';
         }
-        if (email.includes('Bulk Match Required') || email.includes('..')) {
-          const cleanName = p.fullName.replace(/^dr\.?\s+/i, '').replace(/,\s*(md|dmd|do|phd).*$/i, '').trim();
-          const emailSlug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '');
-          email = `${emailSlug}@medical-verified.org`;
-        }
-      }
-
-      if (p.id === '66d7f2c85b1234567890abd0' || p.fullName.toLowerCase().includes('rostova')) {
-        email = 'tihevam672@luckfeed.com';
       }
 
       return {
@@ -315,9 +312,10 @@ export class WebinarCampaignService {
 
         if (response.data && Array.isArray(response.data.matches)) {
           enrichedMatches = response.data.matches;
+          this.logger.log(`Received ${enrichedMatches.length} real profile matches from Apollo bulk_match!`);
         }
       } catch (err: any) {
-        this.logger.warn(`Real Apollo bulk_match API failed (${err.message}). Using fallback data for saving.`);
+        this.logger.warn(`Real Apollo bulk_match request failed: ${err.message}. Falling back to default profile generation.`);
       }
     }
 
@@ -334,12 +332,7 @@ export class WebinarCampaignService {
       enrichedMatches = apolloIds.map((id) => {
         const found = mockProfilesData?.find((m) => m.id === id);
         const fullName = found?.fullName || `Dr. Enriched Lead ${id.substring(0, 6)}`;
-        const cleanName = fullName.replace(/^dr\.?\s+/i, '').replace(/,\s*(md|dmd|do|phd).*$/i, '').trim();
-        const emailSlug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '');
         const realPhone = phoneMap[id] || (found?.phone && !found.phone.includes('Bulk Match Required') ? found.phone : '+1 (555) 019-8821');
-        const assignedEmail = id === '66d7f2c85b1234567890abd0' || fullName.toLowerCase().includes('rostova')
-          ? 'tihevam672@luckfeed.com'
-          : `${emailSlug}@medical-verified.org`;
 
         return {
           id,
@@ -347,7 +340,7 @@ export class WebinarCampaignService {
           first_name: fullName.split(' ')[1] || 'Doctor',
           last_name: fullName.split(' ')[2] || 'Prospect',
           title: found?.specialty || 'Medical Specialist',
-          email: assignedEmail,
+          email: 'ishadubey343@gmail.com',
           email_status: 'verified',
           organization: {
             name: found?.organization || 'Verified Medical Center',
@@ -374,7 +367,7 @@ export class WebinarCampaignService {
       const city = m.city || '';
       const state = m.state || m.country || '';
       const location = city && state ? `${city}, ${state}` : city || state || 'United States';
-      const email = m.email || `contact.${apolloId}@medical-verified.org`;
+      const email = 'ishadubey343@gmail.com';
       const phone = m.phone || m.phone_numbers?.[0]?.raw_number || '+1 (555) 019-9911';
       const emailStatus = m.email_status || 'verified';
 
@@ -388,7 +381,7 @@ export class WebinarCampaignService {
              email = EXCLUDED.email,
              phone = EXCLUDED.phone,
              email_status = EXCLUDED.email_status,
-             stage = 'pending_outreach',
+             stage = CASE WHEN doctor_prospects.stage IN ('sent', 'interested', 'not_interested') THEN doctor_prospects.stage ELSE 'pending_outreach' END,
              updated_at = CURRENT_TIMESTAMP
            RETURNING *;`,
           [
@@ -452,16 +445,13 @@ export class WebinarCampaignService {
       if (!phone || phone.includes('Bulk Match Required')) {
         phone = phoneMap[row.apollo_id] || '+1 (555) 019-8821';
       }
-      if (email && (email.includes('Bulk Match Required') || email.includes('..'))) {
-        const cleanName = (row.full_name || 'physician').replace(/^dr\.?\s+/i, '').replace(/,\s*(md|dmd|do|phd).*$/i, '').trim();
-        const emailSlug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '');
-        email = `${emailSlug}@medical-verified.org`;
-      }
-      if (row.apollo_id === '66d7f2c85b1234567890abd0' || row.full_name?.toLowerCase().includes('rostova')) {
-        email = 'tihevam672@luckfeed.com';
+      if (!email || email.includes('Bulk Match Required') || email.includes('..') || email.includes('@medical-verified.org') || row.apollo_id === '66d7f2c85b1234567890abd0') {
+        email = 'ishadubey343@gmail.com';
       }
       return {
         ...row,
+        id: row.apollo_id || row.id,
+        fullName: row.full_name || row.fullName || 'Dr. David Wiebe, MD',
         phone,
         email,
         status: ['sent', 'interested', 'not_interested'].includes(row.stage) ? row.stage : 'ai_copy_ready',
@@ -475,7 +465,8 @@ export class WebinarCampaignService {
   async sendCampaignOutreach(
     prospectIds: string[],
     customMessage?: string,
-    mockProfilesData?: DoctorProspectDto[]
+    mockProfilesData?: DoctorProspectDto[],
+    customSubject?: string
   ) {
     if (!prospectIds || prospectIds.length === 0) {
       throw new HttpException('No prospect IDs selected to send emails', HttpStatus.BAD_REQUEST);
@@ -489,12 +480,11 @@ export class WebinarCampaignService {
     let dbProspectsMap = new Map<string, any>();
     try {
       const dbRes = await db.query(
-        `SELECT * FROM doctor_prospects WHERE apollo_id = ANY($1) OR id::text = ANY($1)`,
+        `SELECT * FROM doctor_prospects WHERE apollo_id = ANY($1)`,
         [prospectIds]
       );
       for (const row of dbRes.rows) {
         dbProspectsMap.set(row.apollo_id, row);
-        dbProspectsMap.set(row.id.toString(), row);
       }
     } catch (err: any) {
       this.logger.warn(`Could not query doctor_prospects for outreach: ${err.message}`);
@@ -508,73 +498,29 @@ export class WebinarCampaignService {
       let apolloId = doc?.apollo_id || id;
 
       if (!doc || !email || email.includes('Bulk Match Required')) {
-        const foundMock = mockProfilesData?.find(m => m.id === id);
+        const foundMock = mockProfilesData?.find((m: any) => m.id === id || m.apolloId === id || m.apollo_id === id);
         if (foundMock) {
-          fullName = foundMock.fullName;
+          fullName = (foundMock as any).fullName || (foundMock as any).full_name || (foundMock as any).name;
           organization = foundMock.organization;
-          apolloId = foundMock.id;
-          const cleanName = fullName.replace(/^dr\.?\s+/i, '').replace(/,\s*(md|dmd|do|phd).*$/i, '').trim();
+          apolloId = (foundMock as any).id || (foundMock as any).apolloId || (foundMock as any).apollo_id || id;
+          const cleanName = (fullName || 'physician').replace(/^dr\.?\s+/i, '').replace(/,\s*(md|dmd|do|phd).*$/i, '').trim();
           const emailSlug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '');
-          email = foundMock.email && !foundMock.email.includes('Bulk Match Required') ? foundMock.email : `${emailSlug}@medical-verified.org`;
+          email = foundMock.email && !foundMock.email.includes('Bulk Match Required') ? foundMock.email : 'ishadubey343@gmail.com';
         } else if (!email) {
-          email = `doctor.${id.substring(0, 8)}@medical-verified.org`;
-          fullName = `Dr. Physician (${id.substring(0, 6)})`;
+          email = 'ishadubey343@gmail.com';
         }
       }
 
-      if (email.includes('Bulk Match Required') || email.includes('..')) {
-        const cleanName = (fullName || 'physician').replace(/^dr\.?\s+/i, '').replace(/,\s*(md|dmd|do|phd).*$/i, '').trim();
-        const emailSlug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '');
-        email = `${emailSlug}@medical-verified.org`;
+      if (!email || email.includes('Bulk Match Required') || email.includes('..')) {
+        email = 'ishadubey343@gmail.com';
       }
 
       if (apolloId === '66d7f2c85b1234567890abd0' || id === '66d7f2c85b1234567890abd0' || fullName?.toLowerCase().includes('rostova')) {
-        email = 'tihevam672@luckfeed.com';
+        email = 'ishadubey343@gmail.com';
       }
 
-      const backendUrl = this.configService.get<string>('BACKEND_URL') || this.configService.get<string>('API_URL') || (process.env.NODE_ENV === 'production' ? 'https://investmentportalbackend.vercel.app' : 'http://localhost:3001');
-      const prospectIdentifier = apolloId || id;
-      const interestedUrl = `${backendUrl}/api/webinar-campaign/respond?id=${encodeURIComponent(prospectIdentifier)}&status=interested`;
-      const notInterestedUrl = `${backendUrl}/api/webinar-campaign/respond?id=${encodeURIComponent(prospectIdentifier)}&status=not_interested`;
-
-      const subject = `Invitation: Exclusive Real Estate & Wealth Webinar for Physicians`;
-      const body = customMessage
-        ? `<p style="font-size: 16px; line-height: 1.6; color: #4B5563;">${customMessage}</p>
-           <div style="text-align: center; margin: 30px 0; background-color: #F8FAFC; padding: 25px; border-radius: 12px; border: 1px solid #E2E8F0;">
-             <p style="font-size: 15px; font-weight: bold; color: #1F1F1F; margin-top: 0; margin-bottom: 16px;">Would you like to reserve a spot for this session?</p>
-             <a href="${interestedUrl}" style="background-color: #22C55E; color: #FFFFFF; padding: 12px 28px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 15px; display: inline-block; margin: 4px 8px;">
-               👍 Yes, I'm Interested
-             </a>
-             <a href="${notInterestedUrl}" style="background-color: #F3F4F6; color: #4B5563; padding: 12px 28px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 15px; display: inline-block; margin: 4px 8px; border: 1px solid #E5E7EB;">
-               👎 Not Right Now
-             </a>
-           </div>
-           <div style="text-align: center; margin: 25px 0;">
-             <a href="https://lu.ma/ovaliacapital-physicians" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 14px 32px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
-               Direct Luma Registration Page
-             </a>
-           </div>`
-        : `<p style="font-size: 16px; line-height: 1.6; color: #4B5563;">
-             We hope you are having a wonderful week. As a medical professional at <strong>${organization || 'your practice'}</strong>, balancing clinical excellence with long-term wealth building can be challenging. We would love to personally invite you to our upcoming <strong>Ovalia Capital Physician Wealth Webinar</strong> hosted via Luma.
-           </p>
-           <div style="background-color: #FFFBEB; border-left: 4px solid #FBCB4B; padding: 15px; margin: 25px 0; border-radius: 4px;">
-             <p style="margin: 0; font-weight: bold; color: #1F1F1F;">Topic: Tax-Advantaged Real Estate Investments for High-Income Physicians</p>
-             <p style="margin: 5px 0 0; font-size: 14px; color: #6B7280;">Duration: 45 Minutes | Q&A Included</p>
-           </div>
-           <div style="text-align: center; margin: 30px 0; background-color: #F8FAFC; padding: 25px; border-radius: 12px; border: 1px solid #E2E8F0;">
-             <p style="font-size: 15px; font-weight: bold; color: #1F1F1F; margin-top: 0; margin-bottom: 16px;">Would you like to reserve a spot for this session?</p>
-             <a href="${interestedUrl}" style="background-color: #22C55E; color: #FFFFFF; padding: 12px 28px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 15px; display: inline-block; margin: 4px 8px;">
-               👍 Yes, I'm Interested
-             </a>
-             <a href="${notInterestedUrl}" style="background-color: #F3F4F6; color: #4B5563; padding: 12px 28px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 15px; display: inline-block; margin: 4px 8px; border: 1px solid #E5E7EB;">
-               👎 Not Right Now
-             </a>
-           </div>
-           <div style="text-align: center; margin: 25px 0;">
-             <a href="https://lu.ma/ovaliacapital-physicians" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 14px 32px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
-               Direct Luma Registration Page
-             </a>
-           </div>`;
+      const subject = customSubject || `Invitation: Exclusive Real Estate & Wealth Webinar for Physicians`;
+      const body = customMessage || `<p style="font-size: 15px; color: #374151;">Dear ${fullName || 'Physician'},</p><p style="font-size: 15px; color: #374151;">We are pleased to invite you to our upcoming private investor webinar session.</p>`;
 
       try {
         await this.emailService.sendCustomEmail(email, fullName || 'Doctor', subject, body);
@@ -606,21 +552,404 @@ export class WebinarCampaignService {
     };
   }
 
-  async recordProspectResponse(id: string, status: string): Promise<void> {
+  @Cron('*/1 * * * *')
+  async processScheduledDripEmails() {
     try {
-      if (!id || !status) return;
+      const res = await db.query(
+        `SELECT apollo_id, full_name, email, ai_sequence, stage FROM doctor_prospects WHERE ai_sequence IS NOT NULL`
+      );
+
+      if (!res.rows || res.rows.length === 0) return;
+
+      const now = new Date();
+
+      for (const row of res.rows) {
+        let seq = row.ai_sequence;
+        if (typeof seq === 'string') {
+          try { seq = JSON.parse(seq); } catch (e) { continue; }
+        }
+        if (!Array.isArray(seq) || seq.length === 0) continue;
+
+        let updated = false;
+        const updatedSeq = [...seq];
+
+        for (let i = 0; i < updatedSeq.length; i++) {
+          const item = updatedSeq[i];
+          if (item.status === 'scheduled') {
+            const schedDate = item.isoDate ? new Date(item.isoDate) : null;
+            this.logger.log(`Checking ${row.full_name} Day ${item.day}: Scheduled = ${item.scheduledDate} (ISO: ${item.isoDate}), Current = ${now.toISOString()}`);
+            if (!schedDate || schedDate <= now) {
+              this.logger.log(`🚀 [CRON DRIP DISPATCH] Target scheduled time reached for ${row.full_name} (Day ${item.day})! Dispatching email...`);
+
+              try {
+                await this.sendCampaignOutreach([row.apollo_id], item.body, undefined, item.subject);
+                item.status = 'sent';
+                item.sentAt = new Date().toISOString();
+                updated = true;
+              } catch (sendErr: any) {
+                this.logger.error(`Failed scheduled dispatch for ${row.full_name}: ${sendErr.message}`);
+              }
+              break;
+            }
+          }
+        }
+
+        if (updated) {
+          await db.query(
+            `UPDATE doctor_prospects SET ai_sequence = $1::jsonb, stage = 'sent' WHERE apollo_id = $2`,
+            [JSON.stringify(updatedSeq), row.apollo_id]
+          );
+        }
+      }
+    } catch (err: any) {
+      this.logger.error(`Error in processScheduledDripEmails: ${err.message}`);
+    }
+  }
+
+  calculateDripSchedule(startDate: Date = new Date()) {
+    const addWorkDaysWithGap = (current: Date, daysToAdd: number): Date => {
+      let result = new Date(current);
+      let added = 0;
+      while (added < daysToAdd) {
+        result.setDate(result.getDate() + 1);
+        const dayOfWeek = result.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          added++;
+        }
+      }
+      return result;
+    };
+
+    let day1Date = new Date(startDate);
+    day1Date.setDate(day1Date.getDate() + 1); // First email starts NEXT DAY
+    day1Date.setHours(9, 0, 0, 0); // @ 9:00 AM EST
+    if (day1Date.getDay() === 6) day1Date.setDate(day1Date.getDate() + 2); // Sat -> Mon
+    if (day1Date.getDay() === 0) day1Date.setDate(day1Date.getDate() + 1); // Sun -> Mon
+
+    const schedule = [];
+    for (let i = 0; i < 5; i++) {
+      const workDaysOffset = i * 2; // 0, 2, 4, 6, 8 work days offset (1-day gap Monday to Friday)
+      const dayDate = i === 0 ? new Date(day1Date) : addWorkDaysWithGap(day1Date, workDaysOffset);
+      dayDate.setHours(9, 0, 0, 0); // @ 9:00 AM EST
+
+      const formattedDate = dayDate.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      }) + ' @ 9:00 AM EST';
+
+      schedule.push({
+        day: i + 1,
+        scheduledDate: formattedDate,
+        isoDate: dayDate.toISOString(),
+        status: 'scheduled'
+      });
+    }
+    return schedule;
+  }
+
+  async generateDoctorSequence(prospectId?: string, mockDoctorData?: any) {
+    let doc: any = null;
+    if (prospectId) {
+      try {
+        await db.query(`ALTER TABLE doctor_prospects ADD COLUMN IF NOT EXISTS ai_sequence JSONB;`);
+        const res = await db.query(
+          `SELECT apollo_id, full_name, specialty, organization, location, email, ai_sequence FROM doctor_prospects WHERE apollo_id = $1`,
+          [prospectId]
+        );
+        if (res.rows.length > 0) {
+          doc = res.rows[0];
+          if (doc.ai_sequence && Array.isArray(doc.ai_sequence) && doc.ai_sequence.length > 0) {
+            this.logger.log(`Loaded saved 5-day AI sequence from database for doctor ${doc.full_name}`);
+            return {
+              success: true,
+              isAiGenerated: true,
+              provider: 'Saved Database AI Sequence',
+              doctor: {
+                fullName: doc.full_name,
+                specialty: doc.specialty,
+                organization: doc.organization,
+                location: doc.location,
+                email: doc.email,
+              },
+              sequence: doc.ai_sequence,
+            };
+          }
+        }
+      } catch (err) { }
+    }
+
+    if (!doc && mockDoctorData) {
+      doc = mockDoctorData;
+    }
+
+    const fullName = doc?.full_name || doc?.fullName || 'Dr. David Wiebe, MD';
+    const specialty = doc?.specialty || 'Orthopedic Surgery';
+    const organization = doc?.organization || 'Austin Spine & Joint Surgery Center';
+    const location = doc?.location || 'Austin, TX';
+    const email = doc?.email || 'dwiebe@medical-verified.org';
+
+    const geminiKey = process.env.Gemini_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    const grokKey = process.env.GROK_API_KEY || process.env.XAI_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
+
+    let isAiGenerated = false;
+    let provider = 'Smart Template Engine (Fallback Mode)';
+    let sequence: any[] = [];
+
+    // 1. Priority: Try Google Gemini API if Gemini_API_KEY is configured
+    if (geminiKey && geminiKey.length > 10) {
+      try {
+        this.logger.log(`Calling Google Gemini API (model: gemini-flash-latest) for ${fullName}...`);
+        const responseBaseUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+        const prompt = `You are an elite AI copywriter for Ovalia Capital, a private equity real estate fund manager specializing in tax-sheltered, high-yield investments for accredited physicians.
+Generate a hyper-personalized 5-day email drip sequence for a doctor.
+
+Doctor Metadata:
+- Name: ${fullName}
+- Specialty: ${specialty}
+- Clinic/Organization: ${organization}
+- City/Location: ${location}
+
+CRITICAL BUTTON RULE:
+At the bottom of EVERY email body HTML, do NOT include any generic CTA buttons like "Book a call", "Register now", or "Click here".
+Instead, you MUST include ONLY these two exact response buttons at the bottom of every email body:
+1. Interested Button: <a href="${responseBaseUrl}/api/webinar-campaign/respond?email=${encodeURIComponent(email)}&response=interested" style="background-color:#22C55E; color:#ffffff; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:13px; display:inline-block; margin-right:10px;">YES — I'm Interested (Send Me Webinar Pass)</a>
+2. Not Interested Button: <a href="${responseBaseUrl}/api/webinar-campaign/respond?email=${encodeURIComponent(email)}&response=not_interested" style="background-color:#6B7280; color:#ffffff; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:13px; display:inline-block;">NO — Not Interested</a>
+
+Output MUST be a strictly valid JSON array of 5 objects (and NOTHING else).
+Each object must have:
+- "day": integer (1 to 5)
+- "title": string (e.g. "Day 1: Initial Invitation Hook")
+- "subject": string (compelling, high-open-rate subject line)
+- "body": string (professionally formatted HTML email body with strong hook referencing their medical specialty and clinic, clear value prop, bullet points, and the two required response buttons above at the bottom).`;
+
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: 'application/json' }
+          })
+        });
+
+        if (geminiRes.ok) {
+          const gData: any = await geminiRes.json();
+          const text = gData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const cleanedJson = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          const parsed = JSON.parse(cleanedJson);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            sequence = parsed;
+            isAiGenerated = true;
+            provider = 'Google Gemini Flash (Free AI Engine)';
+          }
+        } else {
+          const errText = await geminiRes.text();
+          this.logger.warn(`Gemini API returned status ${geminiRes.status}: ${errText}`);
+        }
+      } catch (gErr: any) {
+        this.logger.error(`Gemini API error: ${gErr.message}`);
+      }
+    }
+
+    // 2. Secondary: Try OpenAI API if sequence is not yet generated
+    if (sequence.length === 0 && openaiKey) {
+      if (openaiKey && openaiKey.length > 10) {
+        try {
+          this.logger.log(`Calling OpenAI API (model: gpt-4o) for ${fullName}...`);
+          const systemPrompt = `You are an elite AI copywriter for Ovalia Capital, a private equity real estate fund manager specializing in tax-sheltered, high-yield investments for accredited physicians.
+Generate a hyper-personalized 5-day email drip sequence for a doctor.
+
+Output MUST be a strictly valid JSON array of 5 objects (and NOTHING else).
+Each object must have:
+- "day": integer (1 to 5)
+- "title": string (e.g. "Day 1: Initial Invitation Hook")
+- "subject": string (compelling, high-open-rate subject line)
+- "body": string (professionally formatted HTML email body with strong hook referencing their medical specialty and clinic, clear value prop, bullet points, and the two required response buttons at the bottom).`;
+
+          const userPrompt = `Doctor Metadata:
+- Name: ${fullName}
+- Specialty: ${specialty}
+- Clinic/Organization: ${organization}
+- City/Location: ${location}
+
+Generate the 5-day email sequence JSON array now.`;
+
+          const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${openaiKey}`,
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o',
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+              ],
+              temperature: 0.7,
+            }),
+          });
+
+          if (aiRes.ok) {
+            const data: any = await aiRes.json();
+            const content = data.choices?.[0]?.message?.content || '';
+            const cleanedJson = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            const parsed = JSON.parse(cleanedJson);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              sequence = parsed;
+              isAiGenerated = true;
+              provider = 'GPT-4o (OpenAI Engine)';
+            }
+          } else {
+            const errText = await aiRes.text();
+            this.logger.warn(`AI API call returned status ${aiRes.status}: ${errText}`);
+          }
+        } catch (err: any) {
+          this.logger.error(`Error generating sequence via AI API: ${err.message}`);
+        }
+      }
+    }
+
+    if (sequence.length === 0) {
+      const cleanName = fullName.replace(/^dr\.?\s+/i, '').trim();
+      const responseBaseUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+      const rsvpButtonsHtml = `
+<div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #E5E7EB; text-align: center;">
+  <p style="font-size: 13px; font-weight: bold; color: #4B5563; margin-bottom: 12px;">Would you like to attend or receive our private investor deck?</p>
+  <a href="${responseBaseUrl}/api/webinar-campaign/respond?email=${encodeURIComponent(email)}&response=interested" style="background-color: #22C55E; color: #FFFFFF; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-block; margin-right: 10px; margin-bottom: 8px;">YES — I'm Interested (Send Me Webinar Pass)</a>
+  <a href="${responseBaseUrl}/api/webinar-campaign/respond?email=${encodeURIComponent(email)}&response=not_interested" style="background-color: #6B7280; color: #FFFFFF; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-block;">NO — Not Interested</a>
+</div>`;
+
+      sequence = [
+        {
+          day: 1,
+          title: 'Day 1: Exclusive Webinar Hook',
+          subject: `Exclusive Wealth & Tax Strategies for ${specialty} Physicians in ${location}`,
+          body: `<p style="font-size: 15px; color: #374151;">Dear ${fullName},</p>
+<p style="font-size: 15px; color: #374151;">As a practicing specialist at <strong>${organization}</strong>, you spend your weeks delivering exceptional clinical care in ${location}. However, high income often brings significant tax burdens that dilute long-term wealth accumulation.</p>
+<p style="font-size: 15px; color: #374151;">We would love to personally invite you to an exclusive 45-minute webinar hosted by <strong>Ovalia Capital</strong> tailored specifically for ${specialty} doctors:</p>
+<div style="background-color: #FFFBEB; border-left: 4px solid #FBCB4B; padding: 16px; border-radius: 6px; margin: 20px 0;">
+  <p style="margin: 0; font-weight: bold; color: #1F1F1F;">Topic: Tax-Advantaged Commercial Real Estate Returns for High-Income Physicians</p>
+  <p style="margin: 6px 0 0; font-size: 13px; color: #6B7280;">Target Yield: 15-18% IRR | 100% Passive | K-1 Tax Losses Included</p>
+</div>
+${rsvpButtonsHtml}
+<p style="font-size: 14px; color: #6B7280; margin-top: 20px;">Best regards,<br><strong>Ovalia Capital Investor Relations Team</strong></p>`
+        },
+        {
+          day: 2,
+          title: 'Day 2: K-1 Depreciation & Passive Returns',
+          subject: `How ${specialty} Specialists at ${organization} Shelter Practice Income`,
+          body: `<p style="font-size: 15px; color: #374151;">Hi ${cleanName},</p>
+<p style="font-size: 15px; color: #374151;">Following up on my message yesterday. Many physicians in ${location} tell us their primary frustration is paying over 40% in combined federal and state taxes on practice earnings.</p>
+<p style="font-size: 15px; color: #374151;">Commercial real estate syndication offers accelerated cost segregation depreciation—allowing accredited doctors to offset income tax while earning quarterly cash distributions.</p>
+<ul style="font-size: 14px; color: #4B5563; line-height: 1.8;">
+  <li><strong>Quarterly Cash Flow:</strong> Direct ACH deposits to your account.</li>
+  <li><strong>Bonus Depreciation:</strong> Significant Year-1 tax write-offs.</li>
+  <li><strong>Zero Time Commitment:</strong> Fully managed by Ovalia Capital asset managers.</li>
+</ul>
+${rsvpButtonsHtml}`
+        },
+        {
+          day: 3,
+          title: 'Day 3: Case Study & Peer Social Proof',
+          subject: `Case Study: How a ${specialty} Partner Scaled Passive Income to $120k/yr`,
+          body: `<p style="font-size: 15px; color: #374151;">Hello ${fullName},</p>
+<p style="font-size: 15px; color: #374151;">We recently partnered with a leading ${specialty} physician in Texas who wanted to diversify out of volatile equity markets into tangible institutional real estate.</p>
+<div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 20px; border-radius: 12px; margin: 20px 0;">
+  <p style="margin: 0; font-style: italic; color: #334155; font-size: 14px;">"Ovalia Capital allowed me to build real estate wealth without taking time away from my patients or surgical schedule. The quarterly distributions and tax savings exceeded expectations."</p>
+</div>
+<p style="font-size: 15px; color: #374151;">We will break down this exact portfolio structure during our 45-minute live Q&A webinar.</p>
+${rsvpButtonsHtml}`
+        },
+        {
+          day: 4,
+          title: 'Day 4: Live Webinar Countdown',
+          subject: `Reminder: Live Q&A Session for ${organization} Physicians Starts Soon`,
+          body: `<p style="font-size: 15px; color: #374151;">Hi ${cleanName},</p>
+<p style="font-size: 15px; color: #374151;">Just a quick note that spots for our upcoming <strong>Ovalia Capital Physician Wealth Session</strong> are filling up quickly.</p>
+<p style="font-size: 15px; color: #374151;">In 45 minutes, our Managing Partners will share:</p>
+<ol style="font-size: 14px; color: #4B5563; line-height: 1.8;">
+  <li>Current market opportunities in multifamily & industrial assets.</li>
+  <li>How accredited doctors evaluate fund risk profiles.</li>
+  <li>Live Q&A to answer your specific investment questions.</li>
+</ol>
+${rsvpButtonsHtml}`
+        },
+        {
+          day: 5,
+          title: 'Day 5: Final Break-in & Private Offering Deck',
+          subject: `Final Check-in: Private Investment Deck for ${fullName}`,
+          body: `<p style="font-size: 15px; color: #374151;">Dear ${fullName},</p>
+<p style="font-size: 15px; color: #374151;">I know how demanding your schedule at <strong>${organization}</strong> can be. If you were unable to attend the webinar, I would be glad to send over our <strong>Private Investor Presentation Deck</strong> directly to your email.</p>
+<p style="font-size: 15px; color: #374151;">Or, if you prefer a brief 10-minute introductory phone call with our Investor Relations Director, you can pick a time that suits your clinical hours.</p>
+${rsvpButtonsHtml}
+<p style="font-size: 14px; color: #6B7280; margin-top: 20px;">Warm regards,<br><strong>Ovalia Capital Managing Team</strong></p>`
+        }
+      ];
+    }
+
+    const dripSchedule = this.calculateDripSchedule(new Date());
+    sequence = sequence.map((item: any, idx: number) => {
+      const sched = dripSchedule[idx] || dripSchedule[0];
+      return {
+        ...item,
+        scheduledDate: sched.scheduledDate,
+        isoDate: sched.isoDate,
+        status: 'scheduled',
+      };
+    });
+
+    if (prospectId && sequence.length > 0) {
+      try {
+        await db.query(
+          `UPDATE doctor_prospects SET ai_sequence = $1::jsonb, stage = 'pending_outreach' WHERE apollo_id = $2`,
+          [JSON.stringify(sequence), prospectId]
+        );
+        this.logger.log(`💾 Persisted 5-day email sequence into database for prospect: ${prospectId}`);
+      } catch (err: any) {
+        this.logger.warn(`Failed to persist sequence to DB: ${err.message}`);
+      }
+    }
+
+    return {
+      success: true,
+      isAiGenerated,
+      provider,
+      doctor: {
+        fullName,
+        specialty,
+        organization,
+        location,
+        email,
+      },
+      sequence,
+    };
+  }
+
+  async recordProspectResponse(identifier: string, status: string): Promise<void> {
+    try {
+      if (!identifier || !status) return;
       const validStatus = status === 'interested' ? 'interested' : 'not_interested';
-      await db.query(
-        `UPDATE doctor_prospects SET stage = $1, updated_at = CURRENT_TIMESTAMP WHERE apollo_id = $2`,
-        [validStatus, id]
+
+      const updateRes = await db.query(
+        `UPDATE doctor_prospects SET stage = $1, updated_at = CURRENT_TIMESTAMP WHERE apollo_id = $2 OR email = $2 RETURNING apollo_id, full_name, email`,
+        [validStatus, identifier]
       );
-      await db.query(
-        `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`,
-        [id, `response_${validStatus}`, JSON.stringify({ status: validStatus, recordedAt: new Date().toISOString() })]
-      );
-      this.logger.log(`✅ [Prospect Response] Recorded stage '${validStatus}' for prospect ID/apollo_id: ${id}`);
+
+      if (updateRes.rows.length > 0) {
+        const apolloId = updateRes.rows[0].apollo_id;
+        await db.query(
+          `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`,
+          [apolloId, `response_${validStatus}`, JSON.stringify({ status: validStatus, recordedAt: new Date().toISOString() })]
+        );
+        this.logger.log(`✅ [Prospect Response] Recorded stage '${validStatus}' in PostgreSQL for doctor ${updateRes.rows[0].full_name} (${updateRes.rows[0].email})!`);
+      } else {
+        this.logger.warn(`[Prospect Response] Doctor record not found for identifier: ${identifier}`);
+      }
     } catch (error: any) {
-      this.logger.error(`❌ Error recording response for prospect ${id}: ${error.message}`, error?.stack);
+      this.logger.error(`❌ Error recording response for prospect ${identifier}: ${error.message}`, error?.stack);
     }
   }
 }
+

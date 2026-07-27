@@ -22,6 +22,7 @@ import {
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { apiClient } from '@/lib/api/client';
 
 interface DoctorProspect {
@@ -97,9 +98,17 @@ export default function DoctorLeadsPage() {
 
   const [prospects, setProspects] = useState<DoctorProspect[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<'saved' | 'apollo'>('saved');
   const [isSearchingApollo, setIsSearchingApollo] = useState(false);
   const [isSendingBatch, setIsSendingBatch] = useState(false);
   const [isEnriching, setIsEnriching] = useState(false);
+
+  // Sequence Modal States
+  const [isSequenceModalOpen, setIsSequenceModalOpen] = useState(false);
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
+  const [sequenceData, setSequenceData] = useState<any>(null);
+  const [activeDay, setActiveDay] = useState<number>(1);
+  const [isGeneratingSequence, setIsGeneratingSequence] = useState(false);
   
   // Apollo filter states
   const [specialty, setSpecialty] = useState('Orthopedic Surgery, Cardiology, Dermatology');
@@ -108,9 +117,13 @@ export default function DoctorLeadsPage() {
   const [batchSize, setBatchSize] = useState('50');
 
   useEffect(() => {
-    if (!authLoading && user && !isAdmin && user.role !== 'investor_relations') {
-      toast.error('Access denied. You do not have permission to access Doctor Leads.');
-      router.push('/dashboard');
+    if (!authLoading && user) {
+      if (!isAdmin && user.role !== 'investor_relations') {
+        toast.error('Access denied. You do not have permission to access Doctor Leads.');
+        router.push('/dashboard');
+      } else {
+        handleLoadSavedFromDb({ silent: true });
+      }
     }
   }, [user, isAdmin, authLoading, router]);
 
@@ -129,6 +142,8 @@ export default function DoctorLeadsPage() {
       if (response && response.prospects && response.prospects.length > 0) {
         setProspects(response.prospects);
         setSelectedIds([]);
+        const hasUnenriched = response.prospects.some((p: any) => !p.isAlreadyEnriched);
+        setActiveTab(hasUnenriched ? 'apollo' : 'saved');
         toast.success(`Successfully retrieved ${response.prospects.length} verified physician profiles from Apollo.io! Check PostgreSQL cross-reference below.`);
       } else {
         toast.warning('Apollo search returned 0 results. Try broadening your location or specialty keywords.');
@@ -162,19 +177,22 @@ export default function DoctorLeadsPage() {
         setProspects(prev => prev.map(p => {
           if (selectedIds.includes(p.id)) {
             const enriched = response.prospects?.find((r: any) => r.apollo_id === p.id || r.id === p.id);
+            const newStage = enriched?.stage || p.stage || 'pending_outreach';
+            const newStatus = ['sent', 'interested', 'not_interested'].includes(newStage) ? newStage : 'ai_copy_ready';
             return {
               ...p,
               isAlreadyEnriched: true,
-              status: enriched?.stage === 'sent' || enriched?.status === 'sent' ? 'sent' : 'ai_copy_ready',
+              status: newStatus,
               email: enriched?.email || p.email,
               phone: enriched?.phone || p.phone,
               emailStatus: 'verified',
-              stage: enriched?.stage || 'pending_outreach'
+              stage: newStage
             };
           }
           return p;
         }));
         setSelectedIds([]);
+        setActiveTab('saved');
       } else {
         toast.error('Failed to enrich profiles. Please try again.');
       }
@@ -186,9 +204,11 @@ export default function DoctorLeadsPage() {
     }
   };
 
-  const handleLoadSavedFromDb = async () => {
+  const handleLoadSavedFromDb = async (options?: { silent?: boolean }) => {
     try {
-      toast.info('Loading saved physician records from doctor_prospects database table...');
+      if (!options?.silent) {
+        toast.info('Loading saved physician records from doctor_prospects database table...');
+      }
       const response = await apiClient.getSavedDoctorProspects(100);
       if (response && response.prospects && response.prospects.length > 0) {
         const mapped: DoctorProspect[] = response.prospects.map((r: any) => ({
@@ -206,12 +226,17 @@ export default function DoctorLeadsPage() {
         }));
         setProspects(mapped);
         setSelectedIds([]);
-        toast.success(`Loaded ${mapped.length} verified leads directly from PostgreSQL!`);
-      } else {
+        setActiveTab('saved');
+        if (!options?.silent) {
+          toast.success(`Loaded ${mapped.length} verified leads directly from PostgreSQL!`);
+        }
+      } else if (!options?.silent) {
         toast.warning('No saved leads found inside doctor_prospects table yet. Enrich some leads above first!');
       }
     } catch (error: any) {
-      toast.error('Failed to load from database: ' + error.message);
+      if (!options?.silent) {
+        toast.error('Failed to load from database: ' + error.message);
+      }
     }
   };
 
@@ -232,7 +257,7 @@ export default function DoctorLeadsPage() {
 
       if (res && res.success) {
         toast.success(`🎉 Successfully dispatched ${res.sentCount || selectedIds.length} email(s) via SendGrid / SMTP!`);
-        setProspects(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, status: 'sent' } : p));
+        setProspects(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, status: 'sent', stage: 'sent' } : p));
         setSelectedIds([]);
       } else {
         toast.error('Failed to send outreach emails.');
@@ -245,47 +270,99 @@ export default function DoctorLeadsPage() {
     }
   };
 
+  const handleOpenSequenceModal = async (docId?: string) => {
+    setIsSequenceModalOpen(true);
+    const availableDocs = prospects.length > 0 ? prospects : INITIAL_PROSPECTS;
+    const targetDoc = availableDocs.find(p => p.id === docId) || availableDocs[0];
+    const targetId = targetDoc ? targetDoc.id : '';
+    if (targetId) {
+      setSelectedDoctorId(targetId);
+      await fetchDoctorSequence(targetId, availableDocs);
+    }
+  };
+
+  const fetchDoctorSequence = async (docId: string, customList?: DoctorProspect[]) => {
+    setIsGeneratingSequence(true);
+    try {
+      const availableDocs = customList || (prospects.length > 0 ? prospects : INITIAL_PROSPECTS);
+      const targetDoc = availableDocs.find(p => p.id === docId) || availableDocs[0];
+      const res = await apiClient.generateDoctorSequence({
+        prospectId: docId,
+        mockDoctorData: targetDoc
+      });
+      if (res && res.success) {
+        setSequenceData(res);
+        setActiveDay(1);
+      }
+    } catch (err: any) {
+      toast.error('Failed to generate AI sequence: ' + err.message);
+    } finally {
+      setIsGeneratingSequence(false);
+    }
+  };
+
+  const [isConfiguringSelected, setIsConfiguringSelected] = useState(false);
+
+  const handleConfigureAllSelected = async () => {
+    if (activeTab !== 'saved') {
+      toast.info('Please switch to "Saved in Database" tab and select saved prospects to configure campaigns.');
+      return;
+    }
+    if (selectedIds.length === 0) {
+      toast.info('Please select at least one doctor lead from the database table below.');
+      return;
+    }
+
+    setIsConfiguringSelected(true);
+    toast.info(`Configuring 5-Day AI sequences & launching campaign for ${selectedIds.length} doctor(s)...`);
+
+    try {
+      let count = 0;
+      for (const id of selectedIds) {
+        const targetDoc = prospects.find(p => p.id === id);
+        const res = await apiClient.generateDoctorSequence({
+          prospectId: id,
+          mockDoctorData: targetDoc
+        });
+        if (res && res.success) {
+          count++;
+        }
+      }
+
+      toast.success(`🎉 Configured & saved 5-Day AI sequences in PostgreSQL for ${count} doctor(s)! Scheduled to start tomorrow at 9:00 AM EST.`);
+      await handleLoadSavedFromDb({ silent: true });
+    } catch (err: any) {
+      toast.error('Configuration Error: ' + err.message);
+    } finally {
+      setIsConfiguringSelected(false);
+    }
+  };
+
+  const displayedProspects = prospects.filter(p => activeTab === 'saved' ? p.isAlreadyEnriched : !p.isAlreadyEnriched);
+
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-7xl font-helvetica text-[#1F1F1F]">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="w-full font-helvetica text-[#1F1F1F]">
+        {/* Top Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#FFD66B]/20 text-[#1F1F1F]">
-                <Stethoscope className="w-4 h-4 text-[#D9A11E]" />
-              </span>
+              <span className="w-2 h-2 rounded-full bg-[#FFC63F] animate-pulse"></span>
               <span className="text-[12px] font-bold uppercase tracking-wider text-[#D9A11E] bg-[#FFF9EE] px-2.5 py-0.5 rounded-full border border-[#FFE7A8]">
-                Step 1: Lead Engine & Outreach
+                Step 1: Lead Engine &amp; Outreach
               </span>
             </div>
             <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">
-              Doctor Lead Generator & AI Campaigns
+              Doctor Lead Generator &amp; AI Campaigns
             </h1>
             <p className="text-[#8E8E93] text-[14px] mt-1 max-w-2xl">
-              Discover accredited physician prospects using Apollo.io, generate hyper-personalized email copy using OpenAI, and dispatch throttled daily batches via SMTP inviting them to your Luma webinar.
+              Discover accredited physician prospects using Apollo.io, configure 5-day AI email drip sequences, and dispatch automated outreach.
             </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleTriggerDailyBatch}
-              disabled={isSendingBatch || selectedIds.length === 0}
-              className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-[14px] bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              title={selectedIds.length === 0 ? 'Check at least one row below to send emails' : `Send to ${selectedIds.length} checked row(s)`}
-            >
-              {isSendingBatch ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-              <span>Send Campaign Email ({selectedIds.length} Selected)</span>
-            </button>
           </div>
         </div>
 
         {/* Top Configuration Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-5">
           {/* Apollo.io Search Engine Card */}
           <div className="lg:col-span-2 bg-white rounded-[20px] p-6 shadow-sm border border-[#F2F2F2]">
             <div className="flex items-center justify-between pb-4 mb-5 border-b border-[#F2F2F2]">
@@ -325,7 +402,7 @@ export default function DoctorLeadsPage() {
                 />
               </div>
               <div>
-                <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Seniority & Title Keywords</label>
+                <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Seniority &amp; Title Keywords</label>
                 <input
                   type="text"
                   value={seniority}
@@ -363,58 +440,71 @@ export default function DoctorLeadsPage() {
                 ) : (
                   <RefreshCw className="w-4 h-4 text-[#FFC63F]" />
                 )}
-                <span>Search & Ingest Leads via Apollo</span>
+                <span>Search &amp; Ingest Leads via Apollo</span>
               </button>
             </div>
           </div>
 
-          {/* OpenAI Personalization Engine Preview Card */}
-          <div className="bg-gradient-to-br from-[#1F2937] to-[#111827] rounded-[20px] p-6 text-white shadow-lg flex flex-col justify-between relative overflow-hidden">
+          {/* Unified AI 5-Day Campaign Engine Card */}
+          <div className="bg-gradient-to-br from-[#1F2937] via-[#111827] to-[#0F172A] rounded-[20px] p-6 text-white shadow-lg flex flex-col justify-between relative overflow-hidden border border-white/10">
             <div className="absolute top-0 right-0 w-48 h-48 bg-[#FFC63F]/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
             
-            <div>
-              <div className="flex items-center justify-between mb-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-[#FFC63F]/20 flex items-center justify-center text-[#FFC63F]">
                     <Sparkles className="w-4 h-4" />
                   </div>
-                  <h3 className="font-goudy text-[18px] font-bold text-white">OpenAI Prompt Rules</h3>
+                  <h3 className="font-goudy text-[18px] font-bold text-white">AI 5-Day Campaign Engine</h3>
                 </div>
                 <span className="text-[11px] font-bold uppercase tracking-wider bg-[#FFC63F] text-[#1F1F1F] px-2.5 py-0.5 rounded-full">
-                  GPT-4o
+                  Gemini Flash AI
                 </span>
               </div>
 
-              <p className="text-[13px] text-gray-300 leading-relaxed mb-4">
-                Emails are automatically customized for each doctor before sending:
-              </p>
+              <div className="space-y-2 text-[12px] text-gray-300 bg-white/5 rounded-xl p-3 border border-white/10">
+                <div className="flex items-start gap-2">
+                  <span className="text-[#FFC63F] font-bold">•</span>
+                  <span><strong>5-Day Drip Sequence:</strong> Configures &amp; saves custom 5-day emails for each doctor in DB.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#FFC63F] font-bold">•</span>
+                  <span><strong>RSVP Tracking:</strong> Includes YES / NO buttons to record responses in PostgreSQL.</span>
+                </div>
+              </div>
 
-              <div className="space-y-3 text-[12px] text-gray-300 bg-white/5 rounded-xl p-3.5 border border-white/10">
-                <div className="flex items-start gap-2">
-                  <span className="text-[#FFC63F] font-bold">•</span>
-                  <span><strong>Hook:</strong> Reference physician&apos;s specific medical specialty (`Cardiology`, `Orthopedics`) & practice city.</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[#FFC63F] font-bold">•</span>
-                  <span><strong>Value Prop:</strong> Tax-advantaged real estate & fund returns tailored for high-income doctors.</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[#FFC63F] font-bold">•</span>
-                  <span><strong>Call to Action:</strong> Personal invite link to upcoming exclusive Luma (`lu.ma`) webinar.</span>
-                </div>
+              {/* Single 1-Click Action Button */}
+              <div className="pt-2">
+                <button
+                  onClick={handleConfigureAllSelected}
+                  disabled={isConfiguringSelected || selectedIds.length === 0 || activeTab !== 'saved'}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-extrabold text-[14px] bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isConfiguringSelected ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
+                  ) : (
+                    <Send className="w-4 h-4 text-[#1F1F1F]" />
+                  )}
+                  <span>⚡ Configure &amp; Save 5-Day Campaign ({selectedIds.length} Selected)</span>
+                </button>
+                {activeTab !== 'saved' && selectedIds.length > 0 && (
+                  <p className="text-[11px] text-[#FFC63F]/90 text-center mt-1.5 font-medium">
+                    ⚠️ Enrich &amp; save leads to DB first to configure campaigns
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between">
-              <span className="text-[12px] text-gray-400 flex items-center gap-1.5">
+            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+              <span className="text-[11px] text-gray-400 flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-[#FFC63F]" />
                 Daily Cron @ 9:00 AM EST
               </span>
               <button 
-                onClick={() => toast.info('Prompt configuration modal can be opened here')}
-                className="text-[12px] font-semibold text-[#FFC63F] hover:underline flex items-center gap-1"
+                onClick={() => handleOpenSequenceModal()}
+                className="text-[12px] font-semibold text-[#FFC63F] hover:underline flex items-center gap-1 cursor-pointer"
               >
-                Configure Prompt <ArrowRight className="w-3 h-3" />
+                View Sample AI Campaign <ArrowRight className="w-3 h-3" />
               </button>
             </div>
           </div>
@@ -422,33 +512,71 @@ export default function DoctorLeadsPage() {
 
         {/* Prospects Queue Table */}
         <div className="bg-white rounded-[20px] shadow-sm border border-[#F2F2F2] overflow-hidden">
-          <div className="px-6 py-5 border-b border-[#F2F2F2] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Header Row */}
+          <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F]">Today&apos;s Outreach Batch Queue</h3>
-              <p className="text-[13px] text-[#8E8E93]">Select unenriched prospects below for bulk enrichment and automatic database save.</p>
+              <p className="text-[13px] text-[#8E8E93]">Switch tabs below to view stored database records or fresh Apollo ingested prospects.</p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+
+            <div className="flex items-center gap-2">
+              {activeTab === 'apollo' ? (
+                <button
+                  onClick={handleBulkEnrichAndSave}
+                  disabled={isEnriching || selectedIds.length === 0}
+                  className="text-[12px] font-bold px-4 py-2 rounded-full bg-[#FFC63F] hover:bg-[#D9A11E] text-[#1F1F1F] shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {isEnriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  Enrich Selected ({selectedIds.length}) &amp; Save to DB
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleLoadSavedFromDb()}
+                  className="text-[12px] font-bold px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 transition-all shadow-sm flex items-center gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-gray-600" />
+                  Refresh DB Leads
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Sub-Header Tabs Bar (Moved Down Below Title) */}
+          <div className="px-6 pb-4 pt-1 border-b border-[#F2F2F2] bg-[#FCFCFC] flex items-center justify-between">
+            <div className="inline-flex p-1 bg-gray-200/70 rounded-xl border border-gray-300/50 shadow-inner">
               <button
-                onClick={handleLoadSavedFromDb}
-                className="text-[12px] font-bold px-3.5 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 transition-all shadow-sm flex items-center gap-1.5"
+                onClick={() => setActiveTab('saved')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold transition-all ${
+                  activeTab === 'saved'
+                    ? 'bg-white text-[#1F1F1F] shadow-sm border border-gray-200'
+                    : 'text-gray-600 hover:text-[#1F1F1F]'
+                }`}
               >
-                <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                View Saved DB Leads
+                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                <span>Saved in Database</span>
+                <span className="px-2 py-0.5 text-[11px] rounded-full bg-green-100 text-green-800 font-extrabold border border-green-200">
+                  {prospects.filter(p => p.isAlreadyEnriched).length}
+                </span>
               </button>
+
               <button
-                onClick={handleBulkEnrichAndSave}
-                disabled={isEnriching}
-                className="text-[12px] font-bold px-4 py-1.5 rounded-full bg-[#FFC63F] hover:bg-[#D9A11E] text-[#1F1F1F] shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50"
+                onClick={() => setActiveTab('apollo')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold transition-all ${
+                  activeTab === 'apollo'
+                    ? 'bg-white text-[#1F1F1F] shadow-sm border border-gray-200'
+                    : 'text-gray-600 hover:text-[#1F1F1F]'
+                }`}
               >
-                {isEnriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                Enrich Selected ({selectedIds.length}) & Save to DB
+                <Sparkles className="w-4 h-4 text-[#D9A11E]" />
+                <span>Enriched by Apollo</span>
+                <span className="px-2 py-0.5 text-[11px] rounded-full bg-amber-100 text-amber-800 font-extrabold border border-amber-200">
+                  {prospects.filter(p => !p.isAlreadyEnriched).length}
+                </span>
               </button>
-              <span className="text-[12px] font-bold px-3 py-1.5 rounded-full bg-yellow-50 text-yellow-700 border border-yellow-200">
-                {prospects.filter(p => !p.isAlreadyEnriched).length} Unenriched
-              </span>
-              <span className="text-[12px] font-bold px-3 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-200">
-                {prospects.filter(p => p.isAlreadyEnriched || p.status === 'sent').length} Saved in DB
-              </span>
+            </div>
+
+            <div className="text-[12px] text-[#8E8E93] font-medium">
+              Showing <span className="font-bold text-[#1F1F1F]">{displayedProspects.length}</span> prospect(s)
             </div>
           </div>
 
@@ -459,12 +587,13 @@ export default function DoctorLeadsPage() {
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider w-12">
                     <input
                       type="checkbox"
-                      checked={prospects.length > 0 && prospects.every(p => selectedIds.includes(p.id))}
+                      checked={displayedProspects.length > 0 && displayedProspects.every(p => selectedIds.includes(p.id))}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedIds(prospects.map(p => p.id));
+                          setSelectedIds(prev => Array.from(new Set([...prev, ...displayedProspects.map(p => p.id)])));
                         } else {
-                          setSelectedIds([]);
+                          const displayedSet = new Set(displayedProspects.map(p => p.id));
+                          setSelectedIds(prev => prev.filter(id => !displayedSet.has(id)));
                         }
                       }}
                       className="rounded border-gray-300 text-[#FFC63F] focus:ring-[#FFC63F]"
@@ -480,22 +609,26 @@ export default function DoctorLeadsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F2F2F2]">
-                {prospects.length === 0 ? (
+                {displayedProspects.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-14 text-center bg-[#FCFCFC]/80">
                       <div className="flex flex-col items-center justify-center gap-2.5 max-w-md mx-auto">
                         <div className="w-12 h-12 rounded-full bg-[#FFD66B]/20 flex items-center justify-center text-[#D9A11E] mb-1">
                           <Stethoscope className="w-6 h-6" />
                         </div>
-                        <p className="text-[16px] font-bold text-[#1F1F1F]">No Physician Leads Discovered Yet</p>
+                        <p className="text-[16px] font-bold text-[#1F1F1F]">
+                          {activeTab === 'saved' ? 'No Saved Database Leads Found' : 'No Unenriched Apollo Leads Ingested Yet'}
+                        </p>
                         <p className="text-[13px] text-[#8E8E93] leading-relaxed">
-                          Click <strong>&quot;Search &amp; Ingest Leads via Apollo&quot;</strong> above to perform a free search (0 credits used), or click <strong>&quot;View Saved DB Leads&quot;</strong> to load leads stored in your PostgreSQL database.
+                          {activeTab === 'saved'
+                            ? 'Ingest prospects via Apollo above and click "Enrich Selected & Save to DB" to store leads in PostgreSQL.'
+                            : 'Click "Search & Ingest Leads via Apollo" above to ingest fresh physician prospects.'}
                         </p>
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  prospects.map((doc) => (
+                  displayedProspects.map((doc) => (
                   <tr key={doc.id} className={`hover:bg-gray-50/60 transition-colors ${doc.isAlreadyEnriched ? 'bg-gray-50/30' : ''}`}>
                     <td className="px-6 py-4.5 whitespace-nowrap">
                       <input
@@ -518,7 +651,13 @@ export default function DoctorLeadsPage() {
                           {doc.fullName.replace('Dr. ', '').charAt(0)}
                         </div>
                         <div>
-                          <div className="text-[14px] font-bold text-[#1F1F1F]">{doc.fullName}</div>
+                          <Link 
+                            href={`/dashboard/doctor-leads/${doc.id}`}
+                            className="text-[14px] font-bold text-[#1F1F1F] hover:text-[#D9A11E] hover:underline transition-colors block"
+                            title="Click to view full physician profile dossier & AI campaign"
+                          >
+                            {doc.fullName}
+                          </Link>
                           <div className="text-[11px] text-[#8E8E93]">ID: {doc.id}</div>
                         </div>
                       </div>
@@ -605,12 +744,192 @@ export default function DoctorLeadsPage() {
                       </button>
                     </td>
                   </tr>
-                )))}
+                ))
+              )}
               </tbody>
             </table>
           </div>
         </div>
       </div>
+
+      {/* 5-Day AI Email Sequence Modal */}
+      {isSequenceModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-4xl rounded-[24px] shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#1F2937] to-[#111827] text-white p-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#FFC63F]/20 flex items-center justify-center text-[#FFC63F]">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-goudy text-[22px] font-bold">5-Day AI Email Campaign Generator</h3>
+                    <span className="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#FFC63F] text-[#1F1F1F]">
+                      {sequenceData?.provider || 'Google Gemini AI'}
+                    </span>
+                  </div>
+                  <p className="text-[13px] text-gray-300">Hyper-personalized multi-day sequence tailored specifically for medical doctors</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsSequenceModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Doctor Selector & Controls */}
+            <div className="p-6 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex-1">
+                <label className="block text-[12px] font-bold uppercase text-gray-500 mb-1">Select Physician Target</label>
+                <select
+                  value={selectedDoctorId}
+                  onChange={async (e) => {
+                    setSelectedDoctorId(e.target.value);
+                    const availableDocs = prospects.length > 0 ? prospects : INITIAL_PROSPECTS;
+                    await fetchDoctorSequence(e.target.value, availableDocs);
+                  }}
+                  className="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-[14px] font-bold text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                >
+                  {(prospects.length > 0 ? prospects : INITIAL_PROSPECTS).map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.fullName} — {p.specialty} ({p.location})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                onClick={() => fetchDoctorSequence(selectedDoctorId)}
+                disabled={isGeneratingSequence}
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-bold bg-[#1F1F1F] hover:bg-[#333] text-white shadow-sm transition-all disabled:opacity-50"
+              >
+                {isGeneratingSequence ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-[#FFC63F]" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 text-[#FFC63F]" />
+                )}
+                <span>Regenerate Sequence with Gemini</span>
+              </button>
+            </div>
+
+            {/* Doctor Summary Banner */}
+            {sequenceData?.doctor && (
+              <div className="px-6 py-3 bg-[#FFF9EE] border-b border-[#FFE7A8] flex items-center justify-between text-[13px] text-[#1F1F1F]">
+                <div className="flex items-center gap-4">
+                  <span><strong>Target:</strong> {sequenceData.doctor.fullName}</span>
+                  <span><strong>Specialty:</strong> {sequenceData.doctor.specialty}</span>
+                  <span><strong>Clinic:</strong> {sequenceData.doctor.organization}</span>
+                </div>
+                <span className="text-[12px] font-bold text-[#D9A11E] bg-white px-2.5 py-1 rounded-full border border-[#FFE7A8]">
+                  {sequenceData.isAiGenerated ? '✨ Gemini AI Personalization Active' : '⚡ Smart Template Generator'}
+                </span>
+              </div>
+            )}
+
+            {/* 5-Day Carousel / Tabs */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-5">
+              <div className="flex items-center gap-2 border-b border-gray-200 pb-3 overflow-x-auto">
+                {[1, 2, 3, 4, 5].map((dayNum) => {
+                  const item = sequenceData?.sequence?.find((s: any) => s.day === dayNum);
+                  return (
+                    <button
+                      key={dayNum}
+                      onClick={() => setActiveDay(dayNum)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold transition-all shrink-0 ${
+                        activeDay === dayNum
+                          ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm border border-[#E0AC27]'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      <span>Day {dayNum}</span>
+                      {item?.title && <span className="text-[11px] font-normal opacity-80 max-w-[120px] truncate">({item.title.split(':')[1] || item.title})</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Selected Day Email Preview */}
+              {sequenceData?.sequence && (
+                (() => {
+                  const activeEmail = sequenceData.sequence.find((s: any) => s.day === activeDay) || sequenceData.sequence[0];
+                  if (!activeEmail) return null;
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4 border border-gray-200">
+                        <div className="flex-1 pr-4">
+                          <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Email Subject Line (Day {activeDay})</label>
+                          <div className="text-[15px] font-bold text-[#1F1F1F]">{activeEmail.subject}</div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(activeEmail.subject);
+                            toast.success('Subject line copied to clipboard!');
+                          }}
+                          className="text-[12px] font-bold px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 transition-all shadow-sm shrink-0"
+                        >
+                          Copy Subject
+                        </button>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-[11px] font-bold uppercase text-gray-500">Email Body Copy (Day {activeDay})</label>
+                          <button
+                            onClick={() => {
+                              const temp = document.createElement('div');
+                              temp.innerHTML = activeEmail.body;
+                              navigator.clipboard.writeText(temp.innerText || temp.textContent || '');
+                              toast.success('Email copy text copied to clipboard!');
+                            }}
+                            className="text-[12px] font-bold text-[#D9A11E] hover:underline"
+                          >
+                            Copy Body Text
+                          </button>
+                        </div>
+
+                        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-inner text-[14px] leading-relaxed font-sans text-gray-800 space-y-3 max-h-[300px] overflow-y-auto"
+                             dangerouslySetInnerHTML={{ __html: activeEmail.body }}
+                        />
+                      </div>
+
+                      <div className="pt-3 flex items-center justify-between border-t border-gray-100">
+                        <span className="text-[12px] text-gray-500">
+                          Day {activeDay} of 5-Day Drip Sequence
+                        </span>
+                        <button
+                          onClick={async () => {
+                            try {
+                              toast.info(`Dispatching Day ${activeDay} test email to ${sequenceData.doctor.fullName}...`);
+                              const res = await apiClient.sendDoctorOutreachEmails({
+                                prospectIds: [selectedDoctorId],
+                                customMessage: activeEmail.body,
+                                mockProfilesData: prospects
+                              });
+                              if (res && res.success) {
+                                toast.success(`🎉 Day ${activeDay} email sent successfully!`);
+                              }
+                            } catch (err: any) {
+                              toast.error('Error sending test email: ' + err.message);
+                            }
+                          }}
+                          className="flex items-center gap-2 px-5 py-2 rounded-full font-bold text-[13px] bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] transition-all shadow-sm"
+                        >
+                          <Send className="w-4 h-4" />
+                          <span>Send Day {activeDay} Test Email Now</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

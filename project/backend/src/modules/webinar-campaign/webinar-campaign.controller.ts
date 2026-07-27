@@ -75,6 +75,20 @@ export class WebinarCampaignController {
       body.mockProfilesData
     );
   }
+
+  @Post('generate-sequence')
+  async generateSequence(
+    @Body()
+    body: {
+      prospectId?: string;
+      mockDoctorData?: any;
+    }
+  ) {
+    return this.webinarCampaignService.generateDoctorSequence(
+      body.prospectId,
+      body.mockDoctorData
+    );
+  }
 }
 
 @Controller('api/webinar-campaign')
@@ -84,13 +98,19 @@ export class WebinarCampaignPublicController {
   @Get('respond')
   async respondToOutreach(
     @Query('id') id: string,
+    @Query('email') email: string,
     @Query('status') status: string,
+    @Query('response') response: string,
     @Res() res: Response
   ) {
-    if (id && status) {
-      await this.webinarCampaignService.recordProspectResponse(id, status);
+    const targetIdentifier = id || email;
+    const targetStatus = status || response;
+
+    if (targetIdentifier && targetStatus) {
+      await this.webinarCampaignService.recordProspectResponse(targetIdentifier, targetStatus);
     }
-    if (status === 'interested') {
+    const isInterested = targetStatus === 'interested';
+    if (isInterested) {
       return res.send(`
         <!DOCTYPE html>
         <html>
