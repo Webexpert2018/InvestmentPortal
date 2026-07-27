@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { 
-  Stethoscope, 
-  Search, 
-  Mail, 
-  Sparkles, 
-  Sliders, 
-  CheckCircle2, 
-  AlertCircle, 
-  Loader2, 
+import {
+  Stethoscope,
+  Search,
+  Mail,
+  Sparkles,
+  Sliders,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
   ArrowRight,
   Shield,
   Clock,
@@ -109,7 +109,7 @@ export default function DoctorLeadsPage() {
   const [sequenceData, setSequenceData] = useState<any>(null);
   const [activeDay, setActiveDay] = useState<number>(1);
   const [isGeneratingSequence, setIsGeneratingSequence] = useState(false);
-  
+
   // Apollo filter states
   const [specialty, setSpecialty] = useState('Orthopedic Surgery, Cardiology, Dermatology');
   const [location, setLocation] = useState('United States');
@@ -130,7 +130,7 @@ export default function DoctorLeadsPage() {
   const handleApolloSearch = async () => {
     setIsSearchingApollo(true);
     toast.info('Connecting to Apollo.io search endpoint (/v1/mixed_people/api_search)...');
-    
+
     try {
       const response = await apiClient.searchApolloProspects({
         specialties: specialty,
@@ -448,7 +448,7 @@ export default function DoctorLeadsPage() {
           {/* Unified AI 5-Day Campaign Engine Card */}
           <div className="bg-gradient-to-br from-[#1F2937] via-[#111827] to-[#0F172A] rounded-[20px] p-6 text-white shadow-lg flex flex-col justify-between relative overflow-hidden border border-white/10">
             <div className="absolute top-0 right-0 w-48 h-48 bg-[#FFC63F]/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -500,7 +500,7 @@ export default function DoctorLeadsPage() {
                 <Clock className="w-3.5 h-3.5 text-[#FFC63F]" />
                 Daily Cron @ 9:00 AM EST
               </span>
-              <button 
+              <button
                 onClick={() => handleOpenSequenceModal()}
                 className="text-[12px] font-semibold text-[#FFC63F] hover:underline flex items-center gap-1 cursor-pointer"
               >
@@ -546,11 +546,10 @@ export default function DoctorLeadsPage() {
             <div className="inline-flex p-1 bg-gray-200/70 rounded-xl border border-gray-300/50 shadow-inner">
               <button
                 onClick={() => setActiveTab('saved')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold transition-all ${
-                  activeTab === 'saved'
-                    ? 'bg-white text-[#1F1F1F] shadow-sm border border-gray-200'
-                    : 'text-gray-600 hover:text-[#1F1F1F]'
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold transition-all ${activeTab === 'saved'
+                  ? 'bg-white text-[#1F1F1F] shadow-sm border border-gray-200'
+                  : 'text-gray-600 hover:text-[#1F1F1F]'
+                  }`}
               >
                 <CheckCircle2 className="w-4 h-4 text-green-600" />
                 <span>Saved in Database</span>
@@ -561,11 +560,10 @@ export default function DoctorLeadsPage() {
 
               <button
                 onClick={() => setActiveTab('apollo')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold transition-all ${
-                  activeTab === 'apollo'
-                    ? 'bg-white text-[#1F1F1F] shadow-sm border border-gray-200'
-                    : 'text-gray-600 hover:text-[#1F1F1F]'
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold transition-all ${activeTab === 'apollo'
+                  ? 'bg-white text-[#1F1F1F] shadow-sm border border-gray-200'
+                  : 'text-gray-600 hover:text-[#1F1F1F]'
+                  }`}
               >
                 <Sparkles className="w-4 h-4 text-[#D9A11E]" />
                 <span>Enriched by Apollo</span>
@@ -605,13 +603,12 @@ export default function DoctorLeadsPage() {
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Contact Info</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">AI / DB Status</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Email Status</th>
-                  <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F2F2F2]">
                 {displayedProspects.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-14 text-center bg-[#FCFCFC]/80">
+                    <td colSpan={7} className="px-6 py-14 text-center bg-[#FCFCFC]/80">
                       <div className="flex flex-col items-center justify-center gap-2.5 max-w-md mx-auto">
                         <div className="w-12 h-12 rounded-full bg-[#FFD66B]/20 flex items-center justify-center text-[#D9A11E] mb-1">
                           <Stethoscope className="w-6 h-6" />
@@ -629,123 +626,98 @@ export default function DoctorLeadsPage() {
                   </tr>
                 ) : (
                   displayedProspects.map((doc) => (
-                  <tr key={doc.id} className={`hover:bg-gray-50/60 transition-colors ${doc.isAlreadyEnriched ? 'bg-gray-50/30' : ''}`}>
-                    <td className="px-6 py-4.5 whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.includes(doc.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedIds(prev => [...prev, doc.id]);
-                          } else {
-                            setSelectedIds(prev => prev.filter(id => id !== doc.id));
-                          }
-                        }}
-                        className="rounded border-gray-300 text-[#FFC63F] focus:ring-[#FFC63F]"
-                        title="Select for Email Campaign or Bulk Match"
-                      />
-                    </td>
-                    <td className="px-6 py-4.5 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-[#FFF9EE] text-[#D9A11E] flex items-center justify-center font-bold text-[13px] border border-[#FFE7A8]">
-                          {doc.fullName.replace('Dr. ', '').charAt(0)}
-                        </div>
-                        <div>
-                          <Link 
-                            href={`/dashboard/doctor-leads/${doc.id}`}
-                            className="text-[14px] font-bold text-[#1F1F1F] hover:text-[#D9A11E] hover:underline transition-colors block"
-                            title="Click to view full physician profile dossier & AI campaign"
-                          >
-                            {doc.fullName}
-                          </Link>
-                          <div className="text-[11px] text-[#8E8E93]">ID: {doc.id}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4.5 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[#1F1F1F]">
-                        <Stethoscope className="w-3.5 h-3.5 text-[#D9A11E] shrink-0" />
-                        <span>{doc.specialty}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[12px] text-[#6C6C6C] mt-0.5">
-                        <Building2 className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                        <span>{doc.organization}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4.5 text-[13px] text-[#4B4B4B] whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                        <span>{doc.location}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4.5 whitespace-nowrap">
-                      <div className="text-[13px] text-[#1F1F1F] font-medium">{doc.email}</div>
-                      <div className="text-[12px] text-[#8E8E93]">{doc.phone}</div>
-                    </td>
-                    <td className="px-6 py-4.5 whitespace-nowrap">
-                      {doc.isAlreadyEnriched ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-green-50 text-green-700 border border-green-200">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                          Saved in PostgreSQL ({doc.emailStatus || 'verified'})
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                          <Clock className="w-3.5 h-3.5 text-amber-600" />
-                          Unenriched (Check box to Save)
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4.5 whitespace-nowrap">
-                      {doc.status === 'interested' || doc.stage === 'interested' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-green-50 text-green-700 border border-green-200 shadow-sm">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                          🔥 Interested (Clicked Yes)
-                        </span>
-                      ) : doc.status === 'not_interested' || doc.stage === 'not_interested' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-red-50 text-red-700 border border-red-200">
-                          <Clock className="w-3.5 h-3.5 text-red-500" />
-                          Declined (Not Interested)
-                        </span>
-                      ) : doc.status === 'sent' || doc.stage === 'sent' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#2563EB]" />
-                          Sent (At least once)
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-gray-100 text-gray-600 border border-gray-200">
-                          <Clock className="w-3.5 h-3.5 text-gray-500" />
-                          Not Sent Yet
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4.5 whitespace-nowrap text-right">
-                      <button
-                        onClick={async () => {
-                          try {
-                            toast.info(`Dispatching email to ${doc.fullName} via SendGrid / SMTP...`);
-                            const res = await apiClient.sendDoctorOutreachEmails({
-                              prospectIds: [doc.id],
-                              mockProfilesData: prospects
-                            });
-                            if (res && res.success) {
-                              setProspects(prev => prev.map(p => p.id === doc.id ? { ...p, status: 'sent', stage: 'sent' } : p));
-                              toast.success(`🎉 Personalized Luma invite email sent to ${doc.fullName}!`);
+                    <tr key={doc.id} className={`hover:bg-gray-50/60 transition-colors ${doc.isAlreadyEnriched ? 'bg-gray-50/30' : ''}`}>
+                      <td className="px-6 py-4.5 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(doc.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedIds(prev => [...prev, doc.id]);
                             } else {
-                              toast.error('Failed to send outreach email.');
+                              setSelectedIds(prev => prev.filter(id => id !== doc.id));
                             }
-                          } catch (err: any) {
-                            toast.error(`Error sending email: ${err.message}`);
-                          }
-                        }}
-                        className="px-4 py-1.5 rounded-full text-[12px] font-bold bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] transition-all shadow-sm border border-[#E0AC27]"
-                        title="Click to send or re-send email right now"
-                      >
-                        {doc.status === 'sent' || doc.stage === 'sent' ? 'Resend' : 'Send Email'}
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
+                          }}
+                          className="rounded border-gray-300 text-[#FFC63F] focus:ring-[#FFC63F]"
+                          title="Select for Email Campaign or Bulk Match"
+                        />
+                      </td>
+                      <td className="px-6 py-4.5 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-[#FFF9EE] text-[#D9A11E] flex items-center justify-center font-bold text-[13px] border border-[#FFE7A8]">
+                            {doc.fullName.replace('Dr. ', '').charAt(0)}
+                          </div>
+                          <div>
+                            <Link
+                              href={`/dashboard/doctor-leads/${doc.id}`}
+                              className="text-[14px] font-bold text-[#1F1F1F] hover:text-[#D9A11E] hover:underline transition-colors block"
+                              title="Click to view full physician profile dossier & AI campaign"
+                            >
+                              {doc.fullName}
+                            </Link>
+                            <div className="text-[11px] text-[#8E8E93]">ID: {doc.id}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4.5 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[#1F1F1F]">
+                          <Stethoscope className="w-3.5 h-3.5 text-[#D9A11E] shrink-0" />
+                          <span>{doc.specialty}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[12px] text-[#6C6C6C] mt-0.5">
+                          <Building2 className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                          <span>{doc.organization}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4.5 text-[13px] text-[#4B4B4B] whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                          <span>{doc.location}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4.5 whitespace-nowrap">
+                        <div className="text-[13px] text-[#1F1F1F] font-medium">{doc.email}</div>
+                        <div className="text-[12px] text-[#8E8E93]">{doc.phone}</div>
+                      </td>
+                      <td className="px-6 py-4.5 whitespace-nowrap">
+                        {doc.isAlreadyEnriched ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-green-50 text-green-700 border border-green-200">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                            Saved in Database ({doc.emailStatus || 'verified'})
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            <Clock className="w-3.5 h-3.5 text-amber-600" />
+                            Unenriched (Check box to Save)
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4.5 whitespace-nowrap">
+                        {doc.status === 'interested' || doc.stage === 'interested' ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-green-50 text-green-700 border border-green-200 shadow-sm">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                            🔥 Interested (Clicked Yes)
+                          </span>
+                        ) : doc.status === 'not_interested' || doc.stage === 'not_interested' ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-red-50 text-red-700 border border-red-200">
+                            <Clock className="w-3.5 h-3.5 text-red-500" />
+                            Declined (Not Interested)
+                          </span>
+                        ) : doc.status === 'sent' || doc.stage === 'sent' ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#2563EB]" />
+                            Sent (At least once)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-gray-100 text-gray-600 border border-gray-200">
+                            <Clock className="w-3.5 h-3.5 text-gray-500" />
+                            Not Sent Yet
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -838,11 +810,10 @@ export default function DoctorLeadsPage() {
                     <button
                       key={dayNum}
                       onClick={() => setActiveDay(dayNum)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold transition-all shrink-0 ${
-                        activeDay === dayNum
-                          ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm border border-[#E0AC27]'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold transition-all shrink-0 ${activeDay === dayNum
+                        ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm border border-[#E0AC27]'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
                     >
                       <span>Day {dayNum}</span>
                       {item?.title && <span className="text-[11px] font-normal opacity-80 max-w-[120px] truncate">({item.title.split(':')[1] || item.title})</span>}
@@ -892,7 +863,7 @@ export default function DoctorLeadsPage() {
                         </div>
 
                         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-inner text-[14px] leading-relaxed font-sans text-gray-800 space-y-3 max-h-[300px] overflow-y-auto"
-                             dangerouslySetInnerHTML={{ __html: activeEmail.body }}
+                          dangerouslySetInnerHTML={{ __html: activeEmail.body }}
                         />
                       </div>
 

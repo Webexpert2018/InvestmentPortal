@@ -353,6 +353,11 @@ export class WebinarCampaignService {
       });
     }
 
+    try {
+      await db.query(`ALTER TABLE doctor_prospects DROP CONSTRAINT IF EXISTS doctor_prospects_email_key;`);
+      await db.query(`DROP INDEX IF EXISTS doctor_prospects_email_key;`);
+    } catch (e) {}
+
     const savedRows: any[] = [];
 
     for (const m of enrichedMatches) {
