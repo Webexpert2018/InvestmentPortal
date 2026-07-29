@@ -356,7 +356,7 @@ export default function DoctorLeadsPage() {
               Doctor Lead Generator &amp; AI Campaigns
             </h1>
             <p className="text-[#8E8E93] text-[14px] mt-1 max-w-2xl">
-              Discover accredited physician prospects using Apollo.io, configure 5-day AI email drip sequences, and dispatch automated outreach.
+              Discover accredited physician prospects, configure 5-day AI email drip sequences, and dispatch automated outreach.
             </p>
           </div>
         </div>
@@ -371,7 +371,7 @@ export default function DoctorLeadsPage() {
                   <Search className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-goudy text-[19px] font-bold text-[#1F1F1F]">Apollo.io Target Criteria</h3>
+                  <h3 className="font-goudy text-[19px] font-bold text-[#1F1F1F]">Target Lead Criteria</h3>
                   <p className="text-[12px] text-[#8E8E93]">Configure physician discovery parameters for daily ingestion</p>
                 </div>
               </div>
@@ -440,7 +440,7 @@ export default function DoctorLeadsPage() {
                 ) : (
                   <RefreshCw className="w-4 h-4 text-[#FFC63F]" />
                 )}
-                <span>Search &amp; Ingest Leads via Apollo</span>
+                <span>Get Leads</span>
               </button>
             </div>
           </div>
@@ -458,7 +458,7 @@ export default function DoctorLeadsPage() {
                   <h3 className="font-goudy text-[18px] font-bold text-white">AI 5-Day Campaign Engine</h3>
                 </div>
                 <span className="text-[11px] font-bold uppercase tracking-wider bg-[#FFC63F] text-[#1F1F1F] px-2.5 py-0.5 rounded-full">
-                  Gemini Flash AI
+                  AI Engine
                 </span>
               </div>
 
@@ -485,7 +485,7 @@ export default function DoctorLeadsPage() {
                   ) : (
                     <Send className="w-4 h-4 text-[#1F1F1F]" />
                   )}
-                  <span>⚡ Configure &amp; Save 5-Day Campaign ({selectedIds.length} Selected)</span>
+                  <span>⚡ Create 5-Day Email Campaign ({selectedIds.length} Selected)</span>
                 </button>
                 {activeTab !== 'saved' && selectedIds.length > 0 && (
                   <p className="text-[11px] text-[#FFC63F]/90 text-center mt-1.5 font-medium">
@@ -516,7 +516,7 @@ export default function DoctorLeadsPage() {
           <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F]">Today&apos;s Outreach Batch Queue</h3>
-              <p className="text-[13px] text-[#8E8E93]">Switch tabs below to view stored database records or fresh Apollo ingested prospects.</p>
+              <p className="text-[13px] text-[#8E8E93]">Switch tabs below to view stored database records or fresh ingested prospects.</p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -527,7 +527,7 @@ export default function DoctorLeadsPage() {
                   className="text-[12px] font-bold px-4 py-2 rounded-full bg-[#FFC63F] hover:bg-[#D9A11E] text-[#1F1F1F] shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {isEnriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                  Enrich Selected ({selectedIds.length}) &amp; Save to DB
+                  Enrich Contact Info &amp; Save ({selectedIds.length})
                 </button>
               ) : (
                 <button
@@ -566,7 +566,7 @@ export default function DoctorLeadsPage() {
                   }`}
               >
                 <Sparkles className="w-4 h-4 text-[#D9A11E]" />
-                <span>Enriched by Apollo</span>
+                <span>Fresh Leads</span>
                 <span className="px-2 py-0.5 text-[11px] rounded-full bg-amber-100 text-amber-800 font-extrabold border border-amber-200">
                   {prospects.filter(p => !p.isAlreadyEnriched).length}
                 </span>
@@ -738,7 +738,7 @@ export default function DoctorLeadsPage() {
                   <div className="flex items-center gap-2">
                     <h3 className="font-goudy text-[22px] font-bold">5-Day AI Email Campaign Generator</h3>
                     <span className="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#FFC63F] text-[#1F1F1F]">
-                      {sequenceData?.provider || 'Google Gemini AI'}
+                      {sequenceData?.provider || 'AI Engine'}
                     </span>
                   </div>
                   <p className="text-[13px] text-gray-300">Hyper-personalized multi-day sequence tailored specifically for medical doctors</p>
