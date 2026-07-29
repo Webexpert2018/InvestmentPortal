@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, MoreVertical, X, ChevronLeft, ChevronRight, Briefcase, DollarSign, Users, Calendar } from 'lucide-react';
+import { Search, MoreVertical, X, Briefcase, DollarSign, Users, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import Link from 'next/link';
@@ -20,7 +20,6 @@ export default function FundsPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'current' | 'old'>('current');
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedFund, setSelectedFund] = useState<number | null>(null);
 
@@ -116,30 +115,13 @@ export default function FundsPage() {
       .toUpperCase();
   };
 
-  // Pagination for Active Funds
-  const itemsPerPage = 7;
   const filteredFunds = fundsData.filter(fund =>
     (fund.name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
-  const totalPages = Math.ceil(filteredFunds.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentFunds = filteredFunds.slice(startIndex, endIndex);
 
-  // Pagination for Old Funds
-  const oldItemsPerPage = 7;
   const filteredOldFunds = oldFundsData.filter(fund =>
     (fund.projectName || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
-  const totalOldPages = Math.ceil(filteredOldFunds.length / oldItemsPerPage);
-  const oldStartIndex = (currentPage - 1) * oldItemsPerPage;
-  const oldEndIndex = oldStartIndex + oldItemsPerPage;
-  const currentOldFunds = filteredOldFunds.slice(oldStartIndex, oldEndIndex);
-
-  // Reset to first page when searching or changing tabs
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, activeTab]);
 
   const handleDelete = (fundId: number) => {
     const fund = fundsData.find(f => f.id === fundId);
@@ -251,7 +233,7 @@ export default function FundsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {currentFunds.map((fund) => (
+                    {filteredFunds.map((fund) => (
                       <tr
                         key={fund.id}
                         className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
@@ -335,7 +317,7 @@ export default function FundsPage() {
                     ))}
                   </tbody>
                 </table>
-                {currentFunds.length === 0 && !isLoading && (
+                {filteredFunds.length === 0 && !isLoading && (
                   <div className="text-center py-12">
                     <p className="text-gray-500">No active funds found matching "{searchQuery}"</p>
                   </div>
@@ -346,44 +328,6 @@ export default function FundsPage() {
                   </div>
                 )}
               </div>
-
-              {/* Active Funds Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-4 px-6 py-6 border-t border-gray-100 font-helvetica">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    className="flex items-center gap-1 px-3 py-2 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
-                  </button>
-
-                  <div className="flex gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === page
-                          ? 'bg-[#1F3B6E] text-white shadow-sm'
-                          : 'text-gray-400 hover:bg-gray-50'
-                          }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                    className="flex items-center gap-1 px-3 py-2 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Next
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
             </div>
           ) : (
             /* Old Funds Table */
@@ -401,7 +345,7 @@ export default function FundsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {currentOldFunds.map((fund) => (
+                    {filteredOldFunds.map((fund) => (
                       <tr
                         key={fund.projectId}
                         className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
@@ -439,7 +383,7 @@ export default function FundsPage() {
                     ))}
                   </tbody>
                 </table>
-                {currentOldFunds.length === 0 && !isLoadingOld && (
+                {filteredOldFunds.length === 0 && !isLoadingOld && (
                   <div className="text-center py-12">
                     <p className="text-gray-500">No Previous Platform Funds found matching "{searchQuery}"</p>
                   </div>
@@ -450,44 +394,6 @@ export default function FundsPage() {
                   </div>
                 )}
               </div>
-
-              {/* Old Funds Pagination */}
-              {totalOldPages > 1 && (
-                <div className="flex items-center justify-center gap-4 px-6 py-6 border-t border-gray-100 font-helvetica">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    className="flex items-center gap-1 px-3 py-2 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
-                  </button>
-
-                  <div className="flex gap-1">
-                    {Array.from({ length: totalOldPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === page
-                          ? 'bg-[#1F3B6E] text-white shadow-sm'
-                          : 'text-gray-400 hover:bg-gray-50'
-                          }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(totalOldPages, prev + 1))}
-                    disabled={currentPage === totalOldPages}
-                    className="flex items-center gap-1 px-3 py-2 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Next
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>

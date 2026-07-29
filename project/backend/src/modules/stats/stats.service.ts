@@ -79,6 +79,62 @@ export class StatsService {
 
   async getInvestorStats(userId: string) {
     try {
+      // 1. Fetch user's email
+      let email = '';
+      const userRes = await db.query(
+        `SELECT email FROM users WHERE id = $1 
+         UNION 
+         SELECT email FROM investors WHERE id = $1 
+         LIMIT 1`,
+        [userId]
+      );
+      if (userRes.rows.length > 0 && userRes.rows[0].email) {
+        email = userRes.rows[0].email.trim();
+      }
+
+      // 2. Fetch total investments and legacy funds breakdown from old_investments table matching investor's email
+      let legacyTotalInvested = 0;
+      let hasLegacyInvestments = false;
+      const legacyFundsMap = new Map<string, { projectId: number | null; projectName: string; totalInvested: number }>();
+
+      if (email) {
+        try {
+          const oldInvRes = await db.query(
+            `SELECT project_id, project_name, investment_amount 
+             FROM old_investments 
+             WHERE email_address IS NOT NULL 
+               AND LOWER(TRIM(email_address)) = LOWER(TRIM($1))`,
+            [email]
+          );
+          if (oldInvRes.rows.length > 0) {
+            hasLegacyInvestments = true;
+            oldInvRes.rows.forEach((r: any) => {
+              const pid = r.project_id ? parseInt(r.project_id, 10) : null;
+              const pname = r.project_name || 'Legacy Fund';
+              const amtStr = r.investment_amount || '0';
+              const num = parseFloat(amtStr.toString().replace(/[\$,]/g, '')) || 0;
+              if (!isNaN(num)) {
+                legacyTotalInvested += num;
+                const key = pid ? `id_${pid}` : `name_${pname}`;
+                if (!legacyFundsMap.has(key)) {
+                  legacyFundsMap.set(key, { projectId: pid, projectName: pname, totalInvested: 0 });
+                }
+                legacyFundsMap.get(key)!.totalInvested += num;
+              }
+            });
+          }
+        } catch (err) {
+          console.warn('Could not query old_investments for legacy stats:', err);
+        }
+      }
+
+      const legacyFunds = Array.from(legacyFundsMap.values()).map(f => ({
+        projectId: f.projectId,
+        projectName: f.projectName,
+        totalInvested: f.totalInvested,
+        totalInvestedFormatted: '$' + f.totalInvested.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      }));
+
       const result = await db.query(`
         WITH current_nav AS (
           SELECT COALESCE(nav_per_unit, 0) as nav_per_unit 
@@ -123,6 +179,9 @@ export class StatsService {
         totalValue,
         totalUnits: parseFloat(total_units),
         totalInvested: parseFloat(total_invested),
+        legacyTotalInvested,
+        hasLegacyInvestments,
+        legacyFunds,
         ytdReturn: parseFloat(ytdReturn.toFixed(2))
       };
     } catch (error) {

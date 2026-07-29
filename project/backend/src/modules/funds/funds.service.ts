@@ -501,6 +501,29 @@ export class FundsService {
       console.warn('Could not fetch registered investor emails:', err);
     }
 
+    // Fetch distributions using safe SELECT * to prevent 500 schema mismatch errors if new columns are missing on Vercel DB
+    let distRows: any[] = [];
+    try {
+      const distResult = await db.query(
+        `SELECT * FROM distributions WHERE project_id = $1 AND batch_status NOT IN ('0', '3', 'Draft', 'Rejected')`,
+        [id]
+      );
+      distRows = distResult.rows;
+    } catch (err) {
+      console.warn('Could not query distributions table:', err);
+    }
+
+    // Calculate total return of capital per investor profile ID from distributions
+    const distByProfile = new Map<string, number>();
+    for (const row of distRows) {
+      const pid = String(row.investor_profile_id || row.investorProfileId || '');
+      if (!pid) continue;
+      const rocAmt = parseFloat((row.return_of_capital || row.returnOfCapital)?.toString().replace(/[\$,]/g, '') || '0');
+      if (!isNaN(rocAmt)) {
+        distByProfile.set(pid, (distByProfile.get(pid) || 0) + rocAmt);
+      }
+    }
+
     // Step 1: Fetch all investments for this fund in a single query (avoiding N+1 timeouts on Vercel)
     const allInvestmentsRes = await db.query(
       `SELECT * FROM old_investments WHERE project_id = $1`,
@@ -536,6 +559,9 @@ export class FundsService {
       const emailVal = primaryRow.email_address || primaryRow.email || '';
       const cleanEmail = emailVal.trim().toLowerCase();
 
+      const totalDistNum = distByProfile.get(pid) || 0;
+      const totalDistributionStr = '$' + totalDistNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
       investorsList.push({
         id: null,
         fullName: primaryRow.investor_profile_legal_name || primaryRow.fullName || 'Unknown Investor',
@@ -547,6 +573,8 @@ export class FundsService {
         externalId: pid,
         isRegistered: registeredEmailsSet.has(cleanEmail),
         totalInvestment: '$' + totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        totalDistribution: totalDistributionStr,
+        totalDistributionNum: totalDistNum,
         totalShares: totalShares.toFixed(2),
         totalOwnership: totalOwnership.toFixed(2) + '%',
         className: primaryRow.class_name || primaryRow.className || 'Default Class'
@@ -554,18 +582,6 @@ export class FundsService {
     }
 
     fund.investors = investorsList;
-
-    // Fetch distributions using safe SELECT * to prevent 500 schema mismatch errors if new columns are missing on Vercel DB
-    let distRows: any[] = [];
-    try {
-      const distResult = await db.query(
-        `SELECT * FROM distributions WHERE project_id = $1 AND batch_status NOT IN ('0', '3', 'Draft', 'Rejected')`,
-        [id]
-      );
-      distRows = distResult.rows;
-    } catch (err) {
-      console.warn('Could not query distributions table:', err);
-    }
 
     const batchesMap = new Map<number, any>();
     for (const row of distRows) {
@@ -640,6 +656,20 @@ export class FundsService {
       totalShares += numShares;
     });
 
+    let totalDistributionNum = 0;
+    try {
+      const distResult = await db.query(
+        `SELECT return_of_capital FROM distributions WHERE project_id = $1 AND investor_profile_id = $2 AND batch_status NOT IN ('0', '3', 'Draft', 'Rejected')`,
+        [fundId, profileId]
+      );
+      distResult.rows.forEach((r: any) => {
+        const rocAmt = parseFloat((r.return_of_capital)?.toString().replace(/[\$,]/g, '') || '0');
+        if (!isNaN(rocAmt)) totalDistributionNum += rocAmt;
+      });
+    } catch (err) {
+      console.warn('Could not query distributions for single investor:', err);
+    }
+
     const primaryRow = result.rows[0];
 
     return {
@@ -648,6 +678,7 @@ export class FundsService {
       profileId: String(profileId),
       projectName: primaryRow.projectName,
       totalInvestment: '$' + totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      totalDistribution: '$' + totalDistributionNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       totalShares: totalShares.toFixed(2),
       investments: result.rows.map(r => ({
         amount: r.amount,

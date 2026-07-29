@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import {
   ChevronLeft, X, ChevronDown, ChevronUp, FileText, Download, Calendar, Mail, Phone,
-  Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle, Plus, Info, Pencil
+  Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle, Plus, Info, Pencil, Filter
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { apiClient, BASE_URL } from '@/lib/api/client';
@@ -82,6 +82,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const searchParams = useSearchParams();
   const tabParam = searchParams?.get('tab');
   const fromParam = searchParams?.get('from');
+  const [legacyDocFilter, setLegacyDocFilter] = useState<string>('ALL');
   const [activeTab, setActiveTab] = useState(() => {
     if (tabParam === 'funding' || tabParam === 'funding-history') return 'funding';
     if (tabParam === 'kyc') return 'kyc';
@@ -181,7 +182,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     fetchData();
   }, [params.id]);
 
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(true);
 
   const tabs = [
     { id: 'basic', label: 'Basic Details' },
@@ -879,8 +880,20 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   </div>
                 </div>
 
+
+                {/* Embedded Funding History Section at Bottom of Basic Details Tab */}
+                <div className="pt-6 border-t-2 border-gray-100 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
+                      Funding History
+                    </h3>
+                  </div>
+                  {renderFundingHistorySection()}
+                </div>
+
                 {/* Combined Collapsible Container for All Three Sections */}
-                <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden flex flex-col transition-all">
+                <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden flex flex-col transition-all mt-6">
                   <button
                     onClick={() => setIsDetailsOpen(!isDetailsOpen)}
                     className="w-full px-4 sm:px-5 py-3.5 bg-gray-50/80 hover:bg-gray-100/80 flex items-center justify-between transition-colors cursor-pointer"
@@ -1118,16 +1131,6 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   )}
                 </div>
 
-                {/* Embedded Funding History Section at Bottom of Basic Details Tab */}
-                <div className="mt-6 pt-6 border-t-2 border-gray-100 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
-                      Funding History
-                    </h3>
-                  </div>
-                  {renderFundingHistorySection()}
-                </div>
               </div>
             )}
 
@@ -1342,67 +1345,131 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
               </div>
             )}
 
-            {activeTab === 'legacy_docs' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Legacy Documents</h4>
-                  {oldDocuments.length > 0 && (
-                    <span className="text-xs bg-amber-50 text-amber-700 font-bold px-2.5 py-0.5 rounded-full border border-amber-200">
-                      {oldDocuments.length} Legacy File(s)
-                    </span>
+            {activeTab === 'legacy_docs' && (() => {
+              const docTypeCounts = (oldDocuments || []).reduce((acc: Record<string, number>, doc: any) => {
+                const type = doc.document_type || 'Tax Document';
+                acc[type] = (acc[type] || 0) + 1;
+                return acc;
+              }, {});
+
+              const uniqueDocTypes = Object.keys(docTypeCounts);
+
+              const filteredOldDocs = (oldDocuments || []).filter((doc: any) => {
+                if (!legacyDocFilter || legacyDocFilter === 'ALL') return true;
+                return (doc.document_type || 'Tax Document').toLowerCase() === legacyDocFilter.toLowerCase();
+              });
+
+              return (
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Legacy Documents</h4>
+                      {oldDocuments.length > 0 && (
+                        <span className="text-xs bg-amber-50 text-amber-700 font-bold px-2.5 py-0.5 rounded-full border border-amber-200">
+                          {filteredOldDocs.length} of {oldDocuments.length} File(s)
+                        </span>
+                      )}
+                    </div>
+
+                    {oldDocuments.length > 0 && uniqueDocTypes.length > 0 && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => setLegacyDocFilter('ALL')}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${legacyDocFilter === 'ALL'
+                            ? 'bg-[#1F3B6E] text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent'
+                            }`}
+                        >
+                          All ({oldDocuments.length})
+                        </button>
+                        {uniqueDocTypes.map((type) => (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => setLegacyDocFilter(type)}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${legacyDocFilter === type
+                              ? 'bg-[#1F3B6E] text-white shadow-sm'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent'
+                              }`}
+                          >
+                            <span>{type}</span>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${legacyDocFilter === type ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
+                              }`}>
+                              {docTypeCounts[type]}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {filteredOldDocs.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredOldDocs.map((doc, index) => (
+                        <div key={doc.id || index} className="group relative flex flex-col p-5 bg-amber-50/20 border border-amber-100 rounded-2xl hover:border-amber-300 hover:shadow-xl hover:shadow-amber-50/50 transition-all">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="p-3 bg-amber-100 rounded-xl">
+                              <FileText className="w-6 h-6 text-amber-600" />
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  const token = localStorage.getItem('token');
+                                  const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+                                  window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${doc.id}/view${tokenParam}`, '_blank');
+                                }}
+                                className="p-2 bg-white text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors border border-gray-100 shadow-sm"
+                                title="View"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const token = localStorage.getItem('token');
+                                  const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+                                  window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${doc.id}/download${tokenParam}`, '_blank');
+                                }}
+                                className="p-2 bg-white text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors border border-gray-100 shadow-sm"
+                                title="Download"
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <button
+                              type="button"
+                              onClick={() => setLegacyDocFilter(doc.document_type || 'Tax Document')}
+                              className="text-xs font-bold text-amber-600 hover:underline uppercase tracking-tight text-left block"
+                              title={`Filter by ${doc.document_type || 'Tax Document'}`}
+                            >
+                              {doc.document_type || 'Tax Document'}
+                            </button>
+                            <p className="text-sm font-bold text-gray-900 truncate">{doc.file_name}</p>
+                            <p className="text-[10px] text-gray-400 font-medium">Uploaded on {new Date(doc.created_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                      <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                        <FileText className="w-6 h-6 text-gray-300" />
+                      </div>
+                      <p className="text-xs text-gray-500 font-medium">No legacy documents matching type "{legacyDocFilter}"</p>
+                      <button
+                        type="button"
+                        onClick={() => setLegacyDocFilter('ALL')}
+                        className="mt-2 text-xs font-bold text-[#1F3B6E] hover:underline"
+                      >
+                        Show All Documents ({oldDocuments.length})
+                      </button>
+                    </div>
                   )}
                 </div>
-                {oldDocuments.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {oldDocuments.map((doc, index) => (
-                      <div key={doc.id || index} className="group relative flex flex-col p-5 bg-amber-50/20 border border-amber-100 rounded-2xl hover:border-amber-300 hover:shadow-xl hover:shadow-amber-50/50 transition-all">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="p-3 bg-amber-100 rounded-xl">
-                            <FileText className="w-6 h-6 text-amber-600" />
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => {
-                                const token = localStorage.getItem('token');
-                                const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-                                window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${doc.id}/view${tokenParam}`, '_blank');
-                              }}
-                              className="p-2 bg-white text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors border border-gray-100 shadow-sm"
-                              title="View"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                const token = localStorage.getItem('token');
-                                const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-                                window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${doc.id}/download${tokenParam}`, '_blank');
-                              }}
-                              className="p-2 bg-white text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors border border-gray-100 shadow-sm"
-                              title="Download"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-xs font-bold text-amber-600 uppercase tracking-tight">{doc.document_type || 'Tax Document'}</p>
-                          <p className="text-sm font-bold text-gray-900 truncate">{doc.file_name}</p>
-                          <p className="text-[10px] text-gray-400 font-medium">Uploaded on {new Date(doc.created_at).toLocaleDateString()}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-8 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                    <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                      <FileText className="w-6 h-6 text-gray-300" />
-                    </div>
-                    <p className="text-xs text-gray-500 font-medium">No legacy documents</p>
-                  </div>
-                )}
-              </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       </div>
