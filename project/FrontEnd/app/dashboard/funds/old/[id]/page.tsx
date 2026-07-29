@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Briefcase, DollarSign, Users, Calendar, Info, ShieldCheck, Plus, X, Loader2, Layers, Split, ArrowRight, Trash2, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Briefcase, DollarSign, Users, Calendar, Info, ShieldCheck, Plus, X, Loader2, Layers, Split, ArrowRight, Trash2, Check, FileText, Download, Eye, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useRouter, useParams } from 'next/navigation';
@@ -20,6 +20,9 @@ export default function OldFundDetailPage() {
   const [isBatchLoading, setIsBatchLoading] = useState(false);
   const [selectedInvestorId, setSelectedInvestorId] = useState<number | null>(null);
   const [selectedInvestorData, setSelectedInvestorData] = useState<any>(null);
+  const [selectedInvestorDocs, setSelectedInvestorDocs] = useState<any[]>([]);
+  const [selectedInvestorDocType, setSelectedInvestorDocType] = useState<string>('ALL');
+  const [investorDocTypeSortOrder, setInvestorDocTypeSortOrder] = useState<'asc' | 'desc' | null>(null);
   const [isInvestorLoading, setIsInvestorLoading] = useState(false);
   const [selectedClassName, setSelectedClassName] = useState<string | null>(null);
 
@@ -540,13 +543,31 @@ export default function OldFundDetailPage() {
     }
   };
 
+  const handleViewDoc = (docId: string | number) => {
+    const token = localStorage.getItem('token');
+    const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+    window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${docId}/view${tokenParam}`, '_blank');
+  };
+
+  const handleDownloadDoc = (docId: string | number) => {
+    const token = localStorage.getItem('token');
+    const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+    window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${docId}/download${tokenParam}`, '_blank');
+  };
+
   const handleInvestorClick = async (profileId: number) => {
     setSelectedInvestorId(profileId);
     setIsInvestorLoading(true);
     try {
       const fundId = parseInt(params.id as string, 10);
-      const data = await apiClient.getOldFundInvestor(fundId, profileId);
+      const [data, docs] = await Promise.all([
+        apiClient.getOldFundInvestor(fundId, profileId),
+        apiClient.getOldInvestorDocuments(profileId.toString()).catch(() => [])
+      ]);
       setSelectedInvestorData(data);
+      setSelectedInvestorDocs(docs || []);
+      setSelectedInvestorDocType('ALL');
+      setInvestorDocTypeSortOrder(null);
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch investor details');
     } finally {
@@ -831,9 +852,9 @@ export default function OldFundDetailPage() {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-8 bg-[#F9FAFB] min-h-screen">
-        {/* Header navigation */}
-        <div className="mb-8">
-          <div className="mb-4">
+        {/* Header navigation & Fund Summary Header */}
+        <div className="mb-4 space-y-3">
+          <div>
             <button
               onClick={() => router.push('/dashboard/funds')}
               className="p-1.5 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200 group flex items-center gap-1.5 w-fit"
@@ -846,157 +867,39 @@ export default function OldFundDetailPage() {
             </button>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight truncate font-goudy">
-                {fund.projectName}
-              </h1>
-              <p className="text-sm text-gray-500 mt-0.5">Old Platform Fund &bull; Historical Record</p>
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm flex flex-col md:flex-row gap-6 items-start">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#4B5563] to-[#9CA3AF] flex-shrink-0 flex items-center justify-center text-white font-bold text-2xl shadow-md">
+              {getInitials(fund.projectName)}
+            </div>
+            <div className="flex-1 space-y-2.5">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight font-goudy">
+                  {fund.projectName}
+                </h1>
+                {fund.status && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-100">
+                    {fund.status}
+                  </span>
+                )}
+                {fund.projectType && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 text-gray-600">
+                    {fund.projectType}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-400 font-medium">Old Platform Fund &bull; Historical Record</p>
+              <p className="text-gray-600 text-sm leading-relaxed w-full">
+                {fund.description || "This fund represents a legacy investment structure that has been fully closed. Historical performance, capital call contributions, and distributions remain archived for tracking, compliance, and auditing purposes."}
+              </p>
             </div>
           </div>
         </div>
 
         {/* Main Details Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* Left / Main Section (Col span 2) */}
-          <div className="lg:col-span-2 space-y-6">
-
-            {/* Overview / Banner Card */}
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col md:flex-row gap-6 items-start">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#4B5563] to-[#9CA3AF] flex-shrink-0 flex items-center justify-center text-white font-bold text-2xl shadow-md">
-                {getInitials(fund.projectName)}
-              </div>
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-100">
-                    {fund.status}
-                  </span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 text-gray-600">
-                    {fund.projectType}
-                  </span>
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 leading-snug font-goudy">
-                  {fund.projectName}
-                </h2>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  This fund represents a legacy investment structure that has been fully closed. Historical performance, capital call contributions, and distributions remain archived for tracking, compliance, and auditing purposes.
-                </p>
-              </div>
-            </div>
-
-            {/* Key Metrics Grid */}
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
-              <h3 className="text-lg font-bold text-gray-900 font-goudy border-b border-gray-50 pb-3">Fund Financial Summary</h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-
-                {/* Metric 1 */}
-                <div className="flex items-start gap-3.5 p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
-                  <div className="p-2.5 bg-white rounded-xl text-gray-500 shadow-sm">
-                    <DollarSign className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Total Capital</p>
-                    <p className="text-lg font-bold text-gray-900 mt-0.5">{fund.totalCapital}</p>
-                  </div>
-                </div>
-
-                {/* Metric 2 */}
-                <div className="flex items-start gap-3.5 p-4 bg-[#1F3B6E]/5 rounded-2xl border border-[#1F3B6E]/10">
-                  <div className="p-2.5 bg-white rounded-xl text-[#1F3B6E] shadow-sm">
-                    <DollarSign className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-[#1F3B6E]/60 font-semibold uppercase tracking-wider">Distributions To Date</p>
-                    <p className="text-lg font-bold text-[#1F3B6E] mt-0.5">{fund.distributionsToDate}</p>
-                  </div>
-                </div>
-
-                {/* Metric 3 */}
-                <div className="flex items-start gap-3.5 p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
-                  <div className="p-2.5 bg-white rounded-xl text-gray-500 shadow-sm">
-                    <Users className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Total Investors</p>
-                    <p className="text-lg font-bold text-gray-900 mt-0.5">{fund.totalInvestors}</p>
-                  </div>
-                </div>
-
-                {/* Metric 4 */}
-                <div className="flex items-start gap-3.5 p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
-                  <div className="p-2.5 bg-white rounded-xl text-gray-500 shadow-sm">
-                    <Briefcase className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Project ID & Type</p>
-                    <p className="text-lg font-bold text-gray-900 mt-0.5">
-                      ID: {fund.projectId} &bull; <span className="uppercase text-sm">{fund.projectType}</span>
-                    </p>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-
-          {/* Right Sidebar Section */}
-          <div className="space-y-6">
-
-            {/* Timeline Info Card */}
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
-              <h3 className="text-lg font-bold text-gray-900 font-goudy border-b border-gray-50 pb-3">Lifecycle Timeline</h3>
-
-              <div className="space-y-5">
-                <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
-                  <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase">Closing Date</p>
-                    <p className="text-sm font-bold text-gray-900 mt-0.5">{formatDate(fund.closingDate)}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
-                  <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase">Exit Date</p>
-                    <p className="text-sm font-bold text-gray-900 mt-0.5">
-                      {fund.exitDate ? formatDate(fund.exitDate) : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 pt-3 border-t border-gray-100">
-                  <ShieldCheck className="h-5 w-5 text-[#059669] mt-0.5" />
-                  <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase">Status Verification</p>
-                    <p className="text-xs text-gray-600 mt-0.5 font-medium leading-relaxed">
-                      All accounts associated with this fund have been finalized, audited, and closed. No further distributions or capital calls will be initiated.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Platform Status Card */}
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-4">
-              <div className="flex items-center gap-2">
-                <Info className="h-5 w-5 text-[#1F3B6E]" />
-                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Database Status</h4>
-              </div>
-              <p className="text-xs text-gray-600 font-medium leading-relaxed">
-                This old fund is marked as <strong className="text-[#1F3B6E]">{fund.published === 'TRUE' ? 'Published' : 'Unpublished'}</strong> in the database system for administrative tracking, but is restricted from active subscription operations.
-              </p>
-            </div>
-
-          </div>
-
-        </div>
 
         {/* Associated Investors & Distributions Section (Expanded Full Width) */}
-        <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6 mt-8">
+        <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
 
           {/* Tab switcher header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-50 pb-4">
@@ -1102,10 +1005,14 @@ export default function OldFundDetailPage() {
                 </div>
 
                 {/* Compact summary cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
                   <div className="space-y-1">
                     <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Investment on this fund</span>
                     <span className="text-xl font-bold text-gray-900">{selectedInvestorData.totalInvestment}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Return of Capital</span>
+                    <span className="text-xl font-bold text-gray-900">{selectedInvestorData.totalDistribution || '$0.00'}</span>
                   </div>
                   <div className="space-y-1">
                     <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Shares Held on this fund</span>
@@ -1175,6 +1082,226 @@ export default function OldFundDetailPage() {
                     <p className="text-sm text-gray-400 font-medium">No investment records found for this investor.</p>
                   </div>
                 )}
+
+                {/* Legacy Investor Documents Section */}
+                {(() => {
+                  const docTypeCounts = (selectedInvestorDocs || []).reduce((acc: Record<string, number>, doc: any) => {
+                    const type = doc.document_type || 'Tax Document';
+                    acc[type] = (acc[type] || 0) + 1;
+                    return acc;
+                  }, {});
+
+                  const uniqueDocTypes = Object.keys(docTypeCounts);
+
+                  let displayedDocs = (selectedInvestorDocs || []).filter((doc: any) => {
+                    if (selectedInvestorDocType === 'ALL') return true;
+                    const type = doc.document_type || 'Tax Document';
+                    return type.toLowerCase() === selectedInvestorDocType.toLowerCase();
+                  });
+
+                  if (investorDocTypeSortOrder) {
+                    displayedDocs = [...displayedDocs].sort((a: any, b: any) => {
+                      const typeA = (a.document_type || 'Tax Document').toLowerCase();
+                      const typeB = (b.document_type || 'Tax Document').toLowerCase();
+                      if (typeA < typeB) return investorDocTypeSortOrder === 'asc' ? -1 : 1;
+                      if (typeA > typeB) return investorDocTypeSortOrder === 'asc' ? 1 : -1;
+                      return 0;
+                    });
+                  }
+
+                  return (
+                    <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6 mt-8">
+                      <div className="border-b border-gray-50 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-lg font-bold text-gray-900 font-goudy">
+                            Legacy Investor Documents
+                          </h3>
+                          <span className="inline-flex items-center justify-center bg-blue-50 text-[#1F3B6E] text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-100">
+                            {displayedDocs.length} of {selectedInvestorDocs.length} Document(s)
+                          </span>
+                        </div>
+
+                        {selectedInvestorDocs && selectedInvestorDocs.length > 0 && uniqueDocTypes.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                              Filter:
+                            </span>
+                            <select
+                              value={selectedInvestorDocType}
+                              onChange={(e) => setSelectedInvestorDocType(e.target.value)}
+                              className="text-xs font-semibold bg-gray-50 border border-gray-200 text-[#1F3B6E] rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 cursor-pointer"
+                            >
+                              <option value="ALL">All Document Types ({selectedInvestorDocs.length})</option>
+                              {uniqueDocTypes.map((type) => (
+                                <option key={type} value={type}>
+                                  {type} ({docTypeCounts[type]})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Filter Tabs Pills */}
+                      {selectedInvestorDocs && selectedInvestorDocs.length > 0 && uniqueDocTypes.length > 0 && (
+                        <div className="flex items-center gap-2 flex-wrap pb-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedInvestorDocType('ALL')}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${selectedInvestorDocType === 'ALL'
+                              ? 'bg-[#1F3B6E] text-white shadow-sm'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent'
+                              }`}
+                          >
+                            All ({selectedInvestorDocs.length})
+                          </button>
+                          {uniqueDocTypes.map((type) => (
+                            <button
+                              key={type}
+                              type="button"
+                              onClick={() => setSelectedInvestorDocType(type)}
+                              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${selectedInvestorDocType === type
+                                ? 'bg-[#1F3B6E] text-white shadow-sm'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent'
+                                }`}
+                            >
+                              <span>{type}</span>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${selectedInvestorDocType === type ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
+                                }`}>
+                                {docTypeCounts[type]}
+                              </span>
+                            </button>
+                          ))}
+                          {selectedInvestorDocType !== 'ALL' && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedInvestorDocType('ALL')}
+                              className="text-xs text-[#1F3B6E] hover:text-[#162a4f] font-semibold flex items-center gap-1 ml-2 underline"
+                            >
+                              <X className="h-3.5 w-3.5" /> Reset Filter
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {displayedDocs && displayedDocs.length > 0 ? (
+                        <div className="overflow-x-auto max-h-[540px] overflow-y-auto border border-gray-100/80 rounded-2xl">
+                          <table className="w-full border-collapse">
+                            <thead className="sticky top-0 bg-white shadow-xs z-10">
+                              <tr className="border-b border-gray-100 bg-white">
+                                <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">No.</th>
+                                <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider pl-3">Document Name</th>
+                                <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider pl-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (investorDocTypeSortOrder === null) setInvestorDocTypeSortOrder('asc');
+                                      else if (investorDocTypeSortOrder === 'asc') setInvestorDocTypeSortOrder('desc');
+                                      else setInvestorDocTypeSortOrder(null);
+                                    }}
+                                    className="flex items-center gap-1.5 hover:text-gray-700 focus:outline-none font-semibold group"
+                                    title="Click to sort by Document Type"
+                                  >
+                                    <span>Type</span>
+                                    <ArrowUpDown className={`h-3.5 w-3.5 ${investorDocTypeSortOrder ? 'text-amber-600 font-bold' : 'text-gray-400 opacity-60 group-hover:opacity-100'}`} />
+                                    {investorDocTypeSortOrder && (
+                                      <span className="text-[10px] text-amber-600 lowercase font-bold">({investorDocTypeSortOrder})</span>
+                                    )}
+                                  </button>
+                                </th>
+                                <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Tax Year</th>
+                                <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Uploaded Date</th>
+                                <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider pr-2">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                              {displayedDocs.map((doc: any, idx: number) => (
+                                <tr
+                                  key={doc.id || idx}
+                                  onClick={() => handleViewDoc(doc.id)}
+                                  className="hover:bg-amber-50/30 cursor-pointer transition-colors group"
+                                >
+                                  <td className="py-4 text-sm font-medium text-gray-400 text-left">
+                                    #{idx + 1}
+                                  </td>
+                                  <td className="py-4 text-left text-sm font-semibold text-[#1F3B6E] pl-3">
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDownloadDoc(doc.id);
+                                        }}
+                                        className="p-1 rounded hover:bg-amber-100/60 transition-colors focus:outline-none"
+                                        title="Download Document"
+                                      >
+                                        <FileText className="h-4 w-4 text-amber-500 hover:text-amber-600 shrink-0 transition-transform active:scale-95" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleViewDoc(doc.id);
+                                        }}
+                                        className="flex items-center gap-1.5 hover:text-[#162a4f] hover:underline focus:outline-none text-left"
+                                        title="View Document"
+                                      >
+                                        <Eye className="h-4 w-4 text-gray-400 group-hover:text-[#1F3B6E] shrink-0 transition-colors" />
+                                        <span className="truncate max-w-xs">{doc.file_name}</span>
+                                      </button>
+                                    </div>
+                                  </td>
+                                  <td className="py-4 text-left text-sm font-medium pl-3">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedInvestorDocType(doc.document_type || 'Tax Document');
+                                      }}
+                                      className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${selectedInvestorDocType === (doc.document_type || 'Tax Document')
+                                        ? 'bg-[#1F3B6E]/10 text-[#1F3B6E] border border-[#1F3B6E]/20 font-bold shadow-sm'
+                                        : 'bg-gray-50 text-gray-700 hover:bg-[#1F3B6E]/5 hover:text-[#1F3B6E] border border-gray-200/60'
+                                        }`}
+                                      title={`Click to filter by ${doc.document_type || 'Tax Document'}`}
+                                    >
+                                      <span>{doc.document_type || 'Tax Document'}</span>
+                                    </button>
+                                  </td>
+                                  <td className="py-4 text-center text-sm font-medium text-gray-700">
+                                    {doc.tax_year || 'N/A'}
+                                  </td>
+                                  <td className="py-4 text-center text-sm text-gray-600">
+                                    {formatDate(doc.created_at)}
+                                  </td>
+                                  <td className="py-4 text-right pr-2">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDownloadDoc(doc.id);
+                                      }}
+                                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-white bg-[#1F3B6E] hover:bg-[#162a4f] active:bg-[#0f1d38] rounded-xl shadow-sm hover:shadow transition-all duration-200"
+                                      title="Download Document"
+                                    >
+                                      <Download className="h-4 w-4" />
+                                      <span>Download</span>
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                          <p className="text-sm text-gray-500 font-medium">
+                            No legacy documents found for this investor.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             ) : selectedClassName === null ? (
               // Classes table view
@@ -1190,6 +1317,7 @@ export default function OldFundDetailPage() {
                         <tr className="border-b border-gray-100">
                           <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Class Name</th>
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Investment</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Distribution</th>
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Ownership</th>
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Shares</th>
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">No. of Investors</th>
@@ -1197,16 +1325,18 @@ export default function OldFundDetailPage() {
                       </thead>
                       <tbody className="divide-y divide-gray-50">
                         {(() => {
-                          const counts: Record<string, { count: number; totalInvestment: number; totalShares: number }> = {};
+                          const counts: Record<string, { count: number; totalInvestment: number; totalShares: number; totalDistribution: number }> = {};
                           fund.investors.forEach((inv: any) => {
                             const cls = inv.className || 'Default Class';
                             if (!counts[cls]) {
-                              counts[cls] = { count: 0, totalInvestment: 0, totalShares: 0 };
+                              counts[cls] = { count: 0, totalInvestment: 0, totalShares: 0, totalDistribution: 0 };
                             }
                             counts[cls].count += 1;
                             const numAmount = parseFloat(inv.totalInvestment?.replace(/[\$,]/g, '') || '0');
+                            const numDist = parseFloat(inv.totalDistribution?.replace(/[\$,]/g, '') || '0');
                             const numShares = parseFloat(inv.totalShares || '0');
                             counts[cls].totalInvestment += numAmount;
+                            counts[cls].totalDistribution += numDist;
                             counts[cls].totalShares += numShares;
                           });
                           const totalCap = parseFloat(fund?.totalCapital?.replace(/[\$,]/g, '') || '0');
@@ -1229,6 +1359,9 @@ export default function OldFundDetailPage() {
                                 </td>
                                 <td className="py-4 text-right text-sm font-bold text-gray-900">
                                   {'$' + data.totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </td>
+                                <td className="py-4 text-right text-sm font-bold text-gray-900">
+                                  {'$' + data.totalDistribution.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
                                 <td className="py-4 text-right text-sm font-semibold text-gray-900 font-mono">
                                   {classOwnershipPercent}
@@ -1278,6 +1411,7 @@ export default function OldFundDetailPage() {
                               <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investor</th>
                               <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Profile ID</th>
                               <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Investment</th>
+                              <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Distribution</th>
                               <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">% of Class</th>
                               <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Ownership</th>
                               <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Shares</th>
@@ -1318,6 +1452,9 @@ export default function OldFundDetailPage() {
                                   </td>
                                   <td className="py-4 text-right text-sm font-semibold text-gray-900">
                                     {investor.totalInvestment}
+                                  </td>
+                                  <td className="py-4 text-right text-sm font-semibold text-gray-900">
+                                    {investor.totalDistribution || '$0.00'}
                                   </td>
                                   <td className="py-4 text-right text-sm font-semibold text-gray-900">
                                     {investor.totalOwnership || '0.00%'}
@@ -2494,6 +2631,122 @@ export default function OldFundDetailPage() {
 
         </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+
+          {/* Left / Main Section (Col span 2) */}
+          <div className="lg:col-span-2 space-y-6">
+
+
+
+            {/* Key Metrics Grid */}
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
+              <h3 className="text-lg font-bold text-gray-900 font-goudy border-b border-gray-50 pb-3">Fund Financial Summary</h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+                {/* Metric 1 */}
+                <div className="flex items-start gap-3.5 p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
+                  <div className="p-2.5 bg-white rounded-xl text-gray-500 shadow-sm">
+                    <DollarSign className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Total Capital</p>
+                    <p className="text-lg font-bold text-gray-900 mt-0.5">{fund.totalCapital}</p>
+                  </div>
+                </div>
+
+                {/* Metric 2 */}
+                <div className="flex items-start gap-3.5 p-4 bg-[#1F3B6E]/5 rounded-2xl border border-[#1F3B6E]/10">
+                  <div className="p-2.5 bg-white rounded-xl text-[#1F3B6E] shadow-sm">
+                    <DollarSign className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-[#1F3B6E]/60 font-semibold uppercase tracking-wider">Distributions To Date</p>
+                    <p className="text-lg font-bold text-[#1F3B6E] mt-0.5">{fund.distributionsToDate}</p>
+                  </div>
+                </div>
+
+                {/* Metric 3 */}
+                <div className="flex items-start gap-3.5 p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
+                  <div className="p-2.5 bg-white rounded-xl text-gray-500 shadow-sm">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Total Investors</p>
+                    <p className="text-lg font-bold text-gray-900 mt-0.5">{fund.totalInvestors}</p>
+                  </div>
+                </div>
+
+                {/* Metric 4 */}
+                <div className="flex items-start gap-3.5 p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
+                  <div className="p-2.5 bg-white rounded-xl text-gray-500 shadow-sm">
+                    <Briefcase className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Project ID & Type</p>
+                    <p className="text-lg font-bold text-gray-900 mt-0.5">
+                      ID: {fund.projectId} &bull; <span className="uppercase text-sm">{fund.projectType}</span>
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          {/* Right Sidebar Section */}
+          <div className="space-y-6">
+
+            {/* Timeline Info Card */}
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
+              <h3 className="text-lg font-bold text-gray-900 font-goudy border-b border-gray-50 pb-3">Lifecycle Timeline</h3>
+
+              <div className="space-y-5">
+                <div className="flex items-start gap-3">
+                  <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <div>
+                    <p className="text-[11px] text-gray-400 font-semibold uppercase">Closing Date</p>
+                    <p className="text-sm font-bold text-gray-900 mt-0.5">{formatDate(fund.closingDate)}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <div>
+                    <p className="text-[11px] text-gray-400 font-semibold uppercase">Exit Date</p>
+                    <p className="text-sm font-bold text-gray-900 mt-0.5">
+                      {fund.exitDate ? formatDate(fund.exitDate) : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 pt-3 border-t border-gray-100">
+                  <ShieldCheck className="h-5 w-5 text-[#059669] mt-0.5" />
+                  <div>
+                    <p className="text-[11px] text-gray-400 font-semibold uppercase">Status Verification</p>
+                    <p className="text-xs text-gray-600 mt-0.5 font-medium leading-relaxed">
+                      All accounts associated with this fund have been finalized, audited, and closed. No further distributions or capital calls will be initiated.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Platform Status Card */}
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-4">
+              <div className="flex items-center gap-2">
+                <Info className="h-5 w-5 text-[#1F3B6E]" />
+                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Database Status</h4>
+              </div>
+              <p className="text-xs text-gray-600 font-medium leading-relaxed">
+                This old fund is marked as <strong className="text-[#1F3B6E]">{fund.published === 'TRUE' ? 'Published' : 'Unpublished'}</strong> in the database system for administrative tracking, but is restricted from active subscription operations.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
       </div>
 
       {/* Add Distribution Batch Modal */}

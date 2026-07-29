@@ -241,6 +241,9 @@ export default function DashboardPage() {
   });
   const [investorStats, setInvestorStats] = useState({
     totalInvested: 0,
+    legacyTotalInvested: 0,
+    hasLegacyInvestments: false,
+    legacyFunds: [] as any[],
     totalUnits: 0,
     currentNav: 0,
     currentValue: 0,
@@ -258,6 +261,31 @@ export default function DashboardPage() {
   const [assignedInvestors, setAssignedInvestors] = useState<any[]>([]);
   const [dynamicNotifications, setDynamicNotifications] = useState<any[]>([]);
   const [dynamicKycQueue, setDynamicKycQueue] = useState<any[]>([]);
+  const [activeFundsOpen, setActiveFundsOpen] = useState(true);
+  const [legacyFundsOpen, setLegacyFundsOpen] = useState(true);
+
+  const activeFundsList = useMemo(() => {
+    const map = new Map<string, { fundId?: string; fundName: string; totalInvested: number }>();
+    (allInvestments || []).forEach(inv => {
+      const fname = inv.fund_name || inv.fundName || 'Active Fund';
+      const fid = inv.fund_id || inv.fundId;
+      const amt = parseFloat(inv.revised_amount || inv.investment_amount || 0);
+      if (!isNaN(amt)) {
+        const key = fid ? `id_${fid}` : `name_${fname}`;
+        if (!map.has(key)) {
+          map.set(key, { fundId: fid, fundName: fname, totalInvested: 0 });
+        }
+        map.get(key)!.totalInvested += amt;
+      }
+    });
+
+    return Array.from(map.values()).map(f => ({
+      fundId: f.fundId,
+      fundName: f.fundName,
+      totalInvested: f.totalInvested,
+      totalInvestedFormatted: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(f.totalInvested)
+    }));
+  }, [allInvestments]);
 
   const investorAccountList = useMemo(() => {
     const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -348,6 +376,9 @@ export default function DashboardPage() {
 
           setInvestorStats({
             totalInvested: parseFloat(dynamicStats.totalInvested || 0),
+            legacyTotalInvested: parseFloat(dynamicStats.legacyTotalInvested || 0),
+            hasLegacyInvestments: !!dynamicStats.hasLegacyInvestments,
+            legacyFunds: dynamicStats.legacyFunds || [],
             totalUnits: parseFloat(dynamicStats.totalUnits || 0),
             currentNav: navSummary.currentNav,
             currentValue: parseFloat(dynamicStats.totalValue || 0),
@@ -485,7 +516,7 @@ export default function DashboardPage() {
   if (dashboardRole === 'investor') {
     return (
       <DashboardLayout>
-        <div className="space-y-8 font-helvetica text-[#1F1F1F]">
+        <div className="space-y-4 font-helvetica text-[#1F1F1F]">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex flex-col gap-1">
               <p className="font-goudy text-xl sm:text-2xl font-bold text-[#1F1F1F]">
@@ -611,13 +642,24 @@ export default function DashboardPage() {
           )}
 
           {/* Top summary cards */}
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {[
+          {(() => {
+            const summaryCards = [
               {
                 label: 'Total Invested',
                 value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.totalInvested),
                 helper: `${investorStats.ytdReturn >= 0 ? '↑' : '↓'} ${Math.abs(investorStats.ytdReturn).toFixed(2)}% total return`,
               },
+            ];
+
+            if (investorStats.hasLegacyInvestments) {
+              summaryCards.push({
+                label: 'Total Invested (Legacy)',
+                value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.legacyTotalInvested || 0),
+                helper: 'From old investments',
+              });
+            }
+
+            summaryCards.push(
               {
                 label: 'Current Value',
                 value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue),
@@ -632,26 +674,32 @@ export default function DashboardPage() {
                 label: 'Current NAV',
                 value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentNav),
                 helper: 'Per unit',
-              },
-            ].map((card) => (
-              <div
-                key={card.label}
-                className="rounded-2xl bg-white px-6 py-5 shadow-sm"
-              >
-                <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                  {card.label}
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">
-                  {card.value}
-                </p>
-                {card.helper && (
-                  <p className={`mt-2 text-xs font-medium ${(card.label === 'Current Value' && (investorStats.currentValue - investorStats.totalInvested) < 0) ? 'text-red-500' : 'text-[#2BB673]'}`}>
-                    {card.helper}
-                  </p>
-                )}
+              }
+            );
+
+            return (
+              <div className={`grid gap-4 md:grid-cols-2 ${investorStats.hasLegacyInvestments ? 'lg:grid-cols-3 xl:grid-cols-5' : 'xl:grid-cols-4'}`}>
+                {summaryCards.map((card) => (
+                  <div
+                    key={card.label}
+                    className="rounded-2xl bg-white px-6 py-5 shadow-sm"
+                  >
+                    <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+                      {card.label}
+                    </p>
+                    <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">
+                      {card.value}
+                    </p>
+                    {card.helper && (
+                      <p className={`mt-2 text-xs font-medium ${(card.label === 'Current Value' && (investorStats.currentValue - investorStats.totalInvested) < 0) ? 'text-red-500' : 'text-[#2BB673]'}`}>
+                        {card.helper}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
 
           {/* Main content grid */}
           <div className="grid gap-6 xl:grid-cols-[minmax(0,2.5fr)_minmax(0,1.1fr)]">
@@ -790,6 +838,162 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Funds Section (Active Funds & Legacy Funds) */}
+          <div className={`grid gap-6 ${investorStats.hasLegacyInvestments && investorStats.legacyFunds && investorStats.legacyFunds.length > 0 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+            {/* Active Funds Collapsible */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setActiveFundsOpen(!activeFundsOpen)}
+                    className="p-1 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
+                  >
+                    <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${activeFundsOpen ? '' : '-rotate-90'}`} />
+                  </button>
+                  <div>
+                    <h2 className="font-goudy text-lg font-bold text-gray-900">Active Funds</h2>
+                    <p className="text-xs text-[#8E8E93] mt-0.5">Your current platform investments</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-xs font-bold">
+                    {activeFundsList.length} {activeFundsList.length === 1 ? 'Active Fund' : 'Active Funds'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/dashboard/portfolio?tab=investments')}
+                    className="text-xs font-semibold text-[#E7A324] hover:text-[#B87D0E] flex items-center gap-1 transition-colors"
+                  >
+                    <span>View</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {activeFundsOpen && (
+                <div className="pt-2">
+                  {activeFundsList.length > 0 ? (
+                    <div className="divide-y divide-gray-100">
+                      {activeFundsList.map((fund: any, idx: number) => (
+                        <div
+                          key={fund.fundId || idx}
+                          onClick={() => router.push('/dashboard/portfolio?tab=investments')}
+                          className="flex items-center justify-between py-3.5 px-3 -mx-3 rounded-xl hover:bg-gray-50/80 cursor-pointer transition-colors group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#FFF3D6] text-[#E29F3A] border border-[#FCD34D]/50 flex items-center justify-center font-bold text-sm shrink-0 group-hover:scale-105 transition-transform">
+                              {fund.fundName ? fund.fundName[0].toUpperCase() : 'A'}
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-900 text-sm group-hover:text-[#E7A324] transition-colors leading-snug">
+                                {fund.fundName || 'Active Fund'}
+                              </p>
+                              <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider block mt-0.5">
+                                Active Fund
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <span className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0] block">Total Invested</span>
+                              <p className="text-base font-semibold text-[#1F1F1F]">
+                                {fund.totalInvestedFormatted}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#E7A324] group-hover:translate-x-0.5 transition-all" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                      <p className="text-sm font-medium text-gray-500">No active investments found</p>
+                      <button
+                        type="button"
+                        onClick={() => router.push('/dashboard/invest')}
+                        className="mt-3 inline-flex items-center gap-2 bg-[#F3C046] hover:bg-[#E7A324] text-white text-xs font-bold px-4 py-2 rounded-full transition-colors shadow-xs"
+                      >
+                        Invest Now
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Legacy Funds Collapsible (Only shown if legacy records exist) */}
+            {investorStats.hasLegacyInvestments && investorStats.legacyFunds && investorStats.legacyFunds.length > 0 && (
+              <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setLegacyFundsOpen(!legacyFundsOpen)}
+                      className="p-1 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
+                    >
+                      <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${legacyFundsOpen ? '' : '-rotate-90'}`} />
+                    </button>
+                    <div>
+                      <h2 className="font-goudy text-lg font-bold text-gray-900">Legacy Funds</h2>
+                      <p className="text-xs text-[#8E8E93] mt-0.5">Your investments from previous platform</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 text-xs font-bold">
+                      {investorStats.legacyFunds.length} {investorStats.legacyFunds.length === 1 ? 'Legacy Fund' : 'Legacy Funds'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => router.push('/dashboard/portfolio?tab=oldInvestments')}
+                      className="text-xs font-semibold text-[#E7A324] hover:text-[#B87D0E] flex items-center gap-1 transition-colors"
+                    >
+                      <span>View</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {legacyFundsOpen && (
+                  <div className="pt-2">
+                    <div className="divide-y divide-gray-100">
+                      {investorStats.legacyFunds.map((fund: any, idx: number) => (
+                        <div
+                          key={fund.projectId || idx}
+                          onClick={() => router.push('/dashboard/portfolio?tab=oldInvestments')}
+                          className="flex items-center justify-between py-3.5 px-3 -mx-3 rounded-xl hover:bg-gray-50/80 cursor-pointer transition-colors group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#FFF3D6] text-[#E29F3A] border border-[#FCD34D]/50 flex items-center justify-center font-bold text-sm shrink-0 group-hover:scale-105 transition-transform">
+                              {fund.projectName ? fund.projectName[0].toUpperCase() : 'L'}
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-900 text-sm group-hover:text-[#E7A324] transition-colors leading-snug">
+                                {fund.projectName || 'Legacy Fund'}
+                              </p>
+                              <span className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider block mt-0.5">
+                                Legacy Fund
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <span className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0] block">Total Invested</span>
+                              <p className="text-base font-semibold text-[#1F1F1F]">
+                                {fund.totalInvestedFormatted}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#E7A324] group-hover:translate-x-0.5 transition-all" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Bottom row */}
