@@ -361,152 +361,85 @@ export default function DoctorLeadsPage() {
           </div>
         </div>
 
-        {/* Top Configuration Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-5">
-          {/* Apollo.io Search Engine Card */}
-          <div className="lg:col-span-2 bg-white rounded-[20px] p-6 shadow-sm border border-[#F2F2F2]">
-            <div className="flex items-center justify-between pb-4 mb-5 border-b border-[#F2F2F2]">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <Search className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-goudy text-[19px] font-bold text-[#1F1F1F]">Target Lead Criteria</h3>
-                  <p className="text-[12px] text-[#8E8E93]">Configure physician discovery parameters for daily ingestion</p>
-                </div>
-              </div>
-              <span className="text-[11px] font-semibold bg-gray-100 text-[#4B4B4B] px-3 py-1 rounded-full">
-                API Status: Ready to Connect
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Medical Specialties</label>
-                <input
-                  type="text"
-                  value={specialty}
-                  onChange={(e) => setSpecialty(e.target.value)}
-                  placeholder="e.g. Orthopedics, Cardiology, DMD"
-                  className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all"
-                />
+        {/* Top Configuration Grid / Filters */}
+        <div className="w-full bg-white rounded-[20px] p-6 shadow-sm border border-[#F2F2F2] mb-5">
+          <div className="flex items-center justify-between pb-4 mb-5 border-b border-[#F2F2F2]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <Search className="w-5 h-5" />
               </div>
               <div>
-                <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Target Location</label>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. United States, Texas, California"
-                  className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Seniority &amp; Title Keywords</label>
-                <input
-                  type="text"
-                  value={seniority}
-                  onChange={(e) => setSeniority(e.target.value)}
-                  placeholder="e.g. MD, DDS, Practice Owner, Partner"
-                  className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Daily Throttled Batch Limit</label>
-                <select
-                  value={batchSize}
-                  onChange={(e) => setBatchSize(e.target.value)}
-                  className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all cursor-pointer font-medium"
-                >
-                  <option value="25">25 Doctors / Day (Conservative)</option>
-                  <option value="50">50 Doctors / Day (Recommended Gold Standard)</option>
-                  <option value="100">100 Doctors / Day (Aggressive)</option>
-                </select>
+                <h3 className="font-goudy text-[19px] font-bold text-[#1F1F1F]">Target Lead Criteria</h3>
+                <p className="text-[12px] text-[#8E8E93]">Configure physician discovery parameters for daily ingestion</p>
               </div>
             </div>
+            <span className="text-[11px] font-semibold bg-gray-100 text-[#4B4B4B] px-3 py-1 rounded-full">
+              API Status: Ready to Connect
+            </span>
+          </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-[#F2F2F2]">
-              <span className="text-[12px] text-[#8E8E93] flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-green-600" />
-                Automatic deduplication against existing investor records enabled
-              </span>
-              <button
-                onClick={handleApolloSearch}
-                disabled={isSearchingApollo}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-[13px] bg-[#1F1F1F] hover:bg-[#333333] text-white shadow-sm transition-all disabled:opacity-50"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+            <div>
+              <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Medical Specialties</label>
+              <input
+                type="text"
+                value={specialty}
+                onChange={(e) => setSpecialty(e.target.value)}
+                placeholder="e.g. Orthopedics, Cardiology, DMD"
+                className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Target Location</label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. United States, Texas, California"
+                className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Seniority &amp; Title Keywords</label>
+              <input
+                type="text"
+                value={seniority}
+                onChange={(e) => setSeniority(e.target.value)}
+                placeholder="e.g. MD, DDS, Practice Owner, Partner"
+                className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Daily Throttled Batch Limit</label>
+              <select
+                value={batchSize}
+                onChange={(e) => setBatchSize(e.target.value)}
+                className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all cursor-pointer font-medium"
               >
-                {isSearchingApollo ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-[#FFC63F]" />
-                ) : (
-                  <RefreshCw className="w-4 h-4 text-[#FFC63F]" />
-                )}
-                <span>Get Leads</span>
-              </button>
+                <option value="25">25 Doctors / Day (Conservative)</option>
+                <option value="50">50 Doctors / Day (Recommended Gold Standard)</option>
+                <option value="100">100 Doctors / Day (Aggressive)</option>
+              </select>
             </div>
           </div>
 
-          {/* Unified AI 5-Day Campaign Engine Card */}
-          <div className="bg-gradient-to-br from-[#1F2937] via-[#111827] to-[#0F172A] rounded-[20px] p-6 text-white shadow-lg flex flex-col justify-between relative overflow-hidden border border-white/10">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[#FFC63F]/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-[#FFC63F]/20 flex items-center justify-center text-[#FFC63F]">
-                    <Sparkles className="w-4 h-4" />
-                  </div>
-                  <h3 className="font-goudy text-[18px] font-bold text-white">AI 5-Day Campaign Engine</h3>
-                </div>
-                <span className="text-[11px] font-bold uppercase tracking-wider bg-[#FFC63F] text-[#1F1F1F] px-2.5 py-0.5 rounded-full">
-                  AI Engine
-                </span>
-              </div>
-
-              <div className="space-y-2 text-[12px] text-gray-300 bg-white/5 rounded-xl p-3 border border-white/10">
-                <div className="flex items-start gap-2">
-                  <span className="text-[#FFC63F] font-bold">•</span>
-                  <span><strong>5-Day Drip Sequence:</strong> Configures &amp; saves custom 5-day emails for each doctor in DB.</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[#FFC63F] font-bold">•</span>
-                  <span><strong>RSVP Tracking:</strong> Includes YES / NO buttons to record responses in PostgreSQL.</span>
-                </div>
-              </div>
-
-              {/* Single 1-Click Action Button */}
-              <div className="pt-2">
-                <button
-                  onClick={handleConfigureAllSelected}
-                  disabled={isConfiguringSelected || selectedIds.length === 0 || activeTab !== 'saved'}
-                  className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-extrabold text-[14px] bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {isConfiguringSelected ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
-                  ) : (
-                    <Send className="w-4 h-4 text-[#1F1F1F]" />
-                  )}
-                  <span>⚡ Create 5-Day Email Campaign ({selectedIds.length} Selected)</span>
-                </button>
-                {activeTab !== 'saved' && selectedIds.length > 0 && (
-                  <p className="text-[11px] text-[#FFC63F]/90 text-center mt-1.5 font-medium">
-                    ⚠️ Enrich &amp; save leads to DB first to configure campaigns
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
-              <span className="text-[11px] text-gray-400 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-[#FFC63F]" />
-                Daily Cron @ 9:00 AM EST
-              </span>
-              <button
-                onClick={() => handleOpenSequenceModal()}
-                className="text-[12px] font-semibold text-[#FFC63F] hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                View Sample AI Campaign <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-[#F2F2F2] gap-3">
+            <span className="text-[12px] text-[#8E8E93] flex items-center gap-1.5">
+              <Shield className="w-4 h-4 text-green-600 shrink-0" />
+              Automatic deduplication against existing investor records enabled
+            </span>
+            <button
+              onClick={handleApolloSearch}
+              disabled={isSearchingApollo}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-[13px] bg-[#1F1F1F] hover:bg-[#333333] text-white shadow-sm transition-all disabled:opacity-50 cursor-pointer self-end sm:self-auto"
+            >
+              {isSearchingApollo ? (
+                <Loader2 className="w-4 h-4 animate-spin text-[#FFC63F]" />
+              ) : (
+                <RefreshCw className="w-4 h-4 text-[#FFC63F]" />
+              )}
+              <span>Get Leads</span>
+            </button>
           </div>
         </div>
 
@@ -519,24 +452,39 @@ export default function DoctorLeadsPage() {
               <p className="text-[13px] text-[#8E8E93]">Switch tabs below to view stored database records or fresh ingested prospects.</p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2.5">
               {activeTab === 'apollo' ? (
                 <button
                   onClick={handleBulkEnrichAndSave}
                   disabled={isEnriching || selectedIds.length === 0}
-                  className="text-[12px] font-bold px-4 py-2 rounded-full bg-[#FFC63F] hover:bg-[#D9A11E] text-[#1F1F1F] shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50"
+                  className="text-[12px] font-bold px-4 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#D9A11E] text-[#1F1F1F] shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
                 >
-                  {isEnriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                  Enrich Contact Info &amp; Save ({selectedIds.length})
+                  {isEnriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-[#1F1F1F]" />}
+                  <span>Enrich Contact Info &amp; Save ({selectedIds.length})</span>
                 </button>
               ) : (
-                <button
-                  onClick={() => handleLoadSavedFromDb()}
-                  className="text-[12px] font-bold px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 transition-all shadow-sm flex items-center gap-1.5"
-                >
-                  <RefreshCw className="w-3.5 h-3.5 text-gray-600" />
-                  Refresh DB Leads
-                </button>
+                <>
+                  <button
+                    onClick={handleConfigureAllSelected}
+                    disabled={isConfiguringSelected || selectedIds.length === 0}
+                    className="text-[12px] font-extrabold px-4 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {isConfiguringSelected ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#1F1F1F]" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5 text-[#1F1F1F]" />
+                    )}
+                    <span>⚡ Create 5-Day Email Campaign ({selectedIds.length})</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleLoadSavedFromDb()}
+                    className="text-[12px] font-bold px-4 py-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 text-gray-600" />
+                    <span>Refresh DB Leads</span>
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -723,184 +671,6 @@ export default function DoctorLeadsPage() {
           </div>
         </div>
       </div>
-
-      {/* 5-Day AI Email Sequence Modal */}
-      {isSequenceModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-4xl rounded-[24px] shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-[#1F2937] to-[#111827] text-white p-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#FFC63F]/20 flex items-center justify-center text-[#FFC63F]">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-goudy text-[22px] font-bold">5-Day AI Email Campaign Generator</h3>
-                    <span className="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#FFC63F] text-[#1F1F1F]">
-                      {sequenceData?.provider || 'AI Engine'}
-                    </span>
-                  </div>
-                  <p className="text-[13px] text-gray-300">Hyper-personalized multi-day sequence tailored specifically for medical doctors</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsSequenceModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Doctor Selector & Controls */}
-            <div className="p-6 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex-1">
-                <label className="block text-[12px] font-bold uppercase text-gray-500 mb-1">Select Physician Target</label>
-                <select
-                  value={selectedDoctorId}
-                  onChange={async (e) => {
-                    setSelectedDoctorId(e.target.value);
-                    const availableDocs = prospects.length > 0 ? prospects : INITIAL_PROSPECTS;
-                    await fetchDoctorSequence(e.target.value, availableDocs);
-                  }}
-                  className="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-[14px] font-bold text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
-                >
-                  {(prospects.length > 0 ? prospects : INITIAL_PROSPECTS).map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.fullName} — {p.specialty} ({p.location})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <button
-                onClick={() => fetchDoctorSequence(selectedDoctorId)}
-                disabled={isGeneratingSequence}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-bold bg-[#1F1F1F] hover:bg-[#333] text-white shadow-sm transition-all disabled:opacity-50"
-              >
-                {isGeneratingSequence ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-[#FFC63F]" />
-                ) : (
-                  <RefreshCw className="w-4 h-4 text-[#FFC63F]" />
-                )}
-                <span>Regenerate Sequence with Gemini</span>
-              </button>
-            </div>
-
-            {/* Doctor Summary Banner */}
-            {sequenceData?.doctor && (
-              <div className="px-6 py-3 bg-[#FFF9EE] border-b border-[#FFE7A8] flex items-center justify-between text-[13px] text-[#1F1F1F]">
-                <div className="flex items-center gap-4">
-                  <span><strong>Target:</strong> {sequenceData.doctor.fullName}</span>
-                  <span><strong>Specialty:</strong> {sequenceData.doctor.specialty}</span>
-                  <span><strong>Clinic:</strong> {sequenceData.doctor.organization}</span>
-                </div>
-                <span className="text-[12px] font-bold text-[#D9A11E] bg-white px-2.5 py-1 rounded-full border border-[#FFE7A8]">
-                  {sequenceData.isAiGenerated ? '✨ Gemini AI Personalization Active' : '⚡ Smart Template Generator'}
-                </span>
-              </div>
-            )}
-
-            {/* 5-Day Carousel / Tabs */}
-            <div className="p-6 overflow-y-auto flex-1 space-y-5">
-              <div className="flex items-center gap-2 border-b border-gray-200 pb-3 overflow-x-auto">
-                {[1, 2, 3, 4, 5].map((dayNum) => {
-                  const item = sequenceData?.sequence?.find((s: any) => s.day === dayNum);
-                  return (
-                    <button
-                      key={dayNum}
-                      onClick={() => setActiveDay(dayNum)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold transition-all shrink-0 ${activeDay === dayNum
-                        ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm border border-[#E0AC27]'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                    >
-                      <span>Day {dayNum}</span>
-                      {item?.title && <span className="text-[11px] font-normal opacity-80 max-w-[120px] truncate">({item.title.split(':')[1] || item.title})</span>}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Selected Day Email Preview */}
-              {sequenceData?.sequence && (
-                (() => {
-                  const activeEmail = sequenceData.sequence.find((s: any) => s.day === activeDay) || sequenceData.sequence[0];
-                  if (!activeEmail) return null;
-
-                  return (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4 border border-gray-200">
-                        <div className="flex-1 pr-4">
-                          <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Email Subject Line (Day {activeDay})</label>
-                          <div className="text-[15px] font-bold text-[#1F1F1F]">{activeEmail.subject}</div>
-                        </div>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(activeEmail.subject);
-                            toast.success('Subject line copied to clipboard!');
-                          }}
-                          className="text-[12px] font-bold px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 transition-all shadow-sm shrink-0"
-                        >
-                          Copy Subject
-                        </button>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="block text-[11px] font-bold uppercase text-gray-500">Email Body Copy (Day {activeDay})</label>
-                          <button
-                            onClick={() => {
-                              const temp = document.createElement('div');
-                              temp.innerHTML = activeEmail.body;
-                              navigator.clipboard.writeText(temp.innerText || temp.textContent || '');
-                              toast.success('Email copy text copied to clipboard!');
-                            }}
-                            className="text-[12px] font-bold text-[#D9A11E] hover:underline"
-                          >
-                            Copy Body Text
-                          </button>
-                        </div>
-
-                        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-inner text-[14px] leading-relaxed font-sans text-gray-800 space-y-3 max-h-[300px] overflow-y-auto"
-                          dangerouslySetInnerHTML={{ __html: activeEmail.body }}
-                        />
-                      </div>
-
-                      <div className="pt-3 flex items-center justify-between border-t border-gray-100">
-                        <span className="text-[12px] text-gray-500">
-                          Day {activeDay} of 5-Day Drip Sequence
-                        </span>
-                        <button
-                          onClick={async () => {
-                            try {
-                              toast.info(`Dispatching Day ${activeDay} test email to ${sequenceData.doctor.fullName}...`);
-                              const res = await apiClient.sendDoctorOutreachEmails({
-                                prospectIds: [selectedDoctorId],
-                                customMessage: activeEmail.body,
-                                mockProfilesData: prospects
-                              });
-                              if (res && res.success) {
-                                toast.success(`🎉 Day ${activeDay} email sent successfully!`);
-                              }
-                            } catch (err: any) {
-                              toast.error('Error sending test email: ' + err.message);
-                            }
-                          }}
-                          className="flex items-center gap-2 px-5 py-2 rounded-full font-bold text-[13px] bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] transition-all shadow-sm"
-                        >
-                          <Send className="w-4 h-4" />
-                          <span>Send Day {activeDay} Test Email Now</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })()
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </DashboardLayout>
   );
 }

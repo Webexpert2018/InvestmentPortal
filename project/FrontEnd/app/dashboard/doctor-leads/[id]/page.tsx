@@ -22,7 +22,9 @@ import {
   Calendar,
   FileText,
   TrendingUp,
-  Award
+  Award,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -40,6 +42,14 @@ interface DoctorProspect {
   isAlreadyEnriched?: boolean;
   emailStatus?: string;
   stage?: string;
+}
+
+interface DoctorNote {
+  id: number;
+  prospect_id: string;
+  note: string;
+  author_name: string;
+  created_at: string;
 }
 
 const MOCK_DOCTORS: Record<string, DoctorProspect> = {
@@ -137,6 +147,12 @@ export default function DoctorProfilePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
+  // Notes state
+  const [notes, setNotes] = useState<DoctorNote[]>([]);
+  const [newNote, setNewNote] = useState('');
+  const [isSavingNote, setIsSavingNote] = useState(false);
+  const [loadingNotes, setLoadingNotes] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
@@ -145,8 +161,57 @@ export default function DoctorProfilePage() {
 
     if (doctorId) {
       loadDoctorProfile(doctorId);
+      loadDoctorNotes(doctorId);
     }
   }, [doctorId, user, authLoading, router]);
+
+  const loadDoctorNotes = async (id: string) => {
+    setLoadingNotes(true);
+    try {
+      const res = await apiClient.getDoctorNotes(id);
+      if (res && res.success && Array.isArray(res.notes)) {
+        setNotes(res.notes);
+      }
+    } catch (err: any) {
+      console.error('Error fetching doctor notes:', err);
+    } finally {
+      setLoadingNotes(false);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!newNote.trim() || !doctor) return;
+    setIsSavingNote(true);
+    try {
+      const author = user?.name || user?.email?.split('@')[0] || 'Staff';
+      const res = await apiClient.addDoctorNote(doctor.id, newNote.trim(), author);
+      if (res && res.success && res.note) {
+        toast.success('Note saved to database!');
+        setNotes(prev => [res.note, ...prev]);
+        setNewNote('');
+      } else {
+        toast.error('Failed to save note.');
+      }
+    } catch (err: any) {
+      toast.error('Error saving note: ' + err.message);
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: number) => {
+    try {
+      const res = await apiClient.deleteDoctorNote(noteId);
+      if (res && res.success) {
+        toast.success('Note deleted from database!');
+        setNotes(prev => prev.filter(n => n.id !== noteId));
+      } else {
+        toast.error('Failed to delete note.');
+      }
+    } catch (err: any) {
+      toast.error('Error deleting note: ' + err.message);
+    }
+  };
 
   const loadDoctorProfile = async (id: string) => {
     setLoading(true);
@@ -316,7 +381,7 @@ export default function DoctorProfilePage() {
 
         {/* 2-Column Grid: Profile Details & AI Sequence */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column: Metadata & Investor Profile */}
+          {/* Left Column: Metadata & Investor Profile & Notes */}
           <div className="space-y-6 lg:col-span-1">
             {/* Physician Metadata Card */}
             <div className="bg-white rounded-[20px] p-6 shadow-sm border border-[#F2F2F2] space-y-5">
@@ -375,6 +440,75 @@ export default function DoctorProfilePage() {
                   <span className="text-gray-500">PostgreSQL ID</span>
                   <span className="font-mono text-gray-700 bg-gray-100 px-2 py-0.5 rounded text-[11px]">{doctor.id}</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Doctor Lead Notes Card (Saved in Database) */}
+            <div className="bg-white rounded-[20px] p-6 shadow-sm border border-[#F2F2F2] space-y-4">
+              <h3 className="text-[16px] font-bold text-[#1F1F1F] pb-3 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-[#D9A11E]" />
+                  <span>Physician Notes</span>
+                </div>
+                <span className="text-[11px] font-bold bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full border border-gray-200">
+                  {notes.length}
+                </span>
+              </h3>
+
+              {/* Add Note Form */}
+              <div className="space-y-2">
+                <textarea
+                  rows={3}
+                  placeholder="Add a note for this doctor (e.g. Call notes, objections, investment budget, callback time)..."
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-[13px] text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#FFC63F] transition-all resize-none"
+                />
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleAddNote}
+                    disabled={!newNote.trim() || isSavingNote}
+                    className="px-4 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] text-[12px] font-bold rounded-full shadow-xs flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    {isSavingNote ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                    <span>Save Note</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Notes List */}
+              <div className="space-y-3 pt-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                {loadingNotes ? (
+                  <div className="flex items-center justify-center py-4 text-gray-400 text-[12px] gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#D9A11E]" />
+                    <span>Loading notes from database...</span>
+                  </div>
+                ) : notes.length === 0 ? (
+                  <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <p className="text-[12px] text-gray-500">No notes saved for this doctor yet.</p>
+                  </div>
+                ) : (
+                  notes.map((n) => (
+                    <div key={n.id} className="p-3.5 bg-[#FFF9EE] border border-[#FFE7A8] rounded-xl space-y-1.5 relative group transition-all">
+                      <div className="flex items-center justify-between text-[11px] text-gray-500 font-medium">
+                        <span className="font-bold text-[#1F1F1F]">{n.author_name || 'Staff'}</span>
+                        <div className="flex items-center gap-2">
+                          <span>{new Date(n.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+                          <button
+                            onClick={() => handleDeleteNote(n.id)}
+                            className="text-gray-400 hover:text-red-600 transition-colors p-1 rounded hover:bg-red-50 cursor-pointer"
+                            title="Delete note"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-[13px] text-[#1F1F1F] whitespace-pre-wrap leading-relaxed">
+                        {n.note}
+                      </p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -478,7 +612,7 @@ export default function DoctorProfilePage() {
                         </div>
 
                         <div
-                          className="bg-white border border-gray-200 rounded-2xl p-6 shadow-inner text-[14px] leading-relaxed font-sans text-gray-800 space-y-3 max-h-[380px] overflow-y-auto"
+                          className="bg-white border border-gray-200 rounded-2xl p-6 shadow-inner text-[14px] leading-relaxed font-sans text-gray-800 space-y-3 min-h-[520px] max-h-[650px] overflow-y-auto custom-scrollbar [&_a]:pointer-events-none [&_a]:cursor-default"
                           dangerouslySetInnerHTML={{ __html: activeEmail.body }}
                         />
                       </div>

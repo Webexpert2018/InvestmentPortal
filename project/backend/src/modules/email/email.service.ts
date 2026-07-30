@@ -262,20 +262,23 @@ export class EmailService {
   async sendCustomEmail(email: string, fullName: string, subject: string, body: string) {
     const title = subject;
     const supportEmail = this.getSupportEmail();
-    const content = `
-      <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">${subject}</h1>
-      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
-        Hello ${fullName || 'Valued Investor'},
-      </p>
-      <div style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563; white-space: pre-wrap;">
-        ${body}
-      </div>
-      
-      <p style="margin: 30px 0 0; font-size: 13px; line-height: 1.6; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 20px;">
+    const isHtmlBody = body.includes('<') && body.includes('>');
+    
+    const content = isHtmlBody ? `
+      ${body}
+      <p style="margin: 20px 0 0; font-size: 13px; line-height: 1.5; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 16px;">
         Need help? Contact our support team at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
       </p>
-      <p style="margin: 10px 0 0; font-size: 11px; line-height: 1.5; color: #BEC3CC; text-align: center;">
-        You received this communication because you are an accredited medical professional or investor prospect. To unsubscribe or opt out of future webinar invitations, please reply with "UNSUBSCRIBE" in the subject line.
+    ` : `
+      <h1 style="margin: 0 0 16px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 24px;">${subject}</h1>
+      <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #4B5563;">
+        Hello ${fullName || 'Valued Investor'},
+      </p>
+      <div style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #4B5563; white-space: pre-line;">
+        ${body}
+      </div>
+      <p style="margin: 20px 0 0; font-size: 13px; line-height: 1.5; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 16px;">
+        Need help? Contact our support team at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
       </p>
     `;
     await this.sendSendgridEmail(email, subject, this.getHtmlTemplate(content, title));

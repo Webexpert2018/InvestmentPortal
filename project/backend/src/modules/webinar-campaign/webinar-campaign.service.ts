@@ -943,12 +943,50 @@ ${rsvpButtonsHtml}
       );
 
       if (updateRes.rows.length > 0) {
-        const apolloId = updateRes.rows[0].apollo_id;
+        const row = updateRes.rows[0];
+        const apolloId = row.apollo_id;
+        const doctorName = row.full_name || 'Doctor';
+        const doctorEmail = row.email || identifier;
+
         await db.query(
           `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`,
           [apolloId, `response_${validStatus}`, JSON.stringify({ status: validStatus, recordedAt: new Date().toISOString() })]
         );
-        this.logger.log(`✅ [Prospect Response] Recorded stage '${validStatus}' in PostgreSQL for doctor ${updateRes.rows[0].full_name} (${updateRes.rows[0].email})!`);
+        this.logger.log(`✅ [Prospect Response] Recorded stage '${validStatus}' in PostgreSQL for doctor ${doctorName} (${doctorEmail})!`);
+
+        // Trigger automated interest confirmation email with webinar link (example.com)
+        if (validStatus === 'interested' && doctorEmail) {
+          const subject = `Thank You for Your Interest! — Physician Webinar Access`;
+          const webinarLink = 'https://example.com';
+          const emailBody = `
+<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1F1F1F; text-align: left;">
+  <h2 style="color: #1F2937; margin: 0 0 12px 0; font-size: 20px; font-weight: bold; line-height: 1.3;">Thank You for Your Interest, ${doctorName}!</h2>
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 0 0 12px 0;">
+    We have received your response expressing interest in our <strong>Ovalia Capital Physician Wealth &amp; Tax-Advantaged Real Estate Webinar</strong>.
+  </p>
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 0 0 16px 0;">
+    We are excited to share our private investor deck and session details with you. You can access the webinar pass link directly below:
+  </p>
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 16px 0; text-align: center;">
+    <tr>
+      <td align="center" style="text-align: center;">
+        <a href="${webinarLink}" target="_blank" style="background-color: #22C55E; color: #FFFFFF; padding: 10px 22px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);">
+          👉 Access Your Webinar Pass (example.com)
+        </a>
+      </td>
+    </tr>
+  </table>
+  <p style="font-size: 13px; color: #6B7280; line-height: 1.5; margin: 16px 0 0 0;">
+    If you have any questions or need to schedule a 1-on-1 consultation at a specific clinical time, simply reply directly to this email.
+  </p>
+</div>`;
+          try {
+            await this.emailService.sendCustomEmail(doctorEmail, doctorName, subject, emailBody);
+            this.logger.log(`📩 Sent interest confirmation email with webinar link (example.com) to ${doctorEmail}`);
+          } catch (emailErr: any) {
+            this.logger.error(`Failed to send interest confirmation email to ${doctorEmail}: ${emailErr.message}`);
+          }
+        }
       } else {
         this.logger.warn(`[Prospect Response] Doctor record not found for identifier: ${identifier}`);
       }
@@ -956,5 +994,101 @@ ${rsvpButtonsHtml}
       this.logger.error(`❌ Error recording response for prospect ${identifier}: ${error.message}`, error?.stack);
     }
   }
+
+  async getProspectNotes(prospectId: string): Promise<any[]> {
+    try {
+      const res = await db.query(
+        `SELECT * FROM doctor_prospect_notes WHERE prospect_id = $1 ORDER BY created_at DESC`,
+        [prospectId]
+      );
+      return res.rows;
+    } catch (error: any) {
+      this.logger.error(`Error fetching notes for prospect ${prospectId}: ${error.message}`);
+      return [];
+    }
+  }
+
+  async addProspectNote(prospectId: string, note: string, authorName: string = 'Staff'): Promise<any> {
+    try {
+      const res = await db.query(
+        `INSERT INTO doctor_prospect_notes (prospect_id, note, author_name, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING *`,
+        [prospectId, note, authorName]
+      );
+      this.logger.log(`📝 Added new note for doctor prospect ${prospectId}`);
+      return res.rows[0];
+    } catch (error: any) {
+      this.logger.error(`Error adding note for prospect ${prospectId}: ${error.message}`);
+      throw new HttpException(error.message || 'Failed to save note', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async deleteProspectNote(noteId: number): Promise<{ success: boolean }> {
+    try {
+      await db.query(`DELETE FROM doctor_prospect_notes WHERE id = $1`, [noteId]);
+      this.logger.log(`🗑️ Deleted doctor prospect note ID ${noteId}`);
+      return { success: true };
+    } catch (error: any) {
+      this.logger.error(`Error deleting note ${noteId}: ${error.message}`);
+      throw new HttpException(error.message || 'Failed to delete note', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async addManualProspect(data: {
+    fullName: string;
+    specialty?: string;
+    organization?: string;
+    location?: string;
+    email: string;
+    phone?: string;
+  }) {
+    if (!data.fullName || !data.email) {
+      throw new HttpException('Full Name and Email are required', HttpStatus.BAD_REQUEST);
+    }
+
+    if (data.phone && data.phone.trim() && data.phone.trim() !== 'N/A') {
+      const cleanPhone = data.phone.replace(/[^0-9]/g, '');
+      if (cleanPhone.length < 7 || cleanPhone.length > 15) {
+        throw new HttpException('Invalid phone number format. Phone number must contain between 7 and 15 digits.', HttpStatus.BAD_REQUEST);
+      }
+    }
+
+    const apolloId = `manual-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const cleanFullName = data.fullName.trim();
+    const nameWithoutPrefix = cleanFullName.replace(/^Dr\.?\s+/i, '');
+    const nameParts = nameWithoutPrefix.split(' ');
+    const firstName = nameParts[0] || 'Doctor';
+    const lastName = nameParts.slice(1).join(' ') || '';
+
+    const query = `
+      INSERT INTO doctor_prospects (
+        apollo_id, full_name, first_name, last_name, specialty, organization, location, email, phone, email_status, stage, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'verified', 'pending_outreach', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      RETURNING *
+    `;
+
+    try {
+      const res = await db.query(query, [
+        apolloId,
+        cleanFullName,
+        firstName,
+        lastName,
+        data.specialty?.trim() || 'General Practice',
+        data.organization?.trim() || 'Private Practice',
+        data.location?.trim() || 'United States',
+        data.email.trim(),
+        data.phone?.trim() || 'N/A'
+      ]);
+
+      this.logger.log(`➕ Added manual doctor prospect: ${cleanFullName} (${data.email}) to PostgreSQL`);
+      return {
+        success: true,
+        prospect: res.rows[0]
+      };
+    } catch (err: any) {
+      this.logger.error(`Error adding manual prospect: ${err.message}`);
+      throw new HttpException(err.message || 'Failed to create doctor prospect', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
+
 

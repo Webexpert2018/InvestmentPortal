@@ -1473,6 +1473,42 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  async getDoctorNotes(prospectId: string) {
+    return this.request<{ success: boolean; notes: Array<{ id: number; prospect_id: string; note: string; author_name: string; created_at: string }> }>(
+      `/webinar-campaign/prospects/${prospectId}/notes`
+    );
+  }
+
+  async addDoctorNote(prospectId: string, note: string, authorName: string = 'Staff') {
+    return this.request<{ success: boolean; note: { id: number; prospect_id: string; note: string; author_name: string; created_at: string } }>(
+      `/webinar-campaign/prospects/${prospectId}/notes`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ note, authorName }),
+      }
+    );
+  }
+
+  async deleteDoctorNote(noteId: number) {
+    return this.request<{ success: boolean }>(`/webinar-campaign/prospects/notes/${noteId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async addManualDoctorProspect(data: {
+    fullName: string;
+    specialty?: string;
+    organization?: string;
+    location?: string;
+    email: string;
+    phone?: string;
+  }) {
+    return this.request<{ success: boolean; prospect: any }>('/webinar-campaign/prospects/create', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 

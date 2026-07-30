@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Query, UseGuards, Res } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Param, Body, Query, UseGuards, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { WebinarCampaignService } from './webinar-campaign.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -89,6 +89,47 @@ export class WebinarCampaignController {
       body.mockDoctorData
     );
   }
+
+  @Get('prospects/:id/notes')
+  async getProspectNotes(@Param('id') id: string) {
+    const notes = await this.webinarCampaignService.getProspectNotes(id);
+    return {
+      success: true,
+      notes,
+    };
+  }
+
+  @Post('prospects/:id/notes')
+  async addProspectNote(
+    @Param('id') id: string,
+    @Body() body: { note: string; authorName?: string }
+  ) {
+    const newNote = await this.webinarCampaignService.addProspectNote(id, body.note, body.authorName);
+    return {
+      success: true,
+      note: newNote,
+    };
+  }
+
+  @Delete('prospects/notes/:noteId')
+  async deleteProspectNote(@Param('noteId') noteId: string) {
+    return this.webinarCampaignService.deleteProspectNote(Number(noteId));
+  }
+
+  @Post('prospects/create')
+  async addManualProspect(
+    @Body()
+    body: {
+      fullName: string;
+      specialty?: string;
+      organization?: string;
+      location?: string;
+      email: string;
+      phone?: string;
+    }
+  ) {
+    return this.webinarCampaignService.addManualProspect(body);
+  }
 }
 
 @Controller('api/webinar-campaign')
@@ -122,7 +163,7 @@ export class WebinarCampaignPublicController {
             .card { background: white; padding: 45px 35px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); text-align: center; max-width: 480px; border: 1px solid #E2E8F0; }
             h1 { color: #1E293B; font-size: 24px; margin-bottom: 12px; }
             p { color: #64748B; font-size: 16px; line-height: 1.6; margin-bottom: 25px; }
-            .btn { background: #22C55E; color: white; padding: 12px 28px; border-radius: 50px; text-decoration: none; font-weight: bold; display: inline-block; }
+            .btn { background: #22C55E; color: white; padding: 8px 18px; border-radius: 8px; font-size: 13px; text-decoration: none; font-weight: bold; display: inline-block; }
           </style>
         </head>
         <body>
