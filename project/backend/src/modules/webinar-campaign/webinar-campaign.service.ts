@@ -605,6 +605,31 @@ export class WebinarCampaignService {
             [JSON.stringify(updatedSeq), row.apollo_id]
           );
         }
+
+        // Check if all items in sequence are sent and 48 hours have passed since final email dispatch without response
+        const currentSeq = updated ? updatedSeq : seq;
+        const allSent = currentSeq.every((item: any) => item.status === 'sent');
+        if (allSent && (row.stage === 'sent' || row.stage === 'pending_outreach')) {
+          const sentTimestamps = currentSeq
+            .map((item: any) => item.sentAt ? new Date(item.sentAt).getTime() : 0)
+            .filter((t: number) => t > 0);
+
+          const lastSentTime = sentTimestamps.length > 0 ? Math.max(...sentTimestamps) : 0;
+          if (lastSentTime > 0) {
+            const elapsedHours = (now.getTime() - lastSentTime) / (1000 * 60 * 60);
+            if (elapsedHours >= 48) {
+              await db.query(
+                `UPDATE doctor_prospects SET stage = 'needs_call', updated_at = CURRENT_TIMESTAMP WHERE apollo_id = $1`,
+                [row.apollo_id]
+              );
+              await db.query(
+                `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, 'campaign_completed_needs_call', $2, CURRENT_TIMESTAMP)`,
+                [row.apollo_id, JSON.stringify({ completedAt: now.toISOString(), lastEmailSentAt: new Date(lastSentTime).toISOString() })]
+              );
+              this.logger.log(`📞 [CRON DRIP] Prospect ${row.full_name} (${row.email}) 48h elapsed since final email without response. Updated stage to 'needs_call'.`);
+            }
+          }
+        }
       }
     } catch (err: any) {
       this.logger.error(`Error in processScheduledDripEmails: ${err.message}`);
