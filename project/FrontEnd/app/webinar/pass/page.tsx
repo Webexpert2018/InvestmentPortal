@@ -72,7 +72,7 @@ function WebinarPassContent() {
 
       // Register unload listener using sendBeacon to finalize left_at & duration_seconds
       const handleUnload = () => {
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_BASE_URL ? `${process.env.NEXT_PUBLIC_BASE_URL}/api` : 'http://localhost:3001/api');
         const payload = JSON.stringify({
           webinarId: webinar.id,
           prospectId: pId,
