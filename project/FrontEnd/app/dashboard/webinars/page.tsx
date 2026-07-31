@@ -194,9 +194,15 @@ export default function WebinarsPage() {
     return matchesTab && matchesDate && matchesSearch;
   });
 
-  // Calculate Quick Stats
+  // Calculate Quick Stats (Unique Doctors across all webinars)
   const totalWebinars = webinars.length;
-  const totalAttendeesCount = webinars.reduce((acc, w) => acc + w.attendees.length, 0);
+  const uniqueDoctorIds = new Set<string>();
+  webinars.forEach((w) => {
+    (w.attendees || []).forEach((att) => {
+      if (att.id) uniqueDoctorIds.add(att.id);
+    });
+  });
+  const totalAttendeesCount = uniqueDoctorIds.size;
   const upcomingCount = webinars.filter((w) => w.status === 'upcoming' || w.status === 'live').length;
 
   // Mini Calendar Calculations
