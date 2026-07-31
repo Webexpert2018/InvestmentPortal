@@ -179,119 +179,124 @@ export default function DocumentVaultPage() {
             </div>
           </div>
 
-          <div className="mt-4 overflow-x-auto pb-20 custom-scrollbar">
-            <div className="min-h-[400px]">
-              <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
-                <thead>
-                  <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
-                    <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
-                    <th className="px-3 py-3">Category</th>
-                    <th className="px-3 py-3">Uploaded Date</th>
-                    <th className="rounded-r-[6px] px-3 py-3 text-center">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr
-                      key={row.id}
-                      onClick={() => router.push(`/dashboard/document-vault/${row.id}`)}
-                      className="border-b border-[#F1F1F1] hover:bg-gray-50 cursor-pointer transition-colors"
-                    >
-                      <td className="px-3 py-4">{row.documentName}</td>
-                      <td className="px-3 py-4">{row.category}</td>
-                      <td className="px-3 py-4">{row.uploadedDate}</td>
-                      <td className="relative px-3 py-4 text-center">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveMenuId((prev) => (prev === row.id ? null : row.id));
-                          }}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5]"
+          {loading ? (
+            <div className="flex h-32 items-center justify-center mt-4">
+              <Loader2 className="h-8 w-8 animate-spin text-[#274583]" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="p-8 text-center text-[#8E8E93]">No documents found.</div>
+          ) : (
+            <>
+              <div className="mt-4 overflow-x-auto pb-20 custom-scrollbar">
+                <div className="min-h-[400px]">
+                  <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
+                    <thead>
+                      <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
+                        <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
+                        <th className="px-3 py-3">Category</th>
+                        <th className="px-3 py-3">Uploaded Date</th>
+                        <th className="rounded-r-[6px] px-3 py-3 text-center">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((row) => (
+                        <tr
+                          key={row.id}
+                          onClick={() => router.push(`/dashboard/document-vault/${row.id}`)}
+                          className="border-b border-[#F1F1F1] hover:bg-gray-50 cursor-pointer transition-colors"
                         >
-                          <MoreVertical className="h-4 w-4" />
-                        </button>
-
-                        {activeMenuId === row.id && (
-                          <>
+                          <td className="px-3 py-4">{row.documentName}</td>
+                          <td className="px-3 py-4">{row.category}</td>
+                          <td className="px-3 py-4">{row.uploadedDate}</td>
+                          <td className="relative px-3 py-4 text-center">
                             <button
                               type="button"
-                              aria-label="Close menu"
-                              className="fixed inset-0 z-10"
-                              onClick={() => setActiveMenuId(null)}
-                            />
-                            <div className="absolute right-6 top-11 z-20 w-[122px] rounded-[4px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)]">
-                              <Link
-                                href={`/dashboard/document-vault/${row.id}`}
-                                onClick={() => setActiveMenuId(null)}
-                                className="block px-3 py-2 text-[12px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
-                              >
-                                View Document
-                              </Link>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  handleDownload(row.fileUrl, row.documentName);
-                                  setActiveMenuId(null);
-                                }}
-                                className="block w-full px-3 py-2 text-left text-[12px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
-                              >
-                                Download
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                  {rows.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="px-3 py-8 text-center text-[13px] text-[#8E8E93]">
-                        No documents found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMenuId((prev) => (prev === row.id ? null : row.id));
+                              }}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5]"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </button>
 
-          <div className="mt-5 flex items-center justify-center gap-6 text-[16px] text-[#8E8E93]">
-            <button
-              type="button"
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="px-1 hover:text-[#274583] transition-colors disabled:opacity-30 disabled:pointer-events-none"
-            >
-              &lt; Previous
-            </button>
+                            {activeMenuId === row.id && (
+                              <>
+                                <button
+                                  type="button"
+                                  aria-label="Close menu"
+                                  className="fixed inset-0 z-10"
+                                  onClick={() => setActiveMenuId(null)}
+                                />
+                                <div className="absolute right-6 top-11 z-20 w-[122px] rounded-[4px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)]">
+                                  <Link
+                                    href={`/dashboard/document-vault/${row.id}`}
+                                    onClick={() => setActiveMenuId(null)}
+                                    className="block px-3 py-2 text-[12px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
+                                  >
+                                    View Document
+                                  </Link>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleDownload(row.fileUrl, row.documentName);
+                                      setActiveMenuId(null);
+                                    }}
+                                    className="block w-full px-3 py-2 text-left text-[12px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
+                                  >
+                                    Download
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-            {Array.from({ length: totalPages }, (_, index) => {
-              const page = index + 1;
-              const isActive = page === currentPage;
+              {totalPages > 1 && (
+                <div className="mt-5 flex items-center justify-center gap-6 text-[16px] text-[#8E8E93]">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="px-1 hover:text-[#274583] transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    &lt; Previous
+                  </button>
 
-              return (
-                <button
-                  key={page}
-                  type="button"
-                  onClick={() => setCurrentPage(page)}
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-[8px] transition-colors ${isActive ? 'bg-[#274583] text-white' : 'hover:bg-[#E9EDF4]'
-                    }`}
-                >
-                  {page}
-                </button>
-              );
-            })}
+                  {Array.from({ length: totalPages }, (_, index) => {
+                    const page = index + 1;
+                    const isActive = page === currentPage;
 
-            <button
-              type="button"
-              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="px-1 hover:text-[#274583] transition-colors disabled:opacity-30 disabled:pointer-events-none"
-            >
-              Next &gt;
-            </button>
-          </div>
+                    return (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => setCurrentPage(page)}
+                        className={`inline-flex h-8 w-8 items-center justify-center rounded-[8px] transition-colors ${isActive ? 'bg-[#274583] text-white' : 'hover:bg-[#E9EDF4]'
+                          }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-1 hover:text-[#274583] transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    Next &gt;
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {/* Legacy Platform Documents Section */}
