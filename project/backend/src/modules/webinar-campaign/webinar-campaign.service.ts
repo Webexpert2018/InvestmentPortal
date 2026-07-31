@@ -1000,6 +1000,20 @@ ${rsvpButtonsHtml}
             ? `${frontendUrl}/webinar/pass?prospect_id=${encodeURIComponent(apolloId)}&webinar_id=${encodeURIComponent(latestWebinar.id)}`
             : `${frontendUrl}/webinar/pass?prospect_id=${encodeURIComponent(apolloId)}`;
 
+          if (latestWebinar && apolloId) {
+            try {
+              await db.query(
+                `INSERT INTO webinar_attendees (webinar_id, prospect_id, status, created_at, updated_at)
+                 VALUES ($1, $2, 'registered', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                 ON CONFLICT (webinar_id, prospect_id) DO NOTHING`,
+                [latestWebinar.id, apolloId]
+              );
+              this.logger.log(`🎟️ Logged doctor ${doctorName} (${apolloId}) as 'registered' (Pass Sent) for webinar ${latestWebinar.id}`);
+            } catch (pErr: any) {
+              this.logger.error(`Failed to register pass in webinar_attendees: ${pErr.message}`);
+            }
+          }
+
           const title = latestWebinar?.title || 'Ovalia Capital Physician Wealth Briefing';
           let formattedDate = 'Scheduled Date';
           if (latestWebinar?.webinar_date) {
@@ -1190,11 +1204,16 @@ ${rsvpButtonsHtml}
            WHERE wa.webinar_id = $1`,
           [w.id]
         );
-        w.attendees = attendeesRes.rows.map((att: any) => ({
+        const rawAttendees = attendeesRes.rows;
+        w.attendees = rawAttendees.map((att: any) => ({
           ...att,
-          duration: att.duration ? `${att.duration} mins` : 'N/A',
+          duration: att.status === 'attended' ? (att.duration ? `${att.duration} mins` : '0 mins') : 'N/A',
           joinTime: att.joinTime ? new Date(att.joinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
         }));
+
+        w.totalPassesSent = rawAttendees.length;
+        w.totalJoined = rawAttendees.filter((att: any) => att.status === 'attended').length;
+        w.noShowCount = rawAttendees.filter((att: any) => att.status !== 'attended').length;
       }
 
       return {

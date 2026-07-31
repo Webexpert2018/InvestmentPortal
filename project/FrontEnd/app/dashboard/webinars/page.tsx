@@ -54,6 +54,9 @@ interface Webinar {
   meetingLink: string;
   status: 'upcoming' | 'live' | 'completed';
   attendees: Attendee[];
+  totalPassesSent?: number;
+  totalJoined?: number;
+  noShowCount?: number;
 }
 
 export default function WebinarsPage() {
@@ -486,17 +489,18 @@ export default function WebinarsPage() {
                           {webinar.formattedDate || webinar.date}
                         </span>
 
-                        {/* Status Badge */}
+                        {/* Webinar Status & Attendance Metric Badges */}
+                      <div className="flex flex-wrap items-center gap-2">
                         {webinar.status === 'upcoming' && (
-                          <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                          <span className="bg-blue-50 text-blue-700 border border-blue-200/80 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
                             Upcoming
                           </span>
                         )}
                         {webinar.status === 'live' && (
-                          <span className="bg-red-50 text-red-700 border border-red-200 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                            <span className="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
-                            Live Now
+                          <span className="bg-emerald-500 text-white text-[11px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 shadow-xs animate-pulse">
+                            <Video className="w-3.5 h-3.5" />
+                            LIVE NOW
                           </span>
                         )}
                         {webinar.status === 'completed' && (
@@ -505,6 +509,18 @@ export default function WebinarsPage() {
                             Completed
                           </span>
                         )}
+
+                        {/* Breakdown Metrics */}
+                        <span className="bg-amber-50 text-amber-900 border border-amber-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                          📩 Passes Sent: {webinar.totalPassesSent ?? webinar.attendees.length}
+                        </span>
+                        <span className="bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                          🟢 Joined: {webinar.totalJoined ?? webinar.attendees.filter(a => a.status === 'attended').length}
+                        </span>
+                        <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                          ⚠️ No-Shows: {webinar.noShowCount ?? webinar.attendees.filter(a => a.status !== 'attended').length}
+                        </span>
+                      </div>
                       </div>
 
                       {/* Time & Duration */}
@@ -650,22 +666,15 @@ export default function WebinarsPage() {
 
                                   {/* RSVP Status */}
                                   <td className="py-3.5 px-4">
-                                    {attendee.status === 'attended' && (
-                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-green-700 bg-green-50 border border-green-200 px-2.5 py-0.5 rounded-full">
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                                        Attended
+                                    {attendee.status === 'attended' ? (
+                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                        Joined Session
                                       </span>
-                                    )}
-                                    {attendee.status === 'registered' && (
-                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
-                                        <Clock className="w-3.5 h-3.5 text-blue-600" />
-                                        Registered
-                                      </span>
-                                    )}
-                                    {attendee.status === 'no_show' && (
-                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-700 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full">
-                                        <AlertCircle className="w-3.5 h-3.5 text-red-600" />
-                                        No-Show
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                                        <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                        Pass Sent (No-Show)
                                       </span>
                                     )}
                                   </td>
