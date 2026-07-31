@@ -23,6 +23,7 @@ import {
   ChevronRight,
   Stethoscope,
   Target,
+  Video,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -167,6 +168,12 @@ const menuItems: MenuItem[] = [
     title: 'Doctor CRM',
     href: '/dashboard/doctor-crm',
     icon: Target,
+    roles: ['admin', 'executive_admin', 'investor_relations'],
+  },
+  {
+    title: 'Webinars',
+    href: '/dashboard/webinars',
+    icon: Video,
     roles: ['admin', 'executive_admin', 'investor_relations'],
   },
   {

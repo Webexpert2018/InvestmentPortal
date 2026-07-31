@@ -130,11 +130,60 @@ export class WebinarCampaignController {
   ) {
     return this.webinarCampaignService.addManualProspect(body);
   }
+
+  @Get('webinars')
+  async getAllWebinars() {
+    return this.webinarCampaignService.getAllWebinars();
+  }
+
+  @Post('webinars')
+  async createWebinar(
+    @Body()
+    body: {
+      title: string;
+      description?: string;
+      webinarDate: string;
+      webinarTime?: string;
+      duration?: string;
+      meetingLink: string;
+    }
+  ) {
+    return this.webinarCampaignService.createWebinar(body);
+  }
+
+  @Post('send-step-now')
+  async sendStepNow(
+    @Body() body: { prospectId: string; day: number }
+  ) {
+    return this.webinarCampaignService.sendSequenceStepNow(body.prospectId, body.day);
+  }
 }
 
 @Controller('api/webinar-campaign')
 export class WebinarCampaignPublicController {
   constructor(private readonly webinarCampaignService: WebinarCampaignService) {}
+
+  @Get('webinar-pass')
+  async getWebinarPass(
+    @Query('webinarId') webinarId: string,
+    @Query('prospectId') prospectId: string
+  ) {
+    return this.webinarCampaignService.getWebinarPassDetails(webinarId, prospectId);
+  }
+
+  @Post('attend')
+  async recordAttendance(
+    @Body() body: { webinarId: string; prospectId: string }
+  ) {
+    return this.webinarCampaignService.recordWebinarJoinSession(body.webinarId, body.prospectId);
+  }
+
+  @Post('heartbeat')
+  async recordHeartbeat(
+    @Body() body: { sessionId?: number; webinarId?: string; prospectId?: string }
+  ) {
+    return this.webinarCampaignService.recordWebinarHeartbeat(body.sessionId, body.webinarId, body.prospectId);
+  }
 
   @Get('respond')
   async respondToOutreach(
@@ -162,16 +211,14 @@ export class WebinarCampaignPublicController {
             body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #F8FAFC; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
             .card { background: white; padding: 45px 35px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); text-align: center; max-width: 480px; border: 1px solid #E2E8F0; }
             h1 { color: #1E293B; font-size: 24px; margin-bottom: 12px; }
-            p { color: #64748B; font-size: 16px; line-height: 1.6; margin-bottom: 25px; }
-            .btn { background: #22C55E; color: white; padding: 8px 18px; border-radius: 8px; font-size: 13px; text-decoration: none; font-weight: bold; display: inline-block; }
+            p { color: #64748B; font-size: 16px; line-height: 1.6; margin-bottom: 0px; }
           </style>
         </head>
         <body>
           <div class="card">
             <div style="font-size: 52px; margin-bottom: 15px;">🎉</div>
             <h1>Interest Confirmed!</h1>
-            <p>Thank you for expressing interest in our Physician Wealth Webinar. We have recorded your status and our team will reach out shortly with exact event details.</p>
-            <a href="https://lu.ma/ovaliacapital-physicians" class="btn" target="_blank">View Event Details on Luma</a>
+            <p>Thank you for expressing interest in our Physician Wealth Webinar. We have recorded your status and sent your VIP Session Pass directly to your email inbox.</p>
           </div>
         </body>
         </html>

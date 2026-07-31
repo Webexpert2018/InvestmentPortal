@@ -271,6 +271,17 @@ export default function DoctorLeadsPage() {
   };
 
   const handleOpenSequenceModal = async (docId?: string) => {
+    try {
+      const webinarRes = await apiClient.getWebinars();
+      if (!webinarRes || !webinarRes.success || !webinarRes.webinars || webinarRes.webinars.length === 0) {
+        toast.error('Please create a webinar first in the Webinars tab before creating an email campaign!');
+        return;
+      }
+    } catch (wErr) {
+      toast.error('Please create a webinar first in the Webinars tab before creating an email campaign!');
+      return;
+    }
+
     setIsSequenceModalOpen(true);
     const availableDocs = prospects.length > 0 ? prospects : INITIAL_PROSPECTS;
     const targetDoc = availableDocs.find(p => p.id === docId) || availableDocs[0];
@@ -310,6 +321,17 @@ export default function DoctorLeadsPage() {
     }
     if (selectedIds.length === 0) {
       toast.info('Please select at least one doctor lead from the database table below.');
+      return;
+    }
+
+    try {
+      const webinarRes = await apiClient.getWebinars();
+      if (!webinarRes || !webinarRes.success || !webinarRes.webinars || webinarRes.webinars.length === 0) {
+        toast.error('Please create a webinar first in the Webinars tab before creating an email campaign!');
+        return;
+      }
+    } catch (wErr) {
+      toast.error('Please create a webinar first in the Webinars tab before creating an email campaign!');
       return;
     }
 

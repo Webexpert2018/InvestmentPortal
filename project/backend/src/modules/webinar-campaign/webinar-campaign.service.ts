@@ -679,6 +679,15 @@ export class WebinarCampaignService {
   }
 
   async generateDoctorSequence(prospectId?: string, mockDoctorData?: any) {
+    // Ensure at least 1 webinar exists in database
+    const latestWebinarCheck = await db.query(`SELECT id FROM webinars ORDER BY created_at DESC LIMIT 1`);
+    if (!latestWebinarCheck.rows || latestWebinarCheck.rows.length === 0) {
+      throw new HttpException(
+        'Please create a webinar first in the Webinars tab before creating an email campaign.',
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
     let doc: any = null;
     if (prospectId) {
       try {
@@ -979,35 +988,78 @@ ${rsvpButtonsHtml}
         );
         this.logger.log(`✅ [Prospect Response] Recorded stage '${validStatus}' in PostgreSQL for doctor ${doctorName} (${doctorEmail})!`);
 
-        // Trigger automated interest confirmation email with webinar link (example.com)
+        // Trigger automated interest confirmation email with dynamic VIP webinar pass link and briefing details
         if (validStatus === 'interested' && doctorEmail) {
+          const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+          const latestWebinarRes = await db.query(
+            `SELECT id, title, webinar_date, webinar_time, duration, meeting_link FROM webinars ORDER BY created_at DESC LIMIT 1`
+          );
+
+          const latestWebinar = latestWebinarRes.rows.length > 0 ? latestWebinarRes.rows[0] : null;
+          const webinarPassUrl = latestWebinar
+            ? `${frontendUrl}/webinar/pass?prospect_id=${encodeURIComponent(apolloId)}&webinar_id=${encodeURIComponent(latestWebinar.id)}`
+            : `${frontendUrl}/webinar/pass?prospect_id=${encodeURIComponent(apolloId)}`;
+
+          const title = latestWebinar?.title || 'Ovalia Capital Physician Wealth Briefing';
+          let formattedDate = 'Scheduled Date';
+          if (latestWebinar?.webinar_date) {
+            try {
+              const d = new Date(latestWebinar.webinar_date);
+              formattedDate = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            } catch (e) {}
+          }
+          const timeStr = latestWebinar?.webinar_time || '04:00 PM EST';
+          const durationStr = latestWebinar?.duration || '45 mins';
+
           const subject = `Thank You for Your Interest! — Physician Webinar Access`;
-          const webinarLink = 'https://example.com';
           const emailBody = `
-<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1F1F1F; text-align: left;">
+<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1F1F1F; text-align: left; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #E5E7EB; border-radius: 12px; background-color: #FFFFFF;">
   <h2 style="color: #1F2937; margin: 0 0 12px 0; font-size: 20px; font-weight: bold; line-height: 1.3;">Thank You for Your Interest, ${doctorName}!</h2>
-  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 0 0 12px 0;">
-    We have received your response expressing interest in our <strong>Ovalia Capital Physician Wealth &amp; Tax-Advantaged Real Estate Webinar</strong>.
-  </p>
   <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 0 0 16px 0;">
-    We are excited to share our private investor deck and session details with you. You can access the webinar pass link directly below:
+    We have received your response expressing interest in our <strong>Ovalia Capital Physician Wealth Session</strong>.
+  </p>
+
+  <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; margin: 16px 0;">
+    <h3 style="margin: 0 0 10px 0; font-size: 15px; font-weight: bold; color: #111827;">🗓️ Session Details</h3>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; color: #374151;">
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold; width: 90px;">Session:</td>
+        <td style="padding: 4px 0; color: #111827; font-weight: 600;">${title}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Date:</td>
+        <td style="padding: 4px 0;">${formattedDate}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Time:</td>
+        <td style="padding: 4px 0;">${timeStr}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Duration:</td>
+        <td style="padding: 4px 0;">${durationStr}</td>
+      </tr>
+    </table>
+  </div>
+
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 16px 0;">
+    You can access your personalized VIP session pass link directly below:
   </p>
   <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 16px 0; text-align: center;">
     <tr>
       <td align="center" style="text-align: center;">
-        <a href="${webinarLink}" target="_blank" style="background-color: #22C55E; color: #FFFFFF; padding: 10px 22px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);">
-          👉 Access Your Webinar Pass (example.com)
+        <a href="${webinarPassUrl}" target="_blank" style="background-color: #22C55E; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);">
+          👉 Access Your VIP Physician Webinar Pass
         </a>
       </td>
     </tr>
   </table>
   <p style="font-size: 13px; color: #6B7280; line-height: 1.5; margin: 16px 0 0 0;">
-    If you have any questions or need to schedule a 1-on-1 consultation at a specific clinical time, simply reply directly to this email.
+    Need help? Contact our support team at <a href="mailto:portal@ovaliacapital.com" style="color: #2563EB; text-decoration: underline;">portal@ovaliacapital.com</a>.
   </p>
 </div>`;
           try {
             await this.emailService.sendCustomEmail(doctorEmail, doctorName, subject, emailBody);
-            this.logger.log(`📩 Sent interest confirmation email with webinar link (example.com) to ${doctorEmail}`);
+            this.logger.log(`📩 Sent interest confirmation email with VIP webinar pass link to ${doctorEmail}`);
           } catch (emailErr: any) {
             this.logger.error(`Failed to send interest confirmation email to ${doctorEmail}: ${emailErr.message}`);
           }
@@ -1112,6 +1164,308 @@ ${rsvpButtonsHtml}
     } catch (err: any) {
       this.logger.error(`Error adding manual prospect: ${err.message}`);
       throw new HttpException(err.message || 'Failed to create doctor prospect', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // --- Dynamic Webinars & Attendance Tracking Methods ---
+
+  async getAllWebinars() {
+    try {
+      const webinarsRes = await db.query(
+        `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date, 
+                to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
+                webinar_time as time, duration, meeting_link as "meetingLink", status
+         FROM webinars ORDER BY webinar_date DESC, created_at DESC`
+      );
+
+      const webinars = webinarsRes.rows;
+
+      for (const w of webinars) {
+        const attendeesRes = await db.query(
+          `SELECT wa.status, wa.first_joined_at as "joinTime", wa.total_duration_minutes as duration,
+                  dp.apollo_id as id, dp.full_name as "fullName", dp.specialty, dp.organization, 
+                  dp.location, dp.email, dp.phone
+           FROM webinar_attendees wa
+           JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
+           WHERE wa.webinar_id = $1`,
+          [w.id]
+        );
+        w.attendees = attendeesRes.rows.map((att: any) => ({
+          ...att,
+          duration: att.duration ? `${att.duration} mins` : 'N/A',
+          joinTime: att.joinTime ? new Date(att.joinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
+        }));
+      }
+
+      return {
+        success: true,
+        webinars,
+      };
+    } catch (err: any) {
+      this.logger.error(`Error in getAllWebinars: ${err.message}`);
+      return { success: false, webinars: [] };
+    }
+  }
+
+  async createWebinar(data: {
+    title: string;
+    description?: string;
+    webinarDate: string;
+    webinarTime?: string;
+    duration?: string;
+    meetingLink: string;
+  }) {
+    if (!data.title || !data.webinarDate || !data.meetingLink) {
+      throw new HttpException('Title, Date, and Meeting Link are required', HttpStatus.BAD_REQUEST);
+    }
+
+    const id = `web-${Date.now()}`;
+    const query = `
+      INSERT INTO webinars (id, title, description, webinar_date, webinar_time, duration, meeting_link, status, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'upcoming', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      RETURNING id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
+                to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
+                webinar_time as time, duration, meeting_link as "meetingLink", status
+    `;
+
+    try {
+      const res = await db.query(query, [
+        id,
+        data.title.trim(),
+        data.description?.trim() || 'Ovalia Capital Physician Wealth Session.',
+        data.webinarDate,
+        data.webinarTime?.trim() || '04:00 PM EST',
+        data.duration?.trim() || '45 mins',
+        data.meetingLink.trim(),
+      ]);
+
+      this.logger.log(`🎥 Scheduled new webinar: ${data.title} (${data.webinarDate})`);
+      return {
+        success: true,
+        webinar: {
+          ...res.rows[0],
+          attendees: [],
+        },
+      };
+    } catch (err: any) {
+      this.logger.error(`Error creating webinar: ${err.message}`);
+      throw new HttpException('Failed to create webinar record', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getWebinarPassDetails(webinarId: string, prospectId: string) {
+    try {
+      const webinarRes = await db.query(
+        `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
+                to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
+                webinar_time as time, duration, meeting_link as "meetingLink", status
+         FROM webinars WHERE id = $1`,
+        [webinarId]
+      );
+
+      let doctor = null;
+      if (prospectId) {
+        const doctorRes = await db.query(
+          `SELECT apollo_id as id, full_name as "fullName", specialty, organization, email FROM doctor_prospects WHERE apollo_id = $1 OR email = $1`,
+          [prospectId]
+        );
+        if (doctorRes.rows.length > 0) {
+          doctor = doctorRes.rows[0];
+        }
+      }
+
+      const webinar = webinarRes.rows[0] || null;
+
+      return {
+        success: !!webinar,
+        webinar,
+        doctor,
+      };
+    } catch (err: any) {
+      this.logger.error(`Error fetching webinar pass details: ${err.message}`);
+      return { success: false, webinar: null, doctor: null };
+    }
+  }
+
+  async recordWebinarJoinSession(webinarId: string, prospectId: string) {
+    try {
+      if (!webinarId || !prospectId) {
+        throw new HttpException('Webinar ID and Prospect ID are required', HttpStatus.BAD_REQUEST);
+      }
+
+      // Find prospect apollo_id
+      const doctorRes = await db.query(
+        `SELECT apollo_id, full_name, email FROM doctor_prospects WHERE apollo_id = $1 OR email = $1`,
+        [prospectId]
+      );
+
+      if (doctorRes.rows.length === 0) {
+        return { success: false, message: 'Prospect not found' };
+      }
+
+      const apolloId = doctorRes.rows[0].apollo_id;
+      const doctorName = doctorRes.rows[0].full_name;
+
+      // 1. Insert session log returning id
+      const sessRes = await db.query(
+        `INSERT INTO webinar_attendance_sessions (webinar_id, prospect_id, joined_at, last_heartbeat_at)
+         VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+         RETURNING id`,
+        [webinarId, apolloId]
+      );
+      const sessionId = sessRes.rows[0]?.id;
+
+      // 2. Upsert webinar_attendees summary record
+      await db.query(
+        `INSERT INTO webinar_attendees (webinar_id, prospect_id, status, first_joined_at, join_count, created_at, updated_at)
+         VALUES ($1, $2, 'attended', CURRENT_TIMESTAMP, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+         ON CONFLICT (webinar_id, prospect_id) DO UPDATE SET
+           status = 'attended',
+           join_count = webinar_attendees.join_count + 1,
+           first_joined_at = COALESCE(webinar_attendees.first_joined_at, CURRENT_TIMESTAMP),
+           updated_at = CURRENT_TIMESTAMP`,
+        [webinarId, apolloId]
+      );
+
+      // 3. Log event in prospect_events
+      await db.query(
+        `INSERT INTO prospect_events (prospect_id, event_type, details, created_at)
+         VALUES ($1, 'webinar_joined', $2, CURRENT_TIMESTAMP)`,
+        [apolloId, JSON.stringify({ webinarId, sessionId, joinedAt: new Date().toISOString() })]
+      );
+
+      this.logger.log(`🎟️ [Webinar Attendance] Doctor ${doctorName} (${apolloId}) joined webinar ${webinarId} (Session #${sessionId})!`);
+
+      return {
+        success: true,
+        sessionId,
+        message: 'Attendance recorded successfully',
+      };
+    } catch (err: any) {
+      this.logger.error(`Error recording webinar attendance: ${err.message}`);
+      return { success: false, error: err.message };
+    }
+  }
+
+  async recordWebinarHeartbeat(sessionId?: number, webinarId?: string, prospectId?: string) {
+    try {
+      let targetSessionId = sessionId;
+
+      if (!targetSessionId && webinarId && prospectId) {
+        // Find most recent active session
+        const sessRes = await db.query(
+          `SELECT id FROM webinar_attendance_sessions 
+           WHERE webinar_id = $1 AND prospect_id = $2 
+           ORDER BY joined_at DESC LIMIT 1`,
+          [webinarId, prospectId]
+        );
+        if (sessRes.rows.length > 0) {
+          targetSessionId = sessRes.rows[0].id;
+        }
+      }
+
+      if (!targetSessionId) {
+        return { success: false, message: 'Active session not found' };
+      }
+
+      // Update session last_heartbeat_at, left_at, and compute duration_seconds
+      const updateRes = await db.query(
+        `UPDATE webinar_attendance_sessions
+         SET last_heartbeat_at = CURRENT_TIMESTAMP,
+             left_at = CURRENT_TIMESTAMP,
+             duration_seconds = ROUND(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - joined_at)))
+         WHERE id = $1
+         RETURNING webinar_id, prospect_id, duration_seconds`,
+        [targetSessionId]
+      );
+
+      if (updateRes.rows.length > 0) {
+        const { webinar_id, prospect_id } = updateRes.rows[0];
+
+        // Aggregate total seconds across all sessions for this doctor & webinar
+        const sumRes = await db.query(
+          `SELECT COALESCE(SUM(duration_seconds), 0) as total_seconds
+           FROM webinar_attendance_sessions
+           WHERE webinar_id = $1 AND prospect_id = $2`,
+          [webinar_id, prospect_id]
+        );
+
+        const totalSeconds = Number(sumRes.rows[0]?.total_seconds || 0);
+        const totalMinutes = Math.round(totalSeconds / 60);
+
+        // Update webinar_attendees master table total_duration_minutes
+        await db.query(
+          `UPDATE webinar_attendees
+           SET total_duration_minutes = $1,
+               updated_at = CURRENT_TIMESTAMP
+           WHERE webinar_id = $2 AND prospect_id = $3`,
+          [totalMinutes, webinar_id, prospect_id]
+        );
+      }
+
+      return { success: true, sessionId: targetSessionId };
+    } catch (err: any) {
+      this.logger.error(`Error in recordWebinarHeartbeat: ${err.message}`);
+      return { success: false, error: err.message };
+    }
+  }
+
+  async sendSequenceStepNow(prospectId: string, day: number) {
+    try {
+      const res = await db.query(
+        `SELECT apollo_id, full_name, email, ai_sequence, stage FROM doctor_prospects WHERE apollo_id = $1 OR email = $1`,
+        [prospectId]
+      );
+
+      if (res.rows.length === 0) {
+        throw new HttpException('Doctor prospect not found', HttpStatus.NOT_FOUND);
+      }
+
+      const row = res.rows[0];
+      let seq = row.ai_sequence;
+      if (typeof seq === 'string') {
+        try { seq = JSON.parse(seq); } catch (e) { seq = []; }
+      }
+
+      if (!Array.isArray(seq) || seq.length === 0) {
+        throw new HttpException('No AI sequence configured for this doctor. Please generate a sequence first.', HttpStatus.BAD_REQUEST);
+      }
+
+      const dayIdx = Math.max(0, day - 1);
+      const stepItem = seq[dayIdx] || seq[0];
+
+      if (!stepItem || !stepItem.body) {
+        throw new HttpException(`Step Day ${day} content not found`, HttpStatus.BAD_REQUEST);
+      }
+
+      // Send the email via Resend/SMTP
+      await this.sendCampaignOutreach([row.apollo_id], stepItem.body, undefined, stepItem.subject);
+
+      // Update sequence step status in memory to 'sent'
+      stepItem.status = 'sent';
+      stepItem.sentAt = new Date().toISOString();
+
+      // Persist updated sequence and stage in PostgreSQL
+      await db.query(
+        `UPDATE doctor_prospects SET ai_sequence = $1::jsonb, stage = 'sent', updated_at = CURRENT_TIMESTAMP WHERE apollo_id = $2`,
+        [JSON.stringify(seq), row.apollo_id]
+      );
+
+      await db.query(
+        `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, 'manual_step_sent', $2, CURRENT_TIMESTAMP)`,
+        [row.apollo_id, JSON.stringify({ day, subject: stepItem.subject, sentAt: stepItem.sentAt })]
+      );
+
+      this.logger.log(`⚡ [Manual Instant Dispatch] Sent Day ${day} email to ${row.full_name} (${row.email}) & set status='sent'`);
+
+      return {
+        success: true,
+        message: `Day ${day} email sent successfully to ${row.full_name}`,
+        sequence: seq,
+      };
+    } catch (err: any) {
+      this.logger.error(`Error in sendSequenceStepNow: ${err.message}`);
+      throw new HttpException(err.message || 'Failed to send sequence step', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

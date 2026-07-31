@@ -183,7 +183,7 @@ export default function DoctorProfilePage() {
     if (!newNote.trim() || !doctor) return;
     setIsSavingNote(true);
     try {
-      const author = user?.name || user?.email?.split('@')[0] || 'Staff';
+      const author = (user as any)?.name || user?.email?.split('@')[0] || 'Staff';
       const res = await apiClient.addDoctorNote(doctor.id, newNote.trim(), author);
       if (res && res.success && res.note) {
         toast.success('Note saved to database!');
@@ -265,15 +265,14 @@ export default function DoctorProfilePage() {
     if (!doctor) return;
     setIsSending(true);
     try {
-      toast.info(`Dispatching email to ${doctor.fullName} (${doctor.email})...`);
-      const res = await apiClient.sendDoctorOutreachEmails({
-        prospectIds: [doctor.id],
-        customMessage: emailBody,
-        mockProfilesData: [doctor]
-      });
+      toast.info(`Dispatching Day ${activeDay} email to ${doctor.fullName} (${doctor.email})...`);
+      const res = await apiClient.sendSequenceStepNow(doctor.id, activeDay);
       if (res && res.success) {
-        toast.success(`🎉 Personalized email sent to ${doctor.fullName}!`);
+        toast.success(`🎉 Day ${activeDay} email sent to ${doctor.fullName}!`);
         setDoctor(prev => prev ? { ...prev, status: 'sent', stage: 'sent' } : null);
+        if (res.sequence && Array.isArray(res.sequence)) {
+          setSequenceData((prev: any) => prev ? { ...prev, sequence: res.sequence } : { success: true, provider: 'PostgreSQL Database', sequence: res.sequence });
+        }
       } else {
         toast.error('Failed to dispatch email.');
       }

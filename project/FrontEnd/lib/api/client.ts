@@ -1509,6 +1509,51 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  async getWebinars() {
+    return this.request<{ success: boolean; webinars: any[] }>('/webinar-campaign/webinars');
+  }
+
+  async createWebinar(data: {
+    title: string;
+    description?: string;
+    webinarDate: string;
+    webinarTime?: string;
+    duration?: string;
+    meetingLink: string;
+  }) {
+    return this.request<{ success: boolean; webinar: any }>('/webinar-campaign/webinars', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getWebinarPassDetails(webinarId: string, prospectId: string) {
+    return this.request<{ success: boolean; webinar: any; doctor: any }>(
+      `/webinar-campaign/webinar-pass?webinarId=${encodeURIComponent(webinarId)}&prospectId=${encodeURIComponent(prospectId)}`
+    );
+  }
+
+  async recordWebinarAttendance(webinarId: string, prospectId: string) {
+    return this.request<{ success: boolean; sessionId?: number; message: string }>('/webinar-campaign/attend', {
+      method: 'POST',
+      body: JSON.stringify({ webinarId, prospectId }),
+    });
+  }
+
+  async sendWebinarHeartbeat(webinarId: string, prospectId: string, sessionId?: number) {
+    return this.request<{ success: boolean; sessionId?: number }>('/webinar-campaign/heartbeat', {
+      method: 'POST',
+      body: JSON.stringify({ webinarId, prospectId, sessionId }),
+    });
+  }
+
+  async sendSequenceStepNow(prospectId: string, day: number) {
+    return this.request<{ success: boolean; message: string; sequence: any[] }>('/webinar-campaign/send-step-now', {
+      method: 'POST',
+      body: JSON.stringify({ prospectId, day }),
+    });
+  }
 }
 
 
