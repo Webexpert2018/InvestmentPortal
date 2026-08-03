@@ -34,7 +34,6 @@ export class WebinarCampaignController {
     };
   }
 
-
   @Post('apollo/bulk-enrich-save')
   async bulkEnrichAndSave(
     @Body()
