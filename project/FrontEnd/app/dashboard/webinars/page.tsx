@@ -28,6 +28,7 @@ import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
+  Trash2,
 } from 'lucide-react';
 
 interface Attendee {
@@ -59,6 +60,26 @@ interface Webinar {
   noShowCount?: number;
 }
 
+function formatTimeTo12HourEST(timeStr: string): string {
+  if (!timeStr) return '04:00 PM EST';
+  const clean = timeStr.trim();
+  if (/AM|PM/i.test(clean)) {
+    if (!/EST/i.test(clean)) return `${clean} EST`;
+    return clean;
+  }
+  const match = clean.match(/^(\d{1,2}):(\d{2})$/);
+  if (match) {
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2];
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+    const formattedHours = hours.toString().padStart(2, '0');
+    return `${formattedHours}:${minutes} ${ampm} EST`;
+  }
+  return clean.includes('EST') ? clean : `${clean} EST`;
+}
+
 export default function WebinarsPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -75,11 +96,13 @@ export default function WebinarsPage() {
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [newDate, setNewDate] = useState('');
-  const [newTime, setNewTime] = useState('04:00 PM EST');
-  const [newDuration, setNewDuration] = useState('45 mins');
+  const [newTime, setNewTime] = useState('16:00');
+  const [newDuration, setNewDuration] = useState('45');
   const [newMeetingLink, setNewMeetingLink] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [deletingWebinarId, setDeletingWebinarId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Calendar State
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState<Date>(new Date(2026, 7, 1)); // August 2026
@@ -95,15 +118,74 @@ export default function WebinarsPage() {
     }
   }, [user, isAdmin, authLoading, router]);
 
+  function getWebinarDynamicStatus(dateStr: string, timeStr?: string, durationStr?: string): 'upcoming' | 'live' | 'completed' {
+    if (!dateStr) return 'upcoming';
+    try {
+      const parts = dateStr.split('-');
+      if (parts.length < 3) return 'upcoming';
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+
+      if (isNaN(year) || isNaN(month) || isNaN(day)) return 'upcoming';
+
+      let hours = 16;
+      let minutes = 0;
+
+      if (timeStr) {
+        const cleanTime = timeStr.trim();
+        const match = cleanTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+        if (match) {
+          let h = parseInt(match[1], 10);
+          const m = parseInt(match[2], 10);
+          const ampm = match[3]?.toUpperCase();
+
+          if (ampm === 'PM' && h < 12) h += 12;
+          if (ampm === 'AM' && h === 12) h = 0;
+
+          hours = h;
+          minutes = m;
+        }
+      }
+
+      const startDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+
+      let durationMinutes = 45;
+      if (durationStr) {
+        const durMatch = durationStr.match(/(\d+)/);
+        if (durMatch) {
+          durationMinutes = parseInt(durMatch[1], 10);
+        }
+      }
+
+      const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
+      const now = new Date();
+
+      if (now < startDate) {
+        return 'upcoming';
+      } else if (now >= startDate && now <= endDate) {
+        return 'live';
+      } else {
+        return 'completed';
+      }
+    } catch {
+      return 'upcoming';
+    }
+  }
+
   const loadWebinarsFromDb = async () => {
     setIsLoadingWebinars(true);
     try {
       const res = await apiClient.getWebinars();
       if (res && res.success && Array.isArray(res.webinars)) {
-        setWebinars(res.webinars);
-        if (res.webinars.length > 0) {
+        const formattedWebinars = res.webinars.map((w: Webinar) => ({
+          ...w,
+          status: getWebinarDynamicStatus(w.date, w.time, w.duration),
+        }));
+        setWebinars(formattedWebinars);
+        if (formattedWebinars.length > 0) {
           // Expand first webinar by default
-          setExpandedWebinarIds({ [res.webinars[0].id]: true });
+          setExpandedWebinarIds({ [formattedWebinars[0].id]: true });
         }
       }
     } catch (err: any) {
@@ -141,8 +223,8 @@ export default function WebinarsPage() {
         title: newTitle.trim(),
         description: newDescription.trim(),
         webinarDate: newDate,
-        webinarTime: newTime.trim() || '04:00 PM EST',
-        duration: newDuration.trim() || '45 mins',
+        webinarTime: formatTimeTo12HourEST(newTime),
+        duration: newDuration.trim() ? (newDuration.toLowerCase().includes('min') ? newDuration.trim() : `${newDuration.trim()} mins`) : '45 mins',
         meetingLink: newMeetingLink.trim(),
       });
 
@@ -156,8 +238,8 @@ export default function WebinarsPage() {
         setNewTitle('');
         setNewDescription('');
         setNewDate('');
-        setNewTime('04:00 PM EST');
-        setNewDuration('45 mins');
+        setNewTime('16:00');
+        setNewDuration('45');
         setNewMeetingLink('');
       } else {
         toast.error('Failed to save webinar record.');
@@ -167,6 +249,26 @@ export default function WebinarsPage() {
       toast.error(err.message || 'Error creating webinar');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteWebinar = async () => {
+    if (!deletingWebinarId) return;
+    setIsDeleting(true);
+    try {
+      const res = await apiClient.deleteWebinar(deletingWebinarId);
+      if (res && res.success) {
+        toast.success('🗑️ Webinar deleted successfully!');
+        setWebinars((prev) => prev.filter((w) => w.id !== deletingWebinarId));
+        setDeletingWebinarId(null);
+      } else {
+        toast.error('Failed to delete webinar.');
+      }
+    } catch (err: any) {
+      console.error('Error deleting webinar:', err);
+      toast.error(err.message || 'Failed to delete webinar');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -338,13 +440,12 @@ export default function WebinarsPage() {
                           setSelectedCalendarDate(dateString);
                         }
                       }}
-                      className={`h-6.5 rounded-full flex flex-col items-center justify-center relative transition-all ${
-                        isSelected
+                      className={`h-6.5 rounded-full flex flex-col items-center justify-center relative transition-all ${isSelected
                           ? 'bg-[#FFC63F] text-[#1F1F1F] font-bold shadow-sm'
                           : hasWebinar
-                          ? 'bg-amber-50 text-amber-900 font-bold hover:bg-amber-100'
-                          : 'hover:bg-gray-100 text-gray-700'
-                      }`}
+                            ? 'bg-amber-50 text-amber-900 font-bold hover:bg-amber-100'
+                            : 'hover:bg-gray-100 text-gray-700'
+                        }`}
                     >
                       <span>{dayNum}</span>
                       {hasWebinar && !isSelected && (
@@ -399,31 +500,28 @@ export default function WebinarsPage() {
             <div className="flex items-center gap-2 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('all')}
-                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${
-                  activeTab === 'all'
+                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${activeTab === 'all'
                     ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm'
                     : 'bg-white hover:bg-gray-100 text-[#6C6C6C]'
-                }`}
+                  }`}
               >
                 All Webinars ({totalWebinars})
               </button>
               <button
                 onClick={() => setActiveTab('upcoming')}
-                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${
-                  activeTab === 'upcoming'
+                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${activeTab === 'upcoming'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'bg-white hover:bg-blue-50 text-blue-700 border border-blue-200'
-                }`}
+                  }`}
               >
                 Upcoming ({upcomingCount})
               </button>
               <button
                 onClick={() => setActiveTab('completed')}
-                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${
-                  activeTab === 'completed'
+                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${activeTab === 'completed'
                     ? 'bg-gray-800 text-white shadow-sm'
                     : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
-                }`}
+                  }`}
               >
                 Completed ({totalWebinars - upcomingCount})
               </button>
@@ -490,37 +588,37 @@ export default function WebinarsPage() {
                         </span>
 
                         {/* Webinar Status & Attendance Metric Badges */}
-                      <div className="flex flex-wrap items-center gap-2">
-                        {webinar.status === 'upcoming' && (
-                          <span className="bg-blue-50 text-blue-700 border border-blue-200/80 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
-                            Upcoming
-                          </span>
-                        )}
-                        {webinar.status === 'live' && (
-                          <span className="bg-emerald-500 text-white text-[11px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 shadow-xs animate-pulse">
-                            <Video className="w-3.5 h-3.5" />
-                            LIVE NOW
-                          </span>
-                        )}
-                        {webinar.status === 'completed' && (
-                          <span className="bg-gray-100 text-gray-600 border border-gray-200 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-gray-500" />
-                            Completed
-                          </span>
-                        )}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {webinar.status === 'upcoming' && (
+                            <span className="bg-blue-50 text-blue-700 border border-blue-200/80 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                              Upcoming
+                            </span>
+                          )}
+                          {webinar.status === 'live' && (
+                            <span className="bg-emerald-500 text-white text-[11px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 shadow-xs animate-pulse">
+                              <Video className="w-3.5 h-3.5" />
+                              LIVE NOW
+                            </span>
+                          )}
+                          {webinar.status === 'completed' && (
+                            <span className="bg-gray-100 text-gray-600 border border-gray-200 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-gray-500" />
+                              Completed
+                            </span>
+                          )}
 
-                        {/* Breakdown Metrics */}
-                        <span className="bg-amber-50 text-amber-900 border border-amber-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                          📩 Passes Sent: {webinar.totalPassesSent ?? webinar.attendees.length}
-                        </span>
-                        <span className="bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                          🟢 Joined: {webinar.totalJoined ?? webinar.attendees.filter(a => a.status === 'attended').length}
-                        </span>
-                        <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                          ⚠️ No-Shows: {webinar.noShowCount ?? webinar.attendees.filter(a => a.status !== 'attended').length}
-                        </span>
-                      </div>
+                          {/* Breakdown Metrics */}
+                          <span className="bg-amber-50 text-amber-900 border border-amber-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                            📩 Passes Sent: {webinar.totalPassesSent ?? webinar.attendees.length}
+                          </span>
+                          <span className="bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                            🟢 Joined: {webinar.totalJoined ?? webinar.attendees.filter(a => a.status === 'attended').length}
+                          </span>
+                          <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                            ⚠️ No-Shows: {webinar.noShowCount ?? webinar.attendees.filter(a => a.status !== 'attended').length}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Time & Duration */}
@@ -575,17 +673,28 @@ export default function WebinarsPage() {
                         </button>
                       </div>
 
-                      {/* Accordion Expand Button */}
-                      <button
-                        onClick={() => toggleExpand(webinar.id)}
-                        className="flex items-center gap-2 text-[13px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-4 py-2 rounded-full transition-all"
-                      >
-                        <Users className="w-4 h-4 text-amber-700" />
-                        <span>
-                          {isExpanded ? 'Hide Attendees' : `View Attendees (${webinar.attendees.length})`}
-                        </span>
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {/* Accordion Expand Button */}
+                        <button
+                          onClick={() => toggleExpand(webinar.id)}
+                          className="flex items-center gap-2 text-[13px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-4 py-2 rounded-full transition-all"
+                        >
+                          <Users className="w-4 h-4 text-amber-700" />
+                          <span>
+                            {isExpanded ? 'Hide Attendees' : `View Attendees (${webinar.attendees.length})`}
+                          </span>
+                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </button>
+
+                        {/* Delete Webinar Button */}
+                        <button
+                          onClick={() => setDeletingWebinarId(webinar.id)}
+                          className="p-2 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-full transition-all flex items-center justify-center"
+                          title="Delete Webinar"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -775,11 +884,11 @@ export default function WebinarsPage() {
 
                   <div>
                     <label className="block text-[12px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
-                      Time &amp; Timezone
+                      Time (EST) <span className="text-red-500">*</span>
                     </label>
                     <input
-                      type="text"
-                      placeholder="e.g. 04:00 PM EST"
+                      type="time"
+                      required
                       value={newTime}
                       onChange={(e) => setNewTime(e.target.value)}
                       className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
@@ -788,11 +897,12 @@ export default function WebinarsPage() {
 
                   <div>
                     <label className="block text-[12px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
-                      Duration
+                      Duration (in mins)
                     </label>
                     <input
-                      type="text"
-                      placeholder="e.g. 45 mins"
+                      type="number"
+                      min="1"
+                      placeholder="45"
                       value={newDuration}
                       onChange={(e) => setNewDuration(e.target.value)}
                       className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
@@ -833,6 +943,46 @@ export default function WebinarsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deletingWebinarId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+            <div className="bg-white rounded-[24px] max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#EAEAEA] relative">
+              <div className="flex items-center gap-3 text-rose-600">
+                <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+                  <Trash2 className="w-5 h-5 text-rose-600" />
+                </div>
+                <div>
+                  <h3 className="text-[17px] font-goudy font-bold text-[#1F1F1F]">Delete Webinar</h3>
+                  <p className="text-[12px] text-[#8E8E93]">This action cannot be undone.</p>
+                </div>
+              </div>
+
+              <p className="text-[13px] text-gray-600 leading-relaxed">
+                Are you sure you want to delete this webinar? All associated physician registration passes and attendance logs will also be permanently removed.
+              </p>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#F0F0F0]">
+                <button
+                  type="button"
+                  onClick={() => setDeletingWebinarId(null)}
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-[13px] font-semibold text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteWebinar}
+                  disabled={isDeleting}
+                  className="px-5 py-2 text-[13px] font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-full transition-all shadow-sm flex items-center gap-1.5"
+                >
+                  {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+                </button>
+              </div>
             </div>
           </div>
         )}

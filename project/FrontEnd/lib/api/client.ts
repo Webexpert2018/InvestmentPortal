@@ -1528,6 +1528,12 @@ class ApiClient {
     });
   }
 
+  async deleteWebinar(id: string) {
+    return this.request<{ success: boolean; message: string }>(`/webinar-campaign/webinars/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getWebinarPassDetails(webinarId: string, prospectId: string) {
     return this.request<{ success: boolean; webinar: any; doctor: any }>(
       `/webinar-campaign/webinar-pass?webinarId=${encodeURIComponent(webinarId)}&prospectId=${encodeURIComponent(prospectId)}`

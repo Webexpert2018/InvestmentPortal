@@ -151,6 +151,11 @@ export class WebinarCampaignController {
     return this.webinarCampaignService.createWebinar(body);
   }
 
+  @Delete('webinars/:id')
+  async deleteWebinar(@Param('id') id: string) {
+    return this.webinarCampaignService.deleteWebinar(id);
+  }
+
   @Post('send-step-now')
   async sendStepNow(
     @Body() body: { prospectId: string; day: number }

@@ -636,6 +636,159 @@ export class WebinarCampaignService {
     }
   }
 
+  private formatBackendTimeEST(t?: string): string {
+    if (!t) return '04:00 PM EST';
+    const clean = t.trim();
+    if (/AM|PM/i.test(clean)) {
+      if (!/EST/i.test(clean)) return `${clean} EST`;
+      return clean;
+    }
+    const match = clean.match(/^(\d{1,2}):(\d{2})/);
+    if (match) {
+      let hours = parseInt(match[1], 10);
+      const minutes = match[2];
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      if (hours === 0) hours = 12;
+      const formattedHours = hours.toString().padStart(2, '0');
+      return `${formattedHours}:${minutes} ${ampm} EST`;
+    }
+    return clean.includes('EST') ? clean : `${clean} EST`;
+  }
+
+  @Cron('*/1 * * * *')
+  async process2HourWebinarReminders() {
+    try {
+      const res = await db.query(
+        `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
+                to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
+                webinar_time as time, duration, meeting_link as "meetingLink", status
+         FROM webinars`
+      );
+
+      if (!res.rows || res.rows.length === 0) return;
+
+      const now = new Date();
+
+      for (const w of res.rows) {
+        if (!w.date) continue;
+        const parts = w.date.split('-');
+        if (parts.length < 3) continue;
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10);
+        const day = parseInt(parts[2], 10);
+
+        if (isNaN(year) || isNaN(month) || isNaN(day)) continue;
+
+        let hours = 16;
+        let minutes = 0;
+        if (w.time) {
+          const match = w.time.trim().match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+          if (match) {
+            let h = parseInt(match[1], 10);
+            const m = parseInt(match[2], 10);
+            const ampm = match[3]?.toUpperCase();
+            if (ampm === 'PM' && h < 12) h += 12;
+            if (ampm === 'AM' && h === 12) h = 0;
+            hours = h;
+            minutes = m;
+          }
+        }
+
+        const startTime = new Date(year, month - 1, day, hours, minutes, 0, 0);
+        const diffMs = startTime.getTime() - now.getTime();
+        const diffMinutes = diffMs / (1000 * 60);
+
+        // Target webinars starting within 2 hours (0 to 120 minutes from now)
+        if (diffMinutes > 0 && diffMinutes <= 120) {
+          const attendeesRes = await db.query(
+            `SELECT wa.webinar_id, wa.prospect_id, dp.full_name as "fullName", dp.email, dp.apollo_id
+             FROM webinar_attendees wa
+             JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
+             WHERE wa.webinar_id = $1 AND dp.email IS NOT NULL`,
+            [w.id]
+          );
+
+          for (const att of attendeesRes.rows) {
+            const eventCheck = await db.query(
+              `SELECT id FROM prospect_events WHERE prospect_id = $1 AND event_type = '2h_webinar_reminder' AND details->>'webinarId' = $2 LIMIT 1`,
+              [att.apollo_id, w.id]
+            );
+
+            if (eventCheck.rows.length === 0) {
+              const doctorName = att.fullName || 'Physician';
+              const formattedDate = w.formattedDate || w.date;
+              const timeStr = this.formatBackendTimeEST(w.time);
+              const durationRaw = (w.duration || '45').toString().trim();
+              const durationStr = durationRaw.toLowerCase().includes('min') ? durationRaw : `${durationRaw} mins`;
+              const webinarPassUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/webinar/pass?webinarId=${encodeURIComponent(w.id)}&prospectId=${encodeURIComponent(att.apollo_id)}`;
+
+              const subject = `⏰ Reminder: Your Webinar Session Starts in 2 Hours! — ${w.title}`;
+              const emailBody = `
+<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1F1F1F; text-align: left; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #E5E7EB; border-radius: 12px; background-color: #FFFFFF;">
+  <h2 style="color: #1F2937; margin: 0 0 12px 0; font-size: 20px; font-weight: bold; line-height: 1.3;">Upcoming Session Reminder, ${doctorName}!</h2>
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 0 0 16px 0;">
+    Just a quick reminder that your <strong>Ovalia Capital Physician Briefing</strong> session starts in <strong>2 hours</strong>.
+  </p>
+
+  <div style="background-color: #FEF3C7; border: 1px solid #FCD34D; border-radius: 10px; padding: 16px; margin: 16px 0;">
+    <h3 style="margin: 0 0 10px 0; font-size: 15px; font-weight: bold; color: #92400E;">⏰ Session Starting Details</h3>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; color: #374151;">
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold; width: 90px;">Session:</td>
+        <td style="padding: 4px 0; color: #111827; font-weight: 600;">${w.title}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Date:</td>
+        <td style="padding: 4px 0;">${formattedDate}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Time:</td>
+        <td style="padding: 4px 0; font-weight: bold; color: #B45309;">${timeStr}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Duration:</td>
+        <td style="padding: 4px 0;">${durationStr}</td>
+      </tr>
+    </table>
+  </div>
+
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 16px 0;">
+    Please click below to access your personalized pass and join link:
+  </p>
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 16px 0; text-align: center;">
+    <tr>
+      <td align="center" style="text-align: center;">
+        <a href="${webinarPassUrl}" target="_blank" style="background-color: #22C55E; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);">
+          👉 Access Your VIP Session Pass
+        </a>
+      </td>
+    </tr>
+  </table>
+  <p style="font-size: 13px; color: #6B7280; line-height: 1.5; margin: 16px 0 0 0;">
+    If you have any questions, feel free to reply directly to this email.
+  </p>
+</div>`;
+
+              try {
+                await this.sendCampaignOutreach([att.apollo_id], emailBody, undefined, subject);
+                await db.query(
+                  `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, '2h_webinar_reminder', $2, CURRENT_TIMESTAMP)`,
+                  [att.apollo_id, JSON.stringify({ webinarId: w.id, webinarTitle: w.title, sentAt: now.toISOString() })]
+                );
+                this.logger.log(`⏰ [2H WEBINAR REMINDER DISPATCH] Sent 2h reminder to registered doctor ${att.fullName} (${att.email}) for webinar ${w.id}`);
+              } catch (sendErr: any) {
+                this.logger.error(`Failed to send 2h reminder to ${att.email}: ${sendErr.message}`);
+              }
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      this.logger.error(`Error in process2HourWebinarReminders: ${err.message}`);
+    }
+  }
+
   calculateDripSchedule(startDate: Date = new Date()) {
     const addWorkDaysWithGap = (current: Date, daysToAdd: number): Date => {
       let result = new Date(current);
@@ -1022,8 +1175,9 @@ ${rsvpButtonsHtml}
               formattedDate = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             } catch (e) {}
           }
-          const timeStr = latestWebinar?.webinar_time || '04:00 PM EST';
-          const durationStr = latestWebinar?.duration || '45 mins';
+          const timeStr = this.formatBackendTimeEST(latestWebinar?.webinar_time);
+          const durationRaw = (latestWebinar?.duration || '45').toString().trim();
+          const durationStr = durationRaw.toLowerCase().includes('min') ? durationRaw : `${durationRaw} mins`;
 
           const subject = `Thank You for Your Interest! — Physician Webinar Access`;
           const emailBody = `
@@ -1183,6 +1337,62 @@ ${rsvpButtonsHtml}
 
   // --- Dynamic Webinars & Attendance Tracking Methods ---
 
+  private computeWebinarStatus(dateStr: string, timeStr?: string, durationStr?: string): 'upcoming' | 'live' | 'completed' {
+    if (!dateStr) return 'upcoming';
+
+    try {
+      const parts = dateStr.split('-');
+      if (parts.length < 3) return 'upcoming';
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+
+      if (isNaN(year) || isNaN(month) || isNaN(day)) return 'upcoming';
+
+      let hours = 16;
+      let minutes = 0;
+
+      if (timeStr) {
+        const cleanTime = timeStr.trim();
+        const match = cleanTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+        if (match) {
+          let h = parseInt(match[1], 10);
+          const m = parseInt(match[2], 10);
+          const ampm = match[3]?.toUpperCase();
+
+          if (ampm === 'PM' && h < 12) h += 12;
+          if (ampm === 'AM' && h === 12) h = 0;
+
+          hours = h;
+          minutes = m;
+        }
+      }
+
+      const startDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+
+      let durationMinutes = 45;
+      if (durationStr) {
+        const durMatch = durationStr.match(/(\d+)/);
+        if (durMatch) {
+          durationMinutes = parseInt(durMatch[1], 10);
+        }
+      }
+
+      const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
+      const now = new Date();
+
+      if (now < startDate) {
+        return 'upcoming';
+      } else if (now >= startDate && now <= endDate) {
+        return 'live';
+      } else {
+        return 'completed';
+      }
+    } catch {
+      return 'upcoming';
+    }
+  }
+
   async getAllWebinars() {
     try {
       const webinarsRes = await db.query(
@@ -1195,6 +1405,8 @@ ${rsvpButtonsHtml}
       const webinars = webinarsRes.rows;
 
       for (const w of webinars) {
+        w.status = this.computeWebinarStatus(w.date, w.time, w.duration);
+
         const attendeesRes = await db.query(
           `SELECT wa.status, wa.first_joined_at as "joinTime", wa.total_duration_minutes as duration,
                   dp.apollo_id as id, dp.full_name as "fullName", dp.specialty, dp.organization, 
@@ -1254,21 +1466,47 @@ ${rsvpButtonsHtml}
         data.description?.trim() || 'Ovalia Capital Physician Wealth Session.',
         data.webinarDate,
         data.webinarTime?.trim() || '04:00 PM EST',
-        data.duration?.trim() || '45 mins',
+        data.duration?.trim() ? (data.duration.toLowerCase().includes('min') ? data.duration.trim() : `${data.duration.trim()} mins`) : '45 mins',
         data.meetingLink.trim(),
       ]);
+
+      const createdWebinar = res.rows[0];
+      if (createdWebinar) {
+        createdWebinar.status = this.computeWebinarStatus(createdWebinar.date, createdWebinar.time, createdWebinar.duration);
+      }
 
       this.logger.log(`🎥 Scheduled new webinar: ${data.title} (${data.webinarDate})`);
       return {
         success: true,
         webinar: {
-          ...res.rows[0],
+          ...createdWebinar,
           attendees: [],
         },
       };
     } catch (err: any) {
       this.logger.error(`Error creating webinar: ${err.message}`);
       throw new HttpException('Failed to create webinar record', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async deleteWebinar(id: string) {
+    if (!id) {
+      throw new HttpException('Webinar ID is required', HttpStatus.BAD_REQUEST);
+    }
+    try {
+      const res = await db.query(`DELETE FROM webinars WHERE id = $1 RETURNING id`, [id]);
+      if (res.rowCount === 0) {
+        throw new HttpException('Webinar not found', HttpStatus.NOT_FOUND);
+      }
+      this.logger.log(`🗑️ Deleted webinar: ${id}`);
+      return {
+        success: true,
+        message: 'Webinar deleted successfully',
+      };
+    } catch (err: any) {
+      if (err instanceof HttpException) throw err;
+      this.logger.error(`Error deleting webinar ${id}: ${err.message}`);
+      throw new HttpException(err.message || 'Failed to delete webinar', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -1294,6 +1532,9 @@ ${rsvpButtonsHtml}
       }
 
       const webinar = webinarRes.rows[0] || null;
+      if (webinar) {
+        webinar.status = this.computeWebinarStatus(webinar.date, webinar.time, webinar.duration);
+      }
 
       return {
         success: !!webinar,

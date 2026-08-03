@@ -618,13 +618,22 @@ export default function DoctorLeadsPage() {
                             {doc.fullName.replace('Dr. ', '').charAt(0)}
                           </div>
                           <div>
-                            <Link
-                              href={`/dashboard/doctor-leads/${doc.id}`}
-                              className="text-[14px] font-bold text-[#1F1F1F] hover:text-[#D9A11E] hover:underline transition-colors block"
-                              title="Click to view full physician profile dossier & AI campaign"
-                            >
-                              {doc.fullName}
-                            </Link>
+                            {activeTab === 'saved' ? (
+                              <Link
+                                href={`/dashboard/doctor-leads/${doc.id}`}
+                                className="text-[14px] font-bold text-[#1F1F1F] hover:text-[#D9A11E] hover:underline transition-colors block"
+                                title="Click to view full physician profile dossier & AI campaign"
+                              >
+                                {doc.fullName}
+                              </Link>
+                            ) : (
+                              <span
+                                className="text-[14px] font-bold text-[#1F1F1F] block cursor-default"
+                                title="Enrich & Save lead to Database to view full profile"
+                              >
+                                {doc.fullName}
+                              </span>
+                            )}
                             <div className="text-[11px] text-[#8E8E93]">ID: {doc.id}</div>
                           </div>
                         </div>
