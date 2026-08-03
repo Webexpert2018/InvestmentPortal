@@ -9,7 +9,7 @@ import { Roles } from '../../decorators/roles.decorator';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin', 'executive_admin', 'investor_relations')
 export class WebinarCampaignController {
-  constructor(private readonly webinarCampaignService: WebinarCampaignService) {}
+  constructor(private readonly webinarCampaignService: WebinarCampaignService) { }
 
   @Post('apollo/search')
   async searchApollo(
@@ -33,6 +33,7 @@ export class WebinarCampaignController {
       prospects: results,
     };
   }
+
 
   @Post('apollo/bulk-enrich-save')
   async bulkEnrichAndSave(
@@ -166,7 +167,7 @@ export class WebinarCampaignController {
 
 @Controller('api/webinar-campaign')
 export class WebinarCampaignPublicController {
-  constructor(private readonly webinarCampaignService: WebinarCampaignService) {}
+  constructor(private readonly webinarCampaignService: WebinarCampaignService) { }
 
   @Get('webinar-pass')
   async getWebinarPass(
