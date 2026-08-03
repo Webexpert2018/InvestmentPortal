@@ -792,7 +792,18 @@ export default function WebinarsPage() {
                                   <td className="py-3.5 px-4 text-right text-[12px] text-[#6C6C6C]">
                                     {attendee.joinTime ? (
                                       <div>
-                                        <div className="font-bold text-gray-800">{attendee.joinTime}</div>
+                                        <div className="font-bold text-gray-800">
+                                          {(() => {
+                                            try {
+                                              const d = new Date(attendee.joinTime);
+                                              return !isNaN(d.getTime())
+                                                ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                : attendee.joinTime;
+                                            } catch {
+                                              return attendee.joinTime;
+                                            }
+                                          })()}
+                                        </div>
                                         <div className="text-[11px] text-[#8E8E93]">Duration: {attendee.duration}</div>
                                       </div>
                                     ) : (

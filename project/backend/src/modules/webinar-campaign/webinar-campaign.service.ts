@@ -1420,7 +1420,7 @@ ${rsvpButtonsHtml}
         w.attendees = rawAttendees.map((att: any) => ({
           ...att,
           duration: att.status === 'attended' ? (att.duration ? `${att.duration} mins` : '0 mins') : 'N/A',
-          joinTime: att.joinTime ? new Date(att.joinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
+          joinTime: att.joinTime ? new Date(att.joinTime).toISOString() : undefined,
         }));
 
         w.totalPassesSent = rawAttendees.length;

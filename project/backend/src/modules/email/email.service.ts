@@ -19,7 +19,7 @@ export class EmailService {
     if (url.includes('localhost') || url.includes('127.0.0.1') || !url.startsWith('http')) {
       url = 'https://investmentportalfrontend.vercel.app';
     }
-    return `${url.replace(/\/$/, '')}/images/logo.png`;
+    return `${url.replace(/\/$/, '')}/images/logo26022026.png`;
   }
 
   private getSupportEmail(): string {
@@ -302,8 +302,8 @@ export class EmailService {
           </tr>
           <!-- Logo Section -->
           <tr>
-            <td style="padding: 40px 40px 20px; text-align: center;">
-              <img src="${this.getPublicLogoUrl()}" alt="Ovalia Capital" style="width:100px; height: auto; display: block; margin: 0 auto;">
+            <td style="padding: 30px 40px 20px; text-align: center;" align="center">
+              <img src="${this.getPublicLogoUrl()}" width="100" border="0" alt="Ovalia Capital" style="width:100px; max-width:100px; height:auto; display:block; margin:0 auto; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic;">
             </td>
           </tr>
           <!-- Main Content -->
