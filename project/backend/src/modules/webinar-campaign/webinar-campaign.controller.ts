@@ -253,4 +253,16 @@ export class WebinarCampaignPublicController {
       `);
     }
   }
+
+  @Get('cron/reminders')
+  async triggerCronReminders() {
+    await this.webinarCampaignService.process2HourWebinarReminders();
+    return { success: true, message: 'Webinar reminders cron processed successfully' };
+  }
+
+  @Get('cron/drip')
+  async triggerCronDrip() {
+    await this.webinarCampaignService.processScheduledDripEmails();
+    return { success: true, message: 'Drip campaign cron processed successfully' };
+  }
 }
