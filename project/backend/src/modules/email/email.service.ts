@@ -15,11 +15,9 @@ export class EmailService {
   }
 
   private getPublicLogoUrl(): string {
-    let url = this.configService.get<string>('FRONTEND_URL') || 'https://investmentportalfrontend.vercel.app';
-    if (url.includes('localhost') || url.includes('127.0.0.1') || !url.startsWith('http')) {
-      url = 'https://investmentportalfrontend.vercel.app';
-    }
-    return `${url.replace(/\/$/, '')}/images/logo26022026.png`;
+    const customLogo = this.configService.get<string>('EMAIL_LOGO_URL');
+    if (customLogo) return customLogo;
+    return 'https://ovaliainvestor.com/images/dashboard-logo.png';
   }
 
   private getSupportEmail(): string {
