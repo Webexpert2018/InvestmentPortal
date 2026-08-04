@@ -25,7 +25,8 @@ import {
   AlertCircle,
   MapPin,
   UserPlus,
-  Plus
+  Plus,
+  GitFork
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -278,6 +279,14 @@ export default function DoctorCrmPage() {
             </div>
 
             <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
+              <Link
+                href="/dashboard/doctor-crm/email-sequence?from=crm"
+                className="px-4 py-2 bg-[#1F1F1F] hover:bg-[#333333] text-white text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-[#1F1F1F]"
+              >
+                <GitFork className="w-4 h-4 text-[#FFC63F]" />
+                <span>View Email Sequence</span>
+              </Link>
+
               <button
                 onClick={() => setIsAddModalOpen(true)}
                 className="px-4 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer"

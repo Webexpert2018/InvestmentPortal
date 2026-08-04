@@ -24,6 +24,7 @@ import {
   Stethoscope,
   Target,
   Video,
+  GitFork,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -177,6 +178,12 @@ const menuItems: MenuItem[] = [
     roles: ['admin', 'executive_admin', 'investor_relations'],
   },
   {
+    title: 'Sequence Pipeline',
+    href: '/dashboard/doctor-crm/email-sequence',
+    icon: GitFork,
+    roles: ['admin', 'executive_admin', 'investor_relations'],
+  },
+  {
     title: 'Staff',
     href: '/dashboard/staff',
     icon: Users,
@@ -260,18 +267,27 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
 
             {filteredMenuItems.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                pathname === item.href ||
-                (item.href !== '/dashboard' &&
-                  pathname?.startsWith(item.href + '/')) ||
-                (item.href === '/dashboard/portfolio' &&
-                  pathname?.startsWith('/dashboard/funds/') &&
-                  currentRole === 'investor' &&
-                  fromParam !== 'invest') ||
-                (item.href === '/dashboard/invest' &&
-                  pathname?.startsWith('/dashboard/funds/') &&
-                  currentRole === 'investor' &&
-                  fromParam === 'invest');
+              const isSequencePipeline = pathname === '/dashboard/doctor-crm/email-sequence' || pathname?.startsWith('/dashboard/doctor-crm/email-sequence/');
+
+              let isActive = false;
+              if (item.href === '/dashboard/doctor-crm') {
+                isActive = (pathname === '/dashboard/doctor-crm' || pathname?.startsWith('/dashboard/doctor-crm/')) && !isSequencePipeline;
+              } else if (item.href === '/dashboard/doctor-crm/email-sequence') {
+                isActive = isSequencePipeline;
+              } else {
+                isActive =
+                  pathname === item.href ||
+                  (item.href !== '/dashboard' &&
+                    pathname?.startsWith(item.href + '/')) ||
+                  (item.href === '/dashboard/portfolio' &&
+                    pathname?.startsWith('/dashboard/funds/') &&
+                    currentRole === 'investor' &&
+                    fromParam !== 'invest') ||
+                  (item.href === '/dashboard/invest' &&
+                    pathname?.startsWith('/dashboard/funds/') &&
+                    currentRole === 'investor' &&
+                    fromParam === 'invest');
+              }
 
               return (
                 <Link

@@ -17,7 +17,10 @@ import {
   Send,
   RefreshCw,
   Building2,
-  MapPin
+  MapPin,
+  UserPlus,
+  Plus,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -115,6 +118,64 @@ export default function DoctorLeadsPage() {
   const [location, setLocation] = useState('United States');
   const [seniority, setSeniority] = useState('Owner, Partner, MD');
   const [batchSize, setBatchSize] = useState('50');
+
+  // Add Doctor Lead Modal States
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newFullName, setNewFullName] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newSpecialty, setNewSpecialty] = useState('');
+  const [newOrganization, setNewOrganization] = useState('');
+  const [newLocation, setNewLocation] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [isSavingDoctor, setIsSavingDoctor] = useState(false);
+
+  const handleCreateDoctor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFullName.trim() || !newEmail.trim()) {
+      toast.error('Full Name and Email Address are required.');
+      return;
+    }
+
+    if (newPhone.trim()) {
+      const cleanDigits = newPhone.replace(/[^0-9]/g, '');
+      if (cleanDigits.length < 7 || cleanDigits.length > 15) {
+        toast.error('Please enter a valid phone number (between 7 and 15 digits, e.g. +1 (305) 555-0103).');
+        return;
+      }
+    }
+
+    setIsSavingDoctor(true);
+    try {
+      const res = await apiClient.addManualDoctorProspect({
+        fullName: newFullName.trim(),
+        email: newEmail.trim(),
+        specialty: newSpecialty.trim(),
+        organization: newOrganization.trim(),
+        location: newLocation.trim(),
+        phone: newPhone.trim()
+      });
+
+      if (res && res.success) {
+        toast.success(`🎉 Added ${newFullName} to database!`);
+        setIsAddModalOpen(false);
+        setNewFullName('');
+        setNewEmail('');
+        setNewSpecialty('');
+        setNewOrganization('');
+        setNewLocation('');
+        setNewPhone('');
+        setActiveTab('saved');
+        await handleLoadSavedFromDb({ silent: true });
+      } else {
+        toast.error('Failed to save doctor to database.');
+      }
+    } catch (err: any) {
+      console.error('Error creating doctor prospect:', err);
+      toast.error(err.message || 'Error creating doctor prospect');
+    } finally {
+      setIsSavingDoctor(false);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -475,6 +536,14 @@ export default function DoctorLeadsPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5">
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="text-[12px] font-bold px-4 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>+ Add Doctor Lead</span>
+              </button>
+
               {activeTab === 'apollo' ? (
                 <button
                   onClick={handleBulkEnrichAndSave}
@@ -701,6 +770,129 @@ export default function DoctorLeadsPage() {
             </table>
           </div>
         </div>
+
+        {/* Add Doctor Lead Modal */}
+        {isAddModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-gray-200 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] flex items-center justify-center font-bold">
+                    <UserPlus className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F]">Add New Physician Lead</h3>
+                    <p className="text-[12px] text-gray-500">Save lead to PostgreSQL database</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-[#1F1F1F] transition-all cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateDoctor} className="space-y-4">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Dr. Marcus Vance, MD"
+                    value={newFullName}
+                    onChange={(e) => setNewFullName(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Email Address *</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="e.g. marcus.vance@clinic.org"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Medical Specialty</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Dermatology"
+                      value={newSpecialty}
+                      onChange={(e) => setNewSpecialty(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Phone Number</label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. +1 (305) 555-0103"
+                      value={newPhone}
+                      onChange={(e) => {
+                        const filtered = e.target.value.replace(/[^0-9+\-\(\)\s\.]/g, '');
+                        setNewPhone(filtered);
+                      }}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Practice / Clinic Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Vance Dermatology Group"
+                    value={newOrganization}
+                    onChange={(e) => setNewOrganization(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Practice Location</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Miami, FL"
+                    value={newLocation}
+                    onChange={(e) => setNewLocation(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                  />
+                </div>
+
+                <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-[12px] text-purple-900 flex items-start gap-2">
+                  <Mail className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                  <span>The new physician lead will be saved directly to PostgreSQL and displayed in your <strong>Saved in Database</strong> tab.</span>
+                </div>
+
+                <div className="pt-3 flex items-center justify-end gap-3 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddModalOpen(false)}
+                    className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingDoctor}
+                    className="px-6 py-2.5 rounded-full text-[13px] font-bold bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-sm flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    {isSavingDoctor ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                    <span>Save to Database</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
