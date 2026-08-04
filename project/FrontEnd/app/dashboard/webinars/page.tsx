@@ -217,6 +217,11 @@ export default function WebinarsPage() {
       return;
     }
 
+    let formattedLink = newMeetingLink.trim();
+    if (formattedLink && !/^https?:\/\//i.test(formattedLink)) {
+      formattedLink = `https://${formattedLink}`;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await apiClient.createWebinar({
@@ -225,7 +230,7 @@ export default function WebinarsPage() {
         webinarDate: newDate,
         webinarTime: formatTimeTo12HourEST(newTime),
         duration: newDuration.trim() ? (newDuration.toLowerCase().includes('min') ? newDuration.trim() : `${newDuration.trim()} mins`) : '45 mins',
-        meetingLink: newMeetingLink.trim(),
+        meetingLink: formattedLink,
       });
 
       if (res && res.success && res.webinar) {
@@ -645,7 +650,7 @@ export default function WebinarsPage() {
                       {/* Meeting Link Trigger */}
                       <div className="flex items-center gap-2 max-w-full overflow-hidden">
                         <a
-                          href={webinar.meetingLink}
+                          href={/^https?:\/\//i.test(webinar.meetingLink) ? webinar.meetingLink : `https://${webinar.meetingLink}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-gray-900 hover:bg-black text-white text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shadow-sm shrink-0"
@@ -927,7 +932,7 @@ export default function WebinarsPage() {
                     Meeting Link (Zoom / Google Meet / Luma) <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="url"
+                    type="text"
                     required
                     placeholder="https://us06web.zoom.us/j/123456789"
                     value={newMeetingLink}
