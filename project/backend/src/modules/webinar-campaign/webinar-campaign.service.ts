@@ -636,24 +636,93 @@ export class WebinarCampaignService {
     }
   }
 
-  private formatBackendTimeEST(t?: string): string {
-    if (!t) return '04:00 PM EST';
-    const clean = t.trim();
-    if (/AM|PM/i.test(clean)) {
-      if (!/EST/i.test(clean)) return `${clean} EST`;
-      return clean;
+  private parseEasternDateTime(dateStr?: string, timeStr?: string): { startUtc: Date; timeZoneAbbr: string; formattedTimeET: string } {
+    let year = new Date().getFullYear();
+    let month = new Date().getMonth();
+    let day = new Date().getDate();
+
+    if (dateStr) {
+      const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) {
+        year = parseInt(match[1], 10);
+        month = parseInt(match[2], 10) - 1;
+        day = parseInt(match[3], 10);
+      } else {
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) {
+          year = d.getUTCFullYear();
+          month = d.getUTCMonth();
+          day = d.getUTCDate();
+        }
+      }
     }
-    const match = clean.match(/^(\d{1,2}):(\d{2})/);
-    if (match) {
-      let hours = parseInt(match[1], 10);
-      const minutes = match[2];
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      if (hours === 0) hours = 12;
-      const formattedHours = hours.toString().padStart(2, '0');
-      return `${formattedHours}:${minutes} ${ampm} EST`;
+
+    let hours = 16;
+    let minutes = 0;
+
+    if (timeStr) {
+      const cleanTime = timeStr.trim();
+      const match = cleanTime.match(/(\d{1,2}):(\d{2})/);
+      if (match) {
+        hours = parseInt(match[1], 10);
+        minutes = parseInt(match[2], 10);
+        if (/pm/i.test(cleanTime) && hours < 12) hours += 12;
+        if (/am/i.test(cleanTime) && hours === 12) hours = 0;
+      }
     }
-    return clean.includes('EST') ? clean : `${clean} EST`;
+
+    const guessUtc = new Date(Date.UTC(year, month, day, hours, minutes, 0, 0));
+
+    const nyFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZoneName: 'short',
+    });
+
+    const parts = nyFormatter.formatToParts(guessUtc);
+    const partMap: Record<string, string> = {};
+    parts.forEach((p) => { partMap[p.type] = p.value; });
+
+    const nyYear = parseInt(partMap.year, 10);
+    const nyMonth = parseInt(partMap.month, 10) - 1;
+    const nyDay = parseInt(partMap.day, 10);
+    let nyHour = parseInt(partMap.hour, 10);
+    if (nyHour === 24) nyHour = 0;
+    const nyMinute = parseInt(partMap.minute, 10);
+
+    const nyAsUtc = Date.UTC(nyYear, nyMonth, nyDay, nyHour, nyMinute, 0, 0);
+    const diffMs = guessUtc.getTime() - nyAsUtc;
+
+    const startUtc = new Date(guessUtc.getTime() + diffMs);
+
+    const finalParts = nyFormatter.formatToParts(startUtc);
+    const tzPart = finalParts.find((p) => p.type === 'timeZoneName');
+    const timeZoneAbbr = tzPart ? tzPart.value : 'ET';
+
+    const displayHours = hours % 12 === 0 ? 12 : hours % 12;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = displayHours.toString().padStart(2, '0');
+    const formattedMinutes = minutes.toString().padStart(2, '0');
+    const formattedTimeET = `${formattedHours}:${formattedMinutes} ${ampm} ${timeZoneAbbr}`;
+
+    return { startUtc, timeZoneAbbr, formattedTimeET };
+  }
+
+  private formatBackendTimeEST(t?: string, dateStr?: string): string {
+    if (!t && !dateStr) return '04:00 PM EDT';
+    try {
+      const { formattedTimeET } = this.parseEasternDateTime(dateStr, t);
+      return formattedTimeET;
+    } catch (e) {
+      if (!t) return '04:00 PM EDT';
+      return t;
+    }
   }
 
   @Cron('*/1 * * * *')
@@ -672,31 +741,8 @@ export class WebinarCampaignService {
 
       for (const w of res.rows) {
         if (!w.date) continue;
-        const parts = w.date.split('-');
-        if (parts.length < 3) continue;
-        const year = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10);
-        const day = parseInt(parts[2], 10);
-
-        if (isNaN(year) || isNaN(month) || isNaN(day)) continue;
-
-        let hours = 16;
-        let minutes = 0;
-        if (w.time) {
-          const match = w.time.trim().match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-          if (match) {
-            let h = parseInt(match[1], 10);
-            const m = parseInt(match[2], 10);
-            const ampm = match[3]?.toUpperCase();
-            if (ampm === 'PM' && h < 12) h += 12;
-            if (ampm === 'AM' && h === 12) h = 0;
-            hours = h;
-            minutes = m;
-          }
-        }
-
-        const startTime = new Date(year, month - 1, day, hours, minutes, 0, 0);
-        const diffMs = startTime.getTime() - now.getTime();
+        const { startUtc } = this.parseEasternDateTime(w.date, w.time);
+        const diffMs = startUtc.getTime() - now.getTime();
         const diffMinutes = diffMs / (1000 * 60);
 
         // Target webinars starting within 2 hours (0 to 120 minutes from now)
@@ -718,10 +764,19 @@ export class WebinarCampaignService {
             if (eventCheck.rows.length === 0) {
               const doctorName = att.fullName || 'Physician';
               const formattedDate = w.formattedDate || w.date;
-              const timeStr = this.formatBackendTimeEST(w.time);
+              const timeStr = this.formatBackendTimeEST(w.time, w.date);
               const durationRaw = (w.duration || '45').toString().trim();
               const durationStr = durationRaw.toLowerCase().includes('min') ? durationRaw : `${durationRaw} mins`;
               const webinarPassUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/webinar/pass?webinarId=${encodeURIComponent(w.id)}&prospectId=${encodeURIComponent(att.apollo_id)}`;
+
+              const durationMinsNum = parseInt(durationRaw, 10) || 45;
+              const gcalUrl = this.generateGoogleCalendarUrl(
+                w.title,
+                w.date,
+                w.time,
+                durationMinsNum,
+                w.meetingLink || webinarPassUrl
+              );
 
               const subject = `⏰ Reminder: Your Webinar Session Starts in 2 Hours! — ${w.title}`;
               const emailBody = `
@@ -753,10 +808,17 @@ export class WebinarCampaignService {
     </table>
   </div>
 
-  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 16px 0;">
-    Please click below to access your personalized pass and join link:
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 16px 0 8px 0;">
+    Add this event to your calendar to automatically convert to your local timezone:
   </p>
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 16px 0; text-align: center;">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 12px 0 20px 0; text-align: center;">
+    <tr>
+      <td align="center" style="text-align: center; padding-bottom: 12px;">
+        <a href="${gcalUrl}" target="_blank" style="background-color: #4285F4; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(66, 133, 244, 0.25);">
+          📅 Add to Google Calendar (Auto-Converts to Your Timezone)
+        </a>
+      </td>
+    </tr>
     <tr>
       <td align="center" style="text-align: center;">
         <a href="${webinarPassUrl}" target="_blank" style="background-color: #22C55E; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);">
@@ -1175,9 +1237,19 @@ ${rsvpButtonsHtml}
               formattedDate = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             } catch (e) {}
           }
-          const timeStr = this.formatBackendTimeEST(latestWebinar?.webinar_time);
+          const timeStr = this.formatBackendTimeEST(latestWebinar?.webinar_time, latestWebinar?.webinar_date);
           const durationRaw = (latestWebinar?.duration || '45').toString().trim();
           const durationStr = durationRaw.toLowerCase().includes('min') ? durationRaw : `${durationRaw} mins`;
+
+          const durationMinsNum = parseInt(durationRaw, 10) || 45;
+
+          const gcalUrl = this.generateGoogleCalendarUrl(
+            title,
+            latestWebinar?.webinar_date,
+            latestWebinar?.webinar_time,
+            durationMinsNum,
+            latestWebinar?.meeting_link || webinarPassUrl
+          );
 
           const subject = `Thank You for Your Interest! — Physician Webinar Access`;
           const emailBody = `
@@ -1209,14 +1281,21 @@ ${rsvpButtonsHtml}
     </table>
   </div>
 
-  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 16px 0;">
-    You can access your personalized VIP session pass link directly below:
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 16px 0 8px 0;">
+    Add this event to your calendar to automatically convert to your local timezone:
   </p>
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 16px 0; text-align: center;">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 12px 0 20px 0; text-align: center;">
+    <tr>
+      <td align="center" style="text-align: center; padding-bottom: 12px;">
+        <a href="${gcalUrl}" target="_blank" style="background-color: #4285F4; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(66, 133, 244, 0.25);">
+          📅 Add to Google Calendar (Auto-Converts to Your Timezone)
+        </a>
+      </td>
+    </tr>
     <tr>
       <td align="center" style="text-align: center;">
         <a href="${webinarPassUrl}" target="_blank" style="background-color: #22C55E; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);">
-          👉 Access Your VIP Physician Webinar Pass
+          🎟️ Access Your VIP Physician Webinar Pass
         </a>
       </td>
     </tr>
@@ -1341,34 +1420,8 @@ ${rsvpButtonsHtml}
     if (!dateStr) return 'upcoming';
 
     try {
-      const parts = dateStr.split('-');
-      if (parts.length < 3) return 'upcoming';
-      const year = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const day = parseInt(parts[2], 10);
-
-      if (isNaN(year) || isNaN(month) || isNaN(day)) return 'upcoming';
-
-      let hours = 16;
-      let minutes = 0;
-
-      if (timeStr) {
-        const cleanTime = timeStr.trim();
-        const match = cleanTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-        if (match) {
-          let h = parseInt(match[1], 10);
-          const m = parseInt(match[2], 10);
-          const ampm = match[3]?.toUpperCase();
-
-          if (ampm === 'PM' && h < 12) h += 12;
-          if (ampm === 'AM' && h === 12) h = 0;
-
-          hours = h;
-          minutes = m;
-        }
-      }
-
-      const startDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+      const { startUtc } = this.parseEasternDateTime(dateStr, timeStr);
+      const startDate = startUtc;
 
       let durationMinutes = 45;
       if (durationStr) {
@@ -1726,6 +1779,30 @@ ${rsvpButtonsHtml}
     } catch (err: any) {
       this.logger.error(`Error in sendSequenceStepNow: ${err.message}`);
       throw new HttpException(err.message || 'Failed to send sequence step', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  private generateGoogleCalendarUrl(
+    title: string,
+    webinarDateStr?: string,
+    webinarTimeStr?: string,
+    durationMins: number = 45,
+    meetingLink: string = ''
+  ): string {
+    try {
+      const { startUtc } = this.parseEasternDateTime(webinarDateStr, webinarTimeStr);
+      const endUtc = new Date(startUtc.getTime() + (durationMins || 45) * 60 * 1000);
+
+      const formatGcal = (d: Date) => d.toISOString().replace(/-|:|\.\d\d\d/g, '');
+      const startStr = formatGcal(startUtc);
+      const endStr = formatGcal(endUtc);
+
+      const details = `Ovalia Capital Physician Wealth Briefing session. Access session pass and details: ${meetingLink || 'https://ovaliacapital.com'}`;
+      const location = meetingLink || 'Online Zoom Room';
+
+      return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startStr}/${endStr}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+    } catch (e) {
+      return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}`;
     }
   }
 }

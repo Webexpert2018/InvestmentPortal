@@ -900,7 +900,7 @@ export default function WebinarsPage() {
 
                   <div>
                     <label className="block text-[12px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
-                      Time (EST) <span className="text-red-500">*</span>
+                      Time (Eastern ET) <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="time"
