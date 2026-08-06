@@ -1510,6 +1510,12 @@ class ApiClient {
     });
   }
 
+  async getSavedProspects(limit: number = 200) {
+    return this.request<{ success: boolean; count: number; prospects: any[] }>(
+      `/webinar-campaign/prospects?limit=${limit}`
+    );
+  }
+
   async getWebinars() {
     return this.request<{ success: boolean; webinars: any[] }>('/webinar-campaign/webinars');
   }
@@ -1531,6 +1537,27 @@ class ApiClient {
   async deleteWebinar(id: string) {
     return this.request<{ success: boolean; message: string }>(`/webinar-campaign/webinars/${encodeURIComponent(id)}`, {
       method: 'DELETE',
+    });
+  }
+
+  async updateWebinar(id: string, data: {
+    title: string;
+    description?: string;
+    webinarDate: string;
+    webinarTime?: string;
+    duration?: string;
+    meetingLink: string;
+  }) {
+    return this.request<{ success: boolean; webinar: any }>(`/webinar-campaign/webinars/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async sendDirectWebinarInvites(webinarId: string, prospectIds: string[]) {
+    return this.request<{ success: boolean; count: number; message: string }>(`/webinar-campaign/webinars/${encodeURIComponent(webinarId)}/send-invites`, {
+      method: 'POST',
+      body: JSON.stringify({ prospectIds }),
     });
   }
 

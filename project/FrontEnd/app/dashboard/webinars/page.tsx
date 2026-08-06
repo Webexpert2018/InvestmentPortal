@@ -29,6 +29,8 @@ import {
   ChevronRight,
   RefreshCw,
   Trash2,
+  Pencil,
+  Send,
 } from 'lucide-react';
 
 interface Attendee {
@@ -103,6 +105,26 @@ export default function WebinarsPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingWebinarId, setDeletingWebinarId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Edit Modal State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingWebinarId, setEditingWebinarId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('16:00');
+  const [editDuration, setEditDuration] = useState('45');
+  const [editMeetingLink, setEditMeetingLink] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Direct Invite Modal State
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [invitingWebinar, setInvitingWebinar] = useState<Webinar | null>(null);
+  const [prospectsList, setProspectsList] = useState<any[]>([]);
+  const [isLoadingProspects, setIsLoadingProspects] = useState(false);
+  const [selectedProspectIds, setSelectedProspectIds] = useState<string[]>([]);
+  const [inviteSearchQuery, setInviteSearchQuery] = useState('');
+  const [isSendingInvites, setIsSendingInvites] = useState(false);
 
   // Calendar State
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState<Date>(new Date(2026, 7, 1)); // August 2026
@@ -257,6 +279,77 @@ export default function WebinarsPage() {
     }
   };
 
+  const parseTimeTo24Hour = (timeStr?: string): string => {
+    if (!timeStr) return '16:00';
+    const clean = timeStr.trim();
+    const match = clean.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!match) return '16:00';
+    let h = parseInt(match[1], 10);
+    const m = match[2];
+    const ampm = match[3]?.toUpperCase();
+    if (ampm === 'PM' && h < 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    return `${h.toString().padStart(2, '0')}:${m}`;
+  };
+
+  const handleOpenEditModal = (webinar: Webinar) => {
+    const isLocked = (webinar.totalPassesSent ?? 0) > 0 || (webinar.attendees?.length ?? 0) > 0;
+    if (isLocked) {
+      toast.error('Editing locked: Passes have already been sent or doctors registered for this session.');
+      return;
+    }
+    setEditingWebinarId(webinar.id);
+    setEditTitle(webinar.title || '');
+    setEditDescription(webinar.description || '');
+    setEditDate(webinar.date || '');
+    setEditTime(parseTimeTo24Hour(webinar.time));
+    setEditDuration((webinar.duration || '45').replace(/[^0-9]/g, '') || '45');
+    setEditMeetingLink(webinar.meetingLink || '');
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateWebinar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingWebinarId) return;
+    if (!editTitle.trim() || !editDate || !editMeetingLink.trim()) {
+      toast.error('Please fill in Title, Date, and Meeting Link.');
+      return;
+    }
+
+    let formattedLink = editMeetingLink.trim();
+    if (formattedLink && !/^https?:\/\//i.test(formattedLink)) {
+      formattedLink = `https://${formattedLink}`;
+    }
+
+    setIsUpdating(true);
+    try {
+      const res = await apiClient.updateWebinar(editingWebinarId, {
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        webinarDate: editDate,
+        webinarTime: formatTimeTo12HourEST(editTime),
+        duration: editDuration.trim() ? (editDuration.toLowerCase().includes('min') ? editDuration.trim() : `${editDuration.trim()} mins`) : '45 mins',
+        meetingLink: formattedLink,
+      });
+
+      if (res && res.success && res.webinar) {
+        toast.success('🎉 Webinar updated & saved to database!');
+        setWebinars((prev) =>
+          prev.map((w) => (w.id === editingWebinarId ? { ...w, ...res.webinar } : w))
+        );
+        setIsEditModalOpen(false);
+        setEditingWebinarId(null);
+      } else {
+        toast.error('Failed to update webinar record.');
+      }
+    } catch (err: any) {
+      console.error('Error updating webinar:', err);
+      toast.error(err.message || 'Error updating webinar');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const handleDeleteWebinar = async () => {
     if (!deletingWebinarId) return;
     setIsDeleting(true);
@@ -274,6 +367,57 @@ export default function WebinarsPage() {
       toast.error(err.message || 'Failed to delete webinar');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleOpenInviteModal = async (webinar: Webinar) => {
+    setInvitingWebinar(webinar);
+    setIsInviteModalOpen(true);
+    setSelectedProspectIds([]);
+    setInviteSearchQuery('');
+
+    if (prospectsList.length === 0) {
+      setIsLoadingProspects(true);
+      try {
+        const res = await apiClient.getSavedProspects(200);
+        if (res && res.success && Array.isArray(res.prospects)) {
+          setProspectsList(res.prospects);
+        } else if (Array.isArray(res)) {
+          setProspectsList(res);
+        }
+      } catch (err: any) {
+        console.error('Error fetching prospects:', err);
+        toast.error('Failed to load doctor prospects list.');
+      } finally {
+        setIsLoadingProspects(false);
+      }
+    }
+  };
+
+  const handleSendDirectInvites = async () => {
+    if (!invitingWebinar) return;
+    if (selectedProspectIds.length === 0) {
+      toast.error('Please select at least 1 doctor prospect to invite.');
+      return;
+    }
+
+    setIsSendingInvites(true);
+    try {
+      const res = await apiClient.sendDirectWebinarInvites(invitingWebinar.id, selectedProspectIds);
+      if (res && res.success) {
+        toast.success(`🎉 Direct invitations & session passes sent to ${res.count || selectedProspectIds.length} doctors!`);
+        setIsInviteModalOpen(false);
+        setInvitingWebinar(null);
+        setSelectedProspectIds([]);
+        loadWebinarsFromDb();
+      } else {
+        toast.error(res?.message || 'Failed to send direct webinar invitations.');
+      }
+    } catch (err: any) {
+      console.error('Error sending direct webinar invites:', err);
+      toast.error(err.message || 'Error sending direct webinar invitations.');
+    } finally {
+      setIsSendingInvites(false);
     }
   };
 
@@ -653,28 +797,37 @@ export default function WebinarsPage() {
                           href={/^https?:\/\//i.test(webinar.meetingLink) ? webinar.meetingLink : `https://${webinar.meetingLink}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="bg-gray-900 hover:bg-black text-white text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shadow-sm shrink-0"
+                          className="bg-amber-50/90 hover:bg-amber-100 text-amber-900 border border-amber-200/80 text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                         >
-                          <ExternalLink className="w-3.5 h-3.5" />
+                          <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
                           <span>Join Meeting</span>
                         </a>
 
                         <button
                           onClick={() => handleCopyLink(webinar.meetingLink, webinar.id)}
-                          className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-[12px] font-medium px-3 py-2 rounded-full flex items-center gap-1 transition-all"
+                          className="bg-amber-50/90 hover:bg-amber-100 text-amber-900 border border-amber-200/80 text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                           title="Copy Meeting Link"
                         >
                           {copiedId === webinar.id ? (
                             <>
-                              <Check className="w-3.5 h-3.5 text-green-600" />
-                              <span className="text-green-700 font-bold">Copied!</span>
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              <span className="text-emerald-800 font-bold">Copied!</span>
                             </>
                           ) : (
                             <>
-                              <Copy className="w-3.5 h-3.5 text-gray-500" />
+                              <Copy className="w-3.5 h-3.5 text-amber-700" />
                               <span className="hidden sm:inline">Copy Link</span>
                             </>
                           )}
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenInviteModal(webinar)}
+                          className="bg-amber-50/90 hover:bg-amber-100 text-amber-900 border border-amber-200/80 text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+                          title="Send Direct Webinar Invitation & Session Pass to Doctors"
+                        >
+                          <Send className="w-3.5 h-3.5 text-amber-700" />
+                          <span>Send Direct Invite</span>
                         </button>
                       </div>
 
@@ -690,6 +843,29 @@ export default function WebinarsPage() {
                           </span>
                           {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </button>
+
+                        {/* Edit Webinar Button */}
+                        {(() => {
+                          const isLocked = (webinar.totalPassesSent ?? 0) > 0 || (webinar.attendees?.length ?? 0) > 0;
+                          return (
+                            <button
+                              onClick={() => handleOpenEditModal(webinar)}
+                              disabled={isLocked}
+                              className={`p-2 rounded-full transition-all flex items-center justify-center ${
+                                isLocked
+                                  ? 'text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed opacity-60'
+                                  : 'text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80'
+                              }`}
+                              title={
+                                isLocked
+                                  ? 'Editing locked — Passes have already been sent or doctors have registered'
+                                  : 'Edit Webinar Details'
+                              }
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                          );
+                        })()}
 
                         {/* Delete Webinar Button */}
                         <button
@@ -959,6 +1135,372 @@ export default function WebinarsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Edit & Reschedule Webinar Modal */}
+        {isEditModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+            <div className="bg-white rounded-[24px] max-w-xl w-full p-6 md:p-8 space-y-6 shadow-2xl border border-[#EAEAEA] relative">
+              <button
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setEditingWebinarId(null);
+                }}
+                className="absolute top-6 right-6 p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
+                  <Pencil className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-[20px] font-goudy font-bold text-[#1F1F1F]">Edit &amp; Reschedule Webinar</h2>
+                  <p className="text-[12px] text-[#8E8E93]">Update session title, date, time, and meeting link</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleUpdateWebinar} className="space-y-4">
+                {/* Title */}
+                <div>
+                  <label className="block text-[12px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
+                    Webinar Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Physician Wealth & Tax-Advantaged Real Estate"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-[12px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
+                    Description &amp; Agenda
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Brief summary of session topics for physician prospects..."
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                  />
+                </div>
+
+                {/* Date, Time & Duration Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[12px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
+                      Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
+                      Time (Eastern ET) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="time"
+                      required
+                      value={editTime}
+                      onChange={(e) => setEditTime(e.target.value)}
+                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
+                      Duration (in mins)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="45"
+                      value={editDuration}
+                      onChange={(e) => setEditDuration(e.target.value)}
+                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    />
+                  </div>
+                </div>
+
+                {/* Meeting Link */}
+                <div>
+                  <label className="block text-[12px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
+                    Meeting Link (Zoom / Google Meet / Luma) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="https://us06web.zoom.us/j/123456789"
+                    value={editMeetingLink}
+                    onChange={(e) => setEditMeetingLink(e.target.value)}
+                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#F0F0F0]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      setEditingWebinarId(null);
+                    }}
+                    className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isUpdating}
+                    className="px-6 py-2.5 rounded-full text-[13px] font-bold text-[#1F1F1F] bg-[#FFC63F] hover:bg-[#F2B62D] shadow-sm transition-all flex items-center gap-1.5"
+                  >
+                    {isUpdating ? 'Updating DB...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Send Direct Webinar Invite Modal */}
+        {isInviteModalOpen && invitingWebinar && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+            <div className="bg-white rounded-[24px] max-w-2xl w-full p-6 md:p-8 space-y-6 shadow-2xl border border-[#EAEAEA] relative max-h-[90vh] flex flex-col">
+              <button
+                onClick={() => {
+                  setIsInviteModalOpen(false);
+                  setInvitingWebinar(null);
+                }}
+                className="absolute top-6 right-6 p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Modal Header */}
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
+                  <Send className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-[20px] font-goudy font-bold text-[#1F1F1F]">Send Direct Webinar Invitation</h2>
+                  <p className="text-[12px] text-[#8E8E93]">
+                    Select physician prospects to issue personalized session passes &amp; calendar invites
+                  </p>
+                </div>
+              </div>
+
+              {/* Webinar Summary Banner */}
+              <div className="bg-[#FFFDF5] border border-[#FDE68A] rounded-xl p-3.5 text-[13px] text-amber-950 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div>
+                  <span className="font-bold text-[#1F1F1F] block">{invitingWebinar.title}</span>
+                  <span className="text-[12px] text-amber-800 font-medium">
+                    📅 {invitingWebinar.formattedDate || invitingWebinar.date} • ⏰ {invitingWebinar.time}
+                  </span>
+                </div>
+                <span className="bg-amber-100 text-amber-900 border border-amber-300/80 text-[11px] font-bold px-3 py-1 rounded-full">
+                  Passes Sent: {invitingWebinar.totalPassesSent ?? invitingWebinar.attendees.length}
+                </span>
+              </div>
+
+              {/* Search & Bulk Select Toolbar */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search doctor by name, specialty, clinic, or email..."
+                    value={inviteSearchQuery}
+                    onChange={(e) => setInviteSearchQuery(e.target.value)}
+                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl pl-9 pr-4 py-2 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const registeredSet = new Set(
+                        (invitingWebinar.attendees || []).map((a: any) => (a.email || a.id || '').toLowerCase())
+                      );
+                      const eligibleIds = prospectsList
+                        .filter((p: any) => {
+                          const pEmail = (p.email || '').toLowerCase();
+                          const pId = (p.apollo_id || p.id || '').toLowerCase();
+                          return !registeredSet.has(pEmail) && !registeredSet.has(pId);
+                        })
+                        .map((p: any) => p.apollo_id || p.id);
+                      setSelectedProspectIds(eligibleIds);
+                    }}
+                    className="text-[12px] font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-colors border border-amber-200 cursor-pointer"
+                  >
+                    Select All Unregistered
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedProspectIds([])}
+                    className="text-[12px] font-medium text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                  >
+                    Deselect All
+                  </button>
+                </div>
+              </div>
+
+              {/* Doctor Prospects List */}
+              <div className="flex-1 overflow-y-auto border border-[#EAEAEA] rounded-xl divide-y divide-[#F0F0F0] p-1 min-h-[220px]">
+                {isLoadingProspects ? (
+                  <div className="py-12 text-center space-y-2">
+                    <div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-[13px] text-gray-500 font-medium">Loading physician prospects database...</p>
+                  </div>
+                ) : prospectsList.length === 0 ? (
+                  <div className="py-12 text-center text-[13px] text-gray-500">
+                    No doctor prospects found in database.
+                  </div>
+                ) : (() => {
+                  const registeredEmails = new Set(
+                    (invitingWebinar.attendees || []).map((a: any) => (a.email || a.id || '').toLowerCase())
+                  );
+
+                  const filtered = prospectsList.filter((p: any) => {
+                    if (!inviteSearchQuery.trim()) return true;
+                    const q = inviteSearchQuery.toLowerCase();
+                    return (
+                      (p.full_name || p.fullName || '').toLowerCase().includes(q) ||
+                      (p.specialty || '').toLowerCase().includes(q) ||
+                      (p.organization || '').toLowerCase().includes(q) ||
+                      (p.email || '').toLowerCase().includes(q)
+                    );
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="py-8 text-center text-[13px] text-gray-500">
+                        No doctors match "{inviteSearchQuery}".
+                      </div>
+                    );
+                  }
+
+                  return filtered.map((doc: any) => {
+                    const docId = doc.apollo_id || doc.id;
+                    const docEmail = (doc.email || '').toLowerCase();
+                    const isAlreadyRegistered = registeredEmails.has(docEmail) || registeredEmails.has(docId.toLowerCase());
+                    const isSelected = selectedProspectIds.includes(docId);
+
+                    return (
+                      <label
+                        key={docId}
+                        className={`flex items-center justify-between p-3.5 rounded-lg transition-colors ${
+                          isAlreadyRegistered
+                            ? 'bg-gray-50/80 opacity-70 cursor-not-allowed'
+                            : isSelected
+                            ? 'bg-amber-50/70 border-l-4 border-amber-500 cursor-pointer'
+                            : 'hover:bg-gray-50 cursor-pointer'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0 pr-2">
+                          <input
+                            type="checkbox"
+                            disabled={isAlreadyRegistered}
+                            checked={isSelected || isAlreadyRegistered}
+                            onChange={(e) => {
+                              if (isAlreadyRegistered) return;
+                              if (e.target.checked) {
+                                setSelectedProspectIds((prev) => [...prev, docId]);
+                              } else {
+                                setSelectedProspectIds((prev) => prev.filter((id) => id !== docId));
+                              }
+                            }}
+                            className="w-4 h-4 text-amber-600 rounded-md border-gray-300 focus:ring-amber-500 cursor-pointer disabled:cursor-not-allowed shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-[14px] text-[#1F1F1F] truncate">
+                                {doc.full_name || doc.fullName || 'Doctor Prospect'}
+                              </span>
+                              <span className="text-[11px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full shrink-0 border border-amber-200/60">
+                                {doc.specialty || 'Physician'}
+                              </span>
+                            </div>
+                            <div className="text-[12px] text-gray-500 truncate mt-0.5">
+                              <span>{doc.organization || 'Private Practice'}</span>
+                              {doc.email && (
+                                <>
+                                  <span className="mx-1.5 text-gray-300">•</span>
+                                  <span className="text-gray-600">{doc.email}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {isAlreadyRegistered ? (
+                          <span className="bg-gray-200 text-gray-700 text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1 border border-gray-300">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-gray-600" />
+                            Already Registered
+                          </span>
+                        ) : isSelected ? (
+                          <span className="bg-amber-100 text-amber-900 text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 border border-amber-300">
+                            Selected
+                          </span>
+                        ) : null}
+                      </label>
+                    );
+                  });
+                })()}
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div className="flex items-center justify-between pt-3 border-t border-[#F0F0F0] shrink-0">
+                <span className="text-[13px] text-gray-600 font-semibold">
+                  Selected: <strong className="text-amber-900">{selectedProspectIds.length}</strong> doctor(s)
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsInviteModalOpen(false);
+                      setInvitingWebinar(null);
+                    }}
+                    disabled={isSendingInvites}
+                    className="px-4 py-2 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendDirectInvites}
+                    disabled={isSendingInvites || selectedProspectIds.length === 0}
+                    className="px-6 py-2 rounded-full text-[13px] font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {isSendingInvites ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Sending Invites...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Send Invitations ({selectedProspectIds.length})</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

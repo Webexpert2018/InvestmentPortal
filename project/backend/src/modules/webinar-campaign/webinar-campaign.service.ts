@@ -1563,6 +1563,245 @@ ${rsvpButtonsHtml}
     }
   }
 
+  async updateWebinar(
+    id: string,
+    data: {
+      title: string;
+      description?: string;
+      webinarDate: string;
+      webinarTime?: string;
+      duration?: string;
+      meetingLink: string;
+    }
+  ) {
+    if (!id) {
+      throw new HttpException('Webinar ID is required', HttpStatus.BAD_REQUEST);
+    }
+    if (!data.title || !data.webinarDate || !data.meetingLink) {
+      throw new HttpException('Title, Date, and Meeting Link are required', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      // 1. Check if passes have been sent or attendees exist
+      const passCheck = await db.query(
+        `SELECT COUNT(*) FROM webinar_attendees WHERE webinar_id = $1`,
+        [id]
+      );
+      const count = parseInt(passCheck.rows[0]?.count || '0', 10);
+      if (count > 0) {
+        throw new HttpException(
+          'Cannot edit webinar after session passes have been sent or doctors have registered.',
+          HttpStatus.FORBIDDEN
+        );
+      }
+
+      // 2. Perform update
+      const formattedTime = data.webinarTime?.trim()
+        ? this.formatBackendTimeEST(data.webinarTime, data.webinarDate)
+        : '04:00 PM EDT';
+      const formattedDuration = data.duration?.trim()
+        ? (data.duration.toLowerCase().includes('min') ? data.duration.trim() : `${data.duration.trim()} mins`)
+        : '45 mins';
+
+      const updateQuery = `
+        UPDATE webinars
+        SET title = $1,
+            description = $2,
+            webinar_date = $3,
+            webinar_time = $4,
+            duration = $5,
+            meeting_link = $6,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $7
+        RETURNING id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
+                  to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
+                  webinar_time as time, duration, meeting_link as "meetingLink", status
+      `;
+
+      const res = await db.query(updateQuery, [
+        data.title.trim(),
+        data.description?.trim() || 'Ovalia Capital Physician Wealth Session.',
+        data.webinarDate,
+        formattedTime,
+        formattedDuration,
+        data.meetingLink.trim(),
+        id,
+      ]);
+
+      if (res.rowCount === 0) {
+        throw new HttpException('Webinar not found', HttpStatus.NOT_FOUND);
+      }
+
+      const updatedWebinar = res.rows[0];
+      updatedWebinar.status = this.computeWebinarStatus(updatedWebinar.date, updatedWebinar.time, updatedWebinar.duration);
+      updatedWebinar.attendees = [];
+      updatedWebinar.totalPassesSent = 0;
+      updatedWebinar.totalJoined = 0;
+      updatedWebinar.noShowCount = 0;
+
+      this.logger.log(`✏️ Updated webinar: ${data.title} (${id})`);
+      return {
+        success: true,
+        webinar: updatedWebinar,
+      };
+    } catch (err: any) {
+      if (err instanceof HttpException) throw err;
+      this.logger.error(`Error updating webinar ${id}: ${err.message}`);
+      throw new HttpException(err.message || 'Failed to update webinar record', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async sendDirectWebinarInvites(webinarId: string, prospectIds: string[]) {
+    if (!webinarId) {
+      throw new HttpException('Webinar ID is required', HttpStatus.BAD_REQUEST);
+    }
+    if (!prospectIds || !Array.isArray(prospectIds) || prospectIds.length === 0) {
+      throw new HttpException('No prospects selected for invitation', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      // 1. Fetch webinar details
+      const webinarRes = await db.query(
+        `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
+                to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
+                webinar_time as time, duration, meeting_link as "meetingLink"
+         FROM webinars WHERE id = $1`,
+        [webinarId]
+      );
+
+      if (webinarRes.rows.length === 0) {
+        throw new HttpException('Webinar not found', HttpStatus.NOT_FOUND);
+      }
+
+      const webinar = webinarRes.rows[0];
+      const title = webinar.title || 'Ovalia Capital Physician Wealth Briefing';
+      const formattedDate = webinar.formattedDate || webinar.date || 'Scheduled Date';
+      const timeStr = this.formatBackendTimeEST(webinar.time, webinar.date);
+      const durationRaw = (webinar.duration || '45').toString().trim();
+      const durationStr = durationRaw.toLowerCase().includes('min') ? durationRaw : `${durationRaw} mins`;
+      const durationMinsNum = parseInt(durationRaw, 10) || 45;
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+      // 2. Fetch selected doctors
+      const doctorsRes = await db.query(
+        `SELECT apollo_id, full_name, email FROM doctor_prospects WHERE apollo_id = ANY($1::text[]) OR email = ANY($1::text[])`,
+        [prospectIds]
+      );
+
+      if (doctorsRes.rows.length === 0) {
+        throw new HttpException('No valid doctor prospects found for selected IDs', HttpStatus.NOT_FOUND);
+      }
+
+      let successCount = 0;
+
+      for (const doc of doctorsRes.rows) {
+        const apolloId = doc.apollo_id;
+        const doctorName = doc.full_name || 'Physician';
+        const doctorEmail = doc.email;
+
+        if (!doctorEmail) continue;
+
+        // Register pass in webinar_attendees if not present
+        try {
+          await db.query(
+            `INSERT INTO webinar_attendees (webinar_id, prospect_id, status, created_at, updated_at)
+             VALUES ($1, $2, 'registered', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+             ON CONFLICT (webinar_id, prospect_id) DO NOTHING`,
+            [webinar.id, apolloId]
+          );
+        } catch (regErr: any) {
+          this.logger.error(`Error registering attendee ${apolloId} for webinar ${webinar.id}: ${regErr.message}`);
+        }
+
+        const webinarPassUrl = `${frontendUrl}/webinar/pass?prospect_id=${encodeURIComponent(apolloId)}&webinar_id=${encodeURIComponent(webinar.id)}`;
+        const gcalUrl = this.generateGoogleCalendarUrl(
+          title,
+          webinar.date,
+          webinar.time,
+          durationMinsNum,
+          webinar.meetingLink || webinarPassUrl
+        );
+
+        // Dedicated Direct Invitation Email Template
+        const subject = `🎟️ You're Invited: ${title}`;
+        const emailBody = `
+<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1F1F1F; text-align: left; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #E5E7EB; border-radius: 12px; background-color: #FFFFFF;">
+  <h2 style="color: #1F2937; margin: 0 0 12px 0; font-size: 20px; font-weight: bold; line-height: 1.3;">You're Invited, ${doctorName}!</h2>
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 0 0 16px 0;">
+    You are cordially invited to attend an exclusive <strong>Ovalia Capital Physician Wealth Briefing</strong> on tax-sheltered commercial real estate returns for accredited doctors.
+  </p>
+
+  <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; margin: 16px 0;">
+    <h3 style="margin: 0 0 10px 0; font-size: 15px; font-weight: bold; color: #111827;">🗓️ Session Briefing Details</h3>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; color: #374151;">
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold; width: 90px;">Session:</td>
+        <td style="padding: 4px 0; color: #111827; font-weight: 600;">${title}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Date:</td>
+        <td style="padding: 4px 0;">${formattedDate}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Time:</td>
+        <td style="padding: 4px 0;">${timeStr}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Duration:</td>
+        <td style="padding: 4px 0;">${durationStr}</td>
+      </tr>
+    </table>
+  </div>
+
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 16px 0 8px 0;">
+    Add this event to your calendar to automatically convert to your local timezone:
+  </p>
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 12px 0 20px 0; text-align: center;">
+    <tr>
+      <td align="center" style="text-align: center; padding-bottom: 12px;">
+        <a href="${gcalUrl}" target="_blank" style="background-color: #4285F4; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(66, 133, 244, 0.25);">
+          📅 Add to Google Calendar (Auto-Converts to Your Timezone)
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="text-align: center;">
+        <a href="${webinarPassUrl}" target="_blank" style="background-color: #22C55E; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);">
+          🎟️ Access Your VIP Session Pass
+        </a>
+      </td>
+    </tr>
+  </table>
+  <p style="font-size: 13px; color: #6B7280; line-height: 1.5; margin: 16px 0 0 0;">
+    If you have any questions, contact our investor relations team at <a href="mailto:portal@ovaliacapital.com" style="color: #2563EB; text-decoration: underline;">portal@ovaliacapital.com</a>.
+  </p>
+</div>`;
+
+        try {
+          await this.emailService.sendCustomEmail(doctorEmail, doctorName, subject, emailBody);
+          await db.query(
+            `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, 'direct_webinar_invite_sent', $2, CURRENT_TIMESTAMP)`,
+            [apolloId, JSON.stringify({ webinarId: webinar.id, webinarTitle: title, sentAt: new Date().toISOString() })]
+          );
+          successCount++;
+          this.logger.log(`📩 Sent direct webinar invitation & pass to ${doctorName} (${doctorEmail}) for webinar ${webinar.id}`);
+        } catch (sendErr: any) {
+          this.logger.error(`Failed to send direct webinar invite to ${doctorEmail}: ${sendErr.message}`);
+        }
+      }
+
+      return {
+        success: true,
+        count: successCount,
+        message: `Successfully dispatched direct invitations & calendar passes to ${successCount} doctors.`,
+      };
+    } catch (err: any) {
+      if (err instanceof HttpException) throw err;
+      this.logger.error(`Error sending direct webinar invites: ${err.message}`);
+      throw new HttpException(err.message || 'Failed to send direct webinar invites', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   async getWebinarPassDetails(webinarId: string, prospectId: string) {
     try {
       const webinarRes = await db.query(

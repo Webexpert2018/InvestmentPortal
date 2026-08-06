@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Delete, Param, Body, Query, UseGuards, Res } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Param, Body, Query, UseGuards, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { WebinarCampaignService } from './webinar-campaign.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -154,6 +154,30 @@ export class WebinarCampaignController {
   @Delete('webinars/:id')
   async deleteWebinar(@Param('id') id: string) {
     return this.webinarCampaignService.deleteWebinar(id);
+  }
+
+  @Put('webinars/:id')
+  async updateWebinar(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      title: string;
+      description?: string;
+      webinarDate: string;
+      webinarTime?: string;
+      duration?: string;
+      meetingLink: string;
+    }
+  ) {
+    return this.webinarCampaignService.updateWebinar(id, body);
+  }
+
+  @Post('webinars/:id/send-invites')
+  async sendDirectInvites(
+    @Param('id') id: string,
+    @Body() body: { prospectIds: string[] }
+  ) {
+    return this.webinarCampaignService.sendDirectWebinarInvites(id, body.prospectIds);
   }
 
   @Post('send-step-now')
