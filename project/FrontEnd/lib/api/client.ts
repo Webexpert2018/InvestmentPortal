@@ -1561,6 +1561,19 @@ class ApiClient {
     });
   }
 
+  async updateWebinarReminders(webinarId: string, reminderOffsets: number[]) {
+    return this.request<{ success: boolean; reminderOffsets: number[]; message: string }>(`/webinar-campaign/webinars/${encodeURIComponent(webinarId)}/reminders`, {
+      method: 'PUT',
+      body: JSON.stringify({ reminderOffsets }),
+    });
+  }
+
+  async sendTestWebinarReminder(webinarId: string) {
+    return this.request<{ success: boolean; count: number; message: string }>(`/webinar-campaign/webinars/${encodeURIComponent(webinarId)}/send-test-reminder`, {
+      method: 'POST',
+    });
+  }
+
   async getWebinarPassDetails(webinarId: string, prospectId: string) {
     return this.request<{ success: boolean; webinar: any; doctor: any }>(
       `/webinar-campaign/webinar-pass?webinarId=${encodeURIComponent(webinarId)}&prospectId=${encodeURIComponent(prospectId)}`

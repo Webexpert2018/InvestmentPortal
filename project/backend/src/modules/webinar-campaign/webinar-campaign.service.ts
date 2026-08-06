@@ -726,12 +726,13 @@ export class WebinarCampaignService {
   }
 
   @Cron('*/1 * * * *')
-  async process2HourWebinarReminders() {
+  async processAutomatedWebinarReminders() {
     try {
       const res = await db.query(
         `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
                 to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
-                webinar_time as time, duration, meeting_link as "meetingLink", status
+                webinar_time as time, duration, meeting_link as "meetingLink", status,
+                COALESCE(reminder_offsets, '{}') as "reminderOffsets"
          FROM webinars`
       );
 
@@ -741,49 +742,71 @@ export class WebinarCampaignService {
 
       for (const w of res.rows) {
         if (!w.date) continue;
+        const offsets: number[] = Array.isArray(w.reminderOffsets) ? w.reminderOffsets.map(Number) : [];
+        if (offsets.length === 0) continue;
+
         const { startUtc } = this.parseEasternDateTime(w.date, w.time);
         const diffMs = startUtc.getTime() - now.getTime();
         const diffMinutes = diffMs / (1000 * 60);
 
-        // Target webinars starting within 2 hours (0 to 120 minutes from now)
-        if (diffMinutes > 0 && diffMinutes <= 120) {
-          const attendeesRes = await db.query(
-            `SELECT wa.webinar_id, wa.prospect_id, dp.full_name as "fullName", dp.email, dp.apollo_id
-             FROM webinar_attendees wa
-             JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
-             WHERE wa.webinar_id = $1 AND dp.email IS NOT NULL`,
-            [w.id]
-          );
+        this.logger.log(
+          `⏰ [Cron Reminder Check] Webinar "${w.title}" (${w.date} ${w.time || '16:00'}): ` +
+          `UTC start = ${startUtc.toISOString()}, Current UTC = ${now.toISOString()}, diffMinutes = ${Math.round(diffMinutes)}m. Offsets: [${offsets.join(', ')}]`
+        );
 
-          for (const att of attendeesRes.rows) {
-            const eventCheck = await db.query(
-              `SELECT id FROM prospect_events WHERE prospect_id = $1 AND event_type = '2h_webinar_reminder' AND details->>'webinarId' = $2 LIMIT 1`,
-              [att.apollo_id, w.id]
-            );
+        let attendeesRes: any = null;
 
-            if (eventCheck.rows.length === 0) {
-              const doctorName = att.fullName || 'Physician';
-              const formattedDate = w.formattedDate || w.date;
-              const timeStr = this.formatBackendTimeEST(w.time, w.date);
-              const durationRaw = (w.duration || '45').toString().trim();
-              const durationStr = durationRaw.toLowerCase().includes('min') ? durationRaw : `${durationRaw} mins`;
-              const webinarPassUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/webinar/pass?webinarId=${encodeURIComponent(w.id)}&prospectId=${encodeURIComponent(att.apollo_id)}`;
+        for (const offsetMins of offsets) {
+          // Trigger reminder if time remaining is within the window for this offset (e.g. diffMinutes <= offsetMins)
+          if (diffMinutes >= -720 && diffMinutes <= offsetMins) {
+            if (!attendeesRes) {
+              attendeesRes = await db.query(
+                `SELECT wa.webinar_id, wa.prospect_id, dp.full_name as "fullName", dp.email, dp.apollo_id
+                 FROM webinar_attendees wa
+                 JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
+                 WHERE wa.webinar_id = $1 AND dp.email IS NOT NULL`,
+                [w.id]
+              );
+            }
 
-              const durationMinsNum = parseInt(durationRaw, 10) || 45;
-              const gcalUrl = this.generateGoogleCalendarUrl(
-                w.title,
-                w.date,
-                w.time,
-                durationMinsNum,
-                w.meetingLink || webinarPassUrl
+            const eventType = `webinar_reminder_${offsetMins}m`;
+
+            for (const att of attendeesRes.rows) {
+              const eventCheck = await db.query(
+                `SELECT id FROM prospect_events WHERE prospect_id = $1 AND event_type = $2 AND details->>'webinarId' = $3 LIMIT 1`,
+                [att.apollo_id, eventType, w.id]
               );
 
-              const subject = `⏰ Reminder: Your Webinar Session Starts in 2 Hours! — ${w.title}`;
-              const emailBody = `
+              if (eventCheck.rows.length === 0) {
+                const doctorName = att.fullName || 'Physician';
+                const formattedDate = w.formattedDate || w.date;
+                const timeStr = this.formatBackendTimeEST(w.time, w.date);
+                const durationRaw = (w.duration || '45').toString().trim();
+                const durationStr = durationRaw.toLowerCase().includes('min') ? durationRaw : `${durationRaw} mins`;
+                const webinarPassUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/webinar/pass?webinarId=${encodeURIComponent(w.id)}&prospectId=${encodeURIComponent(att.apollo_id)}`;
+
+                const durationMinsNum = parseInt(durationRaw, 10) || 45;
+                const gcalUrl = this.generateGoogleCalendarUrl(
+                  w.title,
+                  w.date,
+                  w.time,
+                  durationMinsNum,
+                  w.meetingLink || webinarPassUrl
+                );
+
+                let timeText = `${offsetMins} minutes`;
+                if (offsetMins === 60) timeText = '1 hour';
+                else if (offsetMins === 120) timeText = '2 hours';
+                else if (offsetMins === 720) timeText = '12 hours';
+                else if (offsetMins === 1440) timeText = '24 hours (1 day)';
+                else if (offsetMins === 2880) timeText = '48 hours (2 days)';
+
+                const subject = `⏰ Reminder: Your Webinar Session Starts in ${timeText}! — ${w.title}`;
+                const emailBody = `
 <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1F1F1F; text-align: left; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #E5E7EB; border-radius: 12px; background-color: #FFFFFF;">
   <h2 style="color: #1F2937; margin: 0 0 12px 0; font-size: 20px; font-weight: bold; line-height: 1.3;">Upcoming Session Reminder, ${doctorName}!</h2>
   <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 0 0 16px 0;">
-    Just a quick reminder that your <strong>Ovalia Capital Physician Briefing</strong> session starts in <strong>2 hours</strong>.
+    Just a quick reminder that your <strong>Ovalia Capital Physician Briefing</strong> session starts in <strong>${timeText}</strong>.
   </p>
 
   <div style="background-color: #FEF3C7; border: 1px solid #FCD34D; border-radius: 10px; padding: 16px; margin: 16px 0;">
@@ -832,22 +855,23 @@ export class WebinarCampaignService {
   </p>
 </div>`;
 
-              try {
-                await this.sendCampaignOutreach([att.apollo_id], emailBody, undefined, subject);
-                await db.query(
-                  `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, '2h_webinar_reminder', $2, CURRENT_TIMESTAMP)`,
-                  [att.apollo_id, JSON.stringify({ webinarId: w.id, webinarTitle: w.title, sentAt: now.toISOString() })]
-                );
-                this.logger.log(`⏰ [2H WEBINAR REMINDER DISPATCH] Sent 2h reminder to registered doctor ${att.fullName} (${att.email}) for webinar ${w.id}`);
-              } catch (sendErr: any) {
-                this.logger.error(`Failed to send 2h reminder to ${att.email}: ${sendErr.message}`);
+                try {
+                  await this.emailService.sendCustomEmail(att.email, doctorName, subject, emailBody);
+                  await db.query(
+                    `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`,
+                    [att.apollo_id, eventType, JSON.stringify({ webinarId: w.id, webinarTitle: w.title, offsetMins, sentAt: now.toISOString() })]
+                  );
+                  this.logger.log(`⏰ [Cron Reminder ${offsetMins}m] Dispatched reminder email to Dr. ${doctorName} (${att.email}) for webinar ${w.id}`);
+                } catch (sendErr: any) {
+                  this.logger.error(`Failed to send ${offsetMins}m reminder to ${att.email}: ${sendErr.message}`);
+                }
               }
             }
           }
         }
       }
     } catch (err: any) {
-      this.logger.error(`Error in process2HourWebinarReminders: ${err.message}`);
+      this.logger.error(`Error in processAutomatedWebinarReminders cron: ${err.message}`);
     }
   }
 
@@ -1451,7 +1475,8 @@ ${rsvpButtonsHtml}
       const webinarsRes = await db.query(
         `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date, 
                 to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
-                webinar_time as time, duration, meeting_link as "meetingLink", status
+                webinar_time as time, duration, meeting_link as "meetingLink", status,
+                COALESCE(reminder_offsets, '{}') as "reminderOffsets"
          FROM webinars ORDER BY webinar_date DESC, created_at DESC`
       );
 
@@ -1799,6 +1824,175 @@ ${rsvpButtonsHtml}
       if (err instanceof HttpException) throw err;
       this.logger.error(`Error sending direct webinar invites: ${err.message}`);
       throw new HttpException(err.message || 'Failed to send direct webinar invites', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async updateWebinarReminders(webinarId: string, reminderOffsets: number[]) {
+    if (!webinarId) {
+      throw new HttpException('Webinar ID is required', HttpStatus.BAD_REQUEST);
+    }
+    const cleanOffsets = Array.isArray(reminderOffsets)
+      ? reminderOffsets.map(Number).filter((n) => !isNaN(n) && n > 0)
+      : [];
+
+    try {
+      const res = await db.query(
+        `UPDATE webinars
+         SET reminder_offsets = $1::int[],
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $2
+         RETURNING id, reminder_offsets as "reminderOffsets"`,
+        [cleanOffsets, webinarId]
+      );
+
+      if (res.rowCount === 0) {
+        throw new HttpException('Webinar not found', HttpStatus.NOT_FOUND);
+      }
+
+      this.logger.log(`🔔 Updated reminder schedule for webinar ${webinarId}: [${cleanOffsets.join(', ')}]`);
+      return {
+        success: true,
+        reminderOffsets: res.rows[0].reminderOffsets || [],
+        message: 'Reminder schedule saved successfully',
+      };
+    } catch (err: any) {
+      if (err instanceof HttpException) throw err;
+      this.logger.error(`Error updating reminder offsets for webinar ${webinarId}: ${err.message}`);
+      throw new HttpException(err.message || 'Failed to save reminder schedule', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async sendTestWebinarReminder(webinarId: string) {
+    if (!webinarId) {
+      throw new HttpException('Webinar ID is required', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      const webinarRes = await db.query(
+        `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
+                to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
+                webinar_time as time, duration, meeting_link as "meetingLink"
+         FROM webinars WHERE id = $1`,
+        [webinarId]
+      );
+
+      if (webinarRes.rows.length === 0) {
+        throw new HttpException('Webinar not found', HttpStatus.NOT_FOUND);
+      }
+
+      const w = webinarRes.rows[0];
+      const attendeesRes = await db.query(
+        `SELECT wa.webinar_id, wa.prospect_id, dp.full_name as "fullName", dp.email, dp.apollo_id
+         FROM webinar_attendees wa
+         JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
+         WHERE wa.webinar_id = $1 AND dp.email IS NOT NULL`,
+        [w.id]
+      );
+
+      if (attendeesRes.rows.length === 0) {
+        throw new HttpException('No registered attendees found for this webinar to send reminders to.', HttpStatus.NOT_FOUND);
+      }
+
+      let successCount = 0;
+      const now = new Date();
+
+      for (const att of attendeesRes.rows) {
+        const doctorName = att.fullName || 'Physician';
+        const formattedDate = w.formattedDate || w.date;
+        const timeStr = this.formatBackendTimeEST(w.time, w.date);
+        const durationRaw = (w.duration || '45').toString().trim();
+        const durationStr = durationRaw.toLowerCase().includes('min') ? durationRaw : `${durationRaw} mins`;
+        const webinarPassUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/webinar/pass?webinarId=${encodeURIComponent(w.id)}&prospectId=${encodeURIComponent(att.apollo_id)}`;
+
+        const durationMinsNum = parseInt(durationRaw, 10) || 45;
+        const gcalUrl = this.generateGoogleCalendarUrl(
+          w.title,
+          w.date,
+          w.time,
+          durationMinsNum,
+          w.meetingLink || webinarPassUrl
+        );
+
+        const subject = `⏰ [TEST REMINDER] Session Briefing — ${w.title}`;
+        const emailBody = `
+<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1F1F1F; text-align: left; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #E5E7EB; border-radius: 12px; background-color: #FFFFFF;">
+  <div style="background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #1D4ED8; font-weight: bold; margin-bottom: 14px;">
+    🧪 Manual Test Reminder Email Dispatch
+  </div>
+  <h2 style="color: #1F2937; margin: 0 0 12px 0; font-size: 20px; font-weight: bold; line-height: 1.3;">Upcoming Session Reminder, ${doctorName}!</h2>
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 0 0 16px 0;">
+    This is a scheduled reminder for your upcoming <strong>Ovalia Capital Physician Briefing</strong> session.
+  </p>
+
+  <div style="background-color: #FEF3C7; border: 1px solid #FCD34D; border-radius: 10px; padding: 16px; margin: 16px 0;">
+    <h3 style="margin: 0 0 10px 0; font-size: 15px; font-weight: bold; color: #92400E;">⏰ Session Details</h3>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; color: #374151;">
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold; width: 90px;">Session:</td>
+        <td style="padding: 4px 0; color: #111827; font-weight: 600;">${w.title}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Date:</td>
+        <td style="padding: 4px 0;">${formattedDate}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Time:</td>
+        <td style="padding: 4px 0; font-weight: bold; color: #B45309;">${timeStr}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Duration:</td>
+        <td style="padding: 4px 0;">${durationStr}</td>
+      </tr>
+    </table>
+  </div>
+
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 16px 0 8px 0;">
+    Add this event to your calendar to automatically convert to your local timezone:
+  </p>
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 12px 0 20px 0; text-align: center;">
+    <tr>
+      <td align="center" style="text-align: center; padding-bottom: 12px;">
+        <a href="${gcalUrl}" target="_blank" style="background-color: #4285F4; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(66, 133, 244, 0.25);">
+          📅 Add to Google Calendar (Auto-Converts to Your Timezone)
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="text-align: center;">
+        <a href="${webinarPassUrl}" target="_blank" style="background-color: #22C55E; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);">
+          👉 Access Your VIP Session Pass
+        </a>
+      </td>
+    </tr>
+  </table>
+  <p style="font-size: 13px; color: #6B7280; line-height: 1.5; margin: 16px 0 0 0;">
+    If you have any questions, feel free to reply directly to this email.
+  </p>
+</div>`;
+
+        try {
+          await this.emailService.sendCustomEmail(att.email, doctorName, subject, emailBody);
+          await db.query(
+            `INSERT INTO prospect_events (prospect_id, event_type, details, created_at)
+             VALUES ($1, 'manual_test_reminder', $2, CURRENT_TIMESTAMP)`,
+            [att.apollo_id, JSON.stringify({ webinarId: w.id, sentAt: now.toISOString() })]
+          );
+          successCount++;
+          this.logger.log(`🧪 Dispatched test reminder email to Dr. ${doctorName} (${att.email}) for webinar ${w.id}`);
+        } catch (err: any) {
+          this.logger.error(`Failed to send test reminder to ${att.email}: ${err.message}`);
+        }
+      }
+
+      return {
+        success: true,
+        count: successCount,
+        message: `Test reminder emails successfully sent to ${successCount} registered attendees!`,
+      };
+    } catch (err: any) {
+      if (err instanceof HttpException) throw err;
+      this.logger.error(`Error sending test webinar reminder for ${webinarId}: ${err.message}`);
+      throw new HttpException(err.message || 'Failed to send test webinar reminder', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

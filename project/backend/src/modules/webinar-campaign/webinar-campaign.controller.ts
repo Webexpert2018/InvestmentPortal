@@ -180,6 +180,19 @@ export class WebinarCampaignController {
     return this.webinarCampaignService.sendDirectWebinarInvites(id, body.prospectIds);
   }
 
+  @Put('webinars/:id/reminders')
+  async updateWebinarReminders(
+    @Param('id') id: string,
+    @Body() body: { reminderOffsets: number[] }
+  ) {
+    return this.webinarCampaignService.updateWebinarReminders(id, body.reminderOffsets);
+  }
+
+  @Post('webinars/:id/send-test-reminder')
+  async sendTestReminder(@Param('id') id: string) {
+    return this.webinarCampaignService.sendTestWebinarReminder(id);
+  }
+
   @Post('send-step-now')
   async sendStepNow(
     @Body() body: { prospectId: string; day: number }
@@ -280,8 +293,8 @@ export class WebinarCampaignPublicController {
 
   @Get('cron/reminders')
   async triggerCronReminders() {
-    await this.webinarCampaignService.process2HourWebinarReminders();
-    return { success: true, message: 'Webinar reminders cron processed successfully' };
+    await this.webinarCampaignService.processAutomatedWebinarReminders();
+    return { success: true, message: 'Automated webinar reminders processed successfully' };
   }
 
   @Get('cron/drip')

@@ -31,6 +31,7 @@ import {
   Trash2,
   Pencil,
   Send,
+  Bell,
 } from 'lucide-react';
 
 interface Attendee {
@@ -60,6 +61,7 @@ interface Webinar {
   totalPassesSent?: number;
   totalJoined?: number;
   noShowCount?: number;
+  reminderOffsets?: number[];
 }
 
 function formatTimeTo12HourEST(timeStr: string): string {
@@ -125,6 +127,13 @@ export default function WebinarsPage() {
   const [selectedProspectIds, setSelectedProspectIds] = useState<string[]>([]);
   const [inviteSearchQuery, setInviteSearchQuery] = useState('');
   const [isSendingInvites, setIsSendingInvites] = useState(false);
+
+  // Reminder Settings Modal State
+  const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
+  const [reminderWebinar, setReminderWebinar] = useState<Webinar | null>(null);
+  const [selectedReminderOffsets, setSelectedReminderOffsets] = useState<number[]>([]);
+  const [isSavingReminders, setIsSavingReminders] = useState(false);
+  const [isSendingTestReminder, setIsSendingTestReminder] = useState(false);
 
   // Calendar State
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState<Date>(new Date(2026, 7, 1)); // August 2026
@@ -418,6 +427,53 @@ export default function WebinarsPage() {
       toast.error(err.message || 'Error sending direct webinar invitations.');
     } finally {
       setIsSendingInvites(false);
+    }
+  };
+
+  const handleOpenReminderModal = (webinar: Webinar) => {
+    setReminderWebinar(webinar);
+    setSelectedReminderOffsets(webinar.reminderOffsets || []);
+    setIsReminderModalOpen(true);
+  };
+
+  const handleSaveReminders = async () => {
+    if (!reminderWebinar) return;
+    setIsSavingReminders(true);
+    try {
+      const res = await apiClient.updateWebinarReminders(reminderWebinar.id, selectedReminderOffsets);
+      if (res && res.success) {
+        toast.success('🎉 Automated reminder schedule updated!');
+        setWebinars((prev) =>
+          prev.map((w) => (w.id === reminderWebinar.id ? { ...w, reminderOffsets: selectedReminderOffsets } : w))
+        );
+        setIsReminderModalOpen(false);
+        setReminderWebinar(null);
+      } else {
+        toast.error(res?.message || 'Failed to save reminder schedule.');
+      }
+    } catch (err: any) {
+      console.error('Error saving reminders:', err);
+      toast.error(err.message || 'Failed to save reminder schedule');
+    } finally {
+      setIsSavingReminders(false);
+    }
+  };
+
+  const handleSendTestReminder = async () => {
+    if (!reminderWebinar) return;
+    setIsSendingTestReminder(true);
+    try {
+      const res = await apiClient.sendTestWebinarReminder(reminderWebinar.id);
+      if (res && res.success) {
+        toast.success(`🎉 ${res.message || 'Test reminder emails sent successfully!'}`);
+      } else {
+        toast.error(res?.message || 'Failed to send test reminder emails.');
+      }
+    } catch (err: any) {
+      console.error('Error sending test reminder:', err);
+      toast.error(err.message || 'Error sending test reminder email.');
+    } finally {
+      setIsSendingTestReminder(false);
     }
   };
 
@@ -843,6 +899,31 @@ export default function WebinarsPage() {
                           </span>
                           {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </button>
+
+                        {/* Notification / Reminder Settings Button */}
+                        {(() => {
+                          const activeRemindersCount = (webinar.reminderOffsets || []).length;
+                          return (
+                            <button
+                              onClick={() => handleOpenReminderModal(webinar)}
+                              className={`p-2 rounded-full transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                                activeRemindersCount > 0
+                                  ? 'text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 font-bold'
+                                  : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 border border-gray-200'
+                              }`}
+                              title={
+                                activeRemindersCount > 0
+                                  ? `Automated Reminders Active (${activeRemindersCount} scheduled)`
+                                  : 'Configure Automated Webinar Reminders'
+                              }
+                            >
+                              <Bell className="w-4 h-4" />
+                              {activeRemindersCount > 0 && (
+                                <span className="text-[11px] font-extrabold pr-0.5">{activeRemindersCount}</span>
+                              )}
+                            </button>
+                          );
+                        })()}
 
                         {/* Edit Webinar Button */}
                         {(() => {
@@ -1496,6 +1577,167 @@ export default function WebinarsPage() {
                       <>
                         <Send className="w-3.5 h-3.5" />
                         <span>Send Invitations ({selectedProspectIds.length})</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Simple Configure Automated Reminders Modal */}
+        {isReminderModalOpen && reminderWebinar && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+            <div className="bg-white rounded-[24px] max-w-lg w-full p-6 md:p-7 space-y-5 shadow-2xl border border-[#EAEAEA] relative">
+              <button
+                onClick={() => {
+                  setIsReminderModalOpen(false);
+                  setReminderWebinar(null);
+                }}
+                className="absolute top-5 right-5 p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Modal Header */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-800">
+                  <Bell className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-[18px] font-goudy font-bold text-[#1F1F1F]">Configure Webinar Reminders</h2>
+                  <p className="text-[12px] text-[#8E8E93]">Select automated email reminder intervals for attendees</p>
+                </div>
+              </div>
+
+              {/* Webinar Summary & Currently Scheduled Banner */}
+              <div className="bg-[#FAFBFD] border border-[#EAEAEA] rounded-xl p-3.5 space-y-2 text-[13px]">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-[#1F1F1F]">{reminderWebinar.title}</span>
+                  <span className="text-[11px] font-semibold text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200">
+                    {reminderWebinar.formattedDate || reminderWebinar.date}
+                  </span>
+                </div>
+
+                {/* Scheduled Status */}
+                <div className="pt-1.5 border-t border-[#EDEDED] flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Scheduled:</span>
+                  {selectedReminderOffsets.length === 0 ? (
+                    <span className="text-[12px] italic text-gray-400">No automated reminders configured</span>
+                  ) : (
+                    [
+                      { mins: 60, label: '1 Hour Before' },
+                      { mins: 120, label: '2 Hours Before' },
+                      { mins: 720, label: '12 Hours Before' },
+                      { mins: 1440, label: '24 Hours Before' },
+                      { mins: 2880, label: '48 Hours Before' },
+                    ]
+                      .filter((opt) => selectedReminderOffsets.includes(opt.mins))
+                      .map((opt) => (
+                        <span key={opt.mins} className="bg-amber-50 text-amber-900 border border-amber-200/80 text-[11px] font-bold px-2 py-0.5 rounded-md">
+                          ⏱️ {opt.label}
+                        </span>
+                      ))
+                  )}
+                </div>
+              </div>
+
+              {/* Simple Reminder Options Checkboxes */}
+              <div className="space-y-2 pt-1">
+                <label className="block text-[12px] font-bold uppercase tracking-wider text-[#4B5563]">
+                  Select Reminder Schedules
+                </label>
+                <div className="space-y-2">
+                  {[
+                    { mins: 60, label: '1 Hour Before Session', desc: 'Sends quick 60-minute countdown email' },
+                    { mins: 120, label: '2 Hours Before Session', desc: 'Sends 2-hour session briefing reminder' },
+                    { mins: 720, label: '12 Hours Before Session', desc: 'Sends half-day advance notification' },
+                    { mins: 1440, label: '24 Hours (1 Day) Before Session', desc: 'Sends 1-day reminder email with calendar link' },
+                    { mins: 2880, label: '48 Hours (2 Days) Before Session', desc: 'Sends 2-day advance session notice' },
+                  ].map((option) => {
+                    const isChecked = selectedReminderOffsets.includes(option.mins);
+                    return (
+                      <label
+                        key={option.mins}
+                        onClick={() => {
+                          if (isChecked) {
+                            setSelectedReminderOffsets((prev) => prev.filter((m) => m !== option.mins));
+                          } else {
+                            setSelectedReminderOffsets((prev) => [...prev, option.mins].sort((a, b) => a - b));
+                          }
+                        }}
+                        className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                          isChecked
+                            ? 'bg-amber-50/70 border-amber-300 shadow-xs'
+                            : 'bg-[#F9FAFB] border-[#E5E7EB] hover:bg-gray-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}} // handled by parent label onClick
+                          className="mt-0.5 w-4 h-4 text-amber-600 rounded-md border-gray-300 focus:ring-amber-500 cursor-pointer shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <span className="block font-bold text-[13px] text-[#1F1F1F]">{option.label}</span>
+                          <span className="block text-[11px] text-gray-500 mt-0.5">{option.desc}</span>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-[#F0F0F0]">
+                <button
+                  type="button"
+                  onClick={handleSendTestReminder}
+                  disabled={isSendingTestReminder || (reminderWebinar.attendees?.length ?? 0) === 0}
+                  className="px-3.5 py-1.5 rounded-full text-[12px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Dispatch a test reminder email immediately to all registered attendees"
+                >
+                  {isSendingTestReminder ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-blue-700 border-t-transparent rounded-full animate-spin" />
+                      <span>Sending Test Email...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Send Test Reminder Now</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="flex items-center justify-end gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsReminderModalOpen(false);
+                      setReminderWebinar(null);
+                    }}
+                    disabled={isSavingReminders}
+                    className="px-4 py-2 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveReminders}
+                    disabled={isSavingReminders}
+                    className="px-5 py-2 rounded-full text-[13px] font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {isSavingReminders ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Saving Schedule...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Bell className="w-3.5 h-3.5" />
+                        <span>Save Reminder Schedule</span>
                       </>
                     )}
                   </button>
