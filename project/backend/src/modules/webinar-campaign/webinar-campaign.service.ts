@@ -1476,13 +1476,19 @@ ${rsvpButtonsHtml}
         `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date, 
                 to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
                 webinar_time as time, duration, meeting_link as "meetingLink", status,
+                created_at as "createdAt",
                 COALESCE(reminder_offsets, '{}') as "reminderOffsets"
          FROM webinars ORDER BY webinar_date DESC, created_at DESC`
       );
 
       const webinars = webinarsRes.rows;
 
+      // Find the latest created webinar (whose link/pass is being shared in active campaigns)
+      const latestRes = await db.query(`SELECT id FROM webinars ORDER BY created_at DESC LIMIT 1`);
+      const latestId = latestRes.rows[0]?.id;
+
       for (const w of webinars) {
+        w.isLatest = w.id === latestId;
         w.status = this.computeWebinarStatus(w.date, w.time, w.duration);
 
         const attendeesRes = await db.query(

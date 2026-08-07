@@ -51,6 +51,8 @@ interface DoctorProspect {
     status?: string;
     sentAt?: string;
     isoDate?: string;
+    scheduledDate?: string;
+    scheduledAt?: string;
   }>;
 }
 
@@ -171,6 +173,7 @@ export default function DoctorEmailSequenceFlowPage() {
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorProspect | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
   const [activeModalTab, setActiveModalTab] = useState<number>(1);
+  const [isSendingStep, setIsSendingStep] = useState<boolean>(false);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -225,12 +228,88 @@ export default function DoctorEmailSequenceFlowPage() {
   };
 
   /**
+   * Helper function to calculate or retrieve the scheduled date & time for a sequence step
+   */
+  const getScheduledDateForStep = (stepItem: any, docCreatedAt?: string, dayNum: number = 1): string => {
+    if (!stepItem) return '';
+
+    // 1. If step item has explicitly stored scheduledDate string (e.g. "Aug 10, 2026 @ 9:00 AM EST")
+    if (stepItem.scheduledDate) {
+      return stepItem.scheduledDate;
+    }
+
+    // 2. If step item has isoDate or scheduledAt ISO timestamp string
+    const targetIso = stepItem.isoDate || stepItem.scheduledAt;
+    if (targetIso) {
+      try {
+        const d = new Date(targetIso);
+        if (!isNaN(d.getTime())) {
+          return d.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        }
+      } catch(e) {}
+    }
+
+    // 3. Fallback: Calculate estimated scheduled date based on doctor creation / updated date
+    try {
+      const baseDate = docCreatedAt ? new Date(docCreatedAt) : new Date();
+      const offsetDays = (dayNum - 1) * 2 + 1;
+      const schedDate = new Date(baseDate);
+      schedDate.setDate(schedDate.getDate() + offsetDays);
+      schedDate.setHours(9, 0, 0, 0);
+
+      if (schedDate.getDay() === 6) schedDate.setDate(schedDate.getDate() + 2);
+      if (schedDate.getDay() === 0) schedDate.setDate(schedDate.getDate() + 1);
+
+      return schedDate.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }) + ' @ 9:00 AM EST';
+    } catch(e) {
+      return 'Scheduled Drip Step';
+    }
+  };
+
+  const handleSendStepNow = async (doctor: DoctorProspect, day: number) => {
+    setIsSendingStep(true);
+    try {
+      toast.info(`Dispatching Day ${day} email to ${doctor.fullName}...`);
+      const res = await apiClient.sendSequenceStepNow(doctor.id, day);
+      if (res && res.success) {
+        toast.success(`🎉 Day ${day} email successfully sent to ${doctor.fullName}!`);
+        if (res.sequence && Array.isArray(res.sequence)) {
+          setDoctors(prev => prev.map(d => d.id === doctor.id ? { ...d, stage: 'sent', aiSequence: res.sequence } : d));
+          setSelectedDoctor(prev => prev && prev.id === doctor.id ? { ...prev, stage: 'sent', aiSequence: res.sequence } : prev);
+        } else {
+          loadDoctors();
+        }
+      } else {
+        toast.error('Failed to send email step.');
+      }
+    } catch (err: any) {
+      toast.error('Failed to send step: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsSendingStep(false);
+    }
+  };
+
+  /**
    * Helper function to determine which of the 7 stages a doctor currently belongs to based on:
    * 1. If explicit stage is 'needs_call' or 'call_queue' -> 'needs_call' (Stage 7)
    * 2. If stage is 'pending_outreach' or sequence empty/no sent emails -> 'pending_outreach' (Stage 0)
    * 3. Highest sent step in `aiSequence` -> 'day_1', 'day_2', 'day_3', 'day_4', 'day_5'
    */
-  const getDoctorCurrentStage = (doc: DoctorProspect): { stageId: string; lastSentDate?: string; lastSentDay?: number } => {
+  const getDoctorCurrentStage = (doc: DoctorProspect): { stageId: string; lastSentDate?: string; lastSentDay?: number; nextScheduledDate?: string } => {
     const s = (doc.stage || '').toLowerCase();
 
     // 1. If explicit interested stage -> 'interested' stage
@@ -251,14 +330,16 @@ export default function DoctorEmailSequenceFlowPage() {
     // 4. If pending_outreach or sequence empty -> 'pending_outreach' stage
     if (s === 'pending_outreach' || !doc.aiSequence || !Array.isArray(doc.aiSequence) || doc.aiSequence.length === 0) {
       if (s === 'sent') return { stageId: 'day_1', lastSentDate: doc.updatedAt };
-      return { stageId: 'pending_outreach' };
+      const firstStepSched = doc.aiSequence?.[0] ? getScheduledDateForStep(doc.aiSequence[0], doc.createdAt, 1) : undefined;
+      return { stageId: 'pending_outreach', nextScheduledDate: firstStepSched };
     }
 
     // 5. Active sent drip sequence stage (Day 1 - Day 5) - only doctors whose stage is still active sent
     const sentSteps = doc.aiSequence.filter(step => step.status === 'sent' || step.sentAt);
     if (sentSteps.length === 0) {
       if (s === 'sent') return { stageId: 'day_1', lastSentDate: doc.updatedAt };
-      return { stageId: 'pending_outreach' };
+      const firstStepSched = getScheduledDateForStep(doc.aiSequence[0], doc.createdAt, 1);
+      return { stageId: 'pending_outreach', nextScheduledDate: firstStepSched };
     }
 
     let maxStep = sentSteps[0];
@@ -269,10 +350,15 @@ export default function DoctorEmailSequenceFlowPage() {
     }
 
     const stageId = `day_${Math.min(5, Math.max(1, maxStep.day))}`;
+    const nextStepNum = maxStep.day + 1;
+    const nextStepItem = doc.aiSequence.find(s => s.day === nextStepNum);
+    const nextScheduledDate = nextStepItem ? getScheduledDateForStep(nextStepItem, doc.createdAt, nextStepNum) : undefined;
+
     return { 
       stageId, 
       lastSentDate: maxStep.sentAt || doc.updatedAt || doc.createdAt,
-      lastSentDay: maxStep.day
+      lastSentDay: maxStep.day,
+      nextScheduledDate
     };
   };
 
@@ -560,11 +646,18 @@ export default function DoctorEmailSequenceFlowPage() {
                                 </div>
                               </div>
 
-                              {/* Sent Date info (if sent) */}
+                              {/* Sent Date or Scheduled Date info */}
                               {formattedSentDate ? (
                                 <div className="text-[11px] font-medium text-blue-700 bg-blue-50/90 px-2.5 py-1 rounded-md border border-blue-100 flex items-center gap-1.5">
                                   <Calendar className="w-3 h-3 text-blue-500 shrink-0" />
                                   <span className="truncate">Sent: {formattedSentDate}</span>
+                                </div>
+                              ) : stageInfo.nextScheduledDate ? (
+                                <div className="text-[11px] font-medium text-amber-800 bg-amber-50/90 px-2.5 py-1 rounded-md border border-amber-200/70 flex items-center gap-1.5">
+                                  <Clock className="w-3 h-3 text-amber-600 shrink-0" />
+                                  <span className="truncate" title={`Scheduled for ${stageInfo.nextScheduledDate}`}>
+                                    Sched: {stageInfo.nextScheduledDate}
+                                  </span>
                                 </div>
                               ) : (
                                 <div className="text-[11px] font-medium text-amber-700 bg-amber-50/80 px-2.5 py-1 rounded-md border border-amber-100 flex items-center gap-1.5">
@@ -648,11 +741,13 @@ export default function DoctorEmailSequenceFlowPage() {
                 {[1, 2, 3, 4, 5].map((dayNum) => {
                   const dayStep = selectedDoctor.aiSequence?.find(s => s.day === dayNum);
                   const isSent = dayStep?.status === 'sent' || dayStep?.sentAt;
+                  const schedDateText = getScheduledDateForStep(dayStep, selectedDoctor.createdAt, dayNum);
 
                   return (
                     <button
                       key={dayNum}
                       onClick={() => setActiveModalTab(dayNum)}
+                      title={isSent ? `Sent: ${formatDate(dayStep?.sentAt)}` : `Scheduled for: ${schedDateText}`}
                       className={`px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                         activeModalTab === dayNum
                           ? 'bg-blue-600 text-white shadow-xs'
@@ -663,7 +758,7 @@ export default function DoctorEmailSequenceFlowPage() {
                       {isSent ? (
                         <CheckCircle2 className={`w-3.5 h-3.5 ${activeModalTab === dayNum ? 'text-white' : 'text-emerald-500'}`} />
                       ) : (
-                        <Clock className={`w-3.5 h-3.5 ${activeModalTab === dayNum ? 'text-white' : 'text-gray-400'}`} />
+                        <Clock className={`w-3.5 h-3.5 ${activeModalTab === dayNum ? 'text-white' : 'text-amber-500'}`} />
                       )}
                     </button>
                   );
@@ -691,14 +786,14 @@ export default function DoctorEmailSequenceFlowPage() {
                         </div>
 
                         {isSent ? (
-                          <div className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <div className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                             <span>Sent {formattedDate ? `on ${formattedDate}` : ''}</span>
                           </div>
                         ) : (
-                          <div className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5 text-amber-600" />
-                            <span>Scheduled Drip Step</span>
+                          <div className="text-[11px] font-bold text-amber-800 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200/80 flex items-center gap-1.5 shadow-2xs">
+                            <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>Scheduled: {getScheduledDateForStep(currentStep, selectedDoctor.createdAt, activeModalTab)}</span>
                           </div>
                         )}
                       </div>
@@ -737,17 +832,35 @@ export default function DoctorEmailSequenceFlowPage() {
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-                <div className="text-[12px] text-gray-500">
+              <div className="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between gap-3">
+                <div className="text-[12px] text-gray-500 truncate">
                   Current Database Stage: <strong className="text-gray-900 uppercase font-mono">{selectedDoctor.stage}</strong>
                 </div>
 
-                <button
-                  onClick={() => setIsPreviewOpen(false)}
-                  className="px-5 py-2 bg-gray-900 hover:bg-black text-white text-[13px] font-bold rounded-full transition-all cursor-pointer"
-                >
-                  Close Preview
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  {(() => {
+                    const currentStep = selectedDoctor.aiSequence?.find(s => s.day === activeModalTab);
+                    const isSent = currentStep?.status === 'sent' || currentStep?.sentAt;
+                    if (isSent) return null;
+                    return (
+                      <button
+                        disabled={isSendingStep}
+                        onClick={() => handleSendStepNow(selectedDoctor, activeModalTab)}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] font-bold rounded-full transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>{isSendingStep ? 'Dispatching Email...' : `Dispatch Day ${activeModalTab} Now`}</span>
+                      </button>
+                    );
+                  })()}
+
+                  <button
+                    onClick={() => setIsPreviewOpen(false)}
+                    className="px-5 py-2 bg-gray-900 hover:bg-black text-white text-[13px] font-bold rounded-full transition-all cursor-pointer shadow-xs"
+                  >
+                    Close Preview
+                  </button>
+                </div>
               </div>
             </div>
           </div>

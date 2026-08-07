@@ -640,14 +640,13 @@ export default function DoctorLeadsPage() {
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Specialty & Clinic</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Location</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Contact Info</th>
-                  <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">AI / DB Status</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Email Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F2F2F2]">
                 {displayedProspects.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-14 text-center bg-[#FCFCFC]/80">
+                    <td colSpan={6} className="px-6 py-14 text-center bg-[#FCFCFC]/80">
                       <div className="flex flex-col items-center justify-center gap-2.5 max-w-md mx-auto">
                         <div className="w-12 h-12 rounded-full bg-[#FFD66B]/20 flex items-center justify-center text-[#D9A11E] mb-1">
                           <Stethoscope className="w-6 h-6" />
@@ -726,19 +725,6 @@ export default function DoctorLeadsPage() {
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         <div className="text-[13px] text-[#1F1F1F] font-medium">{doc.email}</div>
                         <div className="text-[12px] text-[#8E8E93]">{doc.phone}</div>
-                      </td>
-                      <td className="px-6 py-4.5 whitespace-nowrap">
-                        {doc.isAlreadyEnriched ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-green-50 text-green-700 border border-green-200">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                            Saved in Database ({doc.emailStatus || 'verified'})
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                            <Clock className="w-3.5 h-3.5 text-amber-600" />
-                            Unenriched (Check box to Save)
-                          </span>
-                        )}
                       </td>
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         {doc.status === 'interested' || doc.stage === 'interested' ? (

@@ -62,6 +62,8 @@ interface Webinar {
   totalJoined?: number;
   noShowCount?: number;
   reminderOffsets?: number[];
+  isLatest?: boolean;
+  createdAt?: string;
 }
 
 function formatTimeTo12HourEST(timeStr: string): string {
@@ -515,6 +517,14 @@ export default function WebinarsPage() {
   const totalAttendeesCount = uniqueDoctorIds.size;
   const upcomingCount = webinars.filter((w) => w.status === 'upcoming' || w.status === 'live').length;
 
+  // Active webinar whose link/pass is currently being shared in outreach campaigns
+  const activeWebinarId = (() => {
+    if (webinars.length === 0) return null;
+    const serverLatest = webinars.find((w) => w.isLatest);
+    if (serverLatest) return serverLatest.id;
+    return webinars[0]?.id;
+  })();
+
   // Mini Calendar Calculations
   const year = currentCalendarMonth.getFullYear();
   const month = currentCalendarMonth.getMonth();
@@ -837,9 +847,23 @@ export default function WebinarsPage() {
 
                     {/* Title & Description */}
                     <div>
-                      <h2 className="text-[20px] font-goudy font-bold text-[#1F1F1F] leading-snug">
-                        {webinar.title}
-                      </h2>
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <h2 className="text-[20px] font-goudy font-bold text-[#1F1F1F] leading-snug">
+                          {webinar.title}
+                        </h2>
+                        {(webinar.isLatest || webinar.id === activeWebinarId) && (
+                          <span
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-2xs tracking-wide transition-all"
+                            title="Active Now: This is the latest webinar whose link & access pass are currently being shared with doctors"
+                          >
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <span>ACTIVE NOW</span>
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[13px] text-[#6C6C6C] mt-1.5 leading-relaxed">
                         {webinar.description}
                       </p>
