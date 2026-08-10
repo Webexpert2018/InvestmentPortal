@@ -152,6 +152,19 @@ export default function DoctorLeadsPage() {
   const [newLocation, setNewLocation] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [isSavingDoctor, setIsSavingDoctor] = useState(false);
+  const [savedProspectId, setSavedProspectId] = useState<string | null>(null);
+  const [isSendingWebinarLink, setIsSendingWebinarLink] = useState(false);
+
+  const handleOpenAddModal = () => {
+    setNewFullName('');
+    setNewEmail('');
+    setNewSpecialty('');
+    setNewOrganization('');
+    setNewLocation('');
+    setNewPhone('');
+    setSavedProspectId(null);
+    setIsAddModalOpen(true);
+  };
 
   const handleCreateDoctor = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,15 +192,10 @@ export default function DoctorLeadsPage() {
         phone: newPhone.trim()
       });
 
-      if (res && res.success) {
-        toast.success(`🎉 Added ${newFullName} to database!`);
-        setIsAddModalOpen(false);
-        setNewFullName('');
-        setNewEmail('');
-        setNewSpecialty('');
-        setNewOrganization('');
-        setNewLocation('');
-        setNewPhone('');
+      if (res && res.success && res.prospect) {
+        const prospectId = res.prospect.apollo_id || res.prospect.id;
+        setSavedProspectId(prospectId);
+        toast.success(`🎉 Saved ${newFullName} to database! Click 'Send Active Webinar Link' below to dispatch session invite.`);
         setActiveTab('saved');
         await handleLoadSavedFromDb({ silent: true });
       } else {
@@ -198,6 +206,44 @@ export default function DoctorLeadsPage() {
       toast.error(err.message || 'Error creating doctor prospect');
     } finally {
       setIsSavingDoctor(false);
+    }
+  };
+
+  const handleSendActiveWebinarLink = async () => {
+    if (!savedProspectId) {
+      toast.warning('Please save lead to database first.');
+      return;
+    }
+
+    setIsSendingWebinarLink(true);
+    try {
+      const webinarsRes = await apiClient.getWebinars();
+      if (!webinarsRes || !webinarsRes.webinars || webinarsRes.webinars.length === 0) {
+        toast.error('No scheduled webinars found. Please create a webinar session first.');
+        return;
+      }
+
+      const activeWebinar = webinarsRes.webinars.find(
+        (w: any) => w.status === 'upcoming' || w.status === 'in_progress'
+      ) || webinarsRes.webinars[0];
+
+      if (!activeWebinar) {
+        toast.error('No active webinar found.');
+        return;
+      }
+
+      const inviteRes = await apiClient.sendDirectWebinarInvites(activeWebinar.id, [savedProspectId]);
+      if (inviteRes && inviteRes.success) {
+        toast.success(`📩 Direct webinar invitation & pass sent to ${newFullName || 'doctor'} for "${activeWebinar.title}"!`);
+        setIsAddModalOpen(false);
+      } else {
+        toast.error(inviteRes?.message || 'Failed to send webinar link.');
+      }
+    } catch (err: any) {
+      console.error('Error sending webinar link:', err);
+      toast.error(err.message || 'Error sending webinar link');
+    } finally {
+      setIsSendingWebinarLink(false);
     }
   };
 
@@ -563,7 +609,7 @@ export default function DoctorLeadsPage() {
 
             <div className="flex flex-wrap items-center gap-2.5">
               <button
-                onClick={() => setIsAddModalOpen(true)}
+                onClick={handleOpenAddModal}
                 className="text-[12px] font-bold px-4 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <UserPlus className="w-3.5 h-3.5" />
@@ -896,21 +942,55 @@ export default function DoctorLeadsPage() {
                   <span>The new physician lead will be saved directly to PostgreSQL and displayed in your <strong>Saved in Database</strong> tab.</span>
                 </div>
 
-                <div className="pt-3 flex items-center justify-end gap-3 border-t border-gray-100">
+                <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-gray-100 flex-wrap">
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+                    className="px-4 py-2.5 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
                   >
-                    Cancel
+                    {savedProspectId ? 'Done / Close' : 'Cancel'}
                   </button>
+
                   <button
                     type="submit"
-                    disabled={isSavingDoctor}
-                    className="px-6 py-2.5 rounded-full text-[13px] font-bold bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-sm flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+                    disabled={isSavingDoctor || Boolean(savedProspectId)}
+                    className={`px-5 py-2.5 rounded-full text-[13px] font-bold shadow-sm flex items-center gap-2 transition-all cursor-pointer ${
+                      savedProspectId
+                        ? 'bg-green-100 text-green-800 border border-green-300 opacity-90'
+                        : 'bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F]'
+                    }`}
                   >
-                    {isSavingDoctor ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                    <span>Save to Database</span>
+                    {isSavingDoctor ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : savedProspectId ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <Plus className="w-4 h-4" />
+                    )}
+                    <span>{savedProspectId ? 'Saved to DB' : 'Save to Database'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!savedProspectId || isSendingWebinarLink}
+                    onClick={handleSendActiveWebinarLink}
+                    className={`px-5 py-2.5 rounded-full text-[13px] font-bold shadow-sm flex items-center gap-2 transition-all ${
+                      savedProspectId
+                        ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow-amber-200'
+                        : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60'
+                    }`}
+                    title={
+                      savedProspectId
+                        ? 'Send active webinar invitation & VIP pass link to this doctor'
+                        : 'Save lead to database first to enable sending webinar link'
+                    }
+                  >
+                    {isSendingWebinarLink ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                    <span>Send Active Webinar Link</span>
                   </button>
                 </div>
               </form>
