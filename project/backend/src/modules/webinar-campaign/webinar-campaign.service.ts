@@ -1613,20 +1613,7 @@ ${rsvpButtonsHtml}
     }
 
     try {
-      // 1. Check if passes have been sent or attendees exist
-      const passCheck = await db.query(
-        `SELECT COUNT(*) FROM webinar_attendees WHERE webinar_id = $1`,
-        [id]
-      );
-      const count = parseInt(passCheck.rows[0]?.count || '0', 10);
-      if (count > 0) {
-        throw new HttpException(
-          'Cannot edit webinar after session passes have been sent or doctors have registered.',
-          HttpStatus.FORBIDDEN
-        );
-      }
-
-      // 2. Perform update
+      // 1. Perform update
       const formattedTime = data.webinarTime?.trim()
         ? this.formatBackendTimeEST(data.webinarTime, data.webinarDate)
         : '04:00 PM EDT';
@@ -1665,15 +1652,128 @@ ${rsvpButtonsHtml}
 
       const updatedWebinar = res.rows[0];
       updatedWebinar.status = this.computeWebinarStatus(updatedWebinar.date, updatedWebinar.time, updatedWebinar.duration);
-      updatedWebinar.attendees = [];
-      updatedWebinar.totalPassesSent = 0;
-      updatedWebinar.totalJoined = 0;
-      updatedWebinar.noShowCount = 0;
 
-      this.logger.log(`✏️ Updated webinar: ${data.title} (${id})`);
+      // 2. Fetch existing attendees / pass recipients
+      const attendeesRes = await db.query(
+        `SELECT wa.prospect_id as id, dp.full_name as "fullName", dp.specialty, dp.organization, dp.location, dp.email, dp.phone, wa.status, wa.total_duration_minutes as duration, wa.first_joined_at as "joinTime"
+         FROM webinar_attendees wa
+         JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
+         WHERE wa.webinar_id = $1`,
+        [id]
+      );
+      const rawAttendees = attendeesRes.rows || [];
+      updatedWebinar.attendees = rawAttendees.map((att: any) => ({
+        ...att,
+        duration: att.status === 'attended' ? (att.duration ? `${att.duration} mins` : '0 mins') : 'N/A',
+        joinTime: att.joinTime ? new Date(att.joinTime).toISOString() : undefined,
+      }));
+      updatedWebinar.totalPassesSent = rawAttendees.length;
+      updatedWebinar.totalJoined = rawAttendees.filter((att: any) => att.status === 'attended').length;
+      updatedWebinar.noShowCount = rawAttendees.filter((att: any) => att.status !== 'attended').length;
+
+      // 3. Dispatch email notifications to all users who received passes
+      let notifiedCount = 0;
+      if (rawAttendees.length > 0) {
+        const title = updatedWebinar.title || 'Ovalia Capital Physician Wealth Briefing';
+        const formattedDate = updatedWebinar.formattedDate || updatedWebinar.date || 'Scheduled Date';
+        const timeStr = this.formatBackendTimeEST(updatedWebinar.time, updatedWebinar.date);
+        const durationRaw = (updatedWebinar.duration || '45').toString().trim();
+        const durationStr = durationRaw.toLowerCase().includes('min') ? durationRaw : `${durationRaw} mins`;
+        const durationMinsNum = parseInt(durationRaw, 10) || 45;
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+        for (const att of rawAttendees) {
+          const doctorEmail = att.email;
+          const doctorName = att.fullName || 'Physician';
+          const apolloId = att.id;
+
+          if (!doctorEmail) continue;
+
+          const webinarPassUrl = `${frontendUrl}/webinar/pass?prospect_id=${encodeURIComponent(apolloId)}&webinar_id=${encodeURIComponent(updatedWebinar.id)}`;
+          const gcalUrl = this.generateGoogleCalendarUrl(
+            title,
+            updatedWebinar.date,
+            updatedWebinar.time,
+            durationMinsNum,
+            updatedWebinar.meetingLink || webinarPassUrl
+          );
+
+          const subject = `📅 Schedule Update: ${title}`;
+          const emailBody = `
+<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1F1F1F; text-align: left; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #E5E7EB; border-radius: 12px; background-color: #FFFFFF;">
+  <h2 style="color: #1F2937; margin: 0 0 12px 0; font-size: 20px; font-weight: bold; line-height: 1.3;">Webinar Details Updated, ${doctorName}!</h2>
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 0 0 16px 0;">
+    Please note that the schedule or session details for your upcoming <strong>Ovalia Capital Physician Wealth Briefing</strong> have been updated.
+  </p>
+
+  <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; margin: 16px 0;">
+    <h3 style="margin: 0 0 10px 0; font-size: 15px; font-weight: bold; color: #111827;">🗓️ Updated Session Briefing Details</h3>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; color: #374151;">
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold; width: 90px;">Session:</td>
+        <td style="padding: 4px 0; color: #111827; font-weight: 600;">${title}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Date:</td>
+        <td style="padding: 4px 0;">${formattedDate}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Time:</td>
+        <td style="padding: 4px 0;">${timeStr}</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0; font-weight: bold;">Duration:</td>
+        <td style="padding: 4px 0;">${durationStr}</td>
+      </tr>
+    </table>
+  </div>
+
+  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 16px 0 8px 0;">
+    Update this event on your calendar to reflect the updated time in your local timezone:
+  </p>
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 12px 0 20px 0; text-align: center;">
+    <tr>
+      <td align="center" style="text-align: center; padding-bottom: 12px;">
+        <a href="${gcalUrl}" target="_blank" style="background-color: #4285F4; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(66, 133, 244, 0.25);">
+          📅 Update Google Calendar Event
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="text-align: center;">
+        <a href="${webinarPassUrl}" target="_blank" style="background-color: #22C55E; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);">
+          🎟️ Access Your VIP Session Pass
+        </a>
+      </td>
+    </tr>
+  </table>
+  <p style="font-size: 13px; color: #6B7280; line-height: 1.5; margin: 16px 0 0 0;">
+    If you have any questions, contact our investor relations team at <a href="mailto:portal@ovaliacapital.com" style="color: #2563EB; text-decoration: underline;">portal@ovaliacapital.com</a>.
+  </p>
+</div>`;
+
+          try {
+            await this.emailService.sendCustomEmail(doctorEmail, doctorName, subject, emailBody);
+            await db.query(
+              `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, 'webinar_details_updated_email_sent', $2, CURRENT_TIMESTAMP)`,
+              [apolloId, JSON.stringify({ webinarId: updatedWebinar.id, webinarTitle: title, sentAt: new Date().toISOString() })]
+            );
+            notifiedCount++;
+            this.logger.log(`📩 Sent webinar update email to ${doctorName} (${doctorEmail}) for webinar ${updatedWebinar.id}`);
+          } catch (sendErr: any) {
+            this.logger.error(`Failed to send webinar update email to ${doctorEmail}: ${sendErr.message}`);
+          }
+        }
+      }
+
+      this.logger.log(`✏️ Updated webinar: ${data.title} (${id}). Notified ${notifiedCount} pass holders.`);
       return {
         success: true,
         webinar: updatedWebinar,
+        notifiedCount,
+        message: notifiedCount > 0
+          ? `Webinar updated and notification emails dispatched to ${notifiedCount} pass holder(s).`
+          : 'Webinar updated successfully.',
       };
     } catch (err: any) {
       if (err instanceof HttpException) throw err;

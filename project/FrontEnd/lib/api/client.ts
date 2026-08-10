@@ -1548,7 +1548,7 @@ class ApiClient {
     duration?: string;
     meetingLink: string;
   }) {
-    return this.request<{ success: boolean; webinar: any }>(`/webinar-campaign/webinars/${encodeURIComponent(id)}`, {
+    return this.request<{ success: boolean; webinar: any; notifiedCount?: number; message?: string }>(`/webinar-campaign/webinars/${encodeURIComponent(id)}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });

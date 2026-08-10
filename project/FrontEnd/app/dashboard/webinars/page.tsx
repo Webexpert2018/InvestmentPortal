@@ -304,11 +304,6 @@ export default function WebinarsPage() {
   };
 
   const handleOpenEditModal = (webinar: Webinar) => {
-    const isLocked = (webinar.totalPassesSent ?? 0) > 0 || (webinar.attendees?.length ?? 0) > 0;
-    if (isLocked) {
-      toast.error('Editing locked: Passes have already been sent or doctors registered for this session.');
-      return;
-    }
     setEditingWebinarId(webinar.id);
     setEditTitle(webinar.title || '');
     setEditDescription(webinar.description || '');
@@ -344,7 +339,10 @@ export default function WebinarsPage() {
       });
 
       if (res && res.success && res.webinar) {
-        toast.success('🎉 Webinar updated & saved to database!');
+        const notifiedMsg = (res as any).notifiedCount && (res as any).notifiedCount > 0
+          ? `🎉 Webinar updated! Update emails dispatched to ${(res as any).notifiedCount} pass holder(s).`
+          : '🎉 Webinar updated & saved to database!';
+        toast.success(notifiedMsg);
         setWebinars((prev) =>
           prev.map((w) => (w.id === editingWebinarId ? { ...w, ...res.webinar } : w))
         );
@@ -375,7 +373,7 @@ export default function WebinarsPage() {
       }
     } catch (err: any) {
       console.error('Error deleting webinar:', err);
-      toast.error(err.message || 'Failed to delete webinar');
+      toast.error(err.message || 'Error deleting webinar');
     } finally {
       setIsDeleting(false);
     }
@@ -950,27 +948,13 @@ export default function WebinarsPage() {
                         })()}
 
                         {/* Edit Webinar Button */}
-                        {(() => {
-                          const isLocked = (webinar.totalPassesSent ?? 0) > 0 || (webinar.attendees?.length ?? 0) > 0;
-                          return (
-                            <button
-                              onClick={() => handleOpenEditModal(webinar)}
-                              disabled={isLocked}
-                              className={`p-2 rounded-full transition-all flex items-center justify-center ${
-                                isLocked
-                                  ? 'text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed opacity-60'
-                                  : 'text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80'
-                              }`}
-                              title={
-                                isLocked
-                                  ? 'Editing locked — Passes have already been sent or doctors have registered'
-                                  : 'Edit Webinar Details'
-                              }
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                          );
-                        })()}
+                        <button
+                          onClick={() => handleOpenEditModal(webinar)}
+                          className="p-2 text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-full transition-all flex items-center justify-center"
+                          title="Edit Webinar Details"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
 
                         {/* Delete Webinar Button */}
                         <button
