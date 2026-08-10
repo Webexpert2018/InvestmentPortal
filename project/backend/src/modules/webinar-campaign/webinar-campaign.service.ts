@@ -240,7 +240,7 @@ export class WebinarCampaignService {
     if (apolloIds.length > 0) {
       try {
         const dbResult = await db.query(
-          `SELECT apollo_id, email, phone, email_status, stage FROM doctor_prospects WHERE apollo_id = ANY($1)`,
+          `SELECT apollo_id, email, phone, email_status, stage, created_at FROM doctor_prospects WHERE apollo_id = ANY($1)`,
           [apolloIds]
         );
         for (const row of dbResult.rows) {
@@ -266,6 +266,8 @@ export class WebinarCampaignService {
         }
       }
 
+      const createdAt = isAlreadySaved ? (saved?.created_at || saved?.createdAt || new Date().toISOString()) : undefined;
+
       return {
         ...p,
         email,
@@ -274,6 +276,8 @@ export class WebinarCampaignService {
         emailStatus: isAlreadySaved ? (saved?.email_status || 'verified') : undefined,
         status: isAlreadySaved && ['sent', 'interested', 'not_interested'].includes(saved?.stage) ? saved.stage : 'ai_copy_ready',
         stage: saved?.stage || 'pending_outreach',
+        createdAt,
+        created_at: createdAt,
       };
     });
   }
@@ -453,12 +457,16 @@ export class WebinarCampaignService {
       if (!email || email.includes('Bulk Match Required') || email.includes('..') || email.includes('@medical-verified.org') || row.apollo_id === '66d7f2c85b1234567890abd0') {
         email = 'ishadubey343@gmail.com';
       }
+      const rawDate = row.created_at || row.createdAt || row.updated_at;
+      const validCreatedAt = rawDate ? (typeof rawDate === 'string' ? rawDate : new Date(rawDate).toISOString()) : new Date().toISOString();
       return {
         ...row,
         id: row.apollo_id || row.id,
         fullName: row.full_name || row.fullName || 'Dr. David Wiebe, MD',
         phone,
         email,
+        createdAt: validCreatedAt,
+        created_at: validCreatedAt,
         status: ['sent', 'interested', 'not_interested'].includes(row.stage) ? row.stage : 'ai_copy_ready',
         stage: row.stage || 'pending_outreach',
         isAlreadyEnriched: true,

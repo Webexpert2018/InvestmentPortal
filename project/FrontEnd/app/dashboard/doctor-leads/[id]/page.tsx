@@ -362,7 +362,7 @@ export default function DoctorProfilePage() {
               <div className="flex items-center gap-2">
                 {doctor.stage === 'interested' ? (
                   <span className="px-3.5 py-1.5 rounded-full text-[13px] font-bold bg-green-500/20 text-green-300 border border-green-500/40 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-green-400" /> 🔥 Interested (Clicked Yes)
+                    <CheckCircle2 className="w-4 h-4 text-green-400" /> 🔥 Interested
                   </span>
                 ) : doctor.stage === 'sent' || doctor.status === 'sent' ? (
                   <span className="px-3.5 py-1.5 rounded-full text-[13px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center gap-1.5">

@@ -654,10 +654,10 @@ export default function WebinarsPage() {
                         }
                       }}
                       className={`h-6.5 rounded-full flex flex-col items-center justify-center relative transition-all ${isSelected
-                          ? 'bg-[#FFC63F] text-[#1F1F1F] font-bold shadow-sm'
-                          : hasWebinar
-                            ? 'bg-amber-50 text-amber-900 font-bold hover:bg-amber-100'
-                            : 'hover:bg-gray-100 text-gray-700'
+                        ? 'bg-[#FFC63F] text-[#1F1F1F] font-bold shadow-sm'
+                        : hasWebinar
+                          ? 'bg-amber-50 text-amber-900 font-bold hover:bg-amber-100'
+                          : 'hover:bg-gray-100 text-gray-700'
                         }`}
                     >
                       <span>{dayNum}</span>
@@ -714,8 +714,8 @@ export default function WebinarsPage() {
               <button
                 onClick={() => setActiveTab('all')}
                 className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${activeTab === 'all'
-                    ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm'
-                    : 'bg-white hover:bg-gray-100 text-[#6C6C6C]'
+                  ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm'
+                  : 'bg-white hover:bg-gray-100 text-[#6C6C6C]'
                   }`}
               >
                 All Webinars ({totalWebinars})
@@ -723,8 +723,8 @@ export default function WebinarsPage() {
               <button
                 onClick={() => setActiveTab('upcoming')}
                 className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${activeTab === 'upcoming'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-white hover:bg-blue-50 text-blue-700 border border-blue-200'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-white hover:bg-blue-50 text-blue-700 border border-blue-200'
                   }`}
               >
                 Upcoming ({upcomingCount})
@@ -732,8 +732,8 @@ export default function WebinarsPage() {
               <button
                 onClick={() => setActiveTab('completed')}
                 className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${activeTab === 'completed'
-                    ? 'bg-gray-800 text-white shadow-sm'
-                    : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
+                  ? 'bg-gray-800 text-white shadow-sm'
+                  : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
                   }`}
               >
                 Completed ({totalWebinars - upcomingCount})
@@ -905,7 +905,7 @@ export default function WebinarsPage() {
                           title="Send Direct Webinar Invitation & Session Pass to Doctors"
                         >
                           <Send className="w-3.5 h-3.5 text-amber-700" />
-                          <span>Send Direct Invite</span>
+                          <span>Send Link</span>
                         </button>
                       </div>
 
@@ -928,11 +928,10 @@ export default function WebinarsPage() {
                           return (
                             <button
                               onClick={() => handleOpenReminderModal(webinar)}
-                              className={`p-2 rounded-full transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                                activeRemindersCount > 0
+                              className={`p-2 rounded-full transition-all flex items-center justify-center gap-1 cursor-pointer ${activeRemindersCount > 0
                                   ? 'text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 font-bold'
                                   : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 border border-gray-200'
-                              }`}
+                                }`}
                               title={
                                 activeRemindersCount > 0
                                   ? `Automated Reminders Active (${activeRemindersCount} scheduled)`
@@ -1492,13 +1491,12 @@ export default function WebinarsPage() {
                     return (
                       <label
                         key={docId}
-                        className={`flex items-center justify-between p-3.5 rounded-lg transition-colors ${
-                          isAlreadyRegistered
+                        className={`flex items-center justify-between p-3.5 rounded-lg transition-colors ${isAlreadyRegistered
                             ? 'bg-gray-50/80 opacity-70 cursor-not-allowed'
                             : isSelected
-                            ? 'bg-amber-50/70 border-l-4 border-amber-500 cursor-pointer'
-                            : 'hover:bg-gray-50 cursor-pointer'
-                        }`}
+                              ? 'bg-amber-50/70 border-l-4 border-amber-500 cursor-pointer'
+                              : 'hover:bg-gray-50 cursor-pointer'
+                          }`}
                       >
                         <div className="flex items-center gap-3 min-w-0 pr-2">
                           <input
@@ -1675,16 +1673,15 @@ export default function WebinarsPage() {
                             setSelectedReminderOffsets((prev) => [...prev, option.mins].sort((a, b) => a - b));
                           }
                         }}
-                        className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
-                          isChecked
+                        className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isChecked
                             ? 'bg-amber-50/70 border-amber-300 shadow-xs'
                             : 'bg-[#F9FAFB] border-[#E5E7EB] hover:bg-gray-50'
-                        }`}
+                          }`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          onChange={() => {}} // handled by parent label onClick
+                          onChange={() => { }} // handled by parent label onClick
                           className="mt-0.5 w-4 h-4 text-amber-600 rounded-md border-gray-300 focus:ring-amber-500 cursor-pointer shrink-0"
                         />
                         <div className="min-w-0">

@@ -20,7 +20,8 @@ import {
   MapPin,
   UserPlus,
   Plus,
-  X
+  X,
+  Calendar
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -40,7 +41,24 @@ interface DoctorProspect {
   isAlreadyEnriched?: boolean;
   emailStatus?: string;
   stage?: string;
+  createdAt?: string;
+  created_at?: string;
 }
+
+const formatAddedDate = (rawDate?: string | Date | null) => {
+  if (!rawDate || rawDate === 'null' || rawDate === 'undefined') return 'N/A';
+  try {
+    const d = new Date(rawDate);
+    if (isNaN(d.getTime())) return 'N/A';
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    return 'N/A';
+  }
+};
 
 const INITIAL_PROSPECTS: DoctorProspect[] = [
   {
@@ -51,7 +69,8 @@ const INITIAL_PROSPECTS: DoctorProspect[] = [
     location: 'Austin, TX',
     email: 'dwiebe@austinspine.example.com',
     phone: '+1 (512) 555-0192',
-    status: 'ai_copy_ready'
+    status: 'ai_copy_ready',
+    createdAt: '2026-08-01T10:00:00.000Z'
   },
   {
     id: 'doc-102',
@@ -61,7 +80,8 @@ const INITIAL_PROSPECTS: DoctorProspect[] = [
     location: 'Chicago, IL',
     email: 'sjenkins@midwestheart.example.com',
     phone: '+1 (312) 555-0148',
-    status: 'ai_copy_ready'
+    status: 'ai_copy_ready',
+    createdAt: '2026-08-03T11:30:00.000Z'
   },
   {
     id: 'doc-103',
@@ -71,7 +91,8 @@ const INITIAL_PROSPECTS: DoctorProspect[] = [
     location: 'Miami, FL',
     email: 'mvance@vancederm.example.com',
     phone: '+1 (305) 555-0183',
-    status: 'ai_copy_ready'
+    status: 'ai_copy_ready',
+    createdAt: '2026-08-05T14:15:00.000Z'
   },
   {
     id: 'doc-104',
@@ -81,7 +102,8 @@ const INITIAL_PROSPECTS: DoctorProspect[] = [
     location: 'San Francisco, CA',
     email: 'erostova@pacificneuro.example.com',
     phone: '+1 (415) 555-0129',
-    status: 'pending_apollo'
+    status: 'pending_apollo',
+    createdAt: '2026-08-07T09:45:00.000Z'
   },
   {
     id: 'doc-105',
@@ -91,7 +113,8 @@ const INITIAL_PROSPECTS: DoctorProspect[] = [
     location: 'Dallas, TX',
     email: 'rthorne@thornesurgical.example.com',
     phone: '+1 (214) 555-0174',
-    status: 'pending_apollo'
+    status: 'pending_apollo',
+    createdAt: '2026-08-09T08:20:00.000Z'
   }
 ];
 
@@ -283,7 +306,9 @@ export default function DoctorLeadsPage() {
           status: ['sent', 'interested', 'not_interested'].includes(r.stage || r.status) ? (r.stage || r.status) : 'ai_copy_ready',
           isAlreadyEnriched: true,
           emailStatus: r.email_status || 'verified',
-          stage: r.stage || r.status || 'pending_outreach'
+          stage: r.stage || r.status || 'pending_outreach',
+          createdAt: r.created_at || r.createdAt || r.updated_at,
+          created_at: r.created_at || r.createdAt || r.updated_at,
         }));
         setProspects(mapped);
         setSelectedIds([]);
@@ -641,12 +666,13 @@ export default function DoctorLeadsPage() {
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Location</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Contact Info</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Email Status</th>
+                  <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Date Added</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F2F2F2]">
                 {displayedProspects.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-14 text-center bg-[#FCFCFC]/80">
+                    <td colSpan={7} className="px-6 py-14 text-center bg-[#FCFCFC]/80">
                       <div className="flex flex-col items-center justify-center gap-2.5 max-w-md mx-auto">
                         <div className="w-12 h-12 rounded-full bg-[#FFD66B]/20 flex items-center justify-center text-[#D9A11E] mb-1">
                           <Stethoscope className="w-6 h-6" />
@@ -730,7 +756,7 @@ export default function DoctorLeadsPage() {
                         {doc.status === 'interested' || doc.stage === 'interested' ? (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-green-50 text-green-700 border border-green-200 shadow-sm">
                             <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                            🔥 Interested (Clicked Yes)
+                            🔥 Interested
                           </span>
                         ) : doc.status === 'not_interested' || doc.stage === 'not_interested' ? (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-red-50 text-red-700 border border-red-200">
@@ -748,6 +774,12 @@ export default function DoctorLeadsPage() {
                             Not Sent Yet
                           </span>
                         )}
+                      </td>
+                      <td className="px-6 py-4.5 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 text-[13px] text-[#4B4B4B] font-medium">
+                          <Calendar className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                          <span>{formatAddedDate(doc.createdAt || doc.created_at)}</span>
+                        </div>
                       </td>
                     </tr>
                   ))
