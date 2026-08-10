@@ -24,7 +24,8 @@ import {
   TrendingUp,
   Award,
   Plus,
-  Trash2
+  Trash2,
+  PhoneCall
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -38,7 +39,7 @@ interface DoctorProspect {
   location: string;
   email: string;
   phone?: string;
-  status: 'pending_apollo' | 'ai_copy_ready' | 'sent' | 'interested' | 'not_interested' | 'error';
+  status: 'pending_apollo' | 'ai_copy_ready' | 'sent' | 'interested' | 'not_interested' | 'needs_call' | 'error';
   isAlreadyEnriched?: boolean;
   emailStatus?: string;
   stage?: string;
@@ -363,6 +364,10 @@ export default function DoctorProfilePage() {
                 {doctor.stage === 'interested' ? (
                   <span className="px-3.5 py-1.5 rounded-full text-[13px] font-bold bg-green-500/20 text-green-300 border border-green-500/40 flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-green-400" /> 🔥 Interested
+                  </span>
+                ) : (doctor as any)?.stage === 'needs_call' || (doctor as any)?.status === 'needs_call' ? (
+                  <span className="px-3.5 py-1.5 rounded-full text-[13px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5">
+                    <PhoneCall className="w-4 h-4 text-amber-400" /> Needs Phone Call
                   </span>
                 ) : doctor.stage === 'sent' || doctor.status === 'sent' ? (
                   <span className="px-3.5 py-1.5 rounded-full text-[13px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center gap-1.5">

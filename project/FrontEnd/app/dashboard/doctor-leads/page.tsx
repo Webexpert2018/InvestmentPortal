@@ -21,7 +21,8 @@ import {
   UserPlus,
   Plus,
   X,
-  Calendar
+  Calendar,
+  PhoneCall
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -37,7 +38,7 @@ interface DoctorProspect {
   location: string;
   email: string;
   phone?: string;
-  status: 'pending_apollo' | 'ai_copy_ready' | 'sent' | 'interested' | 'not_interested' | 'error';
+  status: 'pending_apollo' | 'ai_copy_ready' | 'sent' | 'interested' | 'not_interested' | 'needs_call' | 'error';
   isAlreadyEnriched?: boolean;
   emailStatus?: string;
   stage?: string;
@@ -262,11 +263,11 @@ export default function DoctorLeadsPage() {
           if (selectedIds.includes(p.id)) {
             const enriched = response.prospects?.find((r: any) => r.apollo_id === p.id || r.id === p.id);
             const newStage = enriched?.stage || p.stage || 'pending_outreach';
-            const newStatus = ['sent', 'interested', 'not_interested'].includes(newStage) ? newStage : 'ai_copy_ready';
+            const newStatus = ['sent', 'interested', 'not_interested', 'needs_call'].includes(newStage) ? newStage : 'ai_copy_ready';
             return {
               ...p,
               isAlreadyEnriched: true,
-              status: newStatus,
+              status: newStatus as any,
               email: enriched?.email || p.email,
               phone: enriched?.phone || p.phone,
               emailStatus: 'verified',
@@ -303,7 +304,7 @@ export default function DoctorLeadsPage() {
           location: r.location || `${r.city || ''}, ${r.state || ''}`.trim() || 'United States',
           email: r.email || 'Email in DB',
           phone: r.phone || 'N/A',
-          status: ['sent', 'interested', 'not_interested'].includes(r.stage || r.status) ? (r.stage || r.status) : 'ai_copy_ready',
+          status: ['sent', 'interested', 'not_interested', 'needs_call'].includes(r.stage || r.status) ? (r.stage || r.status) : 'ai_copy_ready',
           isAlreadyEnriched: true,
           emailStatus: r.email_status || 'verified',
           stage: r.stage || r.status || 'pending_outreach',
@@ -762,6 +763,11 @@ export default function DoctorLeadsPage() {
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-red-50 text-red-700 border border-red-200">
                             <Clock className="w-3.5 h-3.5 text-red-500" />
                             Declined (Not Interested)
+                          </span>
+                        ) : doc.status === 'needs_call' || doc.stage === 'needs_call' ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-xs">
+                            <PhoneCall className="w-3.5 h-3.5 text-amber-600" />
+                            Needs Call
                           </span>
                         ) : doc.status === 'sent' || doc.stage === 'sent' ? (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]">

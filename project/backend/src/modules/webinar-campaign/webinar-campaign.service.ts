@@ -274,7 +274,7 @@ export class WebinarCampaignService {
         phone,
         isAlreadyEnriched: isAlreadySaved,
         emailStatus: isAlreadySaved ? (saved?.email_status || 'verified') : undefined,
-        status: isAlreadySaved && ['sent', 'interested', 'not_interested'].includes(saved?.stage) ? saved.stage : 'ai_copy_ready',
+        status: isAlreadySaved && ['sent', 'interested', 'not_interested', 'needs_call'].includes(saved?.stage) ? saved.stage : 'ai_copy_ready',
         stage: saved?.stage || 'pending_outreach',
         createdAt,
         created_at: createdAt,
@@ -467,7 +467,7 @@ export class WebinarCampaignService {
         email,
         createdAt: validCreatedAt,
         created_at: validCreatedAt,
-        status: ['sent', 'interested', 'not_interested'].includes(row.stage) ? row.stage : 'ai_copy_ready',
+        status: ['sent', 'interested', 'not_interested', 'needs_call'].includes(row.stage) ? row.stage : 'ai_copy_ready',
         stage: row.stage || 'pending_outreach',
         isAlreadyEnriched: true,
         emailStatus: row.email_status || 'verified'
