@@ -116,6 +116,16 @@ export class WebinarCampaignController {
     return this.webinarCampaignService.deleteProspectNote(Number(noteId));
   }
 
+  @Post('prospects/stage')
+  async updateProspectStage(@Body() body: { prospectId: string; stage: string }) {
+    return this.webinarCampaignService.updateProspectStage(body.prospectId, body.stage);
+  }
+
+  @Post('prospects/call-action')
+  async updateProspectCallAction(@Body() body: { prospectId: string; callAction: string }) {
+    return this.webinarCampaignService.updateProspectCallAction(body.prospectId, body.callAction);
+  }
+
   @Post('prospects/create')
   async addManualProspect(
     @Body()

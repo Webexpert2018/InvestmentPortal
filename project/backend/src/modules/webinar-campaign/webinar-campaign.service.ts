@@ -1389,6 +1389,47 @@ ${rsvpButtonsHtml}
     }
   }
 
+  async updateProspectStage(prospectId: string, stage: string) {
+    if (!prospectId || !stage) {
+      throw new HttpException('Prospect ID and Stage are required', HttpStatus.BAD_REQUEST);
+    }
+    try {
+      const res = await db.query(
+        `UPDATE doctor_prospects SET stage = $1, updated_at = CURRENT_TIMESTAMP WHERE apollo_id = $2 OR email = $2 RETURNING *`,
+        [stage, prospectId]
+      );
+      if (res.rows.length === 0) {
+        throw new HttpException('Doctor prospect not found', HttpStatus.NOT_FOUND);
+      }
+      this.logger.log(`🔄 Updated stage for prospect ${prospectId} to '${stage}'`);
+      return { success: true, prospect: res.rows[0] };
+    } catch (err: any) {
+      this.logger.error(`Error updating prospect stage: ${err.message}`);
+      throw new HttpException(err.message || 'Failed to update stage', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async updateProspectCallAction(prospectId: string, callAction: string) {
+    if (!prospectId) {
+      throw new HttpException('Prospect ID is required', HttpStatus.BAD_REQUEST);
+    }
+    try {
+      await db.query(`ALTER TABLE doctor_prospects ADD COLUMN IF NOT EXISTS call_action VARCHAR(255) DEFAULT NULL;`);
+      const res = await db.query(
+        `UPDATE doctor_prospects SET call_action = $1, updated_at = CURRENT_TIMESTAMP WHERE apollo_id = $2 OR email = $2 RETURNING *`,
+        [callAction || null, prospectId]
+      );
+      if (res.rows.length === 0) {
+        throw new HttpException('Doctor prospect not found', HttpStatus.NOT_FOUND);
+      }
+      this.logger.log(`📞 Updated call_action for prospect ${prospectId} to '${callAction}'`);
+      return { success: true, prospect: res.rows[0] };
+    } catch (err: any) {
+      this.logger.error(`Error updating prospect call action: ${err.message}`);
+      throw new HttpException(err.message || 'Failed to update call action', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   async addManualProspect(data: {
     fullName: string;
     specialty?: string;

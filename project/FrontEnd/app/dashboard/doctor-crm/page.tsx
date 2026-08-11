@@ -32,11 +32,17 @@ import {
   FileSpreadsheet,
   Download,
   Check,
-  FileText
+  FileText,
+  Phone,
+  PhoneForwarded,
+  PhoneOutgoing,
+  Save,
+  Filter,
+  Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api/client';
 
@@ -101,11 +107,16 @@ const INITIAL_CRM_DOCTORS: CrmDoctor[] = [
 export default function DoctorCrmPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [doctors, setDoctors] = useState<CrmDoctor[]>(INITIAL_CRM_DOCTORS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'interested' | 'pending_outreach' | 'needs_call'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'interested' | 'pending_outreach' | 'needs_call' | 'call_manager'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Call Manager States
+  const [callNotesMap, setCallNotesMap] = useState<Record<string, string>>({});
+  const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
 
   // Add Doctor Lead Modal States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -135,6 +146,28 @@ export default function DoctorCrmPage() {
     }
   ]);
   const [isAgentThinking, setIsAgentThinking] = useState(false);
+
+  useEffect(() => {
+    const tabParam = searchParams ? searchParams.get('tab') : null;
+    if (tabParam === 'needs_call' || tabParam === 'call_queue') {
+      setActiveTab('needs_call');
+    } else if (tabParam === 'interested') {
+      setActiveTab('interested');
+    } else if (tabParam === 'pending_outreach') {
+      setActiveTab('pending_outreach');
+    } else if (!tabParam) {
+      setActiveTab('all');
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tab: 'all' | 'interested' | 'pending_outreach' | 'needs_call') => {
+    setActiveTab(tab);
+    if (tab === 'all') {
+      router.push('/dashboard/doctor-crm', { scroll: false });
+    } else {
+      router.push(`/dashboard/doctor-crm?tab=${tab}`, { scroll: false });
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -217,6 +250,66 @@ export default function DoctorCrmPage() {
       toast.error(err.message || 'Error creating doctor prospect');
     } finally {
       setIsSavingDoctor(false);
+    }
+  };
+
+  const handleSaveCallNote = async (docId: string, customNote?: string) => {
+    const noteText = customNote || callNotesMap[docId];
+    if (!noteText || !noteText.trim()) {
+      toast.error('Please enter a note to save.');
+      return;
+    }
+
+    setSavingNoteId(docId);
+    try {
+      const res = await apiClient.addDoctorNote(docId, noteText.trim(), (user as any)?.fullName || user?.email || 'Call Manager');
+      if (res && res.success) {
+        toast.success('📝 Saved call note to PostgreSQL!');
+        setCallNotesMap(prev => ({ ...prev, [docId]: '' }));
+      } else {
+        toast.error('Failed to save call note.');
+      }
+    } catch (err: any) {
+      console.error('Error saving call note:', err);
+      toast.error(err.message || 'Failed to save call note');
+    } finally {
+      setSavingNoteId(null);
+    }
+  };
+
+  const handleUpdateStage = async (docId: string, newStage: string) => {
+    try {
+      const res = await apiClient.updateProspectStage(docId, newStage);
+      if (res && res.success) {
+        toast.success(`Updated stage to ${newStage.replace('_', ' ')}`);
+        setDoctors(prev => prev.map(d => d.id === docId ? { ...d, stage: newStage } : d));
+      } else {
+        toast.error('Failed to update stage.');
+      }
+    } catch (err: any) {
+      console.error('Error updating stage:', err);
+      toast.error(err.message || 'Failed to update stage');
+    }
+  };
+
+  const handleLogCallOutcome = async (doc: CrmDoctor, outcome: 'interested' | 'voicemail' | 'no_answer') => {
+    let note = '';
+    let newStage = doc.stage;
+
+    if (outcome === 'interested') {
+      note = '📞 Spoke with physician - High interest in wealth fund & webinar';
+      newStage = 'interested';
+    } else if (outcome === 'voicemail') {
+      note = '📞 Left voicemail detailing Ovalia Capital session';
+    } else if (outcome === 'no_answer') {
+      note = '📞 Phone call attempted - No answer / line busy';
+    }
+
+    if (newStage !== doc.stage) {
+      await handleUpdateStage(doc.id, newStage);
+    }
+    if (note) {
+      await handleSaveCallNote(doc.id, note);
     }
   };
 
@@ -610,10 +703,10 @@ export default function DoctorCrmPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
               <button
-                onClick={() => setActiveTab('all')}
+                onClick={() => handleTabChange('all')}
                 className={`px-5 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${
                   activeTab === 'all' 
-                    ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm' 
+                    ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm font-extrabold' 
                     : 'bg-white hover:bg-gray-100 text-[#6C6C6C] border border-[#E8E8E8]'
                 }`}
               >
@@ -621,10 +714,10 @@ export default function DoctorCrmPage() {
               </button>
 
               <button
-                onClick={() => setActiveTab('interested')}
+                onClick={() => handleTabChange('interested')}
                 className={`px-5 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   activeTab === 'interested' 
-                    ? 'bg-green-600 text-white shadow-sm' 
+                    ? 'bg-green-600 text-white shadow-sm font-extrabold' 
                     : 'bg-white hover:bg-green-50 text-green-700 border border-green-200'
                 }`}
               >
@@ -633,10 +726,10 @@ export default function DoctorCrmPage() {
               </button>
 
               <button
-                onClick={() => setActiveTab('pending_outreach')}
+                onClick={() => handleTabChange('pending_outreach')}
                 className={`px-5 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   activeTab === 'pending_outreach' 
-                    ? 'bg-purple-600 text-white shadow-sm' 
+                    ? 'bg-purple-600 text-white shadow-sm font-extrabold' 
                     : 'bg-white hover:bg-purple-50 text-purple-700 border border-purple-200'
                 }`}
               >
@@ -645,10 +738,10 @@ export default function DoctorCrmPage() {
               </button>
 
               <button
-                onClick={() => setActiveTab('needs_call')}
+                onClick={() => handleTabChange('needs_call')}
                 className={`px-5 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   activeTab === 'needs_call' 
-                    ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm' 
+                    ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm font-extrabold' 
                     : 'bg-white hover:bg-amber-50 text-amber-800 border border-amber-300'
                 }`}
               >

@@ -1496,6 +1496,20 @@ class ApiClient {
     });
   }
 
+  async updateProspectStage(prospectId: string, stage: string) {
+    return this.request<{ success: boolean; prospect: any }>('/webinar-campaign/prospects/stage', {
+      method: 'POST',
+      body: JSON.stringify({ prospectId, stage }),
+    });
+  }
+
+  async updateProspectCallAction(prospectId: string, callAction: string) {
+    return this.request<{ success: boolean; prospect: any }>('/webinar-campaign/prospects/call-action', {
+      method: 'POST',
+      body: JSON.stringify({ prospectId, callAction }),
+    });
+  }
+
   async addManualDoctorProspect(data: {
     fullName: string;
     specialty?: string;
