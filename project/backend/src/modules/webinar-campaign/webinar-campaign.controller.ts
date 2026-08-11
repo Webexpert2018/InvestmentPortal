@@ -131,6 +131,24 @@ export class WebinarCampaignController {
     return this.webinarCampaignService.addManualProspect(body);
   }
 
+  @Post('prospects/bulk-create')
+  async bulkAddProspects(
+    @Body()
+    body: {
+      prospects: Array<{
+        fullName: string;
+        specialty?: string;
+        organization?: string;
+        location?: string;
+        email?: string;
+        phone?: string;
+        stage?: string;
+      }>;
+    }
+  ) {
+    return this.webinarCampaignService.bulkAddProspects(body.prospects);
+  }
+
   @Get('webinars')
   async getAllWebinars() {
     return this.webinarCampaignService.getAllWebinars();

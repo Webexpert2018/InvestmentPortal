@@ -1510,6 +1510,21 @@ class ApiClient {
     });
   }
 
+  async bulkAddDoctorProspects(prospects: Array<{
+    fullName: string;
+    specialty?: string;
+    organization?: string;
+    location?: string;
+    email?: string;
+    phone?: string;
+    stage?: string;
+  }>) {
+    return this.request<{ success: boolean; count: number; inserted: any[]; errors?: string[] }>('/webinar-campaign/prospects/bulk-create', {
+      method: 'POST',
+      body: JSON.stringify({ prospects }),
+    });
+  }
+
   async getSavedProspects(limit: number = 200) {
     return this.request<{ success: boolean; count: number; prospects: any[] }>(
       `/webinar-campaign/prospects?limit=${limit}`

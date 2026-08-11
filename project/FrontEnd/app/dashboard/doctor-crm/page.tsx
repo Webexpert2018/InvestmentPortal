@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import * as XLSX from 'xlsx';
 import { 
   Target, 
   Search, 
@@ -26,7 +27,12 @@ import {
   MapPin,
   UserPlus,
   Plus,
-  GitFork
+  GitFork,
+  Upload,
+  FileSpreadsheet,
+  Download,
+  Check,
+  FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -44,6 +50,16 @@ interface CrmDoctor {
   phone: string;
   stage: string;
   lastActivityDate: string;
+}
+
+interface ParsedDoctorLead {
+  fullName: string;
+  specialty: string;
+  organization: string;
+  location: string;
+  email: string;
+  phone: string;
+  stage: string;
 }
 
 const INITIAL_CRM_DOCTORS: CrmDoctor[] = [
@@ -100,6 +116,13 @@ export default function DoctorCrmPage() {
   const [newLocation, setNewLocation] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [isSavingDoctor, setIsSavingDoctor] = useState(false);
+  
+  // Bulk Upload Modal States
+  const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
+  const [parsedLeads, setParsedLeads] = useState<ParsedDoctorLead[]>([]);
+  const [uploadedFileName, setUploadedFileName] = useState('');
+  const [isUploadingBulk, setIsUploadingBulk] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   
   // AI Agent Chat States - CLOSED BY DEFAULT
   const [isAgentOpen, setIsAgentOpen] = useState(false);
@@ -195,6 +218,225 @@ export default function DoctorCrmPage() {
     } finally {
       setIsSavingDoctor(false);
     }
+  };
+
+  const processExcelFile = (file: File) => {
+    if (!file) return;
+    setUploadedFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const json: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+        if (!json || json.length === 0) {
+          toast.error('The selected Excel file is empty.');
+          return;
+        }
+
+        const parsed: ParsedDoctorLead[] = [];
+
+        for (let i = 0; i < json.length; i++) {
+          const row = json[i];
+
+          const getVal = (...possibleHeaders: string[]): string => {
+            for (const key of Object.keys(row)) {
+              const cleanKey = key.trim().toLowerCase();
+              for (const header of possibleHeaders) {
+                if (cleanKey === header.toLowerCase() || cleanKey.includes(header.toLowerCase())) {
+                  return String(row[key] || '').trim();
+                }
+              }
+            }
+            return '';
+          };
+
+          // 1. Individual column matching form headers
+          let fullName = getVal('Full Name', 'FULL NAME', 'Doctor Name', 'Doctor', 'Name');
+          let email = getVal('Email Address', 'EMAIL ADDRESS', 'Email');
+          let specialty = getVal('Medical Specialty', 'MEDICAL SPECIALTY', 'Specialty', 'Speciality', 'Field');
+          let phone = getVal('Phone Number', 'PHONE NUMBER', 'Phone', 'Mobile');
+          let organization = getVal('Practice / Clinic Name', 'PRACTICE / CLINIC NAME', 'Clinic Name', 'Practice Name', 'Organization', 'Practice', 'Hospital');
+          let location = getVal('Practice Location', 'PRACTICE LOCATION', 'Location', 'City', 'State');
+          let stageStatus = getVal('Stage & Status', 'STAGE & STATUS', 'Stage', 'Status', 'Pipeline Stage');
+
+          // Combined column 1 fallback: "Doctor & Specialty"
+          const docAndSpecialty = getVal('Doctor & Specialty', 'Doctor and Specialty', 'Doctor & Speciality');
+          if (docAndSpecialty) {
+            if (docAndSpecialty.includes(' - ')) {
+              const parts = docAndSpecialty.split(' - ');
+              if (!fullName) fullName = parts[0].trim();
+              if (!specialty) specialty = parts.slice(1).join(' - ').trim();
+            } else if (docAndSpecialty.includes(' | ')) {
+              const parts = docAndSpecialty.split(' | ');
+              if (!fullName) fullName = parts[0].trim();
+              if (!specialty) specialty = parts.slice(1).join(' | ').trim();
+            } else if (docAndSpecialty.includes('(') && docAndSpecialty.includes(')')) {
+              const match = docAndSpecialty.match(/^(.*?)\((.*?)\)$/);
+              if (match) {
+                if (!fullName) fullName = match[1].trim();
+                if (!specialty) specialty = match[2].trim();
+              }
+            } else {
+              if (!fullName) fullName = docAndSpecialty.trim();
+            }
+          }
+
+          // Combined column 2 fallback: "Contact Info"
+          const contactInfo = getVal('Contact Info', 'Contact Information', 'Contact');
+          if (contactInfo) {
+            const emailMatch = contactInfo.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/);
+            if (emailMatch && !email) email = emailMatch[0];
+
+            const phoneMatch = contactInfo.match(/(\+?[0-9]{1,4}[-.\s]?\(?[0-9]{1,3}?\)?[-.\s]?[0-9]{3,4}[-.\s]?[0-9]{3,4})/);
+            if (phoneMatch && !phone) phone = phoneMatch[0];
+            else if (!phone && contactInfo.includes(',')) {
+              const parts = contactInfo.split(',');
+              for (const part of parts) {
+                if (!part.includes('@') && part.replace(/[^0-9]/g, '').length >= 7) {
+                  phone = part.trim();
+                  break;
+                }
+              }
+            }
+          }
+
+          // Combined column 3 fallback: "Practice Location"
+          const combinedLoc = getVal('Practice Location', 'Practice & Location', 'Clinic Location');
+          if (combinedLoc && !organization && !location) {
+            if (combinedLoc.includes(',')) {
+              const parts = combinedLoc.split(',');
+              organization = parts[0].trim();
+              location = parts.slice(1).join(',').trim();
+            } else {
+              organization = combinedLoc.trim();
+              location = combinedLoc.trim();
+            }
+          }
+
+          // Stage mapping normalization: ensure needs_call is used for phone call queues
+          let stage = 'pending_outreach';
+          if (stageStatus) {
+            const lowerStage = stageStatus.toLowerCase().trim();
+            if (lowerStage === 'needs_call' || lowerStage.includes('needs_call') || lowerStage.includes('needs call') || lowerStage.includes('call') || lowerStage.includes('queue')) {
+              stage = 'needs_call';
+            } else if (lowerStage.includes('interested') || lowerStage.includes('high intent')) {
+              stage = 'interested';
+            } else if (lowerStage.includes('replied') || lowerStage.includes('reply')) {
+              stage = 'email_replied';
+            } else if (lowerStage.includes('luma') || lowerStage.includes('rsvp')) {
+              stage = 'luma_registered';
+            } else if (lowerStage.includes('converted') || lowerStage.includes('investor')) {
+              stage = 'converted_investor';
+            } else if (lowerStage.includes('pending') || lowerStage.includes('outreach')) {
+              stage = 'pending_outreach';
+            } else {
+              stage = stageStatus;
+            }
+          }
+
+          if (fullName || email || specialty || organization || location) {
+            parsed.push({
+              fullName: fullName || '-',
+              specialty: specialty || '-',
+              organization: organization || '-',
+              location: location || '-',
+              email: email || '-',
+              phone: phone || 'N/A',
+              stage: stage || 'pending_outreach'
+            });
+          }
+        }
+
+        if (parsed.length === 0) {
+          toast.error('No valid doctor leads found in Excel file. Please ensure column headers match Full Name, Email Address, Specialty, Location, or Stage.');
+          return;
+        }
+
+        setParsedLeads(parsed);
+        toast.success(`Successfully parsed ${parsed.length} doctor lead(s) from ${file.name}`);
+      } catch (err: any) {
+        console.error('Error reading Excel file:', err);
+        toast.error('Failed to parse Excel file: ' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const handleBulkUploadSubmit = async () => {
+    if (parsedLeads.length === 0) {
+      toast.error('No parsed doctor leads to upload.');
+      return;
+    }
+
+    setIsUploadingBulk(true);
+    try {
+      const res = await apiClient.bulkAddDoctorProspects(parsedLeads);
+      if (res && res.success) {
+        toast.success(`🎉 Successfully saved ${res.count} doctor lead(s) into database!`);
+        setIsBulkUploadModalOpen(false);
+        setParsedLeads([]);
+        setUploadedFileName('');
+        await loadSavedDoctorsFromDb();
+      } else {
+        toast.error('Failed to bulk upload doctor leads.');
+      }
+    } catch (err: any) {
+      console.error('Error bulk uploading doctor prospects:', err);
+      toast.error(err.message || 'Error bulk uploading doctor prospects');
+    } finally {
+      setIsUploadingBulk(false);
+    }
+  };
+
+  const downloadSampleExcelTemplate = () => {
+    const data = [
+      {
+        "Full Name": "Dr. Sarah Jenkins, MD",
+        "Email Address": "sjenkins@midwestheart.com",
+        "Medical Specialty": "Cardiovascular Disease",
+        "Phone Number": "+1 (312) 555-0148",
+        "Practice / Clinic Name": "Midwest Heart & Vascular Institute",
+        "Practice Location": "Chicago, IL",
+        "Stage": "pending_outreach"
+      },
+      {
+        "Full Name": "Dr. Marcus Vance, MD",
+        "Email Address": "mvance@vancederm.com",
+        "Medical Specialty": "Dermatology & Aesthetics",
+        "Phone Number": "+1 (305) 555-0183",
+        "Practice / Clinic Name": "Vance Dermatology Group",
+        "Practice Location": "Miami, FL",
+        "Stage": "interested"
+      },
+      {
+        "Full Name": "Dr. David Wiebe, MD",
+        "Email Address": "dwiebe@austinspine.com",
+        "Medical Specialty": "Orthopedic Surgery",
+        "Phone Number": "+1 (512) 555-0192",
+        "Practice / Clinic Name": "Austin Spine & Joint Center",
+        "Practice Location": "Austin, TX",
+        "Stage": "needs_call"
+      }
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    worksheet['!cols'] = [
+      { wch: 25 },
+      { wch: 30 },
+      { wch: 25 },
+      { wch: 20 },
+      { wch: 35 },
+      { wch: 20 },
+      { wch: 20 }
+    ];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Doctor Leads");
+    XLSX.writeFile(workbook, "Doctor_Leads_Bulk_Upload_Template.xlsx");
+    toast.success('Downloaded Doctor_Leads_Bulk_Upload_Template.xlsx');
   };
 
   // Dynamic KPI Counts picked directly from database records based on exact stages
@@ -296,12 +538,11 @@ export default function DoctorCrmPage() {
               </button>
 
               <button
-                onClick={loadSavedDoctorsFromDb}
-                disabled={isLoading}
-                className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-[#1F1F1F] text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer"
+                onClick={() => setIsBulkUploadModalOpen(true)}
+                className="px-4 py-2 bg-[#1F1F1F] hover:bg-[#333333] text-white text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-[#1F1F1F]"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>Refresh DB Data</span>
+                <Upload className="w-4 h-4 text-[#FFC63F]" />
+                <span>Bulk Upload</span>
               </button>
             </div>
           </div>
@@ -826,6 +1067,206 @@ export default function DoctorCrmPage() {
                   <Send className="w-4 h-4" />
                 </button>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Upload Doctor Leads Modal */}
+        {isBulkUploadModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-[24px] max-w-3xl w-full p-6 shadow-2xl border border-gray-200 space-y-5 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] flex items-center justify-center font-bold">
+                    <FileSpreadsheet className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-goudy text-[22px] font-bold text-[#1F1F1F]">Bulk Upload Doctor Leads</h3>
+                    <p className="text-[12px] text-gray-500">Upload Excel spreadsheet (.xlsx, .xls, .csv) to save doctor prospects into PostgreSQL</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsBulkUploadModalOpen(false);
+                    setParsedLeads([]);
+                    setUploadedFileName('');
+                  }}
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-[#1F1F1F] transition-all cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto custom-scrollbar flex-1 space-y-4 pr-1">
+                {/* Model Column Specification Box */}
+                <div className="bg-blue-50/70 border border-blue-200 rounded-2xl p-4 space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-blue-900 font-bold text-[13px]">
+                      <Target className="w-4 h-4 text-blue-600 shrink-0" />
+                      <span>Expected Excel File Structure (First Row / Column Headers)</span>
+                    </div>
+                    <button
+                      onClick={downloadSampleExcelTemplate}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-bold rounded-lg flex items-center gap-1.5 transition-all shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Sample Template</span>
+                    </button>
+                  </div>
+                  <p className="text-[12px] text-blue-700">
+                    Your Excel file can use separate individual field headers (matching the lead form) or combined table columns:
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 pt-1">
+                    <div className="bg-white p-2.5 rounded-xl border border-blue-100 text-[12px]">
+                      <span className="font-bold text-gray-900 block">Full Name &amp; Email</span>
+                      <span className="text-gray-500 text-[11px]">Full Name | Email Address</span>
+                    </div>
+                    <div className="bg-white p-2.5 rounded-xl border border-blue-100 text-[12px]">
+                      <span className="font-bold text-gray-900 block">Specialty &amp; Phone</span>
+                      <span className="text-gray-500 text-[11px]">Medical Specialty | Phone Number</span>
+                    </div>
+                    <div className="bg-white p-2.5 rounded-xl border border-blue-100 text-[12px]">
+                      <span className="font-bold text-gray-900 block">Practice &amp; Location</span>
+                      <span className="text-gray-500 text-[11px]">Practice / Clinic Name | Location</span>
+                    </div>
+                    <div className="bg-white p-2.5 rounded-xl border border-blue-100 text-[12px]">
+                      <span className="font-bold text-gray-900 block">Stage</span>
+                      <span className="text-gray-500 text-[11px]">pending_outreach | interested | <strong className="text-amber-800">needs_call</strong></span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Drag & Drop File Selector */}
+                <div 
+                  onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                  onDragLeave={() => setDragActive(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragActive(false);
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                      processExcelFile(e.dataTransfer.files[0]);
+                    }
+                  }}
+                  className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${
+                    dragActive ? 'border-[#FFC63F] bg-[#FFF9EE]' : 'border-gray-300 hover:border-gray-400 bg-gray-50/50'
+                  }`}
+                >
+                  <input
+                    id="bulk-excel-input"
+                    type="file"
+                    accept=".xlsx, .xls, .csv"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        processExcelFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+                  <label htmlFor="bulk-excel-input" className="cursor-pointer space-y-2 block">
+                    <div className="w-12 h-12 rounded-full bg-amber-100 text-[#D9A11E] mx-auto flex items-center justify-center">
+                      <Upload className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-[#1F1F1F] text-[14px]">
+                        {uploadedFileName ? uploadedFileName : 'Click to upload'}
+                      </span>
+                      {!uploadedFileName && (
+                        <span className="text-gray-500 text-[14px]"> or drag and drop your Excel file here</span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-400">Supports .xlsx, .xls, and .csv files</p>
+                  </label>
+                </div>
+
+                {/* Parsed Data Preview Section */}
+                {parsedLeads.length > 0 && (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-[#1F1F1F] text-[14px]">Preview Parsed Doctor Leads ({parsedLeads.length})</span>
+                        <span className="text-[11px] font-bold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-full border border-green-200">Ready to save</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setParsedLeads([]); setUploadedFileName(''); }}
+                        className="text-[12px] text-red-600 hover:underline flex items-center gap-1 font-medium cursor-pointer"
+                      >
+                        Clear selection
+                      </button>
+                    </div>
+
+                    <div className="max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white custom-scrollbar">
+                      <table className="w-full text-left text-[12px]">
+                        <thead className="bg-gray-50 sticky top-0 border-b border-gray-200 font-bold text-gray-600">
+                          <tr>
+                            <th className="px-3 py-2">Doctor &amp; Specialty</th>
+                            <th className="px-3 py-2">Contact Info</th>
+                            <th className="px-3 py-2">Practice Location</th>
+                            <th className="px-3 py-2">Stage &amp; Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {parsedLeads.map((lead, i) => (
+                            <tr key={i} className="hover:bg-gray-50">
+                              <td className="px-3 py-2 font-medium text-gray-900">
+                                {lead.fullName} <span className="text-gray-500 font-normal">({lead.specialty})</span>
+                              </td>
+                              <td className="px-3 py-2 text-gray-700">
+                                <div>{lead.email}</div>
+                                <div className="text-gray-400 text-[11px]">{lead.phone}</div>
+                              </td>
+                              <td className="px-3 py-2 text-gray-700">
+                                <div>{lead.organization}</div>
+                                <div className="text-gray-400 text-[11px]">{lead.location}</div>
+                              </td>
+                              <td className="px-3 py-2">
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                  {lead.stage}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsBulkUploadModalOpen(false);
+                    setParsedLeads([]);
+                    setUploadedFileName('');
+                  }}
+                  className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleBulkUploadSubmit}
+                  disabled={parsedLeads.length === 0 || isUploadingBulk}
+                  className="px-6 py-2.5 rounded-full text-[13px] font-bold text-[#1F1F1F] bg-[#FFC63F] hover:bg-[#F1B92E] shadow-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+                >
+                  {isUploadingBulk ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
+                      <span>Saving to Database...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Save {parsedLeads.length} Leads to Database</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -1446,6 +1446,98 @@ ${rsvpButtonsHtml}
     }
   }
 
+  async bulkAddProspects(prospects: Array<{
+    fullName: string;
+    specialty?: string;
+    organization?: string;
+    location?: string;
+    email?: string;
+    phone?: string;
+    stage?: string;
+  }>) {
+    if (!Array.isArray(prospects) || prospects.length === 0) {
+      throw new HttpException('No prospects provided for bulk upload', HttpStatus.BAD_REQUEST);
+    }
+
+    let insertedCount = 0;
+    const errors: string[] = [];
+    const insertedRecords: any[] = [];
+
+    for (let i = 0; i < prospects.length; i++) {
+      const item = prospects[i];
+      if ((!item.fullName || item.fullName === '-') && (!item.email || item.email === '-') && (!item.specialty || item.specialty === '-') && (!item.organization || item.organization === '-') && (!item.location || item.location === '-')) {
+        continue;
+      }
+
+      const rawName = (item.fullName || '-').trim();
+      const cleanFullName = rawName === '-' ? '-' : (rawName.startsWith('Dr.') ? rawName : (rawName.toLowerCase().includes('dr') ? rawName : `Dr. ${rawName}`));
+      const nameWithoutPrefix = cleanFullName.replace(/^Dr\.?\s+/i, '');
+      const nameParts = nameWithoutPrefix.split(' ');
+      const firstName = nameParts[0] || '-';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const email = item.email?.trim() || '-';
+      const specialty = item.specialty?.trim() || '-';
+      const organization = item.organization?.trim() || '-';
+      const location = item.location?.trim() || '-';
+      const phone = item.phone?.trim() || 'N/A';
+      
+      // Map stage input to valid DB stage strings
+      let stage = 'pending_outreach';
+      if (item.stage) {
+        const lowerStage = item.stage.toLowerCase().trim();
+        if (lowerStage === 'needs_call' || lowerStage.includes('needs_call') || lowerStage.includes('needs call') || lowerStage.includes('call') || lowerStage.includes('queue') || lowerStage.includes('phone')) stage = 'needs_call';
+        else if (lowerStage.includes('interested') || lowerStage.includes('high intent')) stage = 'interested';
+        else if (lowerStage.includes('replied') || lowerStage.includes('reply')) stage = 'email_replied';
+        else if (lowerStage.includes('luma') || lowerStage.includes('rsvp')) stage = 'luma_registered';
+        else if (lowerStage.includes('converted') || lowerStage.includes('investor')) stage = 'converted_investor';
+        else if (lowerStage.includes('pending') || lowerStage.includes('outreach')) stage = 'pending_outreach';
+        else stage = item.stage;
+      }
+
+      const apolloId = `bulk-${Date.now()}-${Math.random().toString(36).substring(2, 7)}-${i}`;
+
+      try {
+        const query = `
+          INSERT INTO doctor_prospects (
+            apollo_id, full_name, first_name, last_name, specialty, organization, location, email, phone, email_status, stage, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'verified', $10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          RETURNING *
+        `;
+        const res = await db.query(query, [
+          apolloId,
+          cleanFullName,
+          firstName,
+          lastName,
+          specialty,
+          organization,
+          location,
+          email,
+          phone,
+          stage
+        ]);
+
+        if (res.rows.length > 0) {
+          insertedCount++;
+          insertedRecords.push(res.rows[0]);
+        }
+      } catch (err: any) {
+        this.logger.error(`Error bulk inserting row ${i + 1} (${cleanFullName}): ${err.message}`);
+        errors.push(`Row ${i + 1} (${cleanFullName}): ${err.message}`);
+      }
+    }
+
+    this.logger.log(`📊 Bulk uploaded ${insertedCount} doctor prospects into PostgreSQL.`);
+
+    return {
+      success: true,
+      count: insertedCount,
+      inserted: insertedRecords,
+      errors: errors.length > 0 ? errors : undefined
+    };
+  }
+
+
   // --- Dynamic Webinars & Attendance Tracking Methods ---
 
   private computeWebinarStatus(dateStr: string, timeStr?: string, durationStr?: string): 'upcoming' | 'live' | 'completed' {
