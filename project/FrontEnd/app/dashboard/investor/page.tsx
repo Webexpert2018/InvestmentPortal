@@ -42,6 +42,7 @@ interface OldInvestor {
   totalInvestments: number;
   totalInvested: string;
   distributionMethod: string;
+  isPresent?: boolean;
 }
 
 export default function InvestorPage() {
@@ -142,7 +143,7 @@ export default function InvestorPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const itemsPerPage = 7;
+  const itemsPerPage = 15;
 
   const fetchInvestors = async () => {
     try {
