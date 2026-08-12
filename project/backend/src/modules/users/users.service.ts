@@ -962,11 +962,25 @@ export class UsersService implements OnModuleInit {
     } = data;
     const email = data.email.toLowerCase().trim();
 
-    // Check if user already exists in ANY table
+    let finalFullName = full_name;
+    if (!finalFullName) {
+      const oldInv = await db.query(
+        'SELECT legal_name FROM old_investors WHERE LOWER(primary_email) = LOWER($1) LIMIT 1',
+        [email]
+      );
+      if (oldInv.rows.length > 0) {
+        finalFullName = oldInv.rows[0].legal_name;
+      }
+    }
+    if (!finalFullName) {
+      finalFullName = 'Pending Investor';
+    }
+
+    // Check if user already exists in ANY table (case-insensitive check)
     const [existingUser, existingInvestor, existingStaff] = await Promise.all([
-      db.query('SELECT id FROM users WHERE email = $1', [email]),
-      db.query('SELECT id, status FROM investors WHERE email = $1', [email]),
-      db.query('SELECT id FROM staff WHERE email = $1', [email])
+      db.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [email]),
+      db.query('SELECT id, status FROM investors WHERE LOWER(email) = LOWER($1)', [email]),
+      db.query('SELECT id FROM staff WHERE LOWER(email) = LOWER($1)', [email])
     ]);
 
     if (existingUser.rows.length > 0 || existingStaff.rows.length > 0) {
@@ -1002,7 +1016,7 @@ export class UsersService implements OnModuleInit {
           assigned_ir_id = $11, assigned_accountant_id = $12, updated_at = NOW()
          WHERE id = $13`,
         [
-          full_name,
+          finalFullName,
           phone || null, dob || null, address_line1 || null, address_line2 || null,
           city || null, state || null, zip_code || null, country || null, tax_id || null,
           assigned_ir_id || null, assigned_accountant_id || null, investorId
@@ -1017,7 +1031,7 @@ export class UsersService implements OnModuleInit {
         )
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
         [
-          investorId, email, full_name, dummyPasswordHash, 'pending', 'unverified',
+          investorId, email, finalFullName, dummyPasswordHash, 'pending', 'unverified',
           phone || null, dob || null, address_line1 || null, address_line2 || null,
           city || null, state || null, zip_code || null, country || null, tax_id || null,
           assigned_ir_id || null, assigned_accountant_id || null
@@ -1033,7 +1047,7 @@ export class UsersService implements OnModuleInit {
 
     // 5. Send invitation email (if requested, usually only for bulk or immediate invites)
     if (data.sendEmail) {
-      await this.emailService.sendInvestorInvitationEmail(email, full_name, token);
+      await this.emailService.sendInvestorInvitationEmail(email, finalFullName, token);
 
       const senderName = requestingUserName || 'Admin';
       // Update invitation tracking

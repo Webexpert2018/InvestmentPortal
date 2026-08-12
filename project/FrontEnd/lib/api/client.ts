@@ -569,6 +569,10 @@ class ApiClient {
     return this.request<any[]>('/funds/old-funds');
   }
 
+  async getOldInvestors() {
+    return this.request<any[]>('/funds/old-investors');
+  }
+
   async getOldFundById(id: number) {
     return this.request<any>(`/funds/old-funds/${id}`);
   }

@@ -33,10 +33,25 @@ interface Investor {
   assigned_accountant_name?: string;
 }
 
+interface OldInvestor {
+  ims_profile_id: string;
+  fullName: string;
+  email: string;
+  defaultFundId: number;
+  totalFunds: number;
+  totalInvestments: number;
+  totalInvested: string;
+  distributionMethod: string;
+}
+
 export default function InvestorPage() {
   const router = useRouter();
   const [investors, setInvestors] = useState<Investor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'active' | 'old'>('active');
+  const [oldInvestors, setOldInvestors] = useState<OldInvestor[]>([]);
+  const [loadingOld, setLoadingOld] = useState(false);
+  const [oldPage, setOldPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [kycFilter, setKycFilter] = useState('');
   const [accountTypeFilter, setAccountTypeFilter] = useState('');
@@ -53,6 +68,8 @@ export default function InvestorPage() {
   const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
   const [showAdminIraModal, setShowAdminIraModal] = useState(false);
   const [showAddSubaccountModal, setShowAddSubaccountModal] = useState(false);
+  const [selectedOldIds, setSelectedOldIds] = useState<string[]>([]);
+  const [invitingOld, setInvitingOld] = useState(false);
 
   const selectedInvestor = investors.find(inv => inv.id === selectedInvestorId);
 
@@ -62,7 +79,9 @@ export default function InvestorPage() {
     setPendingPage(1);
     setSuspendedPage(1);
     setSuspendedIraPage(1);
-  }, [searchQuery, kycFilter, accountTypeFilter, statusFilter]);
+    setOldPage(1);
+    setSelectedOldIds([]);
+  }, [searchQuery, kycFilter, accountTypeFilter, statusFilter, viewMode]);
 
   // Selection Persistence
   useEffect(() => {
@@ -171,11 +190,30 @@ export default function InvestorPage() {
     }
   };
 
+  const fetchOldInvestors = async () => {
+    try {
+      setLoadingOld(true);
+      const data = await apiClient.getOldInvestors();
+      setOldInvestors(data || []);
+    } catch (error) {
+      console.error('Failed to fetch old investors:', error);
+      toast.error('Failed to load old investors');
+    } finally {
+      setLoadingOld(false);
+    }
+  };
+
   useEffect(() => {
     fetchInvestors();
     fetchStaff();
     fetchProfile();
   }, []);
+
+  useEffect(() => {
+    if (viewMode === 'old' && oldInvestors.length === 0) {
+      fetchOldInvestors();
+    }
+  }, [viewMode]);
 
   const getKycStatusStyle = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -327,6 +365,54 @@ export default function InvestorPage() {
     }
   };
 
+  const handleSendInviteForSelected = async () => {
+    if (selectedOldIds.length === 0) {
+      toast.error('Please select at least one old investor');
+      return;
+    }
+
+    try {
+      setInvitingOld(true);
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const profileId of selectedOldIds) {
+        const investor = oldInvestors.find(i => String(i.ims_profile_id) === String(profileId));
+        if (!investor || !investor.email) {
+          failCount++;
+          continue;
+        }
+
+        try {
+          await apiClient.inviteInvestor({
+            email: investor.email,
+            sendEmail: true
+          });
+          successCount++;
+        } catch (err: any) {
+          console.error(`Failed to invite ${investor.email}:`, err);
+          failCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`Successfully sent invitations to ${successCount} investor(s)`);
+      }
+      if (failCount > 0) {
+        toast.error(`Failed to send invitations to ${failCount} investor(s) (they may already exist)`);
+      }
+
+      setSelectedOldIds([]);
+      await fetchOldInvestors();
+      await fetchInvestors();
+    } catch (error) {
+      console.error(error);
+      toast.error('An error occurred while sending invitations');
+    } finally {
+      setInvitingOld(false);
+    }
+  };
+
   const handleTransferIRA = () => {
     if (!transferForm.accountNumber.trim()) {
       toast.error('Please enter account number.');
@@ -354,6 +440,17 @@ export default function InvestorPage() {
       toast.error('Failed to cancel invitation');
     }
   };
+
+  const filteredOldInvestors = oldInvestors.filter(inv => {
+    const query = searchQuery.toLowerCase();
+    return (
+      inv.fullName.toLowerCase().includes(query) ||
+      inv.email.toLowerCase().includes(query) ||
+      inv.ims_profile_id.includes(query)
+    );
+  });
+  const oldTotalPages = Math.ceil(filteredOldInvestors.length / itemsPerPage);
+  const displayedOldInvestors = filteredOldInvestors.slice((oldPage - 1) * itemsPerPage, oldPage * itemsPerPage);
 
   const activeTotalPages = Math.ceil(activeInvestors.length / itemsPerPage);
   const activeIraTotalPages = Math.ceil(activeIraInvestors.length / itemsPerPage);
@@ -421,49 +518,88 @@ export default function InvestorPage() {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row sm:flex-wrap xl:flex-nowrap items-stretch sm:items-center gap-3 w-full xl:w-auto xl:justify-end">
+            {viewMode === 'old' ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSendInviteForSelected();
+                }}
+                disabled={selectedOldIds.length === 0 || invitingOld}
+                className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {invitingOld ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Sending Invites...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    Send Invite ({selectedOldIds.length})
+                  </>
+                )}
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowTransferModal(true);
+                  }}
+                  disabled={!selectedInvestorId || selectedInvestor?.investorType === 'entity'}
+                  className="px-8 py-3 bg-white text-[#4B5563] border border-[#E5E7EB] text-sm font-bold rounded-full hover:bg-gray-50 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <History className="h-4 w-4 text-[#D1A94C]" />
+                  Transfer In IRA
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowAdminIraModal(true);
+                  }}
+                  disabled={!selectedInvestorId || selectedInvestor?.investorType === 'entity'}
+                  className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add IRA Account
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowAddSubaccountModal(true);
+                  }}
+                  disabled={!selectedInvestorId || selectedInvestor?.investorType !== 'personal' || selectedInvestor?.status !== 'active'}
+                  className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Subaccount
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEmailError('');
+                    setPhoneError('');
+                    setShowInviteModal(true);
+                  }}
+                  className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95"
+                >
+                  Add Investor
+                </button>
+              </>
+            )}
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setShowTransferModal(true);
+                setViewMode(prev => prev === 'old' ? 'active' : 'old');
               }}
-              disabled={!selectedInvestorId || selectedInvestor?.investorType === 'entity'}
-              className="px-8 py-3 bg-white text-[#4B5563] border border-[#E5E7EB] text-sm font-bold rounded-full hover:bg-gray-50 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className={`px-8 py-3 text-sm font-bold rounded-full transition-all shadow-sm active:scale-95 flex items-center gap-2 ${
+                viewMode === 'old'
+                  ? 'bg-[#1F3B6E] text-white hover:bg-[#182f58]'
+                  : 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
+              }`}
             >
-              <History className="h-4 w-4 text-[#D1A94C]" />
-              Transfer In IRA
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowAdminIraModal(true);
-              }}
-              disabled={!selectedInvestorId || selectedInvestor?.investorType === 'entity'}
-              className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add IRA Account
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowAddSubaccountModal(true);
-              }}
-              disabled={!selectedInvestorId || selectedInvestor?.investorType !== 'personal' || selectedInvestor?.status !== 'active'}
-              className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add Subaccount
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setEmailError('');
-                setPhoneError('');
-                setShowInviteModal(true);
-              }}
-              className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95"
-            >
-              Add Investor
+              <History className="h-4 w-4" />
+              {viewMode === 'old' ? 'View Active Investors' : 'View Old Investors'}
             </button>
           </div>
         </div>
@@ -543,22 +679,143 @@ export default function InvestorPage() {
           <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)] custom-scrollbar relative">
             <div className="min-w-[950px] lg:min-w-full">
               <table className="w-full text-left border-separate border-spacing-0">
-                <thead>
-                  <tr className="text-[#6B7280] text-[13px] font-semibold uppercase tracking-wider">
-                    <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize w-20 whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Select</th>
-                    <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Investor Name</th>
-                    <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Email</th>
-                    <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Account Type</th>
-                    <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Account Status</th>
-                    <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">KYC Status</th>
-                    <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Units</th>
-                    <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Invested</th>
-                    <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Assigned To</th>
-                    <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Date Joined</th>
-                    <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F3F4F6]">
+                {viewMode === 'old' ? (
+                  <thead>
+                    <tr className="text-[#6B7280] text-[13px] font-semibold uppercase tracking-wider">
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] w-20 whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E] cursor-pointer h-4 w-4"
+                          checked={displayedOldInvestors.length > 0 && displayedOldInvestors.every(inv => selectedOldIds.includes(inv.ims_profile_id))}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              const toAdd = displayedOldInvestors.map(inv => inv.ims_profile_id);
+                              setSelectedOldIds(prev => Array.from(new Set([...prev, ...toAdd])));
+                            } else {
+                              const toRemove = displayedOldInvestors.map(inv => inv.ims_profile_id);
+                              setSelectedOldIds(prev => prev.filter(id => !toRemove.includes(id)));
+                            }
+                          }}
+                        />
+                      </th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">IMS Profile ID</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Investor Name</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Email</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Total Funds</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Investments Count</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Total Invested</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Payment Method</th>
+                    </tr>
+                  </thead>
+                ) : (
+                  <thead>
+                    <tr className="text-[#6B7280] text-[13px] font-semibold uppercase tracking-wider">
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize w-20 whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Select</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Investor Name</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Email</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Account Type</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Account Status</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">KYC Status</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Units</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Invested</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Assigned To</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Date Joined</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Action</th>
+                    </tr>
+                  </thead>
+                )}
+
+                {viewMode === 'old' ? (
+                  <tbody className="divide-y divide-[#F3F4F6]">
+                    {loadingOld ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <tr key={i} className="animate-pulse">
+                          <td colSpan={8} className="px-8 py-6 h-[80px] bg-white"></td>
+                        </tr>
+                      ))
+                    ) : filteredOldInvestors.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
+                          No old investors found matching your search.
+                        </td>
+                      </tr>
+                    ) : (
+                      <>
+                        <tr className="bg-[#F9FAFB]/50">
+                          <td colSpan={8} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+                            Old Investors ({filteredOldInvestors.length})
+                          </td>
+                        </tr>
+                        {displayedOldInvestors.map((inv) => (
+                          <tr
+                            key={inv.ims_profile_id}
+                            className="transition-all duration-200 hover:bg-[#FFFBEB] cursor-pointer group"
+                            onClick={() => {
+                              if (inv.totalInvestments === 0) {
+                                toast.error('No investments made by them');
+                              } else {
+                                router.push(`/dashboard/funds/old/${inv.defaultFundId || 40458}/investor/${inv.ims_profile_id}`);
+                              }
+                            }}
+                          >
+                            <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="checkbox"
+                                className="rounded border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E] cursor-pointer h-4 w-4"
+                                checked={selectedOldIds.includes(inv.ims_profile_id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedOldIds(prev => [...prev, inv.ims_profile_id]);
+                                  } else {
+                                    setSelectedOldIds(prev => prev.filter(id => id !== inv.ims_profile_id));
+                                  }
+                                }}
+                              />
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                #{inv.ims_profile_id}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-[#1F3B6E]/10 text-[#1F3B6E] font-bold flex items-center justify-center text-xs">
+                                  {inv.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                                </div>
+                                <span className="text-sm font-bold text-[#111827]">{inv.fullName}</span>
+                                {inv.isPresent && (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E6F4EA] text-[#137333] border border-[#A3E2B5] ml-2">
+                                    Present
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-[#4B5563] font-medium">
+                              {inv.email || 'N/A'}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-[#4B5563] font-medium">
+                              {inv.totalFunds} Fund{inv.totalFunds > 1 ? 's' : ''}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-[#4B5563] font-medium">
+                              {inv.totalInvestments} Investment{inv.totalInvestments > 1 ? 's' : ''}
+                            </td>
+                            <td className="px-6 py-4 text-sm font-bold text-[#111827]">
+                              {inv.totalInvested}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                {inv.distributionMethod || 'Check'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                        {renderPaginationRow(oldPage, oldTotalPages, setOldPage)}
+                      </>
+                    )}
+                  </tbody>
+                ) : (
+                  <tbody className="divide-y divide-[#F3F4F6]">
+
                   {loading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <tr key={i} className="animate-pulse">
@@ -1202,6 +1459,7 @@ export default function InvestorPage() {
                     </>
                   )}
                 </tbody>
+              )}
               </table>
             </div>
           </div>
@@ -1212,29 +1470,39 @@ export default function InvestorPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-xs font-bold text-[#6B7280] bg-gray-50/50 px-6 py-3 rounded-2xl border border-gray-100">
-              <div className="flex items-center gap-2">
-                <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-green-100 text-green-700 rounded-md border border-green-200 shadow-sm">{activeInvestors.length}</span>
-                <span>Active</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-blue-100 text-blue-700 rounded-md border border-blue-200 shadow-sm">{activeIraInvestors.length}</span>
-                <span>IRA</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-amber-100 text-amber-700 rounded-md border border-amber-200 shadow-sm">{pendingInvestors.length}</span>
-                <span>Pending</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-red-100 text-red-700 rounded-md border border-red-200 shadow-sm">{suspendedInvestors.length}</span>
-                <span>Suspended Login</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-rose-100 text-rose-700 rounded-md border border-rose-200 shadow-sm">{suspendedIraInvestors.length}</span>
-                <span>Suspended IRA</span>
-              </div>
+              {viewMode === 'old' ? (
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-amber-100 text-amber-800 rounded-md border border-amber-200 shadow-sm">{oldInvestors.length}</span>
+                  <span>Old Investors</span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-green-100 text-green-700 rounded-md border border-green-200 shadow-sm">{activeInvestors.length}</span>
+                    <span>Active</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-blue-100 text-blue-700 rounded-md border border-blue-200 shadow-sm">{activeIraInvestors.length}</span>
+                    <span>IRA</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-amber-100 text-amber-700 rounded-md border border-amber-200 shadow-sm">{pendingInvestors.length}</span>
+                    <span>Pending</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-red-100 text-red-700 rounded-md border border-red-200 shadow-sm">{suspendedInvestors.length}</span>
+                    <span>Suspended Login</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-rose-100 text-rose-700 rounded-md border border-rose-200 shadow-sm">{suspendedIraInvestors.length}</span>
+                    <span>Suspended IRA</span>
+                  </div>
+                </>
+              )}
               <span className="ml-1 text-[#9CA3AF] font-medium">Investors</span>
             </div>
           </div>
+
         </div>
       </div>
 

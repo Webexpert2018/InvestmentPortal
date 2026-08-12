@@ -1498,5 +1498,43 @@ export class FundsService {
     }
     return { message: 'Rule deleted successfully', ruleId: String(ruleId) };
   }
+
+  async getOldInvestors() {
+    const result = await db.query(`
+      SELECT 
+        oi.ims_profile_id as "ims_profile_id",
+        oi.legal_name as "fullName",
+        oi.primary_email as "email",
+        MIN(inv.project_id) as "default_fund_id",
+        COUNT(DISTINCT inv.project_id) as "totalFunds",
+        COUNT(inv.investor_profile_id) as "totalInvestments",
+        COALESCE(SUM(
+          CASE 
+            WHEN inv.investment_amount IS NULL OR inv.investment_amount ~ '^[$\\s\\-]*$' THEN 0 
+            ELSE CAST(NULLIF(REGEXP_REPLACE(inv.investment_amount, '[^0-9.]', '', 'g'), '') AS NUMERIC) 
+          END
+        ), 0) as "totalInvested",
+        oi.distribution_preference as "distributionMethod",
+        EXISTS(
+          SELECT 1 FROM investors i WHERE LOWER(i.email) = LOWER(oi.primary_email)
+        ) as "isPresent"
+      FROM old_investors oi
+      LEFT JOIN old_investments inv ON oi.ims_profile_id = inv.investor_profile_id
+      GROUP BY oi.ims_profile_id, oi.legal_name, oi.primary_email, oi.distribution_preference
+      ORDER BY oi.legal_name ASC
+    `);
+
+    return result.rows.map(r => ({
+      ims_profile_id: String(r.ims_profile_id),
+      fullName: r.fullName || 'Unknown Investor',
+      email: r.email || '',
+      defaultFundId: r.default_fund_id || 40458,
+      totalFunds: parseInt(r.totalFunds || '0', 10),
+      totalInvestments: parseInt(r.totalInvestments || '0', 10),
+      totalInvested: '$' + (parseFloat(r.totalInvested || '0')).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      distributionMethod: r.distributionMethod || 'Check',
+      isPresent: !!r.isPresent
+    }));
+  }
 }
 

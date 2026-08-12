@@ -20,6 +20,11 @@ export class FundsController {
     return this.fundsService.getOldFunds();
   }
 
+  @Get('old-investors')
+  findOldInvestors() {
+    return this.fundsService.getOldInvestors();
+  }
+
   @Get('old-funds/investors-all/:profileId')
   findOldInvestorAllFunds(
     @Param('profileId') profileId: string
