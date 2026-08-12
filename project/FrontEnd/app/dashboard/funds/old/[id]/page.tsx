@@ -1016,7 +1016,9 @@ export default function OldFundDetailPage() {
                   </div>
                   <div className="space-y-1">
                     <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Shares Held on this fund</span>
-                    <span className="text-xl font-bold text-gray-900">{selectedInvestorData.totalShares}</span>
+                    <span className="text-xl font-bold text-gray-900">
+                      {selectedInvestorData.totalShares ? Number(selectedInvestorData.totalShares).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+                    </span>
                   </div>
                 </div>
 
@@ -1056,7 +1058,7 @@ export default function OldFundDetailPage() {
                               {inv.amount}
                             </td>
                             <td className="py-4 text-right text-sm font-medium text-gray-700 w-[12%] pr-4">
-                              {inv.shares || '0.00'}
+                              {inv.shares ? Number(inv.shares).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
                             </td>
                             <td className="py-4 text-right text-sm font-medium text-gray-500 w-[12%] pr-4">
                               {inv.ownership || '0.00%'}
@@ -1367,7 +1369,7 @@ export default function OldFundDetailPage() {
                                   {classOwnershipPercent}
                                 </td>
                                 <td className="py-4 text-right text-sm font-medium text-gray-600">
-                                  {roundedShares.toFixed(2)}
+                                  {roundedShares.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
                                 <td className="py-4 text-right text-sm font-semibold text-gray-900">
                                   {data.count} {data.count === 1 ? 'Investor' : 'Investors'}
@@ -1463,7 +1465,7 @@ export default function OldFundDetailPage() {
                                     {ownershipPercent}
                                   </td>
                                   <td className="py-4 text-right text-sm font-medium text-gray-600">
-                                    {investor.totalShares}
+                                    {investor.totalShares ? Number(investor.totalShares).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
                                   </td>
                                   <td className="py-4 text-right">
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-600 border border-emerald-100">
