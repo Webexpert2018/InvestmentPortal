@@ -60,6 +60,16 @@ const nextConfig = {
         destination: '/auth/login?flow=admin',
         permanent: false,
       },
+      {
+        source: '/ira',
+        destination: 'https://aetrust.aet.app/auth/login',
+        permanent: false,
+      },
+      {
+        source: '/IRA',
+        destination: 'https://aetrust.aet.app/auth/login',
+        permanent: false,
+      },
     ];
   },
 };
