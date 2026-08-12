@@ -120,15 +120,15 @@ const menuItems: MenuItem[] = [
     roles: ['admin', 'executive_admin', 'compliance'],
   },
   {
-    title: 'Funding Requests',
-    href: '/dashboard/funding-requests',
-    icon: Wallet,
-    roles: ['admin', 'executive_admin', 'fund_admin', 'accountant'],
-  },
-  {
     title: 'Redemption Req.',
     href: '/dashboard/redemption-requests',
     icon: ArrowUpDown,
+    roles: ['admin', 'executive_admin', 'fund_admin', 'accountant'],
+  },
+  {
+    title: 'Funding Requests',
+    href: '/dashboard/funding-requests',
+    icon: Wallet,
     roles: ['admin', 'executive_admin', 'fund_admin', 'accountant'],
   },
   {
