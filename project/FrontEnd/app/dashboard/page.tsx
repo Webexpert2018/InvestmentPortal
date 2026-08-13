@@ -242,6 +242,8 @@ export default function DashboardPage() {
   const [investorStats, setInvestorStats] = useState({
     totalInvested: 0,
     legacyTotalInvested: 0,
+    legacyTotalShares: 0,
+    legacyTotalDistributed: 0,
     hasLegacyInvestments: false,
     legacyFunds: [] as any[],
     totalUnits: 0,
@@ -261,8 +263,7 @@ export default function DashboardPage() {
   const [assignedInvestors, setAssignedInvestors] = useState<any[]>([]);
   const [dynamicNotifications, setDynamicNotifications] = useState<any[]>([]);
   const [dynamicKycQueue, setDynamicKycQueue] = useState<any[]>([]);
-  const [activeFundsOpen, setActiveFundsOpen] = useState(true);
-  const [legacyFundsOpen, setLegacyFundsOpen] = useState(true);
+  const [fundsOpen, setFundsOpen] = useState(true);
 
   const activeFundsList = useMemo(() => {
     const map = new Map<string, { fundId?: string; fundName: string; totalInvested: number }>();
@@ -286,6 +287,38 @@ export default function DashboardPage() {
       totalInvestedFormatted: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(f.totalInvested)
     }));
   }, [allInvestments]);
+
+  const combinedFundsList = useMemo(() => {
+    const list: any[] = [];
+    
+    // Add active funds
+    activeFundsList.forEach((fund: any) => {
+      list.push({
+        id: fund.fundId || fund.fundName,
+        name: fund.fundName,
+        type: 'Active Fund',
+        totalInvestedFormatted: fund.totalInvestedFormatted,
+        badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
+        typeLabelColor: 'text-emerald-600',
+        initialLetter: fund.fundName ? fund.fundName[0].toUpperCase() : 'A'
+      });
+    });
+    
+    // Add real estate/legacy funds
+    (investorStats.legacyFunds || []).forEach((fund: any) => {
+      list.push({
+        id: fund.projectId || fund.projectName,
+        name: fund.projectName,
+        type: 'Real Estate Fund',
+        totalInvestedFormatted: fund.totalInvestedFormatted,
+        badgeColor: 'bg-amber-50 text-amber-700 border-amber-200/60',
+        typeLabelColor: 'text-amber-600',
+        initialLetter: fund.projectName ? fund.projectName[0].toUpperCase() : 'L'
+      });
+    });
+    
+    return list;
+  }, [activeFundsList, investorStats.legacyFunds]);
 
   const investorAccountList = useMemo(() => {
     const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -392,6 +425,8 @@ export default function DashboardPage() {
           setInvestorStats({
             totalInvested: parseFloat(dynamicStats.totalInvested || 0),
             legacyTotalInvested: parseFloat(dynamicStats.legacyTotalInvested || 0),
+            legacyTotalShares: parseFloat(dynamicStats.legacyTotalShares || 0),
+            legacyTotalDistributed: parseFloat(dynamicStats.legacyTotalDistributed || 0),
             hasLegacyInvestments: !!dynamicStats.hasLegacyInvestments,
             legacyFunds: dynamicStats.legacyFunds || [],
             totalUnits: parseFloat(dynamicStats.totalUnits || 0),
@@ -591,66 +626,101 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
-
-          {/* Top summary cards */}
-          {(() => {
-            const summaryCards = [
-              {
-                label: 'Total Invested',
-                value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.totalInvested),
-                helper: `${investorStats.ytdReturn >= 0 ? '↑' : '↓'} ${Math.abs(investorStats.ytdReturn).toFixed(2)}% total return`,
-              },
-            ];
-
-            if (investorStats.hasLegacyInvestments) {
-              summaryCards.push({
-                label: 'Total Invested (Legacy)',
-                value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.legacyTotalInvested || 0),
-                helper: 'From old investments',
-              });
-            }
-
-            summaryCards.push(
-              {
-                label: 'Current Value',
-                value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue),
-                helper: `${investorStats.currentValue - investorStats.totalInvested >= 0 ? '+' : ''}${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue - investorStats.totalInvested)}`,
-              },
-              {
-                label: 'Total Units',
-                value: investorStats.totalUnits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
-                helper: '',
-              },
-              {
-                label: 'Current NAV',
-                value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentNav),
-                helper: 'Per unit',
-              }
-            );
-
-            return (
-              <div className={`grid gap-4 md:grid-cols-2 ${investorStats.hasLegacyInvestments ? 'lg:grid-cols-3 xl:grid-cols-5' : 'xl:grid-cols-4'}`}>
-                {summaryCards.map((card) => (
+            {/* Top summary sections */}
+          <div className="space-y-4 mb-4">
+            {/* BWell Fund Section */}
+            <div>
+              <h2 className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest font-sans">
+                BWell Fund
+              </h2>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                {[
+                  {
+                    label: 'Total Invested',
+                    value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.totalInvested),
+                    helper: `${investorStats.ytdReturn >= 0 ? '↑' : '↓'} ${Math.abs(investorStats.ytdReturn).toFixed(2)}% total return`,
+                  },
+                  {
+                    label: 'Current Value',
+                    value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue),
+                    helper: `${investorStats.currentValue - investorStats.totalInvested >= 0 ? '+' : ''}${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentValue - investorStats.totalInvested)}`,
+                  },
+                  {
+                    label: 'Total Units',
+                    value: investorStats.totalUnits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+                    helper: '',
+                  },
+                  {
+                    label: 'Current NAV',
+                    value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentNav),
+                    helper: 'Per unit',
+                  }
+                ].map((card) => (
                   <div
                     key={card.label}
-                    className="rounded-2xl bg-white px-6 py-5 shadow-sm"
+                    className="rounded-2xl bg-white px-4 py-3 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
                   >
-                    <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#A0A0A0]">
                       {card.label}
                     </p>
-                    <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">
+                    <p className="mt-1.5 text-xl font-bold text-gray-900 font-goudy">
                       {card.value}
                     </p>
                     {card.helper && (
-                      <p className={`mt-2 text-xs font-medium ${(card.label === 'Current Value' && (investorStats.currentValue - investorStats.totalInvested) < 0) ? 'text-red-500' : 'text-[#2BB673]'}`}>
+                      <p className={`mt-1 text-[11px] font-semibold ${(card.label === 'Current Value' && (investorStats.currentValue - investorStats.totalInvested) < 0) ? 'text-red-500' : 'text-[#2BB673]'}`}>
                         {card.helper}
                       </p>
                     )}
                   </div>
                 ))}
               </div>
-            );
-          })()}
+            </div>
+
+            {/* Real Estate Funds Section */}
+            {investorStats.hasLegacyInvestments && (
+              <div>
+                <h2 className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest font-sans">
+                  Real Estate Funds
+                </h2>
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    {
+                      label: 'Total Invested (Legacy)',
+                      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.legacyTotalInvested || 0),
+                      helper: 'From legacy investments',
+                    },
+                    {
+                      label: 'Total Shares',
+                      value: (investorStats.legacyTotalShares || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                      helper: 'From legacy investments',
+                    },
+                    {
+                      label: 'Total Distributions',
+                      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.legacyTotalDistributed || 0),
+                      helper: 'Distributed to date',
+                    }
+                  ].map((card) => (
+                    <div
+                      key={card.label}
+                      className="rounded-2xl bg-white px-4 py-3 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
+                    >
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[#A0A0A0]">
+                        {card.label}
+                      </p>
+                      <p className="mt-1.5 text-xl font-bold text-gray-900 font-goudy">
+                        {card.value}
+                      </p>
+                      {card.helper && (
+                        <p className="mt-1 text-[11px] font-semibold text-[#2BB673]">
+                          {card.helper}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Main content grid */}
           <div className="grid gap-6 xl:grid-cols-[minmax(0,2.5fr)_minmax(0,1.1fr)]">
@@ -791,156 +861,71 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Funds Section (Active Funds & Real Estate Funds) */}
-          <div className={`grid gap-6 ${investorStats.hasLegacyInvestments && investorStats.legacyFunds && investorStats.legacyFunds.length > 0 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-            {/* Active Funds Collapsible */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setActiveFundsOpen(!activeFundsOpen)}
-                    className="p-1 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
-                  >
-                    <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${activeFundsOpen ? '' : '-rotate-90'}`} />
-                  </button>
-                  <div>
-                    <h2 className="font-goudy text-lg font-bold text-gray-900">Active Funds</h2>
-                    <p className="text-xs text-[#8E8E93] mt-0.5">Your current platform investments</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-xs font-bold">
-                    {activeFundsList.length} {activeFundsList.length === 1 ? 'Active Fund' : 'Active Funds'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => router.push('/dashboard/portfolio?tab=investments')}
-                    className="text-xs font-semibold text-[#E7A324] hover:text-[#B87D0E] flex items-center gap-1 transition-colors"
-                  >
-                    <span>View</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+          {/* Funds Section */}
+          <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFundsOpen(!fundsOpen)}
+                  className="p-1 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
+                >
+                  <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${fundsOpen ? '' : '-rotate-90'}`} />
+                </button>
+                <div>
+                  <h2 className="font-goudy text-lg font-bold text-gray-900">Funds</h2>
+                  <p className="text-xs text-[#8E8E93] mt-0.5">Your platform and legacy investments</p>
                 </div>
               </div>
-
-              {activeFundsOpen && (
-                <div className="pt-2">
-                  {activeFundsList.length > 0 ? (
-                    <div className="divide-y divide-gray-100">
-                      {activeFundsList.map((fund: any, idx: number) => (
-                        <div
-                          key={fund.fundId || idx}
-                          onClick={() => router.push('/dashboard/portfolio?tab=investments')}
-                          className="flex items-center justify-between py-3.5 px-3 -mx-3 rounded-xl hover:bg-gray-50/80 cursor-pointer transition-colors group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#FFF3D6] text-[#E29F3A] border border-[#FCD34D]/50 flex items-center justify-center font-bold text-sm shrink-0 group-hover:scale-105 transition-transform">
-                              {fund.fundName ? fund.fundName[0].toUpperCase() : 'A'}
-                            </div>
-                            <div>
-                              <p className="font-bold text-gray-900 text-sm group-hover:text-[#E7A324] transition-colors leading-snug">
-                                {fund.fundName || 'Active Fund'}
-                              </p>
-                              <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider block mt-0.5">
-                                Active Fund
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <span className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0] block">Total Invested</span>
-                              <p className="text-base font-semibold text-[#1F1F1F]">
-                                {fund.totalInvestedFormatted}
-                              </p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#E7A324] group-hover:translate-x-0.5 transition-all" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
-                      <p className="text-sm font-medium text-gray-500">No active investments found</p>
-                      <button
-                        type="button"
-                        onClick={() => router.push('/dashboard/invest')}
-                        className="mt-3 inline-flex items-center gap-2 bg-[#F3C046] hover:bg-[#E7A324] text-white text-xs font-bold px-4 py-2 rounded-full transition-colors shadow-xs"
-                      >
-                        Invest Now
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200/60 text-xs font-bold">
+                  {combinedFundsList.length} {combinedFundsList.length === 1 ? 'Fund' : 'Funds'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => router.push('/dashboard/portfolio?tab=investments')}
+                  className="text-xs font-semibold text-[#E7A324] hover:text-[#B87D0E] flex items-center gap-1 transition-colors"
+                >
+                  <span>View</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            {/* Real Estate Funds Collapsible (Only shown if legacy records exist) */}
-            {investorStats.hasLegacyInvestments && investorStats.legacyFunds && investorStats.legacyFunds.length > 0 && (
-              <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setLegacyFundsOpen(!legacyFundsOpen)}
-                      className="p-1 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
-                    >
-                      <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${legacyFundsOpen ? '' : '-rotate-90'}`} />
-                    </button>
-                    <div>
-                      <h2 className="font-goudy text-lg font-bold text-gray-900">Real Estate Funds</h2>
-                      <p className="text-xs text-[#8E8E93] mt-0.5">Your investments from previous platform</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 text-xs font-bold">
-                      {investorStats.legacyFunds.length} {investorStats.legacyFunds.length === 1 ? 'Real Estate Fund' : 'Real Estate Funds'}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => router.push('/dashboard/portfolio?tab=oldInvestments')}
-                      className="text-xs font-semibold text-[#E7A324] hover:text-[#B87D0E] flex items-center gap-1 transition-colors"
-                    >
-                      <span>View</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {legacyFundsOpen && (
-                  <div className="pt-2">
-                    <div className="divide-y divide-gray-100">
-                      {investorStats.legacyFunds.map((fund: any, idx: number) => (
-                        <div
-                          key={fund.projectId || idx}
-                          onClick={() => router.push('/dashboard/portfolio?tab=oldInvestments')}
-                          className="flex items-center justify-between py-3.5 px-3 -mx-3 rounded-xl hover:bg-gray-50/80 cursor-pointer transition-colors group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#FFF3D6] text-[#E29F3A] border border-[#FCD34D]/50 flex items-center justify-center font-bold text-sm shrink-0 group-hover:scale-105 transition-transform">
-                              {fund.projectName ? fund.projectName[0].toUpperCase() : 'L'}
-                            </div>
-                            <div>
-                              <p className="font-bold text-gray-900 text-sm group-hover:text-[#E7A324] transition-colors leading-snug">
-                                {fund.projectName || 'Real Estate Fund'}
-                              </p>
-                              <span className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider block mt-0.5">
-                                Real Estate Fund
-                              </span>
-                            </div>
+            {fundsOpen && (
+              <div className="pt-2">
+                {combinedFundsList.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
+                    {combinedFundsList.map((fund: any, idx: number) => (
+                      <div
+                        key={fund.id || idx}
+                        className="grid grid-cols-[2fr_1.2fr_1fr] items-center gap-4 py-3.5 px-3 -mx-3 rounded-xl hover:bg-gray-50/40 transition-colors duration-150"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-[#FFF3D6] text-[#E29F3A] border border-[#FCD34D]/50 flex items-center justify-center font-bold text-sm shrink-0">
+                            {fund.initialLetter}
                           </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <span className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0] block">Total Invested</span>
-                              <p className="text-base font-semibold text-[#1F1F1F]">
-                                {fund.totalInvestedFormatted}
-                              </p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#E7A324] group-hover:translate-x-0.5 transition-all" />
-                          </div>
+                          <p className="font-bold text-gray-900 text-sm leading-snug">
+                            {fund.name}
+                          </p>
                         </div>
-                      ))}
-                    </div>
+                        <div className="flex justify-start">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${fund.badgeColor}`}>
+                            {fund.type}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-medium uppercase tracking-wide text-[#A0A0A0] block">Total Invested</span>
+                          <p className="text-sm font-bold text-[#1F1F1F] mt-0.5">
+                            {fund.totalInvestedFormatted}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                    <p className="text-sm font-medium text-gray-500">No investments found</p>
                   </div>
                 )}
               </div>
