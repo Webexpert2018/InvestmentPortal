@@ -18,17 +18,15 @@ export default function PortfolioPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo' | 'oldInvestments'>(
-    tabParam === 'fundInfo' ? 'fundInfo' : tabParam === 'oldInvestments' ? 'oldInvestments' : 'investments'
+  const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo'>(
+    tabParam === 'fundInfo' ? 'fundInfo' : 'investments'
   );
 
   useEffect(() => {
     if (tabParam === 'fundInfo') {
       setActiveTab('fundInfo');
-    } else if (tabParam === 'investments') {
+    } else if (tabParam === 'investments' || tabParam === 'oldInvestments') {
       setActiveTab('investments');
-    } else if (tabParam === 'oldInvestments') {
-      setActiveTab('oldInvestments');
     }
   }, [tabParam]);
 
@@ -264,8 +262,7 @@ export default function PortfolioPage() {
             <button
               type="button"
               onClick={() => setActiveTab('investments')}
-              className={`pb-3 font-medium relative ${activeTab === 'investments' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'
-                }`}
+              className={`pb-3 font-medium relative ${activeTab === 'investments' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'}`}
             >
               Investments
               {activeTab === 'investments' && (
@@ -275,27 +272,13 @@ export default function PortfolioPage() {
             <button
               type="button"
               onClick={() => setActiveTab('fundInfo')}
-              className={`pb-3 font-medium relative ${activeTab === 'fundInfo' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'
-                }`}
+              className={`pb-3 font-medium relative ${activeTab === 'fundInfo' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'}`}
             >
               Fund Info
               {activeTab === 'fundInfo' && (
                 <span className="absolute bottom-0 left-1/2 h-[2px] w-[38px] -translate-x-1/2 bg-[#FFC63F]" />
               )}
             </button>
-            {oldInvestments && oldInvestments.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setActiveTab('oldInvestments')}
-                className={`pb-3 font-medium relative ${activeTab === 'oldInvestments' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'
-                  }`}
-              >
-                Previous Platform Investments
-                {activeTab === 'oldInvestments' && (
-                  <span className="absolute bottom-0 left-1/2 h-[2px] w-[38px] -translate-x-1/2 bg-[#FFC63F]" />
-                )}
-              </button>
-            )}
           </div>
 
           {activeTab === 'investments' && (
@@ -343,37 +326,37 @@ export default function PortfolioPage() {
                   );
                 })()}
               </div>
-            </div>
-          )}
 
-          {activeTab === 'oldInvestments' && (
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
-                <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                  Total Legacy Invested
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(oldStats.totalInvested)}</p>
-              </div>
-              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
-                <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                  Total Legacy Distributions
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-[#2BB673]">{formatCurrency(oldStats.totalDistributions)}</p>
-              </div>
-              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
-                <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                  Legacy Funds
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{oldStats.fundCount}</p>
-              </div>
-              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
-                <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                  Total Legacy Shares
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">
-                  {oldStats.totalShares.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}
-                </p>
-              </div>
+              {oldInvestments && oldInvestments.length > 0 && (
+                <>
+                  <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+                    <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+                      Total Legacy Invested
+                    </p>
+                    <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(oldStats.totalInvested)}</p>
+                  </div>
+                  <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+                    <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+                      Total Legacy Distributions
+                    </p>
+                    <p className="mt-3 text-2xl font-semibold text-[#2BB673]">{formatCurrency(oldStats.totalDistributions)}</p>
+                  </div>
+                  <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+                    <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+                      Legacy Funds
+                    </p>
+                    <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{oldStats.fundCount}</p>
+                  </div>
+                  <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+                    <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
+                      Total Legacy Shares
+                    </p>
+                    <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">
+                      {oldStats.totalShares.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -412,7 +395,11 @@ export default function PortfolioPage() {
         {activeTab === 'investments' && (
           <div className="space-y-6">
             {/* Table */}
-            <div className="rounded-2xl border border-[#F2F2F2] bg-white px-6 pb-6 pt-4">
+            <div className="rounded-2xl border border-[#F2F2F2] bg-white px-6 pb-6 pt-6">
+              <div className="mb-4">
+                <h2 className="text-lg font-bold text-[#1F3B6E] font-goudy">Active Investments</h2>
+                <p className="text-xs text-gray-500 font-medium">Your current positions and active investments on the platform.</p>
+              </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
                   <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
@@ -600,59 +587,59 @@ export default function PortfolioPage() {
                 )}
               </div>
             </div>
+
+            {/* Previous Platform Investments Section */}
+            {oldInvestments && oldInvestments.length > 0 && (
+              <div className="rounded-2xl border border-[#F2F2F2] bg-white px-6 pb-6 pt-6 mt-6 animate-fadeIn">
+                <div className="mb-4">
+                  <h2 className="text-lg font-bold text-[#1F3B6E] font-goudy">Real Estate Investments</h2>
+                  <p className="text-xs text-gray-500 font-medium">Historical investments transferred from the previous platform.</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
+                      <tr>
+                        <th className="px-4 py-3 whitespace-nowrap">Fund Name</th>
+                        <th className="px-4 py-3 whitespace-nowrap">Investor Name</th>
+                        <th className="px-4 py-3 text-right whitespace-nowrap">Investment Amount</th>
+                        <th className="px-4 py-3 text-right whitespace-nowrap">Total Distributions</th>
+                        <th className="px-4 py-3 text-right whitespace-nowrap">Shares</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 text-sm">
+                      {oldInvestments.map((row) => {
+                        const totalDist = row.distributions && Array.isArray(row.distributions)
+                          ? row.distributions.reduce((sum: number, d: any) => {
+                              const dVal = parseFloat((d.calculatedAmount || d.returnOfCapital || '').replace(/[^0-9.-]/g, ''));
+                              return sum + (isNaN(dVal) ? 0 : dVal);
+                            }, 0)
+                          : 0;
+
+                        return (
+                          <tr
+                            key={row.investmentOwnershipId}
+                            className="hover:bg-slate-50/80 cursor-pointer transition-colors duration-150"
+                            onClick={() => {
+                              setSelectedOldInvestment(row);
+                              setShowOldInvestmentModal(true);
+                            }}
+                          >
+                            <td className="px-4 py-3 text-[#1F1F1F] font-semibold">{row.projectName}</td>
+                            <td className="px-4 py-3 text-[#4B4B4B]">{row.investorProfileLegalName || 'N/A'}</td>
+                            <td className="px-4 py-3 text-right text-[#1F3B6E] font-bold">{row.investmentAmount}</td>
+                            <td className="px-4 py-3 text-right text-[#2BB673] font-bold">{formatCurrency(totalDist)}</td>
+                            <td className="px-4 py-3 text-right text-gray-600">{row.shares || '0'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {activeTab === 'oldInvestments' && oldInvestments && oldInvestments.length > 0 && (
-          <div className="space-y-6">
-            {/* Old Platform Investments Table */}
-            <div className="rounded-2xl border border-[#F2F2F2] bg-white px-6 pb-6 pt-6">
-              <div className="mb-4">
-                <h2 className="text-lg font-bold text-[#1F3B6E] font-goudy">Old Platform Investments</h2>
-                <p className="text-xs text-gray-500 font-medium">Historical investments transferred from the previous platform.</p>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
-                    <tr>
-                      <th className="px-4 py-3 whitespace-nowrap">Fund Name</th>
-                      <th className="px-4 py-3 whitespace-nowrap">Investor Name</th>
-                      <th className="px-4 py-3 whitespace-nowrap">Status</th>
-                      <th className="px-4 py-3 text-right whitespace-nowrap">Investment Amount</th>
-                      <th className="px-4 py-3 whitespace-nowrap">Placed On</th>
-                      <th className="px-4 py-3 whitespace-nowrap">Received On</th>
-                      <th className="px-4 py-3 text-right whitespace-nowrap">Shares</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50 text-sm">
-                    {oldInvestments.map((row) => (
-                      <tr
-                        key={row.investmentOwnershipId}
-                        className="hover:bg-slate-50/80 cursor-pointer transition-colors duration-150"
-                        onClick={() => {
-                          setSelectedOldInvestment(row);
-                          setShowOldInvestmentModal(true);
-                        }}
-                      >
-                        <td className="px-4 py-3 text-[#1F1F1F] font-semibold">{row.projectName}</td>
-                        <td className="px-4 py-3 text-[#4B4B4B]">{row.investorProfileLegalName || 'N/A'}</td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            {row.investmentStatus}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right text-[#1F3B6E] font-bold">{row.investmentAmount}</td>
-                        <td className="px-4 py-3 text-gray-600">{formatDate(row.placedOn)}</td>
-                        <td className="px-4 py-3 text-gray-600">{row.receivedOn ? formatDate(row.receivedOn) : 'N/A'}</td>
-                        <td className="px-4 py-3 text-right text-gray-600">{row.shares || '0'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Old Investment Details Modal */}

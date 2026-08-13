@@ -274,7 +274,9 @@ export class InvestmentsService {
   async getMyInvestments(userId: string) {
     try {
       const query = `
-        SELECT i.*, f.name as fund_name 
+        SELECT i.*, f.name as fund_name, f.image_url as fund_image,
+               COALESCE((SELECT SUM(amount) FROM redemptions WHERE investment_id = i.id AND status = 'Processed'), 0)::float as processed_redemption_amount,
+               COALESCE((SELECT SUM(units) FROM redemptions WHERE investment_id = i.id AND status = 'Processed'), 0)::float as processed_redemption_units
         FROM investments i
         JOIN funds f ON i.fund_id = f.id
         WHERE i.user_id = $1 OR i.user_id IN (SELECT id FROM investors WHERE parent_id = $1)
@@ -544,6 +546,48 @@ export class InvestmentsService {
       if (error instanceof NotFoundException) throw error;
       console.error('❌ Error marking investment as reconciled:', error);
       throw new InternalServerErrorException('Failed to update reconciliation status');
+    }
+  }
+
+  async deleteInvestment(adminId: string, investmentId: string) {
+    try {
+      const checkRes = await db.query('SELECT * FROM investments WHERE id = $1', [investmentId]);
+      if (checkRes.rows.length === 0) {
+        throw new NotFoundException('Investment record not found');
+      }
+
+      const investment = checkRes.rows[0];
+      if (investment.status !== 'Rejected') {
+        throw new BadRequestException('Only rejected investment records can be deleted');
+      }
+
+      await db.query('DELETE FROM investments WHERE id = $1', [investmentId]);
+
+      // Add audit log
+      try {
+        await db.query(
+          'INSERT INTO audit_logs (user_id, action, resource_type, resource_id, metadata) VALUES ($1, $2, $3, $4, $5)',
+          [
+            adminId,
+            'DELETE_INVESTMENT',
+            'investment',
+            investmentId,
+            JSON.stringify({
+              amount: investment.investment_amount,
+              fund_id: investment.fund_id,
+              status: investment.status
+            })
+          ]
+        );
+      } catch (auditError) {
+        console.warn('⚠️ Failed to create audit log for investment deletion:', auditError);
+      }
+
+      return { message: 'Investment record deleted successfully' };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) throw error;
+      console.error('❌ Error deleting investment:', error);
+      throw new InternalServerErrorException('Failed to delete investment record');
     }
   }
 }

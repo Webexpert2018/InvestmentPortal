@@ -1384,7 +1384,7 @@ export default function OldFundDetailPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-sm text-gray-400 font-medium">No associated investors found for this legacy fund.</p>
+                  <p className="text-sm text-gray-400 font-medium">No associated investors found for this Real Estate fund.</p>
                 </div>
               )
             ) : (
@@ -1751,7 +1751,7 @@ export default function OldFundDetailPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-sm text-gray-400 font-medium">No distributions found for this legacy fund.</p>
+                  <p className="text-sm text-gray-400 font-medium">No distributions found for this real estate fund.</p>
                 </div>
               )
             )

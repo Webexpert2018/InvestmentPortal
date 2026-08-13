@@ -198,7 +198,7 @@ export default function FundsPage() {
               : 'border-transparent text-gray-400 hover:text-gray-600'
               }`}
           >
-            Previous Platform Funds
+            Real Estate Funds
           </button>
         </div>
 
@@ -385,7 +385,7 @@ export default function FundsPage() {
                 </table>
                 {filteredOldFunds.length === 0 && !isLoadingOld && (
                   <div className="text-center py-12">
-                    <p className="text-gray-500">No Previous Platform Funds found matching "{searchQuery}"</p>
+                    <p className="text-gray-500">No Real Estate Funds found matching "{searchQuery}"</p>
                   </div>
                 )}
                 {isLoadingOld && (

@@ -94,13 +94,15 @@ export class StatsService {
 
       // 2. Fetch total investments and legacy funds breakdown from old_investments table matching investor's email
       let legacyTotalInvested = 0;
+      let legacyTotalShares = 0;
+      let legacyTotalDistributed = 0;
       let hasLegacyInvestments = false;
       const legacyFundsMap = new Map<string, { projectId: number | null; projectName: string; totalInvested: number }>();
 
       if (email) {
         try {
           const oldInvRes = await db.query(
-            `SELECT project_id, project_name, investment_amount 
+            `SELECT project_id, project_name, investment_amount, shares, investor_profile_id 
              FROM old_investments 
              WHERE email_address IS NOT NULL 
                AND LOWER(TRIM(email_address)) = LOWER(TRIM($1))`,
@@ -108,11 +110,13 @@ export class StatsService {
           );
           if (oldInvRes.rows.length > 0) {
             hasLegacyInvestments = true;
+            const profileIds: string[] = [];
             oldInvRes.rows.forEach((r: any) => {
               const pid = r.project_id ? parseInt(r.project_id, 10) : null;
               const pname = r.project_name || 'Legacy Fund';
               const amtStr = r.investment_amount || '0';
               const num = parseFloat(amtStr.toString().replace(/[\$,]/g, '')) || 0;
+              const sharesNum = parseFloat(r.shares || '0');
               if (!isNaN(num)) {
                 legacyTotalInvested += num;
                 const key = pid ? `id_${pid}` : `name_${pname}`;
@@ -121,7 +125,30 @@ export class StatsService {
                 }
                 legacyFundsMap.get(key)!.totalInvested += num;
               }
+              if (!isNaN(sharesNum)) {
+                legacyTotalShares += sharesNum;
+              }
+              if (r.investor_profile_id) {
+                profileIds.push(r.investor_profile_id);
+              }
             });
+
+            // Get distributions
+            if (profileIds.length > 0) {
+              const uniqueProfileIds = Array.from(new Set(profileIds));
+              const distRes = await db.query(
+                `SELECT return_of_capital 
+                 FROM distributions 
+                 WHERE investor_profile_id = ANY($1) AND batch_status IN ('1', 'Distributed')`,
+                [uniqueProfileIds]
+              );
+              distRes.rows.forEach((r: any) => {
+                const numDist = parseFloat(r.return_of_capital?.toString().replace(/[\$,]/g, '') || '0');
+                if (!isNaN(numDist)) {
+                  legacyTotalDistributed += numDist;
+                }
+              });
+            }
           }
         } catch (err) {
           console.warn('Could not query old_investments for legacy stats:', err);
@@ -180,6 +207,8 @@ export class StatsService {
         totalUnits: parseFloat(total_units),
         totalInvested: parseFloat(total_invested),
         legacyTotalInvested,
+        legacyTotalShares,
+        legacyTotalDistributed,
         hasLegacyInvestments,
         legacyFunds,
         ytdReturn: parseFloat(ytdReturn.toFixed(2))

@@ -854,6 +854,12 @@ class ApiClient {
     });
   }
 
+  async deleteInvestment(id: string) {
+    return this.request<any>(`/investments/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async updateInvestmentInternalAmount(id: string, amount: number) {
     return this.request<any>(`/investments/${id}/internal-amount`, {
       method: 'PATCH',
