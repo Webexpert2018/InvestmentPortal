@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, UnauthorizedException, Delete } from '@nestjs/common';
 import { InvestmentsService } from './investments.service';
 import { CreateInvestmentDto, UpdateInvestmentStatusDto } from './dto/create-investment.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -71,6 +71,13 @@ export class InvestmentsController {
   @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
   async markAsReconciled(@Param('id') id: string, @Body('reconciled') reconciled: boolean) {
     return this.investmentsService.markAsReconciled(id, reconciled);
+  }
+
+  @Delete(':id')
+  @Roles('admin', 'executive_admin', 'fund_admin')
+  async deleteInvestment(@CurrentUser() user: any, @Param('id') id: string) {
+    if (!user.userId) throw new UnauthorizedException('User ID not found');
+    return this.investmentsService.deleteInvestment(user.userId, id);
   }
 
 }
