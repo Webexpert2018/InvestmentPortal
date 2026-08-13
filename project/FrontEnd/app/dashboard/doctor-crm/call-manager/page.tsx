@@ -114,6 +114,15 @@ export default function CallManagerPage() {
   const [savingActionId, setSavingActionId] = useState<string | null>(null);
   const [copiedPhoneId, setCopiedPhoneId] = useState<string | null>(null);
 
+  // Call Action Modal State
+  const [selectedDoctorForAction, setSelectedDoctorForAction] = useState<CrmDoctor | null>(null);
+  const [tempCallActionText, setTempCallActionText] = useState<string>('');
+
+  const handleOpenCallActionModal = (doc: CrmDoctor) => {
+    setSelectedDoctorForAction(doc);
+    setTempCallActionText(callActionsMap[doc.id] !== undefined ? callActionsMap[doc.id] : (doc.callAction || ''));
+  };
+
   const handleCopyPhone = (docId: string, phone: string) => {
     if (!phone || phone === 'N/A') {
       toast.error('No phone number available to copy.');
@@ -317,8 +326,10 @@ export default function CallManagerPage() {
     try {
       const res = await apiClient.updateProspectCallAction(docId, actionText.trim());
       if (res && res.success) {
-        toast.success(`📞 Saved Call Action '${actionText.trim()}' to DB!`);
+        toast.success(`📞 Saved Call Action to DB!`);
         setDoctors(prev => prev.map(d => d.id === docId ? { ...d, callAction: actionText.trim() } : d));
+        setCallActionsMap(prev => ({ ...prev, [docId]: actionText.trim() }));
+        setSelectedDoctorForAction(null);
       } else {
         toast.error('Failed to save call action to DB.');
       }
@@ -735,28 +746,17 @@ export default function CallManagerPage() {
                       {/* Column 5: Call Action (Separate Typable DB Column call_action) */}
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         <div className="flex items-center gap-1.5 justify-start">
-                          <input
-                            type="text"
-                            placeholder="Type call action..."
-                            value={callActionsMap[doc.id] !== undefined ? callActionsMap[doc.id] : (doc.callAction || '')}
-                            onChange={(e) => setCallActionsMap({ ...callActionsMap, [doc.id]: e.target.value })}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleUpdateCallAction(doc.id);
-                            }}
-                            className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-[12px] text-[#1F1F1F] w-48 focus:outline-none focus:border-[#FFC63F]"
-                          />
                           <button
-                            onClick={() => handleUpdateCallAction(doc.id)}
-                            disabled={savingActionId === doc.id}
-                            className="px-2.5 py-1.5 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] text-[12px] font-bold rounded-lg transition-all shadow-xs flex items-center gap-1 shrink-0 cursor-pointer"
-                            title="Save call action to DB"
+                            onClick={() => handleOpenCallActionModal(doc)}
+                            className="w-44 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[12px] font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                            title="Click to view or edit call action"
                           >
-                            {savingActionId === doc.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#1F1F1F]" />
-                            ) : (
-                              <Save className="w-3.5 h-3.5 text-[#1F1F1F]" />
-                            )}
-                            <span>Save</span>
+                            <Activity className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span className="truncate text-left flex-1">
+                              {callActionsMap[doc.id] !== undefined
+                                ? callActionsMap[doc.id]
+                                : (doc.callAction || 'Add Action')}
+                            </span>
                           </button>
                         </div>
                       </td>
@@ -1083,6 +1083,76 @@ export default function CallManagerPage() {
                     <>
                       <Upload className="w-4 h-4" />
                       <span>Confirm &amp; Upload {parsedLeads.length} Leads</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Call Action Edit Modal */}
+        {selectedDoctorForAction && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-[24px] max-w-md w-full p-6 shadow-2xl border border-gray-100 relative animate-in fade-in zoom-in-95 duration-200">
+              <button
+                onClick={() => setSelectedDoctorForAction(null)}
+                className="absolute right-5 top-5 p-1.5 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center font-bold">
+                  <Activity className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-goudy text-[22px] font-bold text-[#1F1F1F]">
+                    Call Action
+                  </h3>
+                  <p className="text-[12px] text-[#8E8E93]">
+                    {selectedDoctorForAction.fullName} • {selectedDoctorForAction.specialty}
+                  </p>
+                </div>
+              </div>
+
+              {/* Edit Call Action Form */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1.5">
+                    Call Action Text (Saved in DB)
+                  </label>
+                  <textarea
+                    rows={4}
+                    placeholder="Type call action..."
+                    value={tempCallActionText}
+                    onChange={(e) => setTempCallActionText(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-4">
+                <button
+                  onClick={() => setSelectedDoctorForAction(null)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[13px] font-bold rounded-full transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleUpdateCallAction(selectedDoctorForAction.id, tempCallActionText)}
+                  disabled={savingActionId === selectedDoctorForAction.id}
+                  className="px-5 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] text-[13px] font-bold rounded-full transition-all shadow-sm flex items-center gap-2"
+                >
+                  {savingActionId === selectedDoctorForAction.id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 text-[#1F1F1F]" />
+                      <span>Save Action</span>
                     </>
                   )}
                 </button>
