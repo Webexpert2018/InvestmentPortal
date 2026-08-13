@@ -290,7 +290,7 @@ export default function DashboardPage() {
 
   const combinedFundsList = useMemo(() => {
     const list: any[] = [];
-    
+
     // Add active funds
     activeFundsList.forEach((fund: any) => {
       list.push({
@@ -303,7 +303,7 @@ export default function DashboardPage() {
         initialLetter: fund.fundName ? fund.fundName[0].toUpperCase() : 'A'
       });
     });
-    
+
     // Add real estate/legacy funds
     (investorStats.legacyFunds || []).forEach((fund: any) => {
       list.push({
@@ -316,7 +316,7 @@ export default function DashboardPage() {
         initialLetter: fund.projectName ? fund.projectName[0].toUpperCase() : 'L'
       });
     });
-    
+
     return list;
   }, [activeFundsList, investorStats.legacyFunds]);
 
@@ -626,7 +626,7 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
-            {/* Top summary sections */}
+          {/* Top summary sections */}
           <div className="space-y-4 mb-4">
             {/* BWell Fund Section */}
             <div>

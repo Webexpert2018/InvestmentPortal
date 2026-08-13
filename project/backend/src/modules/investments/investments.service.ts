@@ -274,7 +274,9 @@ export class InvestmentsService {
   async getMyInvestments(userId: string) {
     try {
       const query = `
-        SELECT i.*, f.name as fund_name 
+        SELECT i.*, f.name as fund_name, f.image_url as fund_image,
+               COALESCE((SELECT SUM(amount) FROM redemptions WHERE investment_id = i.id AND status = 'Processed'), 0)::float as processed_redemption_amount,
+               COALESCE((SELECT SUM(units) FROM redemptions WHERE investment_id = i.id AND status = 'Processed'), 0)::float as processed_redemption_units
         FROM investments i
         JOIN funds f ON i.fund_id = f.id
         WHERE i.user_id = $1 OR i.user_id IN (SELECT id FROM investors WHERE parent_id = $1)

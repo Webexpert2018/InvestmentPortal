@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { apiClient } from '@/lib/api/client';
 import { Loader2, ChevronDown, CheckCircle2, Plus, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
 type Step = 'amount' | 'confirm' | 'submitted';
@@ -20,6 +20,8 @@ const defaultBankAdd = {
 
 export default function RedemptionAmountPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryFundId = searchParams.get('fundId');
   const [step, setStep] = useState<Step>('amount');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -69,7 +71,7 @@ export default function RedemptionAmountPage() {
     try {
       setLoading(true);
       const data = await apiClient.getMyInvestments();
-      // Only show investments that are completed/active, have units, and were bought over 3 years ago
+      
       const threeYearsAgo = new Date();
       threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
 
@@ -78,13 +80,25 @@ export default function RedemptionAmountPage() {
         const isUnitsIssued = h.status === 'Units Issued';
         const unitsIssuedAt = h.units_issued_at ? new Date(h.units_issued_at) : null;
         const isOldEnough = unitsIssuedAt && unitsIssuedAt <= threeYearsAgo;
+        const matchesFund = queryFundId ? (h.fund_id === queryFundId || h.fundId === queryFundId) : true;
 
-        return hasUnits && isUnitsIssued && isOldEnough;
+        return hasUnits && isUnitsIssued && isOldEnough && matchesFund;
+      }).map(h => {
+        const processedAmt = parseFloat(h.processed_redemption_amount || 0);
+        const processedUnits = parseFloat(h.processed_redemption_units || 0);
+        return {
+          ...h,
+          revised_amount: parseFloat(h.revised_amount || h.investment_amount || 0) - processedAmt,
+          investment_amount: parseFloat(h.investment_amount || 0) - processedAmt,
+          estimated_units: (parseFloat(h.estimated_units || 0) - processedUnits).toString()
+        };
       });
 
       setHoldings(eligibleHoldings);
       if (eligibleHoldings.length > 0) {
         setSelectedHoldingId(eligibleHoldings[0].id);
+      } else {
+        setSelectedHoldingId('');
       }
     } catch (error) {
       console.error('Error fetching holdings:', error);
@@ -116,6 +130,14 @@ export default function RedemptionAmountPage() {
     if (!selectedHolding) return false;
     return unitsToRedeem > parseFloat(selectedHolding.estimated_units);
   }, [unitsToRedeem, selectedHolding]);
+
+  const isSelectedHoldingEligible = useMemo(() => {
+    if (!selectedHolding) return false;
+    const unitsIssuedAt = selectedHolding.units_issued_at ? new Date(selectedHolding.units_issued_at) : null;
+    const threeYearsAgo = new Date();
+    threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+    return unitsIssuedAt && unitsIssuedAt <= threeYearsAgo;
+  }, [selectedHolding]);
 
   const estimatedFees = 0; // Keeping it simple for now
   const totalPayout = useMemo(() => {
@@ -213,7 +235,7 @@ export default function RedemptionAmountPage() {
         <button
           type="button"
           onClick={handleContinue}
-          disabled={submitting || (step === 'amount' && (numericAmount <= 0 || !selectedHoldingId || isOverLimit || !selectedBankId))}
+          disabled={submitting || (step === 'amount' && (numericAmount <= 0 || !selectedHoldingId || isOverLimit || !selectedBankId || !isSelectedHoldingEligible))}
           className="rounded-full bg-[#FBCB4B] px-8 py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60 flex items-center gap-2"
         >
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -255,6 +277,13 @@ export default function RedemptionAmountPage() {
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8E8E93] pointer-events-none" />
             </div>
+            {holdings.length === 0 && (
+              <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3.5 animate-in fade-in slide-in-from-top-1">
+                <p className="text-xs text-amber-800 leading-relaxed font-semibold">
+                  ⚠️ No eligible holdings found (Must be held for 3+ years). Redemptions are only permitted after 3 years from unit issuance.
+                </p>
+              </div>
+            )}
           </div>
 
           <div>
