@@ -330,11 +330,26 @@ export default function DashboardPage() {
   const filteredPendingActions = useMemo(() => {
     const actions = [];
 
-    if (investorKycStatus === 'unverified' || !investorKycStatus || investorKycStatus === 'rejected') {
+    if (investorKycStatus === 'unverified' || !investorKycStatus) {
       actions.push({
         id: 1,
         title: 'KYC Verification',
-        description: 'Your identity verification is still pending.',
+        description: 'To start investing and access all features, please complete your identity verification.',
+        status: 'unverified',
+      });
+    } else if (investorKycStatus === 'pending') {
+      actions.push({
+        id: 1,
+        title: 'KYC Verification',
+        description: 'Your verification is currently under review. This usually takes 1–2 business days.',
+        status: 'pending',
+      });
+    } else if (investorKycStatus === 'rejected') {
+      actions.push({
+        id: 1,
+        title: 'KYC Verification',
+        description: "We couldn't verify your information. Please retry verification to continue.",
+        status: 'rejected',
       });
     }
 
@@ -557,73 +572,9 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {(investorKycStatus === 'unverified' || !investorKycStatus) && (
-            <div className="rounded-xl bg-[#F6F6F6] px-5 py-4 md:px-6 md:py-5 border-l-4 border-[#F2C63D]">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="font-goudy text-[28px] leading-none text-[#1F1F1F]">Verify Your Identity</p>
-                  <p className="mt-2 font-helvetica text-sm text-[#8A8A8A]">
-                    To start investing and access all features, please complete your identity verification.
-                  </p>
-                </div>
-                <Link
-                  href="/dashboard/kyc-verification"
-                  className="rounded-full bg-[#F2C63D] px-8 py-3 font-goudy text-[18px] leading-none font-bold text-[#1F1F1F] hover:bg-[#EAC835] text-center"
-                >
-                  Verify Now
-                </Link>
-              </div>
-            </div>
-          )}
 
-          {investorKycStatus === 'pending' && (
-            <div className="rounded-xl bg-[#F6EFE3] px-5 py-4 md:px-6 md:py-5">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="font-goudy text-[28px] leading-none text-[#E7A324]">KYC Verification in Progress</p>
-                  <p className="mt-2 font-helvetica text-sm text-[#8A8A8A]">
-                    Your verification is currently under review. This usually takes 1–2 business days. We&apos;ll notify
-                    you once it&apos;s complete.
-                  </p>
-                </div>
-                <div className="inline-flex items-center justify-center rounded-full bg-white px-6 py-2 font-helvetica text-lg font-medium text-[#E7A324]">
-                  Pending
-                </div>
-              </div>
-            </div>
-          )}
 
-          {investorKycStatus === 'rejected' && (
-            <div className="rounded-xl bg-[#FFF1F1] px-5 py-4 md:px-6 md:py-5">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="font-goudy text-[28px] leading-none text-[#FF4C4C]">KYC Verification Unsuccessful</p>
-                  <p className="mt-2 font-helvetica text-sm text-[#8A8A8A]">
-                    We couldn&apos;t verify your information at this time. Please review your details and retry
-                    verification to continue investing.
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                  <Link
-                    href="/dashboard/kyc-verification"
-                    className="rounded-full bg-[#FFF9EE] px-5 py-2 font-goudy text-[20px] leading-none text-[#BFA778]"
-                  >
-                    Upload Documents Manually
-                  </Link>
-                  <Link
-                    href="/dashboard/kyc-verification"
-                    onClick={() => {
-                      setInvestorKycStatus('pending');
-                      setInvestorKycState('pending');
-                    }}
-                    className="rounded-full bg-[#F2C63D] px-5 py-2 font-goudy text-[20px] leading-none text-[#6A4D00]"
-                  >
-                    Retry Verification
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
+
 
           {investorKycStatus === 'verified' && (
             <div className="rounded-xl bg-[#ECF9F2] px-5 py-4 md:px-6 md:py-5">
@@ -840,7 +791,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Funds Section (Active Funds & Legacy Funds) */}
+          {/* Funds Section (Active Funds & Real Estate Funds) */}
           <div className={`grid gap-6 ${investorStats.hasLegacyInvestments && investorStats.legacyFunds && investorStats.legacyFunds.length > 0 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
             {/* Active Funds Collapsible */}
             <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
@@ -924,7 +875,7 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Legacy Funds Collapsible (Only shown if legacy records exist) */}
+            {/* Real Estate Funds Collapsible (Only shown if legacy records exist) */}
             {investorStats.hasLegacyInvestments && investorStats.legacyFunds && investorStats.legacyFunds.length > 0 && (
               <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-3">
@@ -937,13 +888,13 @@ export default function DashboardPage() {
                       <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${legacyFundsOpen ? '' : '-rotate-90'}`} />
                     </button>
                     <div>
-                      <h2 className="font-goudy text-lg font-bold text-gray-900">Legacy Funds</h2>
+                      <h2 className="font-goudy text-lg font-bold text-gray-900">Real Estate Funds</h2>
                       <p className="text-xs text-[#8E8E93] mt-0.5">Your investments from previous platform</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 text-xs font-bold">
-                      {investorStats.legacyFunds.length} {investorStats.legacyFunds.length === 1 ? 'Legacy Fund' : 'Legacy Funds'}
+                      {investorStats.legacyFunds.length} {investorStats.legacyFunds.length === 1 ? 'Real Estate Fund' : 'Real Estate Funds'}
                     </span>
                     <button
                       type="button"
@@ -971,10 +922,10 @@ export default function DashboardPage() {
                             </div>
                             <div>
                               <p className="font-bold text-gray-900 text-sm group-hover:text-[#E7A324] transition-colors leading-snug">
-                                {fund.projectName || 'Legacy Fund'}
+                                {fund.projectName || 'Real Estate Fund'}
                               </p>
                               <span className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider block mt-0.5">
-                                Legacy Fund
+                                Real Estate Fund
                               </span>
                             </div>
                           </div>
@@ -1029,13 +980,32 @@ export default function DashboardPage() {
                       <Link
                         href={href}
                         key={item.id}
-                        className="flex items-start justify-between gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-[#F9FAFB] p-1 rounded-md transition-colors"
+                        className="flex items-center justify-between gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-[#F9FAFB] p-1 rounded-md transition-colors w-full"
                       >
                         <div>
                           <p className="text-[13px] font-medium text-[#1F1F1F]">{item.title}</p>
                           <p className="mt-1 text-[11px] text-[#8E8E93]">{item.description}</p>
                         </div>
-                        <ChevronRight className="mt-1 h-3 w-3 text-gray-300" />
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {item.title === 'KYC Verification' && (
+                            <>
+                              {item.status === 'pending' ? (
+                                <span className="text-[12px] font-bold bg-[#FFF4E0] text-[#E59D22] px-3.5 py-1.5 rounded-full border border-[#FFE8C2] shadow-xs">
+                                  Pending
+                                </span>
+                              ) : item.status === 'rejected' ? (
+                                <span className="text-[12px] font-bold bg-[#FFF1F1] text-[#FF4C4C] px-3.5 py-1.5 rounded-full border border-[#FFE3E3] shadow-xs">
+                                  Retry
+                                </span>
+                              ) : (
+                                <span className="text-[12px] font-bold bg-[#F2C63D] hover:bg-[#EAC835] text-[#1F1F1F] px-3.5 py-1.5 rounded-full transition-all shadow-sm">
+                                  Verify Now
+                                </span>
+                              )}
+                            </>
+                          )}
+                          <ChevronRight className="h-3 w-3 text-gray-300" />
+                        </div>
                       </Link>
                     );
                   })}
