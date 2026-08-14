@@ -3,6 +3,7 @@ import { Client } from 'pg';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../email/email.service';
 import { Cron } from '@nestjs/schedule';
+import { google } from 'googleapis';
 
 @Injectable()
 export class MeetingsService {
@@ -334,6 +335,293 @@ export class MeetingsService {
         throw error;
       }
       throw new InternalServerErrorException('Failed to update meeting');
+    }
+  }
+
+  // --- Google Calendar OAuth & API Integration ---
+
+  private getOAuth2Client() {
+    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID') || process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET') || process.env.GOOGLE_CLIENT_SECRET;
+    const redirectUri = this.configService.get<string>('GOOGLE_REDIRECT_URI') || process.env.GOOGLE_REDIRECT_URI;
+
+    if (!clientId || !clientSecret || !redirectUri) {
+      throw new BadRequestException('Google OAuth environment variables (CLIENT_ID, SECRET, REDIRECT_URI) are not configured.');
+    }
+
+    return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
+  }
+
+  async getGoogleAuthUrl(userId: string) {
+    const oauth2Client = this.getOAuth2Client();
+    return oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      prompt: 'consent',
+      scope: [
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/calendar.events',
+      ],
+      state: userId,
+    });
+  }
+
+  async handleGoogleCallback(userId: string, code: string) {
+    const oauth2Client = this.getOAuth2Client();
+    try {
+      const { tokens } = await oauth2Client.getToken(code);
+      
+      const expiryDate = tokens.expiry_date ? BigInt(tokens.expiry_date) : null;
+
+      await this.pgClient.query(`
+        INSERT INTO google_tokens (user_id, access_token, refresh_token, expiry_date, token_type, scope, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
+        ON CONFLICT (user_id) DO UPDATE SET
+          access_token = EXCLUDED.access_token,
+          refresh_token = COALESCE(EXCLUDED.refresh_token, google_tokens.refresh_token),
+          expiry_date = COALESCE(EXCLUDED.expiry_date, google_tokens.expiry_date),
+          token_type = EXCLUDED.token_type,
+          scope = EXCLUDED.scope,
+          updated_at = CURRENT_TIMESTAMP
+      `, [
+        userId,
+        tokens.access_token,
+        tokens.refresh_token || null,
+        expiryDate,
+        tokens.token_type || null,
+        tokens.scope || null
+      ]);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error exchanging Google authorization code:', error);
+      throw new InternalServerErrorException('Failed to complete Google Calendar authentication');
+    }
+  }
+
+  async getGoogleTokenStatus(userId: string) {
+    const result = await this.pgClient.query(`
+      SELECT user_id, updated_at FROM google_tokens WHERE user_id = $1
+    `, [userId]);
+    return { connected: result.rows.length > 0 };
+  }
+
+  private async getAuthenticatedClient(userId: string) {
+    const oauth2Client = this.getOAuth2Client();
+    const result = await this.pgClient.query(`
+      SELECT access_token, refresh_token, expiry_date FROM google_tokens WHERE user_id = $1
+    `, [userId]);
+
+    if (result.rows.length === 0) {
+      throw new NotFoundException('Google Calendar account not connected. Please login first.');
+    }
+
+    const { access_token, refresh_token, expiry_date } = result.rows[0];
+
+    oauth2Client.setCredentials({
+      access_token,
+      refresh_token,
+      expiry_date: expiry_date ? Number(expiry_date) : undefined,
+    });
+
+    // Check if token is expired or close to expiry (within 5 minutes)
+    const isExpired = expiry_date && (Number(expiry_date) - Date.now() < 300000);
+
+    if (isExpired && refresh_token) {
+      try {
+        console.log('🔄 Access token expired. Refreshing token...');
+        const { credentials } = await oauth2Client.refreshAccessToken();
+        
+        await this.pgClient.query(`
+          UPDATE google_tokens SET
+            access_token = $1,
+            expiry_date = $2,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = $3
+        `, [credentials.access_token, credentials.expiry_date ? BigInt(credentials.expiry_date) : null, userId]);
+
+        oauth2Client.setCredentials(credentials);
+      } catch (err) {
+        console.error('Failed to refresh Google token:', err);
+      }
+    }
+
+    return oauth2Client;
+  }
+
+  async createGoogleEvent(
+    userId: string,
+    dto: { title: string; description?: string; scheduledDate: string; durationMinutes?: number; attendeeEmail: string }
+  ) {
+    const oauth2Client = await this.getAuthenticatedClient(userId);
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+    const startDate = new Date(dto.scheduledDate);
+    const duration = dto.durationMinutes || 30;
+    const endDate = new Date(startDate.getTime() + duration * 60000);
+
+    try {
+      // 1. Create event on Google Calendar and request Google Meet link
+      const eventResponse = await calendar.events.insert({
+        calendarId: 'primary',
+        sendUpdates: 'all',
+        conferenceDataVersion: 1,
+        requestBody: {
+          summary: dto.title,
+          description: dto.description || '',
+          start: {
+            dateTime: startDate.toISOString(),
+            timeZone: 'UTC',
+          },
+          end: {
+            dateTime: endDate.toISOString(),
+            timeZone: 'UTC',
+          },
+          attendees: [
+            { email: dto.attendeeEmail }
+          ],
+          conferenceData: {
+            createRequest: {
+              requestId: `meet-${Date.now()}`,
+              conferenceSolutionKey: {
+                type: 'hangoutsMeet',
+              },
+            },
+          },
+        },
+      });
+
+      const googleEventId = eventResponse.data.id;
+      const meetingLink = eventResponse.data.conferenceData?.entryPoints?.find(
+        (ep: any) => ep.entryPointType === 'video'
+      )?.uri || null;
+
+      // 2. Also register a meeting in local database
+      await this.pgClient.query('BEGIN');
+      const organizerType = 'staff'; // default organizer type for mock test
+
+      const meetingResult = await this.pgClient.query(`
+        INSERT INTO meetings (organizer_id, organizer_type, title, description, scheduled_date, duration_minutes, meeting_link, status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, 'scheduled')
+        RETURNING *
+      `, [userId, organizerType, dto.title, dto.description || null, dto.scheduledDate, duration, meetingLink]);
+
+      const meetingId = meetingResult.rows[0].id;
+
+      // Map google event id
+      await this.pgClient.query(`
+        INSERT INTO meeting_google_events (meeting_id, google_event_id)
+        VALUES ($1, $2)
+      `, [meetingId, googleEventId]);
+
+      // Add meeting participant locally
+      await this.pgClient.query(`
+        INSERT INTO meeting_participants (meeting_id, participant_id, participant_type, status)
+        VALUES ($1, $2, 'investor', 'pending')
+      `, [meetingId, userId]); // for mock testing, organizer maps participant
+
+      await this.pgClient.query('COMMIT');
+
+      return {
+        success: true,
+        meetingId,
+        googleEventId,
+        htmlLink: eventResponse.data.htmlLink,
+        meetingLink,
+      };
+    } catch (error) {
+      if (this.pgClient) {
+        try { await this.pgClient.query('ROLLBACK'); } catch (_) {}
+      }
+      console.error('Failed to create calendar event:', error);
+      throw new InternalServerErrorException('Failed to create calendar event and send invite');
+    }
+  }
+
+  async getGoogleEventStatus(userId: string, googleEventId: string) {
+    const oauth2Client = await this.getAuthenticatedClient(userId);
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+    try {
+      const response = await calendar.events.get({
+        calendarId: 'primary',
+        eventId: googleEventId,
+      });
+
+      const event = response.data;
+      return {
+        id: event.id,
+        status: event.status,
+        summary: event.summary,
+        description: event.description,
+        start: event.start,
+        end: event.end,
+        attendees: event.attendees || [],
+      };
+    } catch (error) {
+      console.error('Error fetching Google calendar event status:', error);
+      throw new InternalServerErrorException('Failed to retrieve event status');
+    }
+  }
+
+  async respondToGoogleEvent(
+    userId: string,
+    googleEventId: string,
+    attendeeEmail: string,
+    responseStatus: 'accepted' | 'declined' | 'tentative'
+  ) {
+    const oauth2Client = await this.getAuthenticatedClient(userId);
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+    try {
+      // 1. Fetch current event to get the attendees array
+      const eventResponse = await calendar.events.get({
+        calendarId: 'primary',
+        eventId: googleEventId,
+      });
+
+      const event = eventResponse.data;
+      let attendees = event.attendees || [];
+
+      // Update response status for the attendee
+      const attendeeIndex = attendees.findIndex(a => a.email?.toLowerCase() === attendeeEmail.toLowerCase());
+      if (attendeeIndex !== -1) {
+        attendees[attendeeIndex].responseStatus = responseStatus;
+      } else {
+        // If not found in the list, add them
+        attendees.push({ email: attendeeEmail, responseStatus });
+      }
+
+      // 2. Update the event on Google Calendar
+      const updatedEvent = await calendar.events.update({
+        calendarId: 'primary',
+        eventId: googleEventId,
+        sendUpdates: 'all',
+        requestBody: {
+          ...event,
+          attendees,
+        },
+      });
+
+      // 3. Update status locally in our meeting_participants table if mapped
+      const mappingResult = await this.pgClient.query(`
+        SELECT meeting_id FROM meeting_google_events WHERE google_event_id = $1
+      `, [googleEventId]);
+
+      if (mappingResult.rows.length > 0) {
+        const meetingId = mappingResult.rows[0].meeting_id;
+        const localStatus = responseStatus === 'accepted' ? 'accepted' : (responseStatus === 'declined' ? 'rejected' : 'pending');
+        await this.pgClient.query(`
+          UPDATE meeting_participants SET status = $1 WHERE meeting_id = $2
+        `, [localStatus, meetingId]);
+      }
+
+      return {
+        success: true,
+        attendees: updatedEvent.data.attendees,
+      };
+    } catch (error) {
+      console.error('Error updating Google event response:', error);
+      throw new InternalServerErrorException('Failed to update event RSVP status');
     }
   }
 }
