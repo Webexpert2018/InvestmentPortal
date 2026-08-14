@@ -9,10 +9,3 @@ CREATE TABLE IF NOT EXISTS google_tokens (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
--- Create meeting_google_events mapping table to avoid changing the existing meetings table
-CREATE TABLE IF NOT EXISTS meeting_google_events (
-    meeting_id UUID PRIMARY KEY REFERENCES meetings(id) ON DELETE CASCADE,
-    google_event_id VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);

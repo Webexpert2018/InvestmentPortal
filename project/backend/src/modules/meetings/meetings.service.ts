@@ -450,7 +450,7 @@ export class MeetingsService {
 
   async createGoogleEvent(
     userId: string,
-    dto: { title: string; description?: string; scheduledDate: string; durationMinutes?: number; attendeeEmail: string }
+    dto: { title: string; description?: string; scheduledDate: string; durationMinutes?: number; attendeeEmails?: string[] }
   ) {
     const oauth2Client = await this.getAuthenticatedClient(userId);
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
@@ -459,11 +459,18 @@ export class MeetingsService {
     const duration = dto.durationMinutes || 30;
     const endDate = new Date(startDate.getTime() + duration * 60000);
 
+    const hasAttendees = dto.attendeeEmails && dto.attendeeEmails.length > 0;
+    const attendees = dto.attendeeEmails ? dto.attendeeEmails.map(email => ({ email })) : [];
+
     try {
+      // Fetch organizer email
+      const userResult = await this.pgClient.query('SELECT email FROM users WHERE id = $1', [userId]);
+      const organizerEmail = userResult.rows[0]?.email || 'system@localhost';
+
       // 1. Create event on Google Calendar and request Google Meet link
       const eventResponse = await calendar.events.insert({
         calendarId: 'primary',
-        sendUpdates: 'all',
+        sendUpdates: hasAttendees ? 'all' : 'none',
         conferenceDataVersion: 1,
         requestBody: {
           summary: dto.title,
@@ -476,9 +483,7 @@ export class MeetingsService {
             dateTime: endDate.toISOString(),
             timeZone: 'UTC',
           },
-          attendees: [
-            { email: dto.attendeeEmail }
-          ],
+          attendees,
           conferenceData: {
             createRequest: {
               requestId: `meet-${Date.now()}`,
@@ -495,45 +500,129 @@ export class MeetingsService {
         (ep: any) => ep.entryPointType === 'video'
       )?.uri || null;
 
-      // 2. Also register a meeting in local database
-      await this.pgClient.query('BEGIN');
-      const organizerType = 'staff'; // default organizer type for mock test
-
-      const meetingResult = await this.pgClient.query(`
-        INSERT INTO meetings (organizer_id, organizer_type, title, description, scheduled_date, duration_minutes, meeting_link, status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, 'scheduled')
+      // 2. Register sandbox meeting in google_calendar_events database table
+      const dbInsert = await this.pgClient.query(`
+        INSERT INTO google_calendar_events (organizer_email, google_event_id, title, description, scheduled_date, duration_minutes, meeting_link, html_link, attendee_email, attendee_status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, '', '')
         RETURNING *
-      `, [userId, organizerType, dto.title, dto.description || null, dto.scheduledDate, duration, meetingLink]);
+      `, [
+        organizerEmail,
+        googleEventId,
+        dto.title,
+        dto.description || null,
+        dto.scheduledDate,
+        duration,
+        meetingLink,
+        eventResponse.data.htmlLink
+      ]);
 
-      const meetingId = meetingResult.rows[0].id;
-
-      // Map google event id
-      await this.pgClient.query(`
-        INSERT INTO meeting_google_events (meeting_id, google_event_id)
-        VALUES ($1, $2)
-      `, [meetingId, googleEventId]);
-
-      // Add meeting participant locally
-      await this.pgClient.query(`
-        INSERT INTO meeting_participants (meeting_id, participant_id, participant_type, status)
-        VALUES ($1, $2, 'investor', 'pending')
-      `, [meetingId, userId]); // for mock testing, organizer maps participant
-
-      await this.pgClient.query('COMMIT');
+      // 3. Register attendees in database
+      if (hasAttendees && dto.attendeeEmails) {
+        for (const email of dto.attendeeEmails) {
+          await this.pgClient.query(`
+            INSERT INTO google_calendar_event_attendees (google_event_id, email, status)
+            VALUES ($1, $2, 'needsAction')
+            ON CONFLICT (google_event_id, email) DO NOTHING
+          `, [googleEventId, email]);
+        }
+      }
 
       return {
         success: true,
-        meetingId,
+        meetingId: dbInsert.rows[0].id,
         googleEventId,
         htmlLink: eventResponse.data.htmlLink,
         meetingLink,
       };
     } catch (error) {
-      if (this.pgClient) {
-        try { await this.pgClient.query('ROLLBACK'); } catch (_) {}
-      }
       console.error('Failed to create calendar event:', error);
       throw new InternalServerErrorException('Failed to create calendar event and send invite');
+    }
+  }
+
+  async addAttendeeToGoogleEvent(userId: string, googleEventId: string, attendeeEmail: string) {
+    const oauth2Client = await this.getAuthenticatedClient(userId);
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+    try {
+      // 1. Fetch current event to get existing attendees
+      const response = await calendar.events.get({
+        calendarId: 'primary',
+        eventId: googleEventId,
+      });
+
+      const event = response.data;
+      let attendees = event.attendees || [];
+
+      // Add the new attendee if not already present
+      if (!attendees.some(a => a.email?.toLowerCase() === attendeeEmail.toLowerCase())) {
+        attendees.push({ email: attendeeEmail });
+      }
+
+      // 2. Update on Google Calendar (sends invite email to the new guest)
+      const updatedEvent = await calendar.events.update({
+        calendarId: 'primary',
+        eventId: googleEventId,
+        sendUpdates: 'all',
+        requestBody: {
+          ...event,
+          attendees,
+        },
+      });
+
+      // 3. Update database record
+      await this.pgClient.query(`
+        INSERT INTO google_calendar_event_attendees (google_event_id, email, status)
+        VALUES ($1, $2, 'needsAction')
+        ON CONFLICT (google_event_id, email) DO UPDATE SET status = 'needsAction', updated_at = CURRENT_TIMESTAMP
+      `, [googleEventId, attendeeEmail]);
+
+      return {
+        success: true,
+        attendees: updatedEvent.data.attendees,
+      };
+    } catch (error) {
+      console.error('Failed to invite attendee:', error);
+      throw new InternalServerErrorException('Failed to add attendee and send invitation');
+    }
+  }
+
+  async getGoogleCalendarEvents(userId: string) {
+    try {
+      const userResult = await this.pgClient.query('SELECT email FROM users WHERE id = $1', [userId]);
+      const organizerEmail = userResult.rows[0]?.email || 'system@localhost';
+
+      // Self-healing: Migrates legacy attendee_email entries from parent table to google_calendar_event_attendees subtable
+      const legacyEvents = await this.pgClient.query(`
+        SELECT google_event_id, attendee_email, attendee_status 
+        FROM google_calendar_events 
+        WHERE attendee_email IS NOT NULL AND attendee_email != ''
+      `);
+      for (const row of legacyEvents.rows) {
+        await this.pgClient.query(`
+          INSERT INTO google_calendar_event_attendees (google_event_id, email, status)
+          VALUES ($1, $2, $3)
+          ON CONFLICT (google_event_id, email) DO NOTHING
+        `, [row.google_event_id, row.attendee_email, row.attendee_status || 'needsAction']);
+      }
+
+      const result = await this.pgClient.query(`
+        SELECT gce.*, 
+               COALESCE(
+                 (
+                   SELECT json_agg(json_build_object('email', gca.email, 'status', gca.status))
+                   FROM google_calendar_event_attendees gca
+                   WHERE gca.google_event_id = gce.google_event_id
+                 ), '[]'::json
+               ) as attendees
+        FROM google_calendar_events gce
+        WHERE gce.organizer_email = $1 
+        ORDER BY gce.scheduled_date DESC
+      `, [organizerEmail]);
+      return result.rows;
+    } catch (error) {
+      console.error('Error fetching Google calendar events list:', error);
+      throw new InternalServerErrorException('Failed to fetch scheduled events');
     }
   }
 
@@ -548,6 +637,18 @@ export class MeetingsService {
       });
 
       const event = response.data;
+
+      // Sync status to database for all attendees returned by Google
+      for (const attendee of event.attendees || []) {
+        if (attendee.email) {
+          await this.pgClient.query(`
+            INSERT INTO google_calendar_event_attendees (google_event_id, email, status)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (google_event_id, email) DO UPDATE SET status = $3, updated_at = CURRENT_TIMESTAMP
+          `, [googleEventId, attendee.email, attendee.responseStatus || 'needsAction']);
+        }
+      }
+
       return {
         id: event.id,
         status: event.status,
@@ -602,18 +703,12 @@ export class MeetingsService {
         },
       });
 
-      // 3. Update status locally in our meeting_participants table if mapped
-      const mappingResult = await this.pgClient.query(`
-        SELECT meeting_id FROM meeting_google_events WHERE google_event_id = $1
-      `, [googleEventId]);
-
-      if (mappingResult.rows.length > 0) {
-        const meetingId = mappingResult.rows[0].meeting_id;
-        const localStatus = responseStatus === 'accepted' ? 'accepted' : (responseStatus === 'declined' ? 'rejected' : 'pending');
-        await this.pgClient.query(`
-          UPDATE meeting_participants SET status = $1 WHERE meeting_id = $2
-        `, [localStatus, meetingId]);
-      }
+      // 3. Update status locally in google_calendar_event_attendees table
+      await this.pgClient.query(`
+        INSERT INTO google_calendar_event_attendees (google_event_id, email, status)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (google_event_id, email) DO UPDATE SET status = $3, updated_at = CURRENT_TIMESTAMP
+      `, [googleEventId, attendeeEmail, responseStatus]);
 
       return {
         success: true,

@@ -77,10 +77,26 @@ export class MeetingsController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @Get('google/events')
+  @ApiOperation({ summary: 'Get all Google Calendar sandbox events' })
+  async getGoogleCalendarEvents(@Request() req: any) {
+    return this.meetingsService.getGoogleCalendarEvents(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Post('google/create-event')
   @ApiOperation({ summary: 'Create Google Calendar event and send invite' })
-  async createGoogleEvent(@Request() req: any, @Body() body: { title: string; description?: string; scheduledDate: string; durationMinutes?: number; attendeeEmail: string }) {
+  async createGoogleEvent(@Request() req: any, @Body() body: { title: string; description?: string; scheduledDate: string; durationMinutes?: number; attendeeEmails?: string[] }) {
     return this.meetingsService.createGoogleEvent(req.user.userId, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('google/invite')
+  @ApiOperation({ summary: 'Invite guest to Google Calendar event' })
+  async inviteGuest(@Request() req: any, @Body() body: { googleEventId: string; attendeeEmail: string }) {
+    return this.meetingsService.addAttendeeToGoogleEvent(req.user.userId, body.googleEventId, body.attendeeEmail);
   }
 
   @UseGuards(JwtAuthGuard)
