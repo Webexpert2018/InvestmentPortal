@@ -484,6 +484,7 @@ export class MeetingsService {
             timeZone: 'UTC',
           },
           attendees,
+          guestsCanSeeOtherGuests: false,
           conferenceData: {
             createRequest: {
               requestId: `meet-${Date.now()}`,
@@ -567,6 +568,7 @@ export class MeetingsService {
         requestBody: {
           ...event,
           attendees,
+          guestsCanSeeOtherGuests: false,
         },
       });
 
@@ -700,6 +702,7 @@ export class MeetingsService {
         requestBody: {
           ...event,
           attendees,
+          guestsCanSeeOtherGuests: false,
         },
       });
 
