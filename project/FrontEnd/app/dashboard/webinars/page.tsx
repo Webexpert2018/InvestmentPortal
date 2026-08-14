@@ -686,21 +686,31 @@ export default function WebinarsPage() {
             </div>
 
             {/* Action Buttons Moved DOWN below Calendar */}
-            <div className="flex items-center gap-2.5">
-              <button
-                onClick={loadWebinarsFromDb}
-                className="p-3 bg-white border border-[#E8E8E8] hover:bg-gray-50 rounded-xl text-gray-700 transition-all shadow-sm"
-                title="Refresh DB Data"
-              >
-                <RefreshCw className={`w-4 h-4 ${isLoadingWebinars ? 'animate-spin' : ''}`} />
-              </button>
+            <div className="flex flex-col gap-2.5 w-full">
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={loadWebinarsFromDb}
+                  className="p-3 bg-white border border-[#E8E8E8] hover:bg-gray-50 rounded-xl text-gray-700 transition-all shadow-sm"
+                  title="Refresh DB Data"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isLoadingWebinars ? 'animate-spin' : ''}`} />
+                </button>
+
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#FFC63F] hover:bg-[#F2B62D] text-[#1F1F1F] px-4 py-3 rounded-xl font-bold text-[14px] shadow-sm transition-all whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create Webinar</span>
+                </button>
+              </div>
 
               <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 bg-[#FFC63F] hover:bg-[#F2B62D] text-[#1F1F1F] px-4 py-3 rounded-xl font-bold text-[14px] shadow-sm transition-all whitespace-nowrap"
+                onClick={() => router.push('/dashboard/calendar-test')}
+                className="w-full flex items-center justify-center gap-2 bg-white border border-amber-200 hover:bg-amber-50/50 text-[#1F1F1F] px-4 py-2.5 rounded-xl font-semibold text-[13px] shadow-sm transition-all whitespace-nowrap"
               >
-                <Plus className="w-4 h-4" />
-                <span>Create Webinar</span>
+                <CalendarIcon className="w-4 h-4 text-amber-600" />
+                <span>Test Google Calendar</span>
               </button>
             </div>
           </div>
