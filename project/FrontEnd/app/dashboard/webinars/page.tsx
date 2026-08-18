@@ -1002,8 +1002,7 @@ export default function WebinarsPage() {
                                 <th className="py-3 px-4">Physician &amp; Specialty</th>
                                 <th className="py-3 px-4">Contact Details</th>
                                 <th className="py-3 px-4">Organization &amp; Location</th>
-                                <th className="py-3 px-4">RSVP Status</th>
-                                <th className="py-3 px-4 text-right">Join Log</th>
+                                <th className="py-3 px-4 text-right">RSVP Status</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-[#F2F2F2] text-[13px]">
@@ -1017,9 +1016,8 @@ export default function WebinarsPage() {
                                       </div>
                                       <div>
                                         <div className="font-bold text-[#1F1F1F]">{attendee.fullName}</div>
-                                        <div className="text-[11px] text-[#6C6C6C] flex items-center gap-1 mt-0.5">
-                                          <Stethoscope className="w-3 h-3 text-amber-600" />
-                                          <span>{attendee.specialty}</span>
+                                        <div className="text-[11px] text-[#6C6C6C] mt-0.5">
+                                          {attendee.specialty}
                                         </div>
                                       </div>
                                     </div>
@@ -1028,15 +1026,13 @@ export default function WebinarsPage() {
                                   {/* Contact Info */}
                                   <td className="py-3.5 px-4 text-[#4B5563]">
                                     <div className="space-y-0.5 text-[12px]">
-                                      <div className="flex items-center gap-1.5">
-                                        <Mail className="w-3 h-3 text-gray-400" />
+                                      <div>
                                         <a href={`mailto:${attendee.email}`} className="hover:underline text-gray-800 font-medium">
                                           {attendee.email}
                                         </a>
                                       </div>
-                                      <div className="flex items-center gap-1.5 text-gray-500">
-                                        <Phone className="w-3 h-3 text-gray-400" />
-                                        <span>{attendee.phone}</span>
+                                      <div className="text-gray-500">
+                                        {attendee.phone}
                                       </div>
                                     </div>
                                   </td>
@@ -1044,64 +1040,27 @@ export default function WebinarsPage() {
                                   {/* Organization & Location */}
                                   <td className="py-3.5 px-4 text-[#4B5563]">
                                     <div className="space-y-0.5 text-[12px]">
-                                      <div className="font-medium text-gray-800 flex items-center gap-1">
-                                        <Building2 className="w-3 h-3 text-gray-400" />
-                                        <span>{attendee.organization}</span>
+                                      <div className="font-medium text-gray-800">
+                                        {attendee.organization}
                                       </div>
                                       <div className="text-[11px] text-gray-500">{attendee.location}</div>
                                     </div>
                                   </td>
 
                                   {/* RSVP Status */}
-                                  <td className="py-3.5 px-4">
-                                    {attendee.status === 'attended' ? (
-                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                        Joined Session
-                                      </span>
-                                    ) : attendee.status === 'accepted' ? (
-                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                        Accepted Invite
+                                  <td className="py-3.5 px-4 text-right">
+                                    {attendee.status === 'accepted' ? (
+                                      <span className="inline-flex items-center text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                                        Accepted
                                       </span>
                                     ) : attendee.status === 'declined' ? (
-                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
-                                        <X className="w-3.5 h-3.5 text-rose-600" />
-                                        Declined Invite
-                                      </span>
-                                    ) : attendee.status === 'tentative' ? (
-                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
-                                        <Clock className="w-3.5 h-3.5 text-amber-600" />
-                                        Tentative RSVP
+                                      <span className="inline-flex items-center text-[11px] font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
+                                        Declined
                                       </span>
                                     ) : (
-                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
-                                        <Clock className="w-3.5 h-3.5 text-amber-600" />
-                                        Invite Sent
+                                      <span className="inline-flex items-center text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                                        Registered
                                       </span>
-                                    )}
-                                  </td>
-
-                                  {/* Join Log */}
-                                  <td className="py-3.5 px-4 text-right text-[12px] text-[#6C6C6C]">
-                                    {attendee.joinTime ? (
-                                      <div>
-                                        <div className="font-bold text-gray-800">
-                                          {(() => {
-                                            try {
-                                              const d = new Date(attendee.joinTime);
-                                              return !isNaN(d.getTime())
-                                                ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                                : attendee.joinTime;
-                                            } catch {
-                                              return attendee.joinTime;
-                                            }
-                                          })()}
-                                        </div>
-                                        <div className="text-[11px] text-[#8E8E93]">Duration: {attendee.duration}</div>
-                                      </div>
-                                    ) : (
-                                      <span className="text-gray-400 italic">Not joined</span>
                                     )}
                                   </td>
                                 </tr>
@@ -1121,7 +1080,7 @@ export default function WebinarsPage() {
         {/* Create & Manage Webinar Modal */}
         {isCreateModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
-            <div className="bg-white rounded-[24px] max-w-lg w-full p-6 space-y-5 shadow-2xl border border-[#EAEAEA] relative">
+            <div className="bg-white rounded-[24px] max-w-3xl w-full p-6 space-y-5 shadow-2xl border border-[#EAEAEA] relative">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-[#F0F0F0] pb-4">
                 <div className="flex items-center gap-2">
@@ -1164,7 +1123,7 @@ export default function WebinarsPage() {
                     Description &amp; Agenda
                   </label>
                   <textarea
-                    rows={3}
+                    rows={8}
                     placeholder="Brief summary of session topics for physician prospects..."
                     value={newDescription}
                     onChange={(e) => setNewDescription(e.target.value)}
@@ -1255,7 +1214,7 @@ export default function WebinarsPage() {
         {/* Edit & Reschedule Webinar Modal */}
         {isEditModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
-            <div className="bg-white rounded-[24px] max-w-xl w-full p-6 md:p-8 space-y-6 shadow-2xl border border-[#EAEAEA] relative">
+            <div className="bg-white rounded-[24px] max-w-3xl w-full p-6 md:p-8 space-y-6 shadow-2xl border border-[#EAEAEA] relative">
               <button
                 onClick={() => {
                   setIsEditModalOpen(false);
@@ -1298,7 +1257,7 @@ export default function WebinarsPage() {
                     Description &amp; Agenda
                   </label>
                   <textarea
-                    rows={3}
+                    rows={8}
                     placeholder="Brief summary of session topics for physician prospects..."
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
