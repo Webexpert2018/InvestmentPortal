@@ -7,5 +7,6 @@ import { EmailModule } from '../email/email.module';
   imports: [EmailModule],
   controllers: [MeetingsController, GoogleOAuthController],
   providers: [MeetingsService],
+  exports: [MeetingsService],
 })
 export class MeetingsModule {}

@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Delete, Param, Body, Query, UseGuards, Res } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Param, Body, Query, UseGuards, Res, Request } from '@nestjs/common';
 import { Response } from 'express';
 import { WebinarCampaignService } from './webinar-campaign.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -166,6 +166,7 @@ export class WebinarCampaignController {
 
   @Post('webinars')
   async createWebinar(
+    @Request() req: any,
     @Body()
     body: {
       title: string;
@@ -176,7 +177,7 @@ export class WebinarCampaignController {
       meetingLink: string;
     }
   ) {
-    return this.webinarCampaignService.createWebinar(body);
+    return this.webinarCampaignService.createWebinar(req.user.userId, body);
   }
 
   @Delete('webinars/:id')
@@ -186,6 +187,7 @@ export class WebinarCampaignController {
 
   @Put('webinars/:id')
   async updateWebinar(
+    @Request() req: any,
     @Param('id') id: string,
     @Body()
     body: {
@@ -197,7 +199,7 @@ export class WebinarCampaignController {
       meetingLink: string;
     }
   ) {
-    return this.webinarCampaignService.updateWebinar(id, body);
+    return this.webinarCampaignService.updateWebinar(req.user.userId, id, body);
   }
 
   @Post('webinars/:id/send-invites')

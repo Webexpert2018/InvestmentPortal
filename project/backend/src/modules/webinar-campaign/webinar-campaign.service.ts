@@ -4,6 +4,7 @@ import { Cron } from '@nestjs/schedule';
 import axios from 'axios';
 import { db } from '../../config/database';
 import { EmailService } from '../email/email.service';
+import { MeetingsService } from '../meetings/meetings.service';
 
 export interface DoctorProspectDto {
   id: string;
@@ -29,7 +30,8 @@ export class WebinarCampaignService {
 
   constructor(
     private emailService: EmailService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private meetingsService: MeetingsService
   ) { }
 
   async searchApollo(
@@ -1235,17 +1237,13 @@ ${rsvpButtonsHtml}
         );
         this.logger.log(`✅ [Prospect Response] Recorded stage '${validStatus}' in PostgreSQL for doctor ${doctorName} (${doctorEmail})!`);
 
-        // Trigger automated interest confirmation email with dynamic VIP webinar pass link and briefing details
+        // Trigger automated interest Google Calendar invitation
         if (validStatus === 'interested' && doctorEmail) {
-          const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
           const latestWebinarRes = await db.query(
-            `SELECT id, title, webinar_date, webinar_time, duration, meeting_link FROM webinars ORDER BY created_at DESC LIMIT 1`
+            `SELECT id, title, webinar_date, webinar_time, duration, meeting_link, google_event_id FROM webinars ORDER BY created_at DESC LIMIT 1`
           );
 
           const latestWebinar = latestWebinarRes.rows.length > 0 ? latestWebinarRes.rows[0] : null;
-          const webinarPassUrl = latestWebinar
-            ? `${frontendUrl}/webinar/pass?prospect_id=${encodeURIComponent(apolloId)}&webinar_id=${encodeURIComponent(latestWebinar.id)}`
-            : `${frontendUrl}/webinar/pass?prospect_id=${encodeURIComponent(apolloId)}`;
 
           if (latestWebinar && apolloId) {
             try {
@@ -1255,92 +1253,31 @@ ${rsvpButtonsHtml}
                  ON CONFLICT (webinar_id, prospect_id) DO NOTHING`,
                 [latestWebinar.id, apolloId]
               );
-              this.logger.log(`🎟️ Logged doctor ${doctorName} (${apolloId}) as 'registered' (Pass Sent) for webinar ${latestWebinar.id}`);
+              this.logger.log(`🎟️ Logged doctor ${doctorName} (${apolloId}) as 'registered' (Calendar Invite Pending) for webinar ${latestWebinar.id}`);
             } catch (pErr: any) {
               this.logger.error(`Failed to register pass in webinar_attendees: ${pErr.message}`);
             }
-          }
 
-          const title = latestWebinar?.title || 'Ovalia Capital Physician Wealth Briefing';
-          let formattedDate = 'Scheduled Date';
-          if (latestWebinar?.webinar_date) {
-            try {
-              const d = new Date(latestWebinar.webinar_date);
-              formattedDate = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            } catch (e) {}
-          }
-          const timeStr = this.formatBackendTimeEST(latestWebinar?.webinar_time, latestWebinar?.webinar_date);
-          const durationRaw = (latestWebinar?.duration || '45').toString().trim();
-          const durationStr = durationRaw.toLowerCase().includes('min') ? durationRaw : `${durationRaw} mins`;
-
-          const durationMinsNum = parseInt(durationRaw, 10) || 45;
-
-          const gcalUrl = this.generateGoogleCalendarUrl(
-            title,
-            latestWebinar?.webinar_date,
-            latestWebinar?.webinar_time,
-            durationMinsNum,
-            latestWebinar?.meeting_link || webinarPassUrl
-          );
-
-          const subject = `Thank You for Your Interest! — Physician Webinar Access`;
-          const emailBody = `
-<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1F1F1F; text-align: left; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #E5E7EB; border-radius: 12px; background-color: #FFFFFF;">
-  <h2 style="color: #1F2937; margin: 0 0 12px 0; font-size: 20px; font-weight: bold; line-height: 1.3;">Thank You for Your Interest, ${doctorName}!</h2>
-  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 0 0 16px 0;">
-    We have received your response expressing interest in our <strong>Ovalia Capital Physician Wealth Session</strong>.
-  </p>
-
-  <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; margin: 16px 0;">
-    <h3 style="margin: 0 0 10px 0; font-size: 15px; font-weight: bold; color: #111827;">🗓️ Session Details</h3>
-    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; color: #374151;">
-      <tr>
-        <td style="padding: 4px 0; font-weight: bold; width: 90px;">Session:</td>
-        <td style="padding: 4px 0; color: #111827; font-weight: 600;">${title}</td>
-      </tr>
-      <tr>
-        <td style="padding: 4px 0; font-weight: bold;">Date:</td>
-        <td style="padding: 4px 0;">${formattedDate}</td>
-      </tr>
-      <tr>
-        <td style="padding: 4px 0; font-weight: bold;">Time:</td>
-        <td style="padding: 4px 0;">${timeStr}</td>
-      </tr>
-      <tr>
-        <td style="padding: 4px 0; font-weight: bold;">Duration:</td>
-        <td style="padding: 4px 0;">${durationStr}</td>
-      </tr>
-    </table>
-  </div>
-
-  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 16px 0 8px 0;">
-    Add this event to your calendar to automatically convert to your local timezone:
-  </p>
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 12px 0 20px 0; text-align: center;">
-    <tr>
-      <td align="center" style="text-align: center; padding-bottom: 12px;">
-        <a href="${gcalUrl}" target="_blank" style="background-color: #4285F4; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(66, 133, 244, 0.25);">
-          📅 Add to Google Calendar (Auto-Converts to Your Timezone)
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" style="text-align: center;">
-        <a href="${webinarPassUrl}" target="_blank" style="background-color: #22C55E; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);">
-          🎟️ Access Your VIP Physician Webinar Pass
-        </a>
-      </td>
-    </tr>
-  </table>
-  <p style="font-size: 13px; color: #6B7280; line-height: 1.5; margin: 16px 0 0 0;">
-    Need help? Contact our support team at <a href="mailto:portal@ovaliacapital.com" style="color: #2563EB; text-decoration: underline;">portal@ovaliacapital.com</a>.
-  </p>
-</div>`;
-          try {
-            await this.emailService.sendCustomEmail(doctorEmail, doctorName, subject, emailBody);
-            this.logger.log(`📩 Sent interest confirmation email with VIP webinar pass link to ${doctorEmail}`);
-          } catch (emailErr: any) {
-            this.logger.error(`Failed to send interest confirmation email to ${doctorEmail}: ${emailErr.message}`);
+            if (latestWebinar.google_event_id) {
+              try {
+                const tokenRes = await db.query(`SELECT user_id FROM google_tokens LIMIT 1`);
+                const adminUserId = tokenRes.rows.length > 0 ? tokenRes.rows[0].user_id : null;
+                if (adminUserId) {
+                  await this.meetingsService.addAttendeeToGoogleEvent(
+                    adminUserId,
+                    latestWebinar.google_event_id,
+                    doctorEmail
+                  );
+                  this.logger.log(`📅 Automatically invited ${doctorEmail} to Google Calendar event ${latestWebinar.google_event_id}`);
+                } else {
+                  this.logger.warn(`Could not send Google Calendar invite: No connected Google Token found in database.`);
+                }
+              } catch (inviteErr: any) {
+                this.logger.error(`Failed to send Google Calendar invite to ${doctorEmail}: ${inviteErr.message}`);
+              }
+            } else {
+              this.logger.warn(`Could not send Google Calendar invite: Latest webinar has no associated google_event_id.`);
+            }
           }
         }
       } else {
@@ -1613,10 +1550,14 @@ ${rsvpButtonsHtml}
 
   async getAllWebinars() {
     try {
+      const tokenRes = await db.query(`SELECT user_id FROM google_tokens LIMIT 1`);
+      const adminUserId = tokenRes.rows.length > 0 ? tokenRes.rows[0].user_id : null;
+
       const webinarsRes = await db.query(
         `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date, 
                 to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
                 webinar_time as time, duration, meeting_link as "meetingLink", status,
+                google_event_id as "googleEventId",
                 created_at as "createdAt",
                 COALESCE(reminder_offsets, '{}') as "reminderOffsets"
          FROM webinars ORDER BY webinar_date DESC, created_at DESC`
@@ -1631,6 +1572,14 @@ ${rsvpButtonsHtml}
       for (const w of webinars) {
         w.isLatest = w.id === latestId;
         w.status = this.computeWebinarStatus(w.date, w.time, w.duration);
+
+        if (adminUserId && w.googleEventId && w.status !== 'completed') {
+          try {
+            await this.meetingsService.getGoogleEventStatus(adminUserId, w.googleEventId);
+          } catch (syncErr: any) {
+            this.logger.error(`Failed to auto-sync Google RSVP status for event ${w.googleEventId}: ${syncErr.message}`);
+          }
+        }
 
         const attendeesRes = await db.query(
           `SELECT wa.status, wa.first_joined_at as "joinTime", wa.total_duration_minutes as duration,
@@ -1663,7 +1612,7 @@ ${rsvpButtonsHtml}
     }
   }
 
-  async createWebinar(data: {
+  async createWebinar(userId: string, data: {
     title: string;
     description?: string;
     webinarDate: string;
@@ -1675,13 +1624,37 @@ ${rsvpButtonsHtml}
       throw new HttpException('Title, Date, and Meeting Link are required', HttpStatus.BAD_REQUEST);
     }
 
+    let googleEventId: string | null = null;
+    const finalMeetingLink = 'example.com';
+
+    try {
+      const tokenStatus = await this.meetingsService.getGoogleTokenStatus(userId);
+      if (tokenStatus && tokenStatus.connected) {
+        const { startUtc } = this.parseEasternDateTime(data.webinarDate, data.webinarTime);
+        const durationMinutes = parseInt(data.duration || '45', 10) || 45;
+
+        const gcalEvent = await this.meetingsService.createGoogleEvent(userId, {
+          title: data.title,
+          description: data.description || 'Ovalia Capital Physician Wealth Session.',
+          scheduledDate: startUtc.toISOString(),
+          durationMinutes,
+        });
+
+        if (gcalEvent && gcalEvent.googleEventId) {
+          googleEventId = gcalEvent.googleEventId;
+        }
+      }
+    } catch (gcalErr: any) {
+      this.logger.error(`Failed to create Google Calendar event for webinar: ${gcalErr.message}`);
+    }
+
     const id = `web-${Date.now()}`;
     const query = `
-      INSERT INTO webinars (id, title, description, webinar_date, webinar_time, duration, meeting_link, status, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'upcoming', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      INSERT INTO webinars (id, title, description, webinar_date, webinar_time, duration, meeting_link, status, google_event_id, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'upcoming', $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       RETURNING id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
                 to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
-                webinar_time as time, duration, meeting_link as "meetingLink", status
+                webinar_time as time, duration, meeting_link as "meetingLink", status, google_event_id as "googleEventId"
     `;
 
     try {
@@ -1692,7 +1665,8 @@ ${rsvpButtonsHtml}
         data.webinarDate,
         data.webinarTime?.trim() || '04:00 PM EST',
         data.duration?.trim() ? (data.duration.toLowerCase().includes('min') ? data.duration.trim() : `${data.duration.trim()} mins`) : '45 mins',
-        data.meetingLink.trim(),
+        finalMeetingLink,
+        googleEventId,
       ]);
 
       const createdWebinar = res.rows[0];
@@ -1736,6 +1710,7 @@ ${rsvpButtonsHtml}
   }
 
   async updateWebinar(
+    userId: string,
     id: string,
     data: {
       title: string;
@@ -1761,6 +1736,7 @@ ${rsvpButtonsHtml}
       const formattedDuration = data.duration?.trim()
         ? (data.duration.toLowerCase().includes('min') ? data.duration.trim() : `${data.duration.trim()} mins`)
         : '45 mins';
+      const finalMeetingLink = 'example.com';
 
       const updateQuery = `
         UPDATE webinars
@@ -1774,7 +1750,7 @@ ${rsvpButtonsHtml}
         WHERE id = $7
         RETURNING id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
                   to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
-                  webinar_time as time, duration, meeting_link as "meetingLink", status
+                  webinar_time as time, duration, meeting_link as "meetingLink", status, google_event_id as "googleEventId"
       `;
 
       const res = await db.query(updateQuery, [
@@ -1783,7 +1759,7 @@ ${rsvpButtonsHtml}
         data.webinarDate,
         formattedTime,
         formattedDuration,
-        data.meetingLink.trim(),
+        finalMeetingLink,
         id,
       ]);
 
@@ -1793,6 +1769,22 @@ ${rsvpButtonsHtml}
 
       const updatedWebinar = res.rows[0];
       updatedWebinar.status = this.computeWebinarStatus(updatedWebinar.date, updatedWebinar.time, updatedWebinar.duration);
+
+      const googleEventId = updatedWebinar.googleEventId;
+      if (googleEventId) {
+        try {
+          const { startUtc } = this.parseEasternDateTime(data.webinarDate, data.webinarTime);
+          const durationMinutes = parseInt(formattedDuration || '45', 10) || 45;
+          await this.meetingsService.updateGoogleEventDetails(userId, googleEventId, {
+            title: data.title,
+            description: data.description || 'Ovalia Capital Physician Wealth Session.',
+            scheduledDate: startUtc.toISOString(),
+            durationMinutes,
+          });
+        } catch (gcalErr: any) {
+          this.logger.error(`Failed to update Google Calendar event ${googleEventId}: ${gcalErr.message}`);
+        }
+      }
 
       // 2. Fetch existing attendees / pass recipients
       const attendeesRes = await db.query(

@@ -640,6 +640,13 @@ export class MeetingsService {
 
       const event = response.data;
 
+      // Check if this event belongs to a webinar
+      const webinarRes = await this.pgClient.query(
+        `SELECT id FROM webinars WHERE google_event_id = $1`,
+        [googleEventId]
+      );
+      const webinarId = webinarRes.rows[0]?.id;
+
       // Sync status to database for all attendees returned by Google
       for (const attendee of event.attendees || []) {
         if (attendee.email) {
@@ -648,6 +655,26 @@ export class MeetingsService {
             VALUES ($1, $2, $3)
             ON CONFLICT (google_event_id, email) DO UPDATE SET status = $3, updated_at = CURRENT_TIMESTAMP
           `, [googleEventId, attendee.email, attendee.responseStatus || 'needsAction']);
+
+          if (webinarId) {
+            const prospectRes = await this.pgClient.query(
+              `SELECT apollo_id FROM doctor_prospects WHERE email = $1`,
+              [attendee.email]
+            );
+            if (prospectRes.rows.length > 0) {
+              const prospectId = prospectRes.rows[0].apollo_id;
+              let dbStatus = 'registered';
+              if (attendee.responseStatus === 'accepted') dbStatus = 'accepted';
+              else if (attendee.responseStatus === 'declined') dbStatus = 'declined';
+              else if (attendee.responseStatus === 'tentative') dbStatus = 'tentative';
+
+              await this.pgClient.query(`
+                UPDATE webinar_attendees 
+                SET status = $1, updated_at = CURRENT_TIMESTAMP 
+                WHERE webinar_id = $2 AND prospect_id = $3 AND status != 'attended'
+              `, [dbStatus, webinarId, prospectId]);
+            }
+          }
         }
       }
 
@@ -720,6 +747,64 @@ export class MeetingsService {
     } catch (error) {
       console.error('Error updating Google event response:', error);
       throw new InternalServerErrorException('Failed to update event RSVP status');
+    }
+  }
+
+  async updateGoogleEventDetails(
+    userId: string,
+    googleEventId: string,
+    dto: { title: string; description?: string; scheduledDate: string; durationMinutes?: number }
+  ) {
+    const oauth2Client = await this.getAuthenticatedClient(userId);
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+    const startDate = new Date(dto.scheduledDate);
+    const duration = dto.durationMinutes || 30;
+    const endDate = new Date(startDate.getTime() + duration * 60000);
+
+    try {
+      // 1. Fetch current event
+      const eventResponse = await calendar.events.get({
+        calendarId: 'primary',
+        eventId: googleEventId,
+      });
+
+      const event = eventResponse.data;
+
+      // 2. Update details
+      const updatedEvent = await calendar.events.update({
+        calendarId: 'primary',
+        eventId: googleEventId,
+        sendUpdates: 'all',
+        requestBody: {
+          ...event,
+          summary: dto.title,
+          description: dto.description || '',
+          start: {
+            dateTime: startDate.toISOString(),
+            timeZone: 'UTC',
+          },
+          end: {
+            dateTime: endDate.toISOString(),
+            timeZone: 'UTC',
+          },
+        },
+      });
+
+      // 3. Update local DB google_calendar_events record
+      await this.pgClient.query(`
+        UPDATE google_calendar_events 
+        SET title = $1, description = $2, scheduled_date = $3, duration_minutes = $4
+        WHERE google_event_id = $5
+      `, [dto.title, dto.description || null, dto.scheduledDate, duration, googleEventId]);
+
+      return {
+        success: true,
+        event: updatedEvent.data,
+      };
+    } catch (error) {
+      console.error('Failed to update Google event details:', error);
+      throw new InternalServerErrorException('Failed to update calendar event details');
     }
   }
 }

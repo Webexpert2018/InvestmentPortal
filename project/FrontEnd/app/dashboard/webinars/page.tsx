@@ -42,7 +42,7 @@ interface Attendee {
   location: string;
   email: string;
   phone: string;
-  status: 'attended' | 'registered' | 'no_show';
+  status: 'attended' | 'registered' | 'no_show' | 'accepted' | 'declined' | 'tentative';
   joinTime?: string;
   duration?: string;
 }
@@ -104,7 +104,7 @@ export default function WebinarsPage() {
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('16:00');
   const [newDuration, setNewDuration] = useState('45');
-  const [newMeetingLink, setNewMeetingLink] = useState('');
+  const [newMeetingLink, setNewMeetingLink] = useState('example.com');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingWebinarId, setDeletingWebinarId] = useState<string | null>(null);
@@ -118,7 +118,7 @@ export default function WebinarsPage() {
   const [editDate, setEditDate] = useState('');
   const [editTime, setEditTime] = useState('16:00');
   const [editDuration, setEditDuration] = useState('45');
-  const [editMeetingLink, setEditMeetingLink] = useState('');
+  const [editMeetingLink, setEditMeetingLink] = useState('example.com');
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Direct Invite Modal State
@@ -915,7 +915,7 @@ export default function WebinarsPage() {
                           title="Send Direct Webinar Invitation & Session Pass to Doctors"
                         >
                           <Send className="w-3.5 h-3.5 text-amber-700" />
-                          <span>Send Link</span>
+                          <span>Send Invite</span>
                         </button>
                       </div>
 
@@ -939,8 +939,8 @@ export default function WebinarsPage() {
                             <button
                               onClick={() => handleOpenReminderModal(webinar)}
                               className={`p-2 rounded-full transition-all flex items-center justify-center gap-1 cursor-pointer ${activeRemindersCount > 0
-                                  ? 'text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 font-bold'
-                                  : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 border border-gray-200'
+                                ? 'text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 font-bold'
+                                : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 border border-gray-200'
                                 }`}
                               title={
                                 activeRemindersCount > 0
@@ -1059,10 +1059,25 @@ export default function WebinarsPage() {
                                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                                         Joined Session
                                       </span>
+                                    ) : attendee.status === 'accepted' ? (
+                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                        Accepted Invite
+                                      </span>
+                                    ) : attendee.status === 'declined' ? (
+                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
+                                        <X className="w-3.5 h-3.5 text-rose-600" />
+                                        Declined Invite
+                                      </span>
+                                    ) : attendee.status === 'tentative' ? (
+                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                                        <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                        Tentative RSVP
+                                      </span>
                                     ) : (
                                       <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
                                         <Clock className="w-3.5 h-3.5 text-amber-600" />
-                                        Pass Sent (No-Show)
+                                        Invite Sent
                                       </span>
                                     )}
                                   </td>
@@ -1502,10 +1517,10 @@ export default function WebinarsPage() {
                       <label
                         key={docId}
                         className={`flex items-center justify-between p-3.5 rounded-lg transition-colors ${isAlreadyRegistered
-                            ? 'bg-gray-50/80 opacity-70 cursor-not-allowed'
-                            : isSelected
-                              ? 'bg-amber-50/70 border-l-4 border-amber-500 cursor-pointer'
-                              : 'hover:bg-gray-50 cursor-pointer'
+                          ? 'bg-gray-50/80 opacity-70 cursor-not-allowed'
+                          : isSelected
+                            ? 'bg-amber-50/70 border-l-4 border-amber-500 cursor-pointer'
+                            : 'hover:bg-gray-50 cursor-pointer'
                           }`}
                       >
                         <div className="flex items-center gap-3 min-w-0 pr-2">
@@ -1684,8 +1699,8 @@ export default function WebinarsPage() {
                           }
                         }}
                         className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isChecked
-                            ? 'bg-amber-50/70 border-amber-300 shadow-xs'
-                            : 'bg-[#F9FAFB] border-[#E5E7EB] hover:bg-gray-50'
+                          ? 'bg-amber-50/70 border-amber-300 shadow-xs'
+                          : 'bg-[#F9FAFB] border-[#E5E7EB] hover:bg-gray-50'
                           }`}
                       >
                         <input
