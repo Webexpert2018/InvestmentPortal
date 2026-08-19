@@ -450,7 +450,7 @@ export class MeetingsService {
 
   async createGoogleEvent(
     userId: string,
-    dto: { title: string; description?: string; scheduledDate: string; durationMinutes?: number; attendeeEmails?: string[] }
+    dto: { title: string; description?: string; scheduledDate: string; durationMinutes?: number; attendeeEmails?: string[]; location?: string }
   ) {
     const oauth2Client = await this.getAuthenticatedClient(userId);
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
@@ -467,37 +467,46 @@ export class MeetingsService {
       const userResult = await this.pgClient.query('SELECT email FROM users WHERE id = $1', [userId]);
       const organizerEmail = userResult.rows[0]?.email || 'system@localhost';
 
-      // 1. Create event on Google Calendar and request Google Meet link
+      const requestBody: any = {
+        summary: dto.title,
+        description: dto.location 
+          ? `Meeting URL: ${dto.location}\n\n${dto.description || ''}`
+          : dto.description || '',
+        start: {
+          dateTime: startDate.toISOString(),
+          timeZone: 'UTC',
+        },
+        end: {
+          dateTime: endDate.toISOString(),
+          timeZone: 'UTC',
+        },
+        attendees,
+        guestsCanSeeOtherGuests: false,
+      };
+
+      if (dto.location) {
+        requestBody.location = dto.location;
+      } else {
+        requestBody.conferenceData = {
+          createRequest: {
+            requestId: `meet-${Date.now()}`,
+            conferenceSolutionKey: {
+              type: 'hangoutsMeet',
+            },
+          },
+        };
+      }
+
+      // 1. Create event on Google Calendar
       const eventResponse = await calendar.events.insert({
         calendarId: 'primary',
         sendUpdates: hasAttendees ? 'all' : 'none',
-        conferenceDataVersion: 1,
-        requestBody: {
-          summary: dto.title,
-          description: dto.description || '',
-          start: {
-            dateTime: startDate.toISOString(),
-            timeZone: 'UTC',
-          },
-          end: {
-            dateTime: endDate.toISOString(),
-            timeZone: 'UTC',
-          },
-          attendees,
-          guestsCanSeeOtherGuests: false,
-          conferenceData: {
-            createRequest: {
-              requestId: `meet-${Date.now()}`,
-              conferenceSolutionKey: {
-                type: 'hangoutsMeet',
-              },
-            },
-          },
-        },
+        conferenceDataVersion: dto.location ? 0 : 1,
+        requestBody,
       });
 
       const googleEventId = eventResponse.data.id;
-      const meetingLink = eventResponse.data.conferenceData?.entryPoints?.find(
+      const meetingLink = dto.location || eventResponse.data.conferenceData?.entryPoints?.find(
         (ep: any) => ep.entryPointType === 'video'
       )?.uri || null;
 
@@ -753,7 +762,7 @@ export class MeetingsService {
   async updateGoogleEventDetails(
     userId: string,
     googleEventId: string,
-    dto: { title: string; description?: string; scheduledDate: string; durationMinutes?: number }
+    dto: { title: string; description?: string; scheduledDate: string; durationMinutes?: number; location?: string }
   ) {
     const oauth2Client = await this.getAuthenticatedClient(userId);
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
@@ -771,32 +780,48 @@ export class MeetingsService {
 
       const event = eventResponse.data;
 
+      const requestBody: any = {
+        ...event,
+        summary: dto.title,
+        description: dto.location 
+          ? `Meeting URL: ${dto.location}\n\n${dto.description || ''}`
+          : dto.description || '',
+        start: {
+          dateTime: startDate.toISOString(),
+          timeZone: 'UTC',
+        },
+        end: {
+          dateTime: endDate.toISOString(),
+          timeZone: 'UTC',
+        },
+      };
+
+      if (dto.location) {
+        requestBody.location = dto.location;
+      }
+
       // 2. Update details
       const updatedEvent = await calendar.events.update({
         calendarId: 'primary',
         eventId: googleEventId,
         sendUpdates: 'all',
-        requestBody: {
-          ...event,
-          summary: dto.title,
-          description: dto.description || '',
-          start: {
-            dateTime: startDate.toISOString(),
-            timeZone: 'UTC',
-          },
-          end: {
-            dateTime: endDate.toISOString(),
-            timeZone: 'UTC',
-          },
-        },
+        requestBody,
       });
 
       // 3. Update local DB google_calendar_events record
-      await this.pgClient.query(`
-        UPDATE google_calendar_events 
-        SET title = $1, description = $2, scheduled_date = $3, duration_minutes = $4
-        WHERE google_event_id = $5
-      `, [dto.title, dto.description || null, dto.scheduledDate, duration, googleEventId]);
+      if (dto.location) {
+        await this.pgClient.query(`
+          UPDATE google_calendar_events 
+          SET title = $1, description = $2, scheduled_date = $3, duration_minutes = $4, meeting_link = $6
+          WHERE google_event_id = $5
+        `, [dto.title, dto.description || null, dto.scheduledDate, duration, googleEventId, dto.location]);
+      } else {
+        await this.pgClient.query(`
+          UPDATE google_calendar_events 
+          SET title = $1, description = $2, scheduled_date = $3, duration_minutes = $4
+          WHERE google_event_id = $5
+        `, [dto.title, dto.description || null, dto.scheduledDate, duration, googleEventId]);
+      }
 
       return {
         success: true,

@@ -204,10 +204,16 @@ export class WebinarCampaignController {
 
   @Post('webinars/:id/send-invites')
   async sendDirectInvites(
+    @Request() req: any,
     @Param('id') id: string,
     @Body() body: { prospectIds: string[] }
   ) {
-    return this.webinarCampaignService.sendDirectWebinarInvites(id, body.prospectIds);
+    return this.webinarCampaignService.sendDirectWebinarInvites(req.user.userId, id, body.prospectIds);
+  }
+
+  @Post('webinars/:id/import-previous')
+  async importPrevious(@Request() req: any, @Param('id') id: string) {
+    return this.webinarCampaignService.importPreviousWebinarAttendees(req.user.userId, id);
   }
 
   @Put('webinars/:id/reminders')

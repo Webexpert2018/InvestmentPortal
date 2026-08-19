@@ -104,7 +104,7 @@ export default function WebinarsPage() {
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('16:00');
   const [newDuration, setNewDuration] = useState('45');
-  const [newMeetingLink, setNewMeetingLink] = useState('example.com');
+  const [newMeetingLink, setNewMeetingLink] = useState('https://us02web.zoom.us/j/6466719252');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingWebinarId, setDeletingWebinarId] = useState<string | null>(null);
@@ -118,7 +118,7 @@ export default function WebinarsPage() {
   const [editDate, setEditDate] = useState('');
   const [editTime, setEditTime] = useState('16:00');
   const [editDuration, setEditDuration] = useState('45');
-  const [editMeetingLink, setEditMeetingLink] = useState('example.com');
+  const [editMeetingLink, setEditMeetingLink] = useState('https://us02web.zoom.us/j/6466719252');
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Direct Invite Modal State
@@ -136,6 +136,7 @@ export default function WebinarsPage() {
   const [selectedReminderOffsets, setSelectedReminderOffsets] = useState<number[]>([]);
   const [isSavingReminders, setIsSavingReminders] = useState(false);
   const [isSendingTestReminder, setIsSendingTestReminder] = useState(false);
+  const [isImporting, setIsImporting] = useState<Record<string, boolean>>({});
 
   // Calendar State
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState<Date>(new Date(2026, 7, 1)); // August 2026
@@ -278,7 +279,7 @@ export default function WebinarsPage() {
         setNewDate('');
         setNewTime('16:00');
         setNewDuration('45');
-        setNewMeetingLink('');
+        setNewMeetingLink('https://us02web.zoom.us/j/6466719252');
       } else {
         toast.error('Failed to save webinar record.');
       }
@@ -310,7 +311,7 @@ export default function WebinarsPage() {
     setEditDate(webinar.date || '');
     setEditTime(parseTimeTo24Hour(webinar.time));
     setEditDuration((webinar.duration || '45').replace(/[^0-9]/g, '') || '45');
-    setEditMeetingLink(webinar.meetingLink || '');
+    setEditMeetingLink('https://us02web.zoom.us/j/6466719252');
     setIsEditModalOpen(true);
   };
 
@@ -430,6 +431,24 @@ export default function WebinarsPage() {
     }
   };
 
+  const handleImportPrevious = async (webinarId: string) => {
+    setIsImporting((prev) => ({ ...prev, [webinarId]: true }));
+    try {
+      const res = await apiClient.importPreviousWebinarAttendees(webinarId);
+      if (res && res.success) {
+        toast.success(res.message || 'Successfully imported past registrants!');
+        loadWebinarsFromDb();
+      } else {
+        toast.error(res.message || 'Failed to import attendees from previous webinar.');
+      }
+    } catch (err: any) {
+      console.error('Error importing previous attendees:', err);
+      toast.error(err.message || 'Error importing previous attendees.');
+    } finally {
+      setIsImporting((prev) => ({ ...prev, [webinarId]: false }));
+    }
+  };
+
   const handleOpenReminderModal = (webinar: Webinar) => {
     setReminderWebinar(webinar);
     setSelectedReminderOffsets(webinar.reminderOffsets || []);
@@ -536,15 +555,14 @@ export default function WebinarsPage() {
 
   return (
     <DashboardLayout>
-      <div className="w-full font-helvetica text-[#1F1F1F] space-y-4">
-        {/* Top Section: Header & KPIs on Left (8 Cols), Calendar & Action Buttons on Right (4 Cols) */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-          {/* Left Column: Header Box + 3 KPI Cards */}
-          <div className="md:col-span-8 flex flex-col gap-4">
-            {/* Header Box */}
+      <div className="w-full font-helvetica text-[#1F1F1F] space-y-3">
+        {/* Top Row: Header (8 Cols) & Action Buttons (4 Cols) */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+          {/* Left Column: Header Box */}
+          <div className="md:col-span-8">
             <div className="bg-white p-5 rounded-[20px] border border-[#F0F0F0] shadow-sm">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200/60 rounded-full text-amber-800 text-[11px] font-bold uppercase tracking-wider mb-2">
-                <Video className="w-3.5 h-3.5 text-amber-600" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-200/60 rounded-full text-blue-800 text-[11px] font-bold uppercase tracking-wider mb-2">
+                <Video className="w-3.5 h-3.5 text-[#1a73e8]" />
                 <span>Physician Engagement Center</span>
               </div>
               <h1 className="text-[26px] font-goudy font-bold text-[#1F1F1F] tracking-tight">
@@ -554,170 +572,74 @@ export default function WebinarsPage() {
                 Schedule live investor webinars, track physician attendance date-wise, and manage access links.
               </p>
             </div>
-
-            {/* 3 KPI Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-              <div className="bg-white rounded-[18px] p-4 border border-[#F2F2F2] shadow-sm">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">TOTAL WEBINARS</div>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-[24px] font-goudy font-bold text-[#1F1F1F]">
-                    {isLoadingWebinars ? '...' : `${totalWebinars} Sessions`}
-                  </span>
-                  <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">Date-Wise</span>
-                </div>
-                <div className="text-[11px] text-[#8E8E93] mt-1.5">Active physician briefings</div>
-              </div>
-
-              <div className="bg-white rounded-[18px] p-4 border border-[#F2F2F2] shadow-sm">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">TOTAL ATTENDEES</div>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-[24px] font-goudy font-bold text-[#1F1F1F]">
-                    {isLoadingWebinars ? '...' : `${totalAttendeesCount} Doctors`}
-                  </span>
-                  <span className="text-[10px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Tracked</span>
-                </div>
-                <div className="text-[11px] text-[#8E8E93] mt-1.5">RSVPs &amp; live session attendees</div>
-              </div>
-
-              <div className="bg-white rounded-[18px] p-4 border border-[#F2F2F2] shadow-sm">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">UPCOMING WEBINARS</div>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-[24px] font-goudy font-bold text-[#1F1F1F]">
-                    {isLoadingWebinars ? '...' : `${upcomingCount} Active`}
-                  </span>
-                  <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">Scheduled</span>
-                </div>
-                <div className="text-[11px] text-[#8E8E93] mt-1.5">Ready for physician registration</div>
-              </div>
-            </div>
           </div>
 
-          {/* Right Column: Calendar Widget + Action Buttons below */}
-          <div className="md:col-span-4 flex flex-col gap-3">
-            {/* Calendar Widget Moved ALL THE WAY UP */}
-            <div className="bg-white rounded-[20px] p-4 border border-[#F0F0F0] shadow-sm space-y-2.5">
-              <div className="flex items-center justify-between border-b border-[#F4F4F4] pb-2">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="w-4 h-4 text-amber-600" />
-                  <h3 className="text-[14px] font-bold text-[#1F1F1F]">Webinar Calendar</h3>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={prevMonth}
-                    className="p-1 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </button>
-                  <span className="text-[11px] font-bold text-gray-800 px-1">
-                    {currentCalendarMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                  </span>
-                  <button
-                    onClick={nextMonth}
-                    className="p-1 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
-                  >
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
+          {/* Right Column: Action Buttons side-by-side */}
+          <div className="md:col-span-4 flex items-center justify-end gap-2">
+            <button
+              onClick={loadWebinarsFromDb}
+              className="p-3 bg-white border border-[#E8E8E8] hover:bg-gray-50 rounded-xl text-gray-700 transition-all shadow-sm shrink-0"
+              title="Refresh DB Data"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoadingWebinars ? 'animate-spin' : ''}`} />
+            </button>
 
-              {/* Days of Week Header */}
-              <div className="grid grid-cols-7 text-center text-[10px] font-bold text-[#8E8E93] uppercase">
-                <span>Su</span>
-                <span>Mo</span>
-                <span>Tu</span>
-                <span>We</span>
-                <span>Th</span>
-                <span>Fr</span>
-                <span>Sa</span>
-              </div>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-[#FFC63F] hover:bg-[#F2B62D] text-[#1F1F1F] px-3.5 py-3 rounded-xl font-bold text-[13px] shadow-sm transition-all whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Webinar</span>
+            </button>
 
-              {/* Days Grid */}
-              <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-medium">
-                {Array.from({ length: firstDayOfMonth }).map((_, idx) => (
-                  <div key={`blank-${idx}`} className="h-6.5" />
-                ))}
+            <button
+              onClick={() => router.push('/dashboard/calendar-test')}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:bg-blue-50/40 text-[#1a73e8] px-3 py-3 rounded-xl font-semibold text-[12px] shadow-sm transition-all whitespace-nowrap"
+            >
+              <CalendarIcon className="w-4 h-4 text-[#1a73e8]" />
+              <span>Test Google Calendar</span>
+            </button>
+          </div>
+        </div>
 
-                {Array.from({ length: daysInMonth }).map((_, idx) => {
-                  const dayNum = idx + 1;
-                  const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-                  const hasWebinar = webinarDatesSet.has(dateString);
-                  const isSelected = selectedCalendarDate === dateString;
-
-                  return (
-                    <button
-                      key={`day-${dayNum}`}
-                      onClick={() => {
-                        if (isSelected) {
-                          setSelectedCalendarDate(null);
-                        } else {
-                          setSelectedCalendarDate(dateString);
-                        }
-                      }}
-                      className={`h-6.5 rounded-full flex flex-col items-center justify-center relative transition-all ${isSelected
-                        ? 'bg-[#FFC63F] text-[#1F1F1F] font-bold shadow-sm'
-                        : hasWebinar
-                          ? 'bg-amber-50 text-amber-900 font-bold hover:bg-amber-100'
-                          : 'hover:bg-gray-100 text-gray-700'
-                        }`}
-                    >
-                      <span>{dayNum}</span>
-                      {hasWebinar && !isSelected && (
-                        <span className="w-1.5 h-1.5 bg-amber-600 rounded-full absolute bottom-0.5" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="pt-2 border-t border-[#F4F4F4] text-[10px] text-[#8E8E93] flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-600"></span>
-                  Webinar Event Day
-                </span>
-                {selectedCalendarDate && (
-                  <button
-                    onClick={() => setSelectedCalendarDate(null)}
-                    className="text-amber-700 hover:underline font-bold"
-                  >
-                    Reset Filter
-                  </button>
-                )}
-              </div>
+        {/* Expanded 3 KPI Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <div className="bg-white rounded-[18px] p-4 border border-[#F2F2F2] shadow-sm">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">TOTAL WEBINARS</div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-[24px] font-goudy font-bold text-[#1F1F1F]">
+                {isLoadingWebinars ? '...' : `${totalWebinars} Sessions`}
+              </span>
+              <span className="text-[10px] font-bold text-[#1a73e8] bg-blue-50 px-2 py-0.5 rounded-full">Date-Wise</span>
             </div>
+            <div className="text-[11px] text-[#8E8E93] mt-1.5">Active physician briefings</div>
+          </div>
 
-            {/* Action Buttons Moved DOWN below Calendar */}
-            <div className="flex flex-col gap-2.5 w-full">
-              <div className="flex items-center gap-2.5">
-                <button
-                  onClick={loadWebinarsFromDb}
-                  className="p-3 bg-white border border-[#E8E8E8] hover:bg-gray-50 rounded-xl text-gray-700 transition-all shadow-sm"
-                  title="Refresh DB Data"
-                >
-                  <RefreshCw className={`w-4 h-4 ${isLoadingWebinars ? 'animate-spin' : ''}`} />
-                </button>
-
-                <button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-[#FFC63F] hover:bg-[#F2B62D] text-[#1F1F1F] px-4 py-3 rounded-xl font-bold text-[14px] shadow-sm transition-all whitespace-nowrap"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Create Webinar</span>
-                </button>
-              </div>
-
-              <button
-                onClick={() => router.push('/dashboard/calendar-test')}
-                className="w-full flex items-center justify-center gap-2 bg-white border border-amber-200 hover:bg-amber-50/50 text-[#1F1F1F] px-4 py-2.5 rounded-xl font-semibold text-[13px] shadow-sm transition-all whitespace-nowrap"
-              >
-                <CalendarIcon className="w-4 h-4 text-amber-600" />
-                <span>Test Google Calendar</span>
-              </button>
+          <div className="bg-white rounded-[18px] p-4 border border-[#F2F2F2] shadow-sm">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">TOTAL ATTENDEES</div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-[24px] font-goudy font-bold text-[#1F1F1F]">
+                {isLoadingWebinars ? '...' : `${totalAttendeesCount} Doctors`}
+              </span>
+              <span className="text-[10px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Tracked</span>
             </div>
+            <div className="text-[11px] text-[#8E8E93] mt-1.5">RSVPs &amp; live session attendees</div>
+          </div>
+
+          <div className="bg-white rounded-[18px] p-4 border border-[#F2F2F2] shadow-sm">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">UPCOMING WEBINARS</div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-[24px] font-goudy font-bold text-[#1F1F1F]">
+                {isLoadingWebinars ? '...' : `${upcomingCount} Active`}
+              </span>
+              <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">Scheduled</span>
+            </div>
+            <div className="text-[11px] text-[#8E8E93] mt-1.5">Ready for physician registration</div>
           </div>
         </div>
 
         {/* Main Content Area: Date-Wise Webinars List */}
-        <div className="space-y-5">
+        <div className="space-y-3.5">
           {/* Filter Tabs & Search Bar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-[18px] border border-[#F0F0F0] shadow-sm">
             <div className="flex items-center gap-2 overflow-x-auto">
@@ -801,60 +723,9 @@ export default function WebinarsPage() {
                   className="bg-white rounded-[22px] border border-[#F0F0F0] shadow-sm hover:border-[#E4E4E4] transition-all overflow-hidden"
                 >
                   {/* Collapsible Card Header */}
-                  <div className="p-5 md:p-6 bg-white space-y-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        {/* Date Badge */}
-                        <span className="bg-gray-100 text-gray-800 text-[12px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 border border-gray-200">
-                          <CalendarIcon className="w-3.5 h-3.5 text-gray-600" />
-                          {webinar.formattedDate || webinar.date}
-                        </span>
-
-                        {/* Webinar Status & Attendance Metric Badges */}
-                        <div className="flex flex-wrap items-center gap-2">
-                          {webinar.status === 'upcoming' && (
-                            <span className="bg-blue-50 text-blue-700 border border-blue-200/80 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
-                              Upcoming
-                            </span>
-                          )}
-                          {webinar.status === 'live' && (
-                            <span className="bg-emerald-500 text-white text-[11px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 shadow-xs animate-pulse">
-                              <Video className="w-3.5 h-3.5" />
-                              LIVE NOW
-                            </span>
-                          )}
-                          {webinar.status === 'completed' && (
-                            <span className="bg-gray-100 text-gray-600 border border-gray-200 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-gray-500" />
-                              Completed
-                            </span>
-                          )}
-
-                          {/* Breakdown Metrics */}
-                          <span className="bg-amber-50 text-amber-900 border border-amber-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                            📩 Passes Sent: {webinar.totalPassesSent ?? webinar.attendees.length}
-                          </span>
-                          <span className="bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                            🟢 Joined: {webinar.totalJoined ?? webinar.attendees.filter(a => a.status === 'attended').length}
-                          </span>
-                          <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                            ⚠️ No-Shows: {webinar.noShowCount ?? webinar.attendees.filter(a => a.status !== 'attended').length}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Time & Duration */}
-                      <div className="flex items-center gap-2 text-[12px] font-semibold text-[#6C6C6C]">
-                        <Clock className="w-3.5 h-3.5 text-amber-600" />
-                        <span>{webinar.time}</span>
-                        <span className="text-gray-300">•</span>
-                        <span>{webinar.duration}</span>
-                      </div>
-                    </div>
-
-                    {/* Title & Description */}
-                    <div>
+                  <div className="p-4 md:p-4.5 bg-white space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      {/* Left: Title & Active Now Badge */}
                       <div className="flex flex-wrap items-center gap-2.5">
                         <h2 className="text-[20px] font-goudy font-bold text-[#1F1F1F] leading-snug">
                           {webinar.title}
@@ -872,28 +743,72 @@ export default function WebinarsPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-[13px] text-[#6C6C6C] mt-1.5 leading-relaxed">
-                        {webinar.description}
+
+                      {/* Right: Date, Status, Time & Duration grouped together */}
+                      <div className="flex flex-wrap items-center gap-2.5 text-[12px] font-semibold text-[#6C6C6C]">
+                        {/* Date Badge */}
+                        <span className="bg-gray-100 text-gray-800 text-[12px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 border border-gray-200">
+                          <CalendarIcon className="w-3.5 h-3.5 text-gray-600" />
+                          {webinar.formattedDate || webinar.date}
+                        </span>
+
+                        {/* Webinar Status */}
+                        {webinar.status === 'upcoming' && (
+                          <span className="bg-blue-50 text-blue-700 border border-blue-200/80 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                            Upcoming
+                          </span>
+                        )}
+                        {webinar.status === 'live' && (
+                          <span className="bg-emerald-500 text-white text-[11px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 shadow-xs animate-pulse">
+                            <Video className="w-3.5 h-3.5" />
+                            LIVE NOW
+                          </span>
+                        )}
+                        {webinar.status === 'completed' && (
+                          <span className="bg-gray-100 text-gray-600 border border-gray-200 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-gray-500" />
+                            Completed
+                          </span>
+                        )}
+
+                        <span className="text-gray-300">|</span>
+
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-[#1a73e8]" />
+                          <span>{webinar.time}</span>
+                          <span className="text-gray-300">•</span>
+                          <span>{webinar.duration}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                      <p className="text-[14px] text-[#4B5563] mt-1.5 leading-relaxed">
+                        {webinar.description && webinar.description.length > 600
+                          ? `${webinar.description.substring(0, 600)}.....`
+                          : webinar.description}
                       </p>
                     </div>
 
                     {/* Actions Bar */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#F4F4F4]">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-[#F4F4F4]">
                       {/* Meeting Link Trigger */}
                       <div className="flex items-center gap-2 max-w-full overflow-hidden">
                         <a
                           href={/^https?:\/\//i.test(webinar.meetingLink) ? webinar.meetingLink : `https://${webinar.meetingLink}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="bg-amber-50/90 hover:bg-amber-100 text-amber-900 border border-amber-200/80 text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+                          className="bg-white hover:bg-[#f8fafd] text-[#1a73e8] border border-[#d2e3fc] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                         >
-                          <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
+                          <ExternalLink className="w-3.5 h-3.5 text-[#1a73e8]" />
                           <span>Join Meeting</span>
                         </a>
 
                         <button
                           onClick={() => handleCopyLink(webinar.meetingLink, webinar.id)}
-                          className="bg-amber-50/90 hover:bg-amber-100 text-amber-900 border border-amber-200/80 text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+                          className="bg-white hover:bg-[#f8fafd] text-[#1a73e8] border border-[#d2e3fc] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                           title="Copy Meeting Link"
                         >
                           {copiedId === webinar.id ? (
@@ -903,7 +818,7 @@ export default function WebinarsPage() {
                             </>
                           ) : (
                             <>
-                              <Copy className="w-3.5 h-3.5 text-amber-700" />
+                              <Copy className="w-3.5 h-3.5 text-[#1a73e8]" />
                               <span className="hidden sm:inline">Copy Link</span>
                             </>
                           )}
@@ -911,11 +826,30 @@ export default function WebinarsPage() {
 
                         <button
                           onClick={() => handleOpenInviteModal(webinar)}
-                          className="bg-amber-50/90 hover:bg-amber-100 text-amber-900 border border-amber-200/80 text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+                          className="bg-white hover:bg-[#f8fafd] text-[#1a73e8] border border-[#d2e3fc] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                           title="Send Direct Webinar Invitation & Session Pass to Doctors"
                         >
-                          <Send className="w-3.5 h-3.5 text-amber-700" />
+                          <Send className="w-3.5 h-3.5 text-[#1a73e8]" />
                           <span>Send Invite</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleImportPrevious(webinar.id)}
+                          disabled={isImporting[webinar.id]}
+                          className="bg-white hover:bg-[#f8fafd] text-[#1a73e8] border border-[#d2e3fc] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Import registered doctors from the previous webinar and send calendar invites"
+                        >
+                          {isImporting[webinar.id] ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#1a73e8]" />
+                              <span>Importing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Users className="w-3.5 h-3.5 text-[#1a73e8]" />
+                              <span>Import Past</span>
+                            </>
+                          )}
                         </button>
                       </div>
 
@@ -923,9 +857,9 @@ export default function WebinarsPage() {
                         {/* Accordion Expand Button */}
                         <button
                           onClick={() => toggleExpand(webinar.id)}
-                          className="flex items-center gap-2 text-[13px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-4 py-2 rounded-full transition-all"
+                          className="flex items-center gap-2 text-[13px] font-bold text-[#1a73e8] bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-full transition-all"
                         >
-                          <Users className="w-4 h-4 text-amber-700" />
+                          <Users className="w-4 h-4 text-[#1a73e8]" />
                           <span>
                             {isExpanded ? 'Hide Attendees' : `View Attendees (${webinar.attendees.length})`}
                           </span>
@@ -939,7 +873,7 @@ export default function WebinarsPage() {
                             <button
                               onClick={() => handleOpenReminderModal(webinar)}
                               className={`p-2 rounded-full transition-all flex items-center justify-center gap-1 cursor-pointer ${activeRemindersCount > 0
-                                ? 'text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 font-bold'
+                                ? 'text-[#1a73e8] bg-blue-100 hover:bg-blue-200 border border-blue-300 font-bold'
                                 : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 border border-gray-200'
                                 }`}
                               title={
@@ -959,7 +893,7 @@ export default function WebinarsPage() {
                         {/* Edit Webinar Button */}
                         <button
                           onClick={() => handleOpenEditModal(webinar)}
-                          className="p-2 text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-full transition-all flex items-center justify-center"
+                          className="p-2 text-[#1a73e8] hover:text-[#1557b0] bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-full transition-all flex items-center justify-center"
                           title="Edit Webinar Details"
                         >
                           <Pencil className="w-4 h-4" />
@@ -979,13 +913,27 @@ export default function WebinarsPage() {
 
                   {/* Collapsible Attendee Details Content */}
                   {isExpanded && (
-                    <div className="bg-[#FAFBFD] border-t border-[#EDEDED] p-5 md:p-6 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-[14px] font-bold text-[#1F1F1F] flex items-center gap-2">
-                          <Users className="w-4 h-4 text-amber-600" />
-                          <span>Registered Physician Attendees ({webinar.attendees.length})</span>
-                        </h3>
-                        <span className="text-[12px] text-[#8E8E93]">
+                    <div className="bg-[#FAFBFD] border-t border-[#EDEDED] p-4 md:p-4.5 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex flex-wrap items-center gap-4">
+                          <h3 className="text-[14px] font-bold text-[#1F1F1F] flex items-center gap-2">
+                            <Users className="w-4 h-4 text-amber-600" />
+                            <span>Registered Physician Attendees ({webinar.attendees.length})</span>
+                          </h3>
+
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="bg-blue-50 text-[#1a73e8] border border-blue-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                              Registered: {webinar.attendees.filter(a => a.status === 'registered').length}
+                            </span>
+                            <span className="bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                              Accepted: {webinar.attendees.filter(a => a.status === 'accepted').length}
+                            </span>
+                            <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                              Declined: {webinar.attendees.filter(a => a.status === 'declined').length}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-[12px] text-[#8E8E93] hidden sm:inline">
                           Real-time attendance logs
                         </span>
                       </div>
@@ -999,17 +947,17 @@ export default function WebinarsPage() {
                           <table className="w-full text-left border-collapse">
                             <thead>
                               <tr className="bg-[#F8F9FA] text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider border-b border-[#EBEBEB]">
-                                <th className="py-3 px-4">Physician &amp; Specialty</th>
-                                <th className="py-3 px-4">Contact Details</th>
-                                <th className="py-3 px-4">Organization &amp; Location</th>
-                                <th className="py-3 px-4 text-right">RSVP Status</th>
+                                <th className="py-2 px-3">Physician &amp; Specialty</th>
+                                <th className="py-2 px-3">Contact Details</th>
+                                <th className="py-2 px-3">Organization &amp; Location</th>
+                                <th className="py-2 px-3 text-right">RSVP Status</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-[#F2F2F2] text-[13px]">
                               {webinar.attendees.map((attendee) => (
                                 <tr key={attendee.id} className="hover:bg-amber-50/30 transition-colors">
                                   {/* Name & Specialty */}
-                                  <td className="py-3.5 px-4">
+                                  <td className="py-2 px-3">
                                     <div className="flex items-center gap-3">
                                       <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-900 font-bold text-[13px] flex items-center justify-center shrink-0">
                                         {attendee.fullName.charAt(0)}
@@ -1024,7 +972,7 @@ export default function WebinarsPage() {
                                   </td>
 
                                   {/* Contact Info */}
-                                  <td className="py-3.5 px-4 text-[#4B5563]">
+                                  <td className="py-2 px-3 text-[#4B5563]">
                                     <div className="space-y-0.5 text-[12px]">
                                       <div>
                                         <a href={`mailto:${attendee.email}`} className="hover:underline text-gray-800 font-medium">
@@ -1038,7 +986,7 @@ export default function WebinarsPage() {
                                   </td>
 
                                   {/* Organization & Location */}
-                                  <td className="py-3.5 px-4 text-[#4B5563]">
+                                  <td className="py-2 px-3 text-[#4B5563]">
                                     <div className="space-y-0.5 text-[12px]">
                                       <div className="font-medium text-gray-800">
                                         {attendee.organization}
@@ -1048,7 +996,7 @@ export default function WebinarsPage() {
                                   </td>
 
                                   {/* RSVP Status */}
-                                  <td className="py-3.5 px-4 text-right">
+                                  <td className="py-2 px-3 text-right">
                                     {attendee.status === 'accepted' ? (
                                       <span className="inline-flex items-center text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
                                         Accepted
@@ -1058,7 +1006,7 @@ export default function WebinarsPage() {
                                         Declined
                                       </span>
                                     ) : (
-                                      <span className="inline-flex items-center text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                                      <span className="inline-flex items-center text-[11px] font-bold text-[#1a73e8] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
                                         Registered
                                       </span>
                                     )}
@@ -1123,11 +1071,11 @@ export default function WebinarsPage() {
                     Description &amp; Agenda
                   </label>
                   <textarea
-                    rows={8}
+                    rows={14}
                     placeholder="Brief summary of session topics for physician prospects..."
                     value={newDescription}
                     onChange={(e) => setNewDescription(e.target.value)}
-                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] min-h-[220px]"
                   />
                 </div>
 
@@ -1177,15 +1125,13 @@ export default function WebinarsPage() {
                 {/* Meeting Link */}
                 <div>
                   <label className="block text-[12px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
-                    Meeting Link (Zoom / Google Meet / Luma) <span className="text-red-500">*</span>
+                    Meeting Link <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    required
-                    placeholder="https://us06web.zoom.us/j/123456789"
+                    disabled
                     value={newMeetingLink}
-                    onChange={(e) => setNewMeetingLink(e.target.value)}
-                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-gray-100 border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-gray-400 cursor-not-allowed"
                   />
                 </div>
 
@@ -1257,11 +1203,11 @@ export default function WebinarsPage() {
                     Description &amp; Agenda
                   </label>
                   <textarea
-                    rows={8}
+                    rows={14}
                     placeholder="Brief summary of session topics for physician prospects..."
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
-                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] min-h-[220px]"
                   />
                 </div>
 
@@ -1311,15 +1257,13 @@ export default function WebinarsPage() {
                 {/* Meeting Link */}
                 <div>
                   <label className="block text-[12px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
-                    Meeting Link (Zoom / Google Meet / Luma) <span className="text-red-500">*</span>
+                    Meeting Link <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    required
-                    placeholder="https://us06web.zoom.us/j/123456789"
+                    disabled
                     value={editMeetingLink}
-                    onChange={(e) => setEditMeetingLink(e.target.value)}
-                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-gray-100 border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-gray-400 cursor-not-allowed"
                   />
                 </div>
 
@@ -1351,96 +1295,55 @@ export default function WebinarsPage() {
         {/* Send Direct Webinar Invite Modal */}
         {isInviteModalOpen && invitingWebinar && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
-            <div className="bg-white rounded-[24px] max-w-2xl w-full p-6 md:p-8 space-y-6 shadow-2xl border border-[#EAEAEA] relative max-h-[90vh] flex flex-col">
+            <div className="bg-white rounded-[20px] max-w-xl w-full p-6 space-y-4 shadow-2xl border border-[#dadce0] relative max-h-[90vh] flex flex-col">
               <button
                 onClick={() => {
                   setIsInviteModalOpen(false);
                   setInvitingWebinar(null);
                 }}
-                className="absolute top-6 right-6 p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+                className="absolute top-5 right-5 p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
 
               {/* Modal Header */}
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
-                  <Send className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-[20px] font-goudy font-bold text-[#1F1F1F]">Send Direct Webinar Invitation</h2>
-                  <p className="text-[12px] text-[#8E8E93]">
-                    Select physician prospects to issue personalized session passes &amp; calendar invites
-                  </p>
-                </div>
-              </div>
-
-              {/* Webinar Summary Banner */}
-              <div className="bg-[#FFFDF5] border border-[#FDE68A] rounded-xl p-3.5 text-[13px] text-amber-950 flex flex-wrap items-center justify-between gap-2 shrink-0">
-                <div>
-                  <span className="font-bold text-[#1F1F1F] block">{invitingWebinar.title}</span>
-                  <span className="text-[12px] text-amber-800 font-medium">
-                    📅 {invitingWebinar.formattedDate || invitingWebinar.date} • ⏰ {invitingWebinar.time}
+              <div className="shrink-0 space-y-1">
+                <h2 className="text-[18px] font-bold text-[#1F1F1F] flex items-center gap-2">
+                  <Send className="w-4 h-4 text-[#1a73e8]" />
+                  <span>Invite Physicians to Webinar</span>
+                </h2>
+                <div className="text-[12.5px] text-gray-600 font-medium">
+                  <span className="font-semibold text-gray-900 block text-[13.5px]">{invitingWebinar.title}</span>
+                  <span className="text-[12px] text-gray-500 block mt-0.5">
+                    {invitingWebinar.formattedDate || invitingWebinar.date} • {invitingWebinar.time}
                   </span>
                 </div>
-                <span className="bg-amber-100 text-amber-900 border border-amber-300/80 text-[11px] font-bold px-3 py-1 rounded-full">
-                  Passes Sent: {invitingWebinar.totalPassesSent ?? invitingWebinar.attendees.length}
-                </span>
               </div>
 
               {/* Search & Bulk Select Toolbar */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0 pt-2 border-t border-[#F0F0F0]">
                 <div className="relative flex-1">
-                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
-                    placeholder="Search doctor by name, specialty, clinic, or email..."
+                    placeholder="Search doctors..."
                     value={inviteSearchQuery}
                     onChange={(e) => setInviteSearchQuery(e.target.value)}
-                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl pl-9 pr-4 py-2 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-white border border-[#dadce0] rounded-lg pl-8.5 pr-3 py-1.5 text-[12.5px] text-[#1F1F1F] focus:outline-none focus:border-[#1a73e8]"
                   />
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const registeredSet = new Set(
-                        (invitingWebinar.attendees || []).map((a: any) => (a.email || a.id || '').toLowerCase())
-                      );
-                      const eligibleIds = prospectsList
-                        .filter((p: any) => {
-                          const pEmail = (p.email || '').toLowerCase();
-                          const pId = (p.apollo_id || p.id || '').toLowerCase();
-                          return !registeredSet.has(pEmail) && !registeredSet.has(pId);
-                        })
-                        .map((p: any) => p.apollo_id || p.id);
-                      setSelectedProspectIds(eligibleIds);
-                    }}
-                    className="text-[12px] font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-colors border border-amber-200 cursor-pointer"
-                  >
-                    Select All Unregistered
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedProspectIds([])}
-                    className="text-[12px] font-medium text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-                  >
-                    Deselect All
-                  </button>
                 </div>
               </div>
 
               {/* Doctor Prospects List */}
-              <div className="flex-1 overflow-y-auto border border-[#EAEAEA] rounded-xl divide-y divide-[#F0F0F0] p-1 min-h-[220px]">
+              <div className="flex-1 overflow-y-auto border border-[#EAEAEA] rounded-xl divide-y divide-[#F5F5F5] p-1 min-h-[220px]">
                 {isLoadingProspects ? (
                   <div className="py-12 text-center space-y-2">
-                    <div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-[13px] text-gray-500 font-medium">Loading physician prospects database...</p>
+                    <div className="w-5 h-5 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-[12px] text-gray-500 font-medium">Loading physician prospects...</p>
                   </div>
                 ) : prospectsList.length === 0 ? (
-                  <div className="py-12 text-center text-[13px] text-gray-500">
-                    No doctor prospects found in database.
+                  <div className="py-12 text-center text-[12px] text-gray-500">
+                    No doctor prospects found.
                   </div>
                 ) : (() => {
                   const registeredEmails = new Set(
@@ -1460,7 +1363,7 @@ export default function WebinarsPage() {
 
                   if (filtered.length === 0) {
                     return (
-                      <div className="py-8 text-center text-[13px] text-gray-500">
+                      <div className="py-8 text-center text-[12px] text-gray-500">
                         No doctors match "{inviteSearchQuery}".
                       </div>
                     );
@@ -1475,11 +1378,11 @@ export default function WebinarsPage() {
                     return (
                       <label
                         key={docId}
-                        className={`flex items-center justify-between p-3.5 rounded-lg transition-colors ${isAlreadyRegistered
-                          ? 'bg-gray-50/80 opacity-70 cursor-not-allowed'
+                        className={`flex items-center justify-between p-2.5 transition-colors ${isAlreadyRegistered
+                          ? 'opacity-55 cursor-not-allowed bg-gray-50/40'
                           : isSelected
-                            ? 'bg-amber-50/70 border-l-4 border-amber-500 cursor-pointer'
-                            : 'hover:bg-gray-50 cursor-pointer'
+                            ? 'bg-blue-50/30 cursor-pointer'
+                            : 'hover:bg-gray-50/80 cursor-pointer'
                           }`}
                       >
                         <div className="flex items-center gap-3 min-w-0 pr-2">
@@ -1495,23 +1398,23 @@ export default function WebinarsPage() {
                                 setSelectedProspectIds((prev) => prev.filter((id) => id !== docId));
                               }
                             }}
-                            className="w-4 h-4 text-amber-600 rounded-md border-gray-300 focus:ring-amber-500 cursor-pointer disabled:cursor-not-allowed shrink-0"
+                            className="w-4 h-4 text-[#1a73e8] rounded border-gray-300 focus:ring-[#1a73e8] cursor-pointer disabled:cursor-not-allowed shrink-0"
                           />
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-[14px] text-[#1F1F1F] truncate">
+                              <span className="font-semibold text-[13px] text-[#1F1F1F] truncate">
                                 {doc.full_name || doc.fullName || 'Doctor Prospect'}
                               </span>
-                              <span className="text-[11px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full shrink-0 border border-amber-200/60">
-                                {doc.specialty || 'Physician'}
+                              <span className="text-[10px] text-gray-500 font-medium">
+                                ({doc.specialty || 'Physician'})
                               </span>
                             </div>
-                            <div className="text-[12px] text-gray-500 truncate mt-0.5">
+                            <div className="text-[11.5px] text-gray-500 truncate mt-0.5">
                               <span>{doc.organization || 'Private Practice'}</span>
                               {doc.email && (
                                 <>
                                   <span className="mx-1.5 text-gray-300">•</span>
-                                  <span className="text-gray-600">{doc.email}</span>
+                                  <span className="text-gray-400">{doc.email}</span>
                                 </>
                               )}
                             </div>
@@ -1519,12 +1422,12 @@ export default function WebinarsPage() {
                         </div>
 
                         {isAlreadyRegistered ? (
-                          <span className="bg-gray-200 text-gray-700 text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1 border border-gray-300">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-gray-600" />
-                            Already Registered
+                          <span className="text-gray-400 text-[11px] font-medium shrink-0 flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-gray-400" />
+                            Registered
                           </span>
                         ) : isSelected ? (
-                          <span className="bg-amber-100 text-amber-900 text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 border border-amber-300">
+                          <span className="text-[#1a73e8] text-[11px] font-bold shrink-0">
                             Selected
                           </span>
                         ) : null}
@@ -1536,8 +1439,8 @@ export default function WebinarsPage() {
 
               {/* Modal Footer Actions */}
               <div className="flex items-center justify-between pt-3 border-t border-[#F0F0F0] shrink-0">
-                <span className="text-[13px] text-gray-600 font-semibold">
-                  Selected: <strong className="text-amber-900">{selectedProspectIds.length}</strong> doctor(s)
+                <span className="text-[12px] text-gray-600 font-medium">
+                  Selected: <strong className="text-[#1a73e8]">{selectedProspectIds.length}</strong> doctor(s)
                 </span>
 
                 <div className="flex items-center gap-2">
@@ -1548,7 +1451,7 @@ export default function WebinarsPage() {
                       setInvitingWebinar(null);
                     }}
                     disabled={isSendingInvites}
-                    className="px-4 py-2 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                    className="px-4 py-1.5 rounded-lg text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1556,16 +1459,16 @@ export default function WebinarsPage() {
                     type="button"
                     onClick={handleSendDirectInvites}
                     disabled={isSendingInvites || selectedProspectIds.length === 0}
-                    className="px-6 py-2 rounded-full text-[13px] font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="px-5 py-2 rounded-lg text-[12.5px] font-bold text-white bg-[#1a73e8] hover:bg-[#1557b0] disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     {isSendingInvites ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Sending Invites...</span>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Sending...</span>
                       </>
                     ) : (
                       <>
-                        <Send className="w-3.5 h-3.5" />
+                        <Send className="w-3 h-3" />
                         <span>Send Invitations ({selectedProspectIds.length})</span>
                       </>
                     )}

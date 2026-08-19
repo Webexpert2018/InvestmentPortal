@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import axios from 'axios';
@@ -25,7 +25,7 @@ export interface DoctorProspectDto {
 }
 
 @Injectable()
-export class WebinarCampaignService {
+export class WebinarCampaignService implements OnModuleInit {
   private readonly logger = new Logger(WebinarCampaignService.name);
 
   constructor(
@@ -33,6 +33,34 @@ export class WebinarCampaignService {
     private configService: ConfigService,
     private meetingsService: MeetingsService
   ) { }
+
+  async onModuleInit() {
+    try {
+      await db.query(`
+        CREATE OR REPLACE FUNCTION sync_attendee_to_interested()
+        RETURNS TRIGGER AS $$
+        BEGIN
+          UPDATE doctor_prospects
+          SET stage = 'interested', updated_at = CURRENT_TIMESTAMP
+          WHERE apollo_id = NEW.prospect_id AND (stage IS NULL OR stage != 'interested');
+          RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql;
+      `);
+      await db.query(`
+        DROP TRIGGER IF EXISTS trg_sync_attendee_to_interested ON webinar_attendees;
+      `);
+      await db.query(`
+        CREATE TRIGGER trg_sync_attendee_to_interested
+        AFTER INSERT ON webinar_attendees
+        FOR EACH ROW
+        EXECUTE FUNCTION sync_attendee_to_interested();
+      `);
+      this.logger.log('⚡ Registered PostgreSQL trigger for syncing webinar attendees to interested prospects!');
+    } catch (err: any) {
+      this.logger.error(`Failed to register PostgreSQL trigger: ${err.message}`);
+    }
+  }
 
   async searchApollo(
     specialties: string,
@@ -1638,6 +1666,7 @@ ${rsvpButtonsHtml}
           description: data.description || 'Ovalia Capital Physician Wealth Session.',
           scheduledDate: startUtc.toISOString(),
           durationMinutes,
+          location: 'https://us02web.zoom.us/j/6466719252',
         });
 
         if (gcalEvent && gcalEvent.googleEventId) {
@@ -1780,6 +1809,7 @@ ${rsvpButtonsHtml}
             description: data.description || 'Ovalia Capital Physician Wealth Session.',
             scheduledDate: startUtc.toISOString(),
             durationMinutes,
+            location: 'https://us02web.zoom.us/j/6466719252',
           });
         } catch (gcalErr: any) {
           this.logger.error(`Failed to update Google Calendar event ${googleEventId}: ${gcalErr.message}`);
@@ -1915,7 +1945,7 @@ ${rsvpButtonsHtml}
     }
   }
 
-  async sendDirectWebinarInvites(webinarId: string, prospectIds: string[]) {
+  async sendDirectWebinarInvites(userId: string, webinarId: string, prospectIds: string[]) {
     if (!webinarId) {
       throw new HttpException('Webinar ID is required', HttpStatus.BAD_REQUEST);
     }
@@ -1926,10 +1956,7 @@ ${rsvpButtonsHtml}
     try {
       // 1. Fetch webinar details
       const webinarRes = await db.query(
-        `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
-                to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
-                webinar_time as time, duration, meeting_link as "meetingLink"
-         FROM webinars WHERE id = $1`,
+        `SELECT id, title, description, google_event_id FROM webinars WHERE id = $1`,
         [webinarId]
       );
 
@@ -1938,13 +1965,7 @@ ${rsvpButtonsHtml}
       }
 
       const webinar = webinarRes.rows[0];
-      const title = webinar.title || 'Ovalia Capital Physician Wealth Briefing';
-      const formattedDate = webinar.formattedDate || webinar.date || 'Scheduled Date';
-      const timeStr = this.formatBackendTimeEST(webinar.time, webinar.date);
-      const durationRaw = (webinar.duration || '45').toString().trim();
-      const durationStr = durationRaw.toLowerCase().includes('min') ? durationRaw : `${durationRaw} mins`;
-      const durationMinsNum = parseInt(durationRaw, 10) || 45;
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const googleEventId = webinar.google_event_id;
 
       // 2. Fetch selected doctors
       const doctorsRes = await db.query(
@@ -1957,107 +1978,52 @@ ${rsvpButtonsHtml}
       }
 
       let successCount = 0;
+      let calendarInviteCount = 0;
 
       for (const doc of doctorsRes.rows) {
         const apolloId = doc.apollo_id;
-        const doctorName = doc.full_name || 'Physician';
         const doctorEmail = doc.email;
 
         if (!doctorEmail) continue;
 
         // Register pass in webinar_attendees if not present
         try {
-          await db.query(
+          const insertRes = await db.query(
             `INSERT INTO webinar_attendees (webinar_id, prospect_id, status, created_at, updated_at)
              VALUES ($1, $2, 'registered', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
              ON CONFLICT (webinar_id, prospect_id) DO NOTHING`,
             [webinar.id, apolloId]
-          );
+          ) as any;
+
+          if (insertRes && insertRes.rowCount > 0) {
+            successCount++;
+
+            // Send Google Calendar invite if googleEventId exists
+            if (googleEventId) {
+              try {
+                await this.meetingsService.addAttendeeToGoogleEvent(userId, googleEventId, doctorEmail);
+                calendarInviteCount++;
+              } catch (gcalErr: any) {
+                this.logger.error(`Failed to add calendar attendee ${doctorEmail} to event ${googleEventId}: ${gcalErr.message}`);
+              }
+            }
+          }
         } catch (regErr: any) {
           this.logger.error(`Error registering attendee ${apolloId} for webinar ${webinar.id}: ${regErr.message}`);
         }
+      }
 
-        const webinarPassUrl = `${frontendUrl}/webinar/pass?prospect_id=${encodeURIComponent(apolloId)}&webinar_id=${encodeURIComponent(webinar.id)}`;
-        const gcalUrl = this.generateGoogleCalendarUrl(
-          title,
-          webinar.date,
-          webinar.time,
-          durationMinsNum,
-          webinar.meetingLink || webinarPassUrl
-        );
-
-        // Dedicated Direct Invitation Email Template
-        const subject = `🎟️ You're Invited: ${title}`;
-        const emailBody = `
-<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1F1F1F; text-align: left; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #E5E7EB; border-radius: 12px; background-color: #FFFFFF;">
-  <h2 style="color: #1F2937; margin: 0 0 12px 0; font-size: 20px; font-weight: bold; line-height: 1.3;">You're Invited, ${doctorName}!</h2>
-  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 0 0 16px 0;">
-    You are cordially invited to attend an exclusive <strong>Ovalia Capital Physician Wealth Briefing</strong> on tax-sheltered commercial real estate returns for accredited doctors.
-  </p>
-
-  <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; margin: 16px 0;">
-    <h3 style="margin: 0 0 10px 0; font-size: 15px; font-weight: bold; color: #111827;">🗓️ Session Briefing Details</h3>
-    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; color: #374151;">
-      <tr>
-        <td style="padding: 4px 0; font-weight: bold; width: 90px;">Session:</td>
-        <td style="padding: 4px 0; color: #111827; font-weight: 600;">${title}</td>
-      </tr>
-      <tr>
-        <td style="padding: 4px 0; font-weight: bold;">Date:</td>
-        <td style="padding: 4px 0;">${formattedDate}</td>
-      </tr>
-      <tr>
-        <td style="padding: 4px 0; font-weight: bold;">Time:</td>
-        <td style="padding: 4px 0;">${timeStr}</td>
-      </tr>
-      <tr>
-        <td style="padding: 4px 0; font-weight: bold;">Duration:</td>
-        <td style="padding: 4px 0;">${durationStr}</td>
-      </tr>
-    </table>
-  </div>
-
-  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 16px 0 8px 0;">
-    Add this event to your calendar to automatically convert to your local timezone:
-  </p>
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 12px 0 20px 0; text-align: center;">
-    <tr>
-      <td align="center" style="text-align: center; padding-bottom: 12px;">
-        <a href="${gcalUrl}" target="_blank" style="background-color: #4285F4; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(66, 133, 244, 0.25);">
-          📅 Add to Google Calendar (Auto-Converts to Your Timezone)
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" style="text-align: center;">
-        <a href="${webinarPassUrl}" target="_blank" style="background-color: #22C55E; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);">
-          🎟️ Access Your VIP Session Pass
-        </a>
-      </td>
-    </tr>
-  </table>
-  <p style="font-size: 13px; color: #6B7280; line-height: 1.5; margin: 16px 0 0 0;">
-    If you have any questions, contact our investor relations team at <a href="mailto:portal@ovaliacapital.com" style="color: #2563EB; text-decoration: underline;">portal@ovaliacapital.com</a>.
-  </p>
-</div>`;
-
-        try {
-          await this.emailService.sendCustomEmail(doctorEmail, doctorName, subject, emailBody);
-          await db.query(
-            `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, 'direct_webinar_invite_sent', $2, CURRENT_TIMESTAMP)`,
-            [apolloId, JSON.stringify({ webinarId: webinar.id, webinarTitle: title, sentAt: new Date().toISOString() })]
-          );
-          successCount++;
-          this.logger.log(`📩 Sent direct webinar invitation & pass to ${doctorName} (${doctorEmail}) for webinar ${webinar.id}`);
-        } catch (sendErr: any) {
-          this.logger.error(`Failed to send direct webinar invite to ${doctorEmail}: ${sendErr.message}`);
-        }
+      let message = `Successfully registered ${successCount} doctor(s) for the webinar.`;
+      if (calendarInviteCount > 0) {
+        message += ` Sent ${calendarInviteCount} Google Calendar invites.`;
+      } else if (googleEventId) {
+        message += ` (Could not send Google Calendar invites - check Google Calendar connection).`;
       }
 
       return {
         success: true,
         count: successCount,
-        message: `Successfully dispatched direct invitations & calendar passes to ${successCount} doctors.`,
+        message,
       };
     } catch (err: any) {
       if (err instanceof HttpException) throw err;
@@ -2451,6 +2417,117 @@ ${rsvpButtonsHtml}
     } catch (err: any) {
       this.logger.error(`Error in sendSequenceStepNow: ${err.message}`);
       throw new HttpException(err.message || 'Failed to send sequence step', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async importPreviousWebinarAttendees(userId: string, webinarId: string) {
+    if (!webinarId) {
+      throw new HttpException('Webinar ID is required', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      // 1. Fetch current webinar details to know its date and google_event_id
+      const currentWebinarRes = await db.query(
+        `SELECT webinar_date, google_event_id, title FROM webinars WHERE id = $1`,
+        [webinarId]
+      );
+      if (currentWebinarRes.rows.length === 0) {
+        throw new HttpException('Current webinar not found', HttpStatus.NOT_FOUND);
+      }
+      const { webinar_date: currentWebinarDate, google_event_id: googleEventId, title: webinarTitle } = currentWebinarRes.rows[0];
+
+      // 2. Query the single chronologically previous webinar
+      const previousWebinarRes = await db.query(
+        `SELECT id, title FROM webinars 
+         WHERE id != $1 
+         AND webinar_date <= $2 
+         ORDER BY webinar_date DESC, created_at DESC 
+         LIMIT 1`,
+        [webinarId, currentWebinarDate]
+      );
+
+      if (previousWebinarRes.rows.length === 0) {
+        return {
+          success: false,
+          message: 'No previous webinars found to import from.',
+          count: 0
+        };
+      }
+
+      const prevWebinar = previousWebinarRes.rows[0];
+
+      // 3. Fetch all attendees from that previous webinar who are not already registered to the current webinar
+      const attendeesRes = await db.query(
+        `SELECT DISTINCT wa.prospect_id, dp.email FROM webinar_attendees wa
+         JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
+         WHERE wa.webinar_id = $1 
+         AND wa.status != 'accepted'
+         AND wa.prospect_id NOT IN (
+           SELECT prospect_id FROM webinar_attendees WHERE webinar_id = $2
+         )`,
+        [prevWebinar.id, webinarId]
+      );
+
+      const attendees = attendeesRes.rows || [];
+
+      if (attendees.length === 0) {
+        return {
+          success: false,
+          message: `The previous webinar "${prevWebinar.title}" has no registered doctors to import.`,
+          count: 0
+        };
+      }
+
+      let successCount = 0;
+      let calendarInviteCount = 0;
+
+      for (const att of attendees) {
+        const apolloId = att.prospect_id;
+        const email = att.email;
+
+        // Register in webinar_attendees for the new webinar
+        try {
+          const insertRes = await db.query(
+            `INSERT INTO webinar_attendees (webinar_id, prospect_id, status, created_at, updated_at)
+             VALUES ($1, $2, 'registered', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+             ON CONFLICT (webinar_id, prospect_id) DO NOTHING`,
+            [webinarId, apolloId]
+          ) as any;
+
+          if (insertRes && insertRes.rowCount > 0) {
+            successCount++;
+          }
+        } catch (dbErr: any) {
+          this.logger.error(`Failed to register imported prospect ${apolloId}: ${dbErr.message}`);
+          continue;
+        }
+
+        // Send Google Calendar invite if googleEventId and email exist
+        if (googleEventId && email) {
+          try {
+            await this.meetingsService.addAttendeeToGoogleEvent(userId, googleEventId, email);
+            calendarInviteCount++;
+          } catch (gcalErr: any) {
+            this.logger.error(`Failed to add calendar attendee ${email} to event ${googleEventId}: ${gcalErr.message}`);
+          }
+        }
+      }
+
+      let message = `Successfully imported ${successCount} doctor(s) from previous webinar "${prevWebinar.title}".`;
+      if (calendarInviteCount > 0) {
+        message += ` Sent ${calendarInviteCount} Google Calendar invites.`;
+      } else if (googleEventId) {
+        message += ` (Could not send Google Calendar invites - check Google Calendar connection).`;
+      }
+
+      return {
+        success: true,
+        count: successCount,
+        message,
+      };
+    } catch (err: any) {
+      this.logger.error(`Error in importPreviousWebinarAttendees: ${err.message}`);
+      throw new HttpException(err.message || 'Failed to import attendees', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

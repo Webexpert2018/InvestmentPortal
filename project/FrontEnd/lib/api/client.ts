@@ -1600,6 +1600,12 @@ class ApiClient {
     });
   }
 
+  async importPreviousWebinarAttendees(webinarId: string) {
+    return this.request<{ success: boolean; count: number; message: string }>(`/webinar-campaign/webinars/${encodeURIComponent(webinarId)}/import-previous`, {
+      method: 'POST',
+    });
+  }
+
   async updateWebinarReminders(webinarId: string, reminderOffsets: number[]) {
     return this.request<{ success: boolean; reminderOffsets: number[]; message: string }>(`/webinar-campaign/webinars/${encodeURIComponent(webinarId)}/reminders`, {
       method: 'PUT',

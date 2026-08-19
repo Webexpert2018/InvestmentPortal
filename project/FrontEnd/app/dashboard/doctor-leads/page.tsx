@@ -234,7 +234,7 @@ export default function DoctorLeadsPage() {
 
       const inviteRes = await apiClient.sendDirectWebinarInvites(activeWebinar.id, [savedProspectId]);
       if (inviteRes && inviteRes.success) {
-        toast.success(`📩 Direct webinar invitation & pass sent to ${newFullName || 'doctor'} for "${activeWebinar.title}"!`);
+        toast.success(`📅 Google Calendar invite sent to ${newFullName || 'doctor'} for "${activeWebinar.title}"!`);
         setIsAddModalOpen(false);
       } else {
         toast.error(inviteRes?.message || 'Failed to send webinar link.');
