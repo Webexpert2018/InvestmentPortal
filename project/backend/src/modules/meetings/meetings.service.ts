@@ -828,4 +828,48 @@ export class MeetingsService {
       throw new InternalServerErrorException('Failed to update calendar event details');
     }
   }
+
+  async updateGoogleEventReminders(
+    userId: string,
+    googleEventId: string,
+    reminderOffsets: number[]
+  ) {
+    const oauth2Client = await this.getAuthenticatedClient(userId);
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+    const overrides = reminderOffsets.map(mins => ({
+      method: 'email',
+      minutes: mins
+    }));
+
+    try {
+      const eventResponse = await calendar.events.get({
+        calendarId: 'primary',
+        eventId: googleEventId,
+      });
+
+      const event = eventResponse.data;
+
+      const updatedEvent = await calendar.events.update({
+        calendarId: 'primary',
+        eventId: googleEventId,
+        sendUpdates: 'all',
+        requestBody: {
+          ...event,
+          reminders: {
+            useDefault: false,
+            overrides
+          }
+        }
+      });
+
+      return {
+        success: true,
+        event: updatedEvent.data
+      };
+    } catch (error) {
+      console.error('Failed to update Google event reminders:', error);
+      throw new InternalServerErrorException('Failed to update calendar event reminders');
+    }
+  }
 }

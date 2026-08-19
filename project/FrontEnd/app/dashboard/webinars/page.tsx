@@ -1495,7 +1495,7 @@ export default function WebinarsPage() {
 
               {/* Modal Header */}
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-800">
+                <div className="w-10 h-10 rounded-full bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] flex items-center justify-center">
                   <Bell className="w-5 h-5" />
                 </div>
                 <div>
@@ -1528,7 +1528,7 @@ export default function WebinarsPage() {
                     ]
                       .filter((opt) => selectedReminderOffsets.includes(opt.mins))
                       .map((opt) => (
-                        <span key={opt.mins} className="bg-amber-50 text-amber-900 border border-amber-200/80 text-[11px] font-bold px-2 py-0.5 rounded-md">
+                        <span key={opt.mins} className="bg-[#FFF9EE] text-[#A67C1E] border border-[#FFE7A8] text-[11px] font-bold px-2 py-0.5 rounded-md">
                           ⏱️ {opt.label}
                         </span>
                       ))
@@ -1561,7 +1561,7 @@ export default function WebinarsPage() {
                           }
                         }}
                         className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isChecked
-                          ? 'bg-amber-50/70 border-amber-300 shadow-xs'
+                          ? 'bg-[#FFF9EE] border-[#FFE7A8] shadow-xs'
                           : 'bg-[#F9FAFB] border-[#E5E7EB] hover:bg-gray-50'
                           }`}
                       >
@@ -1569,7 +1569,7 @@ export default function WebinarsPage() {
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => { }} // handled by parent label onClick
-                          className="mt-0.5 w-4 h-4 text-amber-600 rounded-md border-gray-300 focus:ring-amber-500 cursor-pointer shrink-0"
+                          className="mt-0.5 w-4 h-4 text-[#D9A11E] rounded-md border-gray-300 focus:ring-[#FFC63F] cursor-pointer shrink-0"
                         />
                         <div className="min-w-0">
                           <span className="block font-bold text-[13px] text-[#1F1F1F]">{option.label}</span>
@@ -1619,16 +1619,16 @@ export default function WebinarsPage() {
                     type="button"
                     onClick={handleSaveReminders}
                     disabled={isSavingReminders}
-                    className="px-5 py-2 rounded-full text-[13px] font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="px-5 py-2 rounded-full text-[13px] font-bold text-[#1F1F1F] bg-[#FFC63F] hover:bg-[#F1B92E] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     {isSavingReminders ? (
                       <>
-                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-3.5 h-3.5 border-2 border-[#1F1F1F] border-t-transparent rounded-full animate-spin" />
                         <span>Saving Schedule...</span>
                       </>
                     ) : (
                       <>
-                        <Bell className="w-3.5 h-3.5" />
+                        <Bell className="w-3.5 h-3.5 text-[#1F1F1F]" />
                         <span>Save Reminder Schedule</span>
                       </>
                     )}

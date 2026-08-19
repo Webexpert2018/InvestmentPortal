@@ -763,8 +763,15 @@ export class WebinarCampaignService implements OnModuleInit {
     }
   }
 
-  @Cron('*/1 * * * *')
+  // @Cron('*/1 * * * *')
   async processAutomatedWebinarReminders() {
+    // Disabled: Webinar reminder notifications are sent officially from Google's servers
+    this.logger.log('⏰ Local webinar reminder email cron is disabled. Google Calendar handles reminders directly.');
+  }
+
+  /*
+  // Original local reminder implementation (retained for reference):
+  async processAutomatedWebinarRemindersBackup() {
     try {
       const res = await db.query(
         `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
@@ -795,7 +802,6 @@ export class WebinarCampaignService implements OnModuleInit {
         let attendeesRes: any = null;
 
         for (const offsetMins of offsets) {
-          // Trigger reminder if time remaining is within the window for this offset (e.g. diffMinutes <= offsetMins)
           if (diffMinutes >= -720 && diffMinutes <= offsetMins) {
             if (!attendeesRes) {
               attendeesRes = await db.query(
@@ -810,88 +816,36 @@ export class WebinarCampaignService implements OnModuleInit {
             const eventType = `webinar_reminder_${offsetMins}m`;
 
             for (const att of attendeesRes.rows) {
-              const eventCheck = await db.query(
-                `SELECT id FROM prospect_events WHERE prospect_id = $1 AND event_type = $2 AND details->>'webinarId' = $3 LIMIT 1`,
+              const alreadySent = await db.query(
+                `SELECT 1 FROM prospect_events WHERE prospect_id = $1 AND event_type = $2 AND details->>'webinarId' = $3`,
                 [att.apollo_id, eventType, w.id]
               );
 
-              if (eventCheck.rows.length === 0) {
-                const doctorName = att.fullName || 'Physician';
-                const formattedDate = w.formattedDate || w.date;
-                const timeStr = this.formatBackendTimeEST(w.time, w.date);
-                const durationRaw = (w.duration || '45').toString().trim();
-                const durationStr = durationRaw.toLowerCase().includes('min') ? durationRaw : `${durationRaw} mins`;
-                const webinarPassUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/webinar/pass?webinarId=${encodeURIComponent(w.id)}&prospectId=${encodeURIComponent(att.apollo_id)}`;
-
-                const durationMinsNum = parseInt(durationRaw, 10) || 45;
-                const gcalUrl = this.generateGoogleCalendarUrl(
-                  w.title,
-                  w.date,
-                  w.time,
-                  durationMinsNum,
-                  w.meetingLink || webinarPassUrl
-                );
-
-                let timeText = `${offsetMins} minutes`;
-                if (offsetMins === 60) timeText = '1 hour';
-                else if (offsetMins === 120) timeText = '2 hours';
-                else if (offsetMins === 720) timeText = '12 hours';
-                else if (offsetMins === 1440) timeText = '24 hours (1 day)';
-                else if (offsetMins === 2880) timeText = '48 hours (2 days)';
-
-                const subject = `⏰ Reminder: Your Webinar Session Starts in ${timeText}! — ${w.title}`;
+              if (alreadySent.rows.length === 0) {
+                const doctorName = att.fullName || 'Doctor';
+                const subject = `⏰ Reminder: "${w.title}" is coming up!`;
                 const emailBody = `
-<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1F1F1F; text-align: left; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #E5E7EB; border-radius: 12px; background-color: #FFFFFF;">
-  <h2 style="color: #1F2937; margin: 0 0 12px 0; font-size: 20px; font-weight: bold; line-height: 1.3;">Upcoming Session Reminder, ${doctorName}!</h2>
-  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 0 0 16px 0;">
-    Just a quick reminder that your <strong>Ovalia Capital Physician Briefing</strong> session starts in <strong>${timeText}</strong>.
-  </p>
+                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                    <h2 style="color: #1F1F1F;">Webinar Session Reminder</h2>
+                    <p>Dear Dr. ${doctorName},</p>
+                    <p>This is a quick reminder that the webinar session <strong>"${w.title}"</strong> is scheduled to start soon.</p>
+                    
+                    <div style="background-color: #F8F9FA; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                      <p style="margin: 0; font-size: 14px;"><strong>Date:</strong> ${w.formattedDate}</p>
+                      <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Time:</strong> ${w.time}</p>
+                      <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Duration:</strong> ${w.duration || '45 mins'}</p>
+                    </div>
 
-  <div style="background-color: #FEF3C7; border: 1px solid #FCD34D; border-radius: 10px; padding: 16px; margin: 16px 0;">
-    <h3 style="margin: 0 0 10px 0; font-size: 15px; font-weight: bold; color: #92400E;">⏰ Session Starting Details</h3>
-    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; color: #374151;">
-      <tr>
-        <td style="padding: 4px 0; font-weight: bold; width: 90px;">Session:</td>
-        <td style="padding: 4px 0; color: #111827; font-weight: 600;">${w.title}</td>
-      </tr>
-      <tr>
-        <td style="padding: 4px 0; font-weight: bold;">Date:</td>
-        <td style="padding: 4px 0;">${formattedDate}</td>
-      </tr>
-      <tr>
-        <td style="padding: 4px 0; font-weight: bold;">Time:</td>
-        <td style="padding: 4px 0; font-weight: bold; color: #B45309;">${timeStr}</td>
-      </tr>
-      <tr>
-        <td style="padding: 4px 0; font-weight: bold;">Duration:</td>
-        <td style="padding: 4px 0;">${durationStr}</td>
-      </tr>
-    </table>
-  </div>
-
-  <p style="font-size: 14px; color: #4B5563; line-height: 1.5; margin: 16px 0 8px 0;">
-    Add this event to your calendar to automatically convert to your local timezone:
-  </p>
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 12px 0 20px 0; text-align: center;">
-    <tr>
-      <td align="center" style="text-align: center; padding-bottom: 12px;">
-        <a href="${gcalUrl}" target="_blank" style="background-color: #4285F4; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(66, 133, 244, 0.25);">
-          📅 Add to Google Calendar (Auto-Converts to Your Timezone)
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" style="text-align: center;">
-        <a href="${webinarPassUrl}" target="_blank" style="background-color: #22C55E; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; text-align: center; margin: 0 auto; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);">
-          👉 Access Your VIP Session Pass
-        </a>
-      </td>
-    </tr>
-  </table>
-  <p style="font-size: 13px; color: #6B7280; line-height: 1.5; margin: 16px 0 0 0;">
-    If you have any questions, feel free to reply directly to this email.
-  </p>
-</div>`;
+                    <p>To join the session, please use the link below:</p>
+                    <p style="text-align: center; margin: 30px 0;">
+                      <a href="\${w.meetingLink || 'https://owaliacapital.com'}" style="background-color: #D9A11E; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 20px; font-weight: bold;">Join Meeting</a>
+                    </p>
+                    
+                    <p style="font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 15px; margin-top: 30px;">
+                      This is an automated reminder. If you have questions, please reply directly to this email.
+                    </p>
+                  </div>
+                `;
 
                 try {
                   await this.emailService.sendCustomEmail(att.email, doctorName, subject, emailBody);
@@ -899,9 +853,8 @@ export class WebinarCampaignService implements OnModuleInit {
                     `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`,
                     [att.apollo_id, eventType, JSON.stringify({ webinarId: w.id, webinarTitle: w.title, offsetMins, sentAt: now.toISOString() })]
                   );
-                  this.logger.log(`⏰ [Cron Reminder ${offsetMins}m] Dispatched reminder email to Dr. ${doctorName} (${att.email}) for webinar ${w.id}`);
                 } catch (sendErr: any) {
-                  this.logger.error(`Failed to send ${offsetMins}m reminder to ${att.email}: ${sendErr.message}`);
+                  this.logger.error(\`Failed to send \${offsetMins}m reminder to \${att.email}: \${sendErr.message}\`);
                 }
               }
             }
@@ -909,9 +862,10 @@ export class WebinarCampaignService implements OnModuleInit {
         }
       }
     } catch (err: any) {
-      this.logger.error(`Error in processAutomatedWebinarReminders cron: ${err.message}`);
+      this.logger.error(\`Error in processAutomatedWebinarRemindersBackup: \${err.message}\`);
     }
   }
+  */
 
   calculateDripSchedule(startDate: Date = new Date()) {
     const addWorkDaysWithGap = (current: Date, daysToAdd: number): Date => {
@@ -2096,12 +2050,30 @@ ${rsvpButtonsHtml}
          SET reminder_offsets = $1::int[],
              updated_at = CURRENT_TIMESTAMP
          WHERE id = $2
-         RETURNING id, reminder_offsets as "reminderOffsets"`,
+         RETURNING id, google_event_id as "googleEventId", reminder_offsets as "reminderOffsets"`,
         [cleanOffsets, webinarId]
       );
 
       if (res.rowCount === 0) {
         throw new HttpException('Webinar not found', HttpStatus.NOT_FOUND);
+      }
+
+      const googleEventId = res.rows[0].googleEventId;
+      if (googleEventId) {
+        const tokenRes = await db.query(`SELECT user_id FROM google_tokens LIMIT 1`);
+        const adminUserId = tokenRes.rows.length > 0 ? tokenRes.rows[0].user_id : null;
+        if (adminUserId) {
+          try {
+            await this.meetingsService.updateGoogleEventReminders(
+              adminUserId,
+              googleEventId,
+              cleanOffsets
+            );
+            this.logger.log(`📅 Successfully synced Google Calendar reminders for event ${googleEventId}`);
+          } catch (gcalErr: any) {
+            this.logger.error(`Failed to update Google Calendar reminders for event ${googleEventId}: ${gcalErr.message}`);
+          }
+        }
       }
 
       this.logger.log(`🔔 Updated reminder schedule for webinar ${webinarId}: [${cleanOffsets.join(', ')}]`);
