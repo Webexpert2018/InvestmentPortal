@@ -1367,7 +1367,57 @@ ${rsvpButtonsHtml}
         throw new HttpException('Doctor prospect not found', HttpStatus.NOT_FOUND);
       }
       this.logger.log(`🔄 Updated stage for prospect ${prospectId} to '${stage}'`);
-      return { success: true, prospect: res.rows[0] };
+
+      const prospect = res.rows[0];
+      const apolloId = prospect.apollo_id;
+      const doctorName = prospect.full_name || 'Doctor';
+      const doctorEmail = prospect.email;
+
+      // Trigger automated interest Google Calendar invitation if they are marked interested
+      if (stage === 'interested' && doctorEmail) {
+        const latestWebinarRes = await db.query(
+          `SELECT id, title, webinar_date, webinar_time, duration, meeting_link, google_event_id FROM webinars ORDER BY created_at DESC LIMIT 1`
+        );
+
+        const latestWebinar = latestWebinarRes.rows.length > 0 ? latestWebinarRes.rows[0] : null;
+
+        if (latestWebinar && apolloId) {
+          try {
+            await db.query(
+              `INSERT INTO webinar_attendees (webinar_id, prospect_id, status, created_at, updated_at)
+               VALUES ($1, $2, 'registered', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+               ON CONFLICT (webinar_id, prospect_id) DO NOTHING`,
+              [latestWebinar.id, apolloId]
+            );
+            this.logger.log(`🎟️ Logged doctor ${doctorName} (${apolloId}) as 'registered' (Calendar Invite Pending) for webinar ${latestWebinar.id}`);
+          } catch (pErr: any) {
+            this.logger.error(`Failed to register pass in webinar_attendees: ${pErr.message}`);
+          }
+
+          if (latestWebinar.google_event_id) {
+            try {
+              const tokenRes = await db.query(`SELECT user_id FROM google_tokens LIMIT 1`);
+              const adminUserId = tokenRes.rows.length > 0 ? tokenRes.rows[0].user_id : null;
+              if (adminUserId) {
+                await this.meetingsService.addAttendeeToGoogleEvent(
+                  adminUserId,
+                  latestWebinar.google_event_id,
+                  doctorEmail
+                );
+                this.logger.log(`📅 Automatically invited ${doctorEmail} to Google Calendar event ${latestWebinar.google_event_id}`);
+              } else {
+                this.logger.warn(`Could not send Google Calendar invite: No connected Google Token found in database.`);
+              }
+            } catch (inviteErr: any) {
+              this.logger.error(`Failed to send Google Calendar invite to ${doctorEmail}: ${inviteErr.message}`);
+            }
+          } else {
+            this.logger.warn(`Could not send Google Calendar invite: Latest webinar has no associated google_event_id.`);
+          }
+        }
+      }
+
+      return { success: true, prospect };
     } catch (err: any) {
       this.logger.error(`Error updating prospect stage: ${err.message}`);
       throw new HttpException(err.message || 'Failed to update stage', HttpStatus.INTERNAL_SERVER_ERROR);

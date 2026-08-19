@@ -1329,7 +1329,7 @@ export default function WebinarsPage() {
                     placeholder="Search doctors..."
                     value={inviteSearchQuery}
                     onChange={(e) => setInviteSearchQuery(e.target.value)}
-                    className="w-full bg-white border border-[#dadce0] rounded-lg pl-8.5 pr-3 py-1.5 text-[12.5px] text-[#1F1F1F] focus:outline-none focus:border-[#1a73e8]"
+                    className="w-full bg-white border border-[#dadce0] rounded-lg pl-9 pr-3 py-1.5 text-[12.5px] text-[#1F1F1F] focus:outline-none focus:border-[#1a73e8]"
                   />
                 </div>
               </div>

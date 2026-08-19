@@ -369,7 +369,7 @@ export class MeetingsService {
     const oauth2Client = this.getOAuth2Client();
     try {
       const { tokens } = await oauth2Client.getToken(code);
-      
+
       const expiryDate = tokens.expiry_date ? BigInt(tokens.expiry_date) : null;
 
       await this.pgClient.query(`
@@ -430,7 +430,7 @@ export class MeetingsService {
       try {
         console.log('🔄 Access token expired. Refreshing token...');
         const { credentials } = await oauth2Client.refreshAccessToken();
-        
+
         await this.pgClient.query(`
           UPDATE google_tokens SET
             access_token = $1,
@@ -469,9 +469,7 @@ export class MeetingsService {
 
       const requestBody: any = {
         summary: dto.title,
-        description: dto.location 
-          ? `Meeting URL: ${dto.location}\n\n${dto.description || ''}`
-          : dto.description || '',
+        description: dto.description || '',
         start: {
           dateTime: startDate.toISOString(),
           timeZone: 'UTC',
@@ -783,9 +781,7 @@ export class MeetingsService {
       const requestBody: any = {
         ...event,
         summary: dto.title,
-        description: dto.location 
-          ? `Meeting URL: ${dto.location}\n\n${dto.description || ''}`
-          : dto.description || '',
+        description: dto.description || '',
         start: {
           dateTime: startDate.toISOString(),
           timeZone: 'UTC',

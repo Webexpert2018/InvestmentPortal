@@ -345,7 +345,11 @@ export default function CallManagerPage() {
     try {
       const res = await apiClient.updateProspectStage(docId, newStage);
       if (res && res.success) {
-        toast.success(`Updated stage in DB to '${newStage}'`);
+        if (newStage === 'interested') {
+          toast.success("Saved to DB as interested & Google Calendar invite sent! 📅");
+        } else {
+          toast.success(`Updated stage in DB to '${newStage}'`);
+        }
         setDoctors(prev => prev.map(d => d.id === docId ? { ...d, stage: newStage } : d));
       } else {
         toast.error('Failed to update stage.');
@@ -368,9 +372,11 @@ export default function CallManagerPage() {
     } else if (outcome === 'voicemail') {
       actionName = 'Left Voicemail';
       note = '📞 Left voicemail detailing Ovalia Capital session';
+      newStage = 'didnt_pick_up';
     } else if (outcome === 'no_answer') {
       actionName = 'No Answer';
       note = '📞 Phone call attempted - No answer / line busy';
+      newStage = 'didnt_pick_up';
     }
 
     if (actionName) {
@@ -505,14 +511,14 @@ export default function CallManagerPage() {
   };
 
   // KPIs
-  const scheduleForCallCount = doctors.filter(d => ['call_queue', 'needs_call'].includes(d.stage)).length;
+  const scheduleForCallCount = doctors.filter(d => ['call_queue', 'needs_call', 'didnt_pick_up'].includes(d.stage)).length;
   const interestedCount = doctors.filter(d => d.stage === 'interested').length;
   const notInterestedCount = doctors.filter(d => d.stage === 'not_interested').length;
 
   const filteredDoctors = doctors.filter(doc => {
     let matchesFilter = true;
     if (callFilter === 'queue') {
-      matchesFilter = ['call_queue', 'needs_call', 'not_interested'].includes(doc.stage);
+      matchesFilter = ['call_queue', 'needs_call', 'not_interested', 'didnt_pick_up'].includes(doc.stage);
     } else if (callFilter === 'interested') {
       matchesFilter = doc.stage === 'interested';
     } else if (callFilter === 'not_interested') {
@@ -726,13 +732,14 @@ export default function CallManagerPage() {
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         <div className="flex flex-col gap-1.5 items-start">
                           <select
-                            value={['interested', 'not_interested'].includes(doc.stage) ? doc.stage : 'needs_call'}
+                            value={['interested', 'not_interested', 'didnt_pick_up'].includes(doc.stage) ? doc.stage : 'needs_call'}
                             onChange={(e) => handleUpdateStage(doc.id, e.target.value)}
                             className="bg-gray-50 border border-gray-300 rounded-lg px-2.5 py-1 text-[12px] font-bold text-gray-800 focus:outline-none focus:border-[#FFC63F]"
                           >
-                            {!['interested', 'not_interested'].includes(doc.stage) && (
+                            {!['interested', 'not_interested', 'didnt_pick_up'].includes(doc.stage) && (
                               <option value="needs_call" disabled>📞 Needs Call (needs_call)</option>
                             )}
+                            <option value="didnt_pick_up">📞 Didn't Pick Up (didnt_pick_up)</option>
                             <option value="interested">🟢 Interested (interested)</option>
                             <option value="not_interested">🔴 Not Interested (not_interested)</option>
                           </select>
