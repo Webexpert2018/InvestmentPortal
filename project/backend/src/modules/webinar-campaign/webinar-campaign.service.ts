@@ -763,10 +763,108 @@ export class WebinarCampaignService implements OnModuleInit {
     }
   }
 
-  // @Cron('*/1 * * * *')
+  @Cron('*/1 * * * *')
   async processAutomatedWebinarReminders() {
-    // Disabled: Webinar reminder notifications are sent officially from Google's servers
-    this.logger.log('⏰ Local webinar reminder email cron is disabled. Google Calendar handles reminders directly.');
+    try {
+      const res = await db.query(
+        `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
+                to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
+                webinar_time as time, duration, meeting_link as "meetingLink", status,
+                COALESCE(reminder_offsets, '{}') as "reminderOffsets"
+         FROM webinars`
+      );
+
+      if (!res.rows || res.rows.length === 0) return;
+
+      const now = new Date();
+
+      for (const w of res.rows) {
+        if (!w.date) continue;
+        const offsets: number[] = Array.isArray(w.reminderOffsets) ? w.reminderOffsets.map(Number) : [];
+        if (offsets.length === 0) continue;
+
+        const { startUtc } = this.parseEasternDateTime(w.date, w.time);
+        const diffMs = startUtc.getTime() - now.getTime();
+        const diffMinutes = diffMs / (1000 * 60);
+
+        this.logger.log(
+          `⏰ [Cron Reminder Check] Webinar "${w.title}" (${w.date} ${w.time || '16:00'}): ` +
+          `UTC start = ${startUtc.toISOString()}, Current UTC = ${now.toISOString()}, diffMinutes = ${Math.round(diffMinutes)}m. Offsets: [${offsets.join(', ')}]`
+        );
+
+        let attendeesRes: any = null;
+
+        for (const offsetMins of offsets) {
+          // Trigger reminder if time remaining is within the window for this offset
+          if (diffMinutes >= -720 && diffMinutes <= offsetMins) {
+            if (!attendeesRes) {
+              attendeesRes = await db.query(
+                `SELECT wa.webinar_id, wa.prospect_id, dp.full_name as "fullName", dp.email, dp.apollo_id
+                 FROM webinar_attendees wa
+                 JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
+                 WHERE wa.webinar_id = $1 AND dp.email IS NOT NULL`,
+                [w.id]
+              );
+            }
+
+            const eventType = `webinar_reminder_${offsetMins}m`;
+
+            for (const att of attendeesRes.rows) {
+              const alreadySent = await db.query(
+                `SELECT 1 FROM prospect_events WHERE prospect_id = $1 AND event_type = $2 AND details->>'webinarId' = $3`,
+                [att.apollo_id, eventType, w.id]
+              );
+
+              if (alreadySent.rows.length === 0) {
+                const doctorName = att.fullName || 'Doctor';
+                const subject = `⏰ Reminder: "${w.title}" is coming up!`;
+                
+                // Format session time nicely for the email body
+                const formattedDate = w.formattedDate || w.date;
+                const timeStr = w.time;
+                const durationStr = w.duration || '45 mins';
+                
+                const emailBody = `
+                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                    <h2 style="color: #1F1F1F;">Webinar Session Reminder</h2>
+                    <p>Dear Dr. ${doctorName},</p>
+                    <p>This is a quick reminder that the webinar session <strong>"${w.title}"</strong> is scheduled to start soon.</p>
+                    
+                    <div style="background-color: #F8F9FA; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                      <p style="margin: 0; font-size: 14px;"><strong>Date:</strong> ${formattedDate}</p>
+                      <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Time:</strong> ${timeStr}</p>
+                      <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Duration:</strong> ${durationStr}</p>
+                    </div>
+
+                    <p>To join the session, please use the link below:</p>
+                    <p style="text-align: center; margin: 30px 0;">
+                      <a href="${w.meetingLink || 'https://us02web.zoom.us/j/6466719252'}" style="background-color: #D9A11E; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 20px; font-weight: bold;">Join Meeting</a>
+                    </p>
+                    
+                    <p style="font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 15px; margin-top: 30px;">
+                      This is an automated reminder. If you have questions, please reply directly to this email.
+                    </p>
+                  </div>
+                `;
+
+                try {
+                  await this.emailService.sendCustomEmail(att.email, doctorName, subject, emailBody);
+                  await db.query(
+                    `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`,
+                    [att.apollo_id, eventType, JSON.stringify({ webinarId: w.id, webinarTitle: w.title, offsetMins, sentAt: now.toISOString() })]
+                  );
+                  this.logger.log(`⏰ [Cron Reminder ${offsetMins}m] Dispatched reminder email to Dr. ${doctorName} (${att.email}) for webinar ${w.id}`);
+                } catch (sendErr: any) {
+                  this.logger.error(`Failed to send ${offsetMins}m reminder to ${att.email}: ${sendErr.message}`);
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      this.logger.error(`Error in processAutomatedWebinarReminders cron: ${err.message}`);
+    }
   }
 
   /*
