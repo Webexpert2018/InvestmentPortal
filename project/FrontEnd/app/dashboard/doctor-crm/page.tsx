@@ -3,18 +3,18 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import * as XLSX from 'xlsx';
-import { 
-  Target, 
-  Search, 
-  PhoneCall, 
-  MessageSquare, 
-  Sparkles, 
-  CheckCircle2, 
-  Clock, 
-  Calendar, 
-  Bot, 
-  Send, 
-  Loader2, 
+import {
+  Target,
+  Search,
+  PhoneCall,
+  MessageSquare,
+  Sparkles,
+  CheckCircle2,
+  Clock,
+  Calendar,
+  Bot,
+  Send,
+  Loader2,
   ChevronRight,
   Headphones,
   Minimize2,
@@ -93,14 +93,14 @@ export default function DoctorCrmPage() {
   const [newLocation, setNewLocation] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [isSavingDoctor, setIsSavingDoctor] = useState(false);
-  
+
   // Bulk Upload Modal States
   const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
   const [parsedLeads, setParsedLeads] = useState<ParsedDoctorLead[]>([]);
   const [uploadedFileName, setUploadedFileName] = useState('');
   const [isUploadingBulk, setIsUploadingBulk] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  
+
   // AI Agent Chat States - CLOSED BY DEFAULT
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [agentInput, setAgentInput] = useState('');
@@ -500,19 +500,19 @@ export default function DoctorCrmPage() {
 
   // Dynamic KPI Counts picked directly from database records based on exact stages
   const totalDocsCount = doctors.length;
-  const interestedCount = doctors.filter(d => 
+  const interestedCount = doctors.filter(d =>
     ['interested', 'email_replied', 'luma_registered', 'converted_investor'].includes(d.stage)
   ).length;
-  const pendingOutreachCount = doctors.filter(d => 
+  const pendingOutreachCount = doctors.filter(d =>
     d.stage === 'pending_outreach'
   ).length;
-  const scheduleForCallCount = doctors.filter(d => 
+  const scheduleForCallCount = doctors.filter(d =>
     ['call_queue', 'needs_call'].includes(d.stage)
   ).length;
 
   const handleAgentSend = (queryText: string) => {
     if (!queryText.trim()) return;
-    
+
     const newMsg = {
       sender: 'user' as const,
       text: queryText,
@@ -546,7 +546,7 @@ export default function DoctorCrmPage() {
       matchesTab = ['call_queue', 'needs_call'].includes(doc.stage);
     }
 
-    const matchesSearch = 
+    const matchesSearch =
       doc.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.organization.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -670,22 +670,20 @@ export default function DoctorCrmPage() {
             <div className="flex items-center gap-2 overflow-x-auto">
               <button
                 onClick={() => handleTabChange('all')}
-                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${
-                  activeTab === 'all' 
-                    ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm' 
-                    : 'bg-white hover:bg-gray-100 text-[#6C6C6C]'
-                }`}
+                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${activeTab === 'all'
+                  ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm'
+                  : 'bg-white hover:bg-gray-100 text-[#6C6C6C]'
+                  }`}
               >
                 All Prospects ({doctors.length})
               </button>
 
               <button
                 onClick={() => handleTabChange('interested')}
-                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                  activeTab === 'interested' 
-                    ? 'bg-green-600 text-white shadow-sm' 
-                    : 'bg-white hover:bg-green-50 text-green-700 border border-green-200'
-                }`}
+                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'interested'
+                  ? 'bg-green-600 text-white shadow-sm'
+                  : 'bg-white hover:bg-green-50 text-green-700 border border-green-200'
+                  }`}
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Interested ({interestedCount})</span>
@@ -693,11 +691,10 @@ export default function DoctorCrmPage() {
 
               <button
                 onClick={() => handleTabChange('pending_outreach')}
-                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                  activeTab === 'pending_outreach' 
-                    ? 'bg-purple-600 text-white shadow-sm' 
-                    : 'bg-white hover:bg-purple-50 text-purple-700 border border-purple-200'
-                }`}
+                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'pending_outreach'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'bg-white hover:bg-purple-50 text-purple-700 border border-purple-200'
+                  }`}
               >
                 <Mail className="w-3.5 h-3.5" />
                 <span>Pending Outreach ({pendingOutreachCount})</span>
@@ -705,11 +702,10 @@ export default function DoctorCrmPage() {
 
               <button
                 onClick={() => handleTabChange('needs_call')}
-                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                  activeTab === 'needs_call' 
-                    ? 'bg-amber-600 text-white shadow-sm' 
-                    : 'bg-white hover:bg-amber-50 text-amber-800 border border-amber-300'
-                }`}
+                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'needs_call'
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'bg-white hover:bg-amber-50 text-amber-800 border border-amber-300'
+                  }`}
               >
                 <PhoneCall className="w-3.5 h-3.5" />
                 <span>Schedule for Call ({scheduleForCallCount})</span>
@@ -837,8 +833,8 @@ export default function DoctorCrmPage() {
                               </span>
                             )}
                             <span className="text-[11px] text-[#8E8E93] pl-1 font-medium flex items-center gap-1">
-                               <Clock className="w-3 h-3" />
-                               {doc.lastActivityDate}
+                              <Clock className="w-3 h-3" />
+                              {doc.lastActivityDate}
                             </span>
                           </div>
                         </td>
@@ -1064,16 +1060,15 @@ export default function DoctorCrmPage() {
             {/* Scrollable Chat Body */}
             <div className="p-4 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
               {agentMessages.map((msg, idx) => (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                 >
-                  <div 
-                    className={`max-w-[90%] px-4 py-3 rounded-[16px] text-[13px] leading-relaxed ${
-                      msg.sender === 'user' 
-                        ? 'bg-[#FFC63F] text-[#1F1F1F] font-semibold rounded-br-none shadow-sm' 
-                        : 'bg-white/10 text-gray-200 rounded-bl-none border border-white/10'
-                    }`}
+                  <div
+                    className={`max-w-[90%] px-4 py-3 rounded-[16px] text-[13px] leading-relaxed ${msg.sender === 'user'
+                      ? 'bg-[#FFC63F] text-[#1F1F1F] font-semibold rounded-br-none shadow-sm'
+                      : 'bg-white/10 text-gray-200 rounded-bl-none border border-white/10'
+                      }`}
                   >
                     {msg.text}
                   </div>
@@ -1107,7 +1102,7 @@ export default function DoctorCrmPage() {
                 ))}
               </div>
 
-              <form 
+              <form
                 onSubmit={(e) => { e.preventDefault(); handleAgentSend(agentInput); }}
                 className="flex items-center gap-2"
               >
@@ -1191,13 +1186,13 @@ export default function DoctorCrmPage() {
                     </div>
                     <div className="bg-white p-2.5 rounded-xl border border-blue-100 text-[12px]">
                       <span className="font-bold text-gray-900 block">Stage</span>
-                      <span className="text-gray-500 text-[11px]">pending_outreach | interested | <strong className="text-amber-800">needs_call</strong></span>
+                      <span className="text-gray-500 text-[11px]">pending_outreach | interested | needs_call </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Drag & Drop File Selector */}
-                <div 
+                <div
                   onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
                   onDragLeave={() => setDragActive(false)}
                   onDrop={(e) => {
@@ -1207,9 +1202,8 @@ export default function DoctorCrmPage() {
                       processExcelFile(e.dataTransfer.files[0]);
                     }
                   }}
-                  className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${
-                    dragActive ? 'border-[#FFC63F] bg-[#FFF9EE]' : 'border-gray-300 hover:border-gray-400 bg-gray-50/50'
-                  }`}
+                  className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${dragActive ? 'border-[#FFC63F] bg-[#FFF9EE]' : 'border-gray-300 hover:border-gray-400 bg-gray-50/50'
+                    }`}
                 >
                   <input
                     id="bulk-excel-input"
