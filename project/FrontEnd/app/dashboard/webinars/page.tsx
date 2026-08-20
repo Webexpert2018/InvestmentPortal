@@ -148,6 +148,13 @@ export default function WebinarsPage() {
         router.push('/dashboard');
       } else {
         loadWebinarsFromDb();
+
+        // Auto-refresh RSVP status and attendee records every 10 seconds silently
+        const interval = setInterval(() => {
+          loadWebinarsFromDb({ silent: true });
+        }, 10000);
+
+        return () => clearInterval(interval);
       }
     }
   }, [user, isAdmin, authLoading, router]);
@@ -207,8 +214,10 @@ export default function WebinarsPage() {
     }
   }
 
-  const loadWebinarsFromDb = async () => {
-    setIsLoadingWebinars(true);
+  const loadWebinarsFromDb = async (options?: { silent?: boolean }) => {
+    if (!options?.silent) {
+      setIsLoadingWebinars(true);
+    }
     try {
       const res = await apiClient.getWebinars();
       if (res && res.success && Array.isArray(res.webinars)) {
@@ -217,16 +226,24 @@ export default function WebinarsPage() {
           status: getWebinarDynamicStatus(w.date, w.time, w.duration),
         }));
         setWebinars(formattedWebinars);
+        
+        // Only set default expansion on first load
         if (formattedWebinars.length > 0) {
-          // Expand first webinar by default
-          setExpandedWebinarIds({ [formattedWebinars[0].id]: true });
+          setExpandedWebinarIds((prev) => {
+            if (Object.keys(prev).length > 0) return prev;
+            return { [formattedWebinars[0].id]: true };
+          });
         }
       }
     } catch (err: any) {
       console.error('Error loading webinars:', err);
-      toast.error('Failed to load webinars from database.');
+      if (!options?.silent) {
+        toast.error('Failed to load webinars from database.');
+      }
     } finally {
-      setIsLoadingWebinars(false);
+      if (!options?.silent) {
+        setIsLoadingWebinars(false);
+      }
     }
   };
 
@@ -577,7 +594,7 @@ export default function WebinarsPage() {
           {/* Right Column: Action Buttons side-by-side */}
           <div className="md:col-span-4 flex items-center justify-end gap-2">
             <button
-              onClick={loadWebinarsFromDb}
+              onClick={() => loadWebinarsFromDb()}
               className="p-3 bg-white border border-[#E8E8E8] hover:bg-gray-50 rounded-xl text-gray-700 transition-all shadow-sm shrink-0"
               title="Refresh DB Data"
             >

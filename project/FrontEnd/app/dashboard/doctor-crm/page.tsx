@@ -68,41 +68,7 @@ interface ParsedDoctorLead {
   stage: string;
 }
 
-const INITIAL_CRM_DOCTORS: CrmDoctor[] = [
-  {
-    id: 'crm-201',
-    fullName: 'Dr. David Wiebe, MD',
-    specialty: 'Orthopedic Surgery',
-    organization: 'Austin Spine & Joint Center',
-    location: 'Austin, TX',
-    email: 'dwiebe@austinspine.example.com',
-    phone: '+1 (512) 555-0192',
-    stage: 'call_queue',
-    lastActivityDate: '4 days ago'
-  },
-  {
-    id: 'crm-202',
-    fullName: 'Dr. Sarah Jenkins, MD',
-    specialty: 'Cardiovascular Disease',
-    organization: 'Midwest Heart & Vascular Institute',
-    location: 'Chicago, IL',
-    email: 'sjenkins@midwestheart.example.com',
-    phone: '+1 (312) 555-0148',
-    stage: 'luma_registered',
-    lastActivityDate: 'Registered 2 hours ago'
-  },
-  {
-    id: 'crm-203',
-    fullName: 'Dr. Marcus Vance, MD',
-    specialty: 'Dermatology & Aesthetics',
-    organization: 'Vance Dermatology Group',
-    location: 'Miami, FL',
-    email: 'mvance@vancederm.example.com',
-    phone: '+1 (305) 555-0183',
-    stage: 'pending_outreach',
-    lastActivityDate: 'Replied yesterday'
-  }
-];
+const INITIAL_CRM_DOCTORS: CrmDoctor[] = [];
 
 export default function DoctorCrmPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -595,36 +561,36 @@ export default function DoctorCrmPage() {
         {/* Main Full Width Content Section */}
         <div className="w-full space-y-6">
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600">
-                  <Target className="w-4 h-4" />
-                </span>
-                <span className="text-[12px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
-                  Step 2: CRM &amp; Meeting Intelligence
-                </span>
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+            {/* Left Column: Header Box */}
+            <div className="md:col-span-8">
+              <div className="bg-white p-5 rounded-[20px] border border-[#F0F0F0] shadow-sm">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-200/60 rounded-full text-blue-800 text-[11px] font-bold uppercase tracking-wider mb-2">
+                  <Target className="w-3.5 h-3.5 text-[#1a73e8]" />
+                  <span>Step 2: CRM &amp; Meeting Intelligence</span>
+                </div>
+                <h1 className="text-[26px] font-goudy font-bold text-[#1F1F1F] tracking-tight">
+                  Doctor Outreach CRM &amp; AI Agent
+                </h1>
+                <p className="text-[13px] text-[#6C6C6C] mt-1">
+                  Manage physician status across multi-channel outreach. Track direct email replies, webinar RSVPs, and phone call queues for non-responders.
+                </p>
               </div>
-              <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">
-                Doctor Outreach CRM &amp; AI Agent
-              </h1>
-              <p className="text-[#8E8E93] text-[14px] mt-1 max-w-3xl">
-                Manage physician status across multi-channel outreach. Track direct email replies, webinar RSVPs, and phone call queues for non-responders.
-              </p>
             </div>
 
-            <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
+            {/* Right Column: Action Buttons side-by-side */}
+            <div className="md:col-span-4 flex items-center justify-end gap-2 flex-wrap">
               <Link
                 href="/dashboard/doctor-crm/email-sequence?from=crm"
-                className="px-4 py-2 bg-[#1F1F1F] hover:bg-[#333333] text-white text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-[#1F1F1F]"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:bg-blue-50/40 text-[#1a73e8] px-3.5 py-3 rounded-xl font-semibold text-[12px] shadow-sm transition-all whitespace-nowrap"
               >
-                <GitFork className="w-4 h-4 text-[#FFC63F]" />
+                <GitFork className="w-4 h-4 text-[#1a73e8]" />
                 <span>View Email Sequence</span>
               </Link>
 
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="px-4 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-[#FFC63F] hover:bg-[#F2B62D] text-[#1F1F1F] px-3.5 py-3 rounded-xl font-bold text-[13px] shadow-sm transition-all whitespace-nowrap"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Add Doctor Lead</span>
@@ -632,9 +598,9 @@ export default function DoctorCrmPage() {
 
               <button
                 onClick={() => setIsBulkUploadModalOpen(true)}
-                className="px-4 py-2 bg-[#1F1F1F] hover:bg-[#333333] text-white text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-[#1F1F1F]"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:bg-blue-50/40 text-[#1a73e8] px-3.5 py-3 rounded-xl font-semibold text-[12px] shadow-sm transition-all whitespace-nowrap"
               >
-                <Upload className="w-4 h-4 text-[#FFC63F]" />
+                <Upload className="w-4 h-4 text-[#1a73e8]" />
                 <span>Bulk Upload</span>
               </button>
             </div>
@@ -700,14 +666,14 @@ export default function DoctorCrmPage() {
           </div>
 
           {/* Pipeline Navigation Tabs & Search */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-[18px] border border-[#F0F0F0] shadow-sm">
+            <div className="flex items-center gap-2 overflow-x-auto">
               <button
                 onClick={() => handleTabChange('all')}
-                className={`px-5 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${
+                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${
                   activeTab === 'all' 
-                    ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm font-extrabold' 
-                    : 'bg-white hover:bg-gray-100 text-[#6C6C6C] border border-[#E8E8E8]'
+                    ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm' 
+                    : 'bg-white hover:bg-gray-100 text-[#6C6C6C]'
                 }`}
               >
                 All Prospects ({doctors.length})
@@ -715,9 +681,9 @@ export default function DoctorCrmPage() {
 
               <button
                 onClick={() => handleTabChange('interested')}
-                className={`px-5 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   activeTab === 'interested' 
-                    ? 'bg-green-600 text-white shadow-sm font-extrabold' 
+                    ? 'bg-green-600 text-white shadow-sm' 
                     : 'bg-white hover:bg-green-50 text-green-700 border border-green-200'
                 }`}
               >
@@ -727,9 +693,9 @@ export default function DoctorCrmPage() {
 
               <button
                 onClick={() => handleTabChange('pending_outreach')}
-                className={`px-5 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   activeTab === 'pending_outreach' 
-                    ? 'bg-purple-600 text-white shadow-sm font-extrabold' 
+                    ? 'bg-purple-600 text-white shadow-sm' 
                     : 'bg-white hover:bg-purple-50 text-purple-700 border border-purple-200'
                 }`}
               >
@@ -739,9 +705,9 @@ export default function DoctorCrmPage() {
 
               <button
                 onClick={() => handleTabChange('needs_call')}
-                className={`px-5 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   activeTab === 'needs_call' 
-                    ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm font-extrabold' 
+                    ? 'bg-amber-600 text-white shadow-sm' 
                     : 'bg-white hover:bg-amber-50 text-amber-800 border border-amber-300'
                 }`}
               >
@@ -751,13 +717,13 @@ export default function DoctorCrmPage() {
             </div>
 
             <div className="relative max-w-xs w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8E8E93] w-4 h-4" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8E8E93] w-4 h-4" />
               <input
                 type="text"
                 placeholder="Filter doctors..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-[#E8E8E8] rounded-full py-2 pl-10 pr-4 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                className="w-full bg-[#F8F9FA] border border-[#E8E8E8] rounded-full py-2 pl-9 pr-4 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
               />
             </div>
           </div>
@@ -871,8 +837,8 @@ export default function DoctorCrmPage() {
                               </span>
                             )}
                             <span className="text-[11px] text-[#8E8E93] pl-1 font-medium flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {doc.lastActivityDate}
+                               <Clock className="w-3 h-3" />
+                               {doc.lastActivityDate}
                             </span>
                           </div>
                         </td>
@@ -882,7 +848,7 @@ export default function DoctorCrmPage() {
                           <div className="flex items-center justify-end gap-2">
                             <Link
                               href={`/dashboard/doctor-leads/${doc.id}`}
-                              className="px-4 py-2 rounded-full text-[12px] font-extrabold bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-xs flex items-center gap-1.5 transition-all inline-flex cursor-pointer"
+                              className="px-4 py-2 rounded-full text-[12px] font-extrabold bg-white hover:bg-[#f8fafd] text-[#1a73e8] border border-[#d2e3fc] shadow-xs flex items-center gap-1.5 transition-all inline-flex cursor-pointer"
                             >
                               <span>View Profile</span>
                               <ChevronRight className="w-3.5 h-3.5" />

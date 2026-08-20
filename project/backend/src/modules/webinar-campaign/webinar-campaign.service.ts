@@ -1755,7 +1755,7 @@ ${rsvpButtonsHtml}
     }
 
     let googleEventId: string | null = null;
-    const finalMeetingLink = 'example.com';
+    const finalMeetingLink = 'https://us02web.zoom.us/j/6466719252';
 
     try {
       const tokenStatus = await this.meetingsService.getGoogleTokenStatus(userId);
@@ -1867,7 +1867,7 @@ ${rsvpButtonsHtml}
       const formattedDuration = data.duration?.trim()
         ? (data.duration.toLowerCase().includes('min') ? data.duration.trim() : `${data.duration.trim()} mins`)
         : '45 mins';
-      const finalMeetingLink = 'example.com';
+      const finalMeetingLink = 'https://us02web.zoom.us/j/6466719252';
 
       const updateQuery = `
         UPDATE webinars

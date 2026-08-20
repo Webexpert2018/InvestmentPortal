@@ -59,44 +59,7 @@ interface ParsedDoctorLead {
   stage: string;
 }
 
-const INITIAL_CRM_DOCTORS: CrmDoctor[] = [
-  {
-    id: 'crm-201',
-    fullName: 'Dr. David Wiebe, MD',
-    specialty: 'Orthopedic Surgery',
-    organization: 'Austin Spine & Joint Center',
-    location: 'Austin, TX',
-    email: 'dwiebe@austinspine.example.com',
-    phone: '+1 (512) 555-0192',
-    stage: 'needs_call',
-    callAction: '',
-    lastActivityDate: '4 days ago'
-  },
-  {
-    id: 'crm-202',
-    fullName: 'Dr. Sarah Jenkins, MD',
-    specialty: 'Cardiovascular Disease',
-    organization: 'Midwest Heart & Vascular Institute',
-    location: 'Chicago, IL',
-    email: 'sjenkins@midwestheart.example.com',
-    phone: '+1 (312) 555-0148',
-    stage: 'needs_call',
-    callAction: '',
-    lastActivityDate: 'Registered 2 hours ago'
-  },
-  {
-    id: 'crm-203',
-    fullName: 'Dr. Marcus Vance, MD',
-    specialty: 'Dermatology & Aesthetics',
-    organization: 'Vance Dermatology Group',
-    location: 'Miami, FL',
-    email: 'mvance@vancederm.example.com',
-    phone: '+1 (305) 555-0183',
-    stage: 'not_interested',
-    callAction: '',
-    lastActivityDate: 'Replied yesterday'
-  }
-];
+const INITIAL_CRM_DOCTORS: CrmDoctor[] = [];
 
 export default function CallManagerPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
