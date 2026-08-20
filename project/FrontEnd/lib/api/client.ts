@@ -210,6 +210,14 @@ class ApiClient {
     return this.request<any>('/users/settings');
   }
 
+  async getGoogleTokenStatus() {
+    return this.request<{ connected: boolean; email?: string }>('/meetings/google/token-status');
+  }
+
+  async getGoogleAuthUrl() {
+    return this.request<{ url: string }>('/meetings/google/auth-url');
+  }
+
   async updateSettings(data: any) {
     return this.request<any>('/users/settings', {
       method: 'PUT',

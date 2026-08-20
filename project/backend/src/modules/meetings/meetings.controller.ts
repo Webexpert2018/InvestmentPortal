@@ -134,6 +134,6 @@ export class GoogleOAuthController {
       ? 'https://investmentportalfrontend.vercel.app' 
       : 'http://localhost:3000';
     
-    return res.redirect(`${frontendUrl}/dashboard/calendar-test?success=true`);
+    return res.redirect(`${frontendUrl}/dashboard/google-calendar?success=true`);
   }
 }

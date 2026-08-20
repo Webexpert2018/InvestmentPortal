@@ -32,6 +32,7 @@ import {
   Pencil,
   Send,
   Bell,
+  Loader2,
 } from 'lucide-react';
 
 interface Attendee {
@@ -141,6 +142,26 @@ export default function WebinarsPage() {
   // Calendar State
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState<Date>(new Date(2026, 7, 1)); // August 2026
 
+  // Google Calendar Integration States
+  const [isGoogleConnected, setIsGoogleConnected] = useState<boolean>(false);
+  const [connectedGoogleEmail, setConnectedGoogleEmail] = useState<string | null>(null);
+  const [isLoadingGoogleStatus, setIsLoadingGoogleStatus] = useState<boolean>(true);
+
+  const loadGoogleStatus = async () => {
+    try {
+      setIsLoadingGoogleStatus(true);
+      const data = await apiClient.getGoogleTokenStatus();
+      setIsGoogleConnected(data.connected);
+      if (data.email) {
+        setConnectedGoogleEmail(data.email);
+      }
+    } catch (err) {
+      console.error('Error fetching Google status:', err);
+    } finally {
+      setIsLoadingGoogleStatus(false);
+    }
+  };
+
   useEffect(() => {
     if (!authLoading && user) {
       if (!isAdmin && user.role !== 'investor_relations') {
@@ -148,6 +169,7 @@ export default function WebinarsPage() {
         router.push('/dashboard');
       } else {
         loadWebinarsFromDb();
+        loadGoogleStatus();
 
         // Auto-refresh RSVP status and attendee records every 10 seconds silently
         const interval = setInterval(() => {
@@ -609,13 +631,32 @@ export default function WebinarsPage() {
               <span>Create Webinar</span>
             </button>
 
-            <button
-              onClick={() => router.push('/dashboard/calendar-test')}
-              className="flex-1 flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:bg-blue-50/40 text-[#1a73e8] px-3 py-3 rounded-xl font-semibold text-[12px] shadow-sm transition-all whitespace-nowrap"
-            >
-              <CalendarIcon className="w-4 h-4 text-[#1a73e8]" />
-              <span>Test Google Calendar</span>
-            </button>
+            {isLoadingGoogleStatus ? (
+              <button
+                disabled
+                className="flex-1 flex items-center justify-center gap-1.5 bg-white border border-gray-200 text-gray-400 px-3 py-3 rounded-xl font-semibold text-[12px] shadow-sm shrink-0 whitespace-nowrap"
+              >
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Checking Google Sync...</span>
+              </button>
+            ) : isGoogleConnected ? (
+              <button
+                onClick={() => router.push('/dashboard/google-calendar')}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100/60 text-emerald-700 px-3 py-3 rounded-xl font-bold text-[12px] shadow-sm transition-all whitespace-nowrap"
+                title={`Connected as ${connectedGoogleEmail || 'Google Account'}`}
+              >
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Calendar Connected</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push('/dashboard/google-calendar')}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:bg-gray-50 text-gray-700 px-3 py-3 rounded-xl font-semibold text-[12px] shadow-sm transition-all whitespace-nowrap"
+              >
+                <CalendarIcon className="w-4 h-4 text-gray-500" />
+                <span>Connect Google Calendar</span>
+              </button>
+            )}
           </div>
         </div>
 
