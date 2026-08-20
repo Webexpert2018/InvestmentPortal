@@ -307,7 +307,7 @@ export default function DoctorEmailSequenceFlowPage() {
     }
 
     // 2. If explicit not_interested or needs_call/call_queue stage -> merged 'not_interested' stage
-    if (['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue'].includes(s)) {
+    if (['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up'].includes(s)) {
       return { stageId: 'not_interested', lastSentDate: doc.updatedAt };
     }
 
@@ -357,7 +357,7 @@ export default function DoctorEmailSequenceFlowPage() {
         icon: CheckCircle2
       };
     }
-    if (['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue'].includes(s)) {
+    if (['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up'].includes(s)) {
       return {
         label: 'Not Interested / Needs Call',
         bg: 'bg-rose-50 text-rose-700 border-rose-200',
@@ -394,7 +394,7 @@ export default function DoctorEmailSequenceFlowPage() {
     if (statusFilter === 'interested') {
       matchesStatus = ['interested', 'email_replied', 'luma_registered', 'converted_investor'].includes(s);
     } else if (statusFilter === 'not_interested') {
-      matchesStatus = ['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue'].includes(s);
+      matchesStatus = ['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up'].includes(s);
     } else if (statusFilter === 'sent') {
       matchesStatus = s === 'sent';
     }
@@ -405,7 +405,7 @@ export default function DoctorEmailSequenceFlowPage() {
   // Calculate Metrics
   const totalCount = doctors.length;
   const interestedCount = doctors.filter(d => ['interested', 'email_replied', 'luma_registered', 'converted_investor'].includes(d.stage.toLowerCase())).length;
-  const notInterestedCount = doctors.filter(d => ['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue'].includes(d.stage.toLowerCase())).length;
+  const notInterestedCount = doctors.filter(d => ['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up'].includes(d.stage.toLowerCase())).length;
 
   const formatDate = (isoString?: string) => {
     if (!isoString) return null;
@@ -520,9 +520,9 @@ export default function DoctorEmailSequenceFlowPage() {
               });
 
               return (
-                <div key={stageItem.id} className="w-[285px] shrink-0 flex items-start gap-2">
+                <div key={stageItem.id} className="flex items-center gap-3 shrink-0">
                   {/* Stage Node Box */}
-                  <div className={`w-full bg-white rounded-[20px] border ${stageItem.borderColor} shadow-sm overflow-hidden flex flex-col h-[560px]`}>
+                  <div className={`w-[260px] bg-white rounded-[20px] border ${stageItem.borderColor} shadow-sm overflow-hidden flex flex-col h-[560px]`}>
                     {/* Stage Header */}
                     <div className={`p-4 ${stageItem.headerBg} border-b border-gray-100 shrink-0`}>
                       <div className="flex items-center justify-between gap-2">
@@ -663,7 +663,7 @@ export default function DoctorEmailSequenceFlowPage() {
 
                   {/* Flow Connector Arrow between stages */}
                   {index < SEQUENCE_STAGES.length - 1 && (
-                    <div className="self-center flex flex-col items-center justify-center shrink-0 px-1 text-gray-300">
+                    <div className="flex flex-col items-center justify-center shrink-0 px-1 text-gray-300">
                       <div className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-2xs">
                         <ChevronRight className="w-4 h-4 text-blue-500" />
                       </div>
