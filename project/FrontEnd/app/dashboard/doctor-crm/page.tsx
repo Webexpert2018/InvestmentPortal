@@ -734,13 +734,14 @@ export default function DoctorCrmPage() {
                     <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Contact Info</th>
                     <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Practice Location</th>
                     <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Stage &amp; Status</th>
+                    <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Lead Source</th>
                     <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F2F2F2]">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-[#8E8E93] text-[14px]">
+                      <td colSpan={6} className="px-6 py-12 text-center text-[#8E8E93] text-[14px]">
                         <div className="flex items-center justify-center gap-2">
                           <Loader2 className="w-5 h-5 animate-spin text-[#D9A11E]" />
                           <span>Loading doctor records from database...</span>
@@ -749,7 +750,7 @@ export default function DoctorCrmPage() {
                     </tr>
                   ) : filteredDoctors.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-[#8E8E93] text-[14px]">
+                      <td colSpan={6} className="px-6 py-12 text-center text-[#8E8E93] text-[14px]">
                         No physician prospects found matching this pipeline filter.
                       </td>
                     </tr>
@@ -839,7 +840,20 @@ export default function DoctorCrmPage() {
                           </div>
                         </td>
 
-                        {/* Column 5: Actions */}
+                        {/* Column 5: Lead Source */}
+                        <td className="px-6 py-4.5 whitespace-nowrap">
+                          {doc.id?.startsWith('manual-') || (doc as any).apolloId?.startsWith('manual-') || (doc as any).apollo_id?.startsWith('manual-') ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FFF9EE] text-[#805C00] border border-[#FFE494]">
+                              Manual
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                              Apollo
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Column 6: Actions */}
                         <td className="px-6 py-4.5 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-2">
                             <Link

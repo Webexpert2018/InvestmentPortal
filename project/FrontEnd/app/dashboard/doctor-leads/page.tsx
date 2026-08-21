@@ -342,7 +342,10 @@ export default function DoctorLeadsPage() {
       }
       const response = await apiClient.getSavedDoctorProspects(100);
       if (response && response.prospects && response.prospects.length > 0) {
-        const mapped: DoctorProspect[] = response.prospects.map((r: any) => ({
+        const nonManualProspects = response.prospects.filter(
+          (r: any) => !(r.apollo_id || r.id || '').startsWith('manual-')
+        );
+        const mapped: DoctorProspect[] = nonManualProspects.map((r: any) => ({
           id: r.apollo_id || r.id,
           fullName: r.full_name || r.fullName || 'Physician',
           specialty: r.specialty || 'Medical Doctor',
@@ -954,11 +957,10 @@ export default function DoctorLeadsPage() {
                   <button
                     type="submit"
                     disabled={isSavingDoctor || Boolean(savedProspectId)}
-                    className={`px-5 py-2.5 rounded-full text-[13px] font-bold shadow-sm flex items-center gap-2 transition-all cursor-pointer ${
-                      savedProspectId
+                    className={`px-5 py-2.5 rounded-full text-[13px] font-bold shadow-sm flex items-center gap-2 transition-all cursor-pointer ${savedProspectId
                         ? 'bg-green-100 text-green-800 border border-green-300 opacity-90'
                         : 'bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F]'
-                    }`}
+                      }`}
                   >
                     {isSavingDoctor ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -974,11 +976,10 @@ export default function DoctorLeadsPage() {
                     type="button"
                     disabled={!savedProspectId || isSendingWebinarLink}
                     onClick={handleSendActiveWebinarLink}
-                    className={`px-5 py-2.5 rounded-full text-[13px] font-bold shadow-sm flex items-center gap-2 transition-all ${
-                      savedProspectId
+                    className={`px-5 py-2.5 rounded-full text-[13px] font-bold shadow-sm flex items-center gap-2 transition-all ${savedProspectId
                         ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow-amber-200'
                         : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60'
-                    }`}
+                      }`}
                     title={
                       savedProspectId
                         ? 'Send active webinar invitation & VIP pass link to this doctor'
