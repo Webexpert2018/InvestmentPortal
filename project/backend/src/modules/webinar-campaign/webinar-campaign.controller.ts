@@ -202,6 +202,28 @@ export class WebinarCampaignController {
     return this.webinarCampaignService.updateWebinar(req.user.userId, id, body);
   }
 
+  @Post('webinars/:id/activate')
+  async activateWebinar(@Param('id') id: string) {
+    return this.webinarCampaignService.activateWebinar(id);
+  }
+
+  @Post('webinars/:id/add-doctor-invite')
+  async addDoctorAndSendInvite(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body()
+    body: {
+      fullName: string;
+      email: string;
+      specialty?: string;
+      phone?: string;
+      organization?: string;
+      location?: string;
+    }
+  ) {
+    return this.webinarCampaignService.addDoctorAndSendInvite(req.user.userId, id, body);
+  }
+
   @Post('webinars/:id/send-invites')
   async sendDirectInvites(
     @Request() req: any,

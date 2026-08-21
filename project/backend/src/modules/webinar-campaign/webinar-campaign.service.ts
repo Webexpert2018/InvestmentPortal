@@ -1009,7 +1009,7 @@ export class WebinarCampaignService implements OnModuleInit {
 
   async generateDoctorSequence(prospectId?: string, mockDoctorData?: any) {
     // Ensure at least 1 webinar exists in database
-    const latestWebinarCheck = await db.query(`SELECT id FROM webinars ORDER BY created_at DESC LIMIT 1`);
+    const latestWebinarCheck = await db.query(`SELECT id FROM webinars ORDER BY is_active DESC, created_at DESC LIMIT 1`);
     if (!latestWebinarCheck.rows || latestWebinarCheck.rows.length === 0) {
       throw new HttpException(
         'Please create a webinar first in the Webinars tab before creating an email campaign.',
@@ -1320,7 +1320,7 @@ ${rsvpButtonsHtml}
         // Trigger automated interest Google Calendar invitation
         if (validStatus === 'interested' && doctorEmail) {
           const latestWebinarRes = await db.query(
-            `SELECT id, title, webinar_date, webinar_time, duration, meeting_link, google_event_id FROM webinars ORDER BY created_at DESC LIMIT 1`
+            `SELECT id, title, webinar_date, webinar_time, duration, meeting_link, google_event_id FROM webinars ORDER BY is_active DESC, created_at DESC LIMIT 1`
           );
 
           const latestWebinar = latestWebinarRes.rows.length > 0 ? latestWebinarRes.rows[0] : null;
@@ -1428,7 +1428,7 @@ ${rsvpButtonsHtml}
       // Trigger automated interest Google Calendar invitation if they are marked interested
       if (stage === 'interested' && doctorEmail) {
         const latestWebinarRes = await db.query(
-          `SELECT id, title, webinar_date, webinar_time, duration, meeting_link, google_event_id FROM webinars ORDER BY created_at DESC LIMIT 1`
+          `SELECT id, title, webinar_date, webinar_time, duration, meeting_link, google_event_id FROM webinars ORDER BY is_active DESC, created_at DESC LIMIT 1`
         );
 
         const latestWebinar = latestWebinarRes.rows.length > 0 ? latestWebinarRes.rows[0] : null;
@@ -1689,18 +1689,23 @@ ${rsvpButtonsHtml}
                 webinar_time as time, duration, meeting_link as "meetingLink", status,
                 google_event_id as "googleEventId",
                 created_at as "createdAt",
-                COALESCE(reminder_offsets, '{}') as "reminderOffsets"
-         FROM webinars ORDER BY webinar_date DESC, created_at DESC`
+                COALESCE(reminder_offsets, '{}') as "reminderOffsets",
+                is_active as "isActive"
+         FROM webinars ORDER BY is_active DESC, webinar_date DESC, created_at DESC`
       );
 
       const webinars = webinarsRes.rows;
 
-      // Find the latest created webinar (whose link/pass is being shared in active campaigns)
-      const latestRes = await db.query(`SELECT id FROM webinars ORDER BY created_at DESC LIMIT 1`);
-      const latestId = latestRes.rows[0]?.id;
+      // Find the active webinar (whose link/pass is being shared in active campaigns)
+      const activeRes = await db.query(`SELECT id FROM webinars WHERE is_active = true LIMIT 1`);
+      let activeId = activeRes.rows[0]?.id;
+      if (!activeId && webinars.length > 0) {
+        // Fallback to the first one (which is the latest due to sorting)
+        activeId = webinars[0].id;
+      }
 
       for (const w of webinars) {
-        w.isLatest = w.id === latestId;
+        w.isLatest = w.id === activeId;
         w.status = this.computeWebinarStatus(w.date, w.time, w.duration);
 
         if (adminUserId && w.googleEventId && w.status !== 'completed') {
@@ -1754,29 +1759,32 @@ ${rsvpButtonsHtml}
       throw new HttpException('Title, Date, and Meeting Link are required', HttpStatus.BAD_REQUEST);
     }
 
+    const tokenStatus = await this.meetingsService.getGoogleTokenStatus(userId);
+    if (!tokenStatus || !tokenStatus.connected) {
+      throw new HttpException('Google Calendar is not connected. Please connect Google Calendar to create a webinar.', HttpStatus.BAD_REQUEST);
+    }
+
     let googleEventId: string | null = null;
     const finalMeetingLink = 'https://us02web.zoom.us/j/6466719252';
 
     try {
-      const tokenStatus = await this.meetingsService.getGoogleTokenStatus(userId);
-      if (tokenStatus && tokenStatus.connected) {
-        const { startUtc } = this.parseEasternDateTime(data.webinarDate, data.webinarTime);
-        const durationMinutes = parseInt(data.duration || '45', 10) || 45;
+      const { startUtc } = this.parseEasternDateTime(data.webinarDate, data.webinarTime);
+      const durationMinutes = parseInt(data.duration || '45', 10) || 45;
 
-        const gcalEvent = await this.meetingsService.createGoogleEvent(userId, {
-          title: data.title,
-          description: data.description || 'Ovalia Capital Physician Wealth Session.',
-          scheduledDate: startUtc.toISOString(),
-          durationMinutes,
-          location: 'https://us02web.zoom.us/j/6466719252',
-        });
+      const gcalEvent = await this.meetingsService.createGoogleEvent(userId, {
+        title: data.title,
+        description: data.description || 'Ovalia Capital Physician Wealth Session.',
+        scheduledDate: startUtc.toISOString(),
+        durationMinutes,
+        location: 'https://us02web.zoom.us/j/6466719252',
+      });
 
-        if (gcalEvent && gcalEvent.googleEventId) {
-          googleEventId = gcalEvent.googleEventId;
-        }
+      if (gcalEvent && gcalEvent.googleEventId) {
+        googleEventId = gcalEvent.googleEventId;
       }
     } catch (gcalErr: any) {
       this.logger.error(`Failed to create Google Calendar event for webinar: ${gcalErr.message}`);
+      throw new HttpException(`Failed to create Google Calendar event: ${gcalErr.message}`, HttpStatus.BAD_REQUEST);
     }
 
     const id = `web-${Date.now()}`;
@@ -2055,6 +2063,11 @@ ${rsvpButtonsHtml}
       throw new HttpException('No prospects selected for invitation', HttpStatus.BAD_REQUEST);
     }
 
+    const tokenStatus = await this.meetingsService.getGoogleTokenStatus(userId);
+    if (!tokenStatus || !tokenStatus.connected) {
+      throw new HttpException('Google Calendar is not connected. Please connect Google Calendar to send invites.', HttpStatus.BAD_REQUEST);
+    }
+
     try {
       // 1. Fetch webinar details
       const webinarRes = await db.query(
@@ -2068,6 +2081,10 @@ ${rsvpButtonsHtml}
 
       const webinar = webinarRes.rows[0];
       const googleEventId = webinar.google_event_id;
+
+      if (!googleEventId) {
+        throw new HttpException('This webinar does not have an active Google Calendar event. Please recreate the webinar with Google Calendar connected.', HttpStatus.BAD_REQUEST);
+      }
 
       // 2. Fetch selected doctors
       const doctorsRes = await db.query(
@@ -2649,6 +2666,124 @@ ${rsvpButtonsHtml}
       this.logger.error(`Error in importPreviousWebinarAttendees: ${err.message}`);
       throw new HttpException(err.message || 'Failed to import attendees', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  async activateWebinar(id: string) {
+    await db.query(`BEGIN`);
+    try {
+      await db.query(`UPDATE webinars SET is_active = false`);
+      await db.query(`UPDATE webinars SET is_active = true WHERE id = $1`, [id]);
+      await db.query(`COMMIT`);
+      return { success: true };
+    } catch (err: any) {
+      await db.query(`ROLLBACK`);
+      this.logger.error(`Error activating webinar ${id}: ${err.message}`);
+      throw new HttpException('Failed to activate webinar', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async addDoctorAndSendInvite(userId: string, webinarId: string, data: {
+    fullName: string;
+    email: string;
+    specialty?: string;
+    phone?: string;
+    organization?: string;
+    location?: string;
+  }) {
+    if (!data.fullName || !data.email) {
+      throw new HttpException('Full Name and Email are required', HttpStatus.BAD_REQUEST);
+    }
+
+    if (data.phone && data.phone.trim() && data.phone.trim() !== 'N/A') {
+      const cleanPhone = data.phone.replace(/[^0-9]/g, '');
+      if (cleanPhone.length < 7 || cleanPhone.length > 15) {
+        throw new HttpException('Invalid phone number format. Phone number must contain between 7 and 15 digits.', HttpStatus.BAD_REQUEST);
+      }
+    }
+
+    // Check if Google Calendar is connected
+    const tokenStatus = await this.meetingsService.getGoogleTokenStatus(userId);
+    if (!tokenStatus || !tokenStatus.connected) {
+      throw new HttpException('Google Calendar is not connected. Please connect Google Calendar to send invites.', HttpStatus.BAD_REQUEST);
+    }
+
+    // 1. Fetch webinar details
+    const webinarRes = await db.query(
+      `SELECT id, title, description, google_event_id FROM webinars WHERE id = $1`,
+      [webinarId]
+    );
+    if (webinarRes.rows.length === 0) {
+      throw new HttpException('Webinar not found', HttpStatus.NOT_FOUND);
+    }
+    const webinar = webinarRes.rows[0];
+    const googleEventId = webinar.google_event_id;
+    if (!googleEventId) {
+      throw new HttpException('This webinar does not have an active Google Calendar event.', HttpStatus.BAD_REQUEST);
+    }
+
+    // Check if prospect already exists in database by email
+    let prospectId: string;
+    const existingRes = await db.query(
+      `SELECT apollo_id FROM doctor_prospects WHERE email = $1`,
+      [data.email.trim()]
+    );
+
+    if (existingRes.rows.length > 0) {
+      prospectId = existingRes.rows[0].apollo_id;
+      // Update stage to interested
+      await db.query(
+        `UPDATE doctor_prospects SET stage = 'interested', updated_at = CURRENT_TIMESTAMP WHERE apollo_id = $1`,
+        [prospectId]
+      );
+    } else {
+      prospectId = `manual-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const cleanFullName = data.fullName.trim();
+      const nameWithoutPrefix = cleanFullName.replace(/^Dr\.?\s+/i, '');
+      const nameParts = nameWithoutPrefix.split(' ');
+      const firstName = nameParts[0] || 'Doctor';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const query = `
+        INSERT INTO doctor_prospects (
+          apollo_id, full_name, first_name, last_name, specialty, organization, location, email, phone, email_status, stage, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'verified', 'interested', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `;
+      await db.query(query, [
+        prospectId,
+        cleanFullName,
+        firstName,
+        lastName,
+        data.specialty?.trim() || 'General Practice',
+        data.organization?.trim() || 'Private Practice',
+        data.location?.trim() || 'United States',
+        data.email.trim(),
+        data.phone?.trim() || 'N/A'
+      ]);
+    }
+
+    // Register attendee in webinar_attendees if not present
+    await db.query(
+      `INSERT INTO webinar_attendees (webinar_id, prospect_id, status, created_at, updated_at)
+       VALUES ($1, $2, 'registered', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       ON CONFLICT (webinar_id, prospect_id) DO UPDATE SET status = 'registered', updated_at = CURRENT_TIMESTAMP`,
+      [webinarId, prospectId]
+    );
+
+    // Send Google Calendar invite
+    let calendarInviteSent = false;
+    try {
+      await this.meetingsService.addAttendeeToGoogleEvent(userId, googleEventId, data.email.trim());
+      calendarInviteSent = true;
+    } catch (gcalErr: any) {
+      this.logger.error(`Failed to add calendar attendee ${data.email.trim()} to event ${googleEventId}: ${gcalErr.message}`);
+    }
+
+    return {
+      success: true,
+      prospectId,
+      calendarInviteSent,
+      message: `Successfully saved doctor and sent ${calendarInviteSent ? 'Google Calendar invite' : 'pass registration'}.`
+    };
   }
 
   private generateGoogleCalendarUrl(

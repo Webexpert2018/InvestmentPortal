@@ -140,26 +140,37 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-6 flex justify-center items-center rounded-full bg-yellow-400 py-2.5 text-sm font-medium text-gray-900 hover:bg-yellow-500 transition"
+            className="w-full mt-5 flex justify-center items-center rounded-full bg-[#FFC63F] hover:bg-[#F2B62D] py-3 text-sm font-bold text-gray-900 shadow-md transition-all cursor-pointer"
           >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin text-gray-900" />}
             {loading ? 'Logging in...' : 'Log In'}
           </button>
         </form>
 
-        <div className="mt-4 text-center">
+        <div className="mt-2 text-center">
           <Link
             href={`/auth/forgot-password?flow=${searchParams.get('flow') || 'investor'}`}
-            className="block text-center font-goudy text-md sm:text-lg"
+            className="block text-center font-goudy text-md sm:text-lg hover:text-yellow-600 transition-colors"
           >
             Forgot Password?
           </Link>
         </div>
-        <div className="mt-4 text-center font-goudy text-md sm:text-lg">
+        <div className="mt-2 text-center font-goudy text-md sm:text-lg">
           <span className="mr-1">Don't have an account? </span>
           <Link href={signupHref} className="font-medium text-yellow-600 hover:underline">
             Sign up
           </Link>
+        </div>
+        <div className="mt-3.5 border-t border-gray-100 pt-2.5 text-center font-goudy text-sm">
+          <span className="text-gray-500 mr-1">Looking for the IRA Portal? </span>
+          <a
+            href="https://aetrust.aet.app/auth/login"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-yellow-600 hover:underline inline-flex items-center gap-0.5"
+          >
+            Go to IRA Portal &rarr;
+          </a>
         </div>
       </div>
     </div>

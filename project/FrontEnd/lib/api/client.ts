@@ -1601,6 +1601,29 @@ class ApiClient {
     });
   }
 
+  async activateWebinar(id: string) {
+    return this.request<{ success: boolean }>(`/webinar-campaign/webinars/${encodeURIComponent(id)}/activate`, {
+      method: 'POST',
+    });
+  }
+
+  async addDoctorAndSendInvite(webinarId: string, details: {
+    fullName: string;
+    email: string;
+    specialty?: string;
+    phone?: string;
+    organization?: string;
+    location?: string;
+  }) {
+    return this.request<{ success: boolean; prospectId: string; calendarInviteSent: boolean; message: string }>(
+      `/webinar-campaign/webinars/${encodeURIComponent(webinarId)}/add-doctor-invite`,
+      {
+        method: 'POST',
+        body: JSON.stringify(details),
+      }
+    );
+  }
+
   async sendDirectWebinarInvites(webinarId: string, prospectIds: string[]) {
     return this.request<{ success: boolean; count: number; message: string }>(`/webinar-campaign/webinars/${encodeURIComponent(webinarId)}/send-invites`, {
       method: 'POST',

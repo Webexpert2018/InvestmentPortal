@@ -131,6 +131,17 @@ export default function WebinarsPage() {
   const [inviteSearchQuery, setInviteSearchQuery] = useState('');
   const [isSendingInvites, setIsSendingInvites] = useState(false);
 
+  // Add Doctor Modal State
+  const [isAddDoctorModalOpen, setIsAddDoctorModalOpen] = useState(false);
+  const [addingDoctorWebinar, setAddingDoctorWebinar] = useState<Webinar | null>(null);
+  const [docFullName, setDocFullName] = useState('');
+  const [docEmail, setDocEmail] = useState('');
+  const [docSpecialty, setDocSpecialty] = useState('');
+  const [docPhone, setDocPhone] = useState('');
+  const [docOrganization, setDocOrganization] = useState('');
+  const [docLocation, setDocLocation] = useState('');
+  const [isSubmittingDoc, setIsSubmittingDoc] = useState(false);
+
   // Reminder Settings Modal State
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
   const [reminderWebinar, setReminderWebinar] = useState<Webinar | null>(null);
@@ -222,11 +233,14 @@ export default function WebinarsPage() {
       }
 
       const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
-      const now = new Date();
+      
+      // Get current date/time in America/New_York
+      const nowNewYorkStr = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
+      const nowNewYork = new Date(nowNewYorkStr);
 
-      if (now < startDate) {
+      if (nowNewYork < startDate) {
         return 'upcoming';
-      } else if (now >= startDate && now <= endDate) {
+      } else if (nowNewYork >= startDate && nowNewYork <= endDate) {
         return 'live';
       } else {
         return 'completed';
@@ -274,6 +288,15 @@ export default function WebinarsPage() {
       ...prev,
       [webinarId]: !prev[webinarId],
     }));
+  };
+
+  const [headerCopied, setHeaderCopied] = useState(false);
+
+  const handleCopyHeaderLink = () => {
+    navigator.clipboard.writeText('https://us02web.zoom.us/j/6466719252');
+    setHeaderCopied(true);
+    toast.success('📋 Meeting link copied to clipboard!');
+    setTimeout(() => setHeaderCopied(false), 2000);
   };
 
   const handleCopyLink = (link: string, id: string) => {
@@ -416,6 +439,68 @@ export default function WebinarsPage() {
       toast.error(err.message || 'Error deleting webinar');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleActivateWebinar = async (id: string) => {
+    try {
+      const res = await apiClient.activateWebinar(id);
+      if (res && res.success) {
+        toast.success('🎯 Webinar activated successfully!');
+        loadWebinarsFromDb();
+      } else {
+        toast.error('Failed to activate webinar.');
+      }
+    } catch (err: any) {
+      console.error('Error activating webinar:', err);
+      toast.error(err.message || 'Error activating webinar');
+    }
+  };
+
+  const handleOpenAddDoctorModal = (webinar: Webinar) => {
+    setAddingDoctorWebinar(webinar);
+    setDocFullName('');
+    setDocEmail('');
+    setDocSpecialty('');
+    setDocPhone('');
+    setDocOrganization('');
+    setDocLocation('');
+    setIsAddDoctorModalOpen(true);
+  };
+
+  const handleSaveAndSendInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addingDoctorWebinar) return;
+
+    if (!docFullName.trim() || !docEmail.trim()) {
+      toast.error('Please fill in Full Name and Email Address.');
+      return;
+    }
+
+    setIsSubmittingDoc(true);
+    try {
+      const res = await apiClient.addDoctorAndSendInvite(addingDoctorWebinar.id, {
+        fullName: docFullName.trim(),
+        email: docEmail.trim(),
+        specialty: docSpecialty.trim() || undefined,
+        phone: docPhone.trim() || undefined,
+        organization: docOrganization.trim() || undefined,
+        location: docLocation.trim() || undefined,
+      });
+
+      if (res && res.success) {
+        toast.success(res.message || '🎉 Doctor saved & Google Calendar invitation sent successfully!');
+        setIsAddDoctorModalOpen(false);
+        setAddingDoctorWebinar(null);
+        loadWebinarsFromDb();
+      } else {
+        toast.error(res.message || 'Failed to save doctor and send invite.');
+      }
+    } catch (err: any) {
+      console.error('Error adding doctor & sending invite:', err);
+      toast.error(err.message || 'Error adding doctor & sending invite.');
+    } finally {
+      setIsSubmittingDoc(false);
     }
   };
 
@@ -595,10 +680,10 @@ export default function WebinarsPage() {
   return (
     <DashboardLayout>
       <div className="w-full font-helvetica text-[#1F1F1F] space-y-3">
-        {/* Top Row: Header (8 Cols) & Action Buttons (4 Cols) */}
+        {/* Top Row: Header (6 Cols) & Action Buttons (6 Cols) */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
           {/* Left Column: Header Box */}
-          <div className="md:col-span-8">
+          <div className="md:col-span-6">
             <div className="bg-white p-5 rounded-[20px] border border-[#F0F0F0] shadow-sm">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-200/60 rounded-full text-blue-800 text-[11px] font-bold uppercase tracking-wider mb-2">
                 <Video className="w-3.5 h-3.5 text-[#1a73e8]" />
@@ -614,7 +699,33 @@ export default function WebinarsPage() {
           </div>
 
           {/* Right Column: Action Buttons side-by-side */}
-          <div className="md:col-span-4 flex items-center justify-end gap-2">
+          <div className="md:col-span-6 flex flex-wrap items-center justify-end gap-2">
+            <button
+              onClick={() => window.open("https://us02web.zoom.us/j/6466719252", "_blank", "noopener,noreferrer")}
+              className="flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:bg-gray-50 text-gray-700 px-3.5 py-3 rounded-xl font-bold text-[12px] shadow-sm transition-all whitespace-nowrap cursor-pointer"
+              title="Join Meeting (Fixed Zoom Link)"
+            >
+              <ExternalLink className="w-4 h-4 text-gray-500" />
+              <span>Join Meeting</span>
+            </button>
+
+            <button
+              onClick={handleCopyHeaderLink}
+              className="flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:bg-gray-50 text-gray-700 px-3.5 py-3 rounded-xl font-bold text-[12px] shadow-sm transition-all whitespace-nowrap cursor-pointer"
+              title="Copy Fixed Zoom Link"
+            >
+              {headerCopied ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span className="text-emerald-800">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 text-gray-500" />
+                  <span>Copy Link</span>
+                </>
+              )}
+            </button>
             <button
               onClick={() => loadWebinarsFromDb()}
               className="p-3 bg-white border border-[#E8E8E8] hover:bg-gray-50 rounded-xl text-gray-700 transition-all shadow-sm shrink-0"
@@ -624,7 +735,13 @@ export default function WebinarsPage() {
             </button>
 
             <button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => {
+                if (!isGoogleConnected) {
+                  toast.error("Please connect Google Calendar first to create a webinar.");
+                  return;
+                }
+                setIsCreateModalOpen(true);
+              }}
               className="flex-1 flex items-center justify-center gap-1.5 bg-[#FFC63F] hover:bg-[#F2B62D] text-[#1F1F1F] px-3.5 py-3 rounded-xl font-bold text-[13px] shadow-sm transition-all whitespace-nowrap"
             >
               <Plus className="w-4 h-4" />
@@ -788,10 +905,10 @@ export default function WebinarsPage() {
                         <h2 className="text-[20px] font-goudy font-bold text-[#1F1F1F] leading-snug">
                           {webinar.title}
                         </h2>
-                        {(webinar.isLatest || webinar.id === activeWebinarId) && (
+                        {webinar.isLatest ? (
                           <span
                             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-2xs tracking-wide transition-all"
-                            title="Active Now: This is the latest webinar whose link & access pass are currently being shared with doctors"
+                            title="Active Now: This is the active webinar whose link & access pass are currently being shared with doctors"
                           >
                             <span className="relative flex h-2 w-2">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -799,6 +916,14 @@ export default function WebinarsPage() {
                             </span>
                             <span>ACTIVE NOW</span>
                           </span>
+                        ) : (
+                          <button
+                            onClick={() => handleActivateWebinar(webinar.id)}
+                            className="text-[11px] font-bold text-gray-500 hover:text-yellow-700 bg-gray-50 hover:bg-yellow-50 border border-gray-200 hover:border-yellow-300 px-3 py-1 rounded-full shadow-2xs tracking-wide transition-all cursor-pointer"
+                            title="Set this webinar as active"
+                          >
+                            Set Active
+                          </button>
                         )}
                       </div>
 
@@ -854,74 +979,76 @@ export default function WebinarsPage() {
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-[#F4F4F4]">
                       {/* Meeting Link Trigger */}
                       <div className="flex items-center gap-2 max-w-full overflow-hidden">
-                        <a
-                          href={/^https?:\/\//i.test(webinar.meetingLink) ? webinar.meetingLink : `https://${webinar.meetingLink}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-white hover:bg-[#f8fafd] text-[#1a73e8] border border-[#d2e3fc] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5 text-[#1a73e8]" />
-                          <span>Join Meeting</span>
-                        </a>
-
+                        {/* Accordion Expand Button */}
                         <button
-                          onClick={() => handleCopyLink(webinar.meetingLink, webinar.id)}
-                          className="bg-white hover:bg-[#f8fafd] text-[#1a73e8] border border-[#d2e3fc] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
-                          title="Copy Meeting Link"
+                          onClick={() => toggleExpand(webinar.id)}
+                          className="flex items-center gap-2 text-[12px] font-bold text-[#1a73e8] bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-full transition-all shrink-0 cursor-pointer"
                         >
-                          {copiedId === webinar.id ? (
-                            <>
-                              <Check className="w-3.5 h-3.5 text-emerald-600" />
-                              <span className="text-emerald-800 font-bold">Copied!</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3.5 h-3.5 text-[#1a73e8]" />
-                              <span className="hidden sm:inline">Copy Link</span>
-                            </>
-                          )}
+                          <Users className="w-3.5 h-3.5 text-[#1a73e8]" />
+                          <span>
+                            {isExpanded ? 'Hide Attendees' : `View Attendees (${webinar.attendees.length})`}
+                          </span>
+                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Add Doctor Button */}
+                        <button
+                          onClick={() => {
+                            if (!isGoogleConnected) {
+                              toast.error("Please connect Google Calendar first to add a doctor.");
+                              return;
+                            }
+                            handleOpenAddDoctorModal(webinar);
+                          }}
+                          className="bg-[#FFF9E6] hover:bg-[#FFEFC2] text-[#805C00] border border-[#FFE494] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+                          title="Register a new doctor on-the-fly and send calendar invitation"
+                        >
+                          <Plus className="w-3.5 h-3.5 text-[#805C00]" />
+                          <span>Add Doctor</span>
                         </button>
 
+                        {/* Send Invite Button */}
                         <button
-                          onClick={() => handleOpenInviteModal(webinar)}
-                          className="bg-white hover:bg-[#f8fafd] text-[#1a73e8] border border-[#d2e3fc] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+                          onClick={() => {
+                            if (!isGoogleConnected) {
+                              toast.error("Please connect Google Calendar first to send invitations.");
+                              return;
+                            }
+                            handleOpenInviteModal(webinar);
+                          }}
+                          className="bg-[#FFF9E6] hover:bg-[#FFEFC2] text-[#805C00] border border-[#FFE494] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                           title="Send Direct Webinar Invitation & Session Pass to Doctors"
                         >
-                          <Send className="w-3.5 h-3.5 text-[#1a73e8]" />
+                          <Send className="w-3.5 h-3.5 text-[#805C00]" />
                           <span>Send Invite</span>
                         </button>
 
+                        {/* Import Past Button */}
                         <button
-                          onClick={() => handleImportPrevious(webinar.id)}
+                          onClick={() => {
+                            if (!isGoogleConnected) {
+                              toast.error("Please connect Google Calendar first to import registrants.");
+                              return;
+                            }
+                            handleImportPrevious(webinar.id);
+                          }}
                           disabled={isImporting[webinar.id]}
-                          className="bg-white hover:bg-[#f8fafd] text-[#1a73e8] border border-[#d2e3fc] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-[#FFF9E6] hover:bg-[#FFEFC2] text-[#805C00] border border-[#FFE494] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Import registered doctors from the previous webinar and send calendar invites"
                         >
                           {isImporting[webinar.id] ? (
                             <>
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#1a73e8]" />
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#805C00]" />
                               <span>Importing...</span>
                             </>
                           ) : (
                             <>
-                              <Users className="w-3.5 h-3.5 text-[#1a73e8]" />
+                              <Users className="w-3.5 h-3.5 text-[#805C00]" />
                               <span>Import Past</span>
                             </>
                           )}
-                        </button>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {/* Accordion Expand Button */}
-                        <button
-                          onClick={() => toggleExpand(webinar.id)}
-                          className="flex items-center gap-2 text-[13px] font-bold text-[#1a73e8] bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-full transition-all"
-                        >
-                          <Users className="w-4 h-4 text-[#1a73e8]" />
-                          <span>
-                            {isExpanded ? 'Hide Attendees' : `View Attendees (${webinar.attendees.length})`}
-                          </span>
-                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </button>
 
                         {/* Notification / Reminder Settings Button */}
@@ -1693,6 +1820,155 @@ export default function WebinarsPage() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Doctor Modal */}
+        {isAddDoctorModalOpen && addingDoctorWebinar && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+            <div className="bg-white rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-[#EAEAEA] relative animate-scaleUp">
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAddDoctorModalOpen(false);
+                  setAddingDoctorWebinar(null);
+                }}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <form onSubmit={handleSaveAndSendInvite} className="space-y-4">
+                {/* Modal Header */}
+                <div className="flex items-center gap-3 pb-3 border-b border-[#F5F5F5]">
+                  <div className="w-10 h-10 rounded-full bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] flex items-center justify-center">
+                    <Stethoscope className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-[18px] font-goudy font-bold text-[#1F1F1F]">Add New Physician Lead</h2>
+                    <p className="text-[12px] text-[#8E8E93]">Save lead and send active webinar invite</p>
+                  </div>
+                </div>
+
+                {/* Form Fields */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={docFullName}
+                      onChange={(e) => setDocFullName(e.target.value)}
+                      placeholder="e.g. Dr. Marcus Vance, MD"
+                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={docEmail}
+                      onChange={(e) => setDocEmail(e.target.value)}
+                      placeholder="e.g. marcus.vance@clinic.org"
+                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
+                        Medical Specialty
+                      </label>
+                      <input
+                        type="text"
+                        value={docSpecialty}
+                        onChange={(e) => setDocSpecialty(e.target.value)}
+                        placeholder="e.g. Dermatology"
+                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
+                        Phone Number
+                      </label>
+                      <input
+                        type="text"
+                        value={docPhone}
+                        onChange={(e) => setDocPhone(e.target.value)}
+                        placeholder="e.g. +1 (305) 555-0103"
+                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
+                      Practice / Clinic Name
+                    </label>
+                    <input
+                      type="text"
+                      value={docOrganization}
+                      onChange={(e) => setDocOrganization(e.target.value)}
+                      placeholder="e.g. Vance Dermatology Group"
+                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4B5563] mb-1">
+                      Practice Location
+                    </label>
+                    <input
+                      type="text"
+                      value={docLocation}
+                      onChange={(e) => setDocLocation(e.target.value)}
+                      placeholder="e.g. Miami, FL"
+                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F]"
+                    />
+                  </div>
+                </div>
+
+                {/* Footer Action Buttons */}
+                <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#F5F5F5]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddDoctorModalOpen(false);
+                      setAddingDoctorWebinar(null);
+                    }}
+                    disabled={isSubmittingDoc}
+                    className="px-4 py-2 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingDoc}
+                    className="px-5 py-2 rounded-full text-[13px] font-bold text-[#1F1F1F] bg-[#FFC63F] hover:bg-[#F1B92E] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSubmittingDoc ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-[#1F1F1F] border-t-transparent rounded-full animate-spin" />
+                        <span>Saving &amp; Sending...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5 text-[#1F1F1F]" />
+                        <span>Save and Send Invite</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

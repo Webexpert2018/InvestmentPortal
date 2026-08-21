@@ -937,10 +937,10 @@ export default function DoctorLeadsPage() {
                   />
                 </div>
 
-                <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-[12px] text-purple-900 flex items-start gap-2">
+                {/* <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-[12px] text-purple-900 flex items-start gap-2">
                   <Mail className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
                   <span>The new physician lead will be saved directly to PostgreSQL and displayed in your <strong>Saved in Database</strong> tab.</span>
-                </div>
+                </div> */}
 
                 <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-gray-100 flex-wrap">
                   <button
@@ -990,7 +990,7 @@ export default function DoctorLeadsPage() {
                     ) : (
                       <Send className="w-4 h-4" />
                     )}
-                    <span>Send Active Webinar Link</span>
+                    <span>Send Active Webinar Invite</span>
                   </button>
                 </div>
               </form>
