@@ -224,6 +224,12 @@ export default function DoctorProfilePage() {
         foundDb = res.prospects.find((p: any) => p.id === id || p.apolloId === id || p.apollo_id === id || p.email === id);
       }
 
+      if (!foundDb && !MOCK_DOCTORS[id]) {
+        setDoctor(null);
+        setLoading(false);
+        return;
+      }
+
       const docObj: DoctorProspect = {
         id: foundDb?.apolloId || foundDb?.apollo_id || foundDb?.id || id,
         fullName: foundDb?.full_name || foundDb?.fullName || foundDb?.name || MOCK_DOCTORS[id]?.fullName || 'Dr. David Wiebe, MD',
@@ -259,6 +265,36 @@ export default function DoctorProfilePage() {
       toast.error('Error loading doctor profile: ' + err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateSequence = async () => {
+    if (!doctor) return;
+    setIsGenerating(true);
+    try {
+      const res = await apiClient.generateDoctorSequence({
+        prospectId: doctor.id,
+        mockDoctorData: doctor
+      });
+      if (res && res.success) {
+        toast.success('🎉 Successfully generated and saved 5-Day AI Campaign sequence!');
+        if (res.sequence) {
+          setSequenceData({
+            success: true,
+            provider: 'PostgreSQL Database',
+            sequence: res.sequence
+          });
+        } else {
+          loadDoctorProfile(doctor.id);
+        }
+      } else {
+        toast.error('Failed to generate AI campaign sequence.');
+      }
+    } catch (err: any) {
+      console.error('Error generating AI sequence:', err);
+      toast.error(err.message || 'Error generating AI sequence');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -525,15 +561,6 @@ export default function DoctorProfilePage() {
                   <Sparkles className="w-5 h-5 text-[#D9A11E]" />
                   <h3 className="text-[18px] font-bold text-[#1F1F1F]">Saved 5-Day Email Campaign Sequence</h3>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-extrabold uppercase px-3 py-1 rounded-full bg-green-100 text-green-800 border border-green-200">
-                    💾 Saved in PostgreSQL
-                  </span>
-                  <span className="text-[11px] font-extrabold uppercase px-3 py-1 rounded-full bg-[#FFC63F] text-[#1F1F1F]">
-                    {sequenceData?.provider || 'Google Gemini Flash AI'}
-                  </span>
-                </div>
               </div>
 
               {/* Day Tabs Bar */}
@@ -649,14 +676,25 @@ export default function DoctorProfilePage() {
                   </div>
                   <h4 className="font-bold text-[16px] text-[#1F1F1F]">No Saved Campaign Copy Yet</h4>
                   <p className="text-[13px] text-gray-600 max-w-md mx-auto">
-                    The 5-day email campaign sequence for <strong>{doctor.fullName}</strong> will be generated &amp; saved in PostgreSQL when you launch the campaign from the Doctor Leads Queue.
+                    The 5-day email campaign sequence for <strong>{doctor.fullName}</strong> has not been generated yet. You can generate it right now using the button below.
                   </p>
-                  <Link
-                    href="/dashboard/doctor-leads"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#1F1F1F] text-white font-bold text-[13px] hover:bg-gray-800 transition-all shadow-sm mt-2"
+                  <button
+                    onClick={handleGenerateSequence}
+                    disabled={isGenerating}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] font-bold text-[13px] transition-all shadow-sm mt-2 cursor-pointer disabled:opacity-50"
                   >
-                    Go to Doctor Leads Queue &rarr;
-                  </Link>
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
+                        <span>Generating Sequence...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 text-[#1F1F1F]" />
+                        <span>Generate 5-Day Email Campaign</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               )}
             </div>
