@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import * as XLSX from 'xlsx';
 import {
@@ -112,6 +112,11 @@ export default function DoctorCrmPage() {
     }
   ]);
   const [isAgentThinking, setIsAgentThinking] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [agentMessages, isAgentThinking]);
 
   useEffect(() => {
     const tabParam = searchParams ? searchParams.get('tab') : null;
@@ -1104,6 +1109,7 @@ export default function DoctorCrmPage() {
                   <span>AI Agent querying database &amp; transcripts...</span>
                 </div>
               )}
+              <div ref={chatEndRef} />
             </div>
 
             {/* Quick Prompts & Footer Input */}
