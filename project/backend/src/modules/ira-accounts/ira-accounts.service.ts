@@ -181,6 +181,24 @@ export class AccountsService {
     }
   }
 
+  async getOldIraAccounts(email: string) {
+    try {
+      console.log('🔍 Fetching old IRA accounts for email:', email);
+      const result = await db.query(
+        `SELECT legal_name, investment_value, profile_type 
+         FROM old_investors 
+         WHERE LOWER(primary_email) = LOWER($1) 
+           AND profile_type IN ('Self Directed IRA', 'Entity')
+         ORDER BY legal_name ASC`,
+        [email]
+      );
+      return result.rows;
+    } catch (error: any) {
+      console.error('❌ Error fetching old IRA accounts:', error.message || error);
+      throw new InternalServerErrorException('Failed to fetch old IRA accounts: ' + (error.message || 'Unknown error'));
+    }
+  }
+
   async getAccountTypes() {
     try {
       const result = await db.query('SELECT * FROM ira_account_types ORDER BY name ASC');

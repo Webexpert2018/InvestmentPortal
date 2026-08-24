@@ -58,6 +58,8 @@ export default function IRAPage() {
   const [accountTypes, setAccountTypes] = useState<any[]>([]);
   const [myInvestments, setMyInvestments] = useState<any[]>([]);
   const [myRedemptions, setMyRedemptions] = useState<any[]>([]);
+  const [oldIraAccounts, setOldIraAccounts] = useState<any[]>([]);
+  const [fetchingOldIra, setFetchingOldIra] = useState(true);
 
   const phoneComplete = user?.phone || '';
   const phoneParts = phoneComplete.match(/^(\+\d+\s*\([^)]+\))\s*(.*)$/);
@@ -68,7 +70,19 @@ export default function IRAPage() {
     fetchIraAccount();
     fetchAccountTypes();
     fetchPortfolioData();
+    fetchOldIraAccounts();
   }, []);
+
+  const fetchOldIraAccounts = async () => {
+    try {
+      const data = await apiClient.getOldIRAAccounts();
+      setOldIraAccounts(data || []);
+    } catch (error) {
+      console.error('Failed to fetch old IRA accounts:', error);
+    } finally {
+      setFetchingOldIra(false);
+    }
+  };
 
   const fetchPortfolioData = async () => {
     try {
@@ -442,7 +456,8 @@ export default function IRAPage() {
             </p>
           </div>
         ) : view === 'list' ? (
-          <div className="mt-6 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm overflow-hidden">
+          <>
+            <div className="mt-6 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
                 <thead>
@@ -522,7 +537,73 @@ export default function IRAPage() {
               </table>
             </div>
           </div>
-        ) : (
+
+          {/* Legacy Self-Directed IRA Accounts Section */}
+          <div className="mt-8 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm overflow-hidden p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1]">
+                <Sparkles className="h-4 w-4 text-[#D1A94C]" />
+              </div>
+              <div>
+                <h2 className="font-goudy text-[18px] md:text-[20px] font-bold text-[#1F1F1F]">Legacy Self-Directed IRA Accounts</h2>
+                <p className="text-[12px] text-[#8E8E93] font-helvetica">Historical accounts matched from your legacy profile records</p>
+              </div>
+            </div>
+
+            {fetchingOldIra ? (
+              <div className="py-10 text-center flex flex-col items-center gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-[#D1A94C]" />
+                <p className="text-[#8E8E93] text-[13px] font-helvetica">Retrieving legacy records...</p>
+              </div>
+            ) : oldIraAccounts.length === 0 ? (
+              <div className="py-10 text-center flex flex-col items-center gap-2 border border-dashed border-[#E5E7EB] rounded-lg bg-gray-50/50">
+                <p className="text-[#8E8E93] text-[13px] font-helvetica">No matching legacy Self-Directed IRA accounts found.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto border border-[#F0F0F0] rounded-lg">
+                <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
+                  <thead>
+                    <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
+                      <th className="px-6 py-4 border-b border-[#F0F0F0] w-[45%]">Legal Name</th>
+                      <th className="px-6 py-4 border-b border-[#F0F0F0] w-[30%]">Profile Type</th>
+                      <th className="px-6 py-4 border-b border-[#F0F0F0] text-right w-[25%]">Investment Value</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F0F0F0]">
+                    {oldIraAccounts.map((acc, index) => (
+                      <tr
+                        key={index}
+                        className="hover:bg-[#FAFAFA] transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1]">
+                              <FileText className="h-4 w-4 text-[#D1A94C]" />
+                            </div>
+                            <p className="font-bold text-[#1F1F1F] font-goudy text-[15px] truncate" title={acc.legal_name}>
+                              {acc.legal_name}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-[12px] font-semibold text-[#D1A94C] bg-[#FFF8E1] px-2.5 py-1 rounded-full uppercase tracking-wider">
+                            {acc.profile_type || 'Self Directed IRA'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <p className="font-bold text-[#2BB673] font-helvetica text-[15px]">
+                            ${parseFloat(acc.investment_value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
           <div className="mt-4 rounded-sm border border-[#F0F0F0] bg-white shadow-sm overflow-hidden">
             {/* Suspended Banner */}
             {selectedIra?.status === 'suspended' && (

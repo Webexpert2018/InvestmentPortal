@@ -16,6 +16,11 @@ export class AccountsController {
     return account || null;
   }
 
+  @Get('old')
+  async getOldIraAccounts(@CurrentUser() user: any) {
+    return this.accountsService.getOldIraAccounts(user.email);
+  }
+
   @Get('types')
   async getAccountTypes() {
     return this.accountsService.getAccountTypes();
