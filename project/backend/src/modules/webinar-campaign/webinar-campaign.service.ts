@@ -1698,11 +1698,7 @@ ${rsvpButtonsHtml}
 
       // Find the active webinar (whose link/pass is being shared in active campaigns)
       const activeRes = await db.query(`SELECT id FROM webinars WHERE is_active = true LIMIT 1`);
-      let activeId = activeRes.rows[0]?.id;
-      if (!activeId && webinars.length > 0) {
-        // Fallback to the first one (which is the latest due to sorting)
-        activeId = webinars[0].id;
-      }
+      const activeId = activeRes.rows[0]?.id;
 
       for (const w of webinars) {
         w.isLatest = w.id === activeId;
@@ -1788,15 +1784,18 @@ ${rsvpButtonsHtml}
     }
 
     const id = `web-${Date.now()}`;
-    const query = `
-      INSERT INTO webinars (id, title, description, webinar_date, webinar_time, duration, meeting_link, status, google_event_id, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'upcoming', $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      RETURNING id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
-                to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
-                webinar_time as time, duration, meeting_link as "meetingLink", status, google_event_id as "googleEventId"
-    `;
 
     try {
+      await db.query(`UPDATE webinars SET is_active = false`);
+
+      const query = `
+        INSERT INTO webinars (id, title, description, webinar_date, webinar_time, duration, meeting_link, status, google_event_id, is_active, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, 'upcoming', $8, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        RETURNING id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date,
+                  to_char(webinar_date, 'FMDay, FMMonth FMDD, YYYY') as "formattedDate",
+                  webinar_time as time, duration, meeting_link as "meetingLink", status, google_event_id as "googleEventId", is_active as "isActive"
+      `;
+
       const res = await db.query(query, [
         id,
         data.title.trim(),
@@ -1811,6 +1810,7 @@ ${rsvpButtonsHtml}
       const createdWebinar = res.rows[0];
       if (createdWebinar) {
         createdWebinar.status = this.computeWebinarStatus(createdWebinar.date, createdWebinar.time, createdWebinar.duration);
+        createdWebinar.isLatest = true;
       }
 
       this.logger.log(`🎥 Scheduled new webinar: ${data.title} (${data.webinarDate})`);
@@ -1832,10 +1832,24 @@ ${rsvpButtonsHtml}
       throw new HttpException('Webinar ID is required', HttpStatus.BAD_REQUEST);
     }
     try {
+      const checkActive = await db.query(`SELECT is_active FROM webinars WHERE id = $1`, [id]);
+      const wasActive = checkActive.rows[0]?.is_active === true;
+
       const res = await db.query(`DELETE FROM webinars WHERE id = $1 RETURNING id`, [id]);
       if (res.rowCount === 0) {
         throw new HttpException('Webinar not found', HttpStatus.NOT_FOUND);
       }
+
+      if (wasActive) {
+        const latestWebinar = await db.query(
+          `SELECT id FROM webinars ORDER BY webinar_date DESC, created_at DESC LIMIT 1`
+        );
+        if (latestWebinar.rows.length > 0) {
+          const nextActiveId = latestWebinar.rows[0].id;
+          await db.query(`UPDATE webinars SET is_active = true WHERE id = $1`, [nextActiveId]);
+        }
+      }
+
       this.logger.log(`🗑️ Deleted webinar: ${id}`);
       return {
         success: true,

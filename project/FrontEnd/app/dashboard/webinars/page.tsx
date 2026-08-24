@@ -331,7 +331,7 @@ export default function WebinarsPage() {
 
       if (res && res.success && res.webinar) {
         toast.success('🎉 Webinar scheduled & saved to PostgreSQL!');
-        setWebinars((prev) => [res.webinar, ...prev]);
+        loadWebinarsFromDb();
         setExpandedWebinarIds((prev) => ({ ...prev, [res.webinar.id]: true }));
         setIsCreateModalOpen(false);
 
@@ -429,7 +429,7 @@ export default function WebinarsPage() {
       const res = await apiClient.deleteWebinar(deletingWebinarId);
       if (res && res.success) {
         toast.success('🗑️ Webinar deleted successfully!');
-        setWebinars((prev) => prev.filter((w) => w.id !== deletingWebinarId));
+        loadWebinarsFromDb();
         setDeletingWebinarId(null);
       } else {
         toast.error('Failed to delete webinar.');
