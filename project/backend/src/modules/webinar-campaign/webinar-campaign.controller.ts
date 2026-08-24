@@ -257,6 +257,11 @@ export class WebinarCampaignController {
   ) {
     return this.webinarCampaignService.sendSequenceStepNow(body.prospectId, body.day);
   }
+
+  @Post('agent/chat')
+  async queryCrmAgent(@Request() req: any, @Body('query') query: string) {
+    return this.webinarCampaignService.queryCrmAgent(req.user.userId, query);
+  }
 }
 
 @Controller('api/webinar-campaign')
@@ -348,6 +353,7 @@ export class WebinarCampaignPublicController {
       `);
     }
   }
+
 
   @Get('cron/reminders')
   async triggerCronReminders() {

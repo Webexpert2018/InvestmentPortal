@@ -2823,6 +2823,126 @@ ${rsvpButtonsHtml}
       return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}`;
     }
   }
+
+  async callChatbotLLM(prompt: string): Promise<string> {
+    const geminiKey = process.env.Gemini_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
+
+    // 1. Try Gemini first
+    if (geminiKey && geminiKey.length > 10) {
+      try {
+        this.logger.log(`Calling Gemini API for Executive Assistant...`);
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        });
+
+        if (geminiRes.ok) {
+          const gData: any = await geminiRes.json();
+          const text = gData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (text) return text;
+        } else {
+          const errText = await geminiRes.text();
+          this.logger.warn(`Gemini API returned status ${geminiRes.status}: ${errText}`);
+        }
+      } catch (err: any) {
+        this.logger.error(`Gemini API error in chatbot: ${err.message}`);
+      }
+    }
+
+    // 2. Try OpenAI second
+    if (openaiKey && openaiKey.length > 10) {
+      try {
+        this.logger.log(`Calling OpenAI API for Executive Assistant...`);
+        const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openaiKey}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.7,
+          }),
+        });
+
+        if (aiRes.ok) {
+          const data: any = await aiRes.json();
+          const content = data.choices?.[0]?.message?.content || '';
+          if (content) return content;
+        } else {
+          const errText = await aiRes.text();
+          this.logger.warn(`OpenAI API returned status ${aiRes.status}: ${errText}`);
+        }
+      } catch (err: any) {
+        this.logger.error(`OpenAI API error in chatbot: ${err.message}`);
+      }
+    }
+
+    throw new Error('No AI engine (Gemini or OpenAI) is configured or working.');
+  }
+
+  async queryCrmAgent(userId: string, query: string) {
+    try {
+      // 1. Fetch prospects context
+      const prospectsRes = await db.query(
+        `SELECT apollo_id, full_name, specialty, organization, stage, location, email, phone FROM doctor_prospects`
+      );
+      const prospects = prospectsRes.rows || [];
+
+      // 2. Fetch webinars context
+      const webinarsRes = await db.query(
+        `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date, webinar_time as time, duration, status, is_active FROM webinars`
+      );
+      const webinars = webinarsRes.rows || [];
+
+      // 3. Compile context text
+      const docsContext = prospects.map((p: any) => 
+        `- Name: ${p.full_name}, Specialty: ${p.specialty}, Clinic: ${p.organization}, Stage: ${p.stage}, Location: ${p.location}, Email: ${p.email}, Phone: ${p.phone}`
+      ).join('\n');
+
+      const webinarsContext = webinars.map((w: any) => 
+        `- Title: ${w.title}, Date: ${w.date}, Time: ${w.time}, Status: ${w.status}, Active Now: ${w.is_active ? 'Yes' : 'No'}`
+      ).join('\n');
+
+      const systemPrompt = `You are a helpful, professional Executive Assistant AI Agent for Ovalia Capital. 
+You assist the team with managing the physician outreach pipeline and webinars.
+
+Here is the current real-time data from the database:
+
+=== DOCTOR PROSPECTS / PHYSICIANS IN CRM ===
+${docsContext || 'No doctor prospects currently registered.'}
+
+=== WEBINARS SCHEDULED ===
+${webinarsContext || 'No webinars currently scheduled.'}
+
+=== PIPELINE STAGE LEGEND ===
+- 'pending_outreach': Scheduled for automated outreach email campaign.
+- 'sent': Outreach campaign email sent, awaiting response.
+- 'interested' / 'email_replied' / 'luma_registered' / 'converted_investor': Physician has shown interest, replied to email, or registered/converted.
+- 'call_queue' / 'needs_call': Needs direct phone call outreach.
+
+Please answer the user's question accurately based on this context. Keep the answer professional, concise, and structured. 
+If the user asks to summarize a doctor or count them, use the data above. If the doctor name is partially matched, match it correctly.
+
+User Question: ${query}`;
+
+      const reply = await this.callChatbotLLM(systemPrompt);
+      return { success: true, reply };
+    } catch (err: any) {
+      this.logger.error(`Error in CRM Agent Chatbot: ${err.message}`);
+      return { 
+        success: false, 
+        reply: `I encountered an issue processing your query: ${err.message}. Please verify your API key connection.` 
+      };
+    }
+  }
 }
 
 

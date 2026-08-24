@@ -1571,6 +1571,13 @@ class ApiClient {
     return this.request<{ success: boolean; webinars: any[] }>('/webinar-campaign/webinars');
   }
 
+  async queryCrmAgent(query: string) {
+    return this.request<{ success: boolean; reply: string }>('/webinar-campaign/agent/chat', {
+      method: 'POST',
+      body: JSON.stringify({ query }),
+    });
+  }
+
   async createWebinar(data: {
     title: string;
     description?: string;

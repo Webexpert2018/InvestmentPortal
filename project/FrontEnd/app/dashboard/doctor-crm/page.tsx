@@ -107,7 +107,7 @@ export default function DoctorCrmPage() {
   const [agentMessages, setAgentMessages] = useState<Array<{ sender: 'user' | 'agent'; text: string; timestamp: string }>>([
     {
       sender: 'agent',
-      text: 'Hello! I am your OpenAI + Fireflies Intelligence Agent. Ask me anything about your physician pipeline!',
+      text: 'Hello! I am your Executive Assistant AI Agent. Ask me anything about your physician pipeline or scheduled webinars!',
       timestamp: 'Just now'
     }
   ]);
@@ -510,7 +510,7 @@ export default function DoctorCrmPage() {
     ['call_queue', 'needs_call'].includes(d.stage)
   ).length;
 
-  const handleAgentSend = (queryText: string) => {
+  const handleAgentSend = async (queryText: string) => {
     if (!queryText.trim()) return;
 
     const newMsg = {
@@ -522,8 +522,9 @@ export default function DoctorCrmPage() {
     setAgentInput('');
     setIsAgentThinking(true);
 
-    setTimeout(() => {
-      let responseText = `Currently tracking ${totalDocsCount} doctors in your database. ${interestedCount} interested, ${pendingOutreachCount} pending outreach, and ${scheduleForCallCount} queued for calls.`;
+    try {
+      const res = await apiClient.queryCrmAgent(queryText);
+      const responseText = res && res.success ? res.reply : 'Sorry, I failed to get a response from the server.';
       setAgentMessages(prev => [
         ...prev,
         {
@@ -532,8 +533,19 @@ export default function DoctorCrmPage() {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
+    } catch (err: any) {
+      console.error('Error querying CRM AI Agent:', err);
+      setAgentMessages(prev => [
+        ...prev,
+        {
+          sender: 'agent',
+          text: `An error occurred: ${err.message || 'Unknown error'}. Please try again.`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+    } finally {
       setIsAgentThinking(false);
-    }, 1200);
+    }
   };
 
   const filteredDoctors = doctors.filter(doc => {
@@ -1036,9 +1048,6 @@ export default function DoctorCrmPage() {
                       RAG Engine
                     </span>
                   </h3>
-                  <p className="text-[10px] text-gray-400 truncate">
-                    Learns from email, Luma &amp; Fireflies transcripts
-                  </p>
                 </div>
               </div>
 
@@ -1046,7 +1055,7 @@ export default function DoctorCrmPage() {
                 <button
                   onClick={() => setAgentMessages([{
                     sender: 'agent',
-                    text: 'Hello! I am your OpenAI + Fireflies Intelligence Agent. Ask me anything about your physician pipeline!',
+                    text: 'Hello! I am your Executive Assistant AI Agent. Ask me anything about your physician pipeline or scheduled webinars!',
                     timestamp: 'Just now'
                   }])}
                   className="text-[11px] text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
@@ -1102,7 +1111,6 @@ export default function DoctorCrmPage() {
               <div className="flex flex-wrap gap-1.5 mb-3">
                 <span className="text-[10px] font-bold text-gray-400 py-0.5">Quick prompts:</span>
                 {[
-                  'Summarize Dr. David Wiebe',
                   'Interested doctors',
                   'Schedule for Call doctors'
                 ].map((chip, idx) => (
