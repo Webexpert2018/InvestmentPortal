@@ -188,7 +188,7 @@ export class AccountsService {
         `SELECT legal_name, investment_value, profile_type 
          FROM old_investors 
          WHERE LOWER(primary_email) = LOWER($1) 
-           AND profile_type IN ('Self Directed IRA', 'Entity')
+           AND profile_type IN ('Self Directed IRA', 'Entity', 'Trust')
          ORDER BY legal_name ASC`,
         [email]
       );
