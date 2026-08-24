@@ -449,6 +449,10 @@ class ApiClient {
     return this.request<any>('/ira-accounts/my');
   }
 
+  async getOldIRAAccounts() {
+    return this.request<any[]>('/ira-accounts/old');
+  }
+
   async getUserIRAAccounts(userId: string) {
     return this.request<any[]>(`/ira-accounts/user/${userId}`);
   }
