@@ -161,17 +161,19 @@ function LoginForm() {
             Sign up
           </Link>
         </div>
-        <div className="mt-3.5 border-t border-gray-100 pt-2.5 text-center font-goudy text-sm">
-          <span className="text-gray-500 mr-1">Looking for the IRA Portal? </span>
-          <a
-            href="https://aetrust.aet.app/auth/login"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-yellow-600 hover:underline inline-flex items-center gap-0.5"
-          >
-            Go to IRA Portal &rarr;
-          </a>
-        </div>
+        {flow === 'investor' && (
+          <div className="mt-2 border-t border-gray-100 pt-1.5 text-center font-goudy text-sm">
+            <span className="text-gray-500 mr-1">Looking for the IRA Portal? </span>
+            <a
+              href="https://aetrust.aet.app/auth/login"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-yellow-600 hover:underline inline-flex items-center gap-0.5"
+            >
+              Go to IRA Portal &rarr;
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
