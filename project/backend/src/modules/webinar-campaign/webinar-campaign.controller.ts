@@ -323,7 +323,7 @@ export class WebinarCampaignPublicController {
           <div class="card">
             <div style="font-size: 52px; margin-bottom: 15px;">🎉</div>
             <h1>Interest Confirmed!</h1>
-            <p>Thank you for expressing interest in our Physician Wealth Webinar. We have recorded your status and sent your VIP Session Pass directly to your email inbox.</p>
+            <p>Thank you for expressing interest in our Physician Wealth Webinar. We have recorded your status and sent you Google Calendar invitation directly to your email inbox.</p>
           </div>
         </body>
         </html>

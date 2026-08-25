@@ -1959,7 +1959,9 @@ ${rsvpButtonsHtml}
       updatedWebinar.noShowCount = rawAttendees.filter((att: any) => att.status !== 'attended').length;
 
       // 3. Dispatch email notifications to all users who received passes
+      // Disabled to prevent duplicate emails (only Google Calendar update email is sent).
       let notifiedCount = 0;
+      /*
       if (rawAttendees.length > 0) {
         const title = updatedWebinar.title || 'Ovalia Capital Physician Wealth Briefing';
         const formattedDate = updatedWebinar.formattedDate || updatedWebinar.date || 'Scheduled Date';
@@ -2052,6 +2054,7 @@ ${rsvpButtonsHtml}
           }
         }
       }
+      */
 
       this.logger.log(`✏️ Updated webinar: ${data.title} (${id}). Notified ${notifiedCount} pass holders.`);
       return {

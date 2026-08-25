@@ -477,7 +477,7 @@ export default function DoctorProfilePage() {
                 </div>
 
                 <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[12px]">
-                  <span className="text-gray-500">PostgreSQL ID</span>
+                  <span className="text-gray-500">Physician ID</span>
                   <span className="font-mono text-gray-700 bg-gray-100 px-2 py-0.5 rounded text-[11px]">{doctor.id}</span>
                 </div>
               </div>
@@ -572,8 +572,8 @@ export default function DoctorProfilePage() {
                       key={dayNum}
                       onClick={() => setActiveDay(dayNum)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold transition-all shrink-0 ${activeDay === dayNum
-                          ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm border border-[#E0AC27]'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm border border-[#E0AC27]'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                     >
                       <span>Day {dayNum}</span>
