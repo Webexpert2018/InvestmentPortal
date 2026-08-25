@@ -343,7 +343,11 @@ export class MeetingsService {
   private getOAuth2Client() {
     const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID') || process.env.GOOGLE_CLIENT_ID;
     const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET') || process.env.GOOGLE_CLIENT_SECRET;
-    const redirectUri = this.configService.get<string>('GOOGLE_REDIRECT_URI') || process.env.GOOGLE_REDIRECT_URI;
+    let redirectUri = this.configService.get<string>('GOOGLE_REDIRECT_URI') || process.env.GOOGLE_REDIRECT_URI;
+
+    if (process.env.BACKEND_URL && (!redirectUri || redirectUri.includes('localhost'))) {
+      redirectUri = `${process.env.BACKEND_URL.replace(/\/$/, '')}/auth/google/callback`;
+    }
 
     if (!clientId || !clientSecret || !redirectUri) {
       throw new BadRequestException('Google OAuth environment variables (CLIENT_ID, SECRET, REDIRECT_URI) are not configured.');
@@ -665,7 +669,7 @@ export class MeetingsService {
 
           if (webinarId) {
             const prospectRes = await this.pgClient.query(
-              `SELECT apollo_id FROM doctor_prospects WHERE email = $1`,
+              `SELECT apollo_id FROM doctor_prospects WHERE LOWER(email) = LOWER($1)`,
               [attendee.email]
             );
             if (prospectRes.rows.length > 0) {

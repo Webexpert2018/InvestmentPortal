@@ -130,9 +130,9 @@ export class GoogleOAuthController {
   async googleCallback(@Query('code') code: string, @Query('state') state: string, @Res() res: any) {
     await this.meetingsService.handleGoogleCallback(state, code);
     
-    const frontendUrl = process.env.NODE_ENV === 'production' 
+    const frontendUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' 
       ? 'https://investmentportalfrontend.vercel.app' 
-      : 'http://localhost:3000';
+      : 'http://localhost:3000');
     
     return res.redirect(`${frontendUrl}/dashboard/google-calendar?success=true`);
   }
