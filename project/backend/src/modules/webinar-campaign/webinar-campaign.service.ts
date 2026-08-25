@@ -1678,10 +1678,13 @@ ${rsvpButtonsHtml}
     }
   }
 
-  async getAllWebinars() {
+  async getAllWebinars(currentUserId?: string) {
     try {
-      const tokenRes = await db.query(`SELECT user_id FROM google_tokens LIMIT 1`);
-      const adminUserId = tokenRes.rows.length > 0 ? tokenRes.rows[0].user_id : null;
+      let adminUserId = currentUserId;
+      if (!adminUserId) {
+        const tokenRes = await db.query(`SELECT user_id FROM google_tokens LIMIT 1`);
+        adminUserId = tokenRes.rows.length > 0 ? tokenRes.rows[0].user_id : null;
+      }
 
       const webinarsRes = await db.query(
         `SELECT id, title, description, to_char(webinar_date, 'YYYY-MM-DD') as date, 

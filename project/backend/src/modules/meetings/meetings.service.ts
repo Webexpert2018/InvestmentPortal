@@ -700,8 +700,9 @@ export class MeetingsService {
       };
     } catch (error: any) {
       if (error.code === 404 || error.status === 404 || error.message?.includes('Not Found')) {
-        console.warn(`Google Calendar event ${googleEventId} not found (404). Clearing from webinars database...`);
-        await this.pgClient.query(`UPDATE webinars SET google_event_id = NULL WHERE google_event_id = $1`, [googleEventId]);
+        console.warn(`Google Calendar event ${googleEventId} not found (404) for current user token. Skipping sync...`);
+        // Do not clear google_event_id, as another admin token might have access to it.
+        // await this.pgClient.query(`UPDATE webinars SET google_event_id = NULL WHERE google_event_id = $1`, [googleEventId]);
         throw new NotFoundException(`Google Calendar event not found: ${googleEventId}`);
       }
       console.error('Error fetching Google calendar event status:', error);

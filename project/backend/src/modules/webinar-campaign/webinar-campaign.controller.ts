@@ -160,8 +160,8 @@ export class WebinarCampaignController {
   }
 
   @Get('webinars')
-  async getAllWebinars() {
-    return this.webinarCampaignService.getAllWebinars();
+  async getAllWebinars(@Request() req: any) {
+    return this.webinarCampaignService.getAllWebinars(req.user?.userId);
   }
 
   @Post('webinars')
