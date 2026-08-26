@@ -78,67 +78,11 @@ export class WebinarCampaignService implements OnModuleInit {
       ? locations.split(',').map((l) => l.trim()).filter(Boolean)
       : ['Austin, TX', 'Chicago, IL', 'Miami, FL'];
 
-    // 5 High-Quality Mock Profiles for testing / free plan demonstration
-    const rawProfiles: DoctorProspectDto[] = [
-      {
-        id: '66d7f2c85b1234567890abcd',
-        fullName: 'Dr. David Wiebe, MD',
-        specialty: titlesArray[0] || 'Orthopedic Surgery',
-        organization: 'Austin Spine & Joint Surgery Center',
-        location: locationsArray[0] || 'Austin, TX',
-        email: 'Email via Bulk Match Required',
-        phone: 'Phone via Bulk Match Required',
-        status: 'ai_copy_ready',
-      },
-      {
-        id: '66d7f2c85b1234567890abce',
-        fullName: 'Dr. Sarah Jenkins, MD',
-        specialty: titlesArray.length > 1 ? titlesArray[1] : 'Cardiovascular Disease',
-        organization: 'Midwest Heart & Vascular Institute',
-        location: locationsArray.length > 1 ? locationsArray[1] : 'Chicago, IL',
-        email: 'Email via Bulk Match Required',
-        phone: 'Phone via Bulk Match Required',
-        status: 'ai_copy_ready',
-      },
-      {
-        id: '66d7f2c85b1234567890abcf',
-        fullName: 'Dr. Marcus Vance, MD',
-        specialty: titlesArray.length > 2 ? titlesArray[2] : 'Dermatology & Aesthetics',
-        organization: 'Vance Dermatology Group',
-        location: locationsArray.length > 2 ? locationsArray[2] : 'Miami, FL',
-        email: 'Email via Bulk Match Required',
-        phone: 'Phone via Bulk Match Required',
-        status: 'ai_copy_ready',
-      },
-      {
-        id: '66d7f2c85b1234567890abd0',
-        fullName: 'Dr. Elena Rostova, MD',
-        specialty: 'Neurology & Neurosurgery',
-        organization: 'Pacific Neuro & Spine Clinic',
-        location: 'San Francisco, CA',
-        email: 'Email via Bulk Match Required',
-        phone: 'Phone via Bulk Match Required',
-        status: 'ai_copy_ready',
-      },
-      {
-        id: '66d7f2c85b1234567890abd1',
-        fullName: 'Dr. Robert Thorne, DMD',
-        specialty: 'Oral & Maxillofacial Surgery',
-        organization: 'Thorne Surgical & Implant Center',
-        location: 'Dallas, TX',
-        email: 'Email via Bulk Match Required',
-        phone: 'Phone via Bulk Match Required',
-        status: 'ai_copy_ready',
-      },
-    ];
-
-    let profilesToCheck = [...rawProfiles];
+    let profilesToCheck: DoctorProspectDto[] = [];
 
     // =========================================================================
-    // REAL APOLLO.IO API SEARCH IMPLEMENTATION (COMMENTED OUT FOR FREE PLAN MODE)
-    // When you upgrade your Apollo plan to paid, uncomment the block below to run live API queries:
+    // REAL APOLLO.IO API SEARCH IMPLEMENTATION
     // =========================================================================
-    /*
     const apiKey = process.env.APOLLO_API_KEY;
     if (!apiKey) {
       throw new HttpException(
@@ -155,9 +99,9 @@ export class WebinarCampaignService implements OnModuleInit {
 
     const payload = {
       api_key: apiKey,
-      person_titles: titlesArray,
+      person_titles: senioritiesArray,
       person_locations: locationsArray,
-      person_seniorities: senioritiesArray,
+      q_keywords: specialties,
       page: 1,
       per_page: targetCount,
     };
@@ -214,7 +158,7 @@ export class WebinarCampaignService implements OnModuleInit {
     profilesToCheck = people.map((p: any, index: number) => {
       const fullName =
         p.name ||
-        `${p.first_name || ''} ${p.last_name || ''}`.trim() ||
+        `${p.first_name || ''} ${p.last_name || p.last_name_obfuscated || ''}`.trim() ||
         `Dr. Prospect ${index + 1}`;
       
       const specialty =
@@ -234,13 +178,13 @@ export class WebinarCampaignService implements OnModuleInit {
         p.email ||
         p.work_email ||
         (p.personal_emails && p.personal_emails[0]) ||
-        'Unenriched - Select for Bulk Match';
+        'Email via Bulk Match Required';
 
       const phone =
         (p.phone_numbers && p.phone_numbers[0]?.raw_number) ||
         p.organization?.phone ||
         p.sanitized_phone ||
-        'Unenriched Phone';
+        'Phone via Bulk Match Required';
 
       return {
         id: p.id || `doc-${Date.now()}-${index}`,
@@ -253,7 +197,6 @@ export class WebinarCampaignService implements OnModuleInit {
         status: 'ai_copy_ready',
       };
     });
-    */
 
     // Cross-check with doctor_prospects table in PostgreSQL
     const apolloIds = profilesToCheck.map((p) => p.id).filter(Boolean);
@@ -281,35 +224,24 @@ export class WebinarCampaignService implements OnModuleInit {
       }
     }
 
-    return profilesToCheck.map((p) => {
-      const saved = existingMap.get(p.id);
-      const isAlreadySaved = Boolean(saved);
+    return profilesToCheck
+      .filter((p) => !existingMap.has(p.id))
+      .map((p) => {
+        const email = 'Email via Bulk Match Required';
+        const phone = 'Phone via Bulk Match Required';
 
-      let email = 'Email via Bulk Match Required';
-      let phone = 'Phone via Bulk Match Required';
-
-      if (isAlreadySaved) {
-        email = saved.email || 'ishadubey343@gmail.com';
-        phone = saved.phone || phoneMap[p.id] || '+1 (555) 019-8821';
-        if (email.includes('Bulk Match Required') || email.includes('@medical-verified.org')) {
-          email = 'ishadubey343@gmail.com';
-        }
-      }
-
-      const createdAt = isAlreadySaved ? (saved?.created_at || saved?.createdAt || new Date().toISOString()) : undefined;
-
-      return {
-        ...p,
-        email,
-        phone,
-        isAlreadyEnriched: isAlreadySaved,
-        emailStatus: isAlreadySaved ? (saved?.email_status || 'verified') : undefined,
-        status: isAlreadySaved && ['sent', 'interested', 'not_interested', 'needs_call'].includes(saved?.stage) ? saved.stage : 'ai_copy_ready',
-        stage: saved?.stage || 'pending_outreach',
-        createdAt,
-        created_at: createdAt,
-      };
-    });
+        return {
+          ...p,
+          email,
+          phone,
+          isAlreadyEnriched: false,
+          emailStatus: undefined,
+          status: 'ai_copy_ready' as const,
+          stage: 'pending_outreach',
+          createdAt: undefined,
+          created_at: undefined,
+        };
+      });
   }
 
   async bulkMatchAndSave(
@@ -325,11 +257,11 @@ export class WebinarCampaignService implements OnModuleInit {
     let enrichedMatches: any[] = [];
 
     const apiKey = process.env.APOLLO_API_KEY;
-    if (apiKey && process.env.APOLLO_FORCE_REAL === 'true') {
+    if (apiKey) {
       try {
-        this.logger.log('APOLLO_FORCE_REAL=true: Calling real Apollo /v1/people/bulk_match API...');
+        this.logger.log('Calling real Apollo /v1/people/bulk_match API with reveal_personal_emails=true...');
         const response = await axios.post(
-          'https://api.apollo.io/api/v1/people/bulk_match',
+          'https://api.apollo.io/api/v1/people/bulk_match?reveal_personal_emails=true',
           {
             api_key: apiKey,
             details: apolloIds.map((id) => ({ id })),
@@ -404,22 +336,27 @@ export class WebinarCampaignService implements OnModuleInit {
       const specialty = m.title || 'Medical Doctor';
       const organization = m.organization?.name || 'Medical Clinic';
       const city = m.city || '';
-      const state = m.state || m.country || '';
-      const location = city && state ? `${city}, ${state}` : city || state || 'United States';
-      const email = 'ishadubey343@gmail.com';
-      const phone = m.phone || m.phone_numbers?.[0]?.raw_number || '+1 (555) 019-9911';
-      const emailStatus = m.email_status || 'verified';
+      const state = m.state || '';
+      const country = m.country || '';
+      const timezone = m.time_zone || '';
+      const location = m.street_address || m.formatted_address || (city && state ? `${city}, ${state}` : city || state || 'United States');
+      const email = m.email || null;
+      const phone = m.phone || m.phone_numbers?.[0]?.raw_number || m.organization?.phone || m.organization?.primary_phone?.number || null;
+      const emailStatus = m.email_status || 'unverified';
 
       try {
         const insertRes = await db.query(
           `INSERT INTO doctor_prospects (
-             apollo_id, full_name, first_name, last_name, specialty, organization, location, city, state, email, phone, email_status, stage, created_at, updated_at
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'pending_outreach', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+             apollo_id, full_name, first_name, last_name, specialty, organization, location, city, state, email, phone, email_status, stage, country, timezone, created_at, updated_at
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'pending_outreach', $13, $14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
            ON CONFLICT (apollo_id) DO UPDATE SET
              full_name = EXCLUDED.full_name,
              email = EXCLUDED.email,
              phone = EXCLUDED.phone,
              email_status = EXCLUDED.email_status,
+             location = EXCLUDED.location,
+             country = EXCLUDED.country,
+             timezone = EXCLUDED.timezone,
              stage = CASE WHEN doctor_prospects.stage IN ('sent', 'interested', 'not_interested') THEN doctor_prospects.stage ELSE 'pending_outreach' END,
              updated_at = CURRENT_TIMESTAMP
            RETURNING *;`,
@@ -436,6 +373,8 @@ export class WebinarCampaignService implements OnModuleInit {
             email,
             phone,
             emailStatus,
+            country,
+            timezone,
           ]
         );
 

@@ -61,63 +61,6 @@ const formatAddedDate = (rawDate?: string | Date | null) => {
   }
 };
 
-const INITIAL_PROSPECTS: DoctorProspect[] = [
-  {
-    id: 'doc-101',
-    fullName: 'Dr. David Wiebe, MD',
-    specialty: 'Orthopedic Surgery',
-    organization: 'Austin Spine & Joint Center',
-    location: 'Austin, TX',
-    email: 'dwiebe@austinspine.example.com',
-    phone: '+1 (512) 555-0192',
-    status: 'ai_copy_ready',
-    createdAt: '2026-08-01T10:00:00.000Z'
-  },
-  {
-    id: 'doc-102',
-    fullName: 'Dr. Sarah Jenkins, MD',
-    specialty: 'Cardiovascular Disease',
-    organization: 'Midwest Heart & Vascular Institute',
-    location: 'Chicago, IL',
-    email: 'sjenkins@midwestheart.example.com',
-    phone: '+1 (312) 555-0148',
-    status: 'ai_copy_ready',
-    createdAt: '2026-08-03T11:30:00.000Z'
-  },
-  {
-    id: 'doc-103',
-    fullName: 'Dr. Marcus Vance, MD',
-    specialty: 'Dermatology & Aesthetics',
-    organization: 'Vance Dermatology Group',
-    location: 'Miami, FL',
-    email: 'mvance@vancederm.example.com',
-    phone: '+1 (305) 555-0183',
-    status: 'ai_copy_ready',
-    createdAt: '2026-08-05T14:15:00.000Z'
-  },
-  {
-    id: 'doc-104',
-    fullName: 'Dr. Elena Rostova, MD',
-    specialty: 'Neurology',
-    organization: 'Pacific Neuro & Spine Clinic',
-    location: 'San Francisco, CA',
-    email: 'erostova@pacificneuro.example.com',
-    phone: '+1 (415) 555-0129',
-    status: 'pending_apollo',
-    createdAt: '2026-08-07T09:45:00.000Z'
-  },
-  {
-    id: 'doc-105',
-    fullName: 'Dr. Robert Thorne, DMD',
-    specialty: 'Oral Surgery & Implantology',
-    organization: 'Thorne Surgical Center',
-    location: 'Dallas, TX',
-    email: 'rthorne@thornesurgical.example.com',
-    phone: '+1 (214) 555-0174',
-    status: 'pending_apollo',
-    createdAt: '2026-08-09T08:20:00.000Z'
-  }
-];
 
 export default function DoctorLeadsPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -419,7 +362,7 @@ export default function DoctorLeadsPage() {
     }
 
     setIsSequenceModalOpen(true);
-    const availableDocs = prospects.length > 0 ? prospects : INITIAL_PROSPECTS;
+    const availableDocs = prospects;
     const targetDoc = availableDocs.find(p => p.id === docId) || availableDocs[0];
     const targetId = targetDoc ? targetDoc.id : '';
     if (targetId) {
@@ -431,7 +374,7 @@ export default function DoctorLeadsPage() {
   const fetchDoctorSequence = async (docId: string, customList?: DoctorProspect[]) => {
     setIsGeneratingSequence(true);
     try {
-      const availableDocs = customList || (prospects.length > 0 ? prospects : INITIAL_PROSPECTS);
+      const availableDocs = customList || prospects;
       const targetDoc = availableDocs.find(p => p.id === docId) || availableDocs[0];
       const res = await apiClient.generateDoctorSequence({
         prospectId: docId,
@@ -568,16 +511,16 @@ export default function DoctorLeadsPage() {
               />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Daily Throttled Batch Limit</label>
-              <select
+              <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Daily Throttled Batch Limit (per_page)</label>
+              <input
+                type="number"
+                min="1"
+                max="200"
                 value={batchSize}
                 onChange={(e) => setBatchSize(e.target.value)}
-                className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all cursor-pointer font-medium"
-              >
-                <option value="25">25 Doctors / Day (Conservative)</option>
-                <option value="50">50 Doctors / Day (Recommended Gold Standard)</option>
-                <option value="100">100 Doctors / Day (Aggressive)</option>
-              </select>
+                placeholder="e.g. 50"
+                className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all"
+              />
             </div>
           </div>
 
