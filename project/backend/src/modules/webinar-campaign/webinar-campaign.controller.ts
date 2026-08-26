@@ -290,6 +290,11 @@ export class WebinarCampaignPublicController {
     return this.webinarCampaignService.recordWebinarHeartbeat(body.sessionId, body.webinarId, body.prospectId);
   }
 
+  @Post('apollo-phone-webhook')
+  async apolloPhoneWebhook(@Body() body: any) {
+    return this.webinarCampaignService.handleApolloWebhook(body);
+  }
+
   @Get('respond')
   async respondToOutreach(
     @Query('id') id: string,

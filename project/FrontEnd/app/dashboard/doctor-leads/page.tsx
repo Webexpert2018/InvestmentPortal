@@ -38,6 +38,7 @@ interface DoctorProspect {
   location: string;
   email: string;
   phone?: string;
+  workPhone?: string;
   status: 'pending_apollo' | 'ai_copy_ready' | 'sent' | 'interested' | 'not_interested' | 'needs_call' | 'error';
   isAlreadyEnriched?: boolean;
   emailStatus?: string;
@@ -259,6 +260,7 @@ export default function DoctorLeadsPage() {
               status: newStatus as any,
               email: enriched?.email || p.email,
               phone: enriched?.phone || p.phone,
+              workPhone: enriched?.work_phone || enriched?.workPhone || p.workPhone,
               emailStatus: 'verified',
               stage: newStage
             };
@@ -294,8 +296,9 @@ export default function DoctorLeadsPage() {
           specialty: r.specialty || 'Medical Doctor',
           organization: r.organization || 'Medical Clinic',
           location: r.location || `${r.city || ''}, ${r.state || ''}`.trim() || 'United States',
-          email: r.email || 'Email in DB',
-          phone: r.phone || 'N/A',
+          email: r.email || 'No Email',
+          phone: r.phone || '',
+          workPhone: r.work_phone || r.workPhone || '',
           status: ['sent', 'interested', 'not_interested', 'needs_call'].includes(r.stage || r.status) ? (r.stage || r.status) : 'ai_copy_ready',
           isAlreadyEnriched: true,
           emailStatus: r.email_status || 'verified',
@@ -743,7 +746,9 @@ export default function DoctorLeadsPage() {
                       </td>
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         <div className="text-[13px] text-[#1F1F1F] font-medium">{doc.email}</div>
-                        <div className="text-[12px] text-[#8E8E93]">{doc.phone}</div>
+                        {doc.phone && <div className="text-[12px] text-[#8E8E93]">Mobile: {doc.phone}</div>}
+                        {doc.workPhone && <div className="text-[12px] text-[#8E8E93]">Work: {doc.workPhone}</div>}
+                        {!doc.phone && !doc.workPhone && <div className="text-[12px] text-[#8E8E93]">-</div>}
                       </td>
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         {doc.status === 'interested' || doc.stage === 'interested' ? (
@@ -901,8 +906,8 @@ export default function DoctorLeadsPage() {
                     type="submit"
                     disabled={isSavingDoctor || Boolean(savedProspectId)}
                     className={`px-5 py-2.5 rounded-full text-[13px] font-bold shadow-sm flex items-center gap-2 transition-all cursor-pointer ${savedProspectId
-                        ? 'bg-green-100 text-green-800 border border-green-300 opacity-90'
-                        : 'bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F]'
+                      ? 'bg-green-100 text-green-800 border border-green-300 opacity-90'
+                      : 'bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F]'
                       }`}
                   >
                     {isSavingDoctor ? (
@@ -920,8 +925,8 @@ export default function DoctorLeadsPage() {
                     disabled={!savedProspectId || isSendingWebinarLink}
                     onClick={handleSendActiveWebinarLink}
                     className={`px-5 py-2.5 rounded-full text-[13px] font-bold shadow-sm flex items-center gap-2 transition-all ${savedProspectId
-                        ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow-amber-200'
-                        : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60'
+                      ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow-amber-200'
+                      : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60'
                       }`}
                     title={
                       savedProspectId

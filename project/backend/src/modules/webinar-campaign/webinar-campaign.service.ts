@@ -202,13 +202,6 @@ export class WebinarCampaignService implements OnModuleInit {
     const apolloIds = profilesToCheck.map((p) => p.id).filter(Boolean);
     const existingMap = new Map<string, any>();
 
-    const phoneMap: Record<string, string> = {
-      '66d7f2c85b1234567890abcd': '+1 (512) 555-0192',
-      '66d7f2c85b1234567890abce': '+1 (312) 555-0148',
-      '66d7f2c85b1234567890abcf': '+1 (305) 555-0183',
-      '66d7f2c85b1234567890abd0': '+1 (415) 555-0129',
-      '66d7f2c85b1234567890abd1': '+1 (214) 555-0174',
-    };
 
     if (apolloIds.length > 0) {
       try {
@@ -257,13 +250,20 @@ export class WebinarCampaignService implements OnModuleInit {
     let enrichedMatches: any[] = [];
 
     const apiKey = process.env.APOLLO_API_KEY;
+    const webhookUrl = process.env.APOLLO_WEBHOOK_URL;
     if (apiKey) {
+      if (!webhookUrl) {
+        throw new HttpException(
+          'APOLLO_WEBHOOK_URL is not configured in your backend .env file. Please add APOLLO_WEBHOOK_URL=your_webhook_url to your backend .env file.',
+          HttpStatus.BAD_REQUEST
+        );
+      }
       try {
-        this.logger.log('Calling real Apollo /v1/people/bulk_match API with reveal_personal_emails=true...');
+        const url = `https://api.apollo.io/api/v1/people/bulk_match?reveal_personal_emails=true&reveal_phone_number=true&webhook_url=${encodeURIComponent(webhookUrl)}`;
+        this.logger.log(`Calling real Apollo /v1/people/bulk_match API with url: ${url}`);
         const response = await axios.post(
-          'https://api.apollo.io/api/v1/people/bulk_match?reveal_personal_emails=true',
+          url,
           {
-            api_key: apiKey,
             details: apolloIds.map((id) => ({ id })),
           },
           {
@@ -281,42 +281,16 @@ export class WebinarCampaignService implements OnModuleInit {
           this.logger.log(`Received ${enrichedMatches.length} real profile matches from Apollo bulk_match!`);
         }
       } catch (err: any) {
-        this.logger.warn(`Real Apollo bulk_match request failed: ${err.message}. Falling back to default profile generation.`);
+        this.logger.error(`Real Apollo bulk_match request failed: ${err.message}`);
+        throw new HttpException(
+          `Apollo bulk_match request failed: ${err?.response?.data?.message || err.message}`,
+          err?.response?.status || HttpStatus.BAD_REQUEST
+        );
       }
     }
 
-    // Fallback or Free Plan mode: enrich using mock/provided profiles data or generated realistic emails
-    const phoneMap: Record<string, string> = {
-      '66d7f2c85b1234567890abcd': '+1 (512) 555-0192',
-      '66d7f2c85b1234567890abce': '+1 (312) 555-0148',
-      '66d7f2c85b1234567890abcf': '+1 (305) 555-0183',
-      '66d7f2c85b1234567890abd0': '+1 (415) 555-0129',
-      '66d7f2c85b1234567890abd1': '+1 (214) 555-0174',
-    };
-
     if (enrichedMatches.length === 0) {
-      enrichedMatches = apolloIds.map((id) => {
-        const found = mockProfilesData?.find((m) => m.id === id);
-        const fullName = found?.fullName || `Dr. Enriched Lead ${id.substring(0, 6)}`;
-        const realPhone = phoneMap[id] || (found?.phone && !found.phone.includes('Bulk Match Required') ? found.phone : '+1 (555) 019-8821');
-
-        return {
-          id,
-          name: fullName,
-          first_name: fullName.split(' ')[1] || 'Doctor',
-          last_name: fullName.split(' ')[2] || 'Prospect',
-          title: found?.specialty || 'Medical Specialist',
-          email: 'ishadubey343@gmail.com',
-          email_status: 'verified',
-          organization: {
-            name: found?.organization || 'Verified Medical Center',
-          },
-          city: found?.location?.split(',')[0] || 'New York',
-          state: found?.location?.split(',')[1]?.trim() || 'NY',
-          country: 'United States',
-          phone: realPhone,
-        };
-      });
+      throw new HttpException('Apollo bulk match enrichment returned 0 matches.', HttpStatus.BAD_REQUEST);
     }
 
     try {
@@ -341,18 +315,20 @@ export class WebinarCampaignService implements OnModuleInit {
       const timezone = m.time_zone || '';
       const location = m.street_address || m.formatted_address || (city && state ? `${city}, ${state}` : city || state || 'United States');
       const email = m.email || null;
-      const phone = m.phone || m.phone_numbers?.[0]?.raw_number || m.organization?.phone || m.organization?.primary_phone?.number || null;
+      const phone = m.phone || m.phone_numbers?.find((ph: any) => ph.type_cd === 'mobile')?.raw_number || m.phone_numbers?.[0]?.raw_number || null;
+      const workPhone = m.phone_numbers?.find((ph: any) => ph.type_cd === 'work_direct')?.raw_number || null;
       const emailStatus = m.email_status || 'unverified';
 
       try {
         const insertRes = await db.query(
           `INSERT INTO doctor_prospects (
-             apollo_id, full_name, first_name, last_name, specialty, organization, location, city, state, email, phone, email_status, stage, country, timezone, created_at, updated_at
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'pending_outreach', $13, $14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+             apollo_id, full_name, first_name, last_name, specialty, organization, location, city, state, email, phone, work_phone, email_status, stage, country, timezone, created_at, updated_at
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'pending_outreach', $14, $15, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
            ON CONFLICT (apollo_id) DO UPDATE SET
              full_name = EXCLUDED.full_name,
-             email = EXCLUDED.email,
-             phone = EXCLUDED.phone,
+             email = COALESCE(EXCLUDED.email, doctor_prospects.email),
+             phone = COALESCE(EXCLUDED.phone, doctor_prospects.phone),
+             work_phone = COALESCE(EXCLUDED.work_phone, doctor_prospects.work_phone),
              email_status = EXCLUDED.email_status,
              location = EXCLUDED.location,
              country = EXCLUDED.country,
@@ -372,6 +348,7 @@ export class WebinarCampaignService implements OnModuleInit {
             state,
             email,
             phone,
+            workPhone,
             emailStatus,
             country,
             timezone,
@@ -403,6 +380,75 @@ export class WebinarCampaignService implements OnModuleInit {
     };
   }
 
+  async handleApolloWebhook(payload: any) {
+    if (!payload || !Array.isArray(payload.people)) {
+      this.logger.warn('[Apollo Webhook] Received invalid payload or missing people array');
+      return { success: false, message: 'Invalid payload' };
+    }
+
+    this.logger.log(`[Apollo Webhook] Processing phone enrichment callback for ${payload.people.length} people...`);
+
+    for (const p of payload.people) {
+      if (!p || !p.id) continue;
+
+      const apolloId = p.id;
+      let mobilePhone: string | null = null;
+      let workPhone: string | null = null;
+
+      if (Array.isArray(p.phone_numbers)) {
+        const mobileObj = p.phone_numbers.find((ph: any) => ph.type_cd === 'mobile');
+        const workObj = p.phone_numbers.find((ph: any) => ph.type_cd === 'work_direct');
+
+        if (mobileObj) {
+          mobilePhone = mobileObj.raw_number || mobileObj.sanitized_number || null;
+        }
+        if (workObj) {
+          workPhone = workObj.raw_number || workObj.sanitized_number || null;
+        }
+      }
+
+      try {
+        let updateRes = await db.query(
+          `UPDATE doctor_prospects 
+           SET 
+             phone = COALESCE($1, phone),
+             work_phone = COALESCE($2, work_phone),
+             updated_at = CURRENT_TIMESTAMP
+           WHERE apollo_id = $3
+           RETURNING *;`,
+          [mobilePhone, workPhone, apolloId]
+        );
+        
+        if (!updateRes.rows || updateRes.rows.length === 0) {
+          // Concurrency Race Condition: wait 2 seconds for the synchronous insert query to finish and retry
+          this.logger.log(`[Apollo Webhook] Prospect ${apolloId} not found in DB yet. Retrying in 2 seconds...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          updateRes = await db.query(
+            `UPDATE doctor_prospects 
+             SET 
+               phone = COALESCE($1, phone),
+               work_phone = COALESCE($2, work_phone),
+               updated_at = CURRENT_TIMESTAMP
+             WHERE apollo_id = $3
+             RETURNING *;`,
+            [mobilePhone, workPhone, apolloId]
+          );
+        }
+
+        if (updateRes.rows && updateRes.rows.length > 0) {
+          this.logger.log(`[Apollo Webhook] Successfully updated phone numbers for prospect ${apolloId}. Mobile: ${mobilePhone}, Work Direct: ${workPhone}`);
+        } else {
+          this.logger.warn(`[Apollo Webhook] Prospect with apolloId ${apolloId} not found in database even after retry`);
+        }
+      } catch (err: any) {
+        this.logger.error(`[Apollo Webhook] Failed to update phone for prospect ${apolloId}: ${err.message}`);
+      }
+    }
+
+    return { success: true };
+  }
+
   async getSavedProspects(limit: number = 100) {
     const res = await db.query(
       `SELECT * FROM doctor_prospects ORDER BY created_at DESC LIMIT $1`,
@@ -418,22 +464,14 @@ export class WebinarCampaignService implements OnModuleInit {
     };
 
     return res.rows.map((row: any) => {
-      let phone = row.phone;
-      let email = row.email;
-      if (!phone || phone.includes('Bulk Match Required')) {
-        phone = phoneMap[row.apollo_id] || '+1 (555) 019-8821';
-      }
-      if (!email || email.includes('Bulk Match Required') || email.includes('..') || email.includes('@medical-verified.org') || row.apollo_id === '66d7f2c85b1234567890abd0') {
-        email = 'ishadubey343@gmail.com';
-      }
       const rawDate = row.created_at || row.createdAt || row.updated_at;
       const validCreatedAt = rawDate ? (typeof rawDate === 'string' ? rawDate : new Date(rawDate).toISOString()) : new Date().toISOString();
       return {
         ...row,
         id: row.apollo_id || row.id,
-        fullName: row.full_name || row.fullName || 'Dr. David Wiebe, MD',
-        phone,
-        email,
+        fullName: row.full_name || row.fullName || 'Physician',
+        phone: row.phone || '',
+        email: row.email || '',
         createdAt: validCreatedAt,
         created_at: validCreatedAt,
         status: ['sent', 'interested', 'not_interested', 'needs_call'].includes(row.stage) ? row.stage : 'ai_copy_ready',
@@ -479,26 +517,9 @@ export class WebinarCampaignService implements OnModuleInit {
       let organization = doc?.organization;
       let apolloId = doc?.apollo_id || id;
 
-      if (!doc || !email || email.includes('Bulk Match Required')) {
-        const foundMock = mockProfilesData?.find((m: any) => m.id === id || m.apolloId === id || m.apollo_id === id);
-        if (foundMock) {
-          fullName = (foundMock as any).fullName || (foundMock as any).full_name || (foundMock as any).name;
-          organization = foundMock.organization;
-          apolloId = (foundMock as any).id || (foundMock as any).apolloId || (foundMock as any).apollo_id || id;
-          const cleanName = (fullName || 'physician').replace(/^dr\.?\s+/i, '').replace(/,\s*(md|dmd|do|phd).*$/i, '').trim();
-          const emailSlug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '');
-          email = foundMock.email && !foundMock.email.includes('Bulk Match Required') ? foundMock.email : 'ishadubey343@gmail.com';
-        } else if (!email) {
-          email = 'ishadubey343@gmail.com';
-        }
-      }
-
       if (!email || email.includes('Bulk Match Required') || email.includes('..')) {
-        email = 'ishadubey343@gmail.com';
-      }
-
-      if (apolloId === '66d7f2c85b1234567890abd0' || id === '66d7f2c85b1234567890abd0' || fullName?.toLowerCase().includes('rostova')) {
-        email = 'ishadubey343@gmail.com';
+        failedProspects.push({ id, reason: 'No valid email address found for this prospect.' });
+        continue;
       }
 
       const subject = customSubject || `Invitation: Exclusive Real Estate & Wealth Webinar for Physicians`;
