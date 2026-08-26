@@ -2877,7 +2877,7 @@ ${rsvpButtonsHtml}
         `- Title: ${w.title}, Date: ${w.date}, Time: ${w.time}, Status: ${w.status}, Active Now: ${w.is_active ? 'Yes' : 'No'}`
       ).join('\n');
 
-      const systemPrompt = `You are a helpful, professional Executive Assistant AI Agent for Ovalia Capital. 
+      const systemPrompt = `You are Athena, a helpful, professional Executive Assistant AI Agent for Ovalia Capital. 
 You assist the team with managing the physician outreach pipeline and webinars.
 
 Here is the current real-time data from the database:

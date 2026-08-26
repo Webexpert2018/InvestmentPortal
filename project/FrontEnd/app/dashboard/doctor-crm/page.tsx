@@ -46,6 +46,43 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api/client';
 
+// const AthenaIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+//   <svg 
+//     viewBox="0 0 24 24" 
+//     fill="none" 
+//     stroke="currentColor" 
+//     strokeWidth="2" 
+//     strokeLinecap="round" 
+//     strokeLinejoin="round" 
+//     className={className}
+//   >
+//     {/* Simple girl outline */}
+//     <circle cx="12" cy="8" r="4" />
+//     <path d="M8 8c0-3.5 2-5 4-5s4 1.5 4 5" />
+//     <circle cx="16.5" cy="5.5" r="1.5" fill="currentColor" />
+//     <path d="M6 20a6 6 0 0 1 12 0" />
+//   </svg>
+// );
+
+const AthenaIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    {/* Professional girl avatar */}
+    <circle cx="12" cy="8" r="4" />
+    <path d="M8 6.5C8 3.5 9.8 2 12 2s4 1.5 4 4.5" />
+    <path d="M8.2 7c-.9 2-1.2 4.5-.7 7.5" />
+    <path d="M15.8 7c.9 2 1.2 4.5.7 7.5" />
+    <path d="M6 20a6 6 0 0 1 12 0" />
+  </svg>
+);
+
 interface CrmDoctor {
   id: string;
   fullName: string;
@@ -107,7 +144,7 @@ export default function DoctorCrmPage() {
   const [agentMessages, setAgentMessages] = useState<Array<{ sender: 'user' | 'agent'; text: string; timestamp: string }>>([
     {
       sender: 'agent',
-      text: 'Hello! I am your Executive Assistant AI Agent. Ask me anything about your physician pipeline or scheduled webinars!',
+      text: 'Hello! I am Athena, your Executive Assistant AI Agent. Ask me anything about your physician pipeline or scheduled webinars!',
       timestamp: 'Just now'
     }
   ]);
@@ -1015,20 +1052,20 @@ export default function DoctorCrmPage() {
           </div>
         )}
 
-        {/* Collapsible & Expandable Floating OpenAI Executive Assistant Widget */}
+        {/* Collapsible & Expandable Floating OpenAI Athena Widget */}
         {!isAgentOpen ? (
           /* Collapsed Pill Button in Bottom Right */
           <button
             onClick={() => setIsAgentOpen(true)}
             className="fixed right-6 bottom-6 z-40 bg-[#1F1F1F] hover:bg-[#2D2D2D] text-white p-3.5 px-5 rounded-full shadow-2xl border border-gray-700 flex items-center gap-3 transition-all transform hover:scale-105 group cursor-pointer"
-            title="Open Executive Assistant AI Agent"
+            title="Open Athena AI Agent"
           >
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] font-bold shadow-md shrink-0">
-              <Bot className="w-5 h-5" />
+              <AthenaIcon className="w-5 h-5 text-[#1F1F1F]" />
             </div>
             <div className="text-left pr-1">
               <div className="text-[13px] font-bold text-white flex items-center gap-1.5 leading-tight">
-                Executive Assistant
+                Athena
                 <span className="w-2 h-2 rounded-full bg-[#FFC63F] animate-pulse" />
               </div>
               <div className="text-[11px] text-gray-400">Ask AI Agent</div>
@@ -1044,11 +1081,11 @@ export default function DoctorCrmPage() {
             <div className="p-4 bg-[#181818] border-b border-gray-800 flex items-center justify-between gap-2 shrink-0">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] font-bold shadow-md shrink-0">
-                  <Bot className="w-5 h-5" />
+                  <AthenaIcon className="w-5 h-5 text-[#1F1F1F]" />
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-goudy text-[16px] font-bold text-white flex items-center gap-2 flex-wrap leading-snug">
-                    Executive Assistant
+                    Athena
                     <span className="text-[9px] font-bold uppercase tracking-wider bg-[#FFC63F]/20 text-[#FFC63F] px-2 py-0.5 rounded-full border border-[#FFC63F]/40">
                       RAG Engine
                     </span>
@@ -1060,7 +1097,7 @@ export default function DoctorCrmPage() {
                 <button
                   onClick={() => setAgentMessages([{
                     sender: 'agent',
-                    text: 'Hello! I am your Executive Assistant AI Agent. Ask me anything about your physician pipeline or scheduled webinars!',
+                    text: 'Hello! I am Athena, your Executive Assistant AI Agent. Ask me anything about your physician pipeline or scheduled webinars!',
                     timestamp: 'Just now'
                   }])}
                   className="text-[11px] text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
