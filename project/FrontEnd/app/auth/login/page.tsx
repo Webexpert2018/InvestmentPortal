@@ -65,7 +65,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-[#0a192f]">
+    <div className="relative min-h-screen flex flex-col justify-between p-4 sm:p-6 overflow-x-hidden bg-[#0a192f]">
       {/* 🔹 Background Image (priority preloaded) */}
       <Image
         src="/images/login-bg.jpg"
@@ -74,94 +74,127 @@ function LoginForm() {
         priority
         className="object-cover object-center z-0"
       />
-      <div className="relative z-10 w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
-        <div className="flex justify-center mb-3 sm:mb-4">
-          <a href="/" className="inline-block">
-            <Image
-              src="/images/logo.png"
-              alt="Logo"
-              width={132}
-              height={132}
-              priority
-              className="logo-container object-contain"
-            />
-          </a>
-        </div>
 
-        <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
-          {title}
-        </h2>
-        <p className="mt-1 text-center text-md sm:text-xl">
-          {subtitle}
-        </p>
-
-        <form onSubmit={handleSubmit} className="mt-6 sm:space-y-5 space-y-4">
-          <div>
-            <label className="block font-helvetica font-medium text-sm sm:text-md text-[#4B4B4B] mb-1">Email</label>
-            <input
-              type="email"
-              placeholder="Enter email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-          </div>
-
-          <div>
-            <label className="block font-helvetica font-medium text-sm sm:text-md text-[#4B4B4B] mb-1">Password</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-3 flex items-center text-gray-400"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-
-          {error && (
-            <div className="text-sm text-red-600 text-center">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full mt-6 flex justify-center items-center rounded-full bg-yellow-400 py-2.5 text-sm font-medium text-gray-900 hover:bg-yellow-500 transition"
-          >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {loading ? 'Logging in...' : 'Log In'}
-          </button>
-        </form>
-
-        <div className="mt-4 text-center">
+      {/* Top Header outside card */}
+      <header className="relative z-20 w-full flex justify-center lg:justify-start items-center">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
-            href={`/auth/forgot-password?flow=${searchParams.get('flow') || 'investor'}`}
-            className="block text-center font-goudy text-md sm:text-lg"
+            href="/auth/login?flow=investor"
+            className={`py-2 px-3 sm:px-4 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 shadow-md ${
+              flow === 'investor'
+                ? 'bg-yellow-400 text-gray-900 border border-yellow-400'
+                : 'bg-white/90 text-gray-800 hover:bg-white border border-gray-300 backdrop-blur-sm'
+            }`}
           >
-            Forgot Password?
+            Investor Login
+          </Link>
+          <Link
+            href="/auth/login?flow=admin"
+            className={`py-2 px-3 sm:px-4 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 shadow-md ${
+              flow === 'admin'
+                ? 'bg-yellow-400 text-gray-900 border border-yellow-400'
+                : 'bg-white/90 text-gray-800 hover:bg-white border border-gray-300 backdrop-blur-sm'
+            }`}
+          >
+            Admin Login
           </Link>
         </div>
-        <div className="mt-4 text-center font-goudy text-md sm:text-lg">
-          <span className="mr-1">Don't have an account? </span>
-          <Link href={signupHref} className="font-medium text-yellow-600 hover:underline">
-            Sign up
-          </Link>
+      </header>
+
+      {/* Centered Login Card Container */}
+      <main className="relative z-10 flex-1 flex items-center justify-center py-6">
+        <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <a href="/" className="inline-block">
+              <Image
+                src="/images/logo.png"
+                alt="Logo"
+                width={132}
+                height={132}
+                priority
+                className="logo-container object-contain"
+              />
+            </a>
+          </div>
+
+          <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
+            {title}
+          </h2>
+          <p className="mt-1 text-center text-md sm:text-xl">
+            {subtitle}
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-6 sm:space-y-5 space-y-4">
+            <div>
+              <label className="block font-helvetica font-medium text-sm sm:text-md text-[#4B4B4B] mb-1">Email</label>
+              <input
+                type="email"
+                placeholder="Enter email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+            </div>
+
+            <div>
+              <label className="block font-helvetica font-medium text-sm sm:text-md text-[#4B4B4B] mb-1">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-400"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="text-sm text-red-600 text-center">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-6 flex justify-center items-center rounded-full bg-yellow-400 py-2.5 text-sm font-medium text-gray-900 hover:bg-yellow-500 transition"
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading ? 'Logging in...' : 'Log In'}
+            </button>
+          </form>
+
+          <div className="mt-4 text-center">
+            <Link
+              href={`/auth/forgot-password?flow=${searchParams.get('flow') || 'investor'}`}
+              className="block text-center font-goudy text-md sm:text-lg"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+          <div className="mt-4 text-center font-goudy text-md sm:text-lg">
+            <span className="mr-1">Don't have an account? </span>
+            <Link href={signupHref} className="font-medium text-yellow-600 hover:underline">
+              Sign up
+            </Link>
+          </div>
         </div>
-      </div>
+      </main>
+
+      {/* Bottom spacer for vertical balance */}
+      <div className="relative z-20 h-6 sm:h-8" />
     </div>
   );
 }
