@@ -42,6 +42,8 @@ interface Attendee {
   organization: string;
   location: string;
   email: string;
+  personalEmails?: string[];
+  workPhone?: string;
   phone: string;
   status: 'attended' | 'registered' | 'no_show' | 'accepted' | 'declined' | 'tentative';
   joinTime?: string;
@@ -1133,7 +1135,8 @@ export default function WebinarsPage() {
                             <thead>
                               <tr className="bg-[#F8F9FA] text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider border-b border-[#EBEBEB]">
                                 <th className="py-2 px-3">Physician &amp; Specialty</th>
-                                <th className="py-2 px-3">Contact Details</th>
+                                <th className="py-2 px-3">Email Info</th>
+                                <th className="py-2 px-3">Phone Info</th>
                                 <th className="py-2 px-3">Organization &amp; Location</th>
                                 <th className="py-2 px-3 text-right">RSVP Status</th>
                               </tr>
@@ -1156,16 +1159,30 @@ export default function WebinarsPage() {
                                     </div>
                                   </td>
 
-                                  {/* Contact Info */}
+                                  {/* Email Info */}
                                   <td className="py-2 px-3 text-[#4B5563]">
-                                    <div className="space-y-0.5 text-[12px]">
+                                    <div className="space-y-0.5 text-[11px] leading-normal">
                                       <div>
-                                        <a href={`mailto:${attendee.email}`} className="hover:underline text-gray-800 font-medium">
-                                          {attendee.email}
-                                        </a>
+                                        <span className="font-semibold text-gray-500 mr-1">Work:</span>
+                                        <span className="text-[#1F1F1F] font-medium">{attendee.email && attendee.email !== 'No Email' && attendee.email !== 'Email in DB' ? attendee.email : 'null'}</span>
                                       </div>
-                                      <div className="text-gray-500">
-                                        {attendee.phone}
+                                      <div>
+                                        <span className="font-semibold text-gray-500 mr-1">Pers:</span>
+                                        <span className="text-[#1F1F1F] font-medium">{attendee.personalEmails && attendee.personalEmails.length > 0 ? attendee.personalEmails[0] : 'null'}</span>
+                                      </div>
+                                    </div>
+                                  </td>
+
+                                  {/* Phone Info */}
+                                  <td className="py-2 px-3 text-[#4B5563]">
+                                    <div className="space-y-0.5 text-[11px] leading-normal">
+                                      <div>
+                                        <span className="font-semibold text-gray-500 mr-1">Work:</span>
+                                        <span className="text-[#1F1F1F] font-medium">{attendee.workPhone && attendee.workPhone !== 'N/A' ? attendee.workPhone : 'null'}</span>
+                                      </div>
+                                      <div>
+                                        <span className="font-semibold text-gray-500 mr-1">Pers:</span>
+                                        <span className="text-[#1F1F1F] font-medium">{attendee.phone && attendee.phone !== 'N/A' ? attendee.phone : 'null'}</span>
                                       </div>
                                     </div>
                                   </td>
@@ -1556,16 +1573,19 @@ export default function WebinarsPage() {
                     );
                   }
 
-                  return filtered.map((doc: any) => {
+                   return filtered.map((doc: any) => {
                     const docId = doc.apollo_id || doc.id;
                     const docEmail = (doc.email || '').toLowerCase();
+                    const personalEmails = doc.personalEmails || doc.personal_emails || [];
+                    const hasPersonalEmail = personalEmails.length > 0;
                     const isAlreadyRegistered = registeredEmails.has(docEmail) || registeredEmails.has(docId.toLowerCase());
+                    const isDisabled = isAlreadyRegistered || !hasPersonalEmail;
                     const isSelected = selectedProspectIds.includes(docId);
 
                     return (
                       <label
                         key={docId}
-                        className={`flex items-center justify-between p-2.5 transition-colors ${isAlreadyRegistered
+                        className={`flex items-center justify-between p-2.5 transition-colors ${isDisabled
                           ? 'opacity-55 cursor-not-allowed bg-gray-50/40'
                           : isSelected
                             ? 'bg-blue-50/30 cursor-pointer'
@@ -1575,10 +1595,10 @@ export default function WebinarsPage() {
                         <div className="flex items-center gap-3 min-w-0 pr-2">
                           <input
                             type="checkbox"
-                            disabled={isAlreadyRegistered}
+                            disabled={isDisabled}
                             checked={isSelected || isAlreadyRegistered}
                             onChange={(e) => {
-                              if (isAlreadyRegistered) return;
+                              if (isDisabled) return;
                               if (e.target.checked) {
                                 setSelectedProspectIds((prev) => [...prev, docId]);
                               } else {

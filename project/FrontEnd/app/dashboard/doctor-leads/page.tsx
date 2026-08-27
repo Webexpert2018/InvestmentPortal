@@ -382,6 +382,12 @@ export default function DoctorLeadsPage() {
     try {
       const availableDocs = customList || prospects;
       const targetDoc = availableDocs.find(p => p.id === docId) || availableDocs[0];
+      const personalEmails = targetDoc?.personalEmails || [];
+      if (personalEmails.length === 0) {
+        toast.error('AI sequence can only be generated when a personal email is available for this physician.');
+        setIsGeneratingSequence(false);
+        return;
+      }
       const res = await apiClient.generateDoctorSequence({
         prospectId: docId,
         mockDoctorData: targetDoc
@@ -406,6 +412,17 @@ export default function DoctorLeadsPage() {
     }
     if (selectedIds.length === 0) {
       toast.info('Please select at least one doctor lead from the database table below.');
+      return;
+    }
+
+    // Validate that all selected doctors have personal emails
+    const docsWithoutPersonalEmails = selectedIds
+      .map(id => prospects.find(p => p.id === id))
+      .filter(p => !p?.personalEmails || p.personalEmails.length === 0);
+
+    if (docsWithoutPersonalEmails.length > 0) {
+      const names = docsWithoutPersonalEmails.map(p => p?.fullName || 'Doctor').join(', ');
+      toast.error(`Campaign cannot be configured because the following doctor(s) do not have a personal email: ${names}`);
       return;
     }
 

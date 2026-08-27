@@ -584,7 +584,7 @@ export class WebinarCampaignService implements OnModuleInit {
 
         for (let i = 0; i < updatedSeq.length; i++) {
           const item = updatedSeq[i];
-          if (item.status === 'scheduled') {
+          if (item && item.status === 'scheduled') {
             const schedDate = item.isoDate ? new Date(item.isoDate) : null;
             this.logger.log(`Checking ${row.full_name} Day ${item.day}: Scheduled = ${item.scheduledDate} (ISO: ${item.isoDate}), Current = ${now.toISOString()}`);
             if (!schedDate || schedDate <= now) {
@@ -997,6 +997,10 @@ export class WebinarCampaignService implements OnModuleInit {
         );
         if (res.rows.length > 0) {
           doc = res.rows[0];
+          const personalEmails = doc.personal_emails || [];
+          if (personalEmails.length === 0) {
+            throw new HttpException('AI sequence can only be generated when a personal email is available for this physician.', HttpStatus.BAD_REQUEST);
+          }
           if (doc.ai_sequence && Array.isArray(doc.ai_sequence) && doc.ai_sequence.length > 0) {
             this.logger.log(`Loaded saved 5-day AI sequence from database for doctor ${doc.full_name}`);
             return {
@@ -1014,18 +1018,24 @@ export class WebinarCampaignService implements OnModuleInit {
             };
           }
         }
-      } catch (err) { }
+      } catch (err) {
+        if (err instanceof HttpException) throw err;
+      }
     }
 
     if (!doc && mockDoctorData) {
       doc = mockDoctorData;
     }
 
+    const personalEmails = doc?.personal_emails || doc?.personalEmails || [];
+    if (personalEmails.length === 0) {
+      throw new HttpException('AI sequence can only be generated when a personal email is available for this physician.', HttpStatus.BAD_REQUEST);
+    }
+
     const fullName = doc?.full_name || doc?.fullName || 'Dr. David Wiebe, MD';
     const specialty = doc?.specialty || 'Orthopedic Surgery';
     const organization = doc?.organization || 'Austin Spine & Joint Surgery Center';
     const location = doc?.location || 'Austin, TX';
-    const personalEmails = doc?.personal_emails || doc?.personalEmails || [];
     const email = doc?.email || (personalEmails.length > 0 ? personalEmails[0] : null) || 'dwiebe@medical-verified.org';
 
     const geminiKey = process.env.Gemini_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
@@ -1691,7 +1701,7 @@ ${rsvpButtonsHtml}
         const attendeesRes = await db.query(
           `SELECT wa.status, wa.first_joined_at as "joinTime", wa.total_duration_minutes as duration,
                   dp.apollo_id as id, dp.full_name as "fullName", dp.specialty, dp.organization, 
-                  dp.location, dp.email, dp.phone
+                  dp.location, dp.email, dp.phone, dp.personal_emails, dp.work_phone
            FROM webinar_attendees wa
            JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
            WHERE wa.webinar_id = $1`,
@@ -1700,6 +1710,8 @@ ${rsvpButtonsHtml}
         const rawAttendees = attendeesRes.rows;
         w.attendees = rawAttendees.map((att: any) => ({
           ...att,
+          personalEmails: att.personal_emails || [],
+          workPhone: att.work_phone || '',
           duration: att.status === 'attended' ? (att.duration ? `${att.duration} mins` : '0 mins') : 'N/A',
           joinTime: att.joinTime ? new Date(att.joinTime).toISOString() : undefined,
         }));

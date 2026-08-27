@@ -39,6 +39,7 @@ interface DoctorProspect {
   location: string;
   email: string;
   personalEmails?: string[];
+  workPhone?: string;
   phone?: string;
   status: 'pending_apollo' | 'ai_copy_ready' | 'sent' | 'interested' | 'not_interested' | 'needs_call' | 'error';
   isAlreadyEnriched?: boolean;
@@ -232,7 +233,6 @@ export default function DoctorProfilePage() {
       }
 
       const personalEmails = foundDb?.personalEmails || foundDb?.personal_emails || [];
-      const resolvedEmail = foundDb?.email || (personalEmails.length > 0 ? personalEmails[0] : null);
 
       const docObj: DoctorProspect = {
         id: foundDb?.apolloId || foundDb?.apollo_id || foundDb?.id || id,
@@ -240,9 +240,10 @@ export default function DoctorProfilePage() {
         specialty: foundDb?.specialty || MOCK_DOCTORS[id]?.specialty || 'Orthopedic Surgery',
         organization: foundDb?.organization || foundDb?.clinic || MOCK_DOCTORS[id]?.organization || 'Austin Spine & Joint Surgery Center',
         location: foundDb?.location || MOCK_DOCTORS[id]?.location || 'Austin, TX',
-        email: resolvedEmail || MOCK_DOCTORS[id]?.email || '',
+        email: foundDb?.email || (MOCK_DOCTORS[id] ? MOCK_DOCTORS[id].email : ''),
         personalEmails: personalEmails,
-        phone: foundDb?.phone || MOCK_DOCTORS[id]?.phone || '+1 (512) 555-0192',
+        workPhone: foundDb?.workPhone || foundDb?.work_phone || '',
+        phone: foundDb?.phone || (MOCK_DOCTORS[id] ? MOCK_DOCTORS[id].phone : ''),
         status: foundDb?.stage || 'ai_copy_ready',
         stage: foundDb?.stage || 'pending_outreach',
         emailStatus: foundDb?.email_status || foundDb?.emailStatus || 'verified',
@@ -465,19 +466,37 @@ export default function DoctorProfilePage() {
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-gray-100">
-                  <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Email Address</label>
-                  <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5 truncate">
-                    <Mail className="w-4 h-4 text-[#D9A11E]" />
-                    <span className="truncate">{doctor.email}</span>
+                <div className="pt-2 border-t border-gray-100 space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Work Email</label>
+                    <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5 truncate">
+                      <Mail className="w-4 h-4 text-[#D9A11E]" />
+                      <span className="truncate">{doctor.email && doctor.email !== 'No Email' && doctor.email !== 'Email in DB' ? doctor.email : 'null'}</span>
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Direct Phone</label>
-                  <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5">
-                    <Phone className="w-4 h-4 text-gray-500" />
-                    {doctor.phone || 'Unavailable'}
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Personal Email</label>
+                    <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5 truncate">
+                      <Mail className="w-4 h-4 text-[#D9A11E]" />
+                      <span className="truncate">{doctor.personalEmails && doctor.personalEmails.length > 0 ? doctor.personalEmails[0] : 'null'}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Work Phone</label>
+                    <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5">
+                      <Phone className="w-4 h-4 text-gray-500" />
+                      <span>{doctor.workPhone && doctor.workPhone !== 'N/A' ? doctor.workPhone : 'null'}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Personal Phone</label>
+                    <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5">
+                      <Phone className="w-4 h-4 text-gray-500" />
+                      <span>{doctor.phone && doctor.phone !== 'N/A' ? doctor.phone : 'null'}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -571,7 +590,7 @@ export default function DoctorProfilePage() {
               {/* Day Tabs Bar */}
               <div className="flex items-center gap-2 border-b border-gray-200 pb-3 overflow-x-auto">
                 {[1, 2, 3, 4, 5].map((dayNum) => {
-                  const item = sequenceData?.sequence?.find((s: any) => s.day === dayNum);
+                  const item = sequenceData?.sequence?.find((s: any) => s && s.day === dayNum);
                   return (
                     <button
                       key={dayNum}
@@ -591,7 +610,7 @@ export default function DoctorProfilePage() {
               {/* Selected Day Content */}
               {sequenceData?.sequence && (
                 (() => {
-                  const activeEmail = sequenceData.sequence.find((s: any) => s.day === activeDay) || sequenceData.sequence[0];
+                  const activeEmail = sequenceData.sequence.find((s: any) => s && s.day === activeDay) || sequenceData.sequence.find((s: any) => s);
                   if (!activeEmail) return null;
 
                   return (
@@ -679,27 +698,38 @@ export default function DoctorProfilePage() {
                   <div className="w-12 h-12 rounded-2xl bg-[#FFC63F]/20 text-[#D9A11E] flex items-center justify-center mx-auto">
                     <Sparkles className="w-6 h-6" />
                   </div>
-                  <h4 className="font-bold text-[16px] text-[#1F1F1F]">No Saved Campaign Copy Yet</h4>
-                  <p className="text-[13px] text-gray-600 max-w-md mx-auto">
-                    The 5-day email campaign sequence for <strong>{doctor.fullName}</strong> has not been generated yet. You can generate it right now using the button below.
-                  </p>
-                  <button
-                    onClick={handleGenerateSequence}
-                    disabled={isGenerating}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] font-bold text-[13px] transition-all shadow-sm mt-2 cursor-pointer disabled:opacity-50"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
-                        <span>Generating Sequence...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 text-[#1F1F1F]" />
-                        <span>Generate 5-Day Email Campaign</span>
-                      </>
-                    )}
-                  </button>
+                  {!doctor.personalEmails || doctor.personalEmails.length === 0 ? (
+                    <>
+                      <h4 className="font-bold text-[16px] text-[#1F1F1F]">No Personal Email Found</h4>
+                      <p className="text-[13px] text-gray-600 max-w-md mx-auto">
+                        AI sequence cannot be generated because this physician does not have a personal email address.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="font-bold text-[16px] text-[#1F1F1F]">No Saved Campaign Copy Yet</h4>
+                      <p className="text-[13px] text-gray-600 max-w-md mx-auto">
+                        The 5-day email campaign sequence for <strong>{doctor.fullName}</strong> has not been generated yet. You can generate it right now using the button below.
+                      </p>
+                      <button
+                        onClick={handleGenerateSequence}
+                        disabled={isGenerating}
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] font-bold text-[13px] transition-all shadow-sm mt-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
+                            <span>Generating Sequence...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4 text-[#1F1F1F]" />
+                            <span>Generate 5-Day Email Campaign</span>
+                          </>
+                        )}
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
