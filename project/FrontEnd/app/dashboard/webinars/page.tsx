@@ -233,7 +233,7 @@ export default function WebinarsPage() {
       }
 
       const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
-      
+
       // Get current date/time in America/New_York
       const nowNewYorkStr = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
       const nowNewYork = new Date(nowNewYorkStr);
@@ -262,7 +262,7 @@ export default function WebinarsPage() {
           status: getWebinarDynamicStatus(w.date, w.time, w.duration),
         }));
         setWebinars(formattedWebinars);
-        
+
         // Only set default expansion on first load
         if (formattedWebinars.length > 0) {
           setExpandedWebinarIds((prev) => {
@@ -1538,11 +1538,13 @@ export default function WebinarsPage() {
                   const filtered = prospectsList.filter((p: any) => {
                     if (!inviteSearchQuery.trim()) return true;
                     const q = inviteSearchQuery.toLowerCase();
+                    const personalEmails = p.personalEmails || p.personal_emails || [];
                     return (
                       (p.full_name || p.fullName || '').toLowerCase().includes(q) ||
                       (p.specialty || '').toLowerCase().includes(q) ||
                       (p.organization || '').toLowerCase().includes(q) ||
-                      (p.email || '').toLowerCase().includes(q)
+                      (p.email || '').toLowerCase().includes(q) ||
+                      personalEmails.some((email: string) => email.toLowerCase().includes(q))
                     );
                   });
 
@@ -1596,12 +1598,17 @@ export default function WebinarsPage() {
                             </div>
                             <div className="text-[11.5px] text-gray-500 truncate mt-0.5">
                               <span>{doc.organization || 'Private Practice'}</span>
-                              {doc.email && (
+                              {doc.email ? (
                                 <>
                                   <span className="mx-1.5 text-gray-300">•</span>
-                                  <span className="text-gray-400">{doc.email}</span>
+                                  <span className="text-gray-400">Work: {doc.email}</span>
                                 </>
-                              )}
+                              ) : doc.personalEmails && doc.personalEmails.length > 0 ? (
+                                <>
+                                  <span className="mx-1.5 text-gray-300">•</span>
+                                  <span className="text-gray-400">Pers: {doc.personalEmails[0]}</span>
+                                </>
+                              ) : null}
                             </div>
                           </div>
                         </div>
