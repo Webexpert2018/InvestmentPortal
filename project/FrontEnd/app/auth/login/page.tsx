@@ -76,29 +76,35 @@ function LoginForm() {
       />
 
       {/* Top Header outside card */}
-      <header className="relative z-20 w-full flex justify-center lg:justify-start items-center">
-        <div className="flex items-center gap-2 sm:gap-3">
+      <header className="relative z-20 w-full flex flex-col min-[340px]:flex-row justify-between items-stretch min-[340px]:items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 w-full min-[340px]:w-auto">
           <Link
             href="/auth/login?flow=investor"
-            className={`py-2 px-3 sm:px-4 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 shadow-md ${
-              flow === 'investor'
-                ? 'bg-yellow-400 text-gray-900 border border-yellow-400'
-                : 'bg-white/90 text-gray-800 hover:bg-white border border-gray-300 backdrop-blur-sm'
-            }`}
+            className={`flex-1 min-[340px]:flex-none text-center py-2 px-2 sm:px-4 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 shadow-md whitespace-nowrap ${flow === 'investor'
+              ? 'bg-yellow-400 text-gray-900 border border-yellow-400'
+              : 'bg-white/90 text-gray-800 hover:bg-white border border-gray-300 backdrop-blur-sm'
+              }`}
           >
             Investor Login
           </Link>
           <Link
             href="/auth/login?flow=admin"
-            className={`py-2 px-3 sm:px-4 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 shadow-md ${
-              flow === 'admin'
-                ? 'bg-yellow-400 text-gray-900 border border-yellow-400'
-                : 'bg-white/90 text-gray-800 hover:bg-white border border-gray-300 backdrop-blur-sm'
-            }`}
+            className={`flex-1 min-[340px]:flex-none text-center py-2 px-2 sm:px-4 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 shadow-md whitespace-nowrap ${flow === 'admin'
+              ? 'bg-yellow-400 text-gray-900 border border-yellow-400'
+              : 'bg-white/90 text-gray-800 hover:bg-white border border-gray-300 backdrop-blur-sm'
+              }`}
           >
             Admin Login
           </Link>
         </div>
+        <a
+          href="https://aetrust.aet.app/auth/login"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full min-[340px]:w-auto text-center py-2 px-2.5 sm:px-4 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 shadow-md bg-yellow-400 text-gray-900 border border-yellow-400 hover:bg-yellow-500 whitespace-nowrap"
+        >
+          Go to IRA Portal
+        </a>
       </header>
 
       {/* Centered Login Card Container */}
