@@ -29,6 +29,7 @@ export default function DocumentVaultPage() {
   const [year, setYear] = useState('all');
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewFilter, setViewFilter] = useState<'All' | 'Real Estate Tax' | 'Real Estate Signed Docs'>('All');
 
   const pageSize = 8;
 
@@ -142,10 +143,30 @@ export default function DocumentVaultPage() {
             </p>
           </div>
 
-
+          <div className="flex bg-[#F5F5F5] p-1 rounded-full border border-gray-100">
+                <button
+                  onClick={() => setViewFilter('All')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'All' ? 'bg-[#FFF4CE] text-[#8E6300] shadow-sm ring-1 ring-[#FFE270]' : 'text-[#8E8E93] hover:text-[#1F1F1F]'}`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setViewFilter('Real Estate Tax')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'Real Estate Tax' ? 'bg-[#FFF4CE] text-[#8E6300] shadow-sm ring-1 ring-[#FFE270]' : 'text-[#8E8E93] hover:text-[#1F1F1F]'}`}
+                >
+                  Real Estate Tax
+                </button>
+                <button
+                  onClick={() => setViewFilter('Real Estate Signed Docs')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'Real Estate Signed Docs' ? 'bg-[#FFF4CE] text-[#8E6300] shadow-sm ring-1 ring-[#FFE270]' : 'text-[#8E8E93] hover:text-[#1F1F1F]'}`}
+                >
+                  Real Estate Signed Docs
+                </button>
+          </div>
         </div>
 
-        <div className="mt-4 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm">
+        {viewFilter === 'All' && (
+          <div className="mt-4 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm">
           <div className="flex flex-wrap items-center gap-3">
             <label className="relative block w-full sm:max-w-[360px]">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A7ABB2]" />
@@ -298,40 +319,116 @@ export default function DocumentVaultPage() {
             </>
           )}
         </div>
+        )}
 
-        {/* Legacy Platform Documents Section */}
-        {legacyDocs.length > 0 && (
+        {/* Legacy Tax Documents Section */}
+        {(viewFilter === 'All' || viewFilter === 'Real Estate Tax') && legacyDocs.filter(d => d.category === 'Tax Documents' || d.category === 'Tax Document').length > 0 && (
           <div className="mt-8 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm space-y-6">
             <div className="flex items-center justify-between border-b border-gray-100 pb-4">
               <div>
-                <h2 className="font-goudy font-bold text-lg md:text-xl text-[#1F1F1F]">Legacy Platform Documents</h2>
-                <p className="text-xs text-[#8E8E93] mt-0.5">Historical documents imported from the previous investor portal</p>
+                <h2 className="font-goudy font-bold text-lg md:text-xl text-[#1F1F1F]">Real Estate Tax Documents</h2>
+                <p className="text-xs text-[#8E8E93] mt-0.5">Historical tax documents and K-1s imported from the previous investor portal</p>
               </div>
               <span className="text-xs bg-amber-50 text-amber-700 font-bold px-3 py-1 rounded-full border border-amber-200">
-                {legacyDocs.length} Legacy File(s)
+                {legacyDocs.filter(d => d.category === 'Tax Documents' || d.category === 'Tax Document').length} File(s)
               </span>
             </div>
 
-            <div className="overflow-x-auto pb-20 custom-scrollbar">
-              <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
+            <div className="overflow-x-auto pb-4 custom-scrollbar">
+              <table className="w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
                 <thead>
                   <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
                     <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
-                    <th className="px-3 py-3">Category</th>
-                    <th className="px-3 py-3">Uploaded Date</th>
-                    <th className="rounded-r-[6px] px-3 py-3 text-center">Action</th>
+                    <th className="rounded-r-[6px] px-3 py-3 text-center w-[80px]">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {legacyDocs.map((row) => (
+                  {legacyDocs.filter(d => d.category === 'Tax Documents' || d.category === 'Tax Document').map((row) => (
                     <tr
                       key={row.id}
                       onClick={() => router.push(`/dashboard/document-vault/${row.id}`)}
                       className="border-b border-[#F1F1F1] hover:bg-gray-50 cursor-pointer transition-colors"
                     >
                       <td className="px-3 py-4">{row.documentName}</td>
-                      <td className="px-3 py-4">{row.category}</td>
-                      <td className="px-3 py-4">{row.uploadedDate}</td>
+                      <td className="relative px-3 py-4 text-center">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuId((prev) => (prev === row.id ? null : row.id));
+                          }}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5]"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </button>
+
+                        {activeMenuId === row.id && (
+                          <>
+                            <button
+                              type="button"
+                              aria-label="Close menu"
+                              className="fixed inset-0 z-10"
+                              onClick={() => setActiveMenuId(null)}
+                            />
+                            <div className="absolute right-6 top-11 z-20 w-[122px] rounded-[4px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)]">
+                              <Link
+                                href={`/dashboard/document-vault/${row.id}`}
+                                onClick={() => setActiveMenuId(null)}
+                                className="block px-3 py-2 text-[12px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
+                              >
+                                View Document
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleDownload(row.fileUrl, row.documentName);
+                                  setActiveMenuId(null);
+                                }}
+                                className="block w-full px-3 py-2 text-left text-[12px] text-[#4B4B4B] hover:bg-[#F8F8F8]"
+                              >
+                                Download
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Legacy Signed Documents Section */}
+        {(viewFilter === 'All' || viewFilter === 'Real Estate Signed Docs') && legacyDocs.filter(d => d.category === 'Signed Documents' || d.category === 'Signed Document').length > 0 && (
+          <div className="mt-8 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm space-y-6">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+              <div>
+                <h2 className="font-goudy font-bold text-lg md:text-xl text-[#1F1F1F]">Real Estate Signed Documents</h2>
+                <p className="text-xs text-[#8E8E93] mt-0.5">Signed agreements and contracts imported from the previous investor portal</p>
+              </div>
+              <span className="text-xs bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-full border border-blue-200">
+                {legacyDocs.filter(d => d.category === 'Signed Documents' || d.category === 'Signed Document').length} File(s)
+              </span>
+            </div>
+
+            <div className="overflow-x-auto pb-4 custom-scrollbar">
+              <table className="w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B]">
+                <thead>
+                  <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
+                    <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
+                    <th className="rounded-r-[6px] px-3 py-3 text-center w-[80px]">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {legacyDocs.filter(d => d.category === 'Signed Documents' || d.category === 'Signed Document').map((row) => (
+                    <tr
+                      key={row.id}
+                      onClick={() => router.push(`/dashboard/document-vault/${row.id}`)}
+                      className="border-b border-[#F1F1F1] hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <td className="px-3 py-4">{row.documentName}</td>
                       <td className="relative px-3 py-4 text-center">
                         <button
                           type="button"

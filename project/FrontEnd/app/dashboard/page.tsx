@@ -630,13 +630,13 @@ export default function DashboardPage() {
           <div className="space-y-4 mb-4">
             {/* BWell Fund Section */}
             <div>
-              <h2 className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest font-sans">
+              <h2 className="text-xs font-bold mb-2 uppercase tracking-widest font-sans" style={{ color: '#C5993E' }}>
                 BWell Fund
               </h2>
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 {[
                   {
-                    label: 'Total Invested',
+                    label: 'Total BWell Investments',
                     value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.totalInvested),
                     helper: `${investorStats.ytdReturn >= 0 ? '↑' : '↓'} ${Math.abs(investorStats.ytdReturn).toFixed(2)}% total return`,
                   },
@@ -679,25 +679,25 @@ export default function DashboardPage() {
             {/* Real Estate Funds Section */}
             {investorStats.hasLegacyInvestments && (
               <div>
-                <h2 className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-widest font-sans">
+                <h2 className="text-xs font-bold mb-2 uppercase tracking-widest font-sans" style={{ color: '#2A6CB5' }}>
                   Real Estate Funds
                 </h2>
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                   {[
                     {
-                      label: 'Total Invested (Legacy)',
+                      label: 'Total Real Estate Investments',
                       value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.legacyTotalInvested || 0),
-                      helper: 'From legacy investments',
+                      helper: '',
                     },
                     {
                       label: 'Total Shares',
                       value: (investorStats.legacyTotalShares || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                      helper: 'From legacy investments',
+                      helper: '',
                     },
                     {
                       label: 'Total Distributions',
                       value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.legacyTotalDistributed || 0),
-                      helper: 'Distributed to date',
+                      helper: '',
                     }
                   ].map((card) => (
                     <div

@@ -51,12 +51,12 @@ export default function TaxVaultPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('All');
   const [selectedYear, setSelectedYear] = useState('All');
-  const [legacyFilter, setLegacyFilter] = useState<'All' | 'Tax Documents' | 'Signed Documents'>('All');
   const [isTypeOpen, setIsTypeOpen] = useState(false);
   const [isYearOpen, setIsYearOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isDeleting, setIsDeleting] = useState(false);
   const [docToDelete, setDocToDelete] = useState<TaxVaultRow | null>(null);
+  const [viewFilter, setViewFilter] = useState<'All' | 'Real Estate Tax' | 'Real Estate Signed Docs'>('All');
 
   useEffect(() => {
     if (authLoading) return;
@@ -162,16 +162,6 @@ export default function TaxVaultPage() {
 
   const standardDocuments = documents.filter(d => !d.isLegacy);
   const legacyDocuments = documents.filter(d => d.isLegacy);
-  const filteredLegacyDocuments = legacyDocuments.filter((doc) => {
-    if (legacyFilter === 'All') return true;
-    if (legacyFilter === 'Tax Documents') {
-      return doc.documentType === 'Tax Documents' || doc.documentType === 'Tax Document';
-    }
-    if (legacyFilter === 'Signed Documents') {
-      return doc.documentType === 'Signed Documents' || doc.documentType === 'Signed Document';
-    }
-    return true;
-  });
 
   const uniqueTypes = Array.from(new Set(standardDocuments.map(d => d.documentType).filter(Boolean)));
   const documentTypes = ['All', ...uniqueTypes.sort()];
@@ -208,6 +198,27 @@ export default function TaxVaultPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
+              <div className="flex bg-[#F5F5F5] p-1 rounded-full border border-gray-100">
+                <button
+                  onClick={() => setViewFilter('All')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'All' ? 'bg-[#FFF4CE] text-[#8E6300] shadow-sm ring-1 ring-[#FFE270]' : 'text-[#8E8E93] hover:text-[#1F1F1F]'}`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setViewFilter('Real Estate Tax')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'Real Estate Tax' ? 'bg-[#FFF4CE] text-[#8E6300] shadow-sm ring-1 ring-[#FFE270]' : 'text-[#8E8E93] hover:text-[#1F1F1F]'}`}
+                >
+                  Real Estate Tax
+                </button>
+                <button
+                  onClick={() => setViewFilter('Real Estate Signed Docs')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'Real Estate Signed Docs' ? 'bg-[#FFF4CE] text-[#8E6300] shadow-sm ring-1 ring-[#FFE270]' : 'text-[#8E8E93] hover:text-[#1F1F1F]'}`}
+                >
+                  Real Estate Signed Docs
+                </button>
+              </div>
+
               {user?.role !== 'accountant' && (
                 <div className="hidden lg:flex items-center gap-4 text-xs">
                   <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
@@ -229,281 +240,256 @@ export default function TaxVaultPage() {
             </div>
           </div>
 
-          <div className="mt-6 rounded-xl bg-white p-4 sm:p-6 shadow-sm border border-[#F0F0F0]">
-            <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-6">
-              <div className="relative w-full lg:w-[320px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
-                <input
-                  type="text"
-                  placeholder="Find something here..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] font-helvetica border border-transparent focus:border-[#FFC63F] transition-all"
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                <div className="relative flex-1 sm:flex-none">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsTypeOpen(!isTypeOpen);
-                      setIsYearOpen(false);
+          {viewFilter === 'All' && (
+            <div className="mt-6 rounded-xl bg-white p-4 sm:p-6 shadow-sm border border-[#F0F0F0]">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-6">
+                <div className="relative w-full lg:w-[320px]">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
+                  <input
+                    type="text"
+                    placeholder="Find something here..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
                     }}
-                    className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
-                  >
-                    {selectedType === 'All' ? 'Document Type' : selectedType}
-                    <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${isTypeOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {isTypeOpen && (
-                    <>
-                      <div className="fixed inset-0 z-10" onClick={() => setIsTypeOpen(false)} />
-                      <div className="absolute top-full left-0 mt-2 z-20 w-full sm:w-48 rounded-xl border border-[#EFEFEF] bg-white py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
-                        {documentTypes.map(type => (
-                          <button
-                            key={type}
-                            onClick={() => {
-                              setSelectedType(type);
-                              setIsTypeOpen(false);
-                              setCurrentPage(1);
-                            }}
-                            className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedType === type ? 'bg-[#F5F5F5] text-[#274583] font-semibold' : 'text-[#4B4B4B] hover:bg-[#F8F8F8]'}`}
-                          >
-                            {type}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
+                    className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] font-helvetica border border-transparent focus:border-[#FFC63F] transition-all"
+                  />
                 </div>
 
-                <div className="relative flex-1 sm:flex-none">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsYearOpen(!isYearOpen);
-                      setIsTypeOpen(false);
-                    }}
-                    className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
-                  >
-                    {selectedYear === 'All' ? 'Year' : selectedYear}
-                    <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${isYearOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {isYearOpen && (
-                    <>
-                      <div className="fixed inset-0 z-10" onClick={() => setIsYearOpen(false)} />
-                      <div className="absolute top-full left-0 mt-2 z-20 w-full sm:w-32 rounded-xl border border-[#EFEFEF] bg-white py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
-                        {taxYears.map(year => (
-                          <button
-                            key={year}
-                            onClick={() => {
-                              setSelectedYear(year);
-                              setIsYearOpen(false);
-                              setCurrentPage(1);
-                            }}
-                            className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedYear === year ? 'bg-[#F5F5F5] text-[#274583] font-semibold' : 'text-[#4B4B4B] hover:bg-[#F8F8F8]'}`}
-                          >
-                            {year}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto -mx-4 sm:mx-0 custom-scrollbar">
-              <div className="min-w-[900px] sm:min-w-full inline-block align-middle px-4 sm:px-0">
-                {loading ? (
-                  <div className="flex h-32 items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-[#274583]" />
-                  </div>
-                ) : error ? (
-                  <div className="p-8 text-center text-red-500">{error}</div>
-                ) : filteredDocuments.length === 0 ? (
-                  <div className="p-8 text-center text-[#8E8E93]">No documents found matching your criteria.</div>
-                ) : (
-                  <table className="w-full border-separate border-spacing-0 text-[13px] md:text-[14px] text-[#4B4B4B]">
-                    <thead>
-                      <tr className="bg-[#FAFAFA] text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap">
-                        {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF]">Investor</th>}
-                        <th className="px-4 py-3 border-b border-[#ECEDEF]">File Name</th>
-                        <th className="px-4 py-3 border-b border-[#ECEDEF]">Document Type</th>
-                        <th className="px-4 py-3 border-b border-[#ECEDEF]">Tax Year</th>
-                        <th className="px-4 py-3 border-b border-[#ECEDEF]">Uploaded Date</th>
-                        <th className="px-4 py-3 text-right border-b border-[#ECEDEF]">Action</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {currentDocuments.map((row, index) => (
-                        <tr
-                          key={row.id}
-                          onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
-                          className="border-b border-[#F1F1F1] hover:bg-gray-50/50 cursor-pointer transition-colors"
-                        >
-                          {user?.role !== 'investor' && (
-                            <td className="px-4 py-4 border-b border-[#F5F5F5]">
-                              <div className="flex items-center gap-3">
-                                {row.investorAvatar ? (
-                                  <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
-                                ) : (
-                                  <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[11px] font-semibold font-helvetica border border-[#E5E7EB]">
-                                    {row.investorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                                  </div>
-                                )}
-                                <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{row.investorName}</span>
-                              </div>
-                            </td>
-                          )}
-                          <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
-                          <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.documentType}</td>
-                          <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.taxYear}</td>
-                          <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.uploadedDate}</td>
-                          <td className="relative px-4 py-4 border-b border-[#F5F5F5] text-right">
+                <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                  <div className="relative flex-1 sm:flex-none">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsTypeOpen(!isTypeOpen);
+                        setIsYearOpen(false);
+                      }}
+                      className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+                    >
+                      {selectedType === 'All' ? 'Document Type' : selectedType}
+                      <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${isTypeOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {isTypeOpen && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setIsTypeOpen(false)} />
+                        <div className="absolute top-full left-0 mt-2 z-20 w-full sm:w-48 rounded-xl border border-[#EFEFEF] bg-white py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
+                          {documentTypes.map(type => (
                             <button
-                              type="button"
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveMenuId((prev) => (prev === row.id ? null : row.id));
+                              key={type}
+                              onClick={() => {
+                                setSelectedType(type);
+                                setIsTypeOpen(false);
+                                setCurrentPage(1);
                               }}
+                              className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedType === type ? 'bg-[#F5F5F5] text-[#274583] font-semibold' : 'text-[#4B4B4B] hover:bg-[#F8F8F8]'}`}
                             >
-                              <MoreVertical className="h-4 w-4" />
+                              {type}
                             </button>
-
-                            {activeMenuId === row.id && (
-                              <>
-                                <button
-                                  type="button"
-                                  aria-label="Close menu"
-                                  className="fixed inset-0 z-10"
-                                  onClick={() => setActiveMenuId(null)}
-                                />
-                                <div className={`absolute right-6 z-20 w-[145px] rounded-[6px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100 ${
-                                  index === currentDocuments.length - 1 ? 'bottom-11' : 'top-11'
-                                }`}>
-                                  <Link
-                                    href={`/dashboard/tax-vault/details/${row.id}`}
-                                    className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
-                                    onClick={() => setActiveMenuId(null)}
-                                  >
-                                    View Document
-                                  </Link>
-                                  <button
-                                    type="button"
-                                    className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
-                                    onClick={() => handleDownload(row.id)}
-                                  >
-                                    Download
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    className="block w-full px-3 py-2 text-[13px] text-[#E05252] hover:bg-red-50 transition-colors"
-                                    onClick={() => {
-                                      setDocToDelete(row);
-                                      setActiveMenuId(null);
-                                    }}
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </div>
-
-            {!loading && !error && filteredDocuments.length > 0 && (
-              <div className="mt-8 flex flex-col items-center gap-6 border-t border-[#F5F5F5] pt-6">
-                <div className="flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
-                  >
-                    &lt; Previous
-                  </button>
-
-                  <div className="flex gap-2">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                      <button
-                        key={page}
-                        type="button"
-                        onClick={() => setCurrentPage(page)}
-                        className={`h-10 w-10 rounded-lg text-[13px] font-medium transition-colors font-helvetica ${currentPage === page ? 'bg-[#1F3B6E] text-white' : 'text-[#6B7280] hover:bg-gray-100'}`}
-                      >
-                        {page}
-                      </button>
-                    ))}
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                    className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
-                  >
-                    Next &gt;
-                  </button>
-                </div>
-
-                <div className="text-[13px] text-[#8E8E93] font-helvetica">
-                  Showing <span className="font-medium text-[#1F1F1F]">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-[#1F1F1F]">{Math.min(currentPage * itemsPerPage, filteredDocuments.length)}</span> of <span className="font-medium text-[#1F1F1F]">{filteredDocuments.length}</span> documents
+                  <div className="relative flex-1 sm:flex-none">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsYearOpen(!isYearOpen);
+                        setIsTypeOpen(false);
+                      }}
+                      className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+                    >
+                      {selectedYear === 'All' ? 'Year' : selectedYear}
+                      <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${isYearOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {isYearOpen && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setIsYearOpen(false)} />
+                        <div className="absolute top-full left-0 mt-2 z-20 w-full sm:w-32 rounded-xl border border-[#EFEFEF] bg-white py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
+                          {taxYears.map(year => (
+                            <button
+                              key={year}
+                              onClick={() => {
+                                setSelectedYear(year);
+                                setIsYearOpen(false);
+                                setCurrentPage(1);
+                              }}
+                              className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedYear === year ? 'bg-[#F5F5F5] text-[#274583] font-semibold' : 'text-[#4B4B4B] hover:bg-[#F8F8F8]'}`}
+                            >
+                              {year}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
+
+              <div className="overflow-x-auto -mx-4 sm:mx-0 custom-scrollbar">
+                <div className="min-w-[900px] sm:min-w-full inline-block align-middle px-4 sm:px-0">
+                  {loading ? (
+                    <div className="flex h-32 items-center justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-[#274583]" />
+                    </div>
+                  ) : error ? (
+                    <div className="p-8 text-center text-red-500">{error}</div>
+                  ) : filteredDocuments.length === 0 ? (
+                    <div className="p-8 text-center text-[#8E8E93]">No documents found matching your criteria.</div>
+                  ) : (
+                    <table className="w-full border-separate border-spacing-0 text-[13px] md:text-[14px] text-[#4B4B4B]">
+                      <thead>
+                        <tr className="bg-[#FAFAFA] text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap">
+                          {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF]">Investor</th>}
+                          <th className="px-4 py-3 border-b border-[#ECEDEF]">File Name</th>
+                          <th className="px-4 py-3 border-b border-[#ECEDEF]">Document Type</th>
+                          <th className="px-4 py-3 border-b border-[#ECEDEF]">Tax Year</th>
+                          <th className="px-4 py-3 border-b border-[#ECEDEF]">Uploaded Date</th>
+                          <th className="px-4 py-3 text-right border-b border-[#ECEDEF]">Action</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {currentDocuments.map((row, index) => (
+                          <tr
+                            key={row.id}
+                            onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
+                            className="border-b border-[#F1F1F1] hover:bg-gray-50/50 cursor-pointer transition-colors"
+                          >
+                            {user?.role !== 'investor' && (
+                              <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                                <div className="flex items-center gap-3">
+                                  {row.investorAvatar ? (
+                                    <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
+                                  ) : (
+                                    <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[11px] font-semibold font-helvetica border border-[#E5E7EB]">
+                                      {row.investorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                    </div>
+                                  )}
+                                  <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{row.investorName}</span>
+                                </div>
+                              </td>
+                            )}
+                            <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
+                            <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.documentType}</td>
+                            <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.taxYear}</td>
+                            <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.uploadedDate}</td>
+                            <td className="relative px-4 py-4 border-b border-[#F5F5F5] text-right">
+                              <button
+                                type="button"
+                                className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveMenuId((prev) => (prev === row.id ? null : row.id));
+                                }}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </button>
+
+                              {activeMenuId === row.id && (
+                                <>
+                                  <button
+                                    type="button"
+                                    aria-label="Close menu"
+                                    className="fixed inset-0 z-10"
+                                    onClick={() => setActiveMenuId(null)}
+                                  />
+                                  <div className={`absolute right-6 z-20 w-[145px] rounded-[6px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100 ${index === currentDocuments.length - 1 ? 'bottom-11' : 'top-11'
+                                    }`}>
+                                    <Link
+                                      href={`/dashboard/tax-vault/details/${row.id}`}
+                                      className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
+                                      onClick={() => setActiveMenuId(null)}
+                                    >
+                                      View Document
+                                    </Link>
+                                    <button
+                                      type="button"
+                                      className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
+                                      onClick={() => handleDownload(row.id)}
+                                    >
+                                      Download
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      className="block w-full px-3 py-2 text-[13px] text-[#E05252] hover:bg-red-50 transition-colors"
+                                      onClick={() => {
+                                        setDocToDelete(row);
+                                        setActiveMenuId(null);
+                                      }}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+
+              {!loading && !error && filteredDocuments.length > 0 && (
+                <div className="mt-8 flex flex-col items-center gap-6 border-t border-[#F5F5F5] pt-6">
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
+                    >
+                      &lt; Previous
+                    </button>
+
+                    <div className="flex gap-2">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                        <button
+                          key={page}
+                          type="button"
+                          onClick={() => setCurrentPage(page)}
+                          className={`h-10 w-10 rounded-lg text-[13px] font-medium transition-colors font-helvetica ${currentPage === page ? 'bg-[#1F3B6E] text-white' : 'text-[#6B7280] hover:bg-gray-100'}`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
+                    >
+                      Next &gt;
+                    </button>
+                  </div>
+
+                  <div className="text-[13px] text-[#8E8E93] font-helvetica">
+                    Showing <span className="font-medium text-[#1F1F1F]">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-[#1F1F1F]">{Math.min(currentPage * itemsPerPage, filteredDocuments.length)}</span> of <span className="font-medium text-[#1F1F1F]">{filteredDocuments.length}</span> documents
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Legacy Platform Documents Section */}
-        {legacyDocuments.length > 0 && (
+        {/* Legacy Tax Documents Section */}
+        {(viewFilter === 'All' || viewFilter === 'Real Estate Tax') && legacyDocuments.filter(d => d.documentType === 'Tax Documents' || d.documentType === 'Tax Document').length > 0 && (
           <div className="mt-8 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
               <div>
-                <h2 className="font-goudy font-bold text-lg md:text-xl text-[#1F1F1F]">Legacy Platform Documents</h2>
+                <h2 className="font-goudy font-bold text-lg md:text-xl text-[#1F1F1F]">Real Estate Tax Documents</h2>
                 <p className="text-xs text-[#8E8E93] mt-0.5">Historical tax documents and K-1s imported from the legacy portal</p>
               </div>
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Filter Controls */}
-                <div className="flex bg-[#F5F5F5] p-1 rounded-full border border-gray-100">
-                  <button
-                    type="button"
-                    onClick={() => setLegacyFilter('All')}
-                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${legacyFilter === 'All' ? 'bg-white text-[#1F1F1F] shadow-xs' : 'text-[#8E8E93] hover:text-[#1F1F1F]'}`}
-                  >
-                    All
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLegacyFilter('Tax Documents')}
-                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${legacyFilter === 'Tax Documents' ? 'bg-white text-[#1F1F1F] shadow-xs' : 'text-[#8E8E93] hover:text-[#1F1F1F]'}`}
-                  >
-                    Tax Documents
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLegacyFilter('Signed Documents')}
-                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${legacyFilter === 'Signed Documents' ? 'bg-white text-[#1F1F1F] shadow-xs' : 'text-[#8E8E93] hover:text-[#1F1F1F]'}`}
-                  >
-                    Signed Documents
-                  </button>
-                </div>
-                <span className="text-xs bg-amber-50 text-amber-700 font-bold px-3 py-1.5 rounded-full border border-amber-200 shrink-0">
-                  {filteredLegacyDocuments.length} Legacy File(s)
-                </span>
-              </div>
+              <span className="text-xs bg-amber-50 text-amber-700 font-bold px-3 py-1.5 rounded-full border border-amber-200 shrink-0">
+                {legacyDocuments.filter(d => d.documentType === 'Tax Documents' || d.documentType === 'Tax Document').length} File(s)
+              </span>
             </div>
 
             <div className="overflow-x-auto -mx-4 sm:mx-0 custom-scrollbar">
@@ -513,88 +499,167 @@ export default function TaxVaultPage() {
                     <tr className="bg-[#FAFAFA] text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap">
                       {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF]">Investor</th>}
                       <th className="px-4 py-3 border-b border-[#ECEDEF]">File Name</th>
-                      <th className="px-4 py-3 border-b border-[#ECEDEF]">Document Type</th>
-                      <th className="px-4 py-3 border-b border-[#ECEDEF]">Tax Year</th>
-                      <th className="px-4 py-3 border-b border-[#ECEDEF]">Uploaded Date</th>
                       <th className="px-4 py-3 text-right border-b border-[#ECEDEF]">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredLegacyDocuments.length === 0 ? (
-                      <tr>
-                        <td colSpan={user?.role !== 'investor' ? 6 : 5} className="px-4 py-8 text-center text-[#8E8E93] text-sm">
-                          No legacy documents found for the selected type filter.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredLegacyDocuments.map((row, index) => (
-                        <tr
-                          key={row.id}
-                          onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
-                          className="border-b border-[#F1F1F1] hover:bg-gray-50/50 cursor-pointer transition-colors"
-                        >
-                          {user?.role !== 'investor' && (
-                            <td className="px-4 py-4 border-b border-[#F5F5F5]">
-                              <div className="flex items-center gap-3">
-                                {row.investorAvatar ? (
-                                  <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
-                                ) : (
-                                  <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[11px] font-semibold font-helvetica border border-[#E5E7EB]">
-                                    {row.investorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                                  </div>
-                                )}
-                                <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{row.investorName}</span>
-                              </div>
-                            </td>
-                          )}
-                          <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
-                          <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.documentType || 'Tax Document'}</td>
-                          <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.taxYear}</td>
-                          <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.uploadedDate}</td>
-                          <td className="relative px-4 py-4 border-b border-[#F5F5F5] text-right">
-                            <button
-                              type="button"
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveMenuId((prev) => (prev === row.id ? null : row.id));
-                              }}
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </button>
+                    {legacyDocuments.filter(d => d.documentType === 'Tax Documents' || d.documentType === 'Tax Document').map((row, index, arr) => (
+                      <tr
+                        key={row.id}
+                        onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
+                        className="border-b border-[#F1F1F1] hover:bg-gray-50/50 cursor-pointer transition-colors"
+                      >
+                        {user?.role !== 'investor' && (
+                          <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                            <div className="flex items-center gap-3">
+                              {row.investorAvatar ? (
+                                <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
+                              ) : (
+                                <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[11px] font-semibold font-helvetica border border-[#E5E7EB]">
+                                  {row.investorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                </div>
+                              )}
+                              <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{row.investorName}</span>
+                            </div>
+                          </td>
+                        )}
+                        <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
+                        <td className="relative px-4 py-4 border-b border-[#F5F5F5] text-right">
+                          <button
+                            type="button"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuId((prev) => (prev === row.id ? null : row.id));
+                            }}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
 
-                            {activeMenuId === row.id && (
-                              <>
+                          {activeMenuId === row.id && (
+                            <>
+                              <button
+                                type="button"
+                                aria-label="Close menu"
+                                className="fixed inset-0 z-10"
+                                onClick={() => setActiveMenuId(null)}
+                              />
+                              <div className={`absolute right-6 z-20 w-[145px] rounded-[6px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100 ${index === arr.length - 1 ? 'bottom-11' : 'top-11'
+                                }`}>
+                                <Link
+                                  href={`/dashboard/tax-vault/details/${row.id}`}
+                                  className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
+                                  onClick={() => setActiveMenuId(null)}
+                                >
+                                  View Document
+                                </Link>
                                 <button
                                   type="button"
-                                  aria-label="Close menu"
-                                  className="fixed inset-0 z-10"
-                                  onClick={() => setActiveMenuId(null)}
-                                />
-                                <div className={`absolute right-6 z-20 w-[145px] rounded-[6px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100 ${
-                                  index === filteredLegacyDocuments.length - 1 ? 'bottom-11' : 'top-11'
-                                }`}>
-                                  <Link
-                                    href={`/dashboard/tax-vault/details/${row.id}`}
-                                    className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
-                                    onClick={() => setActiveMenuId(null)}
-                                  >
-                                    View Document
-                                  </Link>
-                                  <button
-                                    type="button"
-                                    className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
-                                    onClick={() => handleDownload(row.id)}
-                                  >
-                                    Download
-                                  </button>
+                                  className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
+                                  onClick={() => handleDownload(row.id)}
+                                >
+                                  Download
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Legacy Signed Documents Section */}
+        {(viewFilter === 'All' || viewFilter === 'Real Estate Signed Docs') && legacyDocuments.filter(d => d.documentType === 'Signed Documents' || d.documentType === 'Signed Document').length > 0 && (
+          <div className="mt-8 rounded-[10px] bg-white px-6 py-6 ring-1 ring-black/5 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+              <div>
+                <h2 className="font-goudy font-bold text-lg md:text-xl text-[#1F1F1F]">Real Estate Signed Documents</h2>
+                <p className="text-xs text-[#8E8E93] mt-0.5">Signed agreements and contracts imported from the legacy portal</p>
+              </div>
+              <span className="text-xs bg-blue-50 text-blue-700 font-bold px-3 py-1.5 rounded-full border border-blue-200 shrink-0">
+                {legacyDocuments.filter(d => d.documentType === 'Signed Documents' || d.documentType === 'Signed Document').length} File(s)
+              </span>
+            </div>
+
+            <div className="overflow-x-auto -mx-4 sm:mx-0 custom-scrollbar">
+              <div className="min-w-[900px] sm:min-w-full inline-block align-middle px-4 sm:px-0">
+                <table className="w-full border-separate border-spacing-0 text-[13px] md:text-[14px] text-[#4B4B4B]">
+                  <thead>
+                    <tr className="bg-[#FAFAFA] text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap">
+                      {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF]">Investor</th>}
+                      <th className="px-4 py-3 border-b border-[#ECEDEF]">File Name</th>
+                      <th className="px-4 py-3 text-right border-b border-[#ECEDEF]">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {legacyDocuments.filter(d => d.documentType === 'Signed Documents' || d.documentType === 'Signed Document').map((row, index, arr) => (
+                      <tr
+                        key={row.id}
+                        onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
+                        className="border-b border-[#F1F1F1] hover:bg-gray-50/50 cursor-pointer transition-colors"
+                      >
+                        {user?.role !== 'investor' && (
+                          <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                            <div className="flex items-center gap-3">
+                              {row.investorAvatar ? (
+                                <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
+                              ) : (
+                                <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[11px] font-semibold font-helvetica border border-[#E5E7EB]">
+                                  {row.investorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                                 </div>
-                              </>
-                            )}
+                              )}
+                              <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{row.investorName}</span>
+                            </div>
                           </td>
-                        </tr>
-                      ))
-                    )}
+                        )}
+                        <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
+                        <td className="relative px-4 py-4 border-b border-[#F5F5F5] text-right">
+                          <button
+                            type="button"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuId((prev) => (prev === row.id ? null : row.id));
+                            }}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+
+                          {activeMenuId === row.id && (
+                            <>
+                              <button
+                                type="button"
+                                aria-label="Close menu"
+                                className="fixed inset-0 z-10"
+                                onClick={() => setActiveMenuId(null)}
+                              />
+                              <div className={`absolute right-6 z-20 w-[145px] rounded-[6px] border border-[#EFEFEF] bg-white py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100 ${index === arr.length - 1 ? 'bottom-11' : 'top-11'
+                                }`}>
+                                <Link
+                                  href={`/dashboard/tax-vault/details/${row.id}`}
+                                  className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
+                                  onClick={() => setActiveMenuId(null)}
+                                >
+                                  View Document
+                                </Link>
+                                <button
+                                  type="button"
+                                  className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] hover:bg-[#F8F8F8] transition-colors"
+                                  onClick={() => handleDownload(row.id)}
+                                >
+                                  Download
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>

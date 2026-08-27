@@ -285,7 +285,7 @@ export default function PortfolioPage() {
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                  Total Invested
+                  Total BWell Fund Investment
                 </p>
                 <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(stats.totalInvested)}</p>
               </div>
@@ -331,25 +331,25 @@ export default function PortfolioPage() {
                 <>
                   <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                     <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                      Total Legacy Invested
+                      Total Real Estate Investment
                     </p>
                     <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(oldStats.totalInvested)}</p>
                   </div>
                   <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                     <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                      Total Legacy Distributions
+                      Total Real Estate Distributions
                     </p>
                     <p className="mt-3 text-2xl font-semibold text-[#2BB673]">{formatCurrency(oldStats.totalDistributions)}</p>
                   </div>
                   <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                     <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                      Legacy Funds
+                      Real Estate Funds
                     </p>
                     <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{oldStats.fundCount}</p>
                   </div>
                   <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
                     <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                      Total Legacy Shares
+                      Total Real Estate Shares
                     </p>
                     <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">
                       {oldStats.totalShares.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}
