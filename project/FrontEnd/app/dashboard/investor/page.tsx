@@ -683,7 +683,7 @@ export default function InvestorPage() {
                   }`}
                 >
                   <UserX className={`h-4 w-4 stroke-[2.5] ${activeTab === 'suspended' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
-                  Suspended Login Accounts ({suspendedInvestors.length})
+                  Suspended Login/IRA Accounts ({suspendedInvestors.length})
                 </button>
               </div>
             </div>
