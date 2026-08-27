@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Search, ChevronDown, X, Loader2, Send, Plus, History } from 'lucide-react';
+import { Search, ChevronDown, X, Loader2, Send, Plus, History, User, Landmark, Mail, UserX } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import Image from 'next/image';
@@ -50,18 +50,20 @@ export default function InvestorPage() {
   const [investors, setInvestors] = useState<Investor[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'active' | 'old'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'ira' | 'pending' | 'suspended'>('active');
   const [oldInvestors, setOldInvestors] = useState<OldInvestor[]>([]);
   const [loadingOld, setLoadingOld] = useState(false);
-  const [oldPage, setOldPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [kycFilter, setKycFilter] = useState('');
   const [accountTypeFilter, setAccountTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [activePage, setActivePage] = useState(1);
-  const [activeIraPage, setActiveIraPage] = useState(1);
-  const [pendingPage, setPendingPage] = useState(1);
-  const [suspendedPage, setSuspendedPage] = useState(1);
-  const [suspendedIraPage, setSuspendedIraPage] = useState(1);
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setKycFilter('');
+    setAccountTypeFilter('');
+    setStatusFilter('');
+  };
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState<string | null>(null);
@@ -75,12 +77,6 @@ export default function InvestorPage() {
   const selectedInvestor = investors.find(inv => inv.id === selectedInvestorId);
 
   useEffect(() => {
-    setActivePage(1);
-    setActiveIraPage(1);
-    setPendingPage(1);
-    setSuspendedPage(1);
-    setSuspendedIraPage(1);
-    setOldPage(1);
     setSelectedOldIds([]);
   }, [searchQuery, kycFilter, accountTypeFilter, statusFilter, viewMode]);
 
@@ -256,24 +252,22 @@ export default function InvestorPage() {
 
   const activeInvestors = filteredInvestors.filter(i =>
     (i.accountType?.toLowerCase() === 'personal' || !i.accountType) &&
-    (i.accountStatus?.toLowerCase() === 'active' || !i.accountStatus)
+    (i.accountStatus?.toLowerCase() === 'active' || !i.accountStatus) &&
+    i.status?.toLowerCase() !== 'suspended' &&
+    i.accountStatus?.toLowerCase() !== 'suspended'
   );
 
   const activeIraInvestors = filteredInvestors.filter(i =>
     i.accountType &&
     i.accountType.toLowerCase() !== 'personal' &&
-    (i.accountStatus?.toLowerCase() === 'active' || !i.accountStatus)
+    (i.accountStatus?.toLowerCase() === 'active' || !i.accountStatus) &&
+    i.status?.toLowerCase() !== 'suspended' &&
+    i.accountStatus?.toLowerCase() !== 'suspended'
   );
 
   const pendingInvestors = filteredInvestors.filter(i => i.status?.toLowerCase() === 'pending');
   const suspendedInvestors = filteredInvestors.filter(i =>
-    i.status?.toLowerCase() === 'suspended' &&
-    (i.accountType?.toLowerCase() === 'personal' || !i.accountType)
-  ); // Login Suspended - personal rows only
-  const suspendedIraInvestors = filteredInvestors.filter(i =>
-    i.accountType &&
-    i.accountType.toLowerCase() !== 'personal' &&
-    i.accountStatus?.toLowerCase() === 'suspended'
+    i.status?.toLowerCase() === 'suspended' || i.accountStatus?.toLowerCase() === 'suspended'
   );
 
   const handleInvite = async () => {
@@ -450,60 +444,11 @@ export default function InvestorPage() {
       inv.ims_profile_id.includes(query)
     );
   });
-  const oldTotalPages = Math.ceil(filteredOldInvestors.length / itemsPerPage);
-  const displayedOldInvestors = filteredOldInvestors.slice((oldPage - 1) * itemsPerPage, oldPage * itemsPerPage);
-
-  const activeTotalPages = Math.ceil(activeInvestors.length / itemsPerPage);
-  const activeIraTotalPages = Math.ceil(activeIraInvestors.length / itemsPerPage);
-  const pendingTotalPages = Math.ceil(pendingInvestors.length / itemsPerPage);
-  const suspendedTotalPages = Math.ceil(suspendedInvestors.length / itemsPerPage);
-  const suspendedIraTotalPages = Math.ceil(suspendedIraInvestors.length / itemsPerPage);
-
-  const displayedActiveInvestors = activeInvestors.slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage);
-  const displayedActiveIraInvestors = activeIraInvestors.slice((activeIraPage - 1) * itemsPerPage, activeIraPage * itemsPerPage);
-  const displayedPendingInvestors = pendingInvestors.slice((pendingPage - 1) * itemsPerPage, pendingPage * itemsPerPage);
-  const displayedSuspendedInvestors = suspendedInvestors.slice((suspendedPage - 1) * itemsPerPage, suspendedPage * itemsPerPage);
-  const displayedSuspendedIraInvestors = suspendedIraInvestors.slice((suspendedIraPage - 1) * itemsPerPage, suspendedIraPage * itemsPerPage);
-
-  const renderPaginationRow = (currentPage: number, totalPages: number, setPage: (page: number | ((p: number) => number)) => void) => {
-    if (totalPages <= 1) return null;
-    return (
-      <tr>
-        <td colSpan={11} className="px-8 py-4 bg-white border-b border-[#F3F4F6]">
-          <div className="flex flex-wrap items-center justify-center gap-2 font-helvetica" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 text-sm font-medium text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
-            >
-              Previous
-            </button>
-            <div className="flex items-center gap-2 shadow-sm rounded-full bg-[#F9FAFB] p-1">
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => setPage(i + 1)}
-                  className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${currentPage === i + 1
-                    ? 'bg-[#1F3B6E] text-white shadow-md scale-105'
-                    : 'text-[#4B5563] hover:bg-white'
-                    }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm font-medium text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
-            >
-              Next
-            </button>
-          </div>
-        </td>
-      </tr>
-    );
-  };
+  const displayedOldInvestors = filteredOldInvestors;
+  const displayedActiveInvestors = activeInvestors;
+  const displayedActiveIraInvestors = activeIraInvestors;
+  const displayedPendingInvestors = pendingInvestors;
+  const displayedSuspendedInvestors = suspendedInvestors;
 
   return (
     <DashboardLayout>
@@ -605,21 +550,21 @@ export default function InvestorPage() {
           </div>
         </div>
 
-        {/* Filters and Table Container */}
+        {/* Filters, Tabs, and Table Container */}
         <div className="bg-[#FFFFFF] rounded-[24px] shadow-sm border border-[#F3F4F6] overflow-hidden w-full">
 
-          {/* Action Bar */}
-          <div className="p-6 border-b border-[#F3F4F6]" onClick={(e) => e.stopPropagation()}>
-            <div className="flex flex-col md:flex-row md:items-center gap-4 w-full">
+          {/* 1. Common Action/Filter Bar (TOP) */}
+          <div className="px-4 py-3 sm:px-6 sm:py-3.5 border-b border-[#F3F4F6] bg-white" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-col md:flex-row md:items-center gap-3 w-full flex-wrap">
               {/* Search Box */}
-              <div className="relative max-w-md w-full xl:max-w-sm">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
+              <div className="relative max-w-md w-full xl:max-w-xs flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6B7280] stroke-[2.5]" />
                 <input
                   type="text"
                   placeholder="Find something here..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-[#F9FAFB] border rounded-full text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                  className="w-full pl-11 pr-4 py-2.5 bg-white border border-[#E5E7EB] rounded-full text-xs sm:text-sm font-bold text-[#111827] placeholder:text-[#6B7280] placeholder:font-medium hover:border-[#FCD34D] focus:outline-none focus:border-[#D1A94C] focus:ring-2 focus:ring-[#FCD34D]/40 transition-all shadow-sm"
                 />
               </div>
 
@@ -628,7 +573,7 @@ export default function InvestorPage() {
                 <select
                   value={kycFilter}
                   onChange={(e) => setKycFilter(e.target.value)}
-                  className="appearance-none w-full lg:w-auto pl-5 pr-10 py-3 bg-[#F9FAFB] border rounded-full text-sm font-medium text-[#4B5563] cursor-pointer focus:ring-2 focus:ring-[#FCD34D] transition-all min-w-[150px]"
+                  className="appearance-none w-full lg:w-auto pl-4 pr-9 py-2.5 bg-white border border-[#E5E7EB] rounded-full text-xs sm:text-sm font-bold text-[#1F2937] cursor-pointer hover:border-[#FCD34D] focus:outline-none focus:border-[#D1A94C] focus:ring-2 focus:ring-[#FCD34D]/40 transition-all min-w-[140px] shadow-sm"
                 >
                   <option value="">KYC Status</option>
                   <option value="approved">Approved</option>
@@ -636,7 +581,7 @@ export default function InvestorPage() {
                   <option value="rejected">Rejected</option>
                   <option value="unverified">Unverified</option>
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] pointer-events-none" />
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1F2937] stroke-[2.5] pointer-events-none" />
               </div>
 
               {/* Account Type Filter */}
@@ -644,7 +589,7 @@ export default function InvestorPage() {
                 <select
                   value={accountTypeFilter}
                   onChange={(e) => setAccountTypeFilter(e.target.value)}
-                  className="appearance-none w-full lg:w-auto pl-5 pr-10 py-3 bg-[#F9FAFB] border rounded-full text-sm font-medium text-[#4B5563] cursor-pointer focus:ring-2 focus:ring-[#FCD34D] transition-all min-w-[150px]"
+                  className="appearance-none w-full lg:w-auto pl-4 pr-9 py-2.5 bg-white border border-[#E5E7EB] rounded-full text-xs sm:text-sm font-bold text-[#1F2937] cursor-pointer hover:border-[#FCD34D] focus:outline-none focus:border-[#D1A94C] focus:ring-2 focus:ring-[#FCD34D]/40 transition-all min-w-[140px] shadow-sm"
                 >
                   <option value="">Account Type</option>
                   <option value="personal">Personal</option>
@@ -656,7 +601,7 @@ export default function InvestorPage() {
                   <option value="Roth IRA">Roth IRA</option>
                   <option value="Traditional IRA">Traditional IRA</option>
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] pointer-events-none" />
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1F2937] stroke-[2.5] pointer-events-none" />
               </div>
 
               {/* Account Status Filter */}
@@ -664,17 +609,85 @@ export default function InvestorPage() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="appearance-none w-full lg:w-auto pl-5 pr-10 py-3 bg-[#F9FAFB] border rounded-full text-sm font-medium text-[#4B5563] cursor-pointer focus:ring-2 focus:ring-[#FCD34D] transition-all min-w-[150px]"
+                  className="appearance-none w-full lg:w-auto pl-4 pr-9 py-2.5 bg-white border border-[#E5E7EB] rounded-full text-xs sm:text-sm font-bold text-[#1F2937] cursor-pointer hover:border-[#FCD34D] focus:outline-none focus:border-[#D1A94C] focus:ring-2 focus:ring-[#FCD34D]/40 transition-all min-w-[140px] shadow-sm"
                 >
                   <option value="">Account Status</option>
                   <option value="active">Active</option>
                   <option value="pending">Pending</option>
                   <option value="suspended">Suspended</option>
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] pointer-events-none" />
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1F2937] stroke-[2.5] pointer-events-none" />
               </div>
+
+              {/* Reset Button */}
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="px-7 py-2.5 bg-[#FCD34D] text-[#1F2937] text-xs sm:text-sm font-extrabold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 shrink-0 border border-amber-300"
+              >
+                Reset
+              </button>
             </div>
           </div>
+
+          {/* 2. Tab Bar Row (MIDDLE - compressed vertical space) */}
+          {viewMode !== 'old' && (
+            <div className="px-4 py-2 sm:px-6 sm:py-2.5 border-b border-[#F3F4F6] bg-white overflow-x-auto custom-scrollbar">
+              <div className="inline-flex items-center gap-1 p-1 bg-[#F9FAFB] rounded-[16px] border border-[#E5E7EB]">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('active')}
+                  className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${
+                    activeTab === 'active'
+                      ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
+                      : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
+                  }`}
+                >
+                  <User className={`h-4 w-4 stroke-[2.5] ${activeTab === 'active' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                  Active Investors ({activeInvestors.length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('ira')}
+                  className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${
+                    activeTab === 'ira'
+                      ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
+                      : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
+                  }`}
+                >
+                  <Landmark className={`h-4 w-4 stroke-[2.5] ${activeTab === 'ira' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                  Active IRA Accounts ({activeIraInvestors.length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('pending')}
+                  className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${
+                    activeTab === 'pending'
+                      ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
+                      : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
+                  }`}
+                >
+                  <Mail className={`h-4 w-4 stroke-[2.5] ${activeTab === 'pending' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                  Pending Invitations ({pendingInvestors.length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('suspended')}
+                  className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${
+                    activeTab === 'suspended'
+                      ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
+                      : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50'
+                  }`}
+                >
+                  <UserX className={`h-4 w-4 stroke-[2.5] ${activeTab === 'suspended' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                  Suspended Login Accounts ({suspendedInvestors.length})
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Table */}
           <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)] custom-scrollbar relative">
@@ -810,699 +823,558 @@ export default function InvestorPage() {
                             </td>
                           </tr>
                         ))}
-                        {renderPaginationRow(oldPage, oldTotalPages, setOldPage)}
                       </>
                     )}
                   </tbody>
                 ) : (
                   <tbody className="divide-y divide-[#F3F4F6]">
-
-                  {loading ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                      <tr key={i} className="animate-pulse">
-                        <td colSpan={7} className="px-8 py-6 h-[80px] bg-white"></td>
-                      </tr>
-                    ))
-                  ) : (
-                    <>
-                      {/* Active Investors Heading */}
-                      {activeInvestors.length > 0 && (
-                        <tr className="bg-[#F9FAFB]/30">
-                          <td colSpan={11} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
-                            Active Investors ({activeInvestors.length})
-                          </td>
+                    {loading ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <tr key={i} className="animate-pulse">
+                          <td colSpan={11} className="px-8 py-6 h-[80px] bg-white"></td>
                         </tr>
-                      )}
-
-                      {activeInvestors.length === 0 && pendingInvestors.length === 0 ? (
-                        <tr>
-                          <td colSpan={11} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
-                            No investors found matching your search.
-                          </td>
-                        </tr>
-                      ) : (
-                        displayedActiveInvestors.map((investor) => {
-                          const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
-                          return (
-                            <tr
-                              key={rowKey}
-                              className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
-                                ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
-                                : 'hover:bg-[#F8FAFC]'
-                                }`}
-                              onClick={() => {
-                                handleSelectRow(investor);
-                                router.push(`/dashboard/investor/${investor.id}`);
-                              }}
-                            >
-                              <td
-                                className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (selectedRowKey === rowKey) {
-                                    clearSelection();
-                                  } else {
-                                    handleSelectRow(investor);
-                                  }
-                                }}
-                              >
-                                <div className="flex items-center justify-center">
-                                  <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
-                                    {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                <div className="flex items-center gap-4">
-                                  <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
-                                    {investor.profileImageUrl ? (
-                                      <Image
-                                        src={investor.profileImageUrl.startsWith('http')
-                                          ? investor.profileImageUrl
-                                          : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
-                                        alt={investor.firstName}
-                                        fill
-                                        className="object-cover"
-                                      />
-                                    ) : (
-                                      <Image
-                                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
-                                        alt={investor.firstName}
-                                        fill
-                                        className="object-cover"
-                                      />
-                                    )}
-                                  </div>
-                                  <div>
-                                    <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
-                              </td>
-                              <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap capitalize">
-                                  {investor.investorType || 'Personal'}
-                                </span>
-                              </td>
-                              <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                {investor.accountStatus === 'suspended' ? (
-                                  <span className="text-[11px] font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 italic">Suspended</span>
-                                ) : (
-                                  <span className="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">Active</span>
-                                )}
-                              </td>
-                              <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
-                                  {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
-                                </span>
-                              </td>
-                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
-                                {investor.units || '0.00'}
-                              </td>
-                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
-                                {investor.invested || '-'}
-                              </td>
-                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
-                                <div className="flex flex-col gap-0.5">
-                                  {investor.assigned_ir_name && (
-                                    <span className="text-sm text-[#4B5563] font-medium">
-                                      IR: {investor.assigned_ir_name}
-                                    </span>
-                                  )}
-                                  {investor.assigned_accountant_name && (
-                                    <span className="text-sm text-[#4B5563] font-medium">
-                                      Acc: {investor.assigned_accountant_name}
-                                    </span>
-                                  )}
-                                  {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
-                                    <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
-                                {new Date(investor.createdAt).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric'
-                                })}
-                              </td>
-                              <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
-                                <Link
-                                  href={`/dashboard/investor/${investor.id}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleSelectRow(investor);
-                                  }}
-                                >
-                                  <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
-                                    View Profile
-                                  </button>
-                                </Link>
+                      ))
+                    ) : (
+                      <>
+                        {/* TAB 1: ACTIVE INVESTORS */}
+                        {activeTab === 'active' && (
+                          <>
+                            <tr className="bg-[#F9FAFB]/30">
+                              <td colSpan={11} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+                                Active Investors ({activeInvestors.length})
                               </td>
                             </tr>
-                          )
-                        })
-                      )}
-                      {renderPaginationRow(activePage, activeTotalPages, setActivePage)}
-
-                      {/* IRA Accounts Heading */}
-                      {activeIraInvestors.length > 0 && (
-                        <>
-                          <tr className="bg-[#F9FAFB]/30">
-                            <td colSpan={11} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
-                              Active IRA Accounts ({activeIraInvestors.length})
-                            </td>
-                          </tr>
-                          {displayedActiveIraInvestors.map((investor) => {
-                            const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
-                            return (
-                              <tr
-                                key={rowKey}
-                                className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
-                                  ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
-                                  : 'hover:bg-[#F8FAFC]'
-                                  }`}
-                                onClick={() => {
-                                  handleSelectRow(investor);
-                                  router.push(`/dashboard/investor/${investor.id}`);
-                                }}
-                              >
-                                <td
-                                  className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (selectedRowKey === rowKey) {
-                                      clearSelection();
-                                    } else {
-                                      handleSelectRow(investor);
-                                    }
-                                  }}
-                                >
-                                  <div className="flex items-center justify-center">
-                                    <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
-                                      {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
-                                    </div>
-                                  </div>
+                            {activeInvestors.length === 0 ? (
+                              <tr>
+                                <td colSpan={11} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
+                                  No active investors found matching your search.
                                 </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <div className="flex items-center gap-4">
-                                    <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
-                                      {investor.profileImageUrl ? (
-                                        <Image
-                                          src={investor.profileImageUrl.startsWith('http')
-                                            ? investor.profileImageUrl
-                                            : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
-                                          alt={investor.firstName}
-                                          fill
-                                          className="object-cover"
-                                        />
+                              </tr>
+                            ) : (
+                              displayedActiveInvestors.map((investor) => {
+                                const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
+                                return (
+                                  <tr
+                                    key={rowKey}
+                                    className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
+                                      ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
+                                      : 'hover:bg-[#F8FAFC]'
+                                      }`}
+                                    onClick={() => {
+                                      handleSelectRow(investor);
+                                      router.push(`/dashboard/investor/${investor.id}`);
+                                    }}
+                                  >
+                                    <td
+                                      className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (selectedRowKey === rowKey) {
+                                          clearSelection();
+                                        } else {
+                                          handleSelectRow(investor);
+                                        }
+                                      }}
+                                    >
+                                      <div className="flex items-center justify-center">
+                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                          {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <div className="flex items-center gap-4">
+                                        <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
+                                          {investor.profileImageUrl ? (
+                                            <Image
+                                              src={investor.profileImageUrl.startsWith('http')
+                                                ? investor.profileImageUrl
+                                                : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
+                                              alt={investor.firstName}
+                                              fill
+                                              className="object-cover"
+                                            />
+                                          ) : (
+                                            <Image
+                                              src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
+                                              alt={investor.firstName}
+                                              fill
+                                              className="object-cover"
+                                            />
+                                          )}
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap capitalize">
+                                        {investor.investorType || 'Personal'}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      {investor.accountStatus === 'suspended' ? (
+                                        <span className="text-[11px] font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 italic">Suspended</span>
                                       ) : (
-                                        <Image
-                                          src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
-                                          alt={investor.firstName}
-                                          fill
-                                          className="object-cover"
-                                        />
+                                        <span className="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">Active</span>
                                       )}
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType}</span>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  {investor.accountStatus === 'suspended' ? (
-                                    <span className="text-[11px] font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 italic">Suspended</span>
-                                  ) : (
-                                    <span className="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">Active</span>
-                                  )}
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
-                                    {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
-                                  </span>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
-                                  {investor.units || '0.00'}
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
-                                  {investor.invested || '-'}
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
-                                  <div className="flex flex-col gap-0.5">
-                                    {investor.assigned_ir_name && (
-                                      <span className="text-sm text-[#4B5563] font-medium">
-                                        IR: {investor.assigned_ir_name}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
+                                        {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
                                       </span>
-                                    )}
-                                    {investor.assigned_accountant_name && (
-                                      <span className="text-sm text-[#4B5563] font-medium">
-                                        Acc: {investor.assigned_accountant_name}
-                                      </span>
-                                    )}
-                                    {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
-                                      <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
-                                  {new Date(investor.createdAt).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                  })}
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
-                                  <Link
-                                    href={`/dashboard/investor/${investor.id}`}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleSelectRow(investor);
-                                    }}
-                                  >
-                                    <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
-                                      View Profile
-                                    </button>
-                                  </Link>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                      {investor.units || '0.00'}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                      {investor.invested || '-'}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                      <div className="flex flex-col gap-0.5">
+                                        {investor.assigned_ir_name && (
+                                          <span className="text-sm text-[#4B5563] font-medium">
+                                            IR: {investor.assigned_ir_name}
+                                          </span>
+                                        )}
+                                        {investor.assigned_accountant_name && (
+                                          <span className="text-sm text-[#4B5563] font-medium">
+                                            Acc: {investor.assigned_accountant_name}
+                                          </span>
+                                        )}
+                                        {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                          <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                      {new Date(investor.createdAt).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                      })}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
+                                      <Link
+                                        href={`/dashboard/investor/${investor.id}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleSelectRow(investor);
+                                        }}
+                                      >
+                                        <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                          View Profile
+                                        </button>
+                                      </Link>
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </>
+                        )}
+
+                        {/* TAB 2: ACTIVE IRA ACCOUNTS */}
+                        {activeTab === 'ira' && (
+                          <>
+                            <tr className="bg-[#F9FAFB]/30">
+                              <td colSpan={11} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+                                Active IRA Accounts ({activeIraInvestors.length})
+                              </td>
+                            </tr>
+                            {activeIraInvestors.length === 0 ? (
+                              <tr>
+                                <td colSpan={11} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
+                                  No active IRA accounts found matching your search.
                                 </td>
                               </tr>
-                            )
-                          })}
-                          {renderPaginationRow(activeIraPage, activeIraTotalPages, setActiveIraPage)}
-                        </>
-                      )}
-
-                      {/* Pending Invitations Heading */}
-                      {pendingInvestors.length > 0 && (
-                        <>
-                          <tr className="bg-[#F9FAFB]/30">
-                            <td colSpan={11} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider border-t border-[#F3F4F6]">
-                              Pending Invitations ({pendingInvestors.length})
-                            </td>
-                          </tr>
-                          {displayedPendingInvestors.map((investor) => {
-                            const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
-                            return (
-                              <tr
-                                key={rowKey}
-                                className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
-                                  ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
-                                  : 'hover:bg-[#F8FAFC]'
-                                  }`}
-                                onClick={() => {
-                                  handleSelectRow(investor);
-                                  router.push(`/dashboard/investor/${investor.id}`);
-                                }}
-                              >
-                                <td
-                                  className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (selectedRowKey === rowKey) {
-                                      clearSelection();
-                                    } else {
+                            ) : (
+                              displayedActiveIraInvestors.map((investor) => {
+                                const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
+                                return (
+                                  <tr
+                                    key={rowKey}
+                                    className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
+                                      ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
+                                      : 'hover:bg-[#F8FAFC]'
+                                      }`}
+                                    onClick={() => {
                                       handleSelectRow(investor);
-                                    }
-                                  }}
-                                >
-                                  <div className="flex items-center justify-center">
-                                    <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
-                                      {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <div className="flex items-center gap-4">
-                                    <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
-                                      <Image
-                                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
-                                        alt={investor.firstName}
-                                        fill
-                                        className="object-cover opacity-60"
-                                      />
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap capitalize">{investor.investorType || 'Personal'}</span>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="text-[11px] font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">Pending</span>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-200 whitespace-nowrap">
-                                    Invited
-                                  </span>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
-                                  0.00
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
-                                  -
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
-                                  <div className="flex flex-col gap-0.5">
-                                    {investor.assigned_ir_name && (
-                                      <span className="text-sm text-[#4B5563] font-medium">
-                                        IR: {investor.assigned_ir_name}
-                                      </span>
-                                    )}
-                                    {investor.assigned_accountant_name && (
-                                      <span className="text-sm text-[#4B5563] font-medium">
-                                        Acc: {investor.assigned_accountant_name}
-                                      </span>
-                                    )}
-                                    {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
-                                      <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
-                                  {new Date(investor.createdAt).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                  })}
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
-                                  <Link
-                                    href={`/dashboard/investor/${investor.id}`}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleSelectRow(investor);
+                                      router.push(`/dashboard/investor/${investor.id}`);
                                     }}
                                   >
-                                    <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
-                                      View Profile
-                                    </button>
-                                  </Link>
-                                </td>
-                              </tr>
-                            )
-                          })}
-                          {renderPaginationRow(pendingPage, pendingTotalPages, setPendingPage)}
-                        </>
-                      )}
-
-                      {/* Suspended Accounts Heading */}
-                      {suspendedInvestors.length > 0 && (
-                        <>
-                          <tr className="bg-[#F9FAFB]/30">
-                            <td colSpan={11} className="px-8 py-3 text-xs font-bold text-red-500 uppercase tracking-wider border-t border-red-100">
-                              Suspended Login Accounts ({suspendedInvestors.length})
-                            </td>
-                          </tr>
-                          {displayedSuspendedInvestors.map((investor) => {
-                            const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
-                            return (
-                              <tr
-                                key={rowKey}
-                                className={`transition-all duration-200 group cursor-pointer opacity-80 ${selectedRowKey === rowKey
-                                  ? 'bg-red-50/30 shadow-[inset_6px_0_0_0_#EF4444]'
-                                  : 'hover:bg-[#F8FAFC]'
-                                  }`}
-                                onClick={() => {
-                                  handleSelectRow(investor);
-                                  router.push(`/dashboard/investor/${investor.id}`);
-                                }}
-                              >
-                                <td
-                                  className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (selectedRowKey === rowKey) {
-                                      clearSelection();
-                                    } else {
-                                      handleSelectRow(investor);
-                                    }
-                                  }}
-                                >
-                                  <div className="flex items-center justify-center">
-                                    <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-red-400 bg-white' : 'border-gray-200 bg-white'}`}>
-                                      {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-red-400" />}
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <div className="flex items-center gap-4">
-                                    <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB] grayscale">
-                                      {investor.profileImageUrl ? (
-                                        <Image
-                                          src={investor.profileImageUrl.startsWith('http')
-                                            ? investor.profileImageUrl
-                                            : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
-                                          alt={investor.firstName}
-                                          fill
-                                          className="object-cover opacity-50"
-                                        />
+                                    <td
+                                      className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (selectedRowKey === rowKey) {
+                                          clearSelection();
+                                        } else {
+                                          handleSelectRow(investor);
+                                        }
+                                      }}
+                                    >
+                                      <div className="flex items-center justify-center">
+                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                          {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <div className="flex items-center gap-4">
+                                        <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
+                                          {investor.profileImageUrl ? (
+                                            <Image
+                                              src={investor.profileImageUrl.startsWith('http')
+                                                ? investor.profileImageUrl
+                                                : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
+                                              alt={investor.firstName}
+                                              fill
+                                              className="object-cover"
+                                            />
+                                          ) : (
+                                            <Image
+                                              src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
+                                              alt={investor.firstName}
+                                              fill
+                                              className="object-cover"
+                                            />
+                                          )}
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType}</span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      {investor.accountStatus === 'suspended' ? (
+                                        <span className="text-[11px] font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 italic">Suspended</span>
                                       ) : (
-                                        <Image
-                                          src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=9CA3AF`}
-                                          alt={investor.firstName}
-                                          fill
-                                          className="object-cover opacity-50"
-                                        />
+                                        <span className="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">Active</span>
                                       )}
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-bold text-gray-400 line-through decoration-gray-300 whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="text-sm text-gray-400 font-medium">{investor.email}</span>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="text-sm text-gray-400 font-medium capitalize">{investor.investorType || 'Personal'}</span>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[11px] font-bold bg-red-50 text-red-500 border border-red-100 italic">
-                                    Suspended
-                                  </span>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                  <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
-                                    {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
-                                  </span>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-gray-400">
-                                  {investor.units || '0.00'}
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-gray-400">
-                                  {investor.invested || '-'}
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium">
-                                  <div className="flex flex-col gap-0.5">
-                                    {investor.assigned_ir_name && (
-                                      <span className="text-sm text-[#4B5563] font-medium">
-                                        IR: {investor.assigned_ir_name}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
+                                        {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
                                       </span>
-                                    )}
-                                    {investor.assigned_accountant_name && (
-                                      <span className="text-sm text-[#4B5563] font-medium">
-                                        Acc: {investor.assigned_accountant_name}
-                                      </span>
-                                    )}
-                                    {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
-                                      <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-gray-400 font-medium">
-                                  {new Date(investor.createdAt).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                  })}
-                                </td>
-                                <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
-                                  <Link
-                                    href={`/dashboard/investor/${investor.id}`}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleSelectRow(investor);
-                                    }}
-                                  >
-                                    <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
-                                      View Profile
-                                    </button>
-                                  </Link>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                      {investor.units || '0.00'}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                      {investor.invested || '-'}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                      <div className="flex flex-col gap-0.5">
+                                        {investor.assigned_ir_name && (
+                                          <span className="text-sm text-[#4B5563] font-medium">
+                                            IR: {investor.assigned_ir_name}
+                                          </span>
+                                        )}
+                                        {investor.assigned_accountant_name && (
+                                          <span className="text-sm text-[#4B5563] font-medium">
+                                            Acc: {investor.assigned_accountant_name}
+                                          </span>
+                                        )}
+                                        {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                          <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                      {new Date(investor.createdAt).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                      })}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
+                                      <Link
+                                        href={`/dashboard/investor/${investor.id}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleSelectRow(investor);
+                                        }}
+                                      >
+                                        <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                          View Profile
+                                        </button>
+                                      </Link>
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </>
+                        )}
+
+                        {/* TAB 3: PENDING INVITATIONS */}
+                        {activeTab === 'pending' && (
+                          <>
+                            <tr className="bg-[#F9FAFB]/30">
+                              <td colSpan={11} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+                                Pending Invitations ({pendingInvestors.length})
+                              </td>
+                            </tr>
+                            {pendingInvestors.length === 0 ? (
+                              <tr>
+                                <td colSpan={11} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
+                                  No pending invitations found matching your search.
                                 </td>
                               </tr>
-                            )
-                          })}
-                          {renderPaginationRow(suspendedPage, suspendedTotalPages, setSuspendedPage)}
-                        </>
-                      )}
-                    </>
-                  )}
+                            ) : (
+                              displayedPendingInvestors.map((investor) => {
+                                const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
+                                return (
+                                  <tr
+                                    key={rowKey}
+                                    className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
+                                      ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
+                                      : 'hover:bg-[#F8FAFC]'
+                                      }`}
+                                    onClick={() => {
+                                      handleSelectRow(investor);
+                                      router.push(`/dashboard/investor/${investor.id}`);
+                                    }}
+                                  >
+                                    <td
+                                      className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (selectedRowKey === rowKey) {
+                                          clearSelection();
+                                        } else {
+                                          handleSelectRow(investor);
+                                        }
+                                      }}
+                                    >
+                                      <div className="flex items-center justify-center">
+                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                          {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <div className="flex items-center gap-4">
+                                        <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
+                                          <Image
+                                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
+                                            alt={investor.firstName}
+                                            fill
+                                            className="object-cover opacity-60"
+                                          />
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap capitalize">{investor.investorType || 'Personal'}</span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="text-[11px] font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">Pending</span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-200 whitespace-nowrap">
+                                        Invited
+                                      </span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                      0.00
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                      -
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                      <div className="flex flex-col gap-0.5">
+                                        {investor.assigned_ir_name && (
+                                          <span className="text-sm text-[#4B5563] font-medium">
+                                            IR: {investor.assigned_ir_name}
+                                          </span>
+                                        )}
+                                        {investor.assigned_accountant_name && (
+                                          <span className="text-sm text-[#4B5563] font-medium">
+                                            Acc: {investor.assigned_accountant_name}
+                                          </span>
+                                        )}
+                                        {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                          <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                      {new Date(investor.createdAt).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                      })}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
+                                      <Link
+                                        href={`/dashboard/investor/${investor.id}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleSelectRow(investor);
+                                        }}
+                                      >
+                                        <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                          View Profile
+                                        </button>
+                                      </Link>
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </>
+                        )}
 
-                  {/* Suspended IRA Accounts */}
-                  {suspendedIraInvestors.length > 0 && (
-                    <>
-                      <tr className="bg-red-50/20">
-                        <td colSpan={11} className="px-8 py-3 text-xs font-bold text-red-500 uppercase tracking-wider border-t border-red-100">
-                          Suspended IRA Accounts ({suspendedIraInvestors.length})
-                        </td>
-                      </tr>
-                      {displayedSuspendedIraInvestors.map((investor) => {
-                        const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
-                        return (
-                          <tr
-                            key={rowKey}
-                            className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
-                              ? 'bg-red-50/30 shadow-[inset_6px_0_0_0_#EF4444]'
-                              : 'hover:bg-red-50/10'
-                              }`}
-                            onClick={() => {
-                              handleSelectRow(investor);
-                              router.push(`/dashboard/investor/${investor.id}`);
-                            }}
-                          >
-                            <td
-                              className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#EF4444]' : ''}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (selectedRowKey === rowKey) {
-                                  clearSelection();
-                                } else {
-                                  handleSelectRow(investor);
-                                }
-                              }}
-                            >
-                              <div className="flex items-center justify-center">
-                                <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-red-400 bg-white' : 'border-gray-200 bg-white'}`}>
-                                  {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-red-400" />}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-3 sm:px-4 lg:px-6 py-4 opacity-70">
-                              <div className="flex items-center gap-4">
-                                <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-gray-200 grayscale">
-                                  {investor.profileImageUrl ? (
-                                    <Image
-                                      src={investor.profileImageUrl.startsWith('http') ? investor.profileImageUrl : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
-                                      alt={investor.firstName}
-                                      fill
-                                      className="object-cover"
-                                    />
-                                  ) : (
-                                    <Image
-                                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=9CA3AF`}
-                                      alt={investor.firstName}
-                                      fill
-                                      className="object-cover"
-                                    />
-                                  )}
-                                </div>
-                                <div>
-                                  <p className="text-sm font-bold text-gray-500 whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-3 sm:px-4 lg:px-6 py-4">
-                              <span className="text-sm text-gray-400 font-medium whitespace-nowrap">{investor.email}</span>
-                            </td>
-                            <td className="px-3 sm:px-4 lg:px-6 py-4">
-                              <span className="text-sm text-gray-400 font-medium whitespace-nowrap">{investor.accountType}</span>
-                            </td>
-                            <td className="px-3 sm:px-4 lg:px-6 py-4">
-                              <span className="text-[11px] font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 italic">Suspended</span>
-                            </td>
-                            <td className="px-3 sm:px-4 lg:px-6 py-4">
-                              <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
-                                {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
-                              </span>
-                            </td>
-                            <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-gray-400 whitespace-nowrap">
-                              {investor.units || '0.00'}
-                            </td>
-                            <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-gray-400 whitespace-nowrap">
-                              {investor.invested || '-'}
-                            </td>
-                            <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-gray-400 font-medium whitespace-nowrap">
-                              <div className="flex flex-col gap-0.5">
-                                {investor.assigned_ir_name && <span>IR: {investor.assigned_ir_name}</span>}
-                                {investor.assigned_accountant_name && <span>Acc: {investor.assigned_accountant_name}</span>}
-                                {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
-                                  <span className="text-sm text-gray-400 italic font-medium">Unassigned</span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-gray-400 font-medium whitespace-nowrap">
-                              {new Date(investor.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </td>
-                            <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
-                              <Link href={`/dashboard/investor/${investor.id}`} onClick={(e) => e.stopPropagation()}>
-                                <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-gray-100 transition-all whitespace-nowrap">
-                                  View Profile
-                                </button>
-                              </Link>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {renderPaginationRow(suspendedIraPage, suspendedIraTotalPages, setSuspendedIraPage)}
-                    </>
-                  )}
-                </tbody>
-              )}
+                        {/* TAB 4: SUSPENDED ACCOUNTS */}
+                        {activeTab === 'suspended' && (
+                          <>
+                            <tr className="bg-red-50/20 border-b border-red-100">
+                              <td colSpan={11} className="px-8 py-3 text-xs font-bold text-red-500 uppercase tracking-wider">
+                                Suspended Login Accounts ({suspendedInvestors.length})
+                              </td>
+                            </tr>
+                            {suspendedInvestors.length === 0 ? (
+                              <tr>
+                                <td colSpan={11} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
+                                  No suspended accounts found matching your search.
+                                </td>
+                              </tr>
+                            ) : (
+                              suspendedInvestors.map((investor) => {
+                                const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
+                                return (
+                                  <tr
+                                    key={rowKey}
+                                    className={`transition-all duration-200 group cursor-pointer ${
+                                      selectedRowKey === rowKey
+                                        ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
+                                        : 'hover:bg-[#F8FAFC]'
+                                    }`}
+                                    onClick={() => {
+                                      handleSelectRow(investor);
+                                      router.push(`/dashboard/investor/${investor.id}`);
+                                    }}
+                                  >
+                                    <td
+                                      className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${
+                                        selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''
+                                      }`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (selectedRowKey === rowKey) {
+                                          clearSelection();
+                                        } else {
+                                          handleSelectRow(investor);
+                                        }
+                                      }}
+                                    >
+                                      <div className="flex items-center justify-center">
+                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                          {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <div className="flex items-center gap-4">
+                                        <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
+                                          <Image
+                                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
+                                            alt={investor.firstName}
+                                            fill
+                                            className="object-cover opacity-60"
+                                          />
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap capitalize">{investor.accountType || investor.investorType || 'Personal'}</span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="text-[11px] font-bold text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">Suspended</span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
+                                        {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                      {investor.units || '0.00'}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                      {investor.invested || '-'}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                      <div className="flex flex-col gap-0.5">
+                                        {investor.assigned_ir_name && (
+                                          <span className="text-sm text-[#4B5563] font-medium">IR: {investor.assigned_ir_name}</span>
+                                        )}
+                                        {investor.assigned_accountant_name && (
+                                          <span className="text-sm text-[#4B5563] font-medium">Acc: {investor.assigned_accountant_name}</span>
+                                        )}
+                                        {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                          <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                      {new Date(investor.createdAt).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                      })}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
+                                      <Link
+                                        href={`/dashboard/investor/${investor.id}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleSelectRow(investor);
+                                        }}
+                                      >
+                                        <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                          View Profile
+                                        </button>
+                                      </Link>
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </>
+                        )}
+                      </>
+                    )}
+                  </tbody>
+                )}
               </table>
             </div>
           </div>
 
-          {/* Pagination */}
-          <div
-            className="px-8 py-6 bg-white border-t border-[#F3F4F6] flex flex-col items-center justify-center gap-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-xs font-bold text-[#6B7280] bg-gray-50/50 px-6 py-3 rounded-2xl border border-gray-100">
-              {viewMode === 'old' ? (
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-amber-100 text-amber-800 rounded-md border border-amber-200 shadow-sm">{oldInvestors.length}</span>
-                  <span>Old Investors</span>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-green-100 text-green-700 rounded-md border border-green-200 shadow-sm">{activeInvestors.length}</span>
-                    <span>Active</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-blue-100 text-blue-700 rounded-md border border-blue-200 shadow-sm">{activeIraInvestors.length}</span>
-                    <span>IRA</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-amber-100 text-amber-700 rounded-md border border-amber-200 shadow-sm">{pendingInvestors.length}</span>
-                    <span>Pending</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-red-100 text-red-700 rounded-md border border-red-200 shadow-sm">{suspendedInvestors.length}</span>
-                    <span>Suspended Login</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-rose-100 text-rose-700 rounded-md border border-rose-200 shadow-sm">{suspendedIraInvestors.length}</span>
-                    <span>Suspended IRA</span>
-                  </div>
-                </>
-              )}
-              <span className="ml-1 text-[#9CA3AF] font-medium">Investors</span>
-            </div>
-          </div>
+
 
         </div>
       </div>
