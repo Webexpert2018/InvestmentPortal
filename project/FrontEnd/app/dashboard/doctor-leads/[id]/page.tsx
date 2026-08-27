@@ -38,6 +38,7 @@ interface DoctorProspect {
   organization: string;
   location: string;
   email: string;
+  personalEmails?: string[];
   phone?: string;
   status: 'pending_apollo' | 'ai_copy_ready' | 'sent' | 'interested' | 'not_interested' | 'needs_call' | 'error';
   isAlreadyEnriched?: boolean;
@@ -230,13 +231,17 @@ export default function DoctorProfilePage() {
         return;
       }
 
+      const personalEmails = foundDb?.personalEmails || foundDb?.personal_emails || [];
+      const resolvedEmail = foundDb?.email || (personalEmails.length > 0 ? personalEmails[0] : null);
+
       const docObj: DoctorProspect = {
         id: foundDb?.apolloId || foundDb?.apollo_id || foundDb?.id || id,
         fullName: foundDb?.full_name || foundDb?.fullName || foundDb?.name || MOCK_DOCTORS[id]?.fullName || 'Dr. David Wiebe, MD',
         specialty: foundDb?.specialty || MOCK_DOCTORS[id]?.specialty || 'Orthopedic Surgery',
         organization: foundDb?.organization || foundDb?.clinic || MOCK_DOCTORS[id]?.organization || 'Austin Spine & Joint Surgery Center',
         location: foundDb?.location || MOCK_DOCTORS[id]?.location || 'Austin, TX',
-        email: foundDb?.email || MOCK_DOCTORS[id]?.email || 'xamilo5279@jobraux.com',
+        email: resolvedEmail || MOCK_DOCTORS[id]?.email || '',
+        personalEmails: personalEmails,
         phone: foundDb?.phone || MOCK_DOCTORS[id]?.phone || '+1 (512) 555-0192',
         status: foundDb?.stage || 'ai_copy_ready',
         stage: foundDb?.stage || 'pending_outreach',

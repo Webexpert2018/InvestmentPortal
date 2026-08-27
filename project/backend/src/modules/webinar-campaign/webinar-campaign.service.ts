@@ -318,12 +318,13 @@ export class WebinarCampaignService implements OnModuleInit {
       const phone = m.phone || m.phone_numbers?.find((ph: any) => ph.type_cd === 'mobile')?.raw_number || m.phone_numbers?.[0]?.raw_number || null;
       const workPhone = m.phone_numbers?.find((ph: any) => ph.type_cd === 'work_direct')?.raw_number || null;
       const emailStatus = m.email_status || 'unverified';
+      const personalEmails = m.personal_emails || [];
 
       try {
         const insertRes = await db.query(
           `INSERT INTO doctor_prospects (
-             apollo_id, full_name, first_name, last_name, specialty, organization, location, city, state, email, phone, work_phone, email_status, stage, country, timezone, created_at, updated_at
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'pending_outreach', $14, $15, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+             apollo_id, full_name, first_name, last_name, specialty, organization, location, city, state, email, phone, work_phone, email_status, stage, country, timezone, personal_emails, created_at, updated_at
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'pending_outreach', $14, $15, $16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
            ON CONFLICT (apollo_id) DO UPDATE SET
              full_name = EXCLUDED.full_name,
              email = COALESCE(EXCLUDED.email, doctor_prospects.email),
@@ -333,6 +334,7 @@ export class WebinarCampaignService implements OnModuleInit {
              location = EXCLUDED.location,
              country = EXCLUDED.country,
              timezone = EXCLUDED.timezone,
+             personal_emails = COALESCE(EXCLUDED.personal_emails, doctor_prospects.personal_emails),
              stage = CASE WHEN doctor_prospects.stage IN ('sent', 'interested', 'not_interested') THEN doctor_prospects.stage ELSE 'pending_outreach' END,
              updated_at = CURRENT_TIMESTAMP
            RETURNING *;`,
@@ -352,6 +354,7 @@ export class WebinarCampaignService implements OnModuleInit {
             emailStatus,
             country,
             timezone,
+            personalEmails,
           ]
         );
 
@@ -472,6 +475,8 @@ export class WebinarCampaignService implements OnModuleInit {
         fullName: row.full_name || row.fullName || 'Physician',
         phone: row.phone || '',
         email: row.email || '',
+        personalEmails: row.personal_emails || [],
+        personal_emails: row.personal_emails || [],
         createdAt: validCreatedAt,
         created_at: validCreatedAt,
         status: ['sent', 'interested', 'not_interested', 'needs_call'].includes(row.stage) ? row.stage : 'ai_copy_ready',
@@ -512,13 +517,14 @@ export class WebinarCampaignService implements OnModuleInit {
 
     for (const id of prospectIds) {
       let doc = dbProspectsMap.get(id);
-      let email = doc?.email;
+      let personalEmails = doc?.personal_emails || [];
+      let email = personalEmails.length > 0 ? personalEmails[0] : null;
       let fullName = doc?.full_name || doc?.fullName;
       let organization = doc?.organization;
       let apolloId = doc?.apollo_id || id;
 
       if (!email || email.includes('Bulk Match Required') || email.includes('..')) {
-        failedProspects.push({ id, reason: 'No valid email address found for this prospect.' });
+        failedProspects.push({ id, reason: 'No valid personal email address found for this prospect.' });
         continue;
       }
 
@@ -759,10 +765,10 @@ export class WebinarCampaignService implements OnModuleInit {
           if (diffMinutes >= -720 && diffMinutes <= offsetMins) {
             if (!attendeesRes) {
               attendeesRes = await db.query(
-                `SELECT wa.webinar_id, wa.prospect_id, dp.full_name as "fullName", dp.email, dp.apollo_id
+                `SELECT wa.webinar_id, wa.prospect_id, dp.full_name as "fullName", dp.email, dp.personal_emails, dp.apollo_id
                  FROM webinar_attendees wa
                  JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
-                 WHERE wa.webinar_id = $1 AND dp.email IS NOT NULL`,
+                 WHERE wa.webinar_id = $1`,
                 [w.id]
               );
             }
@@ -770,6 +776,10 @@ export class WebinarCampaignService implements OnModuleInit {
             const eventType = `webinar_reminder_${offsetMins}m`;
 
             for (const att of attendeesRes.rows) {
+              const personalEmails = att.personal_emails || [];
+              const doctorEmail = personalEmails.length > 0 ? personalEmails[0] : null;
+              if (!doctorEmail) continue;
+
               const alreadySent = await db.query(
                 `SELECT 1 FROM prospect_events WHERE prospect_id = $1 AND event_type = $2 AND details->>'webinarId' = $3`,
                 [att.apollo_id, eventType, w.id]
@@ -808,14 +818,14 @@ export class WebinarCampaignService implements OnModuleInit {
                 `;
 
                 try {
-                  await this.emailService.sendCustomEmail(att.email, doctorName, subject, emailBody);
+                  await this.emailService.sendCustomEmail(doctorEmail, doctorName, subject, emailBody);
                   await db.query(
                     `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`,
                     [att.apollo_id, eventType, JSON.stringify({ webinarId: w.id, webinarTitle: w.title, offsetMins, sentAt: now.toISOString() })]
                   );
-                  this.logger.log(`⏰ [Cron Reminder ${offsetMins}m] Dispatched reminder email to Dr. ${doctorName} (${att.email}) for webinar ${w.id}`);
+                  this.logger.log(`⏰ [Cron Reminder ${offsetMins}m] Dispatched reminder email to Dr. ${doctorName} (${doctorEmail}) for webinar ${w.id}`);
                 } catch (sendErr: any) {
-                  this.logger.error(`Failed to send ${offsetMins}m reminder to ${att.email}: ${sendErr.message}`);
+                  this.logger.error(`Failed to send ${offsetMins}m reminder to ${doctorEmail}: ${sendErr.message}`);
                 }
               }
             }
@@ -982,7 +992,7 @@ export class WebinarCampaignService implements OnModuleInit {
       try {
         await db.query(`ALTER TABLE doctor_prospects ADD COLUMN IF NOT EXISTS ai_sequence JSONB;`);
         const res = await db.query(
-          `SELECT apollo_id, full_name, specialty, organization, location, email, ai_sequence FROM doctor_prospects WHERE apollo_id = $1`,
+          `SELECT apollo_id, full_name, specialty, organization, location, email, personal_emails, ai_sequence FROM doctor_prospects WHERE apollo_id = $1`,
           [prospectId]
         );
         if (res.rows.length > 0) {
@@ -1015,7 +1025,8 @@ export class WebinarCampaignService implements OnModuleInit {
     const specialty = doc?.specialty || 'Orthopedic Surgery';
     const organization = doc?.organization || 'Austin Spine & Joint Surgery Center';
     const location = doc?.location || 'Austin, TX';
-    const email = doc?.email || 'dwiebe@medical-verified.org';
+    const personalEmails = doc?.personal_emails || doc?.personalEmails || [];
+    const email = doc?.email || (personalEmails.length > 0 ? personalEmails[0] : null) || 'dwiebe@medical-verified.org';
 
     const geminiKey = process.env.Gemini_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     const grokKey = process.env.GROK_API_KEY || process.env.XAI_API_KEY;
@@ -1261,7 +1272,7 @@ ${rsvpButtonsHtml}
       const validStatus = status === 'interested' ? 'interested' : 'not_interested';
 
       const updateRes = await db.query(
-        `UPDATE doctor_prospects SET stage = $1, updated_at = CURRENT_TIMESTAMP WHERE apollo_id = $2 OR email = $2 RETURNING apollo_id, full_name, email`,
+        `UPDATE doctor_prospects SET stage = $1, updated_at = CURRENT_TIMESTAMP WHERE apollo_id = $2 OR email = $2 OR $2 = ANY(personal_emails) RETURNING apollo_id, full_name, email, personal_emails`,
         [validStatus, identifier]
       );
 
@@ -1269,7 +1280,8 @@ ${rsvpButtonsHtml}
         const row = updateRes.rows[0];
         const apolloId = row.apollo_id;
         const doctorName = row.full_name || 'Doctor';
-        const doctorEmail = row.email || identifier;
+        const personalEmails = row.personal_emails || [];
+        const doctorEmail = personalEmails.length > 0 ? personalEmails[0] : null;
 
         await db.query(
           `INSERT INTO prospect_events (prospect_id, event_type, details, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`,
@@ -1372,7 +1384,7 @@ ${rsvpButtonsHtml}
     }
     try {
       const res = await db.query(
-        `UPDATE doctor_prospects SET stage = $1, updated_at = CURRENT_TIMESTAMP WHERE apollo_id = $2 OR email = $2 RETURNING *`,
+        `UPDATE doctor_prospects SET stage = $1, updated_at = CURRENT_TIMESTAMP WHERE apollo_id = $2 OR email = $2 OR $2 = ANY(personal_emails) RETURNING *`,
         [stage, prospectId]
       );
       if (res.rows.length === 0) {
@@ -1383,7 +1395,8 @@ ${rsvpButtonsHtml}
       const prospect = res.rows[0];
       const apolloId = prospect.apollo_id;
       const doctorName = prospect.full_name || 'Doctor';
-      const doctorEmail = prospect.email;
+      const personalEmails = prospect.personal_emails || [];
+      const doctorEmail = personalEmails.length > 0 ? personalEmails[0] : null;
 
       // Trigger automated interest Google Calendar invitation if they are marked interested
       if (stage === 'interested' && doctorEmail) {
@@ -1485,8 +1498,8 @@ ${rsvpButtonsHtml}
 
     const query = `
       INSERT INTO doctor_prospects (
-        apollo_id, full_name, first_name, last_name, specialty, organization, location, email, phone, email_status, stage, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'verified', 'pending_outreach', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        apollo_id, full_name, first_name, last_name, specialty, organization, location, email, phone, email_status, stage, personal_emails, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NULL, $8, 'verified', 'pending_outreach', $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       RETURNING *
     `;
 
@@ -1499,11 +1512,11 @@ ${rsvpButtonsHtml}
         data.specialty?.trim() || 'General Practice',
         data.organization?.trim() || 'Private Practice',
         data.location?.trim() || 'United States',
-        data.email.trim(),
-        data.phone?.trim() || 'N/A'
+        data.phone?.trim() || 'N/A',
+        [data.email.trim()]
       ]);
 
-      this.logger.log(`➕ Added manual doctor prospect: ${cleanFullName} (${data.email}) to PostgreSQL`);
+      this.logger.log(`➕ Added manual doctor prospect: ${cleanFullName} (${data.email}) with personal_email in PostgreSQL`);
       return {
         success: true,
         prospect: res.rows[0]
@@ -2068,7 +2081,7 @@ ${rsvpButtonsHtml}
 
       // 2. Fetch selected doctors
       const doctorsRes = await db.query(
-        `SELECT apollo_id, full_name, email FROM doctor_prospects WHERE apollo_id = ANY($1::text[]) OR email = ANY($1::text[])`,
+        `SELECT apollo_id, full_name, email, personal_emails FROM doctor_prospects WHERE apollo_id = ANY($1::text[]) OR email = ANY($1::text[])`,
         [prospectIds]
       );
 
@@ -2081,7 +2094,8 @@ ${rsvpButtonsHtml}
 
       for (const doc of doctorsRes.rows) {
         const apolloId = doc.apollo_id;
-        const doctorEmail = doc.email;
+        const personalEmails = doc.personal_emails || [];
+        const doctorEmail = personalEmails.length > 0 ? personalEmails[0] : null;
 
         if (!doctorEmail) continue;
 
@@ -2204,10 +2218,10 @@ ${rsvpButtonsHtml}
 
       const w = webinarRes.rows[0];
       const attendeesRes = await db.query(
-        `SELECT wa.webinar_id, wa.prospect_id, dp.full_name as "fullName", dp.email, dp.apollo_id
+        `SELECT wa.webinar_id, wa.prospect_id, dp.full_name as "fullName", dp.email, dp.personal_emails, dp.apollo_id
          FROM webinar_attendees wa
          JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
-         WHERE wa.webinar_id = $1 AND dp.email IS NOT NULL`,
+         WHERE wa.webinar_id = $1`,
         [w.id]
       );
 
@@ -2219,6 +2233,10 @@ ${rsvpButtonsHtml}
       const now = new Date();
 
       for (const att of attendeesRes.rows) {
+        const personalEmails = att.personal_emails || [];
+        const doctorEmail = personalEmails.length > 0 ? personalEmails[0] : null;
+        if (!doctorEmail) continue;
+
         const doctorName = att.fullName || 'Physician';
         const formattedDate = w.formattedDate || w.date;
         const timeStr = this.formatBackendTimeEST(w.time, w.date);
@@ -2293,16 +2311,16 @@ ${rsvpButtonsHtml}
 </div>`;
 
         try {
-          await this.emailService.sendCustomEmail(att.email, doctorName, subject, emailBody);
+          await this.emailService.sendCustomEmail(doctorEmail, doctorName, subject, emailBody);
           await db.query(
             `INSERT INTO prospect_events (prospect_id, event_type, details, created_at)
              VALUES ($1, 'manual_test_reminder', $2, CURRENT_TIMESTAMP)`,
             [att.apollo_id, JSON.stringify({ webinarId: w.id, sentAt: now.toISOString() })]
           );
           successCount++;
-          this.logger.log(`🧪 Dispatched test reminder email to Dr. ${doctorName} (${att.email}) for webinar ${w.id}`);
+          this.logger.log(`🧪 Dispatched test reminder email to Dr. ${doctorName} (${doctorEmail}) for webinar ${w.id}`);
         } catch (err: any) {
-          this.logger.error(`Failed to send test reminder to ${att.email}: ${err.message}`);
+          this.logger.error(`Failed to send test reminder to ${doctorEmail}: ${err.message}`);
         }
       }
 
@@ -2481,7 +2499,7 @@ ${rsvpButtonsHtml}
   async sendSequenceStepNow(prospectId: string, day: number) {
     try {
       const res = await db.query(
-        `SELECT apollo_id, full_name, email, ai_sequence, stage FROM doctor_prospects WHERE apollo_id = $1 OR email = $1`,
+        `SELECT apollo_id, full_name, email, personal_emails, ai_sequence, stage FROM doctor_prospects WHERE apollo_id = $1 OR email = $1`,
         [prospectId]
       );
 
@@ -2524,7 +2542,9 @@ ${rsvpButtonsHtml}
         [row.apollo_id, JSON.stringify({ day, subject: stepItem.subject, sentAt: stepItem.sentAt })]
       );
 
-      this.logger.log(`⚡ [Manual Instant Dispatch] Sent Day ${day} email to ${row.full_name} (${row.email}) & set status='sent'`);
+      const personalEmails = row.personal_emails || [];
+      const resolvedEmailForLog = row.email || (personalEmails.length > 0 ? personalEmails[0] : 'null');
+      this.logger.log(`⚡ [Manual Instant Dispatch] Sent Day ${day} email to ${row.full_name} (${resolvedEmailForLog}) & set status='sent'`);
 
       return {
         success: true,
@@ -2575,7 +2595,7 @@ ${rsvpButtonsHtml}
 
       // 3. Fetch all attendees from that previous webinar who are not already registered to the current webinar
       const attendeesRes = await db.query(
-        `SELECT DISTINCT wa.prospect_id, dp.email FROM webinar_attendees wa
+        `SELECT DISTINCT wa.prospect_id, dp.email, dp.personal_emails FROM webinar_attendees wa
          JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
          WHERE wa.webinar_id = $1 
          AND wa.status != 'accepted'
@@ -2600,7 +2620,8 @@ ${rsvpButtonsHtml}
 
       for (const att of attendees) {
         const apolloId = att.prospect_id;
-        const email = att.email;
+        const personalEmails = att.personal_emails || [];
+        const email = personalEmails.length > 0 ? personalEmails[0] : null;
 
         // Register in webinar_attendees for the new webinar
         try {
@@ -2725,8 +2746,8 @@ ${rsvpButtonsHtml}
 
       const query = `
         INSERT INTO doctor_prospects (
-          apollo_id, full_name, first_name, last_name, specialty, organization, location, email, phone, email_status, stage, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'verified', 'interested', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          apollo_id, full_name, first_name, last_name, specialty, organization, location, email, phone, email_status, stage, personal_emails, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NULL, $8, 'verified', 'interested', $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       `;
       await db.query(query, [
         prospectId,
@@ -2736,8 +2757,8 @@ ${rsvpButtonsHtml}
         data.specialty?.trim() || 'General Practice',
         data.organization?.trim() || 'Private Practice',
         data.location?.trim() || 'United States',
-        data.email.trim(),
-        data.phone?.trim() || 'N/A'
+        data.phone?.trim() || 'N/A',
+        [data.email.trim()]
       ]);
     }
 
@@ -2751,11 +2772,15 @@ ${rsvpButtonsHtml}
 
     // Send Google Calendar invite
     let calendarInviteSent = false;
-    try {
-      await this.meetingsService.addAttendeeToGoogleEvent(userId, googleEventId, data.email.trim());
-      calendarInviteSent = true;
-    } catch (gcalErr: any) {
-      this.logger.error(`Failed to add calendar attendee ${data.email.trim()} to event ${googleEventId}: ${gcalErr.message}`);
+    const personalEmails = [data.email.trim()];
+    const inviteEmail = personalEmails.length > 0 ? personalEmails[0] : null;
+    if (inviteEmail) {
+      try {
+        await this.meetingsService.addAttendeeToGoogleEvent(userId, googleEventId, inviteEmail);
+        calendarInviteSent = true;
+      } catch (gcalErr: any) {
+        this.logger.error(`Failed to add calendar attendee ${inviteEmail} to event ${googleEventId}: ${gcalErr.message}`);
+      }
     }
 
     return {

@@ -91,6 +91,8 @@ interface CrmDoctor {
   location: string;
   email: string;
   phone: string;
+  workPhone?: string;
+  personalEmails?: string[];
   stage: string;
   lastActivityDate: string;
 }
@@ -199,8 +201,10 @@ export default function DoctorCrmPage() {
           specialty: r.specialty || 'Medical Doctor',
           organization: r.organization || 'Medical Clinic',
           location: r.location || `${r.city || ''}, ${r.state || ''}`.trim() || 'United States',
-          email: r.email || 'Email in DB',
+          email: r.email || '',
           phone: r.phone || 'N/A',
+          workPhone: r.work_phone || r.workPhone || 'N/A',
+          personalEmails: r.personal_emails || r.personalEmails || [],
           stage: r.stage || r.status || 'pending_outreach',
           lastActivityDate: r.updated_at ? new Date(r.updated_at).toLocaleDateString() : 'Saved in DB',
         }));
@@ -785,7 +789,8 @@ export default function DoctorCrmPage() {
                 <thead>
                   <tr className="border-b border-[#F2F2F2] bg-[#FCFCFC]">
                     <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Doctor &amp; Specialty</th>
-                    <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Contact Info</th>
+                    <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Email Info</th>
+                    <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Phone Info</th>
                     <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Practice Location</th>
                     <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Stage &amp; Status</th>
                     <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Lead Source</th>
@@ -795,7 +800,7 @@ export default function DoctorCrmPage() {
                 <tbody className="divide-y divide-[#F2F2F2]">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-[#8E8E93] text-[14px]">
+                      <td colSpan={7} className="px-6 py-12 text-center text-[#8E8E93] text-[14px]">
                         <div className="flex items-center justify-center gap-2">
                           <Loader2 className="w-5 h-5 animate-spin text-[#D9A11E]" />
                           <span>Loading doctor records from database...</span>
@@ -804,7 +809,7 @@ export default function DoctorCrmPage() {
                     </tr>
                   ) : filteredDoctors.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-[#8E8E93] text-[14px]">
+                      <td colSpan={7} className="px-6 py-12 text-center text-[#8E8E93] text-[14px]">
                         No physician prospects found matching this pipeline filter.
                       </td>
                     </tr>
@@ -830,17 +835,27 @@ export default function DoctorCrmPage() {
                           </div>
                         </td>
 
-                        {/* Column 2: Contact Info (Email & Phone) */}
-                        <td className="px-6 py-4.5 whitespace-nowrap">
-                          <div className="space-y-1">
-                            <div className="text-[13px] font-semibold text-[#1F1F1F] flex items-center gap-1.5">
-                              <Mail className="w-3.5 h-3.5 text-[#8E8E93]" />
-                              <span>{doc.email}</span>
-                            </div>
-                            <div className="text-[12px] text-[#8E8E93] flex items-center gap-1.5">
-                              <PhoneCall className="w-3.5 h-3.5 text-[#8E8E93]" />
-                              <span>{doc.phone}</span>
-                            </div>
+                        {/* Column 2: Email Info */}
+                        <td className="px-6 py-4.5 whitespace-nowrap text-[13px] text-[#1F1F1F]">
+                          <div>
+                            <span className="font-semibold text-gray-500 mr-1">Work:</span>
+                            <span className="font-medium">{doc.email && doc.email !== 'No Email' && doc.email !== 'Email in DB' ? doc.email : 'null'}</span>
+                          </div>
+                          <div className="mt-1">
+                            <span className="font-semibold text-gray-500 mr-1">Pers:</span>
+                            <span className="font-medium">{doc.personalEmails && doc.personalEmails.length > 0 ? doc.personalEmails[0] : 'null'}</span>
+                          </div>
+                        </td>
+
+                        {/* Column 2.5: Phone Info */}
+                        <td className="px-6 py-4.5 whitespace-nowrap text-[13px] text-[#1F1F1F]">
+                          <div>
+                            <span className="font-semibold text-gray-500 mr-1">Work:</span>
+                            <span className="font-medium">{doc.workPhone && doc.workPhone !== 'N/A' ? doc.workPhone : 'null'}</span>
+                          </div>
+                          <div className="mt-1">
+                            <span className="font-semibold text-gray-500 mr-1">Pers:</span>
+                            <span className="font-medium">{doc.phone && doc.phone !== 'N/A' ? doc.phone : 'null'}</span>
                           </div>
                         </td>
 

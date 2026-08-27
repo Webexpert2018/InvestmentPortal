@@ -39,6 +39,7 @@ interface DoctorProspect {
   email: string;
   phone?: string;
   workPhone?: string;
+  personalEmails?: string[];
   status: 'pending_apollo' | 'ai_copy_ready' | 'sent' | 'interested' | 'not_interested' | 'needs_call' | 'error';
   isAlreadyEnriched?: boolean;
   emailStatus?: string;
@@ -261,6 +262,7 @@ export default function DoctorLeadsPage() {
               email: enriched?.email || p.email,
               phone: enriched?.phone || p.phone,
               workPhone: enriched?.work_phone || enriched?.workPhone || p.workPhone,
+              personalEmails: enriched?.personal_emails || enriched?.personalEmails || p.personalEmails || [],
               emailStatus: 'verified',
               stage: newStage
             };
@@ -296,9 +298,10 @@ export default function DoctorLeadsPage() {
           specialty: r.specialty || 'Medical Doctor',
           organization: r.organization || 'Medical Clinic',
           location: r.location || `${r.city || ''}, ${r.state || ''}`.trim() || 'United States',
-          email: r.email || 'No Email',
+          email: r.email || '',
           phone: r.phone || '',
           workPhone: r.work_phone || r.workPhone || '',
+          personalEmails: r.personal_emails || r.personalEmails || [],
           status: ['sent', 'interested', 'not_interested', 'needs_call'].includes(r.stage || r.status) ? (r.stage || r.status) : 'ai_copy_ready',
           isAlreadyEnriched: true,
           emailStatus: r.email_status || 'verified',
@@ -660,7 +663,8 @@ export default function DoctorLeadsPage() {
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Physician Prospect</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Specialty & Clinic</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Location</th>
-                  <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Contact Info</th>
+                  <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Email Info</th>
+                  <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Phone Info</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Email Status</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Date Added</th>
                 </tr>
@@ -668,7 +672,7 @@ export default function DoctorLeadsPage() {
               <tbody className="divide-y divide-[#F2F2F2]">
                 {displayedProspects.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-14 text-center bg-[#FCFCFC]/80">
+                    <td colSpan={8} className="px-6 py-14 text-center bg-[#FCFCFC]/80">
                       <div className="flex flex-col items-center justify-center gap-2.5 max-w-md mx-auto">
                         <div className="w-12 h-12 rounded-full bg-[#FFD66B]/20 flex items-center justify-center text-[#D9A11E] mb-1">
                           <Stethoscope className="w-6 h-6" />
@@ -744,11 +748,25 @@ export default function DoctorLeadsPage() {
                           <span>{doc.location}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4.5 whitespace-nowrap">
-                        <div className="text-[13px] text-[#1F1F1F] font-medium">{doc.email}</div>
-                        {doc.phone && <div className="text-[12px] text-[#8E8E93]">Mobile: {doc.phone}</div>}
-                        {doc.workPhone && <div className="text-[12px] text-[#8E8E93]">Work: {doc.workPhone}</div>}
-                        {!doc.phone && !doc.workPhone && <div className="text-[12px] text-[#8E8E93]">-</div>}
+                      <td className="px-6 py-4.5 whitespace-nowrap text-[13px] text-[#1F1F1F]">
+                        <div>
+                          <span className="font-semibold text-gray-500 mr-1">Work:</span>
+                          <span className="font-medium">{doc.email && doc.email !== 'No Email' && doc.email !== 'Email in DB' ? doc.email : 'null'}</span>
+                        </div>
+                        <div className="mt-1">
+                          <span className="font-semibold text-gray-500 mr-1">Pers:</span>
+                          <span className="font-medium">{doc.personalEmails && doc.personalEmails.length > 0 ? doc.personalEmails[0] : 'null'}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4.5 whitespace-nowrap text-[13px] text-[#1F1F1F]">
+                        <div>
+                          <span className="font-semibold text-gray-500 mr-1">Work:</span>
+                          <span className="font-medium">{doc.workPhone && doc.workPhone !== 'N/A' ? doc.workPhone : 'null'}</span>
+                        </div>
+                        <div className="mt-1">
+                          <span className="font-semibold text-gray-500 mr-1">Pers:</span>
+                          <span className="font-medium">{doc.phone && doc.phone !== 'N/A' ? doc.phone : 'null'}</span>
+                        </div>
                       </td>
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         {doc.status === 'interested' || doc.stage === 'interested' ? (
