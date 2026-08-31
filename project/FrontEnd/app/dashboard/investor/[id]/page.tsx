@@ -148,18 +148,21 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [iraAccounts, setIraAccounts] = useState<any[]>([]);
+  const [subAccounts, setSubAccounts] = useState<any[]>([]);
+  const [subAccountData, setSubAccountData] = useState<Record<string, { funding: any[], redemptions: any[] }>>({});
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [profile, docs, investments, redemptions, investorStats, accounts] = await Promise.all([
+        const [profile, docs, investments, redemptions, investorStats, accounts, fetchedSubAccounts] = await Promise.all([
           apiClient.getUserById(params.id),
           apiClient.getInvestorDocuments(params.id),
           apiClient.getInvestorInvestments(params.id),
           apiClient.getInvestorRedemptions(params.id),
           apiClient.getInvestorStats(params.id),
-          apiClient.getUserIRAAccounts(params.id)
+          apiClient.getUserIRAAccounts(params.id),
+          apiClient.getInvestorSubaccounts(params.id).catch(() => [])
         ]);
         setInvestorData(profile);
         setKycDocuments(docs);
@@ -167,6 +170,23 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         setRedemptionHistory(redemptions);
         setStats(investorStats);
         setIraAccounts(accounts || []);
+        setSubAccounts(fetchedSubAccounts || []);
+
+        if (fetchedSubAccounts && fetchedSubAccounts.length > 0) {
+          const subDataPromises = fetchedSubAccounts.map(async (sub: any) => {
+            const [funding, redemptions] = await Promise.all([
+              apiClient.getInvestorInvestments(sub.id).catch(() => []),
+              apiClient.getInvestorRedemptions(sub.id).catch(() => [])
+            ]);
+            return { id: sub.id, funding, redemptions };
+          });
+          const subDataResults = await Promise.all(subDataPromises);
+          const dataMap: Record<string, any> = {};
+          subDataResults.forEach((res) => {
+            dataMap[res.id] = { funding: res.funding, redemptions: res.redemptions };
+          });
+          setSubAccountData(dataMap);
+        }
 
         // Fetch old investor documents using email or name/id
         const searchStr = profile?.email || `${profile?.firstName} ${profile?.lastName}`.trim() || params.id;
@@ -876,7 +896,11 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         <button
                           key="send-invite"
                           onClick={() => setShowInviteModal(true)}
-                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200"
+                          disabled={isPending || investorData.status === 'suspended'}
+                          className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${!(isPending || investorData.status === 'suspended')
+                            ? 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200'
+                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            }`}
                         >
                           <Mail className="h-3.5 w-3.5" />
                           Send Investment Invite
@@ -989,80 +1013,149 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           </div>
                         </div>
 
-                        {/* Section 2: Linked Custodian Accounts */}
+                        {/* Section 2: Linked Accounts */}
                         <div className="bg-gray-50/60 p-4 rounded-xl border border-gray-100 space-y-3">
                           <div className="flex items-center justify-between pb-1.5 border-b border-gray-200/60">
-                            <h4 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider">Linked Custodian Accounts</h4>
-                            {iraAccounts.length > 0 && (
+                            <h4 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider">Linked Accounts</h4>
+                            {(iraAccounts.length > 0 || subAccounts.length > 0) && (
                               <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
-                                {iraAccounts.length}
+                                {iraAccounts.length + subAccounts.length}
                               </span>
                             )}
                           </div>
                           <div className="space-y-3">
-                            {iraAccounts.length > 0 ? iraAccounts.map((account: any) => {
-                              const totalInvested = fundingHistory
-                                .filter(f => f.is_reconciled && f.account_type === account.account_type)
-                                .reduce((sum, f) => sum + parseFloat(f.revised_amount || f.investment_amount || 0), 0);
-                              const totalRedeemed = redemptionHistory
-                                .filter(r => r.is_reconciled && fundingHistory.find(inv => inv.id === r.investment_id)?.account_type === account.account_type)
-                                .reduce((sum, r) => sum + parseFloat(r.amount), 0);
-                              const netValue = totalInvested - totalRedeemed;
-                              const isSuspended = account.status === 'suspended';
+                            {(iraAccounts.length > 0 || subAccounts.length > 0) ? (
+                              <>
+                                {iraAccounts.map((account: any) => {
+                                  const totalInvested = fundingHistory
+                                    .filter(f => f.is_reconciled && f.account_type === account.account_type)
+                                    .reduce((sum, f) => sum + parseFloat(f.revised_amount || f.investment_amount || 0), 0);
+                                  const totalRedeemed = redemptionHistory
+                                    .filter(r => r.is_reconciled && fundingHistory.find(inv => inv.id === r.investment_id)?.account_type === account.account_type)
+                                    .reduce((sum, r) => sum + parseFloat(r.amount), 0);
+                                  const netValue = totalInvested - totalRedeemed;
+                                  const isSuspended = account.status === 'suspended';
 
-                              return (
-                                <div key={account.id} className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${isSuspended ? 'bg-red-50/20 border-red-100 opacity-80' : 'bg-white border-gray-200/70 hover:border-amber-200'}`}>
-                                  <div className="flex items-start justify-between mb-2">
-                                    <div>
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">{account.account_type} Account</span>
-                                      <p className="text-xs font-bold text-gray-900">${netValue.toLocaleString()}</p>
+                                  return (
+                                    <div key={account.id} className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${isSuspended ? 'bg-red-50/20 border-red-100 opacity-80' : 'bg-white border-gray-200/70 hover:border-amber-200'}`}>
+                                      <div className="flex items-start justify-between mb-2">
+                                        <div>
+                                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">{account.account_type} Account</span>
+                                          <p className="text-xs font-bold text-gray-900">${netValue.toLocaleString()}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <TooltipProvider>
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <button
+                                                  onClick={async () => {
+                                                    const newStatus = isSuspended ? 'active' : 'suspended';
+                                                    try {
+                                                      await apiClient.updateIRAAccountStatus(account.id, newStatus);
+                                                      toast.success(`Account ${newStatus === 'active' ? 'activated' : 'suspended'} successfully`);
+                                                      const updatedAccounts = await apiClient.getUserIRAAccounts(params.id);
+                                                      setIraAccounts(updatedAccounts);
+                                                    } catch (err) {
+                                                      toast.error('Failed to update account status');
+                                                    }
+                                                  }}
+                                                  className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full transition-all border flex items-center gap-1 shadow-xs active:scale-95 ${isSuspended
+                                                    ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                                    : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                                    }`}
+                                                >
+                                                  {isSuspended ? <X className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
+                                                  {isSuspended ? 'Suspended' : 'Activated'}
+                                                </button>
+                                              </TooltipTrigger>
+                                              <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
+                                                <p className="text-[11px] font-medium">
+                                                  {isSuspended
+                                                    ? 'Click here to activate this account.'
+                                                    : 'Click here to suspend this account.'}
+                                                </p>
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 mt-auto">
+                                        <p className="text-[10px] text-gray-500 font-medium">#{account.account_number || 'N/A'}</p>
+                                        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${isSuspended ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                          <div className={`w-1 h-1 rounded-full ${isSuspended ? 'bg-red-500' : 'bg-green-500'}`} />
+                                          {isSuspended ? 'Suspended' : 'Activated'}
+                                        </div>
+                                      </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <button
-                                              onClick={async () => {
-                                                const newStatus = isSuspended ? 'active' : 'suspended';
-                                                try {
-                                                  await apiClient.updateIRAAccountStatus(account.id, newStatus);
-                                                  toast.success(`Account ${newStatus === 'active' ? 'activated' : 'suspended'} successfully`);
-                                                  const updatedAccounts = await apiClient.getUserIRAAccounts(params.id);
-                                                  setIraAccounts(updatedAccounts);
-                                                } catch (err) {
-                                                  toast.error('Failed to update account status');
-                                                }
-                                              }}
-                                              className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full transition-all border flex items-center gap-1 shadow-xs active:scale-95 ${isSuspended
-                                                ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                                                : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                                }`}
-                                            >
-                                              {isSuspended ? <X className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
-                                              {isSuspended ? 'Suspended' : 'Activated'}
-                                            </button>
-                                          </TooltipTrigger>
-                                          <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
-                                            <p className="text-[11px] font-medium">
-                                              {isSuspended
-                                                ? 'Click here to activate this account.'
-                                                : 'Click here to suspend this account.'}
-                                            </p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
+                                  );
+                                })}
+                                {subAccounts.map((account: any) => {
+                                  const sData = subAccountData[account.id] || { funding: [], redemptions: [] };
+                                  const totalInvested = sData.funding
+                                    .filter((f: any) => f.is_reconciled)
+                                    .reduce((sum: number, f: any) => sum + parseFloat(f.revised_amount || f.investment_amount || 0), 0);
+                                  const totalRedeemed = sData.redemptions
+                                    .filter((r: any) => r.is_reconciled)
+                                    .reduce((sum: number, r: any) => sum + parseFloat(r.amount), 0);
+                                  const netValue = totalInvested - totalRedeemed;
+                                  const isSuspended = account.status === 'suspended';
+                                  const displayName = account.investorType === 'entity' ? (account.entityName || account.fullName) : account.fullName;
+
+                                  return (
+                                    <div key={account.id} className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${isSuspended ? 'bg-red-50/20 border-red-100 opacity-80' : 'bg-white border-gray-200/70 hover:border-amber-200'}`}>
+                                      <div className="flex items-start justify-between mb-2">
+                                        <div>
+                                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Subaccount ({account.investorType || 'minor'})</span>
+                                          <p className="text-xs font-bold text-gray-900">${netValue.toLocaleString()}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <TooltipProvider>
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <button
+                                                  onClick={async () => {
+                                                    const newStatus = isSuspended ? 'active' : 'suspended';
+                                                    try {
+                                                      await apiClient.updateUserStatus(account.id, newStatus);
+                                                      toast.success(`Subaccount ${newStatus === 'active' ? 'activated' : 'suspended'} successfully`);
+                                                      const updatedSubAccounts = await apiClient.getInvestorSubaccounts(params.id);
+                                                      setSubAccounts(updatedSubAccounts || []);
+                                                    } catch (err) {
+                                                      toast.error('Failed to update subaccount status');
+                                                    }
+                                                  }}
+                                                  className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full transition-all border flex items-center gap-1 shadow-xs active:scale-95 ${isSuspended
+                                                    ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                                    : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                                    }`}
+                                                >
+                                                  {isSuspended ? <X className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
+                                                  {isSuspended ? 'Suspended' : 'Activated'}
+                                                </button>
+                                              </TooltipTrigger>
+                                              <TooltipContent className="bg-neutral-900 text-white border-neutral-800">
+                                                <p className="text-[11px] font-medium">
+                                                  {isSuspended
+                                                    ? 'Click here to activate this subaccount.'
+                                                    : 'Click here to suspend this subaccount.'}
+                                                </p>
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 mt-auto">
+                                        <p className="text-[10px] text-gray-500 font-medium">{displayName}</p>
+                                        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${isSuspended ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                          <div className={`w-1 h-1 rounded-full ${isSuspended ? 'bg-red-500' : 'bg-green-500'}`} />
+                                          {isSuspended ? 'Suspended' : 'Activated'}
+                                        </div>
+                                      </div>
                                     </div>
-                                  </div>
-                                  <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 mt-auto">
-                                    <p className="text-[10px] text-gray-500 font-medium">#{account.account_number || 'N/A'}</p>
-                                    <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${isSuspended ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                                      <div className={`w-1 h-1 rounded-full ${isSuspended ? 'bg-red-500' : 'bg-green-500'}`} />
-                                      {isSuspended ? 'Suspended' : 'Activated'}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            }) : (
+                                  );
+                                })}
+                              </>
+                            ) : (
                               <p className="text-xs text-gray-400 italic bg-white p-3 rounded-xl border border-gray-200/70 text-center">No linked accounts found</p>
                             )}
                           </div>

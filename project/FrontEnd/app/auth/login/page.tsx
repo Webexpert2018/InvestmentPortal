@@ -36,7 +36,10 @@ function LoginForm() {
   const [error, setError] = useState('');
 
   React.useEffect(() => {
-    const returnTo = localStorage.getItem('returnTo');
+    // Clear any stuck legacy localStorage items
+    localStorage.removeItem('returnTo');
+    
+    const returnTo = sessionStorage.getItem('returnTo');
     if (returnTo && returnTo.includes('inviteToken')) {
       setError('Please sign in to view your investment invite.');
     }

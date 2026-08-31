@@ -1077,7 +1077,7 @@ export default function DashboardPage() {
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF3D6] text-sm font-semibold text-[#E29F3A]">
                     {investorAccountList.length}
                   </span>
-                  <p className="font-goudy text-sm">Your accounts</p>
+                  <p className="font-goudy text-sm">Your IRA Accounts</p>
                 </div>
                 <ChevronDown
                   className={`h-4 w-4 text-gray-400 transition-transform ${investorExpanded.accounts ? 'rotate-180' : ''

@@ -117,6 +117,8 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
         state: stateCode,
         zipCode: data.zipCode || '',
         country: countryCode,
+        phone: data.phone || '',
+        countryCode: data.countryCode || '+1 (USA)',
       }));
     } catch (error) {
       console.error('Failed to fetch parent investor details:', error);
