@@ -534,7 +534,7 @@ export class UsersService implements OnModuleInit {
       JOIN investors i ON ua.user_id = i.id
       LEFT JOIN investors parent ON i.parent_id = parent.id
       WHERE (i.assigned_ir_id = $1 OR i.assigned_accountant_id = $1) AND i.status != 'prospect'
-      ORDER BY i.created_at DESC
+      ORDER BY i.full_name ASC, i.created_at DESC
     `, [staffId]);
 
     return result.rows;
@@ -611,6 +611,7 @@ export class UsersService implements OnModuleInit {
              WHEN i.status = 'suspended' THEN 2
              ELSE 1 END,
         CASE WHEN ua.account_status = 'suspended' THEN 1 ELSE 0 END ASC,
+        i.full_name ASC,
         i.created_at DESC
     `);
 

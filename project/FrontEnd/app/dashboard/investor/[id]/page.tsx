@@ -14,6 +14,7 @@ import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { AdminAddIraModal } from '@/components/ira/AdminAddIraModal';
 import { AdminEditProfileModal } from '@/components/investor/AdminEditProfileModal';
+import { SendInvestmentInviteModal } from '@/components/investor/SendInvestmentInviteModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
 const formatPhoneDisplay = (phoneStr: string | null | undefined): string => {
@@ -145,8 +146,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
-
-
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [iraAccounts, setIraAccounts] = useState<any[]>([]);
 
   useEffect(() => {
@@ -872,6 +872,14 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
                         >
                           {investorData.assignedAccountantId ? 'Change Accountant' : 'Assign Accountant'}
+                        </button>,
+                        <button
+                          key="send-invite"
+                          onClick={() => setShowInviteModal(true)}
+                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200"
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                          Send Investment Invite
                         </button>
                       ];
 
@@ -1792,6 +1800,11 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         onClose={() => setIsEditProfileModalOpen(false)}
         onSuccess={handleProfileUpdateSuccess}
         investor={investorData}
+      />
+      <SendInvestmentInviteModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        investorId={params.id}
       />
     </DashboardLayout>
   );

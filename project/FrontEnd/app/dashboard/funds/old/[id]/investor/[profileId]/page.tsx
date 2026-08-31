@@ -4,13 +4,15 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, Users, Mail, ShieldAlert, Award, FileText, BadgeCheck, DollarSign, PieChart, Activity, Download, Eye, Filter, ArrowUpDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 
 export default function OldFundInvestorDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
+  const from = searchParams.get('from');
   const [investorData, setInvestorData] = useState<any>(null);
   const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -95,10 +97,16 @@ export default function OldFundInvestorDetailPage() {
       <DashboardLayout>
         <div className="p-6">
           <button
-            onClick={() => router.push(`/dashboard/funds/old/${params.id}`)}
+            onClick={() => {
+              if (from === 'investors') {
+                router.push('/dashboard/investor');
+              } else {
+                router.push(`/dashboard/funds/old/${params.id}`);
+              }
+            }}
             className="mb-4 flex items-center gap-2 text-gray-600 font-semibold"
           >
-            <ChevronLeft className="h-5 w-5" /> Back to Fund Details
+            <ChevronLeft className="h-5 w-5" /> {from === 'investors' ? 'Back to Investors' : 'Back to Fund Details'}
           </button>
           <div className="bg-white p-8 rounded-2xl border border-gray-100 text-center shadow-sm">
             <p className="text-gray-500 font-medium">Investor details not found</p>
@@ -115,13 +123,19 @@ export default function OldFundInvestorDetailPage() {
         <div className="mb-8">
           <div className="mb-4">
             <button
-              onClick={() => router.push(`/dashboard/funds/old/${params.id}`)}
+              onClick={() => {
+                if (from === 'investors') {
+                  router.push('/dashboard/investor');
+                } else {
+                  router.push(`/dashboard/funds/old/${params.id}`);
+                }
+              }}
               className="p-1.5 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200 group flex items-center gap-1.5 w-fit"
-              title="Back to Fund Details"
+              title={from === 'investors' ? 'Back to Investors' : 'Back to Fund Details'}
             >
               <ChevronLeft className="h-5 w-5 text-gray-600 transition-transform group-hover:-translate-x-0.5" />
               <span className="text-sm font-semibold text-[#1F3B6E] pr-2">
-                Back to Fund Details
+                {from === 'investors' ? 'Back to Investors' : 'Back to Fund Details'}
               </span>
             </button>
           </div>

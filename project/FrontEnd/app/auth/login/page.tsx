@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import React from 'react';
 
 type LoginFlow = 'admin' | 'accountant' | 'investor';
 
@@ -33,6 +34,13 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    const returnTo = localStorage.getItem('returnTo');
+    if (returnTo && returnTo.includes('inviteToken')) {
+      setError('Please sign in to view your investment invite.');
+    }
+  }, []);
 
   let flowParam = (searchParams.get('flow') || '').toLowerCase();
   if (flowParam === 'account') flowParam = 'accountant';

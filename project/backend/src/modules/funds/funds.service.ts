@@ -825,10 +825,16 @@ export class FundsService {
     let totalShares = 0;
 
     result.rows.forEach(invRow => {
-      const numAmount = parseFloat(invRow.amount?.replace(/[\$,]/g, '') || '0');
+      const cleanAmount = invRow.amount?.replace(/[^0-9.-]/g, '');
+      const numAmount = parseFloat(cleanAmount || '0');
+      if (!isNaN(numAmount)) {
+        totalInvestment += numAmount;
+      }
+      
       const numShares = parseFloat(invRow.shares || '0');
-      totalInvestment += numAmount;
-      totalShares += numShares;
+      if (!isNaN(numShares)) {
+        totalShares += numShares;
+      }
     });
 
     let totalDistributed = 0;
@@ -1515,9 +1521,7 @@ export class FundsService {
           END
         ), 0) as "totalInvested",
         oi.distribution_preference as "distributionMethod",
-        EXISTS(
-          SELECT 1 FROM investors i WHERE LOWER(i.email) = LOWER(oi.primary_email)
-        ) as "isPresent"
+        (SELECT status FROM investors i WHERE LOWER(i.email) = LOWER(oi.primary_email) LIMIT 1) as "investorStatus"
       FROM old_investors oi
       LEFT JOIN old_investments inv ON oi.ims_profile_id = inv.investor_profile_id
       GROUP BY oi.ims_profile_id, oi.legal_name, oi.primary_email, oi.distribution_preference
@@ -1533,7 +1537,8 @@ export class FundsService {
       totalInvestments: parseInt(r.totalInvestments || '0', 10),
       totalInvested: '$' + (parseFloat(r.totalInvested || '0')).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       distributionMethod: r.distributionMethod || 'Check',
-      isPresent: !!r.isPresent
+      isPresent: !!r.investorStatus,
+      status: r.investorStatus || null
     }));
   }
 }

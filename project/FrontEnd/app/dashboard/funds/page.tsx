@@ -175,34 +175,36 @@ export default function FundsPage() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-gray-100 mb-6 bg-white rounded-t-2xl px-4">
-          <button
-            onClick={() => {
-              setActiveTab('current');
-              setSearchQuery('');
-            }}
-            className={`px-6 py-4 font-bold text-sm transition-all border-b-2 -mb-[2px] ${activeTab === 'current'
-              ? 'border-[#1F3B6E] text-[#1F3B6E]'
-              : 'border-transparent text-gray-400 hover:text-gray-600'
-              }`}
-          >
-            Active Funds
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('old');
-              setSearchQuery('');
-            }}
-            className={`px-6 py-4 font-bold text-sm transition-all border-b-2 -mb-[2px] ${activeTab === 'old'
-              ? 'border-[#1F3B6E] text-[#1F3B6E]'
-              : 'border-transparent text-gray-400 hover:text-gray-600'
-              }`}
-          >
-            Real Estate Funds
-          </button>
+        <div className="mb-6 overflow-x-auto custom-scrollbar">
+          <div className="inline-flex items-center gap-1 p-1 bg-[#F9FAFB] rounded-[16px] border border-[#E5E7EB]">
+            <button
+              onClick={() => {
+                setActiveTab('current');
+                setSearchQuery('');
+              }}
+              className={`py-2 px-6 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${activeTab === 'current'
+                ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
+                : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
+                }`}
+            >
+              Active Funds
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('old');
+                setSearchQuery('');
+              }}
+              className={`py-2 px-6 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${activeTab === 'old'
+                ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
+                : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50'
+                }`}
+            >
+              Real Estate Funds
+            </button>
+          </div>
         </div>
 
-        <div className="bg-white p-4 rounded-b-2xl shadow-sm border border-gray-50">
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50">
           {/* Search */}
           <div className="mb-6">
             <div className="relative max-w-md">

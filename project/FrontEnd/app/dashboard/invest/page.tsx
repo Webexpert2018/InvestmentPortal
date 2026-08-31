@@ -39,7 +39,7 @@ const getFullImageUrl = (imagePath: string | null | undefined): string | undefin
 };
 
 export default function InvestPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
@@ -192,13 +192,59 @@ export default function InvestPage() {
       };
       submitInvestment();
 
-      // Clean up URL parameters
+  // Clean up URL parameters
       const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
       current.delete('signing');
       current.delete('event');
       router.replace(pathname + '?' + current.toString());
     }
   }, [searchParams, pathname, router]);
+
+  useEffect(() => {
+    const inviteToken = searchParams?.get('inviteToken');
+    if (inviteToken) {
+      if (authLoading) return; // Wait until authentication finishes checking
+
+      if (!user) {
+        toast({
+          title: "Sign in required",
+          description: "Please sign in to view your investment invite.",
+          variant: "default"
+        });
+        return; // DashboardLayout will redirect to /auth/login
+      }
+
+      const fetchInvite = async () => {
+        try {
+          const res = await apiClient.get(`/investments/invite/${inviteToken}`);
+          if (res.data) {
+            setSelectedFundId(res.data.fund_id);
+            setToggledFundId(res.data.fund_id);
+            setSelectedAccountId(res.data.account_id || 'personal');
+            setAmount(String(res.data.amount));
+            setStep('investmentAmount');
+            toast({
+              title: "Success",
+              description: "Invite loaded successfully"
+            });
+            
+            // Clean up the URL
+            const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
+            current.delete('inviteToken');
+            router.replace(pathname + '?' + current.toString());
+          }
+        } catch (error: any) {
+          console.error('Failed to load invite:', error);
+          toast({
+            title: "Error",
+            description: error.message || "Failed to load invite. It might be expired or invalid.",
+            variant: "destructive"
+          });
+        }
+      };
+      fetchInvite();
+    }
+  }, [searchParams, pathname, router, authLoading, user]);
 
   const selectedFund = useMemo(() => {
     return funds.find(f => f.id === selectedFundId);

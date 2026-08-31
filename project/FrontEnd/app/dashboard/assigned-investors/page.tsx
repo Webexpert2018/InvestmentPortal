@@ -328,10 +328,17 @@ export default function AdminAssignedInvestorsPage() {
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.missingDocs}</td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.date}</td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-right">
-                          <Link href={`/dashboard/messages?userId=${inv.id}`} className="relative p-1.5 text-[#9CA3AF] hover:text-[#6B7280] transition-colors inline-block" title="Message">
-                            <MessageSquare className="h-[18px] w-[18px]" />
-                            {inv.hasNewMessage && <span className="absolute -top-0.5 -right-0.5 h-[8px] w-[8px] rounded-full bg-[#16A66A] border border-white" />}
-                          </Link>
+                          <div className="flex items-center justify-end gap-2">
+                            <Link href={`/dashboard/messages?userId=${inv.id}`} className="relative p-1.5 text-[#9CA3AF] hover:text-[#6B7280] transition-colors inline-block" title="Message">
+                              <MessageSquare className="h-[18px] w-[18px]" />
+                              {inv.hasNewMessage && <span className="absolute -top-0.5 -right-0.5 h-[8px] w-[8px] rounded-full bg-[#16A66A] border border-white" />}
+                            </Link>
+                            <Link href={`/dashboard/investor/${inv.id}`} onClick={(e) => e.stopPropagation()}>
+                              <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                View Profile
+                              </button>
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -383,10 +390,17 @@ export default function AdminAssignedInvestorsPage() {
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.missingDocs}</td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.date}</td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-right">
-                          <Link href={`/dashboard/messages?userId=${inv.id}`} className="relative p-1.5 text-[#9CA3AF] hover:text-[#6B7280] transition-colors inline-block" title="Message">
-                            <MessageSquare className="h-[18px] w-[18px]" />
-                            {inv.hasNewMessage && <span className="absolute -top-0.5 -right-0.5 h-[8px] w-[8px] rounded-full bg-[#16A66A] border border-white" />}
-                          </Link>
+                          <div className="flex items-center justify-end gap-2">
+                            <Link href={`/dashboard/messages?userId=${inv.id}`} className="relative p-1.5 text-[#9CA3AF] hover:text-[#6B7280] transition-colors inline-block" title="Message">
+                              <MessageSquare className="h-[18px] w-[18px]" />
+                              {inv.hasNewMessage && <span className="absolute -top-0.5 -right-0.5 h-[8px] w-[8px] rounded-full bg-[#16A66A] border border-white" />}
+                            </Link>
+                            <Link href={`/dashboard/investor/${inv.id}`} onClick={(e) => e.stopPropagation()}>
+                              <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                View Profile
+                              </button>
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -434,8 +448,15 @@ export default function AdminAssignedInvestorsPage() {
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-60">{inv.missingDocs}</td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-60">{inv.date}</td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-right">
-                          <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Setup in progress">
-                            <MessageSquare className="h-[18px] w-[18px]" />
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Setup in progress">
+                              <MessageSquare className="h-[18px] w-[18px]" />
+                            </div>
+                            <Link href={`/dashboard/investor/${inv.id}`} onClick={(e) => e.stopPropagation()}>
+                              <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                View Profile
+                              </button>
+                            </Link>
                           </div>
                         </td>
                       </tr>
@@ -484,8 +505,15 @@ export default function AdminAssignedInvestorsPage() {
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">-</td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">{inv.date}</td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-right">
-                          <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Account suspended">
-                            <MessageSquare className="h-[18px] w-[18px]" />
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Account suspended">
+                              <MessageSquare className="h-[18px] w-[18px]" />
+                            </div>
+                            <Link href={`/dashboard/investor/${inv.id}`} onClick={(e) => e.stopPropagation()}>
+                              <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                View Profile
+                              </button>
+                            </Link>
                           </div>
                         </td>
                       </tr>
@@ -532,8 +560,15 @@ export default function AdminAssignedInvestorsPage() {
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">-</td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">{inv.date}</td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-right">
-                          <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Account suspended">
-                            <MessageSquare className="h-[18px] w-[18px]" />
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Account suspended">
+                              <MessageSquare className="h-[18px] w-[18px]" />
+                            </div>
+                            <Link href={`/dashboard/investor/${inv.id}`} onClick={(e) => e.stopPropagation()}>
+                              <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                View Profile
+                              </button>
+                            </Link>
                           </div>
                         </td>
                       </tr>
