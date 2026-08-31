@@ -2068,7 +2068,14 @@ export function InvestorSettingsScreen() {
           <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F]">My Sub Accounts</h3>
           <button
             type="button"
-            onClick={() => setSubAccountMode('add')}
+            onClick={() => {
+              setSubAccountMode('add');
+              setSubForm(prev => ({
+                ...prev,
+                phone: profile.phoneNumber || '',
+                countryCode: profile.countryCode || '+1 (USA)'
+              }));
+            }}
             className="h-[32px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] hover:bg-[#FAD980]"
           >
             Add Sub Account

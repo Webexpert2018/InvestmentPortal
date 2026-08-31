@@ -876,7 +876,11 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         <button
                           key="send-invite"
                           onClick={() => setShowInviteModal(true)}
-                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200"
+                          disabled={isPending || investorData.status === 'suspended'}
+                          className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${!(isPending || investorData.status === 'suspended')
+                            ? 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200'
+                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            }`}
                         >
                           <Mail className="h-3.5 w-3.5" />
                           Send Investment Invite
