@@ -162,9 +162,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     if (!loading && !user && !sessionExpired) {
       const path = window.location.pathname;
       if (path !== '/' && !path.startsWith('/auth')) {
-        // Save the current URL to local storage to redirect after login if it's an invite link
+        // Save the current URL to session storage to redirect after login if it's an invite link
         if (window.location.search.includes('inviteToken')) {
-          localStorage.setItem('returnTo', path + window.location.search);
+          sessionStorage.setItem('returnTo', path + window.location.search);
         }
         // Only redirect if we're not already on a public or auth page
         router.push("/auth/login");

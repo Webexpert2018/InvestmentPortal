@@ -87,9 +87,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData);
     setSessionExpired(false);
 
-    const returnTo = localStorage.getItem('returnTo');
+    const returnTo = sessionStorage.getItem('returnTo');
     if (returnTo) {
-      localStorage.removeItem('returnTo');
+      sessionStorage.removeItem('returnTo');
       router.push(returnTo);
     } else {
       router.push('/dashboard');
@@ -102,9 +102,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData);
     setSessionExpired(false);
 
-    const returnTo = localStorage.getItem('returnTo');
+    const returnTo = sessionStorage.getItem('returnTo');
     if (returnTo) {
-      localStorage.removeItem('returnTo');
+      sessionStorage.removeItem('returnTo');
       router.push(returnTo);
     } else {
       router.push('/dashboard');
