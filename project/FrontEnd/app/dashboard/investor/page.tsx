@@ -43,6 +43,7 @@ interface OldInvestor {
   totalInvested: string;
   distributionMethod: string;
   isPresent?: boolean;
+  status?: string;
 }
 
 export default function InvestorPage() {
@@ -243,11 +244,15 @@ export default function InvestorPage() {
       accountTypeFilter.toLowerCase() === 'personal'
         ? (investorInvType.toLowerCase() === 'personal' && investorAccType.toLowerCase() === 'personal')
         : (accountTypeFilter.toLowerCase() === 'minor' || accountTypeFilter.toLowerCase() === 'entity')
-        ? (investorInvType.toLowerCase() === accountTypeFilter.toLowerCase() && investorAccType.toLowerCase() === 'personal')
-        : investorAccType.toLowerCase() === accountTypeFilter.toLowerCase()
+          ? (investorInvType.toLowerCase() === accountTypeFilter.toLowerCase() && investorAccType.toLowerCase() === 'personal')
+          : investorAccType.toLowerCase() === accountTypeFilter.toLowerCase()
     );
 
     return matchesSearch && matchesKyc && matchesStatus && matchesAccountType;
+  }).sort((a, b) => {
+    const nameA = (a.firstName + ' ' + (a.lastName || '')).toLowerCase();
+    const nameB = (b.firstName + ' ' + (b.lastName || '')).toLowerCase();
+    return nameA.localeCompare(nameB);
   });
 
   const activeInvestors = filteredInvestors.filter(i =>
@@ -533,20 +538,6 @@ export default function InvestorPage() {
                 </button>
               </>
             )}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setViewMode(prev => prev === 'old' ? 'active' : 'old');
-              }}
-              className={`px-8 py-3 text-sm font-bold rounded-full transition-all shadow-sm active:scale-95 flex items-center gap-2 ${
-                viewMode === 'old'
-                  ? 'bg-[#1F3B6E] text-white hover:bg-[#182f58]'
-                  : 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
-              }`}
-            >
-              <History className="h-4 w-4" />
-              {viewMode === 'old' ? 'View Active Investors' : 'View Old Investors'}
-            </button>
           </div>
         </div>
 
@@ -631,63 +622,69 @@ export default function InvestorPage() {
           </div>
 
           {/* 2. Tab Bar Row (MIDDLE - compressed vertical space) */}
-          {viewMode !== 'old' && (
-            <div className="px-4 py-2 sm:px-6 sm:py-2.5 border-b border-[#F3F4F6] bg-white overflow-x-auto custom-scrollbar">
-              <div className="inline-flex items-center gap-1 p-1 bg-[#F9FAFB] rounded-[16px] border border-[#E5E7EB]">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('active')}
-                  className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${
-                    activeTab === 'active'
-                      ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
-                      : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
+          <div className="px-4 py-2 sm:px-6 sm:py-2.5 border-b border-[#F3F4F6] bg-white overflow-x-auto custom-scrollbar">
+            <div className="inline-flex items-center gap-1 p-1 bg-[#F9FAFB] rounded-[16px] border border-[#E5E7EB]">
+              <button
+                type="button"
+                onClick={() => { setViewMode('active'); setActiveTab('active'); }}
+                className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${viewMode === 'active' && activeTab === 'active'
+                  ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
+                  : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
                   }`}
-                >
-                  <User className={`h-4 w-4 stroke-[2.5] ${activeTab === 'active' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
-                  Active Investors ({activeInvestors.length})
-                </button>
+              >
+                <User className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'active' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                Active Investors ({activeInvestors.length})
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('ira')}
-                  className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${
-                    activeTab === 'ira'
-                      ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
-                      : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
+              <button
+                type="button"
+                onClick={() => { setViewMode('active'); setActiveTab('ira'); }}
+                className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${viewMode === 'active' && activeTab === 'ira'
+                  ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
+                  : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
                   }`}
-                >
-                  <Landmark className={`h-4 w-4 stroke-[2.5] ${activeTab === 'ira' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
-                  Active IRA Accounts ({activeIraInvestors.length})
-                </button>
+              >
+                <Landmark className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'ira' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                Active IRA Accounts ({activeIraInvestors.length})
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('pending')}
-                  className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${
-                    activeTab === 'pending'
-                      ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
-                      : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
+              <button
+                type="button"
+                onClick={() => { setViewMode('active'); setActiveTab('pending'); }}
+                className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${viewMode === 'active' && activeTab === 'pending'
+                  ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
+                  : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
                   }`}
-                >
-                  <Mail className={`h-4 w-4 stroke-[2.5] ${activeTab === 'pending' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
-                  Pending Invitations ({pendingInvestors.length})
-                </button>
+              >
+                <Mail className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'pending' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                Pending Invitations ({pendingInvestors.length})
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('suspended')}
-                  className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${
-                    activeTab === 'suspended'
-                      ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
-                      : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50'
+              <button
+                type="button"
+                onClick={() => { setViewMode('active'); setActiveTab('suspended'); }}
+                className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${viewMode === 'active' && activeTab === 'suspended'
+                  ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
+                  : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
                   }`}
-                >
-                  <UserX className={`h-4 w-4 stroke-[2.5] ${activeTab === 'suspended' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
-                  Suspended Login/IRA Accounts ({suspendedInvestors.length})
-                </button>
-              </div>
+              >
+                <UserX className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'suspended' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                Suspended Login/IRA Accounts ({suspendedInvestors.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('old')}
+                className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${viewMode === 'old'
+                  ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
+                  : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50'
+                  }`}
+              >
+                <History className={`h-4 w-4 stroke-[2.5] ${viewMode === 'old' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                IMS Investors {oldInvestors.length > 0 ? `(${filteredOldInvestors.length})` : ''}
+              </button>
             </div>
-          )}
+          </div>
 
           {/* Table */}
           <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)] custom-scrollbar relative">
@@ -716,9 +713,8 @@ export default function InvestorPage() {
                       <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Investor Name</th>
                       <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Email</th>
                       <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Total Funds</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Investments Count</th>
                       <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Total Invested</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Payment Method</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Action</th>
                     </tr>
                   </thead>
                 ) : (
@@ -744,19 +740,19 @@ export default function InvestorPage() {
                     {loadingOld ? (
                       Array.from({ length: 5 }).map((_, i) => (
                         <tr key={i} className="animate-pulse">
-                          <td colSpan={8} className="px-8 py-6 h-[80px] bg-white"></td>
+                          <td colSpan={6} className="px-8 py-6 h-[80px] bg-white"></td>
                         </tr>
                       ))
                     ) : filteredOldInvestors.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
+                        <td colSpan={6} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
                           No old investors found matching your search.
                         </td>
                       </tr>
                     ) : (
                       <>
                         <tr className="bg-[#F9FAFB]/50">
-                          <td colSpan={8} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+                          <td colSpan={6} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
                             Old Investors ({filteredOldInvestors.length})
                           </td>
                         </tr>
@@ -768,7 +764,7 @@ export default function InvestorPage() {
                               if (inv.totalInvestments === 0) {
                                 toast.error('No investments made by them');
                               } else {
-                                router.push(`/dashboard/funds/old/${inv.defaultFundId || 40458}/investor/${inv.ims_profile_id}`);
+                                router.push(`/dashboard/funds/old/${inv.defaultFundId || 40458}/investor/${inv.ims_profile_id}?from=investors`);
                               }
                             }}
                           >
@@ -798,8 +794,8 @@ export default function InvestorPage() {
                                 </div>
                                 <span className="text-sm font-bold text-[#111827]">{inv.fullName}</span>
                                 {inv.isPresent && (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E6F4EA] text-[#137333] border border-[#A3E2B5] ml-2">
-                                    Present
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E6F4EA] text-[#137333] border border-[#A3E2B5] ml-2 capitalize">
+                                    {inv.status || 'Present'}
                                   </span>
                                 )}
                               </div>
@@ -810,16 +806,24 @@ export default function InvestorPage() {
                             <td className="px-6 py-4 text-sm text-[#4B5563] font-medium">
                               {inv.totalFunds} Fund{inv.totalFunds > 1 ? 's' : ''}
                             </td>
-                            <td className="px-6 py-4 text-sm text-[#4B5563] font-medium">
-                              {inv.totalInvestments} Investment{inv.totalInvestments > 1 ? 's' : ''}
-                            </td>
                             <td className="px-6 py-4 text-sm font-bold text-[#111827]">
                               {inv.totalInvested}
                             </td>
-                            <td className="px-6 py-4">
-                              <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                                {inv.distributionMethod || 'Check'}
-                              </span>
+                            <td className="px-6 py-4 text-right">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (inv.totalInvestments === 0) {
+                                    toast.error('No investments made by them');
+                                  } else {
+                                    router.push(`/dashboard/funds/old/${inv.defaultFundId || 40458}/investor/${inv.ims_profile_id}?from=investors`);
+                                  }
+                                }}
+                                className="px-4 py-2 bg-white text-[#1F2937] text-xs font-bold rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm"
+                              >
+                                View Profile
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -1263,20 +1267,18 @@ export default function InvestorPage() {
                                 return (
                                   <tr
                                     key={rowKey}
-                                    className={`transition-all duration-200 group cursor-pointer ${
-                                      selectedRowKey === rowKey
-                                        ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
-                                        : 'hover:bg-[#F8FAFC]'
-                                    }`}
+                                    className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
+                                      ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
+                                      : 'hover:bg-[#F8FAFC]'
+                                      }`}
                                     onClick={() => {
                                       handleSelectRow(investor);
                                       router.push(`/dashboard/investor/${investor.id}`);
                                     }}
                                   >
                                     <td
-                                      className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${
-                                        selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''
-                                      }`}
+                                      className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''
+                                        }`}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         if (selectedRowKey === rowKey) {
