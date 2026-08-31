@@ -105,6 +105,44 @@ class ApiClient {
     return data;
   }
 
+  // Generic HTTP methods
+  public async get<T = any>(endpoint: string, options: RequestInit = {}): Promise<{ data: T }> {
+    const data = await this.request<T>(endpoint, { ...options, method: 'GET' });
+    return { data };
+  }
+
+  public async post<T = any>(endpoint: string, body?: any, options: RequestInit = {}): Promise<{ data: T }> {
+    const data = await this.request<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    });
+    return { data };
+  }
+
+  public async put<T = any>(endpoint: string, body?: any, options: RequestInit = {}): Promise<{ data: T }> {
+    const data = await this.request<T>(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    });
+    return { data };
+  }
+
+  public async patch<T = any>(endpoint: string, body?: any, options: RequestInit = {}): Promise<{ data: T }> {
+    const data = await this.request<T>(endpoint, {
+      ...options,
+      method: 'PATCH',
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    });
+    return { data };
+  }
+
+  public async delete<T = any>(endpoint: string, options: RequestInit = {}): Promise<{ data: T }> {
+    const data = await this.request<T>(endpoint, { ...options, method: 'DELETE' });
+    return { data };
+  }
+
   private async requestBlob(
     endpoint: string,
     options: RequestInit = {}

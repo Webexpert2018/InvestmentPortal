@@ -5,12 +5,15 @@ import { DocusignService } from '../docusign/docusign.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { cloudinary } from '../../config/cloudinary.config';
+import { EmailService } from '../email/email.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class InvestmentsService {
   constructor(
     private readonly notificationsService: NotificationsService,
-    private readonly docusignService: DocusignService
+    private readonly docusignService: DocusignService,
+    private readonly emailService: EmailService
   ) { }
 
   async createInvestment(userId: string, data: any) {
@@ -588,6 +591,72 @@ export class InvestmentsService {
       if (error instanceof NotFoundException || error instanceof BadRequestException) throw error;
       console.error('❌ Error deleting investment:', error);
       throw new InternalServerErrorException('Failed to delete investment record');
+    }
+  }
+
+  async createInvite(adminId: string, data: { investorId: string; fundId: string; accountId: string; accountType: string; amount: string; }) {
+    try {
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 3); // Expires in 3 days
+
+      const { investorId, fundId, accountId, accountType, amount } = data;
+
+      await db.query(
+        `INSERT INTO investment_invites 
+         (investor_id, fund_id, account_id, account_type, amount, token, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [investorId, fundId, accountId, accountType, amount, token, expiresAt]
+      );
+
+      // Fetch investor and fund info for the email
+      const invRes = await db.query('SELECT full_name, email FROM investors WHERE id = $1', [investorId]);
+      const fundRes = await db.query('SELECT name FROM funds WHERE id = $1', [fundId]);
+
+      if (invRes.rows.length > 0 && fundRes.rows.length > 0) {
+        const investor = invRes.rows[0];
+        const fund = fundRes.rows[0];
+        await this.emailService.sendInvestmentInvite(
+          investor.email,
+          investor.full_name,
+          fund.name,
+          amount,
+          token
+        );
+      }
+
+      return { token, message: 'Invite created and sent successfully' };
+    } catch (error) {
+      console.error('Error creating investment invite:', error);
+      throw new InternalServerErrorException('Failed to create investment invite');
+    }
+  }
+
+  async getInvite(token: string, currentUserId: string) {
+    try {
+      const result = await db.query(
+        `SELECT * FROM investment_invites 
+         WHERE token = $1 
+         AND status = 'pending' 
+         AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)`,
+        [token]
+      );
+
+      if (result.rows.length === 0) {
+        throw new NotFoundException('Invalid or expired invite token');
+      }
+
+      const invite = result.rows[0];
+
+      if (invite.investor_id !== currentUserId) {
+        throw new BadRequestException('This invite is intended for a different user. Please log out and log in with the correct account.');
+      }
+
+      return invite;
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) throw error;
+      console.error('Error fetching invite:', error);
+      throw new InternalServerErrorException('Failed to fetch invite');
     }
   }
 }

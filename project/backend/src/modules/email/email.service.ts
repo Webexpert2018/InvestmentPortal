@@ -277,6 +277,27 @@ export class EmailService {
     await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
   }
 
+  async sendInvestmentInvite(email: string, firstName: string, fundName: string, amount: string, token: string) {
+    const title = 'Investment Invitation';
+    const subject = `Investment Invitation - ${fundName} - Ovalia Capital`;
+    const frontendUrl = this.getFrontendUrl();
+    const content = `
+      <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Investment Invitation</h1>
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">Hello ${firstName},</p>
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">You have been invited to invest <strong>$${amount}</strong> in <strong>${fundName}</strong>.</p>
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">Click the button below to review and finalize your investment. Your account details and investment amount will be automatically filled in for your convenience.</p>
+      
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="${frontendUrl}/dashboard/invest?inviteToken=${token}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
+          Review Investment
+        </a>
+      </div>
+      <p style="margin: 20px 0 0; font-size: 14px; color: #6B7280; font-style: italic;">If the button above does not work, copy and paste the following link into your browser:</p>
+      <p style="margin: 10px 0 0; font-size: 14px; color: #1F3B6E; word-break: break-all;"><a href="${frontendUrl}/dashboard/invest?inviteToken=${token}">${frontendUrl}/dashboard/invest?inviteToken=${token}</a></p>
+    `;
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+  }
+
   private getHtmlTemplate(content: string, title: string) {
     const frontendUrl = this.getFrontendUrl();
     return `

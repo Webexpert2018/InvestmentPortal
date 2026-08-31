@@ -87,7 +87,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData);
     setSessionExpired(false);
 
-    router.push('/dashboard');
+    const returnTo = localStorage.getItem('returnTo');
+    if (returnTo) {
+      localStorage.removeItem('returnTo');
+      router.push(returnTo);
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   const signup = async (data: any) => {
@@ -96,7 +102,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData);
     setSessionExpired(false);
 
-    router.push('/dashboard');
+    const returnTo = localStorage.getItem('returnTo');
+    if (returnTo) {
+      localStorage.removeItem('returnTo');
+      router.push(returnTo);
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   const logout = async () => {
