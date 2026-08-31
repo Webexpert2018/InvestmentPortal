@@ -283,7 +283,19 @@ export class EmailService {
         Need help? Contact our support team at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
       </p>
     `;
-    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+    const html = this.getHtmlTemplate(content, title);
+    
+    const sendgridApiKey = this.configService.get<string>('SENDGRID_API_KEY') || process.env.SENDGRID_API_KEY;
+    if (sendgridApiKey && sendgridApiKey.startsWith('SG.')) {
+      try {
+        await this.sendSendgridEmail(email, subject, html);
+        return;
+      } catch (err: any) {
+        this.logger.warn(`SendGrid dispatch failed in sendCustomEmail, falling back to SMTP transport: ${err.message}`);
+      }
+    }
+
+    await this.sendEmail(email, subject, html);
   }
 
   async sendInvestmentInvite(email: string, firstName: string, fundName: string, amount: string, token: string) {
@@ -427,16 +439,6 @@ export class EmailService {
   }
 
   async sendEmail(to: string, subject: string, html: string) {
-    const sendgridApiKey = this.configService.get<string>('SENDGRID_API_KEY') || process.env.SENDGRID_API_KEY;
-    if (sendgridApiKey && sendgridApiKey.startsWith('SG.')) {
-      try {
-        await this.sendSendgridEmail(to, subject, html);
-        return;
-      } catch (err: any) {
-        this.logger.warn(`SendGrid dispatch failed, falling back to SMTP transport: ${err.message}`);
-      }
-    }
-
     const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('EMAIL_FROM') || '"Ovalia Capital" <portal@ovaliacapital.com>';
 
     const extractEmail = (str: string) => {
