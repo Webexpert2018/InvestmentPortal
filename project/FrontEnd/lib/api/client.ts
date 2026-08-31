@@ -212,6 +212,10 @@ class ApiClient {
     return this.request<any[]>('/users/subaccounts');
   }
 
+  async getInvestorSubaccounts(userId: string) {
+    return this.request<any[]>(`/users/${userId}/subaccounts`);
+  }
+
   async getIraAccountsForUser(userId: string) {
     return this.request<any[]>(`/ira-accounts/user/${userId}`);
   }
