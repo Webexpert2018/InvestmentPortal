@@ -35,7 +35,7 @@ export default function PortfolioPage() {
   const [investments, setInvestments] = useState<any[]>([]);
   const [redemptions, setRedemptions] = useState<any[]>([]);
   const [funds, setFunds] = useState<any[]>([]);
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'fund_name', direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
@@ -607,7 +607,7 @@ export default function PortfolioPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 text-sm">
-                      {oldInvestments.map((row) => {
+                      {[...oldInvestments].sort((a, b) => (a.projectName || '').localeCompare(b.projectName || '')).map((row) => {
                         const totalDist = row.distributions && Array.isArray(row.distributions)
                           ? row.distributions.reduce((sum: number, d: any) => {
                               const dVal = parseFloat((d.calculatedAmount || d.returnOfCapital || '').replace(/[^0-9.-]/g, ''));

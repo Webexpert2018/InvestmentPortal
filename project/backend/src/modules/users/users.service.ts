@@ -1323,6 +1323,20 @@ export class UsersService implements OnModuleInit {
   //   }
   // }
 
+  async getImsSubaccounts(userId: string) {
+    const userResult = await db.query('SELECT email FROM users WHERE id = $1 UNION SELECT email FROM investors WHERE id = $1', [userId]);
+    if (userResult.rows.length === 0) return [];
+    const email = userResult.rows[0].email;
+    const result = await db.query('SELECT ims_profile_id as id, legal_name, first_name, last_name, primary_email, profile_type FROM old_investors WHERE LOWER(primary_email) = LOWER($1) AND LOWER(profile_type) IN (\'trust\', \'entity\')', [email]);
+    return result.rows.map(row => ({
+      id: row.id,
+      fullName: row.legal_name || (row.first_name + ' ' + row.last_name),
+      email: row.primary_email,
+      investorType: row.profile_type,
+      taxId: row.tax_id
+    }));
+  }
+
   async getSubaccounts(parentId: string) {
     const result = await db.query(
       `SELECT i.id, i.email, i.full_name as "fullName", COALESCE(i.phone, parent.phone) as phone, i.dob, i.address_line1 as "addressLine1", i.address_line2 as "addressLine2",

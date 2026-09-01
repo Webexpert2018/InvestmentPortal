@@ -159,6 +159,11 @@ export class UsersController {
     );
   }
 
+  @Get('ims-subaccounts')
+  async getImsSubaccounts(@CurrentUser() user: any) {
+    return this.usersService.getImsSubaccounts(user.userId);
+  }
+
   @Get('subaccounts')
   async getSubaccounts(@CurrentUser() user: any) {
     return this.usersService.getSubaccounts(user.userId);
