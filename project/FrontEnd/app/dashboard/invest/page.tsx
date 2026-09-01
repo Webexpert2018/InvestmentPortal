@@ -15,7 +15,8 @@ import {
   Plus,
   Printer,
   Search,
-  Eye
+  Eye,
+  Info
 } from 'lucide-react';
 
 type Step =
@@ -288,7 +289,8 @@ export default function InvestPage() {
         id: 'personal',
         label: baseLabel,
         value: 'Cash / Checking',
-        status: 'active'
+        status: 'active',
+        category: 'Personal Account'
       },
     ];
 
@@ -298,7 +300,8 @@ export default function InvestPage() {
         id: acc.id || `ira-${index}`,
         label: `${acc.account_type || 'IRA'} Account`,
         value: isSuspended ? 'Suspended' : 'IRA',
-        status: acc.status || 'active'
+        status: acc.status || 'active',
+        category: 'IRA Accounts'
       });
     });
 
@@ -308,7 +311,8 @@ export default function InvestPage() {
         id: sub.id,
         label: isEntity ? (sub.entityName || sub.fullName) : sub.fullName,
         value: isEntity ? `${sub.entityType || 'Entity'} Account` : 'Minor Account',
-        status: sub.status || 'active'
+        status: sub.status || 'active',
+        category: 'Sub Accounts'
       });
 
       // Add subaccount's IRA accounts (only minors have IRA accounts)
@@ -321,7 +325,8 @@ export default function InvestPage() {
           value: isSuspended ? 'Suspended' : 'IRA (Minor)',
           status: acc.status || 'active',
           subaccountId: sub.id,
-          iraData: acc
+          iraData: acc,
+          category: 'IRA Accounts'
         });
       });
     });
@@ -859,8 +864,14 @@ export default function InvestPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3 px-2">
-        {dynamicAccounts.map((account: any) => {
+      {['Personal Account', 'IRA Accounts', 'Sub Accounts'].map(category => {
+        const accountsInCategory = dynamicAccounts.filter((acc: any) => acc.category === category);
+        if (accountsInCategory.length === 0) return null;
+        return (
+          <div key={category} className="mb-8">
+            <h3 className="text-sm font-bold text-[#1F1F1F] mb-4 pl-2 uppercase tracking-wider">{category}</h3>
+            <div className="grid gap-6 md:grid-cols-3 px-2">
+              {accountsInCategory.map((account: any) => {
           const selected = account.id === selectedAccountId;
           const isSuspended = account.status?.toLowerCase() === 'suspended';
           return (
@@ -891,7 +902,10 @@ export default function InvestPage() {
             </button>
           );
         })}
-      </div>
+            </div>
+          </div>
+        );
+      })}
 
       {renderFooter({ showBack: true })}
     </>
@@ -1519,6 +1533,22 @@ export default function InvestPage() {
   );
 
   let content: JSX.Element;
+
+  if (user?.investorType === 'minor' || user?.investorType === 'entity') {
+    return (
+      <DashboardLayout>
+        <div className="mt-6 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm p-12 text-center flex flex-col items-center justify-center gap-4 max-w-4xl mx-auto">
+          <div className="h-16 w-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center">
+            <Info className="h-8 w-8" />
+          </div>
+          <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F]">Investments Not Available</h3>
+          <p className="max-w-md text-[14px] text-[#8E8E93] font-helvetica leading-relaxed">
+            Investments cannot be made for Minor or Entity accounts.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   switch (step) {
     case 'chooseFund':
