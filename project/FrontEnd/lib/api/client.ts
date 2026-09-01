@@ -212,6 +212,10 @@ class ApiClient {
     return this.request<any[]>('/users/subaccounts');
   }
 
+  async getImsSubaccounts() {
+    return this.request<any[]>('/users/ims-subaccounts');
+  }
+
   async getInvestorSubaccounts(userId: string) {
     return this.request<any[]>(`/users/${userId}/subaccounts`);
   }

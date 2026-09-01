@@ -267,7 +267,7 @@ export default function DashboardPage() {
 
   const activeFundsList = useMemo(() => {
     const map = new Map<string, { fundId?: string; fundName: string; totalInvested: number }>();
-    (allInvestments || []).forEach(inv => {
+    (allInvestments || []).filter(inv => inv.is_reconciled).forEach(inv => {
       const fname = inv.fund_name || inv.fundName || 'Active Fund';
       const fid = inv.fund_id || inv.fundId;
       const amt = parseFloat(inv.revised_amount || inv.investment_amount || 0);

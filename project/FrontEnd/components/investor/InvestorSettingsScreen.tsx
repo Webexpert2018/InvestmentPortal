@@ -314,8 +314,11 @@ export function InvestorSettingsScreen() {
 
   const [subaccounts, setSubaccounts] = useState<any[]>([]);
   const [subaccountsLoading, setSubaccountsLoading] = useState(false);
+  const [imsSubaccounts, setImsSubaccounts] = useState<any[]>([]);
+  const [imsSubaccountsLoading, setImsSubaccountsLoading] = useState(false);
+  const [selectedImsSubaccount, setSelectedImsSubaccount] = useState<any>(null);
   const [selectedSubaccount, setSelectedSubaccount] = useState<any>(null);
-  const [subAccountMode, setSubAccountMode] = useState<'list' | 'add'>('list');
+  const [subAccountMode, setSubAccountMode] = useState<'list' | 'add' | 'view'>('list');
   const [subAccountType, setSubAccountType] = useState<'minor' | 'entity'>('minor');
   const [subForm, setSubForm] = useState({
     email: '',
@@ -545,6 +548,18 @@ export function InvestorSettingsScreen() {
     }
   };
 
+  const loadImsSubaccounts = async () => {
+    try {
+      setImsSubaccountsLoading(true);
+      const data = await apiClient.getImsSubaccounts();
+      setImsSubaccounts(data);
+    } catch (err) {
+      console.error('Error loading IMS subaccounts:', err);
+    } finally {
+      setImsSubaccountsLoading(false);
+    }
+  };
+
   const profileImageInputRef = useRef<HTMLInputElement | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -693,6 +708,7 @@ export function InvestorSettingsScreen() {
     loadBankAccounts();
     loadSessions();
     loadSubaccounts();
+    loadImsSubaccounts();
   }, []);
 
   const [notifications, setNotifications] = useState({
@@ -2073,7 +2089,13 @@ export function InvestorSettingsScreen() {
               setSubForm(prev => ({
                 ...prev,
                 phone: profile.phoneNumber || '',
-                countryCode: profile.countryCode || '+1 (USA)'
+                countryCode: profile.countryCode || '+1 (USA)',
+                addressLine1: profile.addressLine1 || '',
+                addressLine2: profile.addressLine2 || '',
+                city: profile.city || '',
+                state: profile.state || '',
+                zipCode: profile.zipCode || '',
+                country: profile.country || 'US'
               }));
             }}
             className="h-[32px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] hover:bg-[#FAD980]"
@@ -2095,34 +2117,33 @@ export function InvestorSettingsScreen() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-[12px] text-[#4B4B4B]">
+              <table className="w-full text-left text-[12px] text-[#4B4B4B] table-fixed">
                 <thead>
                   <tr className="border-b border-[#ECEDEF] text-[11px] text-[#7B8088]">
-                    <th className="py-2 pr-3">Name</th>
-                    <th className="py-2 pr-3">Email</th>
-                    <th className="py-2 pr-3">Type</th>
-                    <th className="py-2 pr-3">Tax ID</th>
-                    <th className="py-2 pr-3 text-right">Action</th>
+                    <th className="py-2 pr-3 w-[30%]">Name</th>
+                    <th className="py-2 pr-3 w-[25%]">Email</th>
+                    <th className="py-2 pr-3 w-[15%]">Type</th>
+                    <th className="py-2 pr-3 w-[15%]">Tax ID</th>
+                    <th className="py-2 text-right w-[15%]">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {subaccounts.map((sub) => (
+                  {subaccounts.map((sub, i) => (
                     <tr
-                      key={sub.id}
-                      onClick={() => setSelectedSubaccount(sub)}
-                      className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] cursor-pointer transition-colors"
+                      key={sub.id || i}
+                      className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] transition-colors"
                     >
-                      <td className="py-3 pr-3 font-medium text-[#1F1F1F]">{sub.fullName || sub.entityName || '-'}</td>
-                      <td className="py-3 pr-3">{sub.email}</td>
+                      <td className="py-3 pr-3 font-medium text-[#1F1F1F] truncate max-w-[200px]" title={sub.fullName || sub.entityName || '-'}>{sub.fullName || sub.entityName || '-'}</td>
+                      <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>
                       <td className="py-3 pr-3 capitalize">{sub.investorType}</td>
                       <td className="py-3 pr-3">{formatTaxIdDisplay(sub.taxId, sub.investorType)}</td>
-                      <td className="py-3 pr-3 text-right">
+                      <td className="py-3 text-right">
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
+                          onClick={() => {
                             setSelectedSubaccount(sub);
+                            setSubAccountMode('view');
                           }}
-                          className="text-[12px] font-semibold text-[#274583] hover:underline"
+                          className="font-medium text-[#D1A94C] hover:text-[#B8923F] transition-colors"
                         >
                           View Details
                         </button>
@@ -2133,6 +2154,106 @@ export function InvestorSettingsScreen() {
               </table>
             </div>
           )}
+
+          {/* New IMS Subaccounts Section */}
+          <div className="mt-8 border-t border-[#ECEDEF] pt-6">
+            <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] mb-4">IMS Sub Accounts</h3>
+            {imsSubaccountsLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-6 w-6 animate-spin text-[#274583]" />
+                <span className="ml-2 text-[12px] text-[#4B4B4B]">Loading IMS sub-accounts...</span>
+              </div>
+            ) : imsSubaccounts.filter(sub => sub.investorType?.toLowerCase() !== 'individual').length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <p className="text-[14px] text-[#4B4B4B]">No IMS sub-accounts found.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[12px] text-[#4B4B4B] table-fixed">
+                  <thead>
+                    <tr className="border-b border-[#ECEDEF] text-[11px] text-[#7B8088]">
+                      <th className="py-2 pr-3 w-[30%]">Name</th>
+                      <th className="py-2 pr-3 w-[25%]">Email</th>
+                      <th className="py-2 pr-3 w-[15%]">Type</th>
+                      <th className="py-2 pr-3 w-[15%]">Tax ID</th>
+                      <th className="py-2 text-right w-[15%]">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {imsSubaccounts.filter(sub => sub.investorType?.toLowerCase() !== 'individual').map((sub, i) => (
+                      <tr
+                        key={sub.id || i}
+                        className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] transition-colors"
+                      >
+                        <td className="py-3 pr-3 font-medium text-[#1F1F1F] truncate max-w-[200px]" title={sub.fullName || '-'}>{sub.fullName || '-'}</td>
+                        <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>
+                        <td className="py-3 pr-3 capitalize">{sub.investorType}</td>
+                        <td className="py-3 pr-3">{formatTaxIdDisplay(sub.taxId, sub.investorType)}</td>
+                        <td className="py-3 text-right">
+                          <button
+                            onClick={() => setSelectedImsSubaccount(sub)}
+                            className="font-medium text-[#D1A94C] hover:text-[#B8923F] transition-colors"
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* New Individual Accounts Section */}
+          <div className="mt-8 border-t border-[#ECEDEF] pt-6">
+            <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] mb-4">Individual Accounts</h3>
+            {imsSubaccountsLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-6 w-6 animate-spin text-[#274583]" />
+                <span className="ml-2 text-[12px] text-[#4B4B4B]">Loading individual accounts...</span>
+              </div>
+            ) : imsSubaccounts.filter(sub => sub.investorType?.toLowerCase() === 'individual').length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <p className="text-[14px] text-[#4B4B4B]">No individual accounts found.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[12px] text-[#4B4B4B] table-fixed">
+                  <thead>
+                    <tr className="border-b border-[#ECEDEF] text-[11px] text-[#7B8088]">
+                      <th className="py-2 pr-3 w-[30%]">Name</th>
+                      <th className="py-2 pr-3 w-[25%]">Email</th>
+                      <th className="py-2 pr-3 w-[15%]">Type</th>
+                      <th className="py-2 pr-3 w-[15%]">Tax ID</th>
+                      <th className="py-2 text-right w-[15%]">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {imsSubaccounts.filter(sub => sub.investorType?.toLowerCase() === 'individual').map((sub, i) => (
+                      <tr
+                        key={sub.id || i}
+                        className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] transition-colors"
+                      >
+                        <td className="py-3 pr-3 font-medium text-[#1F1F1F] truncate max-w-[200px]" title={sub.fullName || '-'}>{sub.fullName || '-'}</td>
+                        <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>
+                        <td className="py-3 pr-3 capitalize">{sub.investorType}</td>
+                        <td className="py-3 pr-3">{formatTaxIdDisplay(sub.taxId, sub.investorType)}</td>
+                        <td className="py-3 text-right">
+                          <button
+                            onClick={() => setSelectedImsSubaccount(sub)}
+                            className="font-medium text-[#D1A94C] hover:text-[#B8923F] transition-colors"
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </SectionCard>
     );
@@ -3099,6 +3220,49 @@ export function InvestorSettingsScreen() {
           </div>
         </div>
       )}
+
+      {selectedImsSubaccount && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-[10px] w-full max-w-md shadow-lg overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#ECEDEF] flex justify-between items-center">
+              <h3 className="font-goudy text-[20px] text-[#1F1F1F]">IMS Sub Account Details</h3>
+              <button
+                onClick={() => setSelectedImsSubaccount(null)}
+                className="text-[#A2A5AA] hover:text-[#1F1F1F]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 text-[13px] text-[#4B4B4B] space-y-4">
+              <div>
+                <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Name</span>
+                <span className="font-medium text-[#1F1F1F]">{selectedImsSubaccount.fullName || '-'}</span>
+              </div>
+              <div>
+                <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Email</span>
+                <span>{selectedImsSubaccount.email || '-'}</span>
+              </div>
+              <div>
+                <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Type</span>
+                <span className="capitalize">{selectedImsSubaccount.investorType || '-'}</span>
+              </div>
+              <div>
+                <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Tax ID</span>
+                <span>{formatTaxIdDisplay(selectedImsSubaccount.taxId, selectedImsSubaccount.investorType)}</span>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-[#ECEDEF] flex justify-end">
+              <button
+                onClick={() => setSelectedImsSubaccount(null)}
+                className="px-4 py-2 bg-[#274583] text-white rounded-[6px] hover:bg-[#1E3566] text-[13px] font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
