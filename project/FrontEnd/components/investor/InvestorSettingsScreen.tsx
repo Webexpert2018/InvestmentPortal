@@ -2207,7 +2207,7 @@ export function InvestorSettingsScreen() {
 
           {/* New Individual Accounts Section */}
           <div className="mt-8 border-t border-[#ECEDEF] pt-6">
-            <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] mb-4">Individual Accounts</h3>
+            <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] mb-4">IMS Individual Accounts</h3>
             {imsSubaccountsLoading ? (
               <div className="flex items-center justify-center py-6">
                 <Loader2 className="h-6 w-6 animate-spin text-[#274583]" />
