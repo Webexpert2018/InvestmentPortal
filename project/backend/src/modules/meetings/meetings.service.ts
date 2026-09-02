@@ -409,6 +409,16 @@ export class MeetingsService {
     return { connected: result.rows.length > 0 };
   }
 
+  async disconnectGoogleCalendar(userId: string) {
+    try {
+      await this.pgClient.query('DELETE FROM google_tokens WHERE user_id = $1', [userId]);
+      return { success: true, message: 'Google Calendar disconnected successfully.' };
+    } catch (error) {
+      console.error('Error disconnecting Google Calendar:', error);
+      throw new InternalServerErrorException('Failed to disconnect Google Calendar');
+    }
+  }
+
   private async getAuthenticatedClient(userId: string) {
     const oauth2Client = this.getOAuth2Client();
     const result = await this.pgClient.query(`

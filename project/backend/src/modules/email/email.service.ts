@@ -285,13 +285,13 @@ export class EmailService {
     `;
     const html = this.getHtmlTemplate(content, title);
     
-    const sendgridApiKey = this.configService.get<string>('SENDGRID_API_KEY') || process.env.SENDGRID_API_KEY;
-    if (sendgridApiKey && sendgridApiKey.startsWith('SG.')) {
+    const brevoApiKey = this.configService.get<string>('BREVO_API_KEY') || process.env.BREVO_API_KEY;
+    if (brevoApiKey) {
       try {
-        await this.sendSendgridEmail(email, subject, html);
+        await this.sendBrevoEmail(email, subject, html);
         return;
       } catch (err: any) {
-        this.logger.warn(`SendGrid dispatch failed in sendCustomEmail, falling back to SMTP transport: ${err.message}`);
+        this.logger.warn(`Brevo dispatch failed in sendCustomEmail, falling back to SMTP transport: ${err.message}`);
       }
     }
 
@@ -362,13 +362,14 @@ export class EmailService {
     `;
   }
 
-  async sendSendgridEmail(to: string, subject: string, html: string) {
-    const sendgridApiKey = this.configService.get<string>('SENDGRID_API_KEY') || process.env.SENDGRID_API_KEY;
-    const from = this.configService.get<string>('SENDGRID_FROM') || this.configService.get<string>('EMAIL_FROM') || '"Ovalia Capital" <portal@ovaliacapital.com>';
+  async sendBrevoEmail(to: string, subject: string, html: string) {
+    const brevoApiKey = this.configService.get<string>('BREVO_API_KEY') || process.env.BREVO_API_KEY;
+    const rawFrom = this.configService.get<string>('BREVO_SENDER_EMAIL') || process.env.BREVO_SENDER_EMAIL || 'portal@ovaliacapital.com';
+    const fromName = this.configService.get<string>('BREVO_SENDER_NAME') || process.env.BREVO_SENDER_NAME || 'Ovalia Capital';
 
-    if (!sendgridApiKey || !sendgridApiKey.startsWith('SG.')) {
-      this.logger.error('❌ SendGrid API Key missing or invalid when trying to send bulk doctor outreach.');
-      throw new Error('SendGrid API Key (SENDGRID_API_KEY) missing or invalid.');
+    if (!brevoApiKey) {
+      this.logger.error('❌ Brevo API Key missing.');
+      throw new Error('Brevo API Key (BREVO_API_KEY) missing or invalid.');
     }
 
     const extractEmail = (str: string) => {
@@ -376,65 +377,30 @@ export class EmailService {
       return match ? match[1] : str.trim();
     };
 
-    const extractName = (str: string) => {
-      const match = str.match(/^"(.+)"/);
-      if (match) return match[1];
-      const matchNoQuotes = str.match(/^([^<]+)\s*</);
-      return matchNoQuotes ? matchNoQuotes[1].trim() : 'Ovalia Capital';
-    };
-
-    const rawFrom = extractEmail(from);
-    const fromName = extractName(from);
     const rawTo = extractEmail(to);
-
-    // Build plain text fallback from HTML to lower spam filter score
-    const plainText = html
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
 
     try {
       await axios.post(
-        'https://api.sendgrid.com/v3/mail/send',
+        'https://api.brevo.com/v3/smtp/email',
         {
-          personalizations: [
-            {
-              to: [{ email: rawTo }],
-              subject: subject,
-            },
-          ],
-          from: {
-            email: rawFrom,
-            name: fromName,
-          },
-          reply_to: {
-            email: rawFrom,
-            name: fromName,
-          },
-          content: [
-            {
-              type: 'text/plain',
-              value: plainText || subject,
-            },
-            {
-              type: 'text/html',
-              value: html,
-            },
-          ],
+          sender: { name: fromName, email: rawFrom },
+          to: [{ email: rawTo }],
+          subject: subject,
+          htmlContent: html,
         },
         {
           headers: {
-            Authorization: `Bearer ${sendgridApiKey}`,
+            'api-key': brevoApiKey,
             'Content-Type': 'application/json',
+            'Accept': 'application/json'
           },
         }
       );
-      this.logger.log(`✅ [SendGrid API] Bulk campaign email sent successfully to ${rawTo}: ${subject}`);
-    } catch (sgError: any) {
-      const errMsg = sgError?.response?.data ? JSON.stringify(sgError.response.data) : sgError.message;
-      this.logger.error(`❌ [SendGrid API Error] Failed sending bulk email to ${rawTo}: ${errMsg}`, sgError.stack);
-      throw new Error(`SendGrid API Error: ${errMsg}`);
+      this.logger.log(`✅ [Brevo API] Email sent successfully to ${rawTo}: ${subject}`);
+    } catch (error: any) {
+      const errMsg = error?.response?.data ? JSON.stringify(error.response.data) : error.message;
+      this.logger.error(`❌ [Brevo API Error] Failed sending email to ${rawTo}: ${errMsg}`, error.stack);
+      throw new Error(`Brevo API Error: ${errMsg}`);
     }
   }
 
@@ -491,7 +457,7 @@ export class EmailService {
         throw new Error(`Could not send email to ${to}`);
       }
     } else {
-      this.logger.warn('⚠️ Email service configuration missing (No SENDGRID_API_KEY or SMTP credentials). Running in dummy mode.');
+      this.logger.warn('⚠️ Email service configuration missing (No BREVO_API_KEY or SMTP credentials). Running in dummy mode.');
       this.this_is_dummy_log(to, subject);
     }
   }

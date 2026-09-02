@@ -264,6 +264,12 @@ class ApiClient {
     return this.request<{ url: string }>('/meetings/google/auth-url');
   }
 
+  async disconnectGoogleCalendar() {
+    return this.request<{ success: boolean; message: string }>('/meetings/google/disconnect', {
+      method: 'POST',
+    });
+  }
+
   async updateSettings(data: any) {
     return this.request<any>('/users/settings', {
       method: 'PUT',

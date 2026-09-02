@@ -71,6 +71,20 @@ export default function GoogleCalendarPage() {
     }
   };
 
+  const handleDisconnect = async () => {
+    try {
+      setActionLoading(true);
+      await apiClient.disconnectGoogleCalendar();
+      toast.success('Successfully disconnected Google Calendar.');
+      await checkStatus();
+    } catch (err) {
+      console.error('Error disconnecting Google Calendar:', err);
+      toast.error('Failed to disconnect Google Calendar.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -136,7 +150,7 @@ export default function GoogleCalendarPage() {
                   </div>
                 )}
 
-                <div className="pt-4 max-w-sm mx-auto">
+                <div className="pt-4 max-w-sm mx-auto space-y-3">
                   <button
                     onClick={handleConnect}
                     disabled={actionLoading}
@@ -144,6 +158,14 @@ export default function GoogleCalendarPage() {
                   >
                     {actionLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                     Switch Google Account
+                  </button>
+                  <button
+                    onClick={handleDisconnect}
+                    disabled={actionLoading}
+                    className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm rounded-xl transition duration-150 border border-red-100"
+                  >
+                    <Unlink className="w-4 h-4" />
+                    Disconnect Account
                   </button>
                 </div>
               </div>

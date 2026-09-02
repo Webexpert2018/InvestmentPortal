@@ -60,6 +60,15 @@ export class MeetingsController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @Post('google/disconnect')
+  @ApiOperation({ summary: 'Disconnect Google Calendar' })
+  async disconnectGoogleCalendar(@Request() req: any) {
+    return this.meetingsService.disconnectGoogleCalendar(req.user.userId);
+  }
+
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get('google/auth-url')
   @ApiOperation({ summary: 'Get Google OAuth URL' })
   async getGoogleAuthUrl(@Request() req: any) {
