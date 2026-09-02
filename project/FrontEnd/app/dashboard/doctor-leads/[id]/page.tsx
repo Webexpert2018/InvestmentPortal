@@ -148,6 +148,7 @@ export default function DoctorProfilePage() {
   const [sequenceData, setSequenceData] = useState<any>(null);
   const [activeDay, setActiveDay] = useState<number>(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLaunching, setIsLaunching] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
   // Notes state
@@ -301,6 +302,30 @@ export default function DoctorProfilePage() {
       toast.error(err.message || 'Error generating AI sequence');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleLaunchSequence = async () => {
+    if (!doctorId) return;
+    try {
+      setIsLaunching(true);
+      const res = await apiClient.launchDoctorSequence(doctorId as string);
+      if (res.success) {
+        toast.success('🚀 Campaign successfully launched and scheduled!');
+        if (res.sequence) {
+          setSequenceData({
+            ...sequenceData,
+            sequence: res.sequence
+          });
+        }
+      } else {
+        toast.error('Failed to launch AI campaign sequence.');
+      }
+    } catch (err: any) {
+      console.error('Error launching sequence:', err);
+      toast.error(err.message || 'Error launching sequence');
+    } finally {
+      setIsLaunching(false);
     }
   };
 
@@ -585,6 +610,16 @@ export default function DoctorProfilePage() {
                   <Sparkles className="w-5 h-5 text-[#D9A11E]" />
                   <h3 className="text-[18px] font-bold text-[#1F1F1F]">Saved 5-Day Email Campaign Sequence</h3>
                 </div>
+                {sequenceData?.sequence?.some((s: any) => s.status === 'draft') && (
+                  <button
+                    onClick={handleLaunchSequence}
+                    disabled={isLaunching}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#ef4444] hover:bg-[#dc2626] text-white text-sm font-bold rounded-lg shadow-sm transition-colors"
+                  >
+                    {isLaunching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    Launch Campaign
+                  </button>
+                )}
               </div>
 
               {/* Day Tabs Bar */}

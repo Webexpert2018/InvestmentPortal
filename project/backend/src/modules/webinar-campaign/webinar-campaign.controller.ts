@@ -90,6 +90,11 @@ export class WebinarCampaignController {
     );
   }
 
+  @Post('prospects/:id/launch')
+  async launchSequence(@Param('id') id: string) {
+    return this.webinarCampaignService.launchSequence(id);
+  }
+
   @Get('prospects/:id/notes')
   async getProspectNotes(@Param('id') id: string) {
     const notes = await this.webinarCampaignService.getProspectNotes(id);

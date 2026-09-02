@@ -1400,6 +1400,8 @@ class ApiClient {
     });
   }
 
+
+
   async createPipelineStage(data: { name: string, color: string }) {
     return this.request<any>('/pipeline/stages', {
       method: 'POST',
@@ -1545,6 +1547,12 @@ class ApiClient {
     }>('/webinar-campaign/generate-sequence', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  async launchDoctorSequence(prospectId: string) {
+    return this.request<any>(`/webinar-campaign/prospects/${encodeURIComponent(prospectId)}/launch`, {
+      method: 'POST',
     });
   }
 

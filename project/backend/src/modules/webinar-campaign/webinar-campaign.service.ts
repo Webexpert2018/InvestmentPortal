@@ -1238,21 +1238,19 @@ ${rsvpButtonsHtml}
       ];
     }
 
-    const dripSchedule = this.calculateDripSchedule(new Date());
     sequence = sequence.map((item: any, idx: number) => {
-      const sched = dripSchedule[idx] || dripSchedule[0];
       return {
         ...item,
-        scheduledDate: sched.scheduledDate,
-        isoDate: sched.isoDate,
-        status: 'scheduled',
+        scheduledDate: 'Pending Launch',
+        isoDate: null,
+        status: 'draft',
       };
     });
 
     if (prospectId && sequence.length > 0) {
       try {
         await db.query(
-          `UPDATE doctor_prospects SET ai_sequence = $1::jsonb, stage = 'pending_outreach' WHERE apollo_id = $2`,
+          `UPDATE doctor_prospects SET ai_sequence = $1::jsonb WHERE apollo_id = $2`,
           [JSON.stringify(sequence), prospectId]
         );
         this.logger.log(`💾 Persisted 5-day email sequence into database for prospect: ${prospectId}`);
@@ -1274,6 +1272,50 @@ ${rsvpButtonsHtml}
       },
       sequence,
     };
+  }
+
+  async launchSequence(prospectId: string) {
+    if (!prospectId) throw new HttpException('Prospect ID is required', HttpStatus.BAD_REQUEST);
+    
+    const res = await db.query(`SELECT ai_sequence FROM doctor_prospects WHERE apollo_id = $1`, [prospectId]);
+    if (res.rows.length === 0 || !res.rows[0].ai_sequence) {
+      throw new HttpException('No AI sequence found for this prospect to launch', HttpStatus.NOT_FOUND);
+    }
+    
+    let sequence = res.rows[0].ai_sequence;
+    if (typeof sequence === 'string') sequence = JSON.parse(sequence);
+    
+    if (!Array.isArray(sequence) || sequence.length === 0) {
+      throw new HttpException('Invalid sequence format', HttpStatus.BAD_REQUEST);
+    }
+    
+    const dripSchedule = this.calculateDripSchedule(new Date());
+    
+    sequence = sequence.map((item: any, idx: number) => {
+      // Only schedule items that are still in draft state
+      if (item.status === 'draft') {
+        const sched = dripSchedule[idx] || dripSchedule[0];
+        return {
+          ...item,
+          scheduledDate: sched.scheduledDate,
+          isoDate: sched.isoDate,
+          status: 'scheduled',
+        };
+      }
+      return item;
+    });
+
+    try {
+      await db.query(
+        `UPDATE doctor_prospects SET ai_sequence = $1::jsonb, stage = 'pending_outreach' WHERE apollo_id = $2`,
+        [JSON.stringify(sequence), prospectId]
+      );
+      this.logger.log(`🚀 Launched 5-day email sequence for prospect: ${prospectId}`);
+      return { success: true, sequence };
+    } catch (err: any) {
+      this.logger.warn(`Failed to launch sequence to DB: ${err.message}`);
+      throw new HttpException('Failed to launch sequence', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async recordProspectResponse(identifier: string, status: string): Promise<void> {

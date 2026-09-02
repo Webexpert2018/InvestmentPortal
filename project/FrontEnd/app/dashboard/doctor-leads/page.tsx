@@ -438,7 +438,7 @@ export default function DoctorLeadsPage() {
     }
 
     setIsConfiguringSelected(true);
-    toast.info(`Configuring 5-Day AI sequences & launching campaign for ${selectedIds.length} doctor(s)...`);
+    toast.info(`Generating 5-Day AI sequences (Draft Mode) for ${selectedIds.length} doctor(s)...`);
 
     try {
       let count = 0;
@@ -453,7 +453,7 @@ export default function DoctorLeadsPage() {
         }
       }
 
-      toast.success(`🎉 Configured & saved 5-Day AI sequences in PostgreSQL for ${count} doctor(s)! Scheduled to start tomorrow at 9:00 AM EST.`);
+      toast.success(`🎉 Generated & saved 5-Day AI sequences as Drafts for ${count} doctor(s)! You can review or launch them now.`);
       await handleLoadSavedFromDb({ silent: true });
     } catch (err: any) {
       toast.error('Configuration Error: ' + err.message);
@@ -599,14 +599,10 @@ export default function DoctorLeadsPage() {
                   <button
                     onClick={handleConfigureAllSelected}
                     disabled={isConfiguringSelected || selectedIds.length === 0}
-                    className="text-[12px] font-extrabold px-4 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#FFC63F] hover:bg-[#F2B932] text-[#1F1F1F] text-[12px] font-bold rounded-lg shadow-sm transition-colors border border-[#E0AC27]"
                   >
-                    {isConfiguringSelected ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#1F1F1F]" />
-                    ) : (
-                      <Send className="w-3.5 h-3.5 text-[#1F1F1F]" />
-                    )}
-                    <span>⚡ Create 5-Day Email Campaign ({selectedIds.length})</span>
+                    {isConfiguringSelected ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                    <span>⚡ Generate Sequences ({selectedIds.length})</span>
                   </button>
 
                   <button
