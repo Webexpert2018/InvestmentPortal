@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import * as XLSX from 'xlsx';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   Target,
   Search,
@@ -553,7 +555,7 @@ export default function DoctorCrmPage() {
     d.stage === 'pending_outreach'
   ).length;
   const scheduleForCallCount = doctors.filter(d =>
-    ['call_queue', 'needs_call'].includes(d.stage)
+    ['call_queue', 'needs_call', 'call_back_later'].includes(d.stage)
   ).length;
 
   const handleAgentSend = async (queryText: string) => {
@@ -601,7 +603,7 @@ export default function DoctorCrmPage() {
     } else if (activeTab === 'pending_outreach') {
       matchesTab = doc.stage === 'pending_outreach';
     } else if (activeTab === 'needs_call') {
-      matchesTab = ['call_queue', 'needs_call'].includes(doc.stage);
+      matchesTab = ['call_queue', 'needs_call', 'call_back_later'].includes(doc.stage);
     }
 
     const matchesSearch =
@@ -891,13 +893,13 @@ export default function DoctorCrmPage() {
                                 Replied via Email
                               </span>
                             )}
-                            {['call_queue', 'needs_call'].includes(doc.stage) && (
+                            {['call_queue', 'needs_call', 'call_back_later'].includes(doc.stage) && (
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300">
                                 <PhoneCall className="w-3.5 h-3.5 text-amber-600" />
                                 Schedule for Call
                               </span>
                             )}
-                            {!['pending_outreach', 'interested', 'luma_registered', 'converted_investor', 'email_replied', 'call_queue', 'needs_call'].includes(doc.stage) && (
+                            {!['pending_outreach', 'interested', 'luma_registered', 'converted_investor', 'email_replied', 'call_queue', 'needs_call', 'call_back_later'].includes(doc.stage) && (
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-700 border border-gray-200">
                                 {doc.stage ? doc.stage.replace('_', ' ') : 'Outreach Active'}
                               </span>
@@ -1147,10 +1149,16 @@ export default function DoctorCrmPage() {
                   <div
                     className={`max-w-[90%] px-4 py-3 rounded-[16px] text-[13px] leading-relaxed ${msg.sender === 'user'
                       ? 'bg-[#FFC63F] text-[#1F1F1F] font-semibold rounded-br-none shadow-sm'
-                      : 'bg-white/10 text-gray-200 rounded-bl-none border border-white/10'
+                      : 'bg-white/10 text-gray-200 rounded-bl-none border border-white/10 [&>p]:mb-2 last:[&>p]:mb-0 [&_strong]:font-bold [&_em]:italic [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_a]:text-blue-400 [&_a]:underline'
                       }`}
                   >
-                    {msg.text}
+                    {msg.sender === 'user' ? (
+                      msg.text
+                    ) : (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.text}
+                      </ReactMarkdown>
+                    )}
                   </div>
                   <span className="text-[10px] text-gray-500 mt-1 px-1">{msg.timestamp}</span>
                 </div>

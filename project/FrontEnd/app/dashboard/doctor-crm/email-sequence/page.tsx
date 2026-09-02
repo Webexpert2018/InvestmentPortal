@@ -307,7 +307,7 @@ export default function DoctorEmailSequenceFlowPage() {
     }
 
     // 2. If explicit not_interested or needs_call/call_queue stage -> merged 'not_interested' stage
-    if (['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up'].includes(s)) {
+    if (['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up', 'call_back_later'].includes(s)) {
       return { stageId: 'not_interested', lastSentDate: doc.updatedAt };
     }
 
@@ -357,7 +357,7 @@ export default function DoctorEmailSequenceFlowPage() {
         icon: CheckCircle2
       };
     }
-    if (['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up'].includes(s)) {
+    if (['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up', 'call_back_later'].includes(s)) {
       return {
         label: 'Not Interested / Needs Call',
         bg: 'bg-rose-50 text-rose-700 border-rose-200',
@@ -394,7 +394,7 @@ export default function DoctorEmailSequenceFlowPage() {
     if (statusFilter === 'interested') {
       matchesStatus = ['interested', 'email_replied', 'luma_registered', 'converted_investor'].includes(s);
     } else if (statusFilter === 'not_interested') {
-      matchesStatus = ['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up'].includes(s);
+      matchesStatus = ['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up', 'call_back_later'].includes(s);
     } else if (statusFilter === 'sent') {
       matchesStatus = s === 'sent';
     }
@@ -405,7 +405,7 @@ export default function DoctorEmailSequenceFlowPage() {
   // Calculate Metrics
   const totalCount = doctors.length;
   const interestedCount = doctors.filter(d => ['interested', 'email_replied', 'luma_registered', 'converted_investor'].includes(d.stage.toLowerCase())).length;
-  const notInterestedCount = doctors.filter(d => ['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up'].includes(d.stage.toLowerCase())).length;
+  const notInterestedCount = doctors.filter(d => ['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up', 'call_back_later'].includes(d.stage.toLowerCase())).length;
 
   const formatDate = (isoString?: string) => {
     if (!isoString) return null;
