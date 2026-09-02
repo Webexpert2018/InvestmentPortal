@@ -679,11 +679,17 @@ export class MeetingsService {
 
           if (webinarId) {
             const prospectRes = await this.pgClient.query(
-              `SELECT apollo_id FROM doctor_prospects WHERE LOWER(email) = LOWER($1)`,
-              [attendee.email]
+              `SELECT dp.apollo_id 
+               FROM doctor_prospects dp
+               JOIN webinar_attendees wa ON wa.prospect_id = dp.apollo_id
+               WHERE wa.webinar_id = $2 
+               AND (LOWER(dp.email) = LOWER($1) OR EXISTS (SELECT 1 FROM unnest(COALESCE(dp.personal_emails, '{}'::text[])) p_email WHERE LOWER(p_email) = LOWER($1)))`,
+              [attendee.email, webinarId]
             );
             if (prospectRes.rows.length > 0) {
-              const prospectId = prospectRes.rows[0].apollo_id;
+              // Update all matching prospects for this webinar (usually just 1)
+              for (const row of prospectRes.rows) {
+                const prospectId = row.apollo_id;
               let dbStatus = 'registered';
               if (attendee.responseStatus === 'accepted') dbStatus = 'accepted';
               else if (attendee.responseStatus === 'declined') dbStatus = 'declined';
@@ -694,6 +700,7 @@ export class MeetingsService {
                 SET status = $1, updated_at = CURRENT_TIMESTAMP 
                 WHERE webinar_id = $2 AND prospect_id = $3 AND status != 'attended'
               `, [dbStatus, webinarId, prospectId]);
+              }
             }
           }
         }
