@@ -1073,14 +1073,19 @@ Each object must have:
 - "subject": string (compelling, high-open-rate subject line)
 - "body": string (professionally formatted HTML email body with strong hook referencing their medical specialty and clinic, clear value prop, bullet points, and the two required response buttons above at the bottom).`;
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15-second timeout
+        
         const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: { responseMimeType: 'application/json' }
-          })
+          }),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
 
         if (geminiRes.ok) {
           const gData: any = await geminiRes.json();
@@ -1124,6 +1129,9 @@ Each object must have:
 
 Generate the 5-day email sequence JSON array now.`;
 
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000); // 15-second timeout
+
           const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -1138,7 +1146,9 @@ Generate the 5-day email sequence JSON array now.`;
               ],
               temperature: 0.7,
             }),
+            signal: controller.signal
           });
+          clearTimeout(timeoutId);
 
           if (aiRes.ok) {
             const data: any = await aiRes.json();
@@ -2877,13 +2887,18 @@ ${rsvpButtonsHtml}
     if (geminiKey && geminiKey.length > 10) {
       try {
         this.logger.log(`Calling Gemini API for Executive Assistant...`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
         const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }]
-          })
+          }),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
 
         if (geminiRes.ok) {
           const gData: any = await geminiRes.json();
@@ -2902,6 +2917,9 @@ ${rsvpButtonsHtml}
     if (openaiKey && openaiKey.length > 10) {
       try {
         this.logger.log(`Calling OpenAI API for Executive Assistant...`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
         const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -2915,7 +2933,9 @@ ${rsvpButtonsHtml}
             ],
             temperature: 0.7,
           }),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
 
         if (aiRes.ok) {
           const data: any = await aiRes.json();
