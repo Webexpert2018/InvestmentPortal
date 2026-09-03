@@ -1118,6 +1118,9 @@ export default function WebinarsPage() {
                             <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
                               Declined: {webinar.attendees.filter(a => a.status === 'declined').length}
                             </span>
+                            <span className="bg-amber-50 text-amber-800 border border-amber-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                              Tentative: {webinar.attendees.filter(a => a.status === 'tentative').length}
+                            </span>
                           </div>
                         </div>
                         <span className="text-[12px] text-[#8E8E93] hidden sm:inline">
@@ -1206,6 +1209,10 @@ export default function WebinarsPage() {
                                     ) : attendee.status === 'declined' ? (
                                       <span className="inline-flex items-center text-[11px] font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
                                         Declined
+                                      </span>
+                                    ) : attendee.status === 'tentative' ? (
+                                      <span className="inline-flex items-center text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                                        Tentative
                                       </span>
                                     ) : (
                                       <span className="inline-flex items-center text-[11px] font-bold text-[#1a73e8] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
