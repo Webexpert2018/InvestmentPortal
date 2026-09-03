@@ -279,3 +279,26 @@ html {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF !important;
 }
+
+.dark-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: #222222 transparent !important;
+}
+
+.dark-scrollbar::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+.dark-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.dark-scrollbar::-webkit-scrollbar-thumb {
+  background: #222222 !important;
+  border-radius: 10px;
+}
+
+.dark-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #000000 !important;
+}

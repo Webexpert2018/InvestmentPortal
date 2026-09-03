@@ -2888,7 +2888,7 @@ ${rsvpButtonsHtml}
       try {
         this.logger.log(`Calling Gemini API for Executive Assistant...`);
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
 
         const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiKey}`, {
           method: 'POST',
@@ -2918,7 +2918,7 @@ ${rsvpButtonsHtml}
       try {
         this.logger.log(`Calling OpenAI API for Executive Assistant...`);
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
 
         const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -2957,7 +2957,7 @@ ${rsvpButtonsHtml}
     try {
       // 1. Fetch prospects context
       const prospectsRes = await db.query(
-        `SELECT apollo_id, full_name, specialty, organization, stage, location, email, phone FROM doctor_prospects`
+        `SELECT apollo_id, full_name, specialty, organization, stage, location, email, personal_emails, phone FROM doctor_prospects`
       );
       const prospects = prospectsRes.rows || [];
 
@@ -2969,7 +2969,7 @@ ${rsvpButtonsHtml}
 
       // 3. Compile context text
       const docsContext = prospects.map((p: any) => 
-        `- Name: ${p.full_name}, Specialty: ${p.specialty}, Clinic: ${p.organization}, Stage: ${p.stage}, Location: ${p.location}, Email: ${p.email}, Phone: ${p.phone}`
+        `- Name: ${p.full_name}, Specialty: ${p.specialty}, Clinic: ${p.organization}, Stage: ${p.stage}, Location: ${p.location}, Work Email: ${p.email}, Personal Emails: ${(p.personal_emails || []).join(', ')}, Phone: ${p.phone}`
       ).join('\n');
 
       const webinarsContext = webinars.map((w: any) => 

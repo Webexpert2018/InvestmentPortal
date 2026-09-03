@@ -1191,20 +1191,38 @@ export default function DoctorCrmPage() {
               </div>
 
               <form
-                onSubmit={(e) => { e.preventDefault(); handleAgentSend(agentInput); }}
-                className="flex items-center gap-2"
+                onSubmit={(e) => { 
+                  e.preventDefault(); 
+                  handleAgentSend(agentInput); 
+                  const textarea = e.currentTarget.querySelector('textarea');
+                  if(textarea) textarea.style.height = '40px';
+                }}
+                className="flex items-end gap-2"
               >
-                <input
-                  type="text"
+                <textarea
                   value={agentInput}
-                  onChange={(e) => setAgentInput(e.target.value)}
+                  onChange={(e) => {
+                    setAgentInput(e.target.value);
+                    e.target.style.height = '40px';
+                    e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      if (agentInput.trim() && !isAgentThinking) {
+                        handleAgentSend(agentInput);
+                        e.currentTarget.style.height = '40px';
+                      }
+                    }
+                  }}
+                  rows={1}
                   placeholder="Ask AI Agent anything..."
-                  className="flex-1 bg-black/50 border border-gray-700 rounded-full px-4 py-2.5 text-[13px] text-white placeholder-gray-500 focus:outline-none focus:border-[#FFC63F] transition-all"
+                  className="flex-1 bg-black/50 border border-gray-700 rounded-[20px] px-4 py-2.5 text-[13px] text-white placeholder-gray-500 focus:outline-none focus:border-[#FFC63F] transition-all resize-none min-h-[40px] max-h-[120px] overflow-y-auto dark-scrollbar leading-relaxed"
                 />
                 <button
                   type="submit"
                   disabled={!agentInput.trim() || isAgentThinking}
-                  className="w-10 h-10 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] flex items-center justify-center font-bold shadow-md transition-all disabled:opacity-50 shrink-0 cursor-pointer"
+                  className="w-10 h-10 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] flex items-center justify-center font-bold shadow-md transition-all disabled:opacity-50 shrink-0 cursor-pointer mb-[1px]"
                 >
                   <Send className="w-4 h-4" />
                 </button>
