@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SMTPClient } from 'smtp-client';
+import axios from 'axios';
 
 @Injectable()
 export class EmailService {
@@ -14,11 +15,13 @@ export class EmailService {
   }
 
   private getPublicLogoUrl(): string {
+    const customLogo = this.configService.get<string>('EMAIL_LOGO_URL');
+    if (customLogo) return customLogo;
     let url = this.configService.get<string>('FRONTEND_URL') || 'https://investmentportalfrontend.vercel.app';
     if (url.includes('localhost') || url.includes('127.0.0.1') || !url.startsWith('http')) {
       url = 'https://investmentportalfrontend.vercel.app';
     }
-    return `${url.replace(/\/$/, '')}/images/logo.png`;
+    return `${url.replace(/\/$/, '')}/images/logo26022026.png`;
   }
 
   private getSupportEmail(): string {
@@ -261,20 +264,38 @@ export class EmailService {
   async sendCustomEmail(email: string, fullName: string, subject: string, body: string) {
     const title = subject;
     const supportEmail = this.getSupportEmail();
-    const content = `
-      <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">${subject}</h1>
-      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
+    const isHtmlBody = body.includes('<') && body.includes('>');
+    
+    const content = isHtmlBody ? `
+      ${body}
+      <p style="margin: 20px 0 0; font-size: 13px; line-height: 1.5; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 16px;">
+        Need help? Contact our support team at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
+      </p>
+    ` : `
+      <h1 style="margin: 0 0 16px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 24px;">${subject}</h1>
+      <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #4B5563;">
         Hello ${fullName || 'Valued Investor'},
       </p>
-      <div style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563; white-space: pre-wrap;">
+      <div style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #4B5563; white-space: pre-line;">
         ${body}
       </div>
-      
-      <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 20px;">
+      <p style="margin: 20px 0 0; font-size: 13px; line-height: 1.5; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 16px;">
         Need help? Contact our support team at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
       </p>
     `;
-    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+    const html = this.getHtmlTemplate(content, title);
+    
+    const brevoApiKey = this.configService.get<string>('BREVO_API_KEY') || process.env.BREVO_API_KEY;
+    if (brevoApiKey) {
+      try {
+        await this.sendBrevoEmail(email, subject, html);
+        return;
+      } catch (err: any) {
+        this.logger.warn(`Brevo dispatch failed in sendCustomEmail, falling back to SMTP transport: ${err.message}`);
+      }
+    }
+
+    await this.sendEmail(email, subject, html);
   }
 
   async sendInvestmentInvite(email: string, firstName: string, fundName: string, amount: string, token: string) {
@@ -316,8 +337,8 @@ export class EmailService {
           </tr>
           <!-- Logo Section -->
           <tr>
-            <td style="padding: 40px 40px 20px; text-align: center;">
-              <img src="${this.getPublicLogoUrl()}" alt="Ovalia Capital" style="width:100px; height: auto; display: block; margin: 0 auto;">
+            <td style="padding: 30px 40px 20px; text-align: center;" align="center">
+              <img src="${this.getPublicLogoUrl()}" width="100" border="0" alt="Ovalia Capital" style="width:100px; max-width:100px; height:auto; display:block; margin:0 auto; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic;">
             </td>
           </tr>
           <!-- Main Content -->
@@ -341,13 +362,74 @@ export class EmailService {
     `;
   }
 
+  async sendBrevoEmail(to: string, subject: string, html: string) {
+    const brevoApiKey = this.configService.get<string>('BREVO_API_KEY') || process.env.BREVO_API_KEY;
+    const rawFrom = this.configService.get<string>('BREVO_SENDER_EMAIL') || process.env.BREVO_SENDER_EMAIL || 'portal@ovaliacapital.com';
+    const fromName = this.configService.get<string>('BREVO_SENDER_NAME') || process.env.BREVO_SENDER_NAME || 'Ovalia Capital';
+
+    if (!brevoApiKey) {
+      this.logger.error('❌ Brevo API Key missing.');
+      throw new Error('Brevo API Key (BREVO_API_KEY) missing or invalid.');
+    }
+
+    const extractEmail = (str: string) => {
+      const match = str.match(/<(.+)>/);
+      return match ? match[1] : str.trim();
+    };
+
+    const rawTo = extractEmail(to);
+    const textContent = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+    try {
+      await axios.post(
+        'https://api.brevo.com/v3/smtp/email',
+        {
+          sender: { name: fromName, email: rawFrom },
+          to: [{ email: rawTo }],
+          subject: subject,
+          htmlContent: html,
+          textContent: textContent,
+        },
+        {
+          headers: {
+            'api-key': brevoApiKey,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+        }
+      );
+      this.logger.log(`✅ [Brevo API] Email sent successfully to ${rawTo}: ${subject}`);
+    } catch (error: any) {
+      const errMsg = error?.response?.data ? JSON.stringify(error.response.data) : error.message;
+      this.logger.error(`❌ [Brevo API Error] Failed sending email to ${rawTo}: ${errMsg}`, error.stack);
+      throw new Error(`Brevo API Error: ${errMsg}`);
+    }
+  }
+
   async sendEmail(to: string, subject: string, html: string) {
+    const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('EMAIL_FROM') || '"Ovalia Capital" <portal@ovaliacapital.com>';
+
+    const extractEmail = (str: string) => {
+      const match = str.match(/<(.+)>/);
+      return match ? match[1] : str.trim();
+    };
+
+    const extractName = (str: string) => {
+      const match = str.match(/^"(.+)"/);
+      if (match) return match[1];
+      const matchNoQuotes = str.match(/^([^<]+)\s*</);
+      return matchNoQuotes ? matchNoQuotes[1].trim() : 'Ovalia Capital';
+    };
+
+    const rawFrom = extractEmail(from);
+    const rawTo = extractEmail(to);
+
+    // 2. Fallback / Standard SMTP method
     const host = this.configService.get<string>('SMTP_HOST') || this.configService.get<string>('EMAIL_HOST');
     const portString = this.configService.get<string>('SMTP_PORT') || this.configService.get<string>('EMAIL_PORT');
     const port = portString ? parseInt(portString, 10) : 587;
     const user = this.configService.get<string>('SMTP_USER') || this.configService.get<string>('EMAIL_USER');
     const pass = this.configService.get<string>('SMTP_PASS') || this.configService.get<string>('EMAIL_PASS');
-    const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('EMAIL_FROM') || '"Ovalia Capital" <noreply@ovaliacapital.com>';
 
     if (host && port && user && pass) {
       const client = new SMTPClient({ host, port });
@@ -363,29 +445,26 @@ export class EmailService {
 
         await client.authPlain({ username: user, password: pass });
 
-        const extractEmail = (str: string) => {
-          const match = str.match(/<(.+)>/);
-          return match ? match[1] : str.trim();
-        };
-
-        const rawFrom = extractEmail(from);
-        const rawTo = extractEmail(to);
-
         await client.mail({ from: rawFrom });
         await client.rcpt({ to: rawTo });
 
-        const message = `From: ${from}\r\nTo: ${to}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${html}`;
+        const textContent = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        const boundary = "----=_Part_" + Date.now();
+        const message = `From: ${from}\r\nTo: ${to}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary="${boundary}"\r\n\r\n` +
+          `--${boundary}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${textContent}\r\n\r\n` +
+          `--${boundary}\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${html}\r\n\r\n` +
+          `--${boundary}--`;
 
         await client.data(message);
         await client.quit();
 
-        this.logger.log(`✅ Email sent to ${to}: ${subject}`);
+        this.logger.log(`✅ [SMTP] Email sent to ${to}: ${subject}`);
       } catch (error: any) {
         this.logger.error(`❌ SMTP Error sending to ${to}: ${error.message}`, error.stack);
         throw new Error(`Could not send email to ${to}`);
       }
     } else {
-      this.logger.warn('⚠️ Email service configuration missing. Running in dummy mode.');
+      this.logger.warn('⚠️ Email service configuration missing (No BREVO_API_KEY or SMTP credentials). Running in dummy mode.');
       this.this_is_dummy_log(to, subject);
     }
   }

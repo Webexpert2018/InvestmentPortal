@@ -37,5 +37,11 @@
     "api/index.ts": {
       "includeFiles": "public/subscription-documents/**"
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/webinar-campaign/cron/reminders",
+      "schedule": "0 12 * * *"
+    }
+  ]
 }

@@ -28,6 +28,7 @@ import { MessagesModule } from './modules/messages/messages.module';
 import { CrmModule } from './modules/crm/crm.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { MeetingsModule } from './modules/meetings/meetings.module';
+import { WebinarCampaignModule } from './modules/webinar-campaign/webinar-campaign.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { MeetingsModule } from './modules/meetings/meetings.module';
     CrmModule,
     SessionsModule,
     MeetingsModule,
+    WebinarCampaignModule,
   ],
   controllers: [HealthController],
 })

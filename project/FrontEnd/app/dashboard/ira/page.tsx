@@ -539,8 +539,8 @@ export default function IRAPage() {
           </div>
 
           {/* Legacy Self-Directed IRA Accounts Section */}
-          <div className="mt-8 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm overflow-hidden p-6">
-            <div className="flex items-center gap-2 mb-6">
+          <div className="mt-8 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm overflow-hidden py-6">
+            <div className="flex items-center gap-2 mb-6 px-6">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1]">
                 <Sparkles className="h-4 w-4 text-[#D1A94C]" />
               </div>
@@ -551,21 +551,21 @@ export default function IRAPage() {
             </div>
 
             {fetchingOldIra ? (
-              <div className="py-10 text-center flex flex-col items-center gap-3">
+              <div className="py-10 text-center flex flex-col items-center gap-3 px-6">
                 <Loader2 className="h-8 w-8 animate-spin text-[#D1A94C]" />
                 <p className="text-[#8E8E93] text-[13px] font-helvetica">Retrieving legacy records...</p>
               </div>
             ) : oldIraAccounts.length === 0 ? (
-              <div className="py-10 text-center flex flex-col items-center gap-2 border border-dashed border-[#E5E7EB] rounded-lg bg-gray-50/50">
+              <div className="py-10 text-center flex flex-col items-center gap-2 border border-dashed border-[#E5E7EB] rounded-lg bg-gray-50/50 mx-6">
                 <p className="text-[#8E8E93] text-[13px] font-helvetica">No matching legacy Self-Directed IRA accounts found.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto border border-[#F0F0F0] rounded-lg">
+              <div className="overflow-x-auto">
                 <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
                   <thead>
                     <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
-                      <th className="px-6 py-4 border-b border-[#F0F0F0] w-[45%]">Legal Name</th>
-                      <th className="px-6 py-4 border-b border-[#F0F0F0] w-[30%]">Profile Type</th>
+                      <th className="px-6 py-4 border-b border-[#F0F0F0] w-[50%]">Legal Name</th>
+                      <th className="px-6 py-4 border-b border-[#F0F0F0] w-[25%]">Profile Type</th>
                       <th className="px-6 py-4 border-b border-[#F0F0F0] text-right w-[25%]">Investment Value</th>
                     </tr>
                   </thead>

@@ -21,6 +21,11 @@ import {
   Bitcoin,
   ChevronLeft,
   ChevronRight,
+  Stethoscope,
+  Target,
+  Video,
+  GitFork,
+  PhoneCall,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -156,6 +161,36 @@ const menuItems: MenuItem[] = [
     roles: ['admin', 'executive_admin'],
   },
   {
+    title: 'Doctor Leads',
+    href: '/dashboard/doctor-leads',
+    icon: Stethoscope,
+    roles: ['admin', 'executive_admin', 'investor_relations'],
+  },
+  {
+    title: 'Doctor CRM',
+    href: '/dashboard/doctor-crm',
+    icon: Target,
+    roles: ['admin', 'executive_admin', 'investor_relations'],
+  },
+  {
+    title: 'Call Manager',
+    href: '/dashboard/doctor-crm/call-manager',
+    icon: PhoneCall,
+    roles: ['admin', 'executive_admin', 'investor_relations'],
+  },
+  {
+    title: 'Webinars',
+    href: '/dashboard/webinars',
+    icon: Video,
+    roles: ['admin', 'executive_admin', 'investor_relations'],
+  },
+  {
+    title: 'Sequence Pipeline',
+    href: '/dashboard/doctor-crm/email-sequence',
+    icon: GitFork,
+    roles: ['admin', 'executive_admin', 'investor_relations'],
+  },
+  {
     title: 'Staff',
     href: '/dashboard/staff',
     icon: Users,
@@ -239,18 +274,31 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
 
             {filteredMenuItems.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                pathname === item.href ||
-                (item.href !== '/dashboard' &&
-                  pathname?.startsWith(item.href + '/')) ||
-                (item.href === '/dashboard/portfolio' &&
-                  pathname?.startsWith('/dashboard/funds/') &&
-                  currentRole === 'investor' &&
-                  fromParam !== 'invest') ||
-                (item.href === '/dashboard/invest' &&
-                  pathname?.startsWith('/dashboard/funds/') &&
-                  currentRole === 'investor' &&
-                  fromParam === 'invest');
+              const isSequencePipeline = pathname === '/dashboard/doctor-crm/email-sequence' || pathname?.startsWith('/dashboard/doctor-crm/email-sequence/');
+              const tabParam = searchParams ? searchParams.get('tab') : null;
+              const isCallManagerActive = pathname === '/dashboard/doctor-crm/call-manager' || pathname === '/dashboard/call-manager' || (pathname === '/dashboard/doctor-crm' && (tabParam === 'call_manager' || tabParam === 'needs_call'));
+
+              let isActive = false;
+              if (item.href === '/dashboard/doctor-crm/call-manager') {
+                isActive = isCallManagerActive;
+              } else if (item.href === '/dashboard/doctor-crm') {
+                isActive = (pathname === '/dashboard/doctor-crm' || pathname?.startsWith('/dashboard/doctor-crm/')) && !isSequencePipeline && !isCallManagerActive;
+              } else if (item.href === '/dashboard/doctor-crm/email-sequence') {
+                isActive = isSequencePipeline;
+              } else {
+                isActive =
+                  pathname === item.href ||
+                  (item.href !== '/dashboard' &&
+                    pathname?.startsWith(item.href + '/')) ||
+                  (item.href === '/dashboard/portfolio' &&
+                    pathname?.startsWith('/dashboard/funds/') &&
+                    currentRole === 'investor' &&
+                    fromParam !== 'invest') ||
+                  (item.href === '/dashboard/invest' &&
+                    pathname?.startsWith('/dashboard/funds/') &&
+                    currentRole === 'investor' &&
+                    fromParam === 'invest');
+              }
 
               return (
                 <Link
