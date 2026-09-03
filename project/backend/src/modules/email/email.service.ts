@@ -378,6 +378,7 @@ export class EmailService {
     };
 
     const rawTo = extractEmail(to);
+    const textContent = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 
     try {
       await axios.post(
@@ -387,6 +388,7 @@ export class EmailService {
           to: [{ email: rawTo }],
           subject: subject,
           htmlContent: html,
+          textContent: textContent,
         },
         {
           headers: {
@@ -446,7 +448,12 @@ export class EmailService {
         await client.mail({ from: rawFrom });
         await client.rcpt({ to: rawTo });
 
-        const message = `From: ${from}\r\nTo: ${to}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${html}`;
+        const textContent = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        const boundary = "----=_Part_" + Date.now();
+        const message = `From: ${from}\r\nTo: ${to}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary="${boundary}"\r\n\r\n` +
+          `--${boundary}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${textContent}\r\n\r\n` +
+          `--${boundary}\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${html}\r\n\r\n` +
+          `--${boundary}--`;
 
         await client.data(message);
         await client.quit();

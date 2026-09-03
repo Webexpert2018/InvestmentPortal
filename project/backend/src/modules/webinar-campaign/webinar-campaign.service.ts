@@ -1374,7 +1374,7 @@ ${rsvpButtonsHtml}
 
             if (latestWebinar.google_event_id) {
               try {
-                const tokenRes = await db.query(`SELECT user_id FROM google_tokens LIMIT 1`);
+                const tokenRes = await db.query(`SELECT user_id FROM google_tokens ORDER BY updated_at DESC LIMIT 1`);
                 const adminUserId = tokenRes.rows.length > 0 ? tokenRes.rows[0].user_id : null;
                 if (adminUserId) {
                   await this.meetingsService.addAttendeeToGoogleEvent(
@@ -1483,7 +1483,7 @@ ${rsvpButtonsHtml}
 
           if (latestWebinar.google_event_id) {
             try {
-              const tokenRes = await db.query(`SELECT user_id FROM google_tokens LIMIT 1`);
+              const tokenRes = await db.query(`SELECT user_id FROM google_tokens ORDER BY updated_at DESC LIMIT 1`);
               const adminUserId = tokenRes.rows.length > 0 ? tokenRes.rows[0].user_id : null;
               if (adminUserId) {
                 await this.meetingsService.addAttendeeToGoogleEvent(
@@ -1717,7 +1717,7 @@ ${rsvpButtonsHtml}
     try {
       let adminUserId = currentUserId;
       if (!adminUserId) {
-        const tokenRes = await db.query(`SELECT user_id FROM google_tokens LIMIT 1`);
+        const tokenRes = await db.query(`SELECT user_id FROM google_tokens ORDER BY updated_at DESC LIMIT 1`);
         adminUserId = tokenRes.rows.length > 0 ? tokenRes.rows[0].user_id : null;
       }
 
@@ -2233,7 +2233,7 @@ ${rsvpButtonsHtml}
 
       const googleEventId = res.rows[0].googleEventId;
       if (googleEventId) {
-        const tokenRes = await db.query(`SELECT user_id FROM google_tokens LIMIT 1`);
+        const tokenRes = await db.query(`SELECT user_id FROM google_tokens ORDER BY updated_at DESC LIMIT 1`);
         const adminUserId = tokenRes.rows.length > 0 ? tokenRes.rows[0].user_id : null;
         if (adminUserId) {
           try {
