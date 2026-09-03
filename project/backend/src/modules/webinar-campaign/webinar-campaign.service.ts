@@ -768,7 +768,7 @@ export class WebinarCampaignService implements OnModuleInit {
                 `SELECT wa.webinar_id, wa.prospect_id, dp.full_name as "fullName", dp.email, dp.personal_emails, dp.apollo_id
                  FROM webinar_attendees wa
                  JOIN doctor_prospects dp ON wa.prospect_id = dp.apollo_id
-                 WHERE wa.webinar_id = $1`,
+                 WHERE wa.webinar_id = $1 AND wa.status != 'declined'`,
                 [w.id]
               );
             }
