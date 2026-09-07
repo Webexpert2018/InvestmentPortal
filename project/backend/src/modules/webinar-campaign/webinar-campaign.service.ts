@@ -1046,19 +1046,13 @@ export class WebinarCampaignService implements OnModuleInit {
     let provider = 'Smart Template Engine (Fallback Mode)';
     let sequence: any[] = [];
 
-    // 1. Priority: Try Google Gemini API if Gemini_API_KEY is configured
-    if (geminiKey && geminiKey.length > 10) {
-      try {
-        this.logger.log(`Calling Google Gemini API (model: gemini-flash-latest) for ${fullName}...`);
-        const responseBaseUrl = process.env.BACKEND_URL || 'http://localhost:3001';
-        const prompt = `You are an elite AI copywriter for Ovalia Capital, a private equity real estate fund manager specializing in tax-sheltered, high-yield investments for accredited physicians.
+    // 1. Primary: Use OpenAI API
+    if (openaiKey && openaiKey.length > 10) {
+        try {
+          this.logger.log(`Calling OpenAI API (model: gpt-4o) for ${fullName}...`);
+          const responseBaseUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+          const systemPrompt = `You are an elite AI copywriter for Ovalia Capital, a private equity real estate fund manager specializing in tax-sheltered, high-yield investments for accredited physicians.
 Generate a hyper-personalized 5-day email drip sequence for a doctor.
-
-Doctor Metadata:
-- Name: ${fullName}
-- Specialty: ${specialty}
-- Clinic/Organization: ${organization}
-- City/Location: ${location}
 
 CRITICAL BUTTON RULE:
 At the bottom of EVERY email body HTML, do NOT include any generic CTA buttons like "Book a call", "Register now", or "Click here".
@@ -1072,54 +1066,6 @@ Each object must have:
 - "title": string (e.g. "Day 1: Initial Invitation Hook")
 - "subject": string (compelling, high-open-rate subject line)
 - "body": string (professionally formatted HTML email body with strong hook referencing their medical specialty and clinic, clear value prop, bullet points, and the two required response buttons above at the bottom).`;
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15-second timeout
-        
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json' }
-          }),
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (geminiRes.ok) {
-          const gData: any = await geminiRes.json();
-          const text = gData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          const cleanedJson = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-          const parsed = JSON.parse(cleanedJson);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            sequence = parsed;
-            isAiGenerated = true;
-            provider = 'Google Gemini Flash (Free AI Engine)';
-          }
-        } else {
-          const errText = await geminiRes.text();
-          this.logger.warn(`Gemini API returned status ${geminiRes.status}: ${errText}`);
-        }
-      } catch (gErr: any) {
-        this.logger.error(`Gemini API error: ${gErr.message}`);
-      }
-    }
-
-    // 2. Secondary: Try OpenAI API if sequence is not yet generated
-    if (sequence.length === 0 && openaiKey) {
-      if (openaiKey && openaiKey.length > 10) {
-        try {
-          this.logger.log(`Calling OpenAI API (model: gpt-4o) for ${fullName}...`);
-          const systemPrompt = `You are an elite AI copywriter for Ovalia Capital, a private equity real estate fund manager specializing in tax-sheltered, high-yield investments for accredited physicians.
-Generate a hyper-personalized 5-day email drip sequence for a doctor.
-
-Output MUST be a strictly valid JSON array of 5 objects (and NOTHING else).
-Each object must have:
-- "day": integer (1 to 5)
-- "title": string (e.g. "Day 1: Initial Invitation Hook")
-- "subject": string (compelling, high-open-rate subject line)
-- "body": string (professionally formatted HTML email body with strong hook referencing their medical specialty and clinic, clear value prop, bullet points, and the two required response buttons at the bottom).`;
 
           const userPrompt = `Doctor Metadata:
 - Name: ${fullName}
@@ -1168,7 +1114,6 @@ Generate the 5-day email sequence JSON array now.`;
           this.logger.error(`Error generating sequence via AI API: ${err.message}`);
         }
       }
-    }
 
     if (sequence.length === 0) {
       const cleanName = fullName.replace(/^dr\.?\s+/i, '').trim();
@@ -2880,40 +2825,9 @@ ${rsvpButtonsHtml}
   }
 
   async callChatbotLLM(prompt: string): Promise<string> {
-    const geminiKey = process.env.Gemini_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
 
-    // 1. Try Gemini first
-    if (geminiKey && geminiKey.length > 10) {
-      try {
-        this.logger.log(`Calling Gemini API for Executive Assistant...`);
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000);
-
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          }),
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (geminiRes.ok) {
-          const gData: any = await geminiRes.json();
-          const text = gData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          if (text) return text;
-        } else {
-          const errText = await geminiRes.text();
-          this.logger.warn(`Gemini API returned status ${geminiRes.status}: ${errText}`);
-        }
-      } catch (err: any) {
-        this.logger.error(`Gemini API error in chatbot: ${err.message}`);
-      }
-    }
-
-    // 2. Try OpenAI second
+    // Use OpenAI API
     if (openaiKey && openaiKey.length > 10) {
       try {
         this.logger.log(`Calling OpenAI API for Executive Assistant...`);
@@ -2950,7 +2864,7 @@ ${rsvpButtonsHtml}
       }
     }
 
-    throw new Error('No AI engine (Gemini or OpenAI) is configured or working.');
+    throw new Error('No AI engine (OpenAI) is configured or working.');
   }
 
   async queryCrmAgent(userId: string, query: string) {
