@@ -160,7 +160,7 @@ export class WebinarCampaignService implements OnModuleInit {
         p.name ||
         `${p.first_name || ''} ${p.last_name || p.last_name_obfuscated || ''}`.trim() ||
         `Dr. Prospect ${index + 1}`;
-      
+
       const specialty =
         p.title ||
         (titlesArray.length > 0 ? titlesArray[index % titlesArray.length] : 'Physician');
@@ -296,7 +296,7 @@ export class WebinarCampaignService implements OnModuleInit {
     try {
       await db.query(`ALTER TABLE doctor_prospects DROP CONSTRAINT IF EXISTS doctor_prospects_email_key;`);
       await db.query(`DROP INDEX IF EXISTS doctor_prospects_email_key;`);
-    } catch (e) {}
+    } catch (e) { }
 
     const savedRows: any[] = [];
 
@@ -421,12 +421,12 @@ export class WebinarCampaignService implements OnModuleInit {
            RETURNING *;`,
           [mobilePhone, workPhone, apolloId]
         );
-        
+
         if (!updateRes.rows || updateRes.rows.length === 0) {
           // Concurrency Race Condition: wait 2 seconds for the synchronous insert query to finish and retry
           this.logger.log(`[Apollo Webhook] Prospect ${apolloId} not found in DB yet. Retrying in 2 seconds...`);
           await new Promise(resolve => setTimeout(resolve, 2000));
-          
+
           updateRes = await db.query(
             `UPDATE doctor_prospects 
              SET 
@@ -788,12 +788,12 @@ export class WebinarCampaignService implements OnModuleInit {
               if (alreadySent.rows.length === 0) {
                 const doctorName = att.fullName || 'Doctor';
                 const subject = `⏰ Reminder: "${w.title}" is coming up!`;
-                
+
                 // Format session time nicely for the email body
                 const formattedDate = w.formattedDate || w.date;
                 const timeStr = w.time;
                 const durationStr = w.duration || '45 mins';
-                
+
                 const emailBody = `
                   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                     <h2 style="color: #1F1F1F;">Webinar Session Reminder</h2>
@@ -1048,16 +1048,16 @@ export class WebinarCampaignService implements OnModuleInit {
 
     // 1. Primary: Use OpenAI API
     if (openaiKey && openaiKey.length > 10) {
-        try {
-          this.logger.log(`Calling OpenAI API (model: gpt-4o) for ${fullName}...`);
-          const responseBaseUrl = process.env.BACKEND_URL || 'http://localhost:3001';
-          const systemPrompt = `You are an elite AI copywriter for Ovalia Capital, a private equity real estate fund manager specializing in tax-sheltered, high-yield investments for accredited physicians.
+      try {
+        this.logger.log(`Calling OpenAI API (model: gpt-4o) for ${fullName}...`);
+        const responseBaseUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+        const systemPrompt = `You are an elite AI copywriter for Ovalia Capital, a private equity real estate fund manager specializing in tax-sheltered, high-yield investments for accredited physicians.
 Generate a hyper-personalized 5-day email drip sequence for a doctor.
 
 CRITICAL BUTTON RULE:
 At the bottom of EVERY email body HTML, do NOT include any generic CTA buttons like "Book a call", "Register now", or "Click here".
 Instead, you MUST include ONLY these two exact response buttons at the bottom of every email body:
-1. Interested Button: <a href="${responseBaseUrl}/api/webinar-campaign/respond?email=${encodeURIComponent(email)}&response=interested" style="background-color:#22C55E; color:#ffffff; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:13px; display:inline-block; margin-right:10px;">YES — I'm Interested (Send Me Webinar Pass)</a>
+1. Interested Button: <a href="${responseBaseUrl}/api/webinar-campaign/respond?email=${encodeURIComponent(email)}&response=interested" style="background-color:#22C55E; color:#ffffff; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:13px; display:inline-block; margin-right:10px;">YES — I'm Interested (Send Me Calendar Invite)</a>
 2. Not Interested Button: <a href="${responseBaseUrl}/api/webinar-campaign/respond?email=${encodeURIComponent(email)}&response=not_interested" style="background-color:#6B7280; color:#ffffff; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:13px; display:inline-block;">NO — Not Interested</a>
 
 Output MUST be a strictly valid JSON array of 5 objects (and NOTHING else).
@@ -1067,7 +1067,7 @@ Each object must have:
 - "subject": string (compelling, high-open-rate subject line)
 - "body": string (professionally formatted HTML email body with strong hook referencing their medical specialty and clinic, clear value prop, bullet points, and the two required response buttons above at the bottom).`;
 
-          const userPrompt = `Doctor Metadata:
+        const userPrompt = `Doctor Metadata:
 - Name: ${fullName}
 - Specialty: ${specialty}
 - Clinic/Organization: ${organization}
@@ -1075,45 +1075,45 @@ Each object must have:
 
 Generate the 5-day email sequence JSON array now.`;
 
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 15000); // 15-second timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15-second timeout
 
-          const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${openaiKey}`,
-            },
-            body: JSON.stringify({
-              model: 'gpt-4o',
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt },
-              ],
-              temperature: 0.7,
-            }),
-            signal: controller.signal
-          });
-          clearTimeout(timeoutId);
+        const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openaiKey}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
+            ],
+            temperature: 0.7,
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
 
-          if (aiRes.ok) {
-            const data: any = await aiRes.json();
-            const content = data.choices?.[0]?.message?.content || '';
-            const cleanedJson = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-            const parsed = JSON.parse(cleanedJson);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              sequence = parsed;
-              isAiGenerated = true;
-              provider = 'GPT-4o (OpenAI Engine)';
-            }
-          } else {
-            const errText = await aiRes.text();
-            this.logger.warn(`AI API call returned status ${aiRes.status}: ${errText}`);
+        if (aiRes.ok) {
+          const data: any = await aiRes.json();
+          const content = data.choices?.[0]?.message?.content || '';
+          const cleanedJson = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          const parsed = JSON.parse(cleanedJson);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            sequence = parsed;
+            isAiGenerated = true;
+            provider = 'GPT-4o (OpenAI Engine)';
           }
-        } catch (err: any) {
-          this.logger.error(`Error generating sequence via AI API: ${err.message}`);
+        } else {
+          const errText = await aiRes.text();
+          this.logger.warn(`AI API call returned status ${aiRes.status}: ${errText}`);
         }
+      } catch (err: any) {
+        this.logger.error(`Error generating sequence via AI API: ${err.message}`);
       }
+    }
 
     if (sequence.length === 0) {
       const cleanName = fullName.replace(/^dr\.?\s+/i, '').trim();
@@ -1121,7 +1121,7 @@ Generate the 5-day email sequence JSON array now.`;
       const rsvpButtonsHtml = `
 <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #E5E7EB; text-align: center;">
   <p style="font-size: 13px; font-weight: bold; color: #4B5563; margin-bottom: 12px;">Would you like to attend or receive our private investor deck?</p>
-  <a href="${responseBaseUrl}/api/webinar-campaign/respond?email=${encodeURIComponent(email)}&response=interested" style="background-color: #22C55E; color: #FFFFFF; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-block; margin-right: 10px; margin-bottom: 8px;">YES — I'm Interested (Send Me Webinar Pass)</a>
+  <a href="${responseBaseUrl}/api/webinar-campaign/respond?email=${encodeURIComponent(email)}&response=interested" style="background-color: #22C55E; color: #FFFFFF; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-block; margin-right: 10px; margin-bottom: 8px;">YES — I'm Interested (Send Me Calendar Invite)</a>
   <a href="${responseBaseUrl}/api/webinar-campaign/respond?email=${encodeURIComponent(email)}&response=not_interested" style="background-color: #6B7280; color: #FFFFFF; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-block;">NO — Not Interested</a>
 </div>`;
 
@@ -1231,21 +1231,21 @@ ${rsvpButtonsHtml}
 
   async launchSequence(prospectId: string) {
     if (!prospectId) throw new HttpException('Prospect ID is required', HttpStatus.BAD_REQUEST);
-    
+
     const res = await db.query(`SELECT ai_sequence FROM doctor_prospects WHERE apollo_id = $1`, [prospectId]);
     if (res.rows.length === 0 || !res.rows[0].ai_sequence) {
       throw new HttpException('No AI sequence found for this prospect to launch', HttpStatus.NOT_FOUND);
     }
-    
+
     let sequence = res.rows[0].ai_sequence;
     if (typeof sequence === 'string') sequence = JSON.parse(sequence);
-    
+
     if (!Array.isArray(sequence) || sequence.length === 0) {
       throw new HttpException('Invalid sequence format', HttpStatus.BAD_REQUEST);
     }
-    
+
     const dripSchedule = this.calculateDripSchedule(new Date());
-    
+
     sequence = sequence.map((item: any, idx: number) => {
       // Only schedule items that are still in draft state
       if (item.status === 'draft') {
@@ -1569,7 +1569,7 @@ ${rsvpButtonsHtml}
       const organization = item.organization?.trim() || '-';
       const location = item.location?.trim() || '-';
       const phone = item.phone?.trim() || 'N/A';
-      
+
       // Map stage input to valid DB stage strings
       let stage = 'pending_outreach';
       if (item.stage) {
@@ -2882,11 +2882,11 @@ ${rsvpButtonsHtml}
       const webinars = webinarsRes.rows || [];
 
       // 3. Compile context text
-      const docsContext = prospects.map((p: any) => 
+      const docsContext = prospects.map((p: any) =>
         `- Name: ${p.full_name}, Specialty: ${p.specialty}, Clinic: ${p.organization}, Stage: ${p.stage}, Location: ${p.location}, Work Email: ${p.email}, Personal Emails: ${(p.personal_emails || []).join(', ')}, Phone: ${p.phone}`
       ).join('\n');
 
-      const webinarsContext = webinars.map((w: any) => 
+      const webinarsContext = webinars.map((w: any) =>
         `- Title: ${w.title}, Date: ${w.date}, Time: ${w.time}, Status: ${w.status}, Active Now: ${w.is_active ? 'Yes' : 'No'}`
       ).join('\n');
 
@@ -2916,9 +2916,9 @@ User Question: ${query}`;
       return { success: true, reply };
     } catch (err: any) {
       this.logger.error(`Error in CRM Agent Chatbot: ${err.message}`);
-      return { 
-        success: false, 
-        reply: `I encountered an issue processing your query: ${err.message}. Please verify your API key connection.` 
+      return {
+        success: false,
+        reply: `I encountered an issue processing your query: ${err.message}. Please verify your API key connection.`
       };
     }
   }
