@@ -875,35 +875,42 @@ export default function DoctorCrmPage() {
                         {/* Column 4: Stage & Status */}
                         <td className="px-6 py-4.5 whitespace-nowrap">
                           <div className="flex flex-col gap-1 items-start">
-                            {doc.stage === 'pending_outreach' && (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                                <Mail className="w-3.5 h-3.5 text-purple-600" />
-                                Pending Outreach
-                              </span>
-                            )}
-                            {['interested', 'luma_registered', 'converted_investor'].includes(doc.stage) && (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-700 border border-green-200">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                                Interested
-                              </span>
-                            )}
-                            {doc.stage === 'email_replied' && (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
-                                Replied via Email
-                              </span>
-                            )}
-                            {['call_queue', 'needs_call', 'call_back_later'].includes(doc.stage) && (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300">
-                                <PhoneCall className="w-3.5 h-3.5 text-amber-600" />
-                                Schedule for Call
-                              </span>
-                            )}
-                            {!['pending_outreach', 'interested', 'luma_registered', 'converted_investor', 'email_replied', 'call_queue', 'needs_call', 'call_back_later'].includes(doc.stage) && (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-700 border border-gray-200">
-                                {doc.stage ? doc.stage.replace('_', ' ') : 'Outreach Active'}
-                              </span>
-                            )}
+                            <select
+                              value={doc.stage}
+                              onChange={(e) => handleUpdateStage(doc.id, e.target.value)}
+                              className={`pl-3 pr-8 py-1 rounded-full text-[11px] font-bold border focus:outline-none cursor-pointer appearance-none bg-no-repeat bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[position:right_8px_center] ${
+                                ['interested', 'luma_registered', 'converted_investor'].includes(doc.stage)
+                                  ? 'bg-green-50 text-green-700 border-green-200'
+                                  : doc.stage === 'email_replied'
+                                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                  : ['call_queue', 'needs_call', 'call_back_later'].includes(doc.stage)
+                                  ? 'bg-amber-50 text-amber-800 border-amber-300'
+                                  : doc.stage === 'pending_outreach'
+                                  ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                  : doc.stage === 'not_interested'
+                                  ? 'bg-red-50 text-red-700 border-red-200'
+                                  : doc.stage === 'sent'
+                                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                  : 'bg-gray-100 text-gray-700 border-gray-200'
+                              }`}
+                            >
+                              <option value="interested">Interested</option>
+                              <option value="not_interested">Not Interested</option>
+                              <option value="needs_call">Needs Call</option>
+                              <option value="pending_outreach">Pending Outreach</option>
+                              <option value="sent">Sent</option>
+                              
+                              {!['interested', 'not_interested', 'needs_call', 'pending_outreach', 'sent'].includes(doc.stage) && (
+                                <option value={doc.stage}>
+                                  {doc.stage === 'email_replied' ? 'Replied via Email' :
+                                   doc.stage === 'luma_registered' ? 'Luma Registered' :
+                                   doc.stage === 'converted_investor' ? 'Converted Investor' :
+                                   doc.stage === 'call_queue' ? 'Call Queue' :
+                                   doc.stage === 'call_back_later' ? 'Call Back Later' :
+                                   doc.stage ? doc.stage.replace(/_/g, ' ') : 'Outreach Active'}
+                                </option>
+                              )}
+                            </select>
                             <span className="text-[11px] text-[#8E8E93] pl-1 font-medium flex items-center gap-1">
                               <Clock className="w-3 h-3" />
                               {doc.lastActivityDate}
