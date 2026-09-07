@@ -80,10 +80,41 @@ export default function CallManagerPage() {
   // Call Action Modal State
   const [selectedDoctorForAction, setSelectedDoctorForAction] = useState<CrmDoctor | null>(null);
   const [tempCallActionText, setTempCallActionText] = useState<string>('');
+  const [tempCallAttempt, setTempCallAttempt] = useState<string>('');
+  const [tempCallDuration, setTempCallDuration] = useState<string>('');
+  const [tempCallHistory, setTempCallHistory] = useState<string[]>([]);
 
   const handleOpenCallActionModal = (doc: CrmDoctor) => {
     setSelectedDoctorForAction(doc);
-    setTempCallActionText(callActionsMap[doc.id] !== undefined ? callActionsMap[doc.id] : (doc.callAction || ''));
+    let existingText = callActionsMap[doc.id] !== undefined ? callActionsMap[doc.id] : (doc.callAction || '');
+    
+    const parts = existingText.split('\n---\n').filter(Boolean);
+    const history = parts.length > 1 ? parts.slice(0, parts.length - 1) : [];
+    const lastAction = parts.length > 0 ? parts[parts.length - 1] : '';
+
+    // Simple parser to extract existing prefix if formatted as "[Attempt | Duration] Text"
+    let parsedAttempt = '1st Call';
+    let parsedDuration = '';
+    let parsedText = lastAction;
+    
+    const match = lastAction.match(/^\[(.*?)\]\s*(.*)$/);
+    if (match) {
+      const prefixParts = match[1].split(' | ');
+      if (prefixParts.length > 0) {
+        if (prefixParts[0].includes('Call')) {
+          parsedAttempt = prefixParts[0];
+          parsedDuration = prefixParts[1] || '';
+        } else {
+          parsedDuration = prefixParts[0];
+        }
+      }
+      parsedText = match[2];
+    }
+    
+    setTempCallHistory(history);
+    setTempCallAttempt(parsedAttempt);
+    setTempCallDuration(parsedDuration);
+    setTempCallActionText(parsedText);
   };
 
   const handleCopyPhone = (docId: string, phone: string) => {
@@ -293,6 +324,13 @@ export default function CallManagerPage() {
         setDoctors(prev => prev.map(d => d.id === docId ? { ...d, callAction: actionText.trim() } : d));
         setCallActionsMap(prev => ({ ...prev, [docId]: actionText.trim() }));
         setSelectedDoctorForAction(null);
+        
+        // Also save this action as a note to preserve history across multiple calls
+        try {
+          await apiClient.addDoctorNote(docId, `Call Action Update: ${actionText.trim()}`, (user as any)?.fullName || user?.email || 'Call Manager');
+        } catch (noteErr) {
+          console.error('Failed to save call action history note', noteErr);
+        }
       } else {
         toast.error('Failed to save call action to DB.');
       }
@@ -603,7 +641,7 @@ export default function CallManagerPage() {
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Contact &amp; Phone</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Practice Location</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Stage &amp; Status</th>
-                  <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Call Action (Saved in DB)</th>
+                  <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Latest Call Number &amp; Action</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider text-right">Call Notes &amp; History</th>
                 </tr>
               </thead>
@@ -725,8 +763,8 @@ export default function CallManagerPage() {
                             <Activity className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                             <span className="truncate text-left flex-1">
                               {callActionsMap[doc.id] !== undefined
-                                ? callActionsMap[doc.id]
-                                : (doc.callAction || 'Add Action')}
+                                ? callActionsMap[doc.id].split('\n---\n').pop()
+                                : (doc.callAction ? doc.callAction.split('\n---\n').pop() : 'Add Action')}
                             </span>
                           </button>
                         </div>
@@ -1089,9 +1127,76 @@ export default function CallManagerPage() {
 
               {/* Edit Call Action Form */}
               <div className="space-y-4">
+                
+                {/* Previous Call Actions History */}
+                {tempCallHistory.length > 0 && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2 max-h-40 overflow-y-auto">
+                    <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Previous Actions</h4>
+                    {tempCallHistory.map((historyItem, idx) => (
+                      <div key={idx} className="text-[12px] text-gray-700 bg-white border border-gray-100 p-2 rounded-lg">
+                        {historyItem}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1.5 flex justify-between items-center">
+                      <span>Call Number</span>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          // Save current to history before incrementing
+                          const prefix = [tempCallAttempt, tempCallDuration].filter(Boolean).join(' | ');
+                          const currentEntry = prefix ? `[${prefix}] ${tempCallActionText}` : tempCallActionText;
+                          if (currentEntry.trim() && currentEntry !== `[${tempCallAttempt}] `) {
+                            setTempCallHistory([...tempCallHistory, currentEntry]);
+                          }
+
+                          let nextCall = '2nd Call';
+                          if (tempCallAttempt) {
+                            const currentNumMatch = tempCallAttempt.match(/(\d+)/);
+                            if (currentNumMatch) {
+                              const currentNum = parseInt(currentNumMatch[1]);
+                              const nextNum = currentNum + 1;
+                              let suffix = 'th';
+                              if (nextNum % 10 === 1 && nextNum % 100 !== 11) suffix = 'st';
+                              else if (nextNum % 10 === 2 && nextNum % 100 !== 12) suffix = 'nd';
+                              else if (nextNum % 10 === 3 && nextNum % 100 !== 13) suffix = 'rd';
+                              nextCall = `${nextNum}${suffix} Call`;
+                            }
+                          }
+                          setTempCallAttempt(nextCall);
+                          setTempCallDuration('');
+                          setTempCallActionText('');
+                        }}
+                        className="text-blue-600 hover:bg-blue-100 font-bold text-[10px] uppercase tracking-wide bg-blue-50 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                        title="Start a new call attempt"
+                      >
+                        New Call +
+                      </button>
+                    </label>
+                    <div className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] font-semibold flex items-center h-[38px]">
+                      {tempCallAttempt || '1st Call'}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1.5">
+                      First Seconds / Duration
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 15s, Voicemail..."
+                      value={tempCallDuration}
+                      onChange={(e) => setTempCallDuration(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    />
+                  </div>
+                </div>
                 <div>
                   <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1.5">
-                    Call Action Text (Saved in DB)
+                    Call Notes / Action
                   </label>
                   <textarea
                     rows={4}
@@ -1111,7 +1216,15 @@ export default function CallManagerPage() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => handleUpdateCallAction(selectedDoctorForAction.id, tempCallActionText)}
+                  onClick={() => {
+                    const prefix = [tempCallAttempt, tempCallDuration].filter(Boolean).join(' | ');
+                    const currentEntry = prefix ? `[${prefix}] ${tempCallActionText}` : tempCallActionText;
+                    
+                    const allEntries = [...tempCallHistory, currentEntry].filter(Boolean);
+                    const finalText = allEntries.join('\n---\n');
+                    
+                    handleUpdateCallAction(selectedDoctorForAction.id, finalText);
+                  }}
                   disabled={savingActionId === selectedDoctorForAction.id}
                   className="px-5 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] text-[13px] font-bold rounded-full transition-all shadow-sm flex items-center gap-2"
                 >
