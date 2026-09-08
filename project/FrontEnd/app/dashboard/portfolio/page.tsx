@@ -347,14 +347,6 @@ export default function PortfolioPage() {
                     </p>
                     <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{oldStats.fundCount}</p>
                   </div>
-                  <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
-                    <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
-                      Total Real Estate Shares
-                    </p>
-                    <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">
-                      {oldStats.totalShares.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}
-                    </p>
-                  </div>
                 </>
               )}
             </div>
@@ -603,7 +595,6 @@ export default function PortfolioPage() {
                         <th className="px-4 py-3 whitespace-nowrap">Investor Name</th>
                         <th className="px-4 py-3 text-right whitespace-nowrap">Investment Amount</th>
                         <th className="px-4 py-3 text-right whitespace-nowrap">Total Distributions</th>
-                        <th className="px-4 py-3 text-right whitespace-nowrap">Shares</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 text-sm">
@@ -628,7 +619,6 @@ export default function PortfolioPage() {
                             <td className="px-4 py-3 text-[#4B4B4B]">{row.investorProfileLegalName || 'N/A'}</td>
                             <td className="px-4 py-3 text-right text-[#1F3B6E] font-bold">{row.investmentAmount}</td>
                             <td className="px-4 py-3 text-right text-[#2BB673] font-bold">{formatCurrency(totalDist)}</td>
-                            <td className="px-4 py-3 text-right text-gray-600">{row.shares || '0'}</td>
                           </tr>
                         );
                       })}
@@ -681,10 +671,7 @@ export default function PortfolioPage() {
                 <p className="text-sm font-bold text-[#1F3B6E]">{selectedOldInvestment.investmentAmount}</p>
               </div>
 
-              <div>
-                <p className="text-[11px] text-gray-400 font-semibold uppercase">Shares</p>
-                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.shares}</p>
-              </div>
+
 
               <div>
                 <p className="text-[11px] text-gray-400 font-semibold uppercase">Ownership</p>

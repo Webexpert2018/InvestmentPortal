@@ -93,12 +93,6 @@ export class EmailService {
             <td style="padding: 5px 0; color: #6B7280; font-size: 14px;"><strong>Account:</strong></td>
             <td style="padding: 5px 0; color: #1F1F1F; font-size: 14px;">${role.charAt(0).toUpperCase() + role.slice(1)}</td>
           </tr>
-          ${password ? `
-          <tr>
-            <td style="padding: 5px 0; color: #6B7280; font-size: 14px;"><strong>Password:</strong></td>
-            <td style="padding: 5px 0; color: #1F1F1F; font-size: 14px;"><code>${password}</code></td>
-          </tr>
-          ` : ''}
         </table>
       </div>
 
@@ -108,12 +102,6 @@ export class EmailService {
         <li><strong>Secure Your Account:</strong> We highly recommend enabling Two-Factor Authentication (2FA) in your security settings.</li>
         <li><strong>Explore the Dashboard:</strong> View your portfolio, track performance, and manage your digital assets.</li>
       </ul>
-
-      <div style="background-color: #FFF5F5; border-left: 4px solid #E53E3E; padding: 15px; margin: 25px 0;">
-        <p style="margin: 0; font-size: 13px; color: #9B2C2C; line-height: 1.5;">
-          <strong>SECURITY ALERT:</strong> For your protection, please do not share these details with anyone. We recommend changing your password immediately after your first login and deleting this email.
-        </p>
-      </div>
 
       <div style="text-align: center; margin: 40px 0;">
         <a href="${frontendUrl}/auth/login?flow=${role.toLowerCase()}" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">

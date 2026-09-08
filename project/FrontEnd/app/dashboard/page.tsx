@@ -689,11 +689,7 @@ export default function DashboardPage() {
                       value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.legacyTotalInvested || 0),
                       helper: '',
                     },
-                    {
-                      label: 'Total Shares',
-                      value: (investorStats.legacyTotalShares || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                      helper: '',
-                    },
+
                     {
                       label: 'Total Distributions',
                       value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.legacyTotalDistributed || 0),

@@ -1005,7 +1005,7 @@ export default function OldFundDetailPage() {
                 </div>
 
                 {/* Compact summary cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
                   <div className="space-y-1">
                     <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Investment on this fund</span>
                     <span className="text-xl font-bold text-gray-900">{selectedInvestorData.totalInvestment}</span>
@@ -1013,12 +1013,6 @@ export default function OldFundDetailPage() {
                   <div className="space-y-1">
                     <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Return of Capital</span>
                     <span className="text-xl font-bold text-gray-900">{selectedInvestorData.totalDistribution || '$0.00'}</span>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Shares Held on this fund</span>
-                    <span className="text-xl font-bold text-gray-900">
-                      {selectedInvestorData.totalShares ? Number(selectedInvestorData.totalShares).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
-                    </span>
                   </div>
                 </div>
 
@@ -1040,11 +1034,10 @@ export default function OldFundDetailPage() {
                       <thead>
                         <tr className="border-b border-gray-100">
                           <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pl-3 w-[8%]">No.</th>
-                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[18%] pr-4">Investment Amount</th>
-                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[12%] pr-4">Shares</th>
-                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[12%] pr-4">Ownership</th>
-                          <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[18%]">Placed On</th>
-                          <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[18%]">Received On</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[22%] pr-4">Investment Amount</th>
+                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[16%] pr-4">Ownership</th>
+                          <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[20%]">Placed On</th>
+                          <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[20%]">Received On</th>
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pr-3 w-[14%]">Status</th>
                         </tr>
                       </thead>
@@ -1054,19 +1047,16 @@ export default function OldFundDetailPage() {
                             <td className="py-4 pl-3 text-sm font-bold text-[#1F3B6E] text-left w-[8%]">
                               #{idx + 1}
                             </td>
-                            <td className="py-4 text-right text-sm font-bold text-gray-900 w-[18%] pr-4">
+                            <td className="py-4 text-right text-sm font-bold text-gray-900 w-[22%] pr-4">
                               {inv.amount}
                             </td>
-                            <td className="py-4 text-right text-sm font-medium text-gray-700 w-[12%] pr-4">
-                              {inv.shares ? Number(inv.shares).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
-                            </td>
-                            <td className="py-4 text-right text-sm font-medium text-gray-500 w-[12%] pr-4">
+                            <td className="py-4 text-right text-sm font-medium text-gray-500 w-[16%] pr-4">
                               {inv.ownership || '0.00%'}
                             </td>
-                            <td className="py-4 text-center text-sm text-gray-600 font-medium w-[18%]">
+                            <td className="py-4 text-center text-sm text-gray-600 font-medium w-[20%]">
                               {formatDate(inv.placedOn)}
                             </td>
-                            <td className="py-4 text-center text-sm text-gray-600 font-medium w-[18%]">
+                            <td className="py-4 text-center text-sm text-gray-600 font-medium w-[20%]">
                               {formatDate(inv.receivedOn)}
                             </td>
                             <td className="py-4 text-right pr-3 w-[14%]">
@@ -1321,7 +1311,6 @@ export default function OldFundDetailPage() {
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Investment</th>
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Distribution</th>
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Ownership</th>
-                          <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Shares</th>
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">No. of Investors</th>
                         </tr>
                       </thead>
@@ -1368,9 +1357,6 @@ export default function OldFundDetailPage() {
                                 <td className="py-4 text-right text-sm font-semibold text-gray-900 font-mono">
                                   {classOwnershipPercent}
                                 </td>
-                                <td className="py-4 text-right text-sm font-medium text-gray-600">
-                                  {roundedShares.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </td>
                                 <td className="py-4 text-right text-sm font-semibold text-gray-900">
                                   {data.count} {data.count === 1 ? 'Investor' : 'Investors'}
                                 </td>
@@ -1416,7 +1402,6 @@ export default function OldFundDetailPage() {
                               <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Distribution</th>
                               <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">% of Class</th>
                               <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Ownership</th>
-                              <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Shares</th>
                               <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Status</th>
                             </tr>
                           </thead>
@@ -1463,9 +1448,6 @@ export default function OldFundDetailPage() {
                                   </td>
                                   <td className="py-4 text-right text-sm font-semibold text-gray-900 font-mono">
                                     {ownershipPercent}
-                                  </td>
-                                  <td className="py-4 text-right text-sm font-medium text-gray-600">
-                                    {investor.totalShares ? Number(investor.totalShares).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
                                   </td>
                                   <td className="py-4 text-right">
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-600 border border-emerald-100">

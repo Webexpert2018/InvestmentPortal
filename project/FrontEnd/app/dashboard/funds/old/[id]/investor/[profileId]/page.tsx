@@ -159,7 +159,7 @@ export default function OldFundInvestorDetailPage() {
           </div>
 
           <div className="flex-1 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
               {/* Profile Details */}
               <div className="space-y-1.5">
@@ -198,15 +198,6 @@ export default function OldFundInvestorDetailPage() {
                 <p className="text-sm text-gray-500">Total historical return of capital</p>
               </div>
 
-              {/* Aggregated Shares */}
-              <div className="space-y-1.5">
-                <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Shares Held</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-gray-900">{investorData.totalShares}</span>
-                </div>
-                <p className="text-sm text-gray-500">Aggregated historical shares across all funds</p>
-              </div>
-
             </div>
           </div>
         </div>
@@ -231,7 +222,6 @@ export default function OldFundInvestorDetailPage() {
                     <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pl-3">Fund</th>
                     <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pl-3">Investor Name</th>
                     <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investment Amount</th>
-                    <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Shares</th>
                     <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Ownership</th>
                     <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Placed On</th>
                     <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Received On</th>
@@ -252,9 +242,6 @@ export default function OldFundInvestorDetailPage() {
                       </td>
                       <td className="py-4 text-right text-sm font-bold text-gray-900">
                         {inv.amount}
-                      </td>
-                      <td className="py-4 text-right text-sm font-medium text-gray-700">
-                        {inv.shares || '0.00'}
                       </td>
                       <td className="py-4 text-right text-sm font-medium text-gray-500">
                         {inv.ownership ? inv.ownership : '0.00%'}
