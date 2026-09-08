@@ -58,7 +58,7 @@ export class FundTransfersService {
           COALESCE(f.id::text, oi.project_id::text) as fund_id,
           oi.project_name as fund_name,
           COALESCE(f.unit_price, 1) as current_nav,
-          oi.shares as units
+          CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / COALESCE(f.unit_price, 1) as units
         FROM old_investments oi
         LEFT JOIN funds f ON oi.project_name = f.name
         WHERE oi.email_address = $2
