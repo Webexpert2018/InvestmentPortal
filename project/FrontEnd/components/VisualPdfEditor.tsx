@@ -42,9 +42,10 @@ interface VisualPdfEditorProps {
     amountY: number | null;
     placements: any[];
   }) => void;
+  templateType?: 'FUND_TO_FUND' | 'PERSON_TO_PERSON';
 }
 
-type FieldType = 'name' | 'amount' | 'date' | 'signature';
+type FieldType = string;
 
 interface PlacedField {
   id: string; // Unique placement ID
@@ -54,7 +55,7 @@ interface PlacedField {
   yPercent: number; // 0 - 100 relative to page height
 }
 
-export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEditorProps) {
+export function VisualPdfEditor({ file, initialValues, onChange, templateType }: VisualPdfEditorProps) {
   const [pdfjsLoaded, setPdfjsLoaded] = useState<boolean>(false);
   const [pdfDoc, setPdfDoc] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -424,12 +425,26 @@ export function VisualPdfEditor({ file, initialValues, onChange }: VisualPdfEdit
     setPlacements(prev => prev.filter(p => p.id !== id));
   };
 
-  const tools: { type: FieldType; label: string; icon: any; color: string; bg: string; border: string }[] = [
-    { type: 'signature', label: 'Signature Block', icon: Edit3, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
-    { type: 'name', label: 'Investor Name', icon: Type, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
-    { type: 'date', label: 'Date Signed', icon: Calendar, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
-    { type: 'amount', label: 'Investment Amount', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
-  ];
+  const tools: { type: FieldType; label: string; icon: any; color: string; bg: string; border: string }[] = 
+    templateType === 'PERSON_TO_PERSON' ? [
+      { type: 'sender_name', label: 'Sender Name', icon: Type, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+      { type: 'receiver_name', label: 'Receiver Name', icon: Type, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
+      { type: 'signature', label: 'Sender Sign', icon: Edit3, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
+      { type: 'date', label: 'Date', icon: Calendar, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
+      { type: 'amount', label: 'Amount', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
+    ] : templateType === 'FUND_TO_FUND' ? [
+      { type: 'investor_name', label: 'Investor Name', icon: Type, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+      { type: 'sender_fund', label: 'Sender Fund', icon: FileText, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
+      { type: 'receiver_fund', label: 'Receiver Fund', icon: FileText, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
+      { type: 'amount', label: 'Amount', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
+      { type: 'date', label: 'Date', icon: Calendar, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
+      { type: 'signature', label: 'Investor Signature', icon: Edit3, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
+    ] : [
+      { type: 'signature', label: 'Signature Block', icon: Edit3, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
+      { type: 'name', label: 'Investor Name', icon: Type, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+      { type: 'date', label: 'Date Signed', icon: Calendar, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
+      { type: 'amount', label: 'Investment Amount', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
+    ];
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 bg-white rounded-2xl border border-gray-100 p-3 md:p-6 shadow-sm">

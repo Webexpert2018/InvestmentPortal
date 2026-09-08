@@ -1747,8 +1747,40 @@ class ApiClient {
       body: JSON.stringify({ prospectId, day }),
     });
   }
+
+  // --- Fund Transfers ---
+
+  async getFundTransfers() {
+    return this.request<any[]>('/fund-transfers');
+  }
+
+  async completeFundTransfer(id: string) {
+    return this.request(`/fund-transfers/${id}/complete`, {
+      method: 'POST',
+    });
+  }
+
+  async getSenderFunds(investorId: string) {
+    return this.request<any[]>(`/fund-transfers/sender-funds/${investorId}`);
+  }
+
+  async getTransferTemplate(type: string) {
+    return this.request<any>(`/fund-transfers/templates/${type}`);
+  }
+
+  async upsertTransferTemplate(data: FormData) {
+    return this.request<any>('/fund-transfers/templates', {
+      method: 'POST',
+      body: data,
+    });
+  }
+
+  async createFundTransfer(data: FormData) {
+    return this.request<any>('/fund-transfers', {
+      method: 'POST',
+      body: data,
+    });
+  }
 }
-
-
 
 export const apiClient = new ApiClient();

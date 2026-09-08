@@ -29,6 +29,7 @@ import { CrmModule } from './modules/crm/crm.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { MeetingsModule } from './modules/meetings/meetings.module';
 import { WebinarCampaignModule } from './modules/webinar-campaign/webinar-campaign.module';
+import { FundTransfersModule } from './modules/fund-transfers/fund-transfers.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { WebinarCampaignModule } from './modules/webinar-campaign/webinar-campai
     SessionsModule,
     MeetingsModule,
     WebinarCampaignModule,
+    FundTransfersModule,
   ],
   controllers: [HealthController],
 })

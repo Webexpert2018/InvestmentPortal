@@ -834,4 +834,146 @@ export class DocusignService {
       throw error;
     }
   }
+
+  /**
+   * Creates an envelope for a fund transfer with custom document and placements.
+   */
+  async createEnvelopeForTransfer(
+    signerEmail: string,
+    signerName: string,
+    documentBase64: string,
+    fileName: string,
+    placements: any[],
+    fieldValues: any,
+    transferId: string
+  ) {
+    const auth = await this.getAccessTokenJWT();
+    const accessToken = auth.accessToken;
+    const accountId = auth.accountId;
+
+    this.dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
+    const ds = docusign as any;
+    const envelopesApi = new ds.EnvelopesApi(this.dsApiClient);
+
+    const doc = new ds.Document();
+    doc.documentBase64 = documentBase64;
+    doc.name = fileName;
+    doc.fileExtension = 'pdf';
+    doc.documentId = '1';
+
+    const signHereTabs: any[] = [];
+    const textTabs: any[] = [];
+    
+    // Process custom placements
+    if (placements && placements.length > 0) {
+      placements.forEach((placement, idx) => {
+        const pageStr = (placement.page || placement.pageNumber || 1).toString();
+        // Base width 800, height 1000 approximately based on standard pdf sizes
+        const width = 800;
+        const height = 1000;
+
+        if (placement.type === 'signature') {
+          const sig = new ds.SignHere();
+          sig.pageNumber = pageStr;
+          const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 60);
+          const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 20);
+          sig.xPosition = adjustedX.toString();
+          sig.yPosition = adjustedY.toString();
+          sig.documentId = '1';
+          sig.recipientId = '1';
+          sig.tabLabel = `Signature_${idx + 1}`;
+          signHereTabs.push(sig);
+        } else {
+          // Dynamic text field (sender_name, receiver_name, amount, date, etc.)
+          const textTab = new ds.Text();
+          textTab.pageNumber = pageStr;
+          const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 50);
+          const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
+          textTab.xPosition = adjustedX.toString();
+          textTab.yPosition = adjustedY.toString();
+          
+          if (placement.type === 'name') {
+            textTab.value = signerName;
+          } else {
+            textTab.value = fieldValues[placement.type] || '';
+          }
+          
+          textTab.font = 'TimesNewRoman';
+          textTab.fontSize = 'Size11';
+          textTab.tabLabel = `${placement.type}_${idx + 1}`;
+          textTab.locked = 'true';
+          textTab.documentId = '1';
+          textTab.recipientId = '1';
+          textTabs.push(textTab);
+        }
+      });
+    }
+
+    const tabs = new ds.Tabs();
+    tabs.signHereTabs = signHereTabs;
+    tabs.textTabs = textTabs;
+
+    const signer = new ds.Signer();
+    signer.email = signerEmail;
+    signer.name = signerName;
+    signer.recipientId = '1';
+    signer.clientUserId = '1001'; // Use embedded signing so Docusign doesn't send the email
+    signer.tabs = tabs;
+
+    const env = new ds.EnvelopeDefinition();
+    env.emailSubject = `Please sign the Transfer Document`;
+    env.documents = [doc];
+    env.recipients = new ds.Recipients();
+    env.recipients.signers = [signer];
+    env.status = 'sent';
+
+    try {
+      const results = await envelopesApi.createEnvelope(accountId, { envelopeDefinition: env });
+      const envelopeId = results.envelopeId;
+
+      const viewRequest = new ds.RecipientViewRequest();
+      const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+      viewRequest.returnUrl = `${backendUrl}/api/fund-transfers/${transferId}/docusign-callback`;
+      viewRequest.authenticationMethod = 'none';
+      viewRequest.email = signerEmail;
+      viewRequest.userName = signerName;
+      viewRequest.clientUserId = '1001';
+
+      const viewResults = await envelopesApi.createRecipientView(accountId, envelopeId, { recipientViewRequest: viewRequest });
+
+      return {
+        envelopeId,
+        signingUrl: viewResults.url,
+      };
+    } catch (error: any) {
+      this.logger.error('Error creating transfer envelope:', error.message);
+      throw error;
+    }
+  }
+
+  async getTransferSigningUrl(envelopeId: string, signerEmail: string, signerName: string, transferId: string): Promise<string> {
+    const auth = await this.getAccessTokenJWT();
+    const accessToken = auth.accessToken;
+    const accountId = auth.accountId;
+
+    this.dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
+    const ds = docusign as any;
+    const envelopesApi = new ds.EnvelopesApi(this.dsApiClient);
+
+    const viewRequest = new ds.RecipientViewRequest();
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+    viewRequest.returnUrl = `${backendUrl}/api/fund-transfers/${transferId}/docusign-callback`;
+    viewRequest.authenticationMethod = 'none';
+    viewRequest.email = signerEmail;
+    viewRequest.userName = signerName;
+    viewRequest.clientUserId = '1001';
+
+    try {
+      const viewResults = await envelopesApi.createRecipientView(accountId, envelopeId, { recipientViewRequest: viewRequest });
+      return viewResults.url;
+    } catch (error: any) {
+      this.logger.error('Error generating transfer signing URL:', error.message);
+      throw error;
+    }
+  }
 }

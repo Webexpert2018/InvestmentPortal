@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Wallet,
   ArrowUpDown,
+  ArrowRightLeft,
   FileText,
   Building2,
   Users,
@@ -155,6 +156,12 @@ const menuItems: MenuItem[] = [
     roles: ['admin', 'executive_admin', 'fund_admin', 'accountant'],
   },
   {
+    title: 'Fund Transfers',
+    href: '/dashboard/funds/transfers',
+    icon: ArrowRightLeft,
+    roles: ['admin', 'executive_admin', 'fund_admin', 'accountant'],
+  },
+  {
     title: 'CRM & Bulk Ops',
     href: '/dashboard/crm-bulk-ops',
     icon: Users,
@@ -289,7 +296,8 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
                 isActive =
                   pathname === item.href ||
                   (item.href !== '/dashboard' &&
-                    pathname?.startsWith(item.href + '/')) ||
+                    pathname?.startsWith(item.href + '/') &&
+                    !(item.href === '/dashboard/funds' && pathname?.startsWith('/dashboard/funds/transfers'))) ||
                   (item.href === '/dashboard/portfolio' &&
                     pathname?.startsWith('/dashboard/funds/') &&
                     currentRole === 'investor' &&

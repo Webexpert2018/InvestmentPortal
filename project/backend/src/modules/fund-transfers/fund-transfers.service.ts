@@ -1,0 +1,309 @@
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { db } from '../../config/database';
+import { cloudinary } from '../../config/cloudinary.config';
+import { DocusignService } from '../docusign/docusign.service';
+import { EmailService } from '../email/email.service';
+import * as fs from 'fs';
+
+@Injectable()
+export class FundTransfersService {
+  constructor(
+    private readonly docusignService: DocusignService,
+    private readonly emailService: EmailService
+  ) {}
+
+  async findAll() {
+    const res = await db.query(`
+      SELECT ft.*, 
+             fi.full_name as from_investor_name,
+             ti.full_name as to_investor_name,
+             ff.name as from_fund_name,
+             tf.name as to_fund_name
+      FROM fund_transfers ft
+      LEFT JOIN investors fi ON ft.from_investor_id = fi.id
+      LEFT JOIN investors ti ON ft.to_investor_id = ti.id
+      LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+      LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
+      ORDER BY ft.created_at DESC
+    `);
+    return res.rows;
+  }
+
+  async findOne(id: string) {
+    const res = await db.query('SELECT * FROM fund_transfers WHERE id = $1', [id]);
+    return res.rows[0];
+  }
+
+  async getSenderFunds(investorId: string) {
+    // 1. Get the investor's email
+    const investorRes = await db.query(`SELECT email FROM investors WHERE id = $1`, [investorId]);
+    if (investorRes.rows.length === 0) return [];
+    const investorEmail = investorRes.rows[0].email;
+
+    // 2. Fetch combined funds from both tables
+    const res = await db.query(`
+      WITH combined_investments AS (
+        SELECT 
+          f.id::text as fund_id,
+          f.name as fund_name,
+          f.unit_price as current_nav,
+          i.estimated_units as units
+        FROM investments i
+        JOIN funds f ON i.fund_id = f.id
+        WHERE i.user_id = $1 AND i.is_reconciled = true
+        
+        UNION ALL
+        
+        SELECT 
+          COALESCE(f.id::text, oi.project_id::text) as fund_id,
+          oi.project_name as fund_name,
+          COALESCE(f.unit_price, 1) as current_nav,
+          oi.shares as units
+        FROM old_investments oi
+        LEFT JOIN funds f ON oi.project_name = f.name
+        WHERE oi.email_address = $2
+      )
+      SELECT 
+        fund_id,
+        fund_name,
+        current_nav,
+        SUM(units) as total_units,
+        SUM(units) * COALESCE(current_nav, 1) as max_value
+      FROM combined_investments
+      GROUP BY fund_id, fund_name, current_nav
+      HAVING SUM(units) > 0
+      ORDER BY fund_name ASC
+    `, [investorId, investorEmail]);
+    
+    return res.rows;
+  }
+
+  async getTemplate(transferType: string) {
+    const res = await db.query(
+      `SELECT * FROM fund_transfer_templates WHERE transfer_type = $1`,
+      [transferType]
+    );
+    return res.rows[0] || null;
+  }
+
+  async upsertTemplate(transferType: string, file: any, placements: any[]) {
+    let documentUrl = '';
+    
+    if (file) {
+      try {
+        const b64 = Buffer.from(file.buffer).toString('base64');
+        const dataURI = `data:${file.mimetype};base64,${b64}`;
+        const uploadResult = await cloudinary.uploader.upload(dataURI, {
+          resource_type: 'raw',
+          folder: 'fund_transfers_templates',
+          format: 'pdf',
+        });
+        documentUrl = uploadResult.secure_url;
+      } catch (error) {
+        console.error('Error uploading template document:', error);
+        throw new BadRequestException('Failed to upload template document');
+      }
+    } else {
+      throw new BadRequestException('File is required to upload a template');
+    }
+
+    const res = await db.query(
+      `INSERT INTO fund_transfer_templates (transfer_type, document_url, placements)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (transfer_type) 
+       DO UPDATE SET document_url = EXCLUDED.document_url, placements = EXCLUDED.placements, updated_at = CURRENT_TIMESTAMP
+       RETURNING *`,
+      [transferType, documentUrl, JSON.stringify(placements)]
+    );
+    return res.rows[0];
+  }
+
+  async create(data: any, file: any) {
+    let documentUrl = '';
+    let documentBase64 = '';
+    let documentName = 'Transfer_Agreement.pdf';
+
+    // If file is provided, upload it and use it.
+    if (file) {
+      documentName = file.originalname;
+      documentBase64 = file.buffer.toString('base64');
+      try {
+        const dataURI = `data:${file.mimetype};base64,${documentBase64}`;
+        const uploadResult = await cloudinary.uploader.upload(dataURI, {
+          resource_type: 'raw',
+          folder: 'fund_transfers',
+          format: 'pdf',
+        });
+        documentUrl = uploadResult.secure_url;
+      } catch (error) {
+        console.error('Error uploading transfer document:', error);
+        throw new BadRequestException('Failed to upload transfer document');
+      }
+    } else {
+      // If no file is provided, look up the template
+      const template = await this.getTemplate(data.transferType);
+      if (!template) {
+        throw new BadRequestException('No document provided and no template found for this transfer type.');
+      }
+      documentUrl = template.document_url;
+      
+      // We must fetch the document bytes to pass to DocuSign
+      try {
+        const urlParts = documentUrl.split('/upload/');
+        if (urlParts.length !== 2) throw new Error('Invalid document URL format.');
+        let publicId = urlParts[1];
+        if (publicId.match(/^v\d+\//)) {
+          publicId = publicId.replace(/^v\d+\//, '');
+        }
+
+        const signedUrl = cloudinary.utils.private_download_url(publicId, '', {
+          resource_type: 'raw',
+          type: 'upload'
+        });
+
+        const fetchRes = await fetch(signedUrl);
+        if (!fetchRes.ok) {
+          throw new Error(`Failed to fetch document: ${fetchRes.statusText}`);
+        }
+        const arrayBuffer = await fetchRes.arrayBuffer();
+        documentBase64 = Buffer.from(arrayBuffer).toString('base64');
+      } catch (error) {
+        console.error('Error fetching template document from URL:', error);
+        throw new BadRequestException('Failed to fetch the saved template document.');
+      }
+    }
+
+    // 2. Insert DB Record
+    const res = await db.query(
+      `INSERT INTO fund_transfers 
+       (transfer_type, from_investor_id, to_investor_id, from_fund_id, to_fund_id, investment_amount, units, document_url, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING_SIGNATURE')
+       RETURNING *`,
+      [
+        data.transferType,
+        data.fromInvestorId,
+        data.toInvestorId || null,
+        data.fromFundId,
+        data.toFundId || null,
+        data.investmentAmount,
+        data.units,
+        documentUrl
+      ]
+    );
+
+    const transfer = res.rows[0];
+
+    // Fetch related entity names for document fields
+    const fromInv = await db.query('SELECT full_name FROM investors WHERE id = $1', [data.fromInvestorId]);
+    const toInv = data.toInvestorId ? await db.query('SELECT full_name FROM investors WHERE id = $1', [data.toInvestorId]) : null;
+    const fromFund = await db.query('SELECT name FROM funds WHERE id::text = $1', [data.fromFundId]);
+    const toFund = data.toFundId ? await db.query('SELECT name FROM funds WHERE id::text = $1', [data.toFundId]) : null;
+
+    const fieldValues: any = {
+      sender_name: fromInv.rows[0]?.full_name || '',
+      receiver_name: toInv?.rows[0]?.full_name || '',
+      investor_name: fromInv.rows[0]?.full_name || '', // Same as sender_name usually
+      sender_fund: fromFund.rows[0]?.name || '',
+      receiver_fund: toFund?.rows[0]?.name || '',
+      amount: data.investmentAmount ? `$${Number(data.investmentAmount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '',
+      date: new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })
+    };
+
+    // 3. Create DocuSign Envelope
+    const { envelopeId, signingUrl } = await this.docusignService.createEnvelopeForTransfer(
+      data.signerEmail,
+      data.signerName,
+      documentBase64,
+      documentName,
+      data.placements,
+      fieldValues,
+      transfer.id
+    );
+
+    // 4. Update Record with Envelope ID
+    if (envelopeId) {
+      await db.query(`UPDATE fund_transfers SET docusign_envelope_id = $1 WHERE id = $2`, [envelopeId, transfer.id]);
+      transfer.docusign_envelope_id = envelopeId;
+      
+      // Send custom email via SMTP with a dynamic signing link
+      const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+      const signLink = `${backendUrl}/api/fund-transfers/${transfer.id}/sign`;
+      await this.emailService.sendFundTransferSignatureEmail(data.signerEmail, data.signerName, signLink);
+    }
+
+    return transfer;
+  }
+
+  async generateSignUrl(transferId: string): Promise<string> {
+    const res = await db.query(
+      `SELECT t.*, i.full_name as signer_name, i.email as signer_email
+       FROM fund_transfers t
+       JOIN investors i ON t.from_investor_id = i.id
+       WHERE t.id = $1`,
+      [transferId]
+    );
+
+    if (res.rows.length === 0) {
+      throw new BadRequestException('Transfer not found');
+    }
+
+    const transfer = res.rows[0];
+    if (!transfer.docusign_envelope_id) {
+      throw new BadRequestException('Transfer document not sent for signature yet');
+    }
+
+    return this.docusignService.getTransferSigningUrl(
+      transfer.docusign_envelope_id,
+      transfer.signer_email,
+      transfer.signer_name,
+      transfer.id
+    );
+  }
+
+  async completeTransfer(transferId: string): Promise<any> {
+    const res = await db.query('SELECT * FROM fund_transfers WHERE id = $1', [transferId]);
+    if (res.rows.length === 0) throw new BadRequestException('Transfer not found');
+    
+    const transfer = res.rows[0];
+    if (transfer.status === 'COMPLETED') return transfer;
+    
+    if (!transfer.docusign_envelope_id) {
+      throw new BadRequestException('Transfer missing DocuSign envelope ID');
+    }
+
+    // 1. Download signed document from DocuSign
+    const auth = await this.docusignService.getAccessTokenJWT();
+    let pdfData = await this.docusignService.getEnvelopeDocument(auth.accessToken, auth.accountId, transfer.docusign_envelope_id);
+    let pdfBuffer: Buffer;
+    if (typeof pdfData === 'string') {
+      pdfBuffer = Buffer.from(pdfData, 'base64');
+    } else if (Buffer.isBuffer(pdfData)) {
+      pdfBuffer = pdfData;
+    } else {
+      pdfBuffer = Buffer.from(pdfData as any);
+    }
+
+    // 2. Upload to Cloudinary
+    let finalDocUrl = transfer.document_url;
+    try {
+      const dataURI = `data:application/pdf;base64,${pdfBuffer.toString('base64')}`;
+      const uploadResult = await cloudinary.uploader.upload(dataURI, {
+        resource_type: 'raw',
+        folder: 'fund_transfers_completed',
+        format: 'pdf',
+      });
+      finalDocUrl = uploadResult.secure_url;
+    } catch (error) {
+      console.error('Error uploading completed transfer document to Cloudinary:', error);
+      // Fallback to existing document URL if upload fails, but continue to complete
+    }
+
+    // 3. Update status in DB
+    const updateRes = await db.query(
+      `UPDATE fund_transfers SET status = 'COMPLETED', document_url = $1 WHERE id = $2 RETURNING *`,
+      [finalDocUrl, transferId]
+    );
+
+    return updateRes.rows[0];
+  }
+}
