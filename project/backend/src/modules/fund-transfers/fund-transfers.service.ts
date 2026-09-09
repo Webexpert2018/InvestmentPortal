@@ -17,13 +17,15 @@ export class FundTransfersService {
       SELECT ft.*, 
              fi.full_name as from_investor_name,
              ti.full_name as to_investor_name,
-             ff.name as from_fund_name,
-             tf.name as to_fund_name
+             COALESCE(ff.name, off.project_name) as from_fund_name,
+             COALESCE(tf.name, tf_off.project_name) as to_fund_name
       FROM fund_transfers ft
       LEFT JOIN investors fi ON ft.from_investor_id = fi.id
       LEFT JOIN investors ti ON ft.to_investor_id = ti.id
       LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+      LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
       LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
+      LEFT JOIN old_funds tf_off ON ft.to_fund_id = tf_off.project_id::text
       ORDER BY ft.created_at DESC
     `);
     return res.rows;
@@ -34,13 +36,15 @@ export class FundTransfersService {
       SELECT ft.*, 
              fi.full_name as from_investor_name,
              ti.full_name as to_investor_name,
-             ff.name as from_fund_name,
-             tf.name as to_fund_name
+             COALESCE(ff.name, off.project_name) as from_fund_name,
+             COALESCE(tf.name, tf_off.project_name) as to_fund_name
       FROM fund_transfers ft
       LEFT JOIN investors fi ON ft.from_investor_id = fi.id
       LEFT JOIN investors ti ON ft.to_investor_id = ti.id
       LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+      LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
       LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
+      LEFT JOIN old_funds tf_off ON ft.to_fund_id = tf_off.project_id::text
       WHERE ft.id = $1
     `, [id]);
     return res.rows[0];
@@ -224,6 +228,19 @@ export class FundTransfersService {
       }
     }
 
+    if (data.fromAccountType === 'old_investor' && data.fromAccountId) {
+      const pRes = await db.query(`SELECT profile_type FROM old_investors WHERE ims_profile_id = $1`, [data.fromAccountId]);
+      if (pRes.rows.length > 0) {
+        data.fromAccountType = `ims-${pRes.rows[0].profile_type} account`;
+      }
+    }
+    if (data.toAccountType === 'old_investor' && data.toAccountId) {
+      const pRes = await db.query(`SELECT profile_type FROM old_investors WHERE ims_profile_id = $1`, [data.toAccountId]);
+      if (pRes.rows.length > 0) {
+        data.toAccountType = `ims-${pRes.rows[0].profile_type} account`;
+      }
+    }
+
     // 2. Insert DB Record
     const res = await db.query(
       `INSERT INTO fund_transfers 
@@ -265,6 +282,10 @@ export class FundTransfersService {
     };
 
     // 3. Create DocuSign Envelope
+    if (data.bypassDocusign) {
+      return transfer;
+    }
+
     const { envelopeId, signingUrl } = await this.docusignService.createEnvelopeForTransfer(
       data.signerEmail,
       data.signerName,

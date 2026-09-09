@@ -184,7 +184,8 @@ export class FundTransfersController {
       units: parseFloat(body.units),
       placements: parsedPlacements,
       signerName: body.signerName,
-      signerEmail: body.signerEmail
+      signerEmail: body.signerEmail,
+      bypassDocusign: body.bypassDocusign === 'true' || body.bypassDocusign === true
     };
 
     return this.fundTransfersService.create(data, file);

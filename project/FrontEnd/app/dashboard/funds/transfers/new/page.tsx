@@ -179,8 +179,8 @@ export default function NewFundTransferPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent, bypassDocusign = false) => {
+    if (e) e.preventDefault();
     
     if (!fromInvestorId || !fromFundId || !investmentAmount || !documentFile) {
       toast.error('Please fill all required fields and upload a document.');
@@ -238,6 +238,7 @@ export default function NewFundTransferPage() {
     const signerFullName = (fromInvestor.full_name || (fromInvestor.firstName + ' ' + (fromInvestor.lastName || '')) || fromInvestor.first_name + ' ' + (fromInvestor.last_name || '')).trim();
     formData.append('signerName', signerFullName);
     formData.append('signerEmail', fromInvestor.email);
+    formData.append('bypassDocusign', bypassDocusign ? 'true' : 'false');
 
     setIsSubmitting(true);
     try {
@@ -252,7 +253,11 @@ export default function NewFundTransferPage() {
 
       // Then create the transfer
       await apiClient.createFundTransfer(formData);
-      toast.success('Transfer created successfully. Signer will receive an email shortly.');
+      if (bypassDocusign) {
+        toast.success('Transfer created successfully. Entry saved as pending signature.');
+      } else {
+        toast.success('Transfer created successfully. Signer will receive an email shortly.');
+      }
       router.push('/dashboard/funds/transfers');
     } catch (error: any) {
       toast.error(error.message || 'Failed to create transfer');
@@ -517,6 +522,18 @@ export default function NewFundTransferPage() {
               className="px-6 border-gray-300 text-gray-700 font-semibold"
             >
               Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={(e) => handleSubmit(e as any, true)}
+              disabled={
+                isSubmitting || 
+                !documentFile || 
+                (selectedSourceFund && parseFloat(investmentAmount) > parseFloat(selectedSourceFund.max_value))
+              }
+              className="bg-amber-500 hover:bg-amber-600 text-white px-6 font-semibold shadow-sm transition-all"
+            >
+              Bypass DocuSign
             </Button>
             <Button 
               type="submit" 

@@ -97,7 +97,7 @@ function TransferDetailContent() {
                   <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-3">Sender</p>
                   <p className="text-lg text-gray-900 font-bold">{transfer.from_investor_name}</p>
                   <p className="text-sm text-gray-600 mt-1">{transfer.from_fund_name}</p>
-                  {transfer.from_account_type && <p className="text-xs text-gray-500 mt-1 capitalize">{transfer.from_account_type.replace('_', ' ')} Account</p>}
+                  {transfer.from_account_type && <p className="text-xs text-gray-500 mt-1 capitalize">{transfer.from_account_type.replace('_', ' ')}{transfer.from_account_type.toLowerCase().includes('account') ? '' : ' Account'}</p>}
                 </div>
 
                 <div className="hidden sm:flex flex-grow justify-center">
@@ -117,7 +117,7 @@ function TransferDetailContent() {
                 <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-3">Recipient</p>
                 <p className="text-lg text-gray-900 font-bold">{transfer.to_investor_name || transfer.from_investor_name}</p>
                 <p className="text-sm text-gray-600 mt-1">{transfer.to_fund_name || transfer.from_fund_name}</p>
-                {transfer.to_account_type && <p className="text-xs text-gray-500 mt-1 capitalize">{transfer.to_account_type.replace('_', ' ')} Account</p>}
+                {transfer.to_account_type && <p className="text-xs text-gray-500 mt-1 capitalize">{transfer.to_account_type.replace('_', ' ')}{transfer.to_account_type.toLowerCase().includes('account') ? '' : ' Account'}</p>}
               </div>
             </div>
 
