@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, Query, UseGuards, UploadedFile, UseInterceptors, BadRequestException, Res } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Param, Query, UseGuards, UploadedFile, UseInterceptors, BadRequestException, Res } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FundTransfersService } from './fund-transfers.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -17,11 +17,36 @@ export class FundTransfersController {
     return this.fundTransfersService.findAll();
   }
 
+  @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'executive_admin', 'fund_admin')
+  async findOne(@Param('id') id: string) {
+    if (id === 'templates' || id === 'sender-funds' || id === 'old-investor-accounts') {
+      return null; // Let other routes handle it
+    }
+    const transfer = await this.fundTransfersService.findOne(id);
+    if (!transfer) {
+      throw new BadRequestException('Transfer not found');
+    }
+    return transfer;
+  }
+
   @Get('sender-funds/:investorId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'executive_admin', 'fund_admin')
-  async getSenderFunds(@Param('investorId') investorId: string) {
-    return this.fundTransfersService.getSenderFunds(investorId);
+  async getSenderFunds(
+    @Param('investorId') investorId: string,
+    @Query('accountId') accountId?: string,
+    @Query('accountType') accountType?: string,
+  ) {
+    return this.fundTransfersService.getSenderFunds(investorId, accountId, accountType);
+  }
+
+  @Get('old-investor-accounts/:investorId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'executive_admin', 'fund_admin')
+  async getOldInvestorAccounts(@Param('investorId') investorId: string) {
+    return this.fundTransfersService.getOldInvestorAccounts(investorId);
   }
 
   @Get('templates/:type')
@@ -108,6 +133,20 @@ export class FundTransfersController {
     return this.fundTransfersService.upsertTemplate(body.transferType, file, parsedPlacements);
   }
 
+  @Put(':id/internal-amount')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'executive_admin', 'fund_admin')
+  async updateInternalAmount(@Param('id') id: string, @Body('amount') amount: number) {
+    return this.fundTransfersService.updateInternalAmount(id, amount);
+  }
+
+  @Put(':id/reconcile')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'executive_admin', 'fund_admin')
+  async reconcile(@Param('id') id: string, @Body('status') status: boolean) {
+    return this.fundTransfersService.reconcile(id, status);
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'executive_admin', 'fund_admin')
@@ -135,6 +174,10 @@ export class FundTransfersController {
       transferType: body.transferType,
       fromInvestorId: body.fromInvestorId,
       toInvestorId: body.toInvestorId,
+      fromAccountType: body.fromAccountType,
+      fromAccountId: body.fromAccountId,
+      toAccountType: body.toAccountType,
+      toAccountId: body.toAccountId,
       fromFundId: body.fromFundId,
       toFundId: body.toFundId,
       investmentAmount: parseFloat(body.investmentAmount),
@@ -159,14 +202,14 @@ export class FundTransfersController {
     if (event === 'signing_complete') {
       try {
         await this.fundTransfersService.completeTransfer(id);
-        return res.redirect(`${frontendUrl}/dashboard/funds/transfers?success=true`);
+        return res.redirect(`${frontendUrl}/auth/login?transfer_signed=true`);
       } catch (err) {
         console.error('Error completing transfer via callback:', err);
-        return res.redirect(`${frontendUrl}/dashboard/funds/transfers?error=complete_failed`);
+        return res.redirect(`${frontendUrl}/auth/login?transfer_error=true`);
       }
     } else {
       // User cancelled or closed
-      return res.redirect(`${frontendUrl}/dashboard/funds/transfers`);
+      return res.redirect(`${frontendUrl}/auth/login`);
     }
   }
   @Get(':id/pdf')

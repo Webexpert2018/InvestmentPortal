@@ -1754,14 +1754,25 @@ class ApiClient {
     return this.request<any[]>('/fund-transfers');
   }
 
+  async getFundTransfer(id: string) {
+    return this.request<any>(`/fund-transfers/${id}`);
+  }
+
   async completeFundTransfer(id: string) {
     return this.request(`/fund-transfers/${id}/complete`, {
       method: 'POST',
     });
   }
 
-  async getSenderFunds(investorId: string) {
-    return this.request<any[]>(`/fund-transfers/sender-funds/${investorId}`);
+  async getOldInvestorAccounts(investorId: string) {
+    return this.request<any[]>(`/fund-transfers/old-investor-accounts/${investorId}`);
+  }
+
+  async getSenderFunds(investorId: string, accountId?: string, accountType?: string) {
+    const params = new URLSearchParams();
+    if (accountId) params.append('accountId', accountId);
+    if (accountType) params.append('accountType', accountType);
+    return this.request<any[]>(`/fund-transfers/sender-funds/${investorId}?${params.toString()}`);
   }
 
   async getTransferTemplate(type: string) {
@@ -1779,6 +1790,19 @@ class ApiClient {
     return this.request<any>('/fund-transfers', {
       method: 'POST',
       body: data,
+    });
+  }
+  async updateFundTransferInternalAmount(id: string, amount: number) {
+    return this.request<any>(`/fund-transfers/${id}/internal-amount`, {
+      method: 'PUT',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  async reconcileFundTransfer(id: string, status: boolean) {
+    return this.request<any>(`/fund-transfers/${id}/reconcile`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
     });
   }
 }

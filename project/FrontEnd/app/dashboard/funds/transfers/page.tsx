@@ -111,7 +111,11 @@ function FundTransfersContent() {
                   </tr>
                 ) : (
                   transfers.map((transfer) => (
-                    <tr key={transfer.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr 
+                      key={transfer.id} 
+                      onClick={() => router.push(`/dashboard/funds/transfers/${transfer.id}`)}
+                      className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                    >
                       <td className="px-6 py-4">
                         {new Date(transfer.created_at).toLocaleDateString()}
                       </td>
@@ -144,11 +148,12 @@ function FundTransfersContent() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        {transfer.status === 'COMPLETED' && transfer.document_url ? (
+                        {(transfer.status === 'COMPLETED' || transfer.status === 'SIGNED') && transfer.document_url ? (
                           <a
                             href={`http://localhost:3001/api/fund-transfers/${transfer.id}/pdf`}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
                             className="inline-flex items-center justify-center p-2 rounded-lg text-[#2A6CB5] hover:bg-[#EFF6FF] transition-colors"
                             title="View Document"
                           >

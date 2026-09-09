@@ -21,7 +21,17 @@ export default function NewFundTransferPage() {
   const [senderFunds, setSenderFunds] = useState<any[]>([]);
   
   const [fromInvestorId, setFromInvestorId] = useState('');
+  const [fromAccountId, setFromAccountId] = useState('');
+  const [fromAccountType, setFromAccountType] = useState('personal');
+  const [senderIraAccounts, setSenderIraAccounts] = useState<any[]>([]);
+  const [senderOldInvestorAccounts, setSenderOldInvestorAccounts] = useState<any[]>([]);
+  
   const [toInvestorId, setToInvestorId] = useState('');
+  const [toAccountId, setToAccountId] = useState('');
+  const [toAccountType, setToAccountType] = useState('personal');
+  const [recipientIraAccounts, setRecipientIraAccounts] = useState<any[]>([]);
+  const [recipientOldInvestorAccounts, setRecipientOldInvestorAccounts] = useState<any[]>([]);
+
   const [fromFundId, setFromFundId] = useState('');
   const [toFundId, setToFundId] = useState('');
   const [investmentAmount, setInvestmentAmount] = useState('');
@@ -44,12 +54,40 @@ export default function NewFundTransferPage() {
 
   useEffect(() => {
     if (fromInvestorId) {
-      fetchSenderFunds(fromInvestorId);
+      apiClient.getIraAccountsForUser(fromInvestorId).then(data => {
+        setSenderIraAccounts(data || []);
+      }).catch(console.error);
+      apiClient.getOldInvestorAccounts(fromInvestorId).then(data => {
+        setSenderOldInvestorAccounts(data || []);
+      }).catch(console.error);
+    } else {
+      setSenderIraAccounts([]);
+      setSenderOldInvestorAccounts([]);
+    }
+  }, [fromInvestorId]);
+
+  useEffect(() => {
+    if (toInvestorId) {
+      apiClient.getIraAccountsForUser(toInvestorId).then(data => {
+        setRecipientIraAccounts(data || []);
+      }).catch(console.error);
+      apiClient.getOldInvestorAccounts(toInvestorId).then(data => {
+        setRecipientOldInvestorAccounts(data || []);
+      }).catch(console.error);
+    } else {
+      setRecipientIraAccounts([]);
+      setRecipientOldInvestorAccounts([]);
+    }
+  }, [toInvestorId]);
+
+  useEffect(() => {
+    if (fromInvestorId) {
+      fetchSenderFunds(fromInvestorId, fromAccountId, fromAccountType);
     } else {
       setSenderFunds([]);
       setFromFundId('');
     }
-  }, [fromInvestorId]);
+  }, [fromInvestorId, fromAccountId, fromAccountType]);
 
   const fetchInitialData = async () => {
     try {
@@ -65,9 +103,9 @@ export default function NewFundTransferPage() {
     }
   };
 
-  const fetchSenderFunds = async (investorId: string) => {
+  const fetchSenderFunds = async (investorId: string, accountId?: string, accountType?: string) => {
     try {
-      const data = await apiClient.getSenderFunds(investorId);
+      const data = await apiClient.getSenderFunds(investorId, accountId, accountType);
       setSenderFunds(data || []);
       // Reset source fund if it's no longer in the list
       if (fromFundId && !data.find((f: any) => f.fund_id === fromFundId)) {
@@ -175,7 +213,15 @@ export default function NewFundTransferPage() {
     const formData = new FormData();
     formData.append('transferType', transferType);
     formData.append('fromInvestorId', fromInvestorId);
-    if (transferType === 'PERSON_TO_PERSON') formData.append('toInvestorId', toInvestorId);
+    formData.append('fromAccountType', fromAccountType);
+    if (fromAccountId) formData.append('fromAccountId', fromAccountId);
+    
+    if (transferType === 'PERSON_TO_PERSON') {
+      formData.append('toInvestorId', toInvestorId);
+      formData.append('toAccountType', toAccountType);
+      if (toAccountId) formData.append('toAccountId', toAccountId);
+    }
+    
     formData.append('fromFundId', fromFundId);
     if (transferType === 'FUND_TO_FUND') formData.append('toFundId', toFundId);
     formData.append('investmentAmount', investmentAmount);
@@ -218,7 +264,7 @@ export default function NewFundTransferPage() {
   const userOptions = Array.from(new Map(users.map(u => {
     const name = (u.full_name || (u.firstName ? u.firstName + ' ' + (u.lastName || '') : '') || (u.first_name ? u.first_name + ' ' + (u.last_name || '') : '')).trim() || 'Unknown Investor';
     return [u.id, { label: `${name} (${u.email || 'No email'})`, value: u.id }];
-  })).values());
+  })).values()).sort((a, b) => a.label.localeCompare(b.label));
   const senderFundOptions = senderFunds.map(f => ({ label: `${f.fund_name} (Avail: $${parseFloat(f.max_value).toLocaleString()})`, value: f.fund_id }));
   const allFundOptions = allFunds.map(f => ({ label: f.name, value: f.id.toString() }));
 
@@ -267,21 +313,83 @@ export default function NewFundTransferPage() {
                 <Combobox 
                   options={userOptions}
                   value={fromInvestorId}
-                  onChange={setFromInvestorId}
+                  onChange={(val) => {
+                    setFromInvestorId(val);
+                    setFromAccountType('personal');
+                    setFromAccountId('');
+                    setFromFundId('');
+                  }}
                   placeholder="Search sender..."
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Sender Account</label>
+                <Combobox 
+                  options={[
+                    { label: 'Personal Account', value: 'personal' },
+                    ...senderIraAccounts.map(ira => ({ label: `${ira.account_type || 'IRA'} (${ira.account_number || ira.id.substring(0, 8)})`, value: `ira_${ira.id}` })),
+                    ...senderOldInvestorAccounts.map(old => ({ label: `${old.legal_name || 'Old Investor'} (ims-${old.profile_type || 'Account'} account)`, value: `old_investor_${old.ims_profile_id}` }))
+                  ]}
+                  value={fromAccountType === 'personal' ? 'personal' : `${fromAccountType}_${fromAccountId}`}
+                  onChange={(val) => {
+                    if (val === 'personal') {
+                      setFromAccountType('personal');
+                      setFromAccountId('');
+                    } else if (val.startsWith('ira_')) {
+                      setFromAccountType('ira');
+                      setFromAccountId(val.replace('ira_', ''));
+                    } else if (val.startsWith('old_investor_')) {
+                      setFromAccountType('old_investor');
+                      setFromAccountId(val.replace('old_investor_', ''));
+                    }
+                  }}
+                  placeholder="Select account..."
+                  disabled={!fromInvestorId}
+                />
+              </div>
+
               {transferType === 'PERSON_TO_PERSON' ? (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Recipient (Investor)</label>
-                  <Combobox 
-                    options={userOptions.filter(u => u.value !== fromInvestorId)}
-                    value={toInvestorId}
-                    onChange={setToInvestorId}
-                    placeholder="Search recipient..."
-                  />
-                </div>
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Recipient (Investor)</label>
+                    <Combobox 
+                      options={userOptions.filter(u => u.value !== fromInvestorId)}
+                      value={toInvestorId}
+                      onChange={(val) => {
+                        setToInvestorId(val);
+                        setToAccountType('personal');
+                        setToAccountId('');
+                      }}
+                      placeholder="Search recipient..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Recipient Account</label>
+                    <Combobox 
+                      options={[
+                        { label: 'Personal Account', value: 'personal' },
+                        ...recipientIraAccounts.map(ira => ({ label: `${ira.account_type || 'IRA'} (${ira.account_number || ira.id.substring(0, 8)})`, value: `ira_${ira.id}` })),
+                        ...recipientOldInvestorAccounts.map(old => ({ label: `${old.legal_name || 'Old Investor'} (ims-${old.profile_type || 'Account'} account)`, value: `old_investor_${old.ims_profile_id}` }))
+                      ]}
+                      value={toAccountType === 'personal' ? 'personal' : `${toAccountType}_${toAccountId}`}
+                      onChange={(val) => {
+                        if (val === 'personal') {
+                          setToAccountType('personal');
+                          setToAccountId('');
+                        } else if (val.startsWith('ira_')) {
+                          setToAccountType('ira');
+                          setToAccountId(val.replace('ira_', ''));
+                        } else if (val.startsWith('old_investor_')) {
+                          setToAccountType('old_investor');
+                          setToAccountId(val.replace('old_investor_', ''));
+                        }
+                      }}
+                      placeholder="Select account..."
+                      disabled={!toInvestorId}
+                    />
+                  </div>
+                </>
               ) : (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Destination Fund</label>
@@ -427,3 +535,5 @@ export default function NewFundTransferPage() {
     </DashboardLayout>
   );
 }
+
+// trigger rebuild

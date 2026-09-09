@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 interface ReconciliationRecord {
   id: string;
   recordId: string;
-  type: 'Funding' | 'Redemption';
+  type: 'Funding' | 'Redemption' | 'Transfer';
   investorName: string;
   accountType: string;
   custodian: number;
@@ -38,9 +38,10 @@ export default function ReconciliationPage() {
   const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
-      const [investments, redemptions] = await Promise.all([
+      const [investments, redemptions, fundTransfers] = await Promise.all([
         apiClient.getAllInvestments(),
         apiClient.getAllRedemptions(),
+        apiClient.getFundTransfers(),
       ]);
 
       const investmentRecords: ReconciliationRecord[] = (Array.isArray(investments) ? investments : [])
@@ -86,7 +87,28 @@ export default function ReconciliationPage() {
           };
         });
 
-      const merged = [...investmentRecords, ...redemptionRecords].sort((a, b) => {
+      const transferRecords: ReconciliationRecord[] = (Array.isArray(fundTransfers) ? fundTransfers : [])
+        .filter((tf: any) => ['SIGNED', 'COMPLETED'].includes(tf.status))
+        .map((tf: any) => {
+          const custodian = parseFloat(tf?.investment_amount || 0);
+          const internal = parseFloat(tf?.internal_amount || 0);
+          const difference = custodian - internal;
+          return {
+            id: String(tf?.id || ''),
+            recordId: `TRN-${String(tf?.id || '').substring(0, 6).toUpperCase()}`,
+            type: 'Transfer',
+            investorName: tf?.to_investor_name || tf?.from_investor_name || 'Unknown',
+            accountType: tf?.to_account_type || 'Personal',
+            custodian,
+            internal,
+            difference,
+            status: Math.abs(difference) < 0.01 ? 'Matched' : 'Mismatch',
+            isReconciled: tf?.is_reconciled === undefined || tf?.is_reconciled === null ? null : !!tf?.is_reconciled,
+            date: String(tf?.created_at || new Date().toISOString()),
+          };
+        });
+
+      const merged = [...investmentRecords, ...redemptionRecords, ...transferRecords].sort((a, b) => {
         // 1. Sort by completion status: Incomplete (false/null) comes first
         const aCompleted = !!a.isReconciled;
         const bCompleted = !!b.isReconciled;
@@ -116,14 +138,16 @@ export default function ReconciliationPage() {
     fetchRecords();
   }, [fetchRecords]);
 
-  const handleUpdateInternal = async (id: string, type: 'Funding' | 'Redemption', amount: number) => {
+  const handleUpdateInternal = async (id: string, type: 'Funding' | 'Redemption' | 'Transfer', amount: number) => {
     setSavingId(id);
     setSavedId(null);
     try {
       if (type === 'Funding') {
         await apiClient.updateInvestmentInternalAmount(id, amount);
-      } else {
+      } else if (type === 'Redemption') {
         await apiClient.updateRedemptionInternalAmount(id, amount);
+      } else if (type === 'Transfer') {
+        await apiClient.updateFundTransferInternalAmount(id, amount);
       }
 
       setRecords(prev => prev.map(rec => {
@@ -155,13 +179,15 @@ export default function ReconciliationPage() {
     }
   };
 
-  const handleToggleReconcile = async (id: string, type: 'Funding' | 'Redemption', currentStatus: boolean) => {
+  const handleToggleReconcile = async (id: string, type: 'Funding' | 'Redemption' | 'Transfer', currentStatus: boolean) => {
     try {
       const newStatus = !currentStatus;
       if (type === 'Funding') {
         await apiClient.reconcileInvestment(id, newStatus);
-      } else {
+      } else if (type === 'Redemption') {
         await apiClient.reconcileRedemption(id, newStatus);
+      } else if (type === 'Transfer') {
+        await apiClient.reconcileFundTransfer(id, newStatus);
       }
 
       setRecords(prev => prev.map(rec => rec.id === id ? { ...rec, isReconciled: newStatus } : rec));
@@ -280,6 +306,7 @@ export default function ReconciliationPage() {
                 <option value="all">All Types</option>
                 <option value="funding">Funding</option>
                 <option value="redemption">Redemption</option>
+                <option value="transfer">Transfer</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
             </div>
@@ -324,7 +351,7 @@ export default function ReconciliationPage() {
                     <tr key={record.id} className="hover:bg-gray-50 transition-colors group">
                       <td className="px-6 py-4">
                         <Link
-                          href={`/dashboard/${record.type === 'Funding' ? 'funding' : 'redemption'}-requests/${record.id}`}
+                          href={`/dashboard/${record.type === 'Funding' ? 'funding-requests' : record.type === 'Redemption' ? 'redemption-requests' : 'funds/transfers'}/${record.id}`}
                           className="font-medium text-[#1F3B6E] hover:underline whitespace-nowrap"
                         >
                           {record.recordId}

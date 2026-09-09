@@ -30,19 +30,70 @@ export class FundTransfersService {
   }
 
   async findOne(id: string) {
-    const res = await db.query('SELECT * FROM fund_transfers WHERE id = $1', [id]);
+    const res = await db.query(`
+      SELECT ft.*, 
+             fi.full_name as from_investor_name,
+             ti.full_name as to_investor_name,
+             ff.name as from_fund_name,
+             tf.name as to_fund_name
+      FROM fund_transfers ft
+      LEFT JOIN investors fi ON ft.from_investor_id = fi.id
+      LEFT JOIN investors ti ON ft.to_investor_id = ti.id
+      LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+      LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
+      WHERE ft.id = $1
+    `, [id]);
     return res.rows[0];
   }
 
-  async getSenderFunds(investorId: string) {
+  async getOldInvestorAccounts(investorId: string) {
+    const investorRes = await db.query(`SELECT email FROM investors WHERE id = $1`, [investorId]);
+    if (investorRes.rows.length === 0) return [];
+    const email = investorRes.rows[0].email;
+
+    const res = await db.query(`SELECT ims_profile_id, legal_name, primary_email, profile_type FROM old_investors WHERE primary_email = $1`, [email]);
+    return res.rows;
+  }
+
+  async getSenderFunds(investorId: string, accountId?: string, accountType?: string) {
     // 1. Get the investor's email
     const investorRes = await db.query(`SELECT email FROM investors WHERE id = $1`, [investorId]);
     if (investorRes.rows.length === 0) return [];
-    const investorEmail = investorRes.rows[0].email;
+    
+    let investmentsQuery = '';
+    let oldInvestmentsQuery = '';
+    const params: any[] = [];
 
-    // 2. Fetch combined funds from both tables
-    const res = await db.query(`
-      WITH combined_investments AS (
+    if (accountType === 'old_investor' && accountId) {
+      investmentsQuery = `SELECT NULL::text as fund_id, NULL::text as fund_name, NULL::numeric as current_nav, NULL::numeric as units WHERE false`;
+      
+      oldInvestmentsQuery = `
+        SELECT 
+          COALESCE(f.id::text, oi.project_id::text) as fund_id,
+          oi.project_name as fund_name,
+          COALESCE(
+            f.unit_price,
+            (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+            1
+          ) as current_nav,
+          CAST(NULLIF(regexp_replace(oi.shares::text, '[^0-9.]', '', 'g'), '') AS numeric) as units
+        FROM old_investments oi
+        LEFT JOIN funds f ON oi.project_name = f.name
+        WHERE oi.investor_profile_id = $1
+      `;
+      params.push(accountId);
+    } else {
+      let investmentCondition = `i.user_id = $1 AND i.is_reconciled = true`;
+      params.push(investorId);
+
+      if (accountType === 'ira' && accountId) {
+        investmentCondition += ` AND i.account_id = $2`;
+        params.push(accountId);
+      } else {
+        investmentCondition += ` AND (i.account_type ILIKE 'personal' OR i.account_id IS NULL)`;
+      }
+
+      investmentsQuery = `
         SELECT 
           f.id::text as fund_id,
           f.name as fund_name,
@@ -50,18 +101,17 @@ export class FundTransfersService {
           i.estimated_units as units
         FROM investments i
         JOIN funds f ON i.fund_id = f.id
-        WHERE i.user_id = $1 AND i.is_reconciled = true
-        
+        WHERE ${investmentCondition}
+      `;
+      
+      oldInvestmentsQuery = `SELECT NULL::text as fund_id, NULL::text as fund_name, NULL::numeric as current_nav, NULL::numeric as units WHERE false`;
+    }
+
+    const res = await db.query(`
+      WITH combined_investments AS (
+        ${investmentsQuery}
         UNION ALL
-        
-        SELECT 
-          COALESCE(f.id::text, oi.project_id::text) as fund_id,
-          oi.project_name as fund_name,
-          COALESCE(f.unit_price, 1) as current_nav,
-          CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / COALESCE(f.unit_price, 1) as units
-        FROM old_investments oi
-        LEFT JOIN funds f ON oi.project_name = f.name
-        WHERE oi.email_address = $2
+        ${oldInvestmentsQuery}
       )
       SELECT 
         fund_id,
@@ -70,10 +120,11 @@ export class FundTransfersService {
         SUM(units) as total_units,
         SUM(units) * COALESCE(current_nav, 1) as max_value
       FROM combined_investments
+      WHERE units IS NOT NULL
       GROUP BY fund_id, fund_name, current_nav
       HAVING SUM(units) > 0
       ORDER BY fund_name ASC
-    `, [investorId, investorEmail]);
+    `, params);
     
     return res.rows;
   }
@@ -176,13 +227,17 @@ export class FundTransfersService {
     // 2. Insert DB Record
     const res = await db.query(
       `INSERT INTO fund_transfers 
-       (transfer_type, from_investor_id, to_investor_id, from_fund_id, to_fund_id, investment_amount, units, document_url, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING_SIGNATURE')
+       (transfer_type, from_investor_id, to_investor_id, from_account_type, from_account_id, to_account_type, to_account_id, from_fund_id, to_fund_id, investment_amount, units, document_url, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'PENDING_SIGNATURE')
        RETURNING *`,
       [
         data.transferType,
         data.fromInvestorId,
         data.toInvestorId || null,
+        data.fromAccountType || 'personal',
+        data.fromAccountId || null,
+        data.toAccountType || 'personal',
+        data.toAccountId || null,
         data.fromFundId,
         data.toFundId || null,
         data.investmentAmount,
@@ -265,7 +320,7 @@ export class FundTransfersService {
     if (res.rows.length === 0) throw new BadRequestException('Transfer not found');
     
     const transfer = res.rows[0];
-    if (transfer.status === 'COMPLETED') return transfer;
+    if (transfer.status === 'SIGNED' || transfer.status === 'COMPLETED') return transfer;
     
     if (!transfer.docusign_envelope_id) {
       throw new BadRequestException('Transfer missing DocuSign envelope ID');
@@ -300,10 +355,31 @@ export class FundTransfersService {
 
     // 3. Update status in DB
     const updateRes = await db.query(
-      `UPDATE fund_transfers SET status = 'COMPLETED', document_url = $1 WHERE id = $2 RETURNING *`,
+      `UPDATE fund_transfers SET status = 'SIGNED', document_url = $1 WHERE id = $2 RETURNING *`,
       [finalDocUrl, transferId]
     );
 
     return updateRes.rows[0];
+  }
+
+  async updateInternalAmount(id: string, amount: number) {
+    const res = await db.query(
+      `UPDATE fund_transfers SET internal_amount = $1 WHERE id = $2 RETURNING *`,
+      [amount, id]
+    );
+    if (res.rows.length === 0) throw new BadRequestException('Transfer not found');
+    return res.rows[0];
+  }
+
+  async reconcile(id: string, status: boolean) {
+    const res = await db.query(
+      `UPDATE fund_transfers 
+       SET is_reconciled = $1, 
+           status = CASE WHEN $1 = true THEN 'COMPLETED' ELSE status END 
+       WHERE id = $2 RETURNING *`,
+      [status, id]
+    );
+    if (res.rows.length === 0) throw new BadRequestException('Transfer not found');
+    return res.rows[0];
   }
 }
