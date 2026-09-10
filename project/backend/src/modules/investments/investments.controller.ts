@@ -39,6 +39,12 @@ export class InvestmentsController {
     return this.investmentsService.getMyInvestments(id);
   }
 
+  @Get('investor/:id/holdings')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant', 'investor')
+  async getInvestorHoldings(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.investmentsService.getInvestorHoldings(id);
+  }
+
   @Post('invite')
   @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
   async createInvestmentInvite(@CurrentUser() user: any, @Body() body: any) {

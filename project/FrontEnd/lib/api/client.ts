@@ -1345,6 +1345,10 @@ class ApiClient {
     return this.request<any[]>(`/investments/investor/${id}`);
   }
 
+  async getInvestorHoldings(id: string) {
+    return this.request<any[]>(`/investments/investor/${id}/holdings`);
+  }
+
   async getInvestorRedemptions(id: string) {
     return this.request<any[]>(`/redemptions/investor/${id}`);
   }
@@ -1758,6 +1762,12 @@ class ApiClient {
     return this.request<any>(`/fund-transfers/${id}`);
   }
 
+  async deleteFundTransfer(id: string) {
+    return this.request<any>(`/fund-transfers/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async completeFundTransfer(id: string) {
     return this.request(`/fund-transfers/${id}/complete`, {
       method: 'POST',
@@ -1773,6 +1783,10 @@ class ApiClient {
     if (accountId) params.append('accountId', accountId);
     if (accountType) params.append('accountType', accountType);
     return this.request<any[]>(`/fund-transfers/sender-funds/${investorId}?${params.toString()}`);
+  }
+
+  async getFundInvestors(fundId: string) {
+    return this.request<any[]>(`/fund-transfers/investors/${fundId}`);
   }
 
   async getTransferTemplate(type: string) {
@@ -1804,6 +1818,14 @@ class ApiClient {
       method: 'PUT',
       body: JSON.stringify({ status }),
     });
+  }
+
+  async getInvestorTransfers(investorId: string) {
+    return this.request<any[]>(`/fund-transfers/investor/${investorId}`);
+  }
+
+  async getMyTransfers() {
+    return this.request<any[]>('/fund-transfers/my-transfers');
   }
 }
 

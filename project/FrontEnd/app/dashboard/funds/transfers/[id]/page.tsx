@@ -12,6 +12,8 @@ function TransferDetailContent() {
   const router = useRouter();
   const [transfer, setTransfer] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchTransfer = async () => {
@@ -73,9 +75,19 @@ function TransferDetailContent() {
               <h1 className="text-2xl font-bold text-gray-900 font-goudy mb-1">Transfer Details</h1>
               <p className="text-sm text-gray-500">ID: {transfer.id}</p>
             </div>
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getStatusColor(transfer.status)}`}>
-              {transfer.status.replace('_', ' ')}
-            </span>
+            <div className="flex items-center gap-4">
+              {transfer.status !== 'COMPLETED' && (
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-200"
+                >
+                  Delete Transfer
+                </button>
+              )}
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getStatusColor(transfer.status)}`}>
+                {transfer.status.replace('_', ' ')}
+              </span>
+            </div>
           </div>
 
           <div className="p-6 sm:p-8 space-y-8">
@@ -152,6 +164,46 @@ function TransferDetailContent() {
           )}
         </div>
       </div>
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2 font-goudy">Delete Transfer</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Are you absolutely sure you want to delete this transfer? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      setIsDeleting(true);
+                      await apiClient.deleteFundTransfer(transfer.id);
+                      toast.success('Transfer deleted successfully');
+                      router.push('/dashboard/funds/transfers');
+                    } catch (error: any) {
+                      toast.error(error.message || 'Failed to delete transfer');
+                      setIsDeleting(false);
+                      setShowDeleteModal(false);
+                    }
+                  }}
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center"
+                >
+                  {isDeleting ? 'Deleting...' : 'Yes, Delete Transfer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

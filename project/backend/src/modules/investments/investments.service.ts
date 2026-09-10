@@ -358,6 +358,112 @@ export class InvestmentsService {
     }
   }
 
+  async getInvestorHoldings(investorId: string) {
+    try {
+      const investorRes = await db.query(`SELECT email FROM investors WHERE id = $1`, [investorId]);
+      if (investorRes.rows.length === 0) return [];
+      const email = investorRes.rows[0].email;
+
+      const res = await db.query(`
+        WITH combined_investments AS (
+          SELECT 
+            f.id::text as fund_id,
+            f.name as fund_name,
+            f.unit_price as current_nav,
+            i.estimated_units as units,
+            COALESCE(i.account_type, 'personal') as account_type
+          FROM investments i
+          JOIN funds f ON i.fund_id = f.id
+          WHERE i.user_id = $1 AND i.is_reconciled = true
+          UNION ALL
+          SELECT 
+            COALESCE(f.id::text, oi.project_id::text) as fund_id,
+            oi.project_name as fund_name,
+            COALESCE(
+              f.unit_price,
+              (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+              1
+            ) as current_nav,
+            (CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / 
+             NULLIF(COALESCE(
+               f.unit_price,
+               (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+               1
+             ), 0)) as units,
+            'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type
+          FROM old_investments oi
+          LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
+          LEFT JOIN funds f ON oi.project_name = f.name
+          WHERE o_inv.primary_email = $2
+
+          UNION ALL
+
+          SELECT 
+            ft.from_fund_id as fund_id,
+            COALESCE(ff.name, off.project_name) as fund_name,
+            COALESCE(
+              ff.unit_price,
+              (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+              1
+            ) as current_nav,
+            CASE
+              WHEN ft.from_account_type ILIKE 'ims-%' THEN 
+                (-1 * ft.investment_amount) / NULLIF(COALESCE(ff.unit_price, (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), 1), 0)
+              ELSE 
+                (-1 * ft.units)
+            END as units,
+            ft.from_account_type as account_type
+          FROM fund_transfers ft
+          LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+          LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
+          WHERE ft.from_investor_id = $1 AND ft.status = 'COMPLETED'
+
+          UNION ALL
+
+          SELECT 
+            COALESCE(ft.to_fund_id, ft.from_fund_id) as fund_id,
+            COALESCE(tf.name, tf_off.project_name, ff.name, off.project_name) as fund_name,
+            COALESCE(
+              tf.unit_price,
+              ff.unit_price,
+              (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+              1
+            ) as current_nav,
+            CASE
+              WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
+                ft.investment_amount / NULLIF(COALESCE(tf.unit_price, ff.unit_price, (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), 1), 0)
+              ELSE 
+                ft.units
+            END as units,
+            COALESCE(ft.to_account_type, ft.from_account_type) as account_type
+          FROM fund_transfers ft
+          LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
+          LEFT JOIN old_funds tf_off ON ft.to_fund_id = tf_off.project_id::text
+          LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+          LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
+          WHERE (ft.to_investor_id = $1 OR (ft.to_investor_id IS NULL AND ft.from_investor_id = $1)) AND ft.status = 'COMPLETED'
+        )
+        SELECT 
+          fund_id,
+          fund_name,
+          account_type,
+          current_nav,
+          SUM(units) as total_units,
+          SUM(units) * COALESCE(current_nav, 1) as max_value
+        FROM combined_investments
+        WHERE units IS NOT NULL
+        GROUP BY fund_id, fund_name, account_type, current_nav
+        HAVING SUM(units) > 0
+        ORDER BY fund_name ASC, account_type ASC
+      `, [investorId, email]);
+
+      return res.rows;
+    } catch (error) {
+      console.error('❌ Error fetching investor holdings:', error);
+      throw new InternalServerErrorException('Failed to fetch investor holdings');
+    }
+  }
+
   async updateInvestmentStatus(userId: string, investmentId: string, data: any, role?: string) {
     const { status, documentSigned } = data;
     const isAdmin = ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant'].includes(role || '');

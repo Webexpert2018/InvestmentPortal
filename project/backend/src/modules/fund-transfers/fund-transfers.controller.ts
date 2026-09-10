@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Body, Param, Query, UseGuards, UploadedFile, UseInterceptors, BadRequestException, Res } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Body, Param, Query, UseGuards, UploadedFile, UseInterceptors, BadRequestException, Res } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FundTransfersService } from './fund-transfers.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -17,11 +17,17 @@ export class FundTransfersController {
     return this.fundTransfersService.findAll();
   }
 
+  @Get('my-transfers')
+  @UseGuards(JwtAuthGuard)
+  async getMyTransfers(@CurrentUser() user: any) {
+    return this.fundTransfersService.findByInvestor(user.userId);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'executive_admin', 'fund_admin')
   async findOne(@Param('id') id: string) {
-    if (id === 'templates' || id === 'sender-funds' || id === 'old-investor-accounts') {
+    if (id === 'templates' || id === 'sender-funds' || id === 'old-investor-accounts' || id === 'investor' || id === 'my-transfers') {
       return null; // Let other routes handle it
     }
     const transfer = await this.fundTransfersService.findOne(id);
@@ -29,6 +35,22 @@ export class FundTransfersController {
       throw new BadRequestException('Transfer not found');
     }
     return transfer;
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async remove(@Param('id') id: string) {
+    if (id === 'templates' || id === 'sender-funds' || id === 'old-investor-accounts' || id === 'investor' || id === 'my-transfers') {
+      throw new BadRequestException('Invalid transfer ID');
+    }
+    return this.fundTransfersService.delete(id);
+  }
+
+  @Get('investor/:investorId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'executive_admin', 'fund_admin')
+  async getByInvestor(@Param('investorId') investorId: string) {
+    return this.fundTransfersService.findByInvestor(investorId);
   }
 
   @Get('sender-funds/:investorId')
@@ -40,6 +62,13 @@ export class FundTransfersController {
     @Query('accountType') accountType?: string,
   ) {
     return this.fundTransfersService.getSenderFunds(investorId, accountId, accountType);
+  }
+
+  @Get('investors/:fundId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'executive_admin', 'fund_admin')
+  async getInvestorsByFund(@Param('fundId') fundId: string) {
+    return this.fundTransfersService.getInvestorsByFund(fundId);
   }
 
   @Get('old-investor-accounts/:investorId')

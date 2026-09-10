@@ -136,8 +136,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [investorData, setInvestorData] = useState<any>(null);
   const [kycDocuments, setKycDocuments] = useState<any[]>([]);
   const [oldDocuments, setOldDocuments] = useState<any[]>([]);
+  const [fundHoldings, setFundHoldings] = useState<any[]>([]);
   const [fundingHistory, setFundingHistory] = useState<any[]>([]);
   const [redemptionHistory, setRedemptionHistory] = useState<any[]>([]);
+  const [transferHistory, setTransferHistory] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({ totalValue: 0, totalUnits: 0, ytdReturn: 0 });
   const [loading, setLoading] = useState(true);
   const [isSuspending, setIsSuspending] = useState(false);
@@ -155,14 +157,16 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [profile, docs, investments, redemptions, investorStats, accounts, fetchedSubAccounts] = await Promise.all([
+        const [profile, docs, investments, redemptions, investorStats, accounts, fetchedSubAccounts, holdings, transfers] = await Promise.all([
           apiClient.getUserById(params.id),
           apiClient.getInvestorDocuments(params.id),
           apiClient.getInvestorInvestments(params.id),
           apiClient.getInvestorRedemptions(params.id),
           apiClient.getInvestorStats(params.id),
           apiClient.getUserIRAAccounts(params.id),
-          apiClient.getInvestorSubaccounts(params.id).catch(() => [])
+          apiClient.getInvestorSubaccounts(params.id).catch(() => []),
+          apiClient.getInvestorHoldings(params.id).catch(() => []),
+          apiClient.getInvestorTransfers(params.id).catch(() => [])
         ]);
         setInvestorData(profile);
         setKycDocuments(docs);
@@ -171,6 +175,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         setStats(investorStats);
         setIraAccounts(accounts || []);
         setSubAccounts(fetchedSubAccounts || []);
+        setFundHoldings(holdings || []);
+        setTransferHistory(transfers || []);
 
         if (fetchedSubAccounts && fetchedSubAccounts.length > 0) {
           const subDataPromises = fetchedSubAccounts.map(async (sub: any) => {
@@ -209,6 +215,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     { id: 'kyc', label: 'KYC Status' },
     { id: 'funding', label: 'Funding History' },
     { id: 'redemption', label: 'Redemption History' },
+    { id: 'transfers', label: 'Transfers' },
+    { id: 'fund_holdings', label: 'Fund Holdings' },
     { id: 'legacy_docs', label: 'Legacy Documents' },
   ];
 
@@ -1445,6 +1453,211 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 </div>
               </div>
             )}
+
+            {activeTab === 'transfers' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#1F3B6E] inline-block"></span>
+                    Fund Transfer History
+                  </h3>
+                </div>
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">From</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">To</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Amount</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Document</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-100">
+                        {transferHistory && transferHistory.length > 0 ? (
+                          transferHistory.map((transfer: any, index: number) => {
+                            let amountColor = 'text-gray-900';
+                            let prefix = '';
+                            if (!transfer.to_investor_id || transfer.from_investor_id === transfer.to_investor_id) {
+                              amountColor = 'text-yellow-600'; // Fund to fund
+                            } else if (transfer.from_investor_id === params.id) {
+                              amountColor = 'text-red-600'; // Sent
+                              prefix = '-';
+                            } else if (transfer.to_investor_id === params.id) {
+                              amountColor = 'text-green-600'; // Received
+                              prefix = '+';
+                            }
+
+                            return (
+                              <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                  {new Date(transfer.created_at).toLocaleDateString()}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  {transfer.transfer_type?.replace(/_/g, ' ').toUpperCase()}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                  {transfer.from_investor_name || 'Unknown Investor'}
+                                  {transfer.from_account_type && <span className="text-gray-500 text-xs ml-1">({transfer.from_account_type})</span>}
+                                  <div className="text-xs text-gray-500">{transfer.from_fund_name}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                  {transfer.to_investor_name || transfer.from_investor_name || 'Unknown Investor'}
+                                  {(transfer.to_account_type || transfer.from_account_type) && <span className="text-gray-500 text-xs ml-1">({transfer.to_account_type || transfer.from_account_type})</span>}
+                                  <div className="text-xs text-gray-500">{transfer.to_fund_name || transfer.from_fund_name}</div>
+                                </td>
+                                <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${amountColor}`}>
+                                  {prefix}${parseFloat(transfer.investment_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                                    transfer.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                                    transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 text-yellow-700' :
+                                    'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {transfer.status}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                  <button
+                                    onClick={() => {
+                                      const token = localStorage.getItem('token');
+                                      const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+                                      window.open(`${BASE_URL}/fund-transfers/${transfer.id}/pdf${tokenParam}`, '_blank');
+                                    }}
+                                    className="inline-flex items-center justify-center p-2 text-gray-500 hover:text-[#1F3B6E] hover:bg-blue-50 rounded-lg transition-colors"
+                                    title="View Document"
+                                  >
+                                    <FileText className="w-5 h-5" />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
+                              No transfer history found.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'fund_holdings' && (() => {
+              const activeFunds = fundHoldings?.filter((h: any) => !h.account_type?.toLowerCase().includes('ims-')) || [];
+              const oldFunds = fundHoldings?.filter((h: any) => h.account_type?.toLowerCase().includes('ims-')) || [];
+
+              return (
+                <div className="space-y-8">
+                  {/* Active Funds Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#1F3B6E] inline-block"></span>
+                        Active Funds
+                      </h3>
+                    </div>
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full table-fixed">
+                          <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                              <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                              <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Units</th>
+                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
+                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Total Value</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-100">
+                            {activeFunds.length > 0 ? (
+                              activeFunds.map((holding: any, index: number) => (
+                                <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{holding.fund_name}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${holding.account_type?.toLowerCase() === 'personal'
+                                        ? 'bg-green-100 text-green-700 border border-green-200'
+                                        : 'bg-purple-100 text-purple-700 border border-purple-200'
+                                      }`}>
+                                      {holding.account_type}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F]">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                                  No active fund holdings found.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Real Estate (Old) Funds Section */}
+                  <div className="space-y-4 pt-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
+                        Real Estate Funds
+                      </h3>
+                    </div>
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full table-fixed">
+                          <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                              <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                              <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Units</th>
+                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
+                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Total Value</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-100">
+                            {oldFunds.length > 0 ? (
+                              oldFunds.map((holding: any, index: number) => (
+                                <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{holding.fund_name}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                    <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                                      {holding.account_type}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F]">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                                  No real estate (old) fund holdings found.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {activeTab === 'legacy_docs' && (() => {
               const docTypeCounts = (oldDocuments || []).reduce((acc: Record<string, number>, doc: any) => {

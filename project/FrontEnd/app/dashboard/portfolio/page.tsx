@@ -4,8 +4,9 @@ import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { MoreVertical, Loader2, ArrowUpDown, X } from 'lucide-react';
+import { MoreVertical, Loader2, ArrowUpDown, X, FileText } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 const getFullImageUrl = (imagePath: string | null | undefined): string | undefined => {
   if (!imagePath) return undefined;
@@ -16,10 +17,11 @@ const getFullImageUrl = (imagePath: string | null | undefined): string | undefin
 
 export default function PortfolioPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo'>(
-    tabParam === 'fundInfo' ? 'fundInfo' : 'investments'
+  const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo' | 'fundHoldings'>(
+    tabParam === 'fundInfo' ? 'fundInfo' : tabParam === 'fundHoldings' ? 'fundHoldings' : 'investments'
   );
 
   useEffect(() => {
@@ -41,6 +43,8 @@ export default function PortfolioPage() {
 
   // Old Investments States
   const [oldInvestments, setOldInvestments] = useState<any[]>([]);
+  const [transferHistory, setTransferHistory] = useState<any[]>([]);
+  const [fundHoldings, setFundHoldings] = useState<any[]>([]);
   const [selectedOldInvestment, setSelectedOldInvestment] = useState<any | null>(null);
   const [showOldInvestmentModal, setShowOldInvestmentModal] = useState(false);
 
@@ -118,7 +122,7 @@ export default function PortfolioPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [investmentsData, navSummary, fundsData, redemptionsData, oldInvestmentsData] = await Promise.all([
+      const [investmentsData, navSummary, fundsData, redemptionsData, oldInvestmentsData, transfersData] = await Promise.all([
         apiClient.getMyInvestments(),
         apiClient.getNavSummary(),
         apiClient.getFunds(),
@@ -126,40 +130,55 @@ export default function PortfolioPage() {
         apiClient.getMyOldInvestments().catch(err => {
           console.warn('⚠️ Failed to fetch old investments:', err);
           return [];
-        })
+        }),
+        apiClient.getMyTransfers().catch(() => [])
       ]);
 
       setInvestments(investmentsData);
       setRedemptions(redemptionsData);
       setOldInvestments(oldInvestmentsData || []);
+      setTransferHistory(transfersData || []);
 
       const activeFunds = Array.isArray(fundsData)
         ? fundsData.filter((fund: any) => fund.status?.toLowerCase() !== 'draft' && fund.status?.toLowerCase() !== 'closed')
         : [];
       setFunds(activeFunds);
 
+      const profile = await apiClient.getCurrentUser();
+      const currentUserId = profile.id;
+
+      const holdings = await apiClient.getInvestorHoldings(currentUserId).catch(() => []);
+      setFundHoldings(holdings || []);
+
       const totalInvested = investmentsData
         .filter((inv: any) => inv.is_reconciled)
         .reduce((sum: number, inv: any) => sum + parseFloat(inv.investment_amount), 0);
-      const totalUnits = investmentsData
-        .filter((inv: any) => inv.is_reconciled)
-        .reduce((sum: number, inv: any) => sum + parseFloat(inv.estimated_units), 0);
+      
+      const newFundMap = new Map(activeFunds.map((f: any) => [String(f.id), f.name]));
 
-      const totalRedeemedUnits = redemptionsData
-        .filter((r: any) => r.is_reconciled)
-        .reduce((sum: number, r: any) => sum + parseFloat(r.units || 0), 0);
+      const isNewFund = (id: string, name: string) => {
+        return id && newFundMap.has(String(id)) && newFundMap.get(String(id)) === name;
+      };
 
-      const totalRedeemedValue = redemptionsData
-        .filter((r: any) => r.is_reconciled)
-        .reduce((sum: number, r: any) => sum + parseFloat(r.amount || 0), 0);
+      const outgoingTransfersAmount = transfersData
+        .filter((t: any) => t.from_investor_id === currentUserId && t.status === 'COMPLETED' && isNewFund(t.from_fund_id, t.from_fund_name))
+        .reduce((sum: number, t: any) => sum + parseFloat(t.investment_amount || 0), 0);
 
-      const netUnits = Math.max(0, totalUnits - totalRedeemedUnits);
+      const incomingTransfersAmount = transfersData
+        .filter((t: any) => t.to_investor_id === currentUserId && t.status === 'COMPLETED' && isNewFund(t.to_fund_id, t.to_fund_name))
+        .reduce((sum: number, t: any) => sum + parseFloat(t.investment_amount || 0), 0);
+
+      const finalTotalInvested = Math.max(0, totalInvested - outgoingTransfersAmount + incomingTransfersAmount);
+
+      const activeHoldings = (holdings || []).filter((h: any) => !h.account_type?.toLowerCase().includes('ims-'));
+      const netUnits = activeHoldings.reduce((sum: number, h: any) => sum + parseFloat(h.total_units || 0), 0);
+      const currentValue = activeHoldings.reduce((sum: number, h: any) => sum + parseFloat(h.max_value || 0), 0);
 
       setStats({
-        totalInvested: totalInvested - totalRedeemedValue, // Net invested
+        totalInvested: finalTotalInvested,
         totalUnits: netUnits,
         currentNav: navSummary.currentNav,
-        currentValue: netUnits * navSummary.currentNav,
+        currentValue: currentValue,
       });
     } catch (error) {
       console.error('Error fetching portfolio data:', error);
@@ -279,6 +298,16 @@ export default function PortfolioPage() {
                 <span className="absolute bottom-0 left-1/2 h-[2px] w-[38px] -translate-x-1/2 bg-[#FFC63F]" />
               )}
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('fundHoldings')}
+              className={`pb-3 font-medium relative ${activeTab === 'fundHoldings' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'}`}
+            >
+              Fund Holdings
+              {activeTab === 'fundHoldings' && (
+                <span className="absolute bottom-0 left-1/2 h-[2px] w-[38px] -translate-x-1/2 bg-[#FFC63F]" />
+              )}
+            </button>
           </div>
 
           {activeTab === 'investments' && (
@@ -382,6 +411,114 @@ export default function PortfolioPage() {
               ))}
             </div>
           )}
+
+          {activeTab === 'fundHoldings' && (() => {
+            const activeHoldings = fundHoldings?.filter((h: any) => !h.account_type?.toLowerCase().includes('ims-')) || [];
+            const oldHoldings = fundHoldings?.filter((h: any) => h.account_type?.toLowerCase().includes('ims-')) || [];
+
+            return (
+              <div className="mt-8 space-y-8 animate-fadeIn">
+                {/* Active Funds Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#1F3B6E] inline-block"></span>
+                      Active Funds
+                    </h3>
+                  </div>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full table-fixed">
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                          <tr>
+                            <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                            <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Units</th>
+                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
+                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Total Value</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                          {activeHoldings.length > 0 ? (
+                            activeHoldings.map((holding: any, index: number) => (
+                              <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{holding.fund_name}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${holding.account_type?.toLowerCase() === 'personal'
+                                      ? 'bg-green-100 text-green-700 border border-green-200'
+                                      : 'bg-purple-100 text-purple-700 border border-purple-200'
+                                    }`}>
+                                    {holding.account_type}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F]">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                                No active fund holdings found.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Real Estate (Old) Funds Section */}
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
+                      Real Estate Funds
+                    </h3>
+                  </div>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full table-fixed">
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                          <tr>
+                            <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                            <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Units</th>
+                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
+                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Total Value</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                          {oldHoldings.length > 0 ? (
+                            oldHoldings.map((holding: any, index: number) => (
+                              <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{holding.fund_name}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                  <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                                    {holding.account_type}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F]">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                                No real estate (old) fund holdings found.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {activeTab === 'investments' && (
@@ -619,6 +756,95 @@ export default function PortfolioPage() {
                             <td className="px-4 py-3 text-[#4B4B4B]">{row.investorProfileLegalName || 'N/A'}</td>
                             <td className="px-4 py-3 text-right text-[#1F3B6E] font-bold">{row.investmentAmount}</td>
                             <td className="px-4 py-3 text-right text-[#2BB673] font-bold">{formatCurrency(totalDist)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Fund Transfer History Section */}
+            {transferHistory && transferHistory.length > 0 && (
+              <div className="rounded-2xl border border-[#F2F2F2] bg-white px-6 pb-6 pt-6 mt-6 animate-fadeIn">
+                <div className="mb-4">
+                  <h2 className="text-lg font-bold text-[#1F3B6E] font-goudy flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#1F3B6E] inline-block"></span>
+                    Fund Transfer History
+                  </h2>
+                  <p className="text-xs text-gray-500 font-medium">Your fund-to-fund and account transfer records.</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
+                      <tr>
+                        <th className="px-4 py-3 whitespace-nowrap">Date</th>
+                        <th className="px-4 py-3 whitespace-nowrap">Type</th>
+                        <th className="px-4 py-3 whitespace-nowrap">From</th>
+                        <th className="px-4 py-3 whitespace-nowrap">To</th>
+                        <th className="px-4 py-3 whitespace-nowrap">Amount</th>
+                        <th className="px-4 py-3 whitespace-nowrap">Status</th>
+                        <th className="px-4 py-3 text-center whitespace-nowrap">Document</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 text-sm">
+                      {transferHistory.map((transfer: any, index: number) => {
+                        let amountColor = 'text-gray-900';
+                        let prefix = '';
+                        if (!transfer.to_investor_id || transfer.from_investor_id === transfer.to_investor_id) {
+                          amountColor = 'text-yellow-600';
+                        } else if (transfer.from_investor_id === user?.id) {
+                          amountColor = 'text-[#E04343]';
+                          prefix = '-';
+                        } else if (transfer.to_investor_id === user?.id) {
+                          amountColor = 'text-[#2BB673]';
+                          prefix = '+';
+                        }
+
+                        return (
+                          <tr key={index} className="hover:bg-slate-50/80 transition-colors duration-150">
+                            <td className="px-4 py-3 text-[#4B4B4B]">
+                              {new Date(transfer.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-3 font-medium text-[#1F1F1F]">
+                              {transfer.transfer_type?.replace(/_/g, ' ').toUpperCase()}
+                            </td>
+                            <td className="px-4 py-3 text-[#4B4B4B]">
+                              {transfer.from_investor_name || 'Unknown Investor'}
+                              {transfer.from_account_type && <span className="text-gray-400 text-xs ml-1">({transfer.from_account_type})</span>}
+                              <div className="text-xs text-gray-400">{transfer.from_fund_name}</div>
+                            </td>
+                            <td className="px-4 py-3 text-[#4B4B4B]">
+                              {transfer.to_investor_name || transfer.from_investor_name || 'Unknown Investor'}
+                              {(transfer.to_account_type || transfer.from_account_type) && <span className="text-gray-400 text-xs ml-1">({transfer.to_account_type || transfer.from_account_type})</span>}
+                              <div className="text-xs text-gray-400">{transfer.to_fund_name || transfer.from_fund_name}</div>
+                            </td>
+                            <td className={`px-4 py-3 font-bold ${amountColor}`}>
+                              {prefix}${parseFloat(transfer.investment_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                transfer.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                                transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {transfer.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <button
+                                onClick={() => {
+                                  const token = localStorage.getItem('token');
+                                  const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+                                  window.open(`${BASE_URL}/fund-transfers/${transfer.id}/pdf${tokenParam}`, '_blank');
+                                }}
+                                className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-blue-50 rounded-lg transition-colors"
+                                title="View Document"
+                              >
+                                <FileText className="w-4 h-4" />
+                              </button>
+                            </td>
                           </tr>
                         );
                       })}

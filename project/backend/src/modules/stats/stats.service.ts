@@ -183,14 +183,40 @@ export class StatsService {
             SUM(units) as total_redeemed_units
           FROM redemptions
           WHERE investor_id = $1 AND is_reconciled = true
+        ),
+        incoming_transfers AS (
+          SELECT 
+            SUM(
+              CASE 
+                WHEN transfer_type = 'FUND_TO_FUND' THEN 
+                  (investment_amount / NULLIF(COALESCE((SELECT unit_price FROM funds WHERE id::text = to_fund_id), 1), 0))
+                ELSE units
+              END
+            ) as total_incoming_units,
+            SUM(investment_amount) as total_incoming_value
+          FROM fund_transfers
+          WHERE (to_investor_id = $1 OR (transfer_type = 'FUND_TO_FUND' AND from_investor_id = $1)) 
+            AND status = 'COMPLETED'
+            AND EXISTS (SELECT 1 FROM funds f WHERE f.id::text = to_fund_id AND LOWER(f.status) NOT IN ('draft', 'closed'))
+        ),
+        outgoing_transfers AS (
+          SELECT 
+            SUM(units) as total_outgoing_units,
+            SUM(investment_amount) as total_outgoing_value
+          FROM fund_transfers
+          WHERE from_investor_id = $1 
+            AND status = 'COMPLETED'
+            AND EXISTS (SELECT 1 FROM funds f WHERE f.id::text = from_fund_id AND LOWER(f.status) NOT IN ('draft', 'closed'))
         )
         SELECT 
-          ((COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) * COALESCE(nav.nav_per_unit, 0)) as total_value,
-          (COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) as total_units,
-          (COALESCE(inv.total_invested, 0) - COALESCE(red.total_redeemed_value, 0)) as total_invested
+          ((COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0) + COALESCE(inc.total_incoming_units, 0) - COALESCE(out.total_outgoing_units, 0)) * COALESCE(nav.nav_per_unit, 0)) as total_value,
+          (COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0) + COALESCE(inc.total_incoming_units, 0) - COALESCE(out.total_outgoing_units, 0)) as total_units,
+          COALESCE(inv.total_invested, 0) as total_invested
         FROM (SELECT 1) dummy
         LEFT JOIN reconciled_investments inv ON true
         LEFT JOIN reconciled_redemptions red ON true
+        LEFT JOIN incoming_transfers inc ON true
+        LEFT JOIN outgoing_transfers out ON true
         LEFT JOIN current_nav nav ON true
       `, [userId]);
 

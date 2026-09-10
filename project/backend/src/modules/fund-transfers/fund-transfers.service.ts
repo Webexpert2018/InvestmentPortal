@@ -31,6 +31,26 @@ export class FundTransfersService {
     return res.rows;
   }
 
+  async findByInvestor(investorId: string) {
+    const res = await db.query(`
+      SELECT ft.*, 
+             fi.full_name as from_investor_name,
+             ti.full_name as to_investor_name,
+             COALESCE(ff.name, off.project_name) as from_fund_name,
+             COALESCE(tf.name, tf_off.project_name) as to_fund_name
+      FROM fund_transfers ft
+      LEFT JOIN investors fi ON ft.from_investor_id = fi.id
+      LEFT JOIN investors ti ON ft.to_investor_id = ti.id
+      LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+      LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
+      LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
+      LEFT JOIN old_funds tf_off ON ft.to_fund_id = tf_off.project_id::text
+      WHERE ft.from_investor_id = $1 OR ft.to_investor_id = $1
+      ORDER BY ft.created_at DESC
+    `, [investorId]);
+    return res.rows;
+  }
+
   async findOne(id: string) {
     const res = await db.query(`
       SELECT ft.*, 
@@ -47,6 +67,18 @@ export class FundTransfersService {
       LEFT JOIN old_funds tf_off ON ft.to_fund_id = tf_off.project_id::text
       WHERE ft.id = $1
     `, [id]);
+    return res.rows[0];
+  }
+
+  async delete(id: string) {
+    const transfer = await this.findOne(id);
+    if (!transfer) {
+      throw new BadRequestException('Transfer not found');
+    }
+    if (transfer.status === 'COMPLETED') {
+      throw new BadRequestException('Cannot delete a completed transfer');
+    }
+    const res = await db.query(`DELETE FROM fund_transfers WHERE id = $1 RETURNING *`, [id]);
     return res.rows[0];
   }
 
@@ -69,7 +101,7 @@ export class FundTransfersService {
     const params: any[] = [];
 
     if (accountType === 'old_investor' && accountId) {
-      investmentsQuery = `SELECT NULL::text as fund_id, NULL::text as fund_name, NULL::numeric as current_nav, NULL::numeric as units WHERE false`;
+      investmentsQuery = `SELECT NULL::text as fund_id, NULL::text as fund_name, NULL::numeric as current_nav, NULL::numeric as units, NULL::numeric as raw_value WHERE false`;
       
       oldInvestmentsQuery = `
         SELECT 
@@ -80,7 +112,8 @@ export class FundTransfersService {
             (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
             1
           ) as current_nav,
-          CAST(NULLIF(regexp_replace(oi.shares::text, '[^0-9.]', '', 'g'), '') AS numeric) as units
+          CAST(NULLIF(regexp_replace(oi.shares::text, '[^0-9.-]', '', 'g'), '') AS numeric) as units,
+          CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.-]', '', 'g'), '') AS numeric) as raw_value
         FROM old_investments oi
         LEFT JOIN funds f ON oi.project_name = f.name
         WHERE oi.investor_profile_id = $1
@@ -102,13 +135,14 @@ export class FundTransfersService {
           f.id::text as fund_id,
           f.name as fund_name,
           f.unit_price as current_nav,
-          i.estimated_units as units
+          i.estimated_units as units,
+          NULL::numeric as raw_value
         FROM investments i
         JOIN funds f ON i.fund_id = f.id
         WHERE ${investmentCondition}
       `;
       
-      oldInvestmentsQuery = `SELECT NULL::text as fund_id, NULL::text as fund_name, NULL::numeric as current_nav, NULL::numeric as units WHERE false`;
+      oldInvestmentsQuery = `SELECT NULL::text as fund_id, NULL::text as fund_name, NULL::numeric as current_nav, NULL::numeric as units, NULL::numeric as raw_value WHERE false`;
     }
 
     const res = await db.query(`
@@ -122,11 +156,11 @@ export class FundTransfersService {
         fund_name,
         current_nav,
         SUM(units) as total_units,
-        SUM(units) * COALESCE(current_nav, 1) as max_value
+        ROUND(SUM(COALESCE(raw_value, units * COALESCE(current_nav, 1))), 2) as max_value
       FROM combined_investments
       WHERE units IS NOT NULL
       GROUP BY fund_id, fund_name, current_nav
-      HAVING SUM(units) > 0
+      HAVING ROUND(SUM(COALESCE(raw_value, units * COALESCE(current_nav, 1))), 2) > 0
       ORDER BY fund_name ASC
     `, params);
     
@@ -238,6 +272,19 @@ export class FundTransfersService {
       const pRes = await db.query(`SELECT profile_type FROM old_investors WHERE ims_profile_id = $1`, [data.toAccountId]);
       if (pRes.rows.length > 0) {
         data.toAccountType = `ims-${pRes.rows[0].profile_type} account`;
+      }
+    }
+
+    if (data.fromAccountType === 'ira' && data.fromAccountId) {
+      const iRes = await db.query(`SELECT account_type FROM ira_accounts WHERE id = $1`, [data.fromAccountId]);
+      if (iRes.rows.length > 0 && iRes.rows[0].account_type) {
+        data.fromAccountType = iRes.rows[0].account_type;
+      }
+    }
+    if (data.toAccountType === 'ira' && data.toAccountId) {
+      const iRes = await db.query(`SELECT account_type FROM ira_accounts WHERE id = $1`, [data.toAccountId]);
+      if (iRes.rows.length > 0 && iRes.rows[0].account_type) {
+        data.toAccountType = iRes.rows[0].account_type;
       }
     }
 
@@ -402,5 +449,35 @@ export class FundTransfersService {
     );
     if (res.rows.length === 0) throw new BadRequestException('Transfer not found');
     return res.rows[0];
+  }
+
+  async getInvestorsByFund(fundId: string) {
+    const res = await db.query(`
+      SELECT DISTINCT 
+        i.user_id as id,
+        u.full_name as full_name,
+        u.email,
+        COALESCE(i.account_type, 'personal') as account_type,
+        NULL::text as account_id
+      FROM investments i
+      JOIN investors u ON i.user_id = u.id
+      WHERE i.fund_id::text = $1
+
+      UNION
+
+      SELECT DISTINCT
+        u.id as id,
+        u.full_name as full_name,
+        u.email,
+        'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type,
+        o_inv.ims_profile_id::text as account_id
+      FROM old_investments oi
+      LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
+      JOIN investors u ON LOWER(TRIM(u.email)) = LOWER(TRIM(COALESCE(o_inv.primary_email, oi.email_address)))
+      LEFT JOIN funds f ON oi.project_name = f.name
+      WHERE f.id::text = $1 OR oi.project_id::text = $1
+    `, [fundId]);
+
+    return res.rows;
   }
 }
