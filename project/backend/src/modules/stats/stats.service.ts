@@ -163,69 +163,112 @@ export class StatsService {
       }));
 
       const result = await db.query(`
-        WITH current_nav AS (
-          SELECT COALESCE(nav_per_unit, 0) as nav_per_unit 
-          FROM fund_nav_history 
-          WHERE status = 'active' 
-          ORDER BY effective_date DESC 
-          LIMIT 1
-        ),
-        reconciled_investments AS (
+        WITH combined_investments AS (
           SELECT 
-            SUM(estimated_units) as total_units,
-            SUM(investment_amount) as total_invested
-          FROM investments
-          WHERE user_id = $1 AND is_reconciled = true
-        ),
-        reconciled_redemptions AS (
+            f.id::text as fund_id,
+            f.name as fund_name,
+            f.unit_price as current_nav,
+            i.estimated_units as units,
+            i.investment_amount as invested
+          FROM investments i
+          JOIN funds f ON i.fund_id = f.id
+          WHERE i.user_id = $1 AND i.is_reconciled = true
+          UNION ALL
           SELECT 
-            SUM(amount) as total_redeemed_value,
-            SUM(units) as total_redeemed_units
-          FROM redemptions
-          WHERE investor_id = $1 AND is_reconciled = true
-        ),
-        incoming_transfers AS (
+            COALESCE(f.id::text, oi.project_id::text) as fund_id,
+            oi.project_name as fund_name,
+            COALESCE(
+              f.unit_price,
+              (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+              1
+            ) as current_nav,
+            (CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / 
+             NULLIF(COALESCE(
+               f.unit_price,
+               (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+               1
+             ), 0)) as units,
+            CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) as invested
+          FROM old_investments oi
+          LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
+          JOIN funds f ON oi.project_name = f.name
+          WHERE o_inv.primary_email = $2
+
+          UNION ALL
+
           SELECT 
-            SUM(
-              CASE 
-                WHEN transfer_type = 'FUND_TO_FUND' THEN 
-                  (investment_amount / NULLIF(COALESCE((SELECT unit_price FROM funds WHERE id::text = to_fund_id), 1), 0))
-                ELSE units
-              END
-            ) as total_incoming_units,
-            SUM(investment_amount) as total_incoming_value
-          FROM fund_transfers
-          WHERE (to_investor_id = $1 OR (transfer_type = 'FUND_TO_FUND' AND from_investor_id = $1)) 
-            AND status = 'COMPLETED'
-            AND EXISTS (SELECT 1 FROM funds f WHERE f.id::text = to_fund_id AND LOWER(f.status) NOT IN ('draft', 'closed'))
-        ),
-        outgoing_transfers AS (
+            f.id::text as fund_id,
+            f.name as fund_name,
+            f.unit_price as current_nav,
+            (-1 * r.units) as units,
+            (-1 * r.amount) as invested
+          FROM redemptions r
+          JOIN investments i ON r.investment_id = i.id
+          JOIN funds f ON i.fund_id = f.id
+          WHERE r.investor_id = $1 AND r.status = 'Processed'
+
+          UNION ALL
+
           SELECT 
-            SUM(units) as total_outgoing_units,
-            SUM(investment_amount) as total_outgoing_value
-          FROM fund_transfers
-          WHERE from_investor_id = $1 
-            AND status = 'COMPLETED'
-            AND EXISTS (SELECT 1 FROM funds f WHERE f.id::text = from_fund_id AND LOWER(f.status) NOT IN ('draft', 'closed'))
+            ft.from_fund_id as fund_id,
+            COALESCE(ff.name, off.project_name) as fund_name,
+            COALESCE(
+              ff.unit_price,
+              (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+              1
+            ) as current_nav,
+            CASE
+              WHEN ft.from_account_type ILIKE 'ims-%' THEN 
+                (-1 * ft.investment_amount) / NULLIF(COALESCE(ff.unit_price, (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), 1), 0)
+              ELSE 
+                (-1 * ft.units)
+            END as units,
+            (-1 * ft.investment_amount) as invested
+          FROM fund_transfers ft
+          LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+          LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
+          WHERE ft.from_investor_id = $1 AND ft.status = 'COMPLETED'
+
+          UNION ALL
+
+          SELECT 
+            COALESCE(ft.to_fund_id, ft.from_fund_id) as fund_id,
+            COALESCE(tf.name, tf_off.project_name, ff.name, off.project_name) as fund_name,
+            COALESCE(
+              tf.unit_price,
+              ff.unit_price,
+              (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+              1
+            ) as current_nav,
+            CASE
+              WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
+                ft.investment_amount / NULLIF(COALESCE(tf.unit_price, ff.unit_price, (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), 1), 0)
+              ELSE 
+                ft.units
+            END as units,
+            ft.investment_amount as invested
+          FROM fund_transfers ft
+          LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
+          LEFT JOIN old_funds tf_off ON ft.to_fund_id = tf_off.project_id::text
+          LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+          LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
+          WHERE (ft.to_investor_id = $1 OR (ft.to_investor_id IS NULL AND ft.from_investor_id = $1)) AND ft.status = 'COMPLETED'
         )
         SELECT 
-          ((COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0) + COALESCE(inc.total_incoming_units, 0) - COALESCE(out.total_outgoing_units, 0)) * COALESCE(nav.nav_per_unit, 0)) as total_value,
-          (COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0) + COALESCE(inc.total_incoming_units, 0) - COALESCE(out.total_outgoing_units, 0)) as total_units,
-          COALESCE(inv.total_invested, 0) as total_invested
-        FROM (SELECT 1) dummy
-        LEFT JOIN reconciled_investments inv ON true
-        LEFT JOIN reconciled_redemptions red ON true
-        LEFT JOIN incoming_transfers inc ON true
-        LEFT JOIN outgoing_transfers out ON true
-        LEFT JOIN current_nav nav ON true
-      `, [userId]);
+          SUM(units * COALESCE(current_nav, 1)) as total_value,
+          SUM(units) as total_units,
+          COALESCE((SELECT SUM(investment_amount) FROM investments WHERE user_id = $1 AND is_reconciled = true), 0) as total_invested
+        FROM combined_investments
+        WHERE units IS NOT NULL
+          AND fund_id IN (SELECT id::text FROM funds WHERE LOWER(status) NOT IN ('draft', 'closed'))
+      `, [userId, email]);
 
       const { total_value, total_units, total_invested } = result.rows[0];
-      
+
       const totalValue = parseFloat(total_value);
       const totalInvested = parseFloat(total_invested);
-      const ytdReturn = totalInvested > 0 
-        ? ((totalValue - totalInvested) / totalInvested) * 100 
+      const ytdReturn = totalInvested > 0
+        ? ((totalValue - totalInvested) / totalInvested) * 100
         : 0;
 
       return {
