@@ -92,18 +92,34 @@ export class FundTransfersService {
   }
 
   async getSenderFunds(investorId: string, accountId?: string, accountType?: string) {
-    // 1. Get the investor's email
     const investorRes = await db.query(`SELECT email FROM investors WHERE id = $1`, [investorId]);
     if (investorRes.rows.length === 0) return [];
+    const email = investorRes.rows[0].email;
     
-    let investmentsQuery = '';
-    let oldInvestmentsQuery = '';
-    const params: any[] = [];
+    let accountFilter = '';
+    const params: any[] = [investorId, email];
+    if (accountType === 'old_investor') {
+      accountFilter = `AND account_type ILIKE 'ims-%'`;
+    } else if (accountType === 'personal') {
+      accountFilter = `AND (account_type ILIKE 'personal' OR account_type IS NULL)`;
+    } else if (accountType === 'ira') {
+      accountFilter = `AND account_type ILIKE 'ira'`;
+    }
 
-    if (accountType === 'old_investor' && accountId) {
-      investmentsQuery = `SELECT NULL::text as fund_id, NULL::text as fund_name, NULL::numeric as current_nav, NULL::numeric as units, NULL::numeric as raw_value WHERE false`;
-      
-      oldInvestmentsQuery = `
+    const res = await db.query(`
+      WITH combined_investments AS (
+        SELECT 
+          f.id::text as fund_id,
+          f.name as fund_name,
+          f.unit_price as current_nav,
+          i.estimated_units as units,
+          COALESCE(i.account_type, 'personal') as account_type
+        FROM investments i
+        JOIN funds f ON i.fund_id = f.id
+        WHERE i.user_id = $1 AND i.is_reconciled = true
+
+        UNION ALL
+
         SELECT 
           COALESCE(f.id::text, oi.project_id::text) as fund_id,
           oi.project_name as fund_name,
@@ -112,55 +128,88 @@ export class FundTransfersService {
             (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
             1
           ) as current_nav,
-          CAST(NULLIF(regexp_replace(oi.shares::text, '[^0-9.-]', '', 'g'), '') AS numeric) as units,
-          CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.-]', '', 'g'), '') AS numeric) as raw_value
+          (CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / 
+           NULLIF(COALESCE(
+             f.unit_price,
+             (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+             1
+           ), 0)) as units,
+          'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type
         FROM old_investments oi
+        LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
         LEFT JOIN funds f ON oi.project_name = f.name
-        WHERE oi.investor_profile_id = $1
-      `;
-      params.push(accountId);
-    } else {
-      let investmentCondition = `i.user_id = $1 AND i.is_reconciled = true`;
-      params.push(investorId);
+        WHERE o_inv.primary_email = $2
 
-      if (accountType === 'ira' && accountId) {
-        investmentCondition += ` AND i.account_id = $2`;
-        params.push(accountId);
-      } else {
-        investmentCondition += ` AND (i.account_type ILIKE 'personal' OR i.account_id IS NULL)`;
-      }
+        UNION ALL
 
-      investmentsQuery = `
         SELECT 
           f.id::text as fund_id,
           f.name as fund_name,
           f.unit_price as current_nav,
-          i.estimated_units as units,
-          NULL::numeric as raw_value
-        FROM investments i
+          (-1 * r.units) as units,
+          COALESCE(i.account_type, 'personal') as account_type
+        FROM redemptions r
+        JOIN investments i ON r.investment_id = i.id
         JOIN funds f ON i.fund_id = f.id
-        WHERE ${investmentCondition}
-      `;
-      
-      oldInvestmentsQuery = `SELECT NULL::text as fund_id, NULL::text as fund_name, NULL::numeric as current_nav, NULL::numeric as units, NULL::numeric as raw_value WHERE false`;
-    }
+        WHERE r.investor_id = $1 AND r.status = 'Processed'
 
-    const res = await db.query(`
-      WITH combined_investments AS (
-        ${investmentsQuery}
         UNION ALL
-        ${oldInvestmentsQuery}
+
+        SELECT 
+          ft.from_fund_id as fund_id,
+          COALESCE(ff.name, off.project_name) as fund_name,
+          COALESCE(
+            ff.unit_price,
+            (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+            1
+          ) as current_nav,
+          CASE
+            WHEN ft.from_account_type ILIKE 'ims-%' THEN 
+              (-1 * ft.investment_amount) / NULLIF(COALESCE(ff.unit_price, (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), 1), 0)
+            ELSE 
+              (-1 * ft.units)
+          END as units,
+          ft.from_account_type as account_type
+        FROM fund_transfers ft
+        LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+        LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
+        WHERE ft.from_investor_id = $1 AND ft.status = 'COMPLETED'
+
+        UNION ALL
+
+        SELECT 
+          COALESCE(ft.to_fund_id, ft.from_fund_id) as fund_id,
+          COALESCE(tf.name, tf_off.project_name, ff.name, off.project_name) as fund_name,
+          COALESCE(
+            tf.unit_price,
+            ff.unit_price,
+            (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+            1
+          ) as current_nav,
+          CASE
+            WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
+              ft.investment_amount / NULLIF(COALESCE(tf.unit_price, ff.unit_price, (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), 1), 0)
+            ELSE 
+              ft.units
+          END as units,
+          COALESCE(ft.to_account_type, ft.from_account_type) as account_type
+        FROM fund_transfers ft
+        LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
+        LEFT JOIN old_funds tf_off ON ft.to_fund_id = tf_off.project_id::text
+        LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+        LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
+        WHERE (ft.to_investor_id = $1 OR (ft.to_investor_id IS NULL AND ft.from_investor_id = $1)) AND ft.status = 'COMPLETED'
       )
       SELECT 
         fund_id,
         fund_name,
         current_nav,
         SUM(units) as total_units,
-        ROUND(SUM(COALESCE(raw_value, units * COALESCE(current_nav, 1))), 2) as max_value
+        ROUND(SUM(units * COALESCE(current_nav, 1)), 2) as max_value
       FROM combined_investments
-      WHERE units IS NOT NULL
+      WHERE units IS NOT NULL ${accountFilter}
       GROUP BY fund_id, fund_name, current_nav
-      HAVING ROUND(SUM(COALESCE(raw_value, units * COALESCE(current_nav, 1))), 2) > 0
+      HAVING ROUND(SUM(units * COALESCE(current_nav, 1)), 2) > 0
       ORDER BY fund_name ASC
     `, params);
     
@@ -453,29 +502,83 @@ export class FundTransfersService {
 
   async getInvestorsByFund(fundId: string) {
     const res = await db.query(`
-      SELECT DISTINCT 
-        i.user_id as id,
-        u.full_name as full_name,
-        u.email,
-        COALESCE(i.account_type, 'personal') as account_type,
-        NULL::text as account_id
-      FROM investments i
-      JOIN investors u ON i.user_id = u.id
-      WHERE i.fund_id::text = $1
+      WITH combined_investments AS (
+        SELECT 
+          i.user_id as id,
+          COALESCE(i.account_type, 'personal') as account_type,
+          i.estimated_units as units
+        FROM investments i
+        WHERE i.fund_id::text = $1 AND i.is_reconciled = true
 
-      UNION
+        UNION ALL
 
-      SELECT DISTINCT
-        u.id as id,
-        u.full_name as full_name,
+        SELECT 
+          u.id as id,
+          'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type,
+          (CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / 
+           NULLIF(COALESCE(
+             f.unit_price,
+             (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
+             1
+           ), 0)) as units
+        FROM old_investments oi
+        LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
+        JOIN investors u ON LOWER(TRIM(u.email)) = LOWER(TRIM(COALESCE(o_inv.primary_email, oi.email_address)))
+        LEFT JOIN funds f ON oi.project_name = f.name
+        WHERE (f.id::text = $1 OR oi.project_id::text = $1)
+
+        UNION ALL
+
+        SELECT 
+          r.investor_id as id,
+          COALESCE(i.account_type, 'personal') as account_type,
+          (-1 * r.units) as units
+        FROM redemptions r
+        JOIN investments i ON r.investment_id = i.id
+        WHERE i.fund_id::text = $1 AND r.status = 'Processed'
+
+        UNION ALL
+
+        SELECT 
+          ft.from_investor_id as id,
+          ft.from_account_type as account_type,
+          CASE
+            WHEN ft.from_account_type ILIKE 'ims-%' THEN 
+              (-1 * ft.investment_amount) / NULLIF(COALESCE(ff.unit_price, (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), 1), 0)
+            ELSE 
+              (-1 * ft.units)
+          END as units
+        FROM fund_transfers ft
+        LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+        WHERE ft.from_fund_id = $1 AND ft.status = 'COMPLETED'
+
+        UNION ALL
+
+        SELECT 
+          ft.to_investor_id as id,
+          COALESCE(ft.to_account_type, ft.from_account_type) as account_type,
+          CASE
+            WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
+              ft.investment_amount / NULLIF(COALESCE(tf.unit_price, ff.unit_price, (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), 1), 0)
+            ELSE 
+              ft.units
+          END as units
+        FROM fund_transfers ft
+        LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
+        LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+        WHERE COALESCE(ft.to_fund_id, ft.from_fund_id) = $1 AND ft.status = 'COMPLETED'
+      )
+      SELECT 
+        c.id,
+        c.account_type,
+        u.full_name,
         u.email,
-        'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type,
-        o_inv.ims_profile_id::text as account_id
-      FROM old_investments oi
-      LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
-      JOIN investors u ON LOWER(TRIM(u.email)) = LOWER(TRIM(COALESCE(o_inv.primary_email, oi.email_address)))
-      LEFT JOIN funds f ON oi.project_name = f.name
-      WHERE f.id::text = $1 OR oi.project_id::text = $1
+        SUM(c.units) as total_units
+      FROM combined_investments c
+      JOIN investors u ON c.id = u.id
+      WHERE c.units IS NOT NULL
+      GROUP BY c.id, c.account_type, u.full_name, u.email
+      HAVING SUM(c.units) > 0
     `, [fundId]);
 
     return res.rows;
