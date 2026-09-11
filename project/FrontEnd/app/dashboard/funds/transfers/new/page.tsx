@@ -549,7 +549,7 @@ export default function NewFundTransferPage() {
             >
               Cancel
             </Button>
-            <Button
+            {/* <Button
               type="button"
               onClick={(e) => handleSubmit(e as any, true)}
               disabled={
@@ -560,7 +560,7 @@ export default function NewFundTransferPage() {
               className="bg-amber-500 hover:bg-amber-600 text-white px-6 font-semibold shadow-sm transition-all"
             >
               Bypass DocuSign
-            </Button>
+            </Button> */}
             <Button
               type="submit"
               disabled={
