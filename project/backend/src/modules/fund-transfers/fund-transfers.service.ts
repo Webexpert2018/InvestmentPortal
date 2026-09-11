@@ -100,10 +100,18 @@ export class FundTransfersService {
     const params: any[] = [investorId, email];
     if (accountType === 'old_investor') {
       accountFilter = `AND account_type ILIKE 'ims-%'`;
+      if (accountId) {
+        accountFilter += ` AND account_id = $3`;
+        params.push(accountId);
+      }
     } else if (accountType === 'personal') {
       accountFilter = `AND (account_type ILIKE 'personal' OR account_type IS NULL)`;
     } else if (accountType === 'ira') {
       accountFilter = `AND account_type ILIKE '%ira%' AND account_type NOT ILIKE 'ims-%'`;
+      if (accountId) {
+        accountFilter += ` AND account_id = $3`;
+        params.push(accountId);
+      }
     }
 
     const res = await db.query(`
@@ -113,7 +121,8 @@ export class FundTransfersService {
           f.name as fund_name,
           f.unit_price as current_nav,
           i.estimated_units as units,
-          COALESCE(i.account_type, 'personal') as account_type
+          COALESCE(i.account_type, 'personal') as account_type,
+          i.account_id::text as account_id
         FROM investments i
         JOIN funds f ON i.fund_id = f.id
         WHERE i.user_id = $1 AND i.is_reconciled = true
@@ -134,7 +143,8 @@ export class FundTransfersService {
              (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
              1
            ), 0)) as units,
-          'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type
+          'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type,
+          oi.investor_profile_id::text as account_id
         FROM old_investments oi
         LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
         LEFT JOIN funds f ON oi.project_name = f.name
@@ -147,7 +157,8 @@ export class FundTransfersService {
           f.name as fund_name,
           f.unit_price as current_nav,
           (-1 * r.units) as units,
-          COALESCE(i.account_type, 'personal') as account_type
+          COALESCE(i.account_type, 'personal') as account_type,
+          i.account_id::text as account_id
         FROM redemptions r
         JOIN investments i ON r.investment_id = i.id
         JOIN funds f ON i.fund_id = f.id
@@ -169,7 +180,8 @@ export class FundTransfersService {
             ELSE 
               (-1 * ft.units)
           END as units,
-          ft.from_account_type as account_type
+          ft.from_account_type as account_type,
+          ft.from_account_id::text as account_id
         FROM fund_transfers ft
         LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
         LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
@@ -192,7 +204,8 @@ export class FundTransfersService {
             ELSE 
               ft.units
           END as units,
-          COALESCE(ft.to_account_type, ft.from_account_type) as account_type
+          COALESCE(ft.to_account_type, ft.from_account_type) as account_type,
+          COALESCE(ft.to_account_id, ft.from_account_id)::text as account_id
         FROM fund_transfers ft
         LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
         LEFT JOIN old_funds tf_off ON ft.to_fund_id = tf_off.project_id::text
