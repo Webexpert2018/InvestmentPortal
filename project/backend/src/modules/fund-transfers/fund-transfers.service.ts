@@ -103,7 +103,7 @@ export class FundTransfersService {
     } else if (accountType === 'personal') {
       accountFilter = `AND (account_type ILIKE 'personal' OR account_type IS NULL)`;
     } else if (accountType === 'ira') {
-      accountFilter = `AND account_type ILIKE 'ira'`;
+      accountFilter = `AND account_type ILIKE '%ira%' AND account_type NOT ILIKE 'ims-%'`;
     }
 
     const res = await db.query(`
@@ -555,7 +555,7 @@ export class FundTransfersService {
         UNION ALL
 
         SELECT 
-          ft.to_investor_id as id,
+          COALESCE(ft.to_investor_id, ft.from_investor_id) as id,
           COALESCE(ft.to_account_type, ft.from_account_type) as account_type,
           CASE
             WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
