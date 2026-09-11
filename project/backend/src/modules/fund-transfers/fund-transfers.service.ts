@@ -132,17 +132,9 @@ export class FundTransfersService {
         SELECT 
           COALESCE(f.id::text, oi.project_id::text) as fund_id,
           oi.project_name as fund_name,
-          COALESCE(
-            f.unit_price,
-            (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
-            1
-          ) as current_nav,
+          COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1) as current_nav,
           (CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / 
-           NULLIF(COALESCE(
-             f.unit_price,
-             (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
-             1
-           ), 0)) as units,
+           NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1), 0)) as units,
           'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type,
           oi.investor_profile_id::text as account_id
         FROM old_investments oi
@@ -169,14 +161,10 @@ export class FundTransfersService {
         SELECT 
           ft.from_fund_id as fund_id,
           COALESCE(ff.name, off.project_name) as fund_name,
-          COALESCE(
-            ff.unit_price,
-            (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
-            1
-          ) as current_nav,
+          COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), ff.unit_price, 1) as current_nav,
           CASE
             WHEN ft.from_account_type ILIKE 'ims-%' THEN 
-              (-1 * ft.investment_amount) / NULLIF(COALESCE(ff.unit_price, (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), 1), 0)
+              (-1 * ft.investment_amount) / NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), ff.unit_price, 1), 0)
             ELSE 
               (-1 * ft.units)
           END as units,
@@ -192,15 +180,10 @@ export class FundTransfersService {
         SELECT 
           COALESCE(ft.to_fund_id, ft.from_fund_id) as fund_id,
           COALESCE(tf.name, tf_off.project_name, ff.name, off.project_name) as fund_name,
-          COALESCE(
-            tf.unit_price,
-            ff.unit_price,
-            (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
-            1
-          ) as current_nav,
+          COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), tf.unit_price, ff.unit_price, 1) as current_nav,
           CASE
             WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
-              ft.investment_amount / NULLIF(COALESCE(tf.unit_price, ff.unit_price, (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), 1), 0)
+              ft.investment_amount / NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), tf.unit_price, ff.unit_price, 1), 0)
             ELSE 
               ft.units
           END as units,
@@ -545,11 +528,7 @@ export class FundTransfersService {
           u.id as id,
           'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type,
           (CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / 
-           NULLIF(COALESCE(
-             f.unit_price,
-             (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1),
-             1
-           ), 0)) as units
+           NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1), 0)) as units
         FROM old_investments oi
         LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
         JOIN investors u ON LOWER(TRIM(u.email)) = LOWER(TRIM(COALESCE(o_inv.primary_email, oi.email_address)))
@@ -573,7 +552,7 @@ export class FundTransfersService {
           ft.from_account_type as account_type,
           CASE
             WHEN ft.from_account_type ILIKE 'ims-%' THEN 
-              (-1 * ft.investment_amount) / NULLIF(COALESCE(ff.unit_price, (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), 1), 0)
+              (-1 * ft.investment_amount) / NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), ff.unit_price, 1), 0)
             ELSE 
               (-1 * ft.units)
           END as units
@@ -588,7 +567,7 @@ export class FundTransfersService {
           COALESCE(ft.to_account_type, ft.from_account_type) as account_type,
           CASE
             WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
-              ft.investment_amount / NULLIF(COALESCE(tf.unit_price, ff.unit_price, (SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), 1), 0)
+              ft.investment_amount / NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), tf.unit_price, ff.unit_price, 1), 0)
             ELSE 
               ft.units
           END as units
