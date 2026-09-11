@@ -153,29 +153,13 @@ export default function PortfolioPage() {
       const totalInvested = investmentsData
         .filter((inv: any) => inv.is_reconciled)
         .reduce((sum: number, inv: any) => sum + parseFloat(inv.investment_amount), 0);
-      
-      const newFundMap = new Map(activeFunds.map((f: any) => [String(f.id), f.name]));
-
-      const isNewFund = (id: string, name: string) => {
-        return id && newFundMap.has(String(id)) && newFundMap.get(String(id)) === name;
-      };
-
-      const outgoingTransfersAmount = transfersData
-        .filter((t: any) => t.from_investor_id === currentUserId && t.status === 'COMPLETED' && isNewFund(t.from_fund_id, t.from_fund_name))
-        .reduce((sum: number, t: any) => sum + parseFloat(t.investment_amount || 0), 0);
-
-      const incomingTransfersAmount = transfersData
-        .filter((t: any) => t.to_investor_id === currentUserId && t.status === 'COMPLETED' && isNewFund(t.to_fund_id, t.to_fund_name))
-        .reduce((sum: number, t: any) => sum + parseFloat(t.investment_amount || 0), 0);
-
-      const finalTotalInvested = Math.max(0, totalInvested - outgoingTransfersAmount + incomingTransfersAmount);
 
       const activeHoldings = (holdings || []).filter((h: any) => !h.account_type?.toLowerCase().includes('ims-'));
       const netUnits = activeHoldings.reduce((sum: number, h: any) => sum + parseFloat(h.total_units || 0), 0);
       const currentValue = activeHoldings.reduce((sum: number, h: any) => sum + parseFloat(h.max_value || 0), 0);
 
       setStats({
-        totalInvested: finalTotalInvested,
+        totalInvested: totalInvested,
         totalUnits: netUnits,
         currentNav: navSummary.currentNav,
         currentValue: currentValue,
@@ -445,8 +429,8 @@ export default function PortfolioPage() {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{holding.fund_name}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
                                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${holding.account_type?.toLowerCase() === 'personal'
-                                      ? 'bg-green-100 text-green-700 border border-green-200'
-                                      : 'bg-purple-100 text-purple-700 border border-purple-200'
+                                    ? 'bg-green-100 text-green-700 border border-green-200'
+                                    : 'bg-purple-100 text-purple-700 border border-purple-200'
                                     }`}>
                                     {holding.account_type}
                                   </span>
@@ -507,7 +491,7 @@ export default function PortfolioPage() {
                           ) : (
                             <tr>
                               <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
-                                No real estate (old) fund holdings found.
+                                No real estate fund holdings found.
                               </td>
                             </tr>
                           )}
@@ -738,9 +722,9 @@ export default function PortfolioPage() {
                       {[...oldInvestments].sort((a, b) => (a.projectName || '').localeCompare(b.projectName || '')).map((row) => {
                         const totalDist = row.distributions && Array.isArray(row.distributions)
                           ? row.distributions.reduce((sum: number, d: any) => {
-                              const dVal = parseFloat((d.calculatedAmount || d.returnOfCapital || '').replace(/[^0-9.-]/g, ''));
-                              return sum + (isNaN(dVal) ? 0 : dVal);
-                            }, 0)
+                            const dVal = parseFloat((d.calculatedAmount || d.returnOfCapital || '').replace(/[^0-9.-]/g, ''));
+                            return sum + (isNaN(dVal) ? 0 : dVal);
+                          }, 0)
                           : 0;
 
                         return (
@@ -824,11 +808,10 @@ export default function PortfolioPage() {
                               {prefix}${parseFloat(transfer.investment_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
                             <td className="px-4 py-3">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                transfer.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${transfer.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
                                 transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
                                 {transfer.status}
                               </span>
                             </td>
