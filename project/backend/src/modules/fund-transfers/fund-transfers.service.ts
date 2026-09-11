@@ -489,7 +489,23 @@ export class FundTransfersService {
       [finalDocUrl, transferId]
     );
 
-    return updateRes.rows[0];
+    const updatedTransfer = updateRes.rows[0];
+
+    // 4. Save to Document Vault for the sender
+    const fileName = `Signed_Transfer_Document_${updatedTransfer.id.substring(0, 8)}.pdf`;
+    await db.query(
+      `INSERT INTO investor_documents (investor_id, file_name, file_url, document_type, description)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        updatedTransfer.from_investor_id,
+        fileName,
+        finalDocUrl,
+        'Transfer Document',
+        'Signed fund transfer document'
+      ]
+    );
+
+    return updatedTransfer;
   }
 
   async updateInternalAmount(id: string, amount: number) {
