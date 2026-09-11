@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { MoreVertical, Loader2, ArrowUpDown, X, FileText } from 'lucide-react';
-import { apiClient, BASE_URL } from '@/lib/api/client';
+import { apiClient, BASE_URL, API_URL } from '@/lib/api/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
 const getFullImageUrl = (imagePath: string | null | undefined): string | undefined => {
@@ -820,7 +820,7 @@ export default function PortfolioPage() {
                                 onClick={() => {
                                   const token = localStorage.getItem('token');
                                   const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-                                  window.open(`${BASE_URL}/fund-transfers/${transfer.id}/pdf${tokenParam}`, '_blank');
+                                  window.open(`${API_URL}/fund-transfers/${transfer.id}/pdf${tokenParam}`, '_blank');
                                 }}
                                 className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-blue-50 rounded-lg transition-colors"
                                 title="View Document"
