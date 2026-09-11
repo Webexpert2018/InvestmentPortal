@@ -10,7 +10,7 @@ import {
   Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle, Plus, Info, Pencil, Filter
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { apiClient, BASE_URL } from '@/lib/api/client';
+import { apiClient, BASE_URL, API_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { AdminAddIraModal } from '@/components/ira/AdminAddIraModal';
 import { AdminEditProfileModal } from '@/components/investor/AdminEditProfileModal';
@@ -1525,7 +1525,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                     onClick={() => {
                                       const token = localStorage.getItem('token');
                                       const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-                                      window.open(`${BASE_URL}/fund-transfers/${transfer.id}/pdf${tokenParam}`, '_blank');
+                                      window.open(`${API_URL}/fund-transfers/${transfer.id}/pdf${tokenParam}`, '_blank');
                                     }}
                                     className="inline-flex items-center justify-center p-2 text-gray-500 hover:text-[#1F3B6E] hover:bg-blue-50 rounded-lg transition-colors"
                                     title="View Document"

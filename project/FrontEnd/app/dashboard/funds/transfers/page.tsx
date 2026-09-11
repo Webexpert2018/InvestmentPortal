@@ -5,7 +5,7 @@ import { Plus, ArrowRightLeft, FileText, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import Link from 'next/link';
-import { apiClient } from '@/lib/api/client';
+import { apiClient, API_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -150,7 +150,7 @@ function FundTransfersContent() {
                       <td className="px-6 py-4">
                         {(transfer.status === 'COMPLETED' || transfer.status === 'SIGNED') && transfer.document_url ? (
                           <a
-                            href={`http://localhost:3001/api/fund-transfers/${transfer.id}/pdf`}
+                            href={`${API_URL}/fund-transfers/${transfer.id}/pdf`}
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}

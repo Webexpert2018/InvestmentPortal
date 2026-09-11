@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRightLeft, FileText } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { apiClient } from '@/lib/api/client';
+import { apiClient, API_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 
 function TransferDetailContent() {
@@ -149,7 +149,7 @@ function TransferDetailContent() {
             <div className="p-6 sm:p-8 border-t border-gray-100 bg-gray-50">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">Transfer Documents</h3>
               <a
-                href={`http://localhost:3001/api/fund-transfers/${transfer.id}/pdf`}
+                href={`${API_URL}/fund-transfers/${transfer.id}/pdf`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2A6CB5] transition-colors"
