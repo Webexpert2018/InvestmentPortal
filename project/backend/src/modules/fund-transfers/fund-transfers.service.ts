@@ -119,7 +119,7 @@ export class FundTransfersService {
         SELECT 
           f.id::text as fund_id,
           f.name as fund_name,
-          f.unit_price as current_nav,
+          COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1) as current_nav,
           i.estimated_units as units,
           COALESCE(i.account_type, 'personal') as account_type,
           i.account_id::text as account_id
@@ -147,7 +147,7 @@ export class FundTransfersService {
         SELECT 
           f.id::text as fund_id,
           f.name as fund_name,
-          f.unit_price as current_nav,
+          COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1) as current_nav,
           (-1 * r.units) as units,
           COALESCE(i.account_type, 'personal') as account_type,
           i.account_id::text as account_id
