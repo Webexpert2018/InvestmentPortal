@@ -399,6 +399,19 @@ export class InvestmentsService {
           UNION ALL
 
           SELECT 
+            f.id::text as fund_id,
+            f.name as fund_name,
+            f.unit_price as current_nav,
+            (-1 * r.units) as units,
+            COALESCE(i.account_type, 'personal') as account_type
+          FROM redemptions r
+          JOIN investments i ON r.investment_id = i.id
+          JOIN funds f ON i.fund_id = f.id
+          WHERE r.investor_id = $1 AND r.status = 'Processed'
+
+          UNION ALL
+
+          SELECT 
             ft.from_fund_id as fund_id,
             COALESCE(ff.name, off.project_name) as fund_name,
             COALESCE(
