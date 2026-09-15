@@ -30,6 +30,7 @@ import { SessionsModule } from './modules/sessions/sessions.module';
 import { MeetingsModule } from './modules/meetings/meetings.module';
 import { WebinarCampaignModule } from './modules/webinar-campaign/webinar-campaign.module';
 import { FundTransfersModule } from './modules/fund-transfers/fund-transfers.module';
+import { RingCentralModule } from './modules/ringcentral/ringcentral.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { FundTransfersModule } from './modules/fund-transfers/fund-transfers.mod
     MeetingsModule,
     WebinarCampaignModule,
     FundTransfersModule,
+    RingCentralModule,
   ],
   controllers: [HealthController],
 })

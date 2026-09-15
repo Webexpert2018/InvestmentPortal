@@ -563,6 +563,13 @@ export default function CallManagerPage() {
 
           <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
             <Link
+              href="/dashboard/doctor-crm/call-manager/dialer"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-blue-600"
+            >
+              <PhoneCall className="w-4 h-4" />
+              <span>Test RingCentral Dialer</span>
+            </Link>
+            <Link
               href="/dashboard/doctor-crm"
               className="px-4 py-2 bg-white hover:bg-gray-100 text-[#1F1F1F] text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-[#E8E8E8]"
             >
