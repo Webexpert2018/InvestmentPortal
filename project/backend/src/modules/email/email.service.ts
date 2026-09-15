@@ -491,4 +491,32 @@ export class EmailService {
     `;
     await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
   }
+
+  async sendCampaignSignatureEmail(email: string, signerName: string, documentName: string, signLink: string) {
+    const title = 'Document Signature Required';
+    const subject = `Action Required: Please sign ${documentName}`;
+    const content = `
+      <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Signature Required</h1>
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
+        Hello <strong>${signerName}</strong>,
+      </p>
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
+        You have a new document (<strong>${documentName}</strong>) that requires your signature. Please review and sign the document.
+      </p>
+      
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="${signLink}" style="display: inline-block; background-color: #1F3B6E; color: #ffffff; text-decoration: none; padding: 14px 35px; border-radius: 8px; font-weight: 600; font-size: 16px; letter-spacing: 0.5px; border: 2px solid #1F3B6E; transition: all 0.3s ease;">
+          Review and Sign Document
+        </a>
+      </div>
+      
+      <p style="margin: 0 0 10px; font-size: 14px; color: #6B7280; font-style: italic;">
+        If the button above does not work, please copy and paste the following link into your browser:
+      </p>
+      <p style="margin: 0 0 20px; font-size: 14px; color: #1F3B6E; word-break: break-all;">
+        ${signLink}
+      </p>
+    `;
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+  }
 }

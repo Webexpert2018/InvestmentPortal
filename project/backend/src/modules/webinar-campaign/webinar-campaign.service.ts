@@ -2679,16 +2679,19 @@ ${rsvpButtonsHtml}
   }
 
   async activateWebinar(id: string) {
-    await db.query(`BEGIN`);
+    const client = await db.connect();
     try {
-      await db.query(`UPDATE webinars SET is_active = false`);
-      await db.query(`UPDATE webinars SET is_active = true WHERE id = $1`, [id]);
-      await db.query(`COMMIT`);
+      await client.query(`BEGIN`);
+      await client.query(`UPDATE webinars SET is_active = false`);
+      await client.query(`UPDATE webinars SET is_active = true WHERE id = $1`, [id]);
+      await client.query(`COMMIT`);
       return { success: true };
     } catch (err: any) {
-      await db.query(`ROLLBACK`);
+      await client.query(`ROLLBACK`);
       this.logger.error(`Error activating webinar ${id}: ${err.message}`);
       throw new HttpException('Failed to activate webinar', HttpStatus.INTERNAL_SERVER_ERROR);
+    } finally {
+      client.release();
     }
   }
 

@@ -1205,24 +1205,27 @@ export class UsersService implements OnModuleInit {
     }
 
     // Delete related records and then user
+    const client = await db.connect();
     try {
-      await db.query('BEGIN');
+      await client.query('BEGIN');
 
       // Delete IRA accounts if investor
       if (tableName === 'investors') {
-        await db.query('DELETE FROM ira_accounts WHERE user_id = $1', [userId]);
+        await client.query('DELETE FROM ira_accounts WHERE user_id = $1', [userId]);
       }
 
-      await db.query('DELETE FROM user_otps WHERE user_id = $1', [userId]);
-      await db.query('DELETE FROM user_sessions WHERE user_id = $1', [userId]);
-      await db.query(`DELETE FROM ${tableName} WHERE id = $1`, [userId]);
+      await client.query('DELETE FROM user_otps WHERE user_id = $1', [userId]);
+      await client.query('DELETE FROM user_sessions WHERE user_id = $1', [userId]);
+      await client.query(`DELETE FROM ${tableName} WHERE id = $1`, [userId]);
 
-      await db.query('COMMIT');
+      await client.query('COMMIT');
       return { success: true, message: 'User and all related data deleted successfully' };
     } catch (error) {
-      await db.query('ROLLBACK');
+      await client.query('ROLLBACK');
       console.error('❌ Master Delete error:', error);
       throw new InternalServerErrorException('Failed to perform master delete');
+    } finally {
+      client.release();
     }
   }
 

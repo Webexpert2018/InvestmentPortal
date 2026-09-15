@@ -976,4 +976,180 @@ export class DocusignService {
       throw error;
     }
   }
+
+  async createEnvelopeForCampaign(
+    accessToken: string,
+    accountId: string,
+    signerEmail: string,
+    signerName: string,
+    documentName: string,
+    documentPath: string,
+    placements: any[],
+    returnUrl: string
+  ) {
+    this.dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
+    const ds = docusign as any;
+    const envelopesApi = new ds.EnvelopesApi(this.dsApiClient);
+
+    let docBase64: string;
+    let fileExtension = 'pdf';
+
+    if (documentPath.startsWith('http://') || documentPath.startsWith('https://')) {
+      try {
+        let downloadUrl = documentPath;
+        // Generate signed URL if it's a Cloudinary URL to bypass PDF security restrictions
+        if (documentPath.includes('cloudinary.com')) {
+          const cloudinary = require('../../config/cloudinary.config').cloudinary;
+          const urlParts = documentPath.split('/');
+          const versionIndex = urlParts.findIndex((p: string) => p.startsWith('v') && !isNaN(parseInt(p.substring(1))));
+          if (versionIndex !== -1) {
+            const publicIdWithExt = urlParts.slice(versionIndex + 1).join('/');
+            const publicId = publicIdWithExt.replace(/\.[^/.]+$/, '');
+            const isRaw = documentPath.includes('/raw/');
+            const publicIdToUse = isRaw ? publicIdWithExt : publicId;
+            const formatToUse = isRaw ? '' : 'pdf';
+            downloadUrl = cloudinary.utils.private_download_url(publicIdToUse, formatToUse, {
+              resource_type: isRaw ? 'raw' : 'image',
+              type: 'upload'
+            });
+          }
+        }
+        
+        const response = await axios.get(downloadUrl, { responseType: 'arraybuffer' });
+        docBase64 = Buffer.from(response.data).toString('base64');
+      } catch (error: any) {
+        throw new Error(`Failed to download document from Cloudinary: ${error.message}`);
+      }
+    } else {
+      // Fallback for older local files
+      const pathsToTry = [
+        path.resolve(process.cwd(), 'public/subscription-documents', documentPath),
+        path.resolve(__dirname, '..', '..', '..', 'public/subscription-documents', documentPath),
+        path.resolve(process.cwd(), 'public/uploads', documentPath),
+        path.resolve(process.cwd(), 'uploads', documentPath) // in case it is saved in uploads
+      ];
+
+      let filePath = pathsToTry[0];
+      let found = false;
+
+      for (const p of pathsToTry) {
+        if (fs.existsSync(p)) {
+          filePath = p;
+          found = true;
+          break;
+        }
+      }
+
+      if (found) {
+        docBase64 = fs.readFileSync(filePath).toString('base64');
+      } else {
+        throw new Error(`Document not found locally: ${documentPath}`);
+      }
+    }
+
+    const doc = new ds.Document();
+    doc.documentBase64 = docBase64;
+    doc.name = documentName;
+    doc.fileExtension = fileExtension;
+    doc.documentId = '1';
+
+    const tabs = new ds.Tabs();
+    const signHereTabs: any[] = [];
+    const textTabs: any[] = [];
+    const dateSignedTabs: any[] = [];
+
+    if (placements && Array.isArray(placements) && placements.length > 0) {
+      placements.forEach((placement: any, idx: number) => {
+        const pageStr = placement.page.toString();
+        const width = 612;
+        const height = 792;
+
+        if (placement.type === 'signature') {
+          const sig = new ds.SignHere();
+          sig.pageNumber = pageStr;
+          const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 40);
+          const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 15);
+          sig.xPosition = adjustedX.toString();
+          sig.yPosition = adjustedY.toString();
+          sig.documentId = '1';
+          sig.recipientId = '1';
+          sig.tabLabel = `Signature_${idx + 1}`;
+          signHereTabs.push(sig);
+        } else if (placement.type === 'name') {
+          const nameTab = new ds.Text();
+          nameTab.pageNumber = pageStr;
+          const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 60);
+          const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
+          nameTab.xPosition = adjustedX.toString();
+          nameTab.yPosition = adjustedY.toString();
+          nameTab.value = signerName;
+          nameTab.font = 'TimesNewRoman';
+          nameTab.fontSize = 'Size11';
+          nameTab.tabLabel = `Name_${idx + 1}`;
+          nameTab.locked = 'true';
+          nameTab.documentId = '1';
+          nameTab.recipientId = '1';
+          textTabs.push(nameTab);
+        } else if (placement.type === 'date') {
+          const dateTab = new ds.DateSigned();
+          dateTab.pageNumber = pageStr;
+          const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 60);
+          const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
+          dateTab.xPosition = adjustedX.toString();
+          dateTab.yPosition = adjustedY.toString();
+          dateTab.font = 'TimesNewRoman';
+          dateTab.fontSize = 'Size11';
+          dateTab.tabLabel = `Date_${idx + 1}`;
+          dateTab.documentId = '1';
+          dateTab.recipientId = '1';
+          dateSignedTabs.push(dateTab);
+        }
+      });
+    } else {
+      const signatureTab = new ds.SignHere();
+      signatureTab.anchorString = 'SIGNATURE:';
+      signatureTab.anchorUnits = 'pixels';
+      signatureTab.anchorXOffset = '10';
+      signatureTab.anchorYOffset = '10';
+      signatureTab.documentId = '1';
+      signatureTab.recipientId = '1';
+      signHereTabs.push(signatureTab);
+    }
+
+    tabs.signHereTabs = signHereTabs;
+    tabs.textTabs = textTabs;
+    tabs.dateSignedTabs = dateSignedTabs;
+
+    const signer = new ds.Signer();
+    signer.email = signerEmail;
+    signer.name = signerName;
+    signer.recipientId = '1';
+    signer.clientUserId = '1001';
+    signer.tabs = tabs;
+
+    const env = new ds.EnvelopeDefinition();
+    env.emailSubject = `Please sign ${documentName}`;
+    env.documents = [doc];
+    env.recipients = new ds.Recipients();
+    env.recipients.signers = [signer];
+    env.status = 'sent';
+
+    const results = await envelopesApi.createEnvelope(accountId, { envelopeDefinition: env });
+    const envelopeId = results.envelopeId;
+
+    const viewRequest = new ds.RecipientViewRequest();
+    viewRequest.returnUrl = returnUrl;
+    viewRequest.authenticationMethod = 'none';
+    viewRequest.email = signerEmail;
+    viewRequest.userName = signerName;
+    viewRequest.clientUserId = '1001';
+
+    const viewResults = await envelopesApi.createRecipientView(accountId, envelopeId, { recipientViewRequest: viewRequest });
+
+    return {
+      envelopeId,
+      signingUrl: viewResults.url,
+    };
+  }
 }
+

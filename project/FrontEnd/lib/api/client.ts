@@ -1827,6 +1827,24 @@ class ApiClient {
   async getMyTransfers() {
     return this.request<any[]>('/fund-transfers/my-transfers');
   }
+
+  // Document Signatures
+  async getDocumentSignatureCampaigns() {
+    return this.request<any[]>('/document-signatures');
+  }
+
+  async createDocumentSignatureCampaign(data: FormData) {
+    return this.request<any>('/document-signatures', {
+      method: 'POST',
+      body: data,
+    });
+  }
+
+  async completeDocumentSignature(campaignId: string, investorId: string) {
+    return this.request<any>(`/document-signatures/${campaignId}/complete/${investorId}`, {
+      method: 'POST',
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
