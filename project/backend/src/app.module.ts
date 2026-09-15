@@ -31,6 +31,7 @@ import { MeetingsModule } from './modules/meetings/meetings.module';
 import { WebinarCampaignModule } from './modules/webinar-campaign/webinar-campaign.module';
 import { FundTransfersModule } from './modules/fund-transfers/fund-transfers.module';
 import { RingCentralModule } from './modules/ringcentral/ringcentral.module';
+import { DocumentSignaturesModule } from './modules/document-signatures/document-signatures.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { RingCentralModule } from './modules/ringcentral/ringcentral.module';
     WebinarCampaignModule,
     FundTransfersModule,
     RingCentralModule,
+    DocumentSignaturesModule,
   ],
   controllers: [HealthController],
 })

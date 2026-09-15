@@ -162,6 +162,12 @@ const menuItems: MenuItem[] = [
     roles: ['admin', 'executive_admin', 'fund_admin', 'accountant'],
   },
   {
+    title: 'Document Signatures',
+    href: '/dashboard/document-signatures',
+    icon: FileText,
+    roles: ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'compliance'],
+  },
+  {
     title: 'CRM & Bulk Ops',
     href: '/dashboard/crm-bulk-ops',
     icon: Users,

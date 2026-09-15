@@ -443,7 +443,6 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
       { type: 'signature', label: 'Signature Block', icon: Edit3, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
       { type: 'name', label: 'Investor Name', icon: Type, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
       { type: 'date', label: 'Date Signed', icon: Calendar, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
-      { type: 'amount', label: 'Investment Amount', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
     ];
 
   return (
