@@ -35,6 +35,24 @@ export class DocumentSignaturesController {
     return this.service.getCampaigns();
   }
 
+  @Post(':campaignId/resend/:investorId')
+  @UseGuards(JwtAuthGuard)
+  async resendEmail(
+    @Param('campaignId') campaignId: string,
+    @Param('investorId') investorId: string
+  ) {
+    return this.service.resendEmail(campaignId, investorId);
+  }
+
+  @Post(':campaignId/add-recipients')
+  @UseGuards(JwtAuthGuard)
+  async addRecipients(
+    @Param('campaignId') campaignId: string,
+    @Body('investorIds') investorIds: string[]
+  ) {
+    return this.service.addRecipients(campaignId, investorIds);
+  }
+
   @Get(':campaignId/sign-url/:investorId')
   async getSigningUrl(
     @Param('campaignId') campaignId: string,

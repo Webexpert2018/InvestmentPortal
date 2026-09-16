@@ -108,6 +108,17 @@ export default function NewDocumentSignaturePage() {
     );
   };
 
+  const toggleSelectAll = () => {
+    if (filteredUsers.length === 0) return;
+    const isAllSelected = filteredUsers.every(user => selectedInvestorIds.includes(user.id));
+    if (isAllSelected) {
+      setSelectedInvestorIds(prev => prev.filter(id => !filteredUsers.find(u => u.id === id)));
+    } else {
+      const newIds = new Set([...selectedInvestorIds, ...filteredUsers.map(u => u.id)]);
+      setSelectedInvestorIds(Array.from(newIds));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -118,11 +129,6 @@ export default function NewDocumentSignaturePage() {
 
     if (!documentFile) {
       toast.error('Please upload a document.');
-      return;
-    }
-
-    if (selectedInvestorIds.length === 0) {
-      toast.error('Please select at least one investor.');
       return;
     }
 
@@ -258,6 +264,17 @@ export default function NewDocumentSignaturePage() {
                 </div>
                 
                 <div className="max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
+                  {filteredUsers.length > 0 && (
+                    <label 
+                      onClick={toggleSelectAll}
+                      className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-100 bg-gray-50/50"
+                    >
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${filteredUsers.every(u => selectedInvestorIds.includes(u.id)) ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white'}`}>
+                        {filteredUsers.every(u => selectedInvestorIds.includes(u.id)) && <Check className="w-3.5 h-3.5 text-white" />}
+                      </div>
+                      <div className="font-semibold text-sm text-gray-900">Select All ({filteredUsers.length})</div>
+                    </label>
+                  )}
                   {filteredUsers.length === 0 ? (
                     <div className="p-4 text-center text-sm text-gray-500">No investors found.</div>
                   ) : (
@@ -301,10 +318,10 @@ export default function NewDocumentSignaturePage() {
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || !documentFile || selectedInvestorIds.length === 0}
+              disabled={isSubmitting || !documentFile}
               className="bg-[#2A6CB5] hover:bg-[#1F538D] text-white px-8 font-semibold shadow-sm transition-all"
             >
-              {isSubmitting ? 'Sending...' : 'Send for Signature'}
+              {isSubmitting ? 'Sending...' : selectedInvestorIds.length === 0 ? 'Create Campaign' : 'Send for Signature'}
             </Button>
           </div>
         </form>

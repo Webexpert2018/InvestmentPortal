@@ -1845,6 +1845,19 @@ class ApiClient {
       method: 'POST',
     });
   }
+
+  async resendDocumentSignature(campaignId: string, investorId: string) {
+    return this.request<any>(`/document-signatures/${campaignId}/resend/${investorId}`, {
+      method: 'POST',
+    });
+  }
+
+  async addDocumentSignatureRecipients(campaignId: string, investorIds: string[]) {
+    return this.request<any>(`/document-signatures/${campaignId}/add-recipients`, {
+      method: 'POST',
+      body: JSON.stringify({ investorIds }),
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
