@@ -1,0 +1,2 @@
+ALTER TABLE document_signature_recipients DROP CONSTRAINT IF EXISTS document_signature_recipients_campaign_id_investor_id_key;
+ALTER TABLE document_signature_recipients ADD CONSTRAINT document_signature_recipients_campaign_id_investor_id_account_type_key UNIQUE (campaign_id, investor_id, account_type);

@@ -32,38 +32,39 @@ export class DocumentSignaturesService {
       );
       const campaignId = campaignRes.rows[0].id;
 
-      // 2. Fetch all selected investors
-      if (!Array.isArray(investorIds) || investorIds.length === 0) {
-        throw new HttpException('No investors selected', HttpStatus.BAD_REQUEST);
-      }
-      if (typeof investorIds[0] === 'object') {
-        throw new HttpException('Frontend is sending objects instead of strings for investorIds. Please fix frontend.', HttpStatus.BAD_REQUEST);
-      }
-
-      const placeholders = investorIds.map((_, i) => `$${i + 1}`).join(',');
-      const usersRes = await db.query(`SELECT id, email, full_name FROM investors WHERE id IN (${placeholders})`, investorIds);
-      const investors = usersRes.rows;
-
-      // 3. For each investor, send email and add to recipients
-      for (const investor of investors) {
-        const signerName = (investor.full_name || 'Investor').trim() || 'Investor';
-
-        // Send email
-        let actualInvestorId = investor.id;
-        if (typeof actualInvestorId === 'object') {
-          actualInvestorId = (actualInvestorId as any).id || actualInvestorId;
+      if (Array.isArray(investorIds) && investorIds.length > 0) {
+        if (typeof investorIds[0] === 'object') {
+          throw new HttpException('Frontend is sending objects instead of strings for investorIds. Please fix frontend.', HttpStatus.BAD_REQUEST);
         }
-        
-        // Add recipient as pending
-        await db.query(
-          'INSERT INTO document_signature_recipients (campaign_id, investor_id, status) VALUES ($1, $2, $3)',
-          [campaignId, actualInvestorId, 'PENDING']
-        );
 
-        const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
-        const signLink = `${backendUrl}/api/document-signatures/${campaignId}/sign-url/${actualInvestorId}`;
+        const parsedInvestors = investorIds.map(str => {
+          const parts = str.split('::');
+          return { id: parts[0], accountType: parts[1] || 'Personal' };
+        });
 
-        await this.emailService.sendCampaignSignatureEmail(investor.email, signerName, name, signLink);
+        const uniqueIds = Array.from(new Set(parsedInvestors.map(p => p.id)));
+        const placeholders = uniqueIds.map((_, i) => `$${i + 1}`).join(',');
+        const usersRes = await db.query(`SELECT id, email, full_name FROM investors WHERE id IN (${placeholders})`, uniqueIds);
+        const investorsDb = new Map(usersRes.rows.map(u => [u.id.toString(), u]));
+
+        // 3. For each investor, send email and add to recipients
+        for (const pi of parsedInvestors) {
+          const investor = investorsDb.get(pi.id.toString());
+          if (!investor) continue;
+          
+          const signerName = (investor.full_name || 'Investor').trim() || 'Investor';
+
+          // Add recipient as pending
+          await db.query(
+            'INSERT INTO document_signature_recipients (campaign_id, investor_id, status, account_type) VALUES ($1, $2, $3, $4)',
+            [campaignId, pi.id, 'PENDING', pi.accountType]
+          );
+
+          const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+          const signLink = `${backendUrl}/api/document-signatures/${campaignId}/sign-url/${pi.id}`;
+
+          await this.emailService.sendCampaignSignatureEmail(investor.email, signerName, name, signLink);
+        }
       }
 
       return { success: true, campaignId };
@@ -85,6 +86,7 @@ export class DocumentSignaturesService {
                 'status', r.status,
                 'signed_at', r.signed_at,
                 'signed_document_path', r.signed_document_path,
+                'account_type', r.account_type,
                 'investor_name', u.full_name,
                 'investor_email', u.email
               )
@@ -215,6 +217,99 @@ export class DocumentSignaturesService {
     } catch (error: any) {
       this.logger.error('Failed to complete signature', error);
       throw new HttpException(error.message || 'Failed to complete signature', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async resendEmail(campaignId: string, investorId: string) {
+    try {
+      const campaignRes = await db.query('SELECT * FROM document_signature_campaigns WHERE id = $1', [campaignId]);
+      if (!campaignRes.rows.length) throw new HttpException('Campaign not found', HttpStatus.NOT_FOUND);
+      const campaign = campaignRes.rows[0];
+
+      const recipientRes = await db.query(
+        'SELECT * FROM document_signature_recipients WHERE campaign_id = $1 AND investor_id = $2 AND status = $3',
+        [campaignId, investorId, 'PENDING']
+      );
+      if (!recipientRes.rows.length) {
+        throw new HttpException('Pending recipient not found for this campaign', HttpStatus.NOT_FOUND);
+      }
+
+      const userRes = await db.query('SELECT * FROM investors WHERE id = $1', [investorId]);
+      if (!userRes.rows.length) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      const user = userRes.rows[0];
+
+      const signerName = (user.full_name || 'Investor').trim() || 'Investor';
+      const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+      const signLink = `${backendUrl}/api/document-signatures/${campaignId}/sign-url/${investorId}`;
+
+      await this.emailService.sendCampaignSignatureEmail(user.email, signerName, campaign.name, signLink);
+
+      return { success: true };
+    } catch (error: any) {
+      this.logger.error('Failed to resend email', error);
+      throw new HttpException(error.message || 'Failed to resend email', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async addRecipients(campaignId: string, newInvestorIds: string[]) {
+    try {
+      if (!Array.isArray(newInvestorIds) || newInvestorIds.length === 0) {
+        return { success: true, message: 'No new investors to add' };
+      }
+
+      const campaignRes = await db.query('SELECT * FROM document_signature_campaigns WHERE id = $1', [campaignId]);
+      if (!campaignRes.rows.length) throw new HttpException('Campaign not found', HttpStatus.NOT_FOUND);
+      const campaign = campaignRes.rows[0];
+
+      // The frontend will send newInvestorIds as either plain UUIDs or composite keys (uuid::accountType)
+      const investors = newInvestorIds;
+
+      const existingRecipientsRes = await db.query('SELECT investor_id, account_type FROM document_signature_recipients WHERE campaign_id = $1', [campaignId]);
+      const existingRecords = new Set(existingRecipientsRes.rows.map(r => `${r.investor_id}::${r.account_type || 'Personal'}`));
+
+      let addedCount = 0;
+      for (const investorStr of investors) {
+        let actualInvestorId = investorStr;
+        let accountType = 'Personal';
+        
+        if (typeof investorStr === 'object') {
+           actualInvestorId = (investorStr as any).id || investorStr;
+           accountType = (investorStr as any).accountType || (investorStr as any).account_type || 'Personal';
+        } else if (typeof investorStr === 'string' && investorStr.includes('::')) {
+           const parts = investorStr.split('::');
+           actualInvestorId = parts[0];
+           accountType = parts[1] || 'Personal';
+        } else if (typeof investorStr === 'string') {
+           actualInvestorId = investorStr;
+        }
+
+        const compositeKey = `${actualInvestorId}::${accountType}`;
+        if (existingRecords.has(compositeKey)) {
+          continue; // Skip if already added
+        }
+
+        const userRes = await db.query('SELECT email, full_name FROM investors WHERE id = $1', [actualInvestorId]);
+        if (!userRes.rows.length) continue;
+        const investor = userRes.rows[0];
+
+        const signerName = (investor.full_name || 'Investor').trim() || 'Investor';
+
+        await db.query(
+          'INSERT INTO document_signature_recipients (campaign_id, investor_id, status, account_type) VALUES ($1, $2, $3, $4)',
+          [campaignId, actualInvestorId, 'PENDING', accountType]
+        );
+
+        const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+        const signLink = `${backendUrl}/api/document-signatures/${campaignId}/sign-url/${actualInvestorId}`;
+
+        await this.emailService.sendCampaignSignatureEmail(investor.email, signerName, campaign.name, signLink);
+        addedCount++;
+      }
+
+      return { success: true, addedCount };
+    } catch (error: any) {
+      this.logger.error('Failed to add recipients', error);
+      throw new HttpException(error.message || 'Failed to add recipients', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
