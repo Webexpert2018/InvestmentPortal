@@ -59,12 +59,16 @@ export default function DocumentSignaturesPage() {
         apiClient.getFunds(),
         apiClient.getOldFunds()
       ]);
-      const uniqueUsers = Array.from(new Map((usersData || []).map((u: any) => [u.id, u])).values());
+      const activeUsersData = (usersData || []).filter((u: any) => u.status?.toLowerCase() === 'active');
+      const uniqueUsers = Array.from(new Map(activeUsersData.map((u: any) => {
+        const accType = u.accountType || u.account_type || 'Personal';
+        return [`${u.id}::${accType}`, { ...u, accountType: accType, compositeId: `${u.id}::${accType}` }];
+      })).values());
       setAllUsers(uniqueUsers);
       setUsers(uniqueUsers);
 
       const combinedFunds = [
-        { label: 'All Funds', value: 'all' },
+        { label: 'All Investors (Active Accounts)', value: 'all' },
         ...(fundsData || []).map((f: any) => ({ label: f.name, value: f.id.toString() })),
         ...(oldFundsData || []).map((f: any) => ({ label: `${f.projectName} (Real Estate Fund)`, value: f.projectId?.toString() || '' }))
       ].filter((f: any) => f.value);
@@ -82,7 +86,10 @@ export default function DocumentSignaturesPage() {
       }
       try {
         const data = await apiClient.getFundInvestors(selectedFundId);
-        const uniqueUsers = Array.from(new Map((data || []).map((u: any) => [u.id, u])).values());
+        const uniqueUsers = Array.from(new Map((data || []).map((u: any) => {
+          const accType = u.accountType || u.account_type || 'Personal';
+          return [`${u.id}::${accType}`, { ...u, accountType: accType, compositeId: `${u.id}::${accType}` }];
+        })).values());
         setUsers(uniqueUsers);
       } catch (error) {
         console.error('Error fetching fund investors:', error);
@@ -135,18 +142,18 @@ export default function DocumentSignaturesPage() {
 
   const toggleSelectAll = () => {
     if (filteredUsers.length === 0) return;
-    const isAllSelected = filteredUsers.every(user => selectedInvestorIds.includes(user.id));
+    const isAllSelected = filteredUsers.every(user => selectedInvestorIds.includes(user.compositeId));
     if (isAllSelected) {
-      setSelectedInvestorIds(prev => prev.filter(id => !filteredUsers.find(u => u.id === id)));
+      setSelectedInvestorIds(prev => prev.filter(id => !filteredUsers.find(u => u.compositeId === id)));
     } else {
-      const newIds = new Set([...selectedInvestorIds, ...filteredUsers.map(u => u.id)]);
+      const newIds = new Set([...selectedInvestorIds, ...filteredUsers.map(u => u.compositeId)]);
       setSelectedInvestorIds(Array.from(newIds));
     }
   };
 
-  const toggleInvestor = (id: string) => {
-    setSelectedInvestorIds(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+  const toggleInvestor = (compositeId: string) => {
+    setSelectedInvestorIds(prev =>
+      prev.includes(compositeId) ? prev.filter(i => i !== compositeId) : [...prev, compositeId]
     );
   };
 
@@ -213,16 +220,16 @@ export default function DocumentSignaturesPage() {
                       <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
                         <div className="flex items-center gap-4">
                           <h4 className="font-semibold text-gray-700 text-sm">Recipient Status</h4>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="h-8 px-2 text-xs text-[#2A6CB5] border-[#2A6CB5]/30 hover:bg-[#2A6CB5]/10"
                             onClick={() => openAddRecipientsModal(campaign.id)}
                           >
                             <Plus className="w-3.5 h-3.5 mr-1" /> Add Recipients
                           </Button>
                         </div>
-                        <a 
+                        <a
                           href={`${BASE_URL}/api/document-signatures/${campaign.id}/original-pdf`}
                           target="_blank"
                           rel="noreferrer"
@@ -235,8 +242,9 @@ export default function DocumentSignaturesPage() {
                       <table className="w-full text-sm text-left table-fixed">
                         <thead className="bg-gray-50/50 text-xs text-gray-500 uppercase font-semibold border-b border-gray-200">
                           <tr>
-                            <th className="px-4 py-3 w-[25%]">Investor Name</th>
-                            <th className="px-4 py-3 w-[35%]">Email</th>
+                            <th className="px-4 py-3 w-[20%]">Investor Name</th>
+                            <th className="px-4 py-3 w-[15%]">Account Type</th>
+                            <th className="px-4 py-3 w-[25%]">Email</th>
                             <th className="px-4 py-3 w-[20%]">Status</th>
                             <th className="px-4 py-3 w-[20%] text-right">Action</th>
                           </tr>
@@ -244,7 +252,7 @@ export default function DocumentSignaturesPage() {
                         <tbody className="divide-y divide-gray-100">
                           {campaign.recipients.length === 0 ? (
                             <tr>
-                              <td colSpan={4} className="px-4 py-8 text-center text-gray-500 text-sm">
+                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500 text-sm">
                                 No recipients added yet. Click "Add Recipients" to invite investors.
                               </td>
                             </tr>
@@ -253,6 +261,11 @@ export default function DocumentSignaturesPage() {
                               <tr key={recipient.id} className="hover:bg-gray-50/50 transition-colors">
                                 <td className="px-4 py-3 font-medium text-gray-900 truncate">
                                   {recipient.investor_name || 'Unknown'}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">
+                                    {recipient.account_type || 'Personal'}
+                                  </span>
                                 </td>
                                 <td className="px-4 py-3 text-gray-500 truncate">
                                   {recipient.investor_email}
@@ -272,7 +285,7 @@ export default function DocumentSignaturesPage() {
                                 </td>
                                 <td className="px-4 py-3 text-right">
                                   {recipient.status === 'SIGNED' ? (
-                                    <a 
+                                    <a
                                       href={`${BASE_URL}/api/document-signatures/${campaign.id}/signed-pdf/${recipient.investor_id}`}
                                       target="_blank"
                                       rel="noreferrer"
@@ -281,7 +294,7 @@ export default function DocumentSignaturesPage() {
                                       View Signature
                                     </a>
                                   ) : (
-                                    <button 
+                                    <button
                                       onClick={() => handleResend(campaign.id, recipient.investor_id)}
                                       disabled={resendingId === `${campaign.id}-${recipient.investor_id}`}
                                       className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-semibold h-8 px-3 text-amber-700 hover:bg-amber-100/50 transition-colors disabled:opacity-50"
@@ -314,17 +327,17 @@ export default function DocumentSignaturesPage() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
             <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
               <h2 className="text-lg font-bold text-[#1F3B6E]">Add Recipients</h2>
-              <button 
+              <button
                 onClick={closeAddRecipientsModal}
                 className="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-500"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="p-6 flex-1 overflow-y-auto">
               <p className="text-sm text-gray-500 mb-6">Select the investors you want to invite to sign this document.</p>
-              
+
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Fund</label>
@@ -337,23 +350,23 @@ export default function DocumentSignaturesPage() {
                 </div>
                 <div className="relative mb-4">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input 
-                    type="text" 
-                    placeholder="Search investors by name or email..." 
+                  <input
+                    type="text"
+                    placeholder="Search investors by name or email..."
                     className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1F3B6E] focus:ring-1 focus:ring-[#1F3B6E]"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
                   {filteredUsers.length > 0 && (
-                    <label 
+                    <label
                       onClick={toggleSelectAll}
                       className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-100 bg-gray-50/50"
                     >
-                      <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${filteredUsers.every(u => selectedInvestorIds.includes(u.id)) ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white'}`}>
-                        {filteredUsers.every(u => selectedInvestorIds.includes(u.id)) && <Check className="w-3.5 h-3.5 text-white" />}
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${filteredUsers.every(u => selectedInvestorIds.includes(u.compositeId)) ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white'}`}>
+                        {filteredUsers.every(u => selectedInvestorIds.includes(u.compositeId)) && <Check className="w-3.5 h-3.5 text-white" />}
                       </div>
                       <div className="font-semibold text-sm text-gray-900">Select All ({filteredUsers.length})</div>
                     </label>
@@ -362,21 +375,29 @@ export default function DocumentSignaturesPage() {
                     <div className="p-4 text-center text-sm text-gray-500">No investors found.</div>
                   ) : (
                     filteredUsers.map((user) => {
-                      const isSelected = selectedInvestorIds.includes(user.id);
+                      const isSelected = selectedInvestorIds.includes(user.compositeId);
                       const name = (user.full_name || `${user.firstName || user.first_name || ''} ${user.lastName || user.last_name || ''}`).trim() || 'Unknown Investor';
                       return (
-                        <label 
-                          key={user.id} 
-                          onClick={() => toggleInvestor(user.id)}
-                          className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50/50' : ''}`}
+                        <label
+                          key={user.compositeId}
+                          className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50/30' : ''}`}
                         >
                           <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white'}`}>
                             {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
                           </div>
-                          <div>
-                            <div className="font-semibold text-sm text-gray-900">{name}</div>
-                            <div className="text-xs text-gray-500">{user.email}</div>
+                          <div className="flex-1 min-w-0 flex items-center gap-2">
+                            <span className="font-semibold text-sm text-gray-900 truncate">{name}</span>
+                            <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                              {user.accountType}
+                            </span>
+                            <span className="text-sm text-gray-500 truncate ml-auto">{user.email}</span>
                           </div>
+                          <input
+                            type="checkbox"
+                            className="hidden"
+                            checked={isSelected}
+                            onChange={() => toggleInvestor(user.compositeId)}
+                          />
                         </label>
                       );
                     })
@@ -387,16 +408,16 @@ export default function DocumentSignaturesPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="p-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={closeAddRecipientsModal}
                 disabled={isAdding}
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleAddRecipients}
                 disabled={isAdding || selectedInvestorIds.length === 0}
                 className="bg-[#2A6CB5] hover:bg-[#1F538D] text-white"

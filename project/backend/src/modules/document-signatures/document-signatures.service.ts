@@ -37,28 +37,31 @@ export class DocumentSignaturesService {
           throw new HttpException('Frontend is sending objects instead of strings for investorIds. Please fix frontend.', HttpStatus.BAD_REQUEST);
         }
 
-        const placeholders = investorIds.map((_, i) => `$${i + 1}`).join(',');
-        const usersRes = await db.query(`SELECT id, email, full_name FROM investors WHERE id IN (${placeholders})`, investorIds);
-        const investors = usersRes.rows;
+        const parsedInvestors = investorIds.map(str => {
+          const parts = str.split('::');
+          return { id: parts[0], accountType: parts[1] || 'Personal' };
+        });
+
+        const uniqueIds = Array.from(new Set(parsedInvestors.map(p => p.id)));
+        const placeholders = uniqueIds.map((_, i) => `$${i + 1}`).join(',');
+        const usersRes = await db.query(`SELECT id, email, full_name FROM investors WHERE id IN (${placeholders})`, uniqueIds);
+        const investorsDb = new Map(usersRes.rows.map(u => [u.id.toString(), u]));
 
         // 3. For each investor, send email and add to recipients
-        for (const investor of investors) {
+        for (const pi of parsedInvestors) {
+          const investor = investorsDb.get(pi.id.toString());
+          if (!investor) continue;
+          
           const signerName = (investor.full_name || 'Investor').trim() || 'Investor';
 
-          // Send email
-          let actualInvestorId = investor.id;
-          if (typeof actualInvestorId === 'object') {
-            actualInvestorId = (actualInvestorId as any).id || actualInvestorId;
-          }
-          
           // Add recipient as pending
           await db.query(
-            'INSERT INTO document_signature_recipients (campaign_id, investor_id, status) VALUES ($1, $2, $3)',
-            [campaignId, actualInvestorId, 'PENDING']
+            'INSERT INTO document_signature_recipients (campaign_id, investor_id, status, account_type) VALUES ($1, $2, $3, $4)',
+            [campaignId, pi.id, 'PENDING', pi.accountType]
           );
 
           const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
-          const signLink = `${backendUrl}/api/document-signatures/${campaignId}/sign-url/${actualInvestorId}`;
+          const signLink = `${backendUrl}/api/document-signatures/${campaignId}/sign-url/${pi.id}`;
 
           await this.emailService.sendCampaignSignatureEmail(investor.email, signerName, name, signLink);
         }
@@ -83,6 +86,7 @@ export class DocumentSignaturesService {
                 'status', r.status,
                 'signed_at', r.signed_at,
                 'signed_document_path', r.signed_document_path,
+                'account_type', r.account_type,
                 'investor_name', u.full_name,
                 'investor_email', u.email
               )
@@ -257,29 +261,42 @@ export class DocumentSignaturesService {
       if (!campaignRes.rows.length) throw new HttpException('Campaign not found', HttpStatus.NOT_FOUND);
       const campaign = campaignRes.rows[0];
 
-      const placeholders = newInvestorIds.map((_, i) => `$${i + 1}`).join(',');
-      const usersRes = await db.query(`SELECT id, email, full_name FROM investors WHERE id IN (${placeholders})`, newInvestorIds);
-      const investors = usersRes.rows;
+      // The frontend will send newInvestorIds as either plain UUIDs or composite keys (uuid::accountType)
+      const investors = newInvestorIds;
 
-      const existingRecipientsRes = await db.query('SELECT investor_id FROM document_signature_recipients WHERE campaign_id = $1', [campaignId]);
-      const existingInvestorIds = new Set(existingRecipientsRes.rows.map(r => r.investor_id.toString()));
+      const existingRecipientsRes = await db.query('SELECT investor_id, account_type FROM document_signature_recipients WHERE campaign_id = $1', [campaignId]);
+      const existingRecords = new Set(existingRecipientsRes.rows.map(r => `${r.investor_id}::${r.account_type || 'Personal'}`));
 
       let addedCount = 0;
-      for (const investor of investors) {
-        let actualInvestorId = investor.id;
-        if (typeof actualInvestorId === 'object') {
-          actualInvestorId = (actualInvestorId as any).id || actualInvestorId;
+      for (const investorStr of investors) {
+        let actualInvestorId = investorStr;
+        let accountType = 'Personal';
+        
+        if (typeof investorStr === 'object') {
+           actualInvestorId = (investorStr as any).id || investorStr;
+           accountType = (investorStr as any).accountType || (investorStr as any).account_type || 'Personal';
+        } else if (typeof investorStr === 'string' && investorStr.includes('::')) {
+           const parts = investorStr.split('::');
+           actualInvestorId = parts[0];
+           accountType = parts[1] || 'Personal';
+        } else if (typeof investorStr === 'string') {
+           actualInvestorId = investorStr;
         }
 
-        if (existingInvestorIds.has(actualInvestorId.toString())) {
+        const compositeKey = `${actualInvestorId}::${accountType}`;
+        if (existingRecords.has(compositeKey)) {
           continue; // Skip if already added
         }
+
+        const userRes = await db.query('SELECT email, full_name FROM investors WHERE id = $1', [actualInvestorId]);
+        if (!userRes.rows.length) continue;
+        const investor = userRes.rows[0];
 
         const signerName = (investor.full_name || 'Investor').trim() || 'Investor';
 
         await db.query(
-          'INSERT INTO document_signature_recipients (campaign_id, investor_id, status) VALUES ($1, $2, $3)',
-          [campaignId, actualInvestorId, 'PENDING']
+          'INSERT INTO document_signature_recipients (campaign_id, investor_id, status, account_type) VALUES ($1, $2, $3, $4)',
+          [campaignId, actualInvestorId, 'PENDING', accountType]
         );
 
         const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
