@@ -8,6 +8,7 @@ import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import { UploadCloud, File as FileIcon, Search, Check } from 'lucide-react';
+import { Combobox } from '@/components/ui/combobox';
 
 const VisualPdfEditor = dynamic(() => import('@/components/VisualPdfEditor').then(mod => mod.VisualPdfEditor), { ssr: false });
 
@@ -16,6 +17,9 @@ export default function NewDocumentSignaturePage() {
 
   const [name, setName] = useState('');
   const [users, setUsers] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [funds, setFunds] = useState<any[]>([]);
+  const [selectedFundId, setSelectedFundId] = useState<string>('all');
   const [selectedInvestorIds, setSelectedInvestorIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -30,14 +34,44 @@ export default function NewDocumentSignaturePage() {
 
   const fetchInitialData = async () => {
     try {
-      const usersData = await apiClient.getAllUsers();
+      const [usersData, fundsData, oldFundsData] = await Promise.all([
+        apiClient.getAllUsers(),
+        apiClient.getFunds(),
+        apiClient.getOldFunds()
+      ]);
       const uniqueUsers = Array.from(new Map((usersData || []).map((u: any) => [u.id, u])).values());
       setUsers(uniqueUsers);
+      setAllUsers(uniqueUsers);
+
+      const combinedFunds = [
+        { label: 'All Funds', value: 'all' },
+        ...(fundsData || []).map((f: any) => ({ label: f.name, value: f.id.toString() })),
+        ...(oldFundsData || []).map((f: any) => ({ label: `${f.projectName} (Real Estate Fund)`, value: f.projectId?.toString() || '' }))
+      ].filter((f: any) => f.value);
+      setFunds(combinedFunds);
     } catch (error) {
       console.error('Error fetching data:', error);
-      toast.error('Failed to load investors');
+      toast.error('Failed to load initial data');
     }
   };
+
+  useEffect(() => {
+    const fetchFundInvestors = async () => {
+      if (!selectedFundId || selectedFundId === 'all') {
+        setUsers(allUsers);
+        return;
+      }
+      try {
+        const data = await apiClient.getFundInvestors(selectedFundId);
+        const uniqueUsers = Array.from(new Map((data || []).map((u: any) => [u.id, u])).values());
+        setUsers(uniqueUsers);
+      } catch (error) {
+        console.error('Error fetching fund investors:', error);
+        toast.error('Failed to load investors for the selected fund');
+      }
+    };
+    fetchFundInvestors();
+  }, [selectedFundId, allUsers]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -203,6 +237,15 @@ export default function NewDocumentSignaturePage() {
               <p className="text-sm text-gray-500 mb-4">Choose the investors who need to sign this document.</p>
               
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Fund</label>
+                  <Combobox
+                    options={funds}
+                    value={selectedFundId}
+                    onChange={setSelectedFundId}
+                    placeholder="Select a fund..."
+                  />
+                </div>
                 <div className="relative mb-4">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input 
