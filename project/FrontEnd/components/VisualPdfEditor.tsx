@@ -42,7 +42,7 @@ interface VisualPdfEditorProps {
     amountY: number | null;
     placements: any[];
   }) => void;
-  templateType?: 'FUND_TO_FUND' | 'PERSON_TO_PERSON';
+  templateType?: 'FUND_TO_FUND' | 'PERSON_TO_PERSON' | 'GENERAL_DOCUMENT';
 }
 
 type FieldType = string;
