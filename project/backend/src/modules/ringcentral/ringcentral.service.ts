@@ -1,4 +1,5 @@
 import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { SDK } from '@ringcentral/sdk';
 import { ConfigService } from '@nestjs/config';
 import { db } from '../../config/database';
@@ -113,63 +114,67 @@ export class RingCentralService {
     }
   }
 
-  async getAndSaveCallTranscript(sessionId: string) {
+  async getAndSaveCallTranscript(sessionId: string, recordingId?: string) {
     try {
       const existing = await db.query(
         'SELECT transcription_text FROM ringcentral_call_transcripts WHERE session_id = $1',
         [sessionId]
       );
       if (existing.rows.length > 0) {
-        return { transcript: existing.rows[0].transcription_text };
+        const transcriptText = existing.rows[0].transcription_text;
+        if (transcriptText.startsWith('Transcription failed') || transcriptText.startsWith('Transcript unavailable')) {
+          // It's a cached error, delete it so we can retry
+          await db.query('DELETE FROM ringcentral_call_transcripts WHERE session_id = $1', [sessionId]);
+        } else {
+          return { transcript: transcriptText };
+        }
       }
 
-      const platform = this.rcsdk.platform();
-      if (!(await platform.loggedIn())) await this.getAccessToken();
+      if (!recordingId) {
+        return { transcript: 'No recording available for this call to transcribe.' };
+      }
 
       let transcript = '';
-      
+
       try {
-        // Attempt to fetch from RingCentral AI endpoint
-        const res = await platform.get(`/ai/ringsense/v1/public/accounts/~/domains/pbx/sessions/${sessionId}/insights?insightTypes=Transcript`);
-        const data: any = await res.json();
+        const audioBuffer = await this.downloadRecording(recordingId);
+        const base64Audio = audioBuffer.toString('base64');
         
-        let insightsSource: any = null;
-        if (data) {
-          if (Array.isArray(data) && data.length > 0) insightsSource = data[0].insights;
-          else if (data.records && Array.isArray(data.records) && data.records.length > 0) insightsSource = data.records[0].insights;
-          else if (data.insights) insightsSource = data.insights;
+        const geminiApiKey = this.configService.get<string>('Gemini_API_KEY');
+        if (!geminiApiKey) {
+          throw new Error('Gemini_API_KEY is not configured');
         }
+
+        const genAI = new GoogleGenerativeAI(geminiApiKey);
+        const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+
+        const prompt = "Please provide a highly accurate, verbatim transcript of this phone call. Distinguish between speakers using 'Speaker 1' and 'Speaker 2'. Do not include any other commentary.";
         
-        if (insightsSource) {
-           if (Array.isArray(insightsSource)) {
-             const transcriptInsight = insightsSource.find((i: any) => i.insightType === 'Transcript' || i.name === 'Transcript' || i.type === 'Transcript');
-             if (transcriptInsight && transcriptInsight.utterances) {
-                transcript = transcriptInsight.utterances.map((u: any) => `${u.speakerId || 'Speaker'}: ${u.text}`).join('\n');
-             }
-           } else if (insightsSource.Transcript && insightsSource.Transcript.utterances) {
-              transcript = insightsSource.Transcript.utterances.map((u: any) => `${u.speakerId || 'Speaker'}: ${u.text}`).join('\n');
-           }
-        }
+        const result = await model.generateContent([
+          {
+            inlineData: {
+              mimeType: 'audio/mp3',
+              data: base64Audio
+            }
+          },
+          prompt
+        ]);
         
-        if (!transcript) {
-           // Dump the shape of the data if we couldn't parse it
-           const rawData = JSON.stringify(data).substring(0, 200);
-           transcript = `AI Processing not complete or Transcript unavailable for Session ${sessionId}.\n\nRaw API Response: ${rawData}`;
-        }
+        transcript = result.response.text();
+
       } catch (e: any) {
-        let errMsg = e.message || 'Unknown error';
-        if (errMsg.includes('InsufficientPermissions') || errMsg.includes('403')) {
-          errMsg = 'RingSense permissions not enabled on your app, or AI add-on missing from your account.';
-        }
-        transcript = `Transcript unavailable natively.\nReason: ${errMsg}\n(Session: ${sessionId})`;
+        this.logger.error(`Error transcribing with Gemini: ${e.message}`, e.stack);
+        transcript = `Transcription failed.\nReason: ${e.message || 'Unknown error'}\n(Session: ${sessionId})`;
       }
 
-      await db.query(
-        `INSERT INTO ringcentral_call_transcripts (session_id, transcription_text) 
-         VALUES ($1, $2)
-         ON CONFLICT (session_id) DO UPDATE SET transcription_text = EXCLUDED.transcription_text`,
-        [sessionId, transcript]
-      );
+      if (!transcript.startsWith('Transcription failed')) {
+        await db.query(
+          `INSERT INTO ringcentral_call_transcripts (session_id, transcription_text) 
+           VALUES ($1, $2)
+           ON CONFLICT (session_id) DO UPDATE SET transcription_text = EXCLUDED.transcription_text`,
+          [sessionId, transcript]
+        );
+      }
 
       return { transcript };
     } catch (error: any) {

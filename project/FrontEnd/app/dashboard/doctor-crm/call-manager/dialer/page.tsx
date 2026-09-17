@@ -6,6 +6,7 @@ import { Phone, PhoneOff, Mic, MicOff, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
+import { API_URL } from '@/lib/api/client';
 
 let WebPhone: any;
 if (typeof window !== 'undefined') {
@@ -61,7 +62,7 @@ export default function RingCentralDialer() {
 
   const fetchCallLogs = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/ringcentral/call-logs');
+      const res = await fetch(`${API_URL}/ringcentral/call-logs`);
       if (res.ok) {
         const data = await res.json();
         setCallLogs(data.records || []);
@@ -71,10 +72,13 @@ export default function RingCentralDialer() {
     }
   };
 
-  const handleViewTranscript = async (sessionId: string) => {
+  const handleViewTranscript = async (sessionId: string, recordingId?: string) => {
     setLoadingTranscripts(prev => ({ ...prev, [sessionId]: true }));
     try {
-      const res = await fetch(`http://localhost:3001/api/ringcentral/transcript/${sessionId}`);
+      const url = recordingId 
+        ? `${API_URL}/ringcentral/transcript/${sessionId}?recordingId=${recordingId}`
+        : `${API_URL}/ringcentral/transcript/${sessionId}`;
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setTranscripts(prev => ({ ...prev, [sessionId]: data.transcript }));
@@ -89,13 +93,13 @@ export default function RingCentralDialer() {
   };
 
   const handleDownloadAudio = (recordingId: string) => {
-    window.open(`http://localhost:3001/api/ringcentral/recording/${recordingId}`, '_blank');
+    window.open(`${API_URL}/ringcentral/recording/${recordingId}`, '_blank');
   };
 
   const initRingCentral = async () => {
     try {
       // 1. Fetch SIP Provisioning from backend
-      const res = await fetch('http://localhost:3001/api/ringcentral/sip-provision', {
+      const res = await fetch(`${API_URL}/ringcentral/sip-provision`, {
         method: 'POST',
       });
       if (!res.ok) {
@@ -191,6 +195,8 @@ export default function RingCentralDialer() {
         handleCallEndCleanup();
         toast.success('Call ended');
       });
+
+
 
     } catch (error: any) {
       console.error('Dial error:', error);
@@ -394,7 +400,7 @@ export default function RingCentralDialer() {
                         </button>
                       )}
                       <button
-                        onClick={() => handleViewTranscript(log.sessionId)}
+                        onClick={() => handleViewTranscript(log.sessionId, log.recording?.id)}
                         disabled={loadingTranscripts[log.sessionId]}
                         className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium disabled:opacity-50"
                       >
