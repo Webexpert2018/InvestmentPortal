@@ -22,7 +22,12 @@ export default function RingCentralDialer() {
   const [isCalling, setIsCalling] = useState(false);
   const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'connected'>('idle');
   const [isMuted, setIsMuted] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
+
+  const [callLogs, setCallLogs] = useState<any[]>([]);
+  const [transcripts, setTranscripts] = useState<Record<string, string>>({});
+  const [loadingTranscripts, setLoadingTranscripts] = useState<Record<string, boolean>>({});
 
   const [rcStatus, setRcStatus] = useState('Initializing...');
   const webPhoneRef = useRef<any>(null);
@@ -42,6 +47,7 @@ export default function RingCentralDialer() {
 
   useEffect(() => {
     initRingCentral();
+    fetchCallLogs();
     
     // Cleanup on unmount
     return () => {
@@ -52,6 +58,39 @@ export default function RingCentralDialer() {
       }
     };
   }, []);
+
+  const fetchCallLogs = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/ringcentral/call-logs');
+      if (res.ok) {
+        const data = await res.json();
+        setCallLogs(data.records || []);
+      }
+    } catch (e) {
+      console.error('Failed to fetch call logs', e);
+    }
+  };
+
+  const handleViewTranscript = async (sessionId: string) => {
+    setLoadingTranscripts(prev => ({ ...prev, [sessionId]: true }));
+    try {
+      const res = await fetch(`http://localhost:3001/api/ringcentral/transcript/${sessionId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setTranscripts(prev => ({ ...prev, [sessionId]: data.transcript }));
+      } else {
+        toast.error('Failed to load transcript');
+      }
+    } catch (e) {
+      toast.error('Error fetching transcript');
+    } finally {
+      setLoadingTranscripts(prev => ({ ...prev, [sessionId]: false }));
+    }
+  };
+
+  const handleDownloadAudio = (recordingId: string) => {
+    window.open(`http://localhost:3001/api/ringcentral/recording/${recordingId}`, '_blank');
+  };
 
   const initRingCentral = async () => {
     try {
@@ -105,9 +144,13 @@ export default function RingCentralDialer() {
     setCallStatus('idle');
     setCallDuration(0);
     setIsMuted(false);
+    setIsRecording(false);
     activeSessionRef.current = null;
     if (audioRemoteRef.current) audioRemoteRef.current.srcObject = null;
     if (audioLocalRef.current) audioLocalRef.current.srcObject = null;
+    
+    // Fetch logs again after a short delay to allow RingCentral to process it
+    setTimeout(fetchCallLogs, 5000);
   };
 
   const handleCall = async () => {
@@ -179,6 +222,25 @@ export default function RingCentralDialer() {
         }
       } catch(e) {
         console.error("Mute toggle failed", e);
+      }
+    }
+  };
+
+  const handleToggleRecord = async () => {
+    if (activeSessionRef.current) {
+      try {
+        if (isRecording) {
+          await activeSessionRef.current.stopRecording();
+          setIsRecording(false);
+          toast.info('Recording stopped');
+        } else {
+          await activeSessionRef.current.startRecording();
+          setIsRecording(true);
+          toast.success('Recording started');
+        }
+      } catch (e: any) {
+        console.error("Record toggle failed", e);
+        toast.error('Failed to start recording. Ensure On-Demand Recording is enabled in your RingCentral account.');
       }
     }
   };
@@ -259,14 +321,27 @@ export default function RingCentralDialer() {
 
               <div className="flex items-center gap-6">
                 {isCalling && callStatus === 'connected' && (
-                  <button
-                    onClick={handleToggleMute}
-                    className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
-                      isMuted ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-                  </button>
+                  <>
+                    <button
+                      onClick={handleToggleMute}
+                      className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+                        isMuted ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                      title={isMuted ? "Unmute" : "Mute"}
+                    >
+                      {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+                    </button>
+
+                    <button
+                      onClick={handleToggleRecord}
+                      className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+                        isRecording ? 'bg-red-600 text-white animate-pulse shadow-lg shadow-red-500/50' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                      title={isRecording ? "Stop Recording" : "Start Recording"}
+                    >
+                      <div className={`w-4 h-4 rounded-full ${isRecording ? 'bg-white' : 'bg-red-500'}`}></div>
+                    </button>
+                  </>
                 )}
 
                 {!isCalling ? (
@@ -289,6 +364,57 @@ export default function RingCentralDialer() {
             </div>
           </div>
         </div>
+
+        {/* Call Logs Section */}
+        <div className="mt-8 bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden p-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Call Logs</h2>
+          {callLogs.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">No recent calls found.</p>
+          ) : (
+            <div className="space-y-4">
+              {callLogs.map((log) => (
+                <div key={log.id} className="border border-gray-200 rounded-xl p-5 hover:border-blue-300 transition-colors">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        {log.direction === 'Outbound' ? 'To: ' : 'From: '} 
+                        {log.to?.phoneNumber || log.from?.phoneNumber || 'Unknown'}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {new Date(log.startTime).toLocaleString()} • {formatDuration(log.duration || 0)}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      {log.recording && (
+                        <button
+                          onClick={() => handleDownloadAudio(log.recording.id)}
+                          className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 font-medium flex items-center gap-2"
+                        >
+                          Fetch Audio File
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleViewTranscript(log.sessionId)}
+                        disabled={loadingTranscripts[log.sessionId]}
+                        className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium disabled:opacity-50"
+                      >
+                        {loadingTranscripts[log.sessionId] ? 'Loading...' : transcripts[log.sessionId] ? 'Refresh Transcript' : 'View Transcript'}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {transcripts[log.sessionId] && (
+                    <div className="mt-4 p-4 bg-blue-50/50 border border-blue-100 rounded-lg text-sm text-gray-700 whitespace-pre-wrap">
+                      <span className="font-semibold text-gray-900 block mb-2">Transcript:</span>
+                      {transcripts[log.sessionId]}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </DashboardLayout>
   );
