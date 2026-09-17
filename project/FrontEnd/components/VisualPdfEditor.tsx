@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { FileText, Type, DollarSign, Calendar, Edit3, Trash2, ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
+import { FileText, Type, DollarSign, Calendar, Edit3, Trash2, ChevronLeft, ChevronRight, HelpCircle, CheckSquare } from 'lucide-react';
 import { Button } from './ui/button';
 
 declare global {
@@ -443,6 +443,7 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
       { type: 'signature', label: 'Signature Block', icon: Edit3, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
       { type: 'name', label: 'Investor Name', icon: Type, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
       { type: 'date', label: 'Date Signed', icon: Calendar, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
+      { type: 'checkbox', label: 'Checkbox (Optional)', icon: CheckSquare, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
     ];
 
   return (
@@ -619,7 +620,8 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
                 const shortLabel = placement.type === 'signature' ? 'Sig' :
                   placement.type === 'name' ? 'Name' :
                     placement.type === 'date' ? 'Date' :
-                      placement.type === 'amount' ? 'Amt' : tool.label;
+                      placement.type === 'amount' ? 'Amt' : 
+                        placement.type === 'checkbox' ? 'Check' : tool.label;
 
                 return (
                   <div

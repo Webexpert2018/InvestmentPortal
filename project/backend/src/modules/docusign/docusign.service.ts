@@ -1057,6 +1057,7 @@ export class DocusignService {
     const signHereTabs: any[] = [];
     const textTabs: any[] = [];
     const dateSignedTabs: any[] = [];
+    const checkboxTabs: any[] = [];
 
     if (placements && Array.isArray(placements) && placements.length > 0) {
       placements.forEach((placement: any, idx: number) => {
@@ -1103,6 +1104,20 @@ export class DocusignService {
           dateTab.documentId = '1';
           dateTab.recipientId = '1';
           dateSignedTabs.push(dateTab);
+        } else if (placement.type === 'checkbox') {
+          const checkboxTab = new ds.Checkbox();
+          checkboxTab.pageNumber = pageStr;
+          const adjustedX = Math.max(0, Math.round((placement.xPercent / 100) * width) - 10);
+          const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
+          checkboxTab.xPosition = adjustedX.toString();
+          checkboxTab.yPosition = adjustedY.toString();
+          checkboxTab.tabLabel = `Checkbox_${idx + 1}`;
+          checkboxTab.documentId = '1';
+          checkboxTab.recipientId = '1';
+          checkboxTab.selected = 'false';
+          // Make it optional so the user is not forced to check it
+          checkboxTab.required = 'false';
+          checkboxTabs.push(checkboxTab);
         }
       });
     } else {
@@ -1119,6 +1134,7 @@ export class DocusignService {
     tabs.signHereTabs = signHereTabs;
     tabs.textTabs = textTabs;
     tabs.dateSignedTabs = dateSignedTabs;
+    tabs.checkboxTabs = checkboxTabs;
 
     const signer = new ds.Signer();
     signer.email = signerEmail;
