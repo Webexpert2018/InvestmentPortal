@@ -32,6 +32,7 @@ import { WebinarCampaignModule } from './modules/webinar-campaign/webinar-campai
 import { FundTransfersModule } from './modules/fund-transfers/fund-transfers.module';
 import { RingCentralModule } from './modules/ringcentral/ringcentral.module';
 import { DocumentSignaturesModule } from './modules/document-signatures/document-signatures.module';
+import { TwilioModule } from './modules/twilio/twilio.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { DocumentSignaturesModule } from './modules/document-signatures/document
     FundTransfersModule,
     RingCentralModule,
     DocumentSignaturesModule,
+    TwilioModule,
   ],
   controllers: [HealthController],
 })

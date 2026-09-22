@@ -7,14 +7,12 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { API_URL } from '@/lib/api/client';
+import { io } from 'socket.io-client';
+import { Device } from '@twilio/voice-sdk';
 
-let WebPhone: any;
-if (typeof window !== 'undefined') {
-  const rcwp = require('ringcentral-web-phone');
-  WebPhone = rcwp.default || rcwp.WebPhone || rcwp;
-}
+const BASE_URL = API_URL.replace('/api', '');
 
-export default function RingCentralDialer() {
+export default function TwilioDialer() {
   const searchParams = useSearchParams();
   const phoneParam = searchParams.get('phone') || '';
   const nameParam = searchParams.get('name') || 'Unknown Contact';
@@ -23,18 +21,15 @@ export default function RingCentralDialer() {
   const [isCalling, setIsCalling] = useState(false);
   const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'connected'>('idle');
   const [isMuted, setIsMuted] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
 
-  const [callLogs, setCallLogs] = useState<any[]>([]);
-  const [transcripts, setTranscripts] = useState<Record<string, string>>({});
-  const [loadingTranscripts, setLoadingTranscripts] = useState<Record<string, boolean>>({});
+  const [twilioStatus, setTwilioStatus] = useState('Initializing...');
+  const [liveTranscript, setLiveTranscript] = useState('');
+  const [partialTranscript, setPartialTranscript] = useState('');
 
-  const [rcStatus, setRcStatus] = useState('Initializing...');
-  const webPhoneRef = useRef<any>(null);
-  const activeSessionRef = useRef<any>(null);
-  const audioRemoteRef = useRef<HTMLAudioElement | null>(null);
-  const audioLocalRef = useRef<HTMLAudioElement | null>(null);
+  const twilioDeviceRef = useRef<Device | null>(null);
+  const activeCallRef = useRef<any>(null);
+  const socketRef = useRef<any>(null);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -47,99 +42,52 @@ export default function RingCentralDialer() {
   }, [callStatus]);
 
   useEffect(() => {
-    initRingCentral();
-    fetchCallLogs();
-    
-    // Cleanup on unmount
     return () => {
-      if (webPhoneRef.current) {
-        try {
-          webPhoneRef.current.dispose();
-        } catch(e) {}
+      if (twilioDeviceRef.current) {
+        twilioDeviceRef.current.destroy();
+      }
+      if (socketRef.current) {
+        socketRef.current.disconnect();
       }
     };
   }, []);
 
-  const fetchCallLogs = async () => {
+  const initTwilio = async (): Promise<boolean> => {
     try {
-      const res = await fetch(`${API_URL}/ringcentral/call-logs`);
-      if (res.ok) {
-        const data = await res.json();
-        setCallLogs(data.records || []);
-      }
-    } catch (e) {
-      console.error('Failed to fetch call logs', e);
-    }
-  };
-
-  const handleViewTranscript = async (sessionId: string, recordingId?: string) => {
-    setLoadingTranscripts(prev => ({ ...prev, [sessionId]: true }));
-    try {
-      const url = recordingId 
-        ? `${API_URL}/ringcentral/transcript/${sessionId}?recordingId=${recordingId}`
-        : `${API_URL}/ringcentral/transcript/${sessionId}`;
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        setTranscripts(prev => ({ ...prev, [sessionId]: data.transcript }));
-      } else {
-        toast.error('Failed to load transcript');
-      }
-    } catch (e) {
-      toast.error('Error fetching transcript');
-    } finally {
-      setLoadingTranscripts(prev => ({ ...prev, [sessionId]: false }));
-    }
-  };
-
-  const handleDownloadAudio = (recordingId: string) => {
-    window.open(`${API_URL}/ringcentral/recording/${recordingId}`, '_blank');
-  };
-
-  const initRingCentral = async () => {
-    try {
-      // 1. Fetch SIP Provisioning from backend
-      const res = await fetch(`${API_URL}/ringcentral/sip-provision`, {
-        method: 'POST',
-      });
-      if (!res.ok) {
-        let errText = 'Failed to get SIP provisioning from backend';
-        try {
-          const errData = await res.text();
-          errText = `Backend error: ${res.status} - ${errData}`;
-        } catch(e) {}
-        throw new Error(errText);
-      }
+      setTwilioStatus('Fetching Token...');
+      const res = await fetch(`${BASE_URL}/twilio/token?identity=frontend_user`);
+      if (!res.ok) throw new Error('Failed to fetch Twilio token');
       const data = await res.json();
-      
-      if (!WebPhone) {
-        throw new Error('WebPhone library not loaded');
-      }
 
-      // The backend returns { sipInfo: [{...}] }
-      const sipInfo = data.sipInfo ? data.sipInfo[0] : data;
+      const device = new Device(data.token);
 
-      // 2. Initialize WebPhone (v2.x API)
-      const webPhone = new WebPhone({ sipInfo, debug: true });
-      webPhoneRef.current = webPhone;
-
-      // In v2.x, we must call start() explicitly
-      await webPhone.start();
-
-      setRcStatus('Ready');
-      toast.success('RingCentral connected!');
-
-      // Handle inbound calls (auto-reject for this dialer mock)
-      webPhone.on("inboundCall", (inboundCallSession: any) => {
-        try {
-          inboundCallSession.decline();
-        } catch (e) {}
+      device.on('ready', () => {
+        setTwilioStatus('Ready');
+        toast.success('Twilio Connected!');
       });
 
-    } catch (error: any) {
-      console.error('RingCentral init error:', error);
-      setRcStatus('Failed to Init');
-      toast.error(`Could not initialize RingCentral: ${error.message || 'Unknown error'}`);
+      device.on('error', (error) => {
+        console.error('Twilio Error:', error);
+        toast.error(`Twilio Error: ${error.message}`);
+      });
+
+      await device.register();
+      twilioDeviceRef.current = device;
+
+      // Setup Socket.IO for Live Transcripts from Twilio Native Transcription
+      socketRef.current = io(BASE_URL);
+      socketRef.current.on('twilio_transcript', (payload: { callSid: string; text: string; track: string }) => {
+        if (payload.text) {
+          setLiveTranscript((prev) => prev + (prev ? ' ' : '') + payload.text);
+        }
+      });
+      return true;
+
+    } catch (err: any) {
+      console.error('Twilio init failed:', err);
+      setTwilioStatus('Error');
+      toast.error('Failed to initialize Twilio');
+      return false;
     }
   };
 
@@ -148,13 +96,7 @@ export default function RingCentralDialer() {
     setCallStatus('idle');
     setCallDuration(0);
     setIsMuted(false);
-    setIsRecording(false);
-    activeSessionRef.current = null;
-    if (audioRemoteRef.current) audioRemoteRef.current.srcObject = null;
-    if (audioLocalRef.current) audioLocalRef.current.srcObject = null;
-    
-    // Fetch logs again after a short delay to allow RingCentral to process it
-    setTimeout(fetchCallLogs, 5000);
+    activeCallRef.current = null;
   };
 
   const handleCall = async () => {
@@ -162,42 +104,53 @@ export default function RingCentralDialer() {
       toast.error('Please enter a phone number');
       return;
     }
-    if (rcStatus !== 'Ready' || !webPhoneRef.current) {
-      toast.error('RingCentral SDK is not ready...');
+
+    if (!twilioDeviceRef.current) {
+      const success = await initTwilio();
+      if (!success) return;
+    }
+
+    if (twilioStatus !== 'Ready' && !twilioDeviceRef.current) {
+      toast.error('Twilio is not ready...');
       return;
     }
 
     setIsCalling(true);
     setCallStatus('connecting');
+    setLiveTranscript('');
+    setPartialTranscript('');
     toast.info(`Dialing ${phoneNumber}...`);
 
     try {
-      // Start the call (v2.x API)
-      const callSession = await webPhoneRef.current.call(phoneNumber);
-      activeSessionRef.current = callSession;
-      
-      setCallStatus('connected');
-      toast.success('Call connected!');
-      
-      const bindMedia = (stream: any) => {
-        if (stream && audioRemoteRef.current) {
-          audioRemoteRef.current.srcObject = stream;
-        }
-      };
+      const call = await twilioDeviceRef.current.connect({
+        params: { To: phoneNumber },
+      });
+      activeCallRef.current = call;
 
-      if (callSession.mediaStream) {
-        bindMedia(callSession.mediaStream);
-      } else {
-        callSession.on('mediaStreamSet', bindMedia);
-      }
-      
-      callSession.once('disposed', () => {
+      call.on('accept', () => {
+        setCallStatus('connected');
+        toast.success('Call connected!');
+      });
+
+      call.on('disconnect', () => {
         handleCallEndCleanup();
         toast.success('Call ended');
       });
 
+      call.on('cancel', () => {
+        handleCallEndCleanup();
+      });
 
+      call.on('reject', () => {
+        handleCallEndCleanup();
+        toast.error('Call rejected');
+      });
 
+      call.on('error', (error) => {
+        console.error('Call error:', error);
+        toast.error('Call failed');
+        handleCallEndCleanup();
+      });
     } catch (error: any) {
       console.error('Dial error:', error);
       toast.error('Failed to dial number');
@@ -206,9 +159,9 @@ export default function RingCentralDialer() {
   };
 
   const handleEndCall = async () => {
-    if (activeSessionRef.current) {
+    if (activeCallRef.current) {
       try {
-        await activeSessionRef.current.hangup();
+        activeCallRef.current.disconnect();
       } catch (e) {
         console.error('Error ending call', e);
       }
@@ -216,38 +169,11 @@ export default function RingCentralDialer() {
     handleCallEndCleanup();
   };
 
-  const handleToggleMute = async () => {
-    if (activeSessionRef.current) {
-      try {
-        if (isMuted) {
-          await activeSessionRef.current.unmute();
-          setIsMuted(false);
-        } else {
-          await activeSessionRef.current.mute();
-          setIsMuted(true);
-        }
-      } catch(e) {
-        console.error("Mute toggle failed", e);
-      }
-    }
-  };
-
-  const handleToggleRecord = async () => {
-    if (activeSessionRef.current) {
-      try {
-        if (isRecording) {
-          await activeSessionRef.current.stopRecording();
-          setIsRecording(false);
-          toast.info('Recording stopped');
-        } else {
-          await activeSessionRef.current.startRecording();
-          setIsRecording(true);
-          toast.success('Recording started');
-        }
-      } catch (e: any) {
-        console.error("Record toggle failed", e);
-        toast.error('Failed to start recording. Ensure On-Demand Recording is enabled in your RingCentral account.');
-      }
+  const handleToggleMute = () => {
+    if (activeCallRef.current) {
+      const isCurrentlyMuted = activeCallRef.current.isMuted();
+      activeCallRef.current.mute(!isCurrentlyMuted);
+      setIsMuted(!isCurrentlyMuted);
     }
   };
 
@@ -260,11 +186,6 @@ export default function RingCentralDialer() {
   return (
     <DashboardLayout>
       <div className="w-full max-w-2xl mx-auto py-8">
-        
-        {/* Hidden Audio Elements required for WebRTC Web Phone */}
-        <audio ref={audioRemoteRef} id="remoteAudio" autoPlay />
-        <audio ref={audioLocalRef} id="localAudio" autoPlay muted />
-
         <Link
           href="/dashboard/doctor-crm/call-manager"
           className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors"
@@ -275,20 +196,21 @@ export default function RingCentralDialer() {
 
         <div className="bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center text-white relative">
-            <h1 className="text-2xl font-bold mb-2">RingCentral Web Phone</h1>
-            <p className="text-blue-100 text-sm opacity-90">Real-time WebRTC Dialer</p>
-            
+            <h1 className="text-2xl font-bold mb-2">Twilio Web Phone</h1>
+            <p className="text-blue-100 text-sm opacity-90">Real-time Dialer & Live Transcription</p>
+
             <div className="absolute top-4 right-4 flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${rcStatus === 'Ready' ? 'bg-green-400' : rcStatus.includes('Fail') || rcStatus === 'Error' ? 'bg-red-400' : 'bg-yellow-400'}`}></span>
-              <span className="text-xs text-white/80">{rcStatus}</span>
+              <span
+                className={`w-2 h-2 rounded-full ${twilioStatus === 'Ready' ? 'bg-green-400' : twilioStatus === 'Error' ? 'bg-red-400' : 'bg-yellow-400'
+                  }`}
+              ></span>
+              <span className="text-xs text-white/80">{twilioStatus}</span>
             </div>
           </div>
 
           <div className="p-8">
             <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Recipient Name
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Recipient Name</label>
               <input
                 type="text"
                 value={nameParam}
@@ -298,9 +220,7 @@ export default function RingCentralDialer() {
             </div>
 
             <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
               <input
                 type="tel"
                 value={phoneNumber}
@@ -330,22 +250,11 @@ export default function RingCentralDialer() {
                   <>
                     <button
                       onClick={handleToggleMute}
-                      className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
-                        isMuted ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                      title={isMuted ? "Unmute" : "Mute"}
+                      className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      title={isMuted ? 'Unmute' : 'Mute'}
                     >
                       {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-                    </button>
-
-                    <button
-                      onClick={handleToggleRecord}
-                      className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
-                        isRecording ? 'bg-red-600 text-white animate-pulse shadow-lg shadow-red-500/50' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                      title={isRecording ? "Stop Recording" : "Start Recording"}
-                    >
-                      <div className={`w-4 h-4 rounded-full ${isRecording ? 'bg-white' : 'bg-red-500'}`}></div>
                     </button>
                   </>
                 )}
@@ -353,10 +262,10 @@ export default function RingCentralDialer() {
                 {!isCalling ? (
                   <button
                     onClick={handleCall}
-                    disabled={rcStatus !== 'Ready' || !phoneNumber}
+                    disabled={!phoneNumber}
                     className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow-lg shadow-green-500/30 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
-                    <Phone className="w-8 h-8 fill-current" />
+                    <Phone className="w-8 h-8" />
                   </button>
                 ) : (
                   <button
@@ -368,60 +277,44 @@ export default function RingCentralDialer() {
                 )}
               </div>
             </div>
+
+            {/* Live Transcript Area */}
+            {(liveTranscript || partialTranscript) && (
+              <div className="mt-8 border-t border-gray-100 pt-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    Live Twilio Transcription
+                  </h3>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 min-h-[100px] border border-gray-200">
+                  <p className="text-gray-800 leading-relaxed font-medium">
+                    {liveTranscript}
+                    {partialTranscript && (
+                      <span className="text-gray-400 italic"> {partialTranscript}</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Call Logs Section */}
-        <div className="mt-8 bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden p-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Call Logs</h2>
-          {callLogs.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">No recent calls found.</p>
-          ) : (
-            <div className="space-y-4">
-              {callLogs.map((log) => (
-                <div key={log.id} className="border border-gray-200 rounded-xl p-5 hover:border-blue-300 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        {log.direction === 'Outbound' ? 'To: ' : 'From: '} 
-                        {log.to?.phoneNumber || log.from?.phoneNumber || 'Unknown'}
-                      </p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {new Date(log.startTime).toLocaleString()} • {formatDuration(log.duration || 0)}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      {log.recording && (
-                        <button
-                          onClick={() => handleDownloadAudio(log.recording.id)}
-                          className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 font-medium flex items-center gap-2"
-                        >
-                          Fetch Audio File
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleViewTranscript(log.sessionId, log.recording?.id)}
-                        disabled={loadingTranscripts[log.sessionId]}
-                        className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium disabled:opacity-50"
-                      >
-                        {loadingTranscripts[log.sessionId] ? 'Loading...' : transcripts[log.sessionId] ? 'Refresh Transcript' : 'View Transcript'}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {transcripts[log.sessionId] && (
-                    <div className="mt-4 p-4 bg-blue-50/50 border border-blue-100 rounded-lg text-sm text-gray-700 whitespace-pre-wrap">
-                      <span className="font-semibold text-gray-900 block mb-2">Transcript:</span>
-                      {transcripts[log.sessionId]}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
       </div>
     </DashboardLayout>
   );
 }
+
+/*
+=============================================================================
+                          RINGCENTRAL ARCHIVE
+=============================================================================
+This code remains unused as requested by the user, preserved for reference.
+
+// let WebPhone: any;
+// if (typeof window !== 'undefined') {
+//   const rcwp = require('ringcentral-web-phone');
+//   WebPhone = rcwp.default || rcwp.WebPhone || rcwp;
+// }
+// 
+// ... original initRingCentral, handleCall, and web audio hacks ...
+*/

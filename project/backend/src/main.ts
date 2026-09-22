@@ -114,6 +114,10 @@ async function bootstrap() {
         }),
       );
 
+      // Enable URL-encoded parsing for Twilio webhooks
+      const express = require('express');
+      app.use(express.urlencoded({ extended: true }));
+
       const config = new DocumentBuilder()
         .setTitle('Investment Portal API')
         .setDescription('API Documentation for Investment Portal')

@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { SDK } from '@ringcentral/sdk';
 import { ConfigService } from '@nestjs/config';
 import { db } from '../../config/database';
+
 @Injectable()
 export class RingCentralService {
   private readonly logger = new Logger(RingCentralService.name);
@@ -11,9 +12,9 @@ export class RingCentralService {
   constructor(private configService: ConfigService) {
     const clientId = this.configService.get<string>('RINGCENTRAL_CLIENT_ID');
     const clientSecret = this.configService.get<string>('RINGCENTRAL_CLIENT_SECRET');
-    // Using production server URL for RingCentral since JWT is likely for production. 
+    // Using production server URL for RingCentral since JWT is likely for production.
     // If it's a dev JWT, it will throw an error, but let's try production first.
-    const serverUrl = 'https://platform.ringcentral.com'; 
+    const serverUrl = 'https://platform.ringcentral.com';
 
     this.rcsdk = new SDK({
       server: serverUrl,
@@ -30,7 +31,7 @@ export class RingCentralService {
       }
 
       const platform = this.rcsdk.platform();
-      
+
       // If already logged in and token is valid, just return it
       if (await platform.loggedIn()) {
         const authData: any = await platform.auth().data();
@@ -52,12 +53,12 @@ export class RingCentralService {
       };
     } catch (error: any) {
       this.logger.error(`Error authenticating with RingCentral: ${error.message}`, error.stack);
-      
+
       // Fallback: Check if they provided devtest JWT instead of prod
       if (error.message.includes('OAU-105') || error.message.includes('unauthorized_client')) {
-        this.logger.error("Possible mismatch between JWT environment and Server URL.");
+        this.logger.error('Possible mismatch between JWT environment and Server URL.');
       }
-      
+
       throw new InternalServerErrorException('Failed to authenticate with RingCentral');
     }
   }
@@ -72,7 +73,7 @@ export class RingCentralService {
 
       // Get SIP provisioning info for the web phone
       const res = await platform.post('/restapi/v1.0/client-info/sip-provision', {
-        sipInfo: [{ transport: 'WSS' }]
+        sipInfo: [{ transport: 'WSS' }],
       });
       return await res.json();
     } catch (error: any) {
@@ -88,11 +89,11 @@ export class RingCentralService {
 
       const dateFrom = new Date();
       dateFrom.setDate(dateFrom.getDate() - 7);
-      
+
       const res = await platform.get('/restapi/v1.0/account/~/extension/~/call-log', {
         dateFrom: dateFrom.toISOString(),
         view: 'Detailed',
-        perPage: 20
+        perPage: 20,
       });
       return await res.json();
     } catch (error: any) {
@@ -114,15 +115,24 @@ export class RingCentralService {
     }
   }
 
+  /**
+   * Post-call transcription: downloads the finished recording and sends it
+   * to Gemini in one shot. This is separate from live transcription, which
+   * now runs through RealtimeTranscriptionService (gpt-live-transcribe) via
+   * the RingCentralGateway — this method is unaffected by that change.
+   */
   async getAndSaveCallTranscript(sessionId: string, recordingId?: string) {
     try {
       const existing = await db.query(
         'SELECT transcription_text FROM ringcentral_call_transcripts WHERE session_id = $1',
-        [sessionId]
+        [sessionId],
       );
       if (existing.rows.length > 0) {
         const transcriptText = existing.rows[0].transcription_text;
-        if (transcriptText.startsWith('Transcription failed') || transcriptText.startsWith('Transcript unavailable')) {
+        if (
+          transcriptText.startsWith('Transcription failed') ||
+          transcriptText.startsWith('Transcript unavailable')
+        ) {
           // It's a cached error, delete it so we can retry
           await db.query('DELETE FROM ringcentral_call_transcripts WHERE session_id = $1', [sessionId]);
         } else {
@@ -139,7 +149,7 @@ export class RingCentralService {
       try {
         const audioBuffer = await this.downloadRecording(recordingId);
         const base64Audio = audioBuffer.toString('base64');
-        
+
         const geminiApiKey = this.configService.get<string>('Gemini_API_KEY');
         if (!geminiApiKey) {
           throw new Error('Gemini_API_KEY is not configured');
@@ -148,20 +158,20 @@ export class RingCentralService {
         const genAI = new GoogleGenerativeAI(geminiApiKey);
         const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
 
-        const prompt = "Please provide a highly accurate, verbatim transcript of this phone call. Distinguish between speakers using 'Speaker 1' and 'Speaker 2'. Do not include any other commentary.";
-        
+        const prompt =
+          "Please provide a highly accurate, verbatim transcript of this phone call. Distinguish between speakers using 'Speaker 1' and 'Speaker 2'. Do not include any other commentary.";
+
         const result = await model.generateContent([
           {
             inlineData: {
               mimeType: 'audio/mp3',
-              data: base64Audio
-            }
+              data: base64Audio,
+            },
           },
-          prompt
+          prompt,
         ]);
-        
-        transcript = result.response.text();
 
+        transcript = result.response.text();
       } catch (e: any) {
         this.logger.error(`Error transcribing with Gemini: ${e.message}`, e.stack);
         transcript = `Transcription failed.\nReason: ${e.message || 'Unknown error'}\n(Session: ${sessionId})`;
@@ -169,10 +179,10 @@ export class RingCentralService {
 
       if (!transcript.startsWith('Transcription failed')) {
         await db.query(
-          `INSERT INTO ringcentral_call_transcripts (session_id, transcription_text) 
+          `INSERT INTO ringcentral_call_transcripts (session_id, transcription_text)
            VALUES ($1, $2)
            ON CONFLICT (session_id) DO UPDATE SET transcription_text = EXCLUDED.transcription_text`,
-          [sessionId, transcript]
+          [sessionId, transcript],
         );
       }
 
