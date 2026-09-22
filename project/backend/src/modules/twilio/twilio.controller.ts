@@ -9,7 +9,7 @@ export class TwilioController {
   constructor(
     private readonly twilioService: TwilioService,
     private readonly twilioGateway: TwilioGateway,
-  ) {}
+  ) { }
 
   @Get('token')
   getToken(@Req() req: Request) {
@@ -29,14 +29,14 @@ export class TwilioController {
 
     // Start real-time transcription
     const start = response.start();
-    const transcription = start.transcription({
+    start.transcription({
       name: 'live_transcription',
       track: 'both_tracks',
       statusCallbackUrl: `${reqProtocol(req)}/twilio/transcription-callback`,
     });
 
     const dial = response.dial({ callerId: from });
-    
+
     // Twilio Voice SDK formats 'To' as 'client:name' or real phone number
     if (to) {
       const isClient = /^client:/.test(to);
@@ -53,20 +53,42 @@ export class TwilioController {
     res.send(response.toString());
   }
 
+  // @Post('transcription-callback')
+  // async handleTranscriptionCallback(@Body() body: any, @Res() res: Response) {
+  //   if (body.TranscriptionEvent === 'transcription-started') {
+  //     console.log('TRANSCRIPTION STARTED for CallSid:', body.CallSid);
+  //   } else if (body.TranscriptionEvent === 'transcription-error') {
+  //     console.error('TRANSCRIPTION ERROR:', body);
+  //   } else if (body.TranscriptionEvent === 'transcription-content') {
+  //     console.log('TRANSCRIPTION CONTENT:', body.TranscriptionData);
+  //     const parsedData = body.TranscriptionData ? JSON.parse(body.TranscriptionData) : null;
+  //     const text = parsedData ? parsedData.transcript : '';
+  //     const track = body.Track || 'unknown';
+  //     const callSid = body.CallSid;
+
+  //     if (text) {
+  //       // Emit via Socket.IO to the frontend
+  //       this.twilioGateway.broadcastTranscription(callSid, text, track);
+  //     }
+  //   }
+
+  //   res.status(200).send('OK');
+  // }
   @Post('transcription-callback')
   async handleTranscriptionCallback(@Body() body: any, @Res() res: Response) {
-    // Twilio sends TranscriptionEvent data here
-    if (body.TranscriptionEvent === 'transcription-content') {
-      const text = body.TranscriptionData ? JSON.parse(body.TranscriptionData).transcript : '';
-      const track = body.Track; // 'inbound' or 'outbound'
+    if (body.TranscriptionEvent === 'transcription-error') {
+      console.error('TRANSCRIPTION ERROR:', body.Track, body);
+    } else if (body.TranscriptionEvent === 'transcription-content') {
+      const parsedData = body.TranscriptionData ? JSON.parse(body.TranscriptionData) : null;
+      const text = parsedData ? parsedData.transcript : '';
+      const track = body.Track || 'unknown';
       const callSid = body.CallSid;
-      
+
       if (text) {
-        // Emit via Socket.IO to the frontend
         this.twilioGateway.broadcastTranscription(callSid, text, track);
       }
     }
-    
+
     res.status(200).send('OK');
   }
 }

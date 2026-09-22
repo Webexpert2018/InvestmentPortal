@@ -45,6 +45,7 @@ export default function TwilioDialer() {
     return () => {
       if (twilioDeviceRef.current) {
         twilioDeviceRef.current.destroy();
+        twilioDeviceRef.current = null;
       }
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -78,7 +79,10 @@ export default function TwilioDialer() {
       socketRef.current = io(BASE_URL);
       socketRef.current.on('twilio_transcript', (payload: { callSid: string; text: string; track: string }) => {
         if (payload.text) {
-          setLiveTranscript((prev) => prev + (prev ? ' ' : '') + payload.text);
+          const trackLower = payload.track.toLowerCase();
+          const isInbound = trackLower === 'inbound' || trackLower === 'inbound_track';
+          const speaker = isInbound ? 'Me: ' : 'Them: ';
+          setLiveTranscript((prev) => prev + (prev ? '\n' : '') + speaker + payload.text);
         }
       });
       return true;
@@ -122,8 +126,15 @@ export default function TwilioDialer() {
     toast.info(`Dialing ${phoneNumber}...`);
 
     try {
-      const call = await twilioDeviceRef.current.connect({
+      const call = await twilioDeviceRef.current!.connect({
         params: { To: phoneNumber },
+        rtcConstraints: {
+          audio: {
+            autoGainControl: true,
+            echoCancellation: true,
+            noiseSuppression: false,
+          }
+        }
       });
       activeCallRef.current = call;
 
@@ -287,13 +298,11 @@ export default function TwilioDialer() {
                     Live Twilio Transcription
                   </h3>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4 min-h-[100px] border border-gray-200">
-                  <p className="text-gray-800 leading-relaxed font-medium">
-                    {liveTranscript}
-                    {partialTranscript && (
-                      <span className="text-gray-400 italic"> {partialTranscript}</span>
-                    )}
-                  </p>
+                <div className="bg-gray-50 rounded-xl p-4 min-h-[100px] border border-gray-200 whitespace-pre-wrap font-mono text-sm">
+                  {liveTranscript}
+                  {partialTranscript && (
+                    <span className="text-gray-400 opacity-70"> {partialTranscript}</span>
+                  )}
                 </div>
               </div>
             )}
