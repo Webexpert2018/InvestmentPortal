@@ -27,6 +27,14 @@ import {
   Trash2,
   PhoneCall
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { apiClient } from '@/lib/api/client';
@@ -156,6 +164,11 @@ export default function DoctorProfilePage() {
   const [newNote, setNewNote] = useState('');
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [loadingNotes, setLoadingNotes] = useState(false);
+
+  // Athena Modification State
+  const [isAthenaModalOpen, setIsAthenaModalOpen] = useState(false);
+  const [athenaPrompt, setAthenaPrompt] = useState('');
+  const [isModifying, setIsModifying] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -302,6 +315,46 @@ export default function DoctorProfilePage() {
       toast.error(err.message || 'Error generating AI sequence');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleModifySequence = async () => {
+    if (!doctor || !athenaPrompt.trim()) return;
+    
+    const activeEmail = sequenceData?.sequence?.find((s: any) => s && s.day === activeDay);
+    if (!activeEmail) return;
+
+    setIsModifying(true);
+    try {
+      const res = await apiClient.modifyWebinarSequence(
+        doctor.id,
+        activeDay,
+        athenaPrompt,
+        activeEmail.subject,
+        activeEmail.body,
+        activeEmail.title
+      );
+      if (res && res.success) {
+        toast.success('Sequence modified successfully by Athena!');
+        // Update local state
+        setSequenceData((prev: any) => {
+          if (!prev || !prev.sequence) return prev;
+          const newSequence = [...prev.sequence];
+          const index = newSequence.findIndex((s: any) => s && s.day === activeDay);
+          if (index !== -1) {
+            newSequence[index] = res.data;
+          }
+          return { ...prev, sequence: newSequence };
+        });
+        setIsAthenaModalOpen(false);
+        setAthenaPrompt('');
+      } else {
+        toast.error('Failed to modify sequence');
+      }
+    } catch (error: any) {
+      toast.error('Error modifying sequence: ' + error.message);
+    } finally {
+      setIsModifying(false);
     }
   };
 
@@ -670,7 +723,18 @@ export default function DoctorProfilePage() {
                       {/* Subject Line Display */}
                       <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4 border border-gray-200">
                         <div className="flex-1 pr-4">
-                          <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Subject Line (Day {activeDay})</label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-[11px] font-bold uppercase text-gray-500">Subject Line (Day {activeDay})</label>
+                            {activeEmail.status !== 'sent' && (
+                              <button
+                                onClick={() => setIsAthenaModalOpen(true)}
+                                className="flex items-center gap-1.5 text-[11px] font-bold px-2 py-1 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg transition-colors"
+                              >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                Modify with Athena
+                              </button>
+                            )}
+                          </div>
                           <div className="text-[15px] font-bold text-[#1F1F1F]">{activeEmail.subject}</div>
                         </div>
                         <button
@@ -771,6 +835,51 @@ export default function DoctorProfilePage() {
           </div>
         </div>
       </div>
+      
+      <Dialog open={isAthenaModalOpen} onOpenChange={setIsAthenaModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              Modify with Athena
+            </DialogTitle>
+            <DialogDescription>
+              Provide instructions to Athena to rewrite this email. For example, "Make it shorter" or "Focus on tax savings".
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <textarea
+              className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+              placeholder="What would you like Athena to change?"
+              value={athenaPrompt}
+              onChange={(e) => setAthenaPrompt(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <button
+              onClick={() => setIsAthenaModalOpen(false)}
+              className="px-4 py-2 text-sm font-bold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+              disabled={isModifying}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleModifySequence}
+              disabled={isModifying || !athenaPrompt.trim()}
+              className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50"
+            >
+              {isModifying ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                'Generate'
+              )}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
