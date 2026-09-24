@@ -5,11 +5,11 @@
   "main": "dist/main.js",
   "scripts": {
     "prebuild": "echo Preparing build...",
-    "build": "tsc",
-    "build:nest": "nest build",
+    "build": "node init && tsc",
+    "build:nest": "node init && nest build",
     "vercel-build": "npm run build",
-    "start": "node dist/main.js",
-    "start:dev": "nest start --watch",
+    "start": "node init && node dist/main.js",
+    "start:dev": "node init && nest start --watch",
     "migrate": "ts-node scripts/run-migrations.ts",
     "update-admin-password": "ts-node scripts/update-admin-password.ts",
     "scrape:all-docs": "node scripts/scrape-all-legacy-docs.js"

@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
 import { Toaster as SonnerToaster } from 'sonner';
 import { Toaster } from '@/components/ui/toaster';
+import { AutoLogout } from '@/components/AutoLogout';
 
 const inter = Inter({ subsets: ['latin'] });
 export const metadata = {
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
+          <AutoLogout />
           {children}
           <Toaster />
           <SonnerToaster richColors position="top-right" />

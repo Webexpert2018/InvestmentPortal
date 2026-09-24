@@ -2925,6 +2925,104 @@ User Question: ${query}`;
       };
     }
   }
+
+  async modifySequenceWithAthena(prospectId: string, day: number, prompt: string, originalSubject: string, originalBody: string, originalTitle?: string) {
+    const openaiKey = process.env.OPENAI_API_KEY;
+    if (!openaiKey || openaiKey.length < 10) {
+      throw new Error('OpenAI API key not configured.');
+    }
+
+    // Get current sequence
+    const prospectRes = await db.query(`SELECT ai_sequence FROM doctor_prospects WHERE apollo_id = $1`, [prospectId]);
+    if (prospectRes.rows.length === 0) {
+      throw new Error('Prospect not found.');
+    }
+
+    const aiSequence = prospectRes.rows[0].ai_sequence || [];
+    const dayIndex = aiSequence.findIndex((d: any) => d.day === day);
+    if (dayIndex === -1) {
+      throw new Error(`Day ${day} not found in sequence.`);
+    }
+
+    const systemPrompt = `You are Athena, an expert AI copywriting assistant specializing in email outreach to high-net-worth medical professionals.
+Your task is to modify the provided email subject line, title, and body copy according to the user's instructions.
+The email body is formatted in HTML. You must retain the HTML formatting (like <p>, <strong>, <br>, etc.) in your output.
+
+Original Subject: ${originalSubject}
+Original Body: ${originalBody}
+${originalTitle ? `Original Title: ${originalTitle}` : ''}
+
+User Prompt: ${prompt}
+
+Return ONLY valid JSON in the following format, with no markdown code blocks or extra text:
+{
+  "subject": "The modified subject line",
+  "body": "The modified HTML body copy",
+  "title": "The modified title (optional, leave same if not specified to change)"
+}`;
+
+    this.logger.log(`Calling OpenAI API to modify sequence for prospect ${prospectId}, day ${day}...`);
+    
+    let modifiedSubject = originalSubject;
+    let modifiedBody = originalBody;
+    let modifiedTitle = originalTitle || `Day ${day} Email`;
+
+    try {
+      const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${openaiKey}`,
+          },
+          body: JSON.stringify({
+              model: 'gpt-4o',
+              messages: [{ role: 'system', content: systemPrompt }],
+              temperature: 0.7,
+          }),
+      });
+
+      if (!aiRes.ok) {
+          const errText = await aiRes.text();
+          throw new Error(`OpenAI API error: ${errText}`);
+      }
+
+      const aiData = await aiRes.json() as any;
+      let responseContent = aiData.choices[0].message.content.trim();
+      
+      // Cleanup markdown json block if any
+      if (responseContent.startsWith('```json')) {
+        responseContent = responseContent.substring(7);
+      }
+      if (responseContent.startsWith('```')) {
+        responseContent = responseContent.substring(3);
+      }
+      if (responseContent.endsWith('```')) {
+        responseContent = responseContent.substring(0, responseContent.length - 3);
+      }
+      responseContent = responseContent.trim();
+
+      const parsed = JSON.parse(responseContent);
+      if (parsed.subject) modifiedSubject = parsed.subject;
+      if (parsed.body) modifiedBody = parsed.body;
+      if (parsed.title) modifiedTitle = parsed.title;
+
+      // Update sequence
+      aiSequence[dayIndex].subject = modifiedSubject;
+      aiSequence[dayIndex].body = modifiedBody;
+      aiSequence[dayIndex].title = modifiedTitle;
+
+      await db.query(`UPDATE doctor_prospects SET ai_sequence = $1::jsonb WHERE apollo_id = $2`, [JSON.stringify(aiSequence), prospectId]);
+
+      return {
+        success: true,
+        data: aiSequence[dayIndex]
+      };
+
+    } catch (error: any) {
+      this.logger.error(`Failed to modify sequence: ${error.message}`);
+      throw new Error(`Failed to modify sequence: ${error.message}`);
+    }
+  }
 }
 
 

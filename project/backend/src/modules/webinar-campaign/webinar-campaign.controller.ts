@@ -376,4 +376,25 @@ export class WebinarCampaignPublicController {
     await this.webinarCampaignService.processScheduledDripEmails();
     return { success: true, message: 'Drip campaign cron processed successfully' };
   }
+  @Post('modify-sequence')
+  async modifySequence(
+    @Body()
+    body: {
+      prospectId: string;
+      day: number;
+      prompt: string;
+      originalSubject: string;
+      originalBody: string;
+      originalTitle?: string;
+    }
+  ) {
+    return this.webinarCampaignService.modifySequenceWithAthena(
+      body.prospectId,
+      body.day,
+      body.prompt,
+      body.originalSubject,
+      body.originalBody,
+      body.originalTitle
+    );
+  }
 }

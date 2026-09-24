@@ -1858,6 +1858,13 @@ class ApiClient {
       body: JSON.stringify({ investorIds }),
     });
   }
+
+  async modifyWebinarSequence(prospectId: string, day: number, prompt: string, originalSubject: string, originalBody: string, originalTitle?: string) {
+    return this.request<any>('/webinar-campaign/modify-sequence', {
+      method: 'POST',
+      body: JSON.stringify({ prospectId, day, prompt, originalSubject, originalBody, originalTitle })
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
