@@ -427,7 +427,7 @@ export default function RingCentralDialer() {
               </li>
               <li className="flex items-start gap-4 bg-white/60 p-4 rounded-xl border border-amber-100 shadow-sm">
                 <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-bold text-sm">2</span>
-                <span>Once the call finishes, RingCentral will take a little time (usually 1-2 minutes) for the recording to get fetched and processed on their end.</span>
+                <span>Once the call finishes, RingCentral will take a little time (usually 1-2 minutes) for the recording to get fetched and processed on their end. Please wait a moment and then refresh the page to see the new call log appear below.</span>
               </li>
               <li className="flex items-start gap-4 bg-white/60 p-4 rounded-xl border border-amber-100 shadow-sm">
                 <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-bold text-sm">3</span>

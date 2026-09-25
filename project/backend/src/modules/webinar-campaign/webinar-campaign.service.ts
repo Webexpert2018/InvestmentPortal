@@ -2884,7 +2884,13 @@ ${rsvpButtonsHtml}
       );
       const webinars = webinarsRes.rows || [];
 
-      // 3. Compile context text
+      // 3. Fetch call logs context
+      const callsRes = await db.query(
+        `SELECT apollo_id, phone_number, transcription_text, created_at FROM ringcentral_call_logs WHERE transcription_text IS NOT NULL`
+      );
+      const calls = callsRes.rows || [];
+
+      // 4. Compile context text
       const docsContext = prospects.map((p: any) =>
         `- Name: ${p.full_name}, Specialty: ${p.specialty}, Clinic: ${p.organization}, Stage: ${p.stage}, Location: ${p.location}, Work Email: ${p.email}, Personal Emails: ${(p.personal_emails || []).join(', ')}, Phone: ${p.phone}`
       ).join('\n');
@@ -2892,6 +2898,12 @@ ${rsvpButtonsHtml}
       const webinarsContext = webinars.map((w: any) =>
         `- Title: ${w.title}, Date: ${w.date}, Time: ${w.time}, Status: ${w.status}, Active Now: ${w.is_active ? 'Yes' : 'No'}`
       ).join('\n');
+
+      const callsContext = calls.map((c: any) => {
+        const p = prospects.find((p: any) => p.apollo_id === c.apollo_id || p.phone === c.phone_number);
+        const name = p ? p.full_name : 'Unknown Prospect';
+        return `- Call on ${new Date(c.created_at).toLocaleDateString()} with ${name} (${c.phone_number}):\nTranscript: ${c.transcription_text}\n`;
+      }).join('\n');
 
       const systemPrompt = `You are Athena, a helpful, professional Executive Assistant AI Agent for Ovalia Capital. 
 You assist the team with managing the physician outreach pipeline and webinars.
@@ -2903,6 +2915,9 @@ ${docsContext || 'No doctor prospects currently registered.'}
 
 === WEBINARS SCHEDULED ===
 ${webinarsContext || 'No webinars currently scheduled.'}
+
+=== RECENT PHONE CALL TRANSCRIPTS ===
+${callsContext || 'No call transcripts available.'}
 
 === PIPELINE STAGE LEGEND ===
 - 'pending_outreach': Scheduled for automated outreach email campaign.
