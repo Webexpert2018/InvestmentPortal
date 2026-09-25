@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Query, Res, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Param, Query, Res, HttpCode, HttpStatus, Body } from '@nestjs/common';
 import { Response } from 'express';
 import { RingCentralService } from './ringcentral.service';
 
@@ -10,6 +10,12 @@ export class RingCentralController {
   @HttpCode(HttpStatus.OK)
   async getToken() {
     return this.ringCentralService.getAccessToken();
+  }
+
+  @Post('call-log')
+  @HttpCode(HttpStatus.OK)
+  async saveCallLog(@Body() body: any) {
+    return this.ringCentralService.saveCallLog(body);
   }
 
   @Post('sip-provision')
@@ -24,8 +30,13 @@ export class RingCentralController {
   }
 
   @Get('transcript/:sessionId')
-  async getTranscript(@Param('sessionId') sessionId: string, @Query('recordingId') recordingId?: string) {
-    return this.ringCentralService.getAndSaveCallTranscript(sessionId, recordingId);
+  async getTranscript(
+    @Param('sessionId') sessionId: string,
+    @Query('recordingId') recordingId?: string,
+    @Query('startTime') startTime?: string,
+    @Query('apolloId') apolloId?: string
+  ) {
+    return this.ringCentralService.getAndSaveCallTranscript(sessionId, recordingId, startTime, apolloId);
   }
 
   @Get('recording/:recordingId')

@@ -1,0 +1,1 @@
+ALTER TABLE ringcentral_call_logs ADD COLUMN IF NOT EXISTS start_time TIMESTAMP WITH TIME ZONE;

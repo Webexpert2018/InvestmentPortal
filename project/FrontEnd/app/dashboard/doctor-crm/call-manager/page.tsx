@@ -693,10 +693,7 @@ export default function CallManagerPage() {
                       {/* Column 2: Contact Info (Email & Direct Phone Dialing) */}
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         <div className="space-y-1.5">
-                          <div className="text-[13px] font-semibold text-[#1F1F1F] flex items-center gap-1.5">
-                            <Mail className="w-3.5 h-3.5 text-[#8E8E93]" />
-                            <span>{doc.email}</span>
-                          </div>
+                          {/* Removed Email in DB per user request */}
                           <div className="flex items-center gap-2">
                             <div className="text-[12px] font-bold text-gray-800 flex items-center gap-1">
                               <PhoneCall className="w-3.5 h-3.5 text-[#D9A11E]" />
@@ -704,21 +701,12 @@ export default function CallManagerPage() {
                             </div>
                             {doc.phone && doc.phone !== 'N/A' && (
                               <button
-                                onClick={() => handleCopyPhone(doc.id, doc.phone)}
+                                onClick={() => router.push(`/dashboard/doctor-crm/call-manager/dialer?phone=${encodeURIComponent(doc.phone)}&name=${encodeURIComponent(doc.fullName)}&apollo_id=${encodeURIComponent(doc.id)}`)}
                                 className="px-2.5 py-0.5 bg-green-600 hover:bg-green-700 text-white text-[11px] font-bold rounded-full flex items-center gap-1 transition-all shadow-xs cursor-pointer"
-                                title="Click to copy phone number to clipboard"
+                                title="Click to open dialer"
                               >
-                                {copiedPhoneId === doc.id ? (
-                                  <>
-                                    <Check className="w-3 h-3 text-white" />
-                                    <span>Copied!</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Phone className="w-3 h-3" />
-                                    <span>Call Now</span>
-                                  </>
-                                )}
+                                <Phone className="w-3 h-3" />
+                                <span>Call Now</span>
                               </button>
                             )}
                           </div>

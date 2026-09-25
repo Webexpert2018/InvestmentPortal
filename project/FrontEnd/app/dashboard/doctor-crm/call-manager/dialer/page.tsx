@@ -25,6 +25,7 @@ export default function RingCentralDialer() {
   const [isMuted, setIsMuted] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
+  const callDurationRef = useRef(0);
 
   const [callLogs, setCallLogs] = useState<any[]>([]);
   const [transcripts, setTranscripts] = useState<Record<string, string>>({});
@@ -33,6 +34,8 @@ export default function RingCentralDialer() {
   const [rcStatus, setRcStatus] = useState('Initializing...');
   const webPhoneRef = useRef<any>(null);
   const activeSessionRef = useRef<any>(null);
+  const sipSessionIdRef = useRef<string | null>(null);
+  const startTimeRef = useRef<string | null>(null);
   const audioRemoteRef = useRef<HTMLAudioElement | null>(null);
   const audioLocalRef = useRef<HTMLAudioElement | null>(null);
 
@@ -40,7 +43,11 @@ export default function RingCentralDialer() {
     let timer: NodeJS.Timeout;
     if (callStatus === 'connected') {
       timer = setInterval(() => {
-        setCallDuration((prev) => prev + 1);
+        setCallDuration((prev) => {
+          const newDur = prev + 1;
+          callDurationRef.current = newDur;
+          return newDur;
+        });
       }, 1000);
     }
     return () => clearInterval(timer);
@@ -72,12 +79,13 @@ export default function RingCentralDialer() {
     }
   };
 
-  const handleViewTranscript = async (sessionId: string, recordingId?: string) => {
+  const handleViewTranscript = async (sessionId: string, startTime: string, recordingId?: string) => {
     setLoadingTranscripts(prev => ({ ...prev, [sessionId]: true }));
+    const apolloId = searchParams.get('apollo_id');
     try {
       const url = recordingId 
-        ? `${API_URL}/ringcentral/transcript/${sessionId}?recordingId=${recordingId}`
-        : `${API_URL}/ringcentral/transcript/${sessionId}`;
+        ? `${API_URL}/ringcentral/transcript/${sessionId}?recordingId=${recordingId}&startTime=${encodeURIComponent(startTime)}${apolloId ? `&apolloId=${encodeURIComponent(apolloId)}` : ''}`
+        : `${API_URL}/ringcentral/transcript/${sessionId}?startTime=${encodeURIComponent(startTime)}${apolloId ? `&apolloId=${encodeURIComponent(apolloId)}` : ''}`;
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
@@ -144,12 +152,35 @@ export default function RingCentralDialer() {
   };
 
   const handleCallEndCleanup = () => {
+    let apolloId = searchParams.get('apollo_id');
+    
+    if (phoneNumber) {
+      if (!apolloId) {
+        apolloId = `non-prospect-${Math.random().toString(36).substring(2, 10)}`;
+      }
+      
+      fetch(`${API_URL}/ringcentral/call-log`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sipSessionIdRef.current,
+          apolloId: apolloId,
+          phoneNumber: phoneNumber,
+          duration: callDurationRef.current,
+          startTime: startTimeRef.current
+        })
+      }).catch(e => console.error('Failed to save local call log', e));
+    }
+
     setIsCalling(false);
     setCallStatus('idle');
     setCallDuration(0);
+    callDurationRef.current = 0;
     setIsMuted(false);
     setIsRecording(false);
     activeSessionRef.current = null;
+    sipSessionIdRef.current = null;
+    startTimeRef.current = null;
     if (audioRemoteRef.current) audioRemoteRef.current.srcObject = null;
     if (audioLocalRef.current) audioLocalRef.current.srcObject = null;
     
@@ -175,6 +206,12 @@ export default function RingCentralDialer() {
       // Start the call (v2.x API)
       const callSession = await webPhoneRef.current.call(phoneNumber);
       activeSessionRef.current = callSession;
+      sipSessionIdRef.current = callSession.id 
+        || (callSession.dialog ? callSession.dialog.id : null) 
+        || (callSession.partyData ? callSession.partyData.sessionId : null)
+        || (callSession.request ? callSession.request.call_id : null)
+        || "unknown-sip-id";
+      startTimeRef.current = new Date().toISOString();
       
       setCallStatus('connected');
       toast.success('Call connected!');
@@ -211,9 +248,11 @@ export default function RingCentralDialer() {
         await activeSessionRef.current.hangup();
       } catch (e) {
         console.error('Error ending call', e);
+        handleCallEndCleanup();
       }
+    } else {
+      handleCallEndCleanup();
     }
-    handleCallEndCleanup();
   };
 
   const handleToggleMute = async () => {
@@ -400,7 +439,7 @@ export default function RingCentralDialer() {
                         </button>
                       )}
                       <button
-                        onClick={() => handleViewTranscript(log.sessionId, log.recording?.id)}
+                        onClick={() => handleViewTranscript(log.sessionId, log.startTime, log.recording?.id)}
                         disabled={loadingTranscripts[log.sessionId]}
                         className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium disabled:opacity-50"
                       >
