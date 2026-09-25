@@ -1,5 +1,5 @@
 import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { OpenAI, toFile } from 'openai';
 import { SDK } from '@ringcentral/sdk';
 import { ConfigService } from '@nestjs/config';
 import { db } from '../../config/database';
@@ -138,32 +138,26 @@ export class RingCentralService {
 
       try {
         const audioBuffer = await this.downloadRecording(recordingId);
-        const base64Audio = audioBuffer.toString('base64');
         
-        const geminiApiKey = this.configService.get<string>('Gemini_API_KEY');
-        if (!geminiApiKey) {
-          throw new Error('Gemini_API_KEY is not configured');
+        const openAiApiKey = this.configService.get<string>('OPENAI_API_KEY');
+        if (!openAiApiKey) {
+          throw new Error('OPENAI_API_KEY is not configured');
         }
 
-        const genAI = new GoogleGenerativeAI(geminiApiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+        const openai = new OpenAI({ apiKey: openAiApiKey });
+        
+        // Convert Buffer to File-like object for OpenAI SDK
+        const file = await toFile(audioBuffer, 'recording.mp3', { type: 'audio/mpeg' });
 
-        const prompt = "Please provide a highly accurate, verbatim transcript of this phone call. Distinguish between speakers using 'Speaker 1' and 'Speaker 2'. Do not include any other commentary.";
+        const result = await openai.audio.transcriptions.create({
+          file: file,
+          model: 'whisper-1',
+        });
         
-        const result = await model.generateContent([
-          {
-            inlineData: {
-              mimeType: 'audio/mp3',
-              data: base64Audio
-            }
-          },
-          prompt
-        ]);
-        
-        transcript = result.response.text();
+        transcript = result.text;
 
       } catch (e: any) {
-        this.logger.error(`Error transcribing with Gemini: ${e.message}`, e.stack);
+        this.logger.error(`Error transcribing with OpenAI: ${e.message}`, e.stack);
         transcript = `Transcription failed.\nReason: ${e.message || 'Unknown error'}\n(Session: ${sessionId})`;
       }
 
