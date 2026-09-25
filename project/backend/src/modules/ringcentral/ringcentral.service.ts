@@ -196,7 +196,7 @@ export class RingCentralService {
           messages: [
             {
               role: 'system',
-              content: 'You are an AI assistant that formats call transcripts. You will be provided with a transcript where each line has a timestamp and the spoken text. Your task is to analyze the conversation and format it into a clear dialogue. The caller is an investment representative ("Me"). The receiver is a doctor prospect ("Them"). The caller ("Me") usually initiates the conversation, says greetings, and mentions that the call is being recorded. Format the speakers strictly as "Me:" and "Them:". Keep the exact timestamp format provided. Output ONLY the formatted transcript.'
+              content: 'You are an AI assistant that formats call transcripts. You will be provided with a transcript where each line has a timestamp and the spoken text. Your task is to analyze the conversation and format it into a clear dialogue.\n\nCRITICAL RULE: You MUST keep the exact timestamp at the beginning of EVERY single line you output. Do not remove the timestamps!\n\nThe caller is an investment representative ("Me"). The receiver is a doctor prospect ("Them"). The caller ("Me") usually initiates the conversation. Use conversational context to determine who is speaking.\n\nFormat each line exactly like this:\n[TIMESTAMP] Me: spoken text\n[TIMESTAMP] Them: spoken text\n\nOutput ONLY the formatted transcript, nothing else.'
             },
             {
               role: 'user',
@@ -277,4 +277,30 @@ export class RingCentralService {
       throw new InternalServerErrorException('Failed to save local call log');
     }
   }
+
+  async getInternalLogs() {
+    try {
+      const res = await db.query(`
+        SELECT 
+          r.id,
+          r.start_time,
+          r.duration,
+          r.phone_number,
+          r.transcription_text,
+          r.api_session_id,
+          r.apollo_id,
+          d.first_name,
+          d.last_name
+        FROM ringcentral_call_logs r
+        LEFT JOIN doctor_prospects d ON r.apollo_id = d.apollo_id
+        ORDER BY COALESCE(r.start_time, r.created_at) DESC
+        LIMIT 100
+      `);
+      return res.rows;
+    } catch (error: any) {
+      this.logger.error(`Error fetching internal call logs: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to fetch internal call logs');
+    }
+  }
 }
+

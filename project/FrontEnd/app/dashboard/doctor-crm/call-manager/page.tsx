@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import * as XLSX from 'xlsx';
-import { 
-  Target, 
-  Search, 
-  PhoneCall, 
-  MessageSquare, 
-  CheckCircle2, 
-  Clock, 
-  Loader2, 
+import {
+  Target,
+  Search,
+  PhoneCall,
+  MessageSquare,
+  CheckCircle2,
+  Clock,
+  Loader2,
   ChevronRight,
   X,
   Users,
@@ -87,7 +87,7 @@ export default function CallManagerPage() {
   const handleOpenCallActionModal = (doc: CrmDoctor) => {
     setSelectedDoctorForAction(doc);
     let existingText = callActionsMap[doc.id] !== undefined ? callActionsMap[doc.id] : (doc.callAction || '');
-    
+
     const parts = existingText.split('\n---\n').filter(Boolean);
     const history = parts.length > 1 ? parts.slice(0, parts.length - 1) : [];
     const lastAction = parts.length > 0 ? parts[parts.length - 1] : '';
@@ -96,7 +96,7 @@ export default function CallManagerPage() {
     let parsedAttempt = '1st Call';
     let parsedDuration = '';
     let parsedText = lastAction;
-    
+
     const match = lastAction.match(/^\[(.*?)\]\s*(.*)$/);
     if (match) {
       const prefixParts = match[1].split(' | ');
@@ -110,7 +110,7 @@ export default function CallManagerPage() {
       }
       parsedText = match[2];
     }
-    
+
     setTempCallHistory(history);
     setTempCallAttempt(parsedAttempt);
     setTempCallDuration(parsedDuration);
@@ -144,7 +144,7 @@ export default function CallManagerPage() {
   const [newLocation, setNewLocation] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [isSavingDoctor, setIsSavingDoctor] = useState(false);
-  
+
   // Bulk Upload Modal States
   const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
   const [parsedLeads, setParsedLeads] = useState<ParsedDoctorLead[]>([]);
@@ -288,7 +288,7 @@ export default function CallManagerPage() {
       if (res && res.success) {
         toast.success('📝 Saved call note to PostgreSQL database!');
         setCallNotesMap(prev => ({ ...prev, [docId]: '' }));
-        
+
         // Instantly reflect new note in open modal history
         if (res.note) {
           setHistoryNotes(prev => [res.note, ...prev]);
@@ -324,7 +324,7 @@ export default function CallManagerPage() {
         setDoctors(prev => prev.map(d => d.id === docId ? { ...d, callAction: actionText.trim() } : d));
         setCallActionsMap(prev => ({ ...prev, [docId]: actionText.trim() }));
         setSelectedDoctorForAction(null);
-        
+
         // Also save this action as a note to preserve history across multiple calls
         try {
           await apiClient.addDoctorNote(docId, `Call Action Update: ${actionText.trim()}`, (user as any)?.fullName || user?.email || 'Call Manager');
@@ -402,9 +402,9 @@ export default function CallManagerPage() {
         const workbook = XLSX.read(data, { type: 'array' });
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
-        
+
         const rawJson: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-        
+
         if (!rawJson || rawJson.length === 0) {
           toast.error('The uploaded Excel file appears to be empty.');
           setParsedLeads([]);
@@ -526,7 +526,7 @@ export default function CallManagerPage() {
       matchesFilter = doc.stage === 'not_interested';
     }
 
-    const matchesSearch = 
+    const matchesSearch =
       doc.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.organization.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -541,7 +541,7 @@ export default function CallManagerPage() {
   return (
     <DashboardLayout>
       <div className="w-full font-helvetica text-[#1F1F1F] relative space-y-6">
-        
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -563,11 +563,18 @@ export default function CallManagerPage() {
 
           <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
             <Link
+              href="/dashboard/doctor-crm/call-manager/logs"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-indigo-600"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Internal Call Logs</span>
+            </Link>
+            <Link
               href="/dashboard/doctor-crm/call-manager/dialer"
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-blue-600"
             >
               <PhoneCall className="w-4 h-4" />
-              <span>Test RingCentral Dialer</span>
+              <span>RingCentral Dialer</span>
             </Link>
             <Link
               href="/dashboard/doctor-crm"
@@ -977,14 +984,13 @@ export default function CallManagerPage() {
                     processExcelFile(e.dataTransfer.files[0]);
                   }
                 }}
-                className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${
-                  dragActive ? 'border-[#FFC63F] bg-[#FFF9EE]' : 'border-gray-300 bg-gray-50/50 hover:bg-gray-50'
-                }`}
+                className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${dragActive ? 'border-[#FFC63F] bg-[#FFF9EE]' : 'border-gray-300 bg-gray-50/50 hover:bg-gray-50'
+                  }`}
               >
                 <Upload className="w-8 h-8 text-[#8E8E93] mx-auto mb-2" />
                 <p className="text-[13px] font-bold text-[#1F1F1F]">Drag and drop your Excel (.xlsx, .xls) or CSV file here</p>
                 <p className="text-[12px] text-[#8E8E93] mt-1">or click below to choose file from your computer</p>
-                
+
                 <input
                   type="file"
                   id="excelFileInput"
@@ -996,7 +1002,7 @@ export default function CallManagerPage() {
                     }
                   }}
                 />
-                
+
                 <label
                   htmlFor="excelFileInput"
                   className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-[#1F1F1F] hover:bg-[#333] text-white text-[12px] font-bold rounded-full cursor-pointer transition-all shadow-xs"
@@ -1122,7 +1128,7 @@ export default function CallManagerPage() {
 
               {/* Edit Call Action Form */}
               <div className="space-y-4">
-                
+
                 {/* Previous Call Actions History */}
                 {tempCallHistory.length > 0 && (
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2 max-h-40 overflow-y-auto">
@@ -1139,7 +1145,7 @@ export default function CallManagerPage() {
                   <div>
                     <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1.5 flex justify-between items-center">
                       <span>Call Number</span>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => {
                           // Save current to history before incrementing
@@ -1214,10 +1220,10 @@ export default function CallManagerPage() {
                   onClick={() => {
                     const prefix = [tempCallAttempt, tempCallDuration].filter(Boolean).join(' | ');
                     const currentEntry = prefix ? `[${prefix}] ${tempCallActionText}` : tempCallActionText;
-                    
+
                     const allEntries = [...tempCallHistory, currentEntry].filter(Boolean);
                     const finalText = allEntries.join('\n---\n');
-                    
+
                     handleUpdateCallAction(selectedDoctorForAction.id, finalText);
                   }}
                   disabled={savingActionId === selectedDoctorForAction.id}

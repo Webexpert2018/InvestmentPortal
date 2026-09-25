@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Phone, PhoneOff, Mic, MicOff, ArrowLeft, Loader2 } from 'lucide-react';
+import { Phone, PhoneOff, Mic, MicOff, ArrowLeft, Loader2, Info } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -298,21 +298,25 @@ export default function RingCentralDialer() {
 
   return (
     <DashboardLayout>
-      <div className="w-full max-w-2xl mx-auto py-8">
+      <div className="w-full py-8 space-y-8 px-4 lg:px-8">
         
         {/* Hidden Audio Elements required for WebRTC Web Phone */}
         <audio ref={audioRemoteRef} id="remoteAudio" autoPlay />
         <audio ref={audioLocalRef} id="localAudio" autoPlay muted />
 
-        <Link
-          href="/dashboard/doctor-crm/call-manager"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Call Manager
-        </Link>
+        <div className="max-w-7xl mx-auto w-full">
+          <Link
+            href="/dashboard/doctor-crm/call-manager"
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors font-medium"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Call Manager
+          </Link>
 
-        <div className="bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden">
+          <div className="flex gap-8 items-stretch w-full" style={{ display: 'flex', flexDirection: 'row' }}>
+            
+            {/* Dialer Card */}
+            <div className="bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden flex flex-col" style={{ width: '60%' }}>
           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center text-white relative">
             <h1 className="text-2xl font-bold mb-2">RingCentral Web Phone</h1>
             <p className="text-blue-100 text-sm opacity-90">Real-time WebRTC Dialer</p>
@@ -344,9 +348,9 @@ export default function RingCentralDialer() {
                 type="tel"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                disabled={isCalling}
+                disabled={isCalling || !!searchParams.get('phone')}
                 placeholder="+1 (555) 000-0000"
-                className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-lg font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-lg font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -408,12 +412,41 @@ export default function RingCentralDialer() {
               </div>
             </div>
           </div>
+          </div>
+
+          {/* Instructions Card */}
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-[24px] shadow-sm border border-amber-200 p-8 flex flex-col justify-center" style={{ width: '40%' }}>
+            <h3 className="text-xl font-extrabold text-amber-900 mb-6 flex items-center gap-3">
+              <Info className="w-6 h-6 text-amber-600" />
+              Transcription Rules
+            </h3>
+            <ul className="space-y-6 text-amber-900 text-[15px] leading-relaxed font-medium">
+              <li className="flex items-start gap-4 bg-white/60 p-4 rounded-xl border border-amber-100 shadow-sm">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-bold text-sm">1</span>
+                <span>In order to get the transcription, you <strong className="text-red-600">MUST</strong> start recording the call during the conversation. Use the red record button once connected.</span>
+              </li>
+              <li className="flex items-start gap-4 bg-white/60 p-4 rounded-xl border border-amber-100 shadow-sm">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-bold text-sm">2</span>
+                <span>Once the call finishes, RingCentral will take a little time (usually 1-2 minutes) for the recording to get fetched and processed on their end.</span>
+              </li>
+              <li className="flex items-start gap-4 bg-white/60 p-4 rounded-xl border border-amber-100 shadow-sm">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-bold text-sm">3</span>
+                <span>After waiting a minute, you <strong className="text-red-600">MUST</strong> click the "View Transcript" button on the call log below. This forces the system to pull the recording, generate the transcript, and permanently save it into our database.</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
         </div>
 
         {/* Call Logs Section */}
-        <div className="mt-8 bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden p-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Call Logs</h2>
-          {callLogs.length === 0 ? (
+        <div className="w-full max-w-7xl mx-auto bg-white rounded-[24px] shadow-xl border border-gray-100 p-8 min-h-[500px]">
+          <div className="w-full">
+            <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+              Recent Call Logs
+              <span className="text-sm font-medium px-3 py-1 bg-gray-100 text-gray-600 rounded-full">RingCentral API</span>
+            </h2>
+            {callLogs.length === 0 ? (
             <p className="text-gray-500 text-center py-4">No recent calls found.</p>
           ) : (
             <div className="space-y-4">
@@ -458,7 +491,8 @@ export default function RingCentralDialer() {
               ))}
             </div>
           )}
-        </div>
+            </div>
+          </div>
 
       </div>
     </DashboardLayout>

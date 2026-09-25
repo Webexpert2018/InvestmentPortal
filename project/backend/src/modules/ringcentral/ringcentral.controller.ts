@@ -29,6 +29,11 @@ export class RingCentralController {
     return this.ringCentralService.getRecentCallLogs();
   }
 
+  @Get('internal-logs')
+  async getInternalLogs() {
+    return this.ringCentralService.getInternalLogs();
+  }
+
   @Get('transcript/:sessionId')
   async getTranscript(
     @Param('sessionId') sessionId: string,
