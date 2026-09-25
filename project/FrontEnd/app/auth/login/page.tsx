@@ -38,7 +38,7 @@ function LoginForm() {
   React.useEffect(() => {
     // Clear any stuck legacy localStorage items
     localStorage.removeItem('returnTo');
-    
+
     const returnTo = sessionStorage.getItem('returnTo');
     if (returnTo && returnTo.includes('inviteToken')) {
       setError('Please sign in to view your investment invite.');
@@ -109,7 +109,7 @@ function LoginForm() {
           </Link>
         </div>
         <a
-          href="https://aetrust.aet.app/auth/login"
+          href="https://ovaliacapital.aet.app/auth/login"
           target="_blank"
           rel="noopener noreferrer"
           className="w-full min-[340px]:w-auto text-center py-2 px-2.5 sm:px-4 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 shadow-md bg-yellow-400 text-gray-900 border border-yellow-400 hover:bg-yellow-500 whitespace-nowrap"
