@@ -5,8 +5,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { PhoneCall, ArrowLeft, Clock, Calendar, FileText, X } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL } from '@/lib/api/client';
 
 export default function InternalCallLogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
@@ -67,9 +66,6 @@ export default function InternalCallLogsPage() {
             <div className="flex items-center gap-2 mb-1">
               <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-50 text-purple-600 border border-purple-200">
                 <FileText className="w-4 h-4" />
-              </span>
-              <span className="text-[12px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
-                PostgreSQL Database
               </span>
             </div>
             <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">
