@@ -28,7 +28,8 @@ import {
   Filter,
   Activity,
   ArrowLeft,
-  FileText
+  FileText,
+  Copy
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -702,10 +703,19 @@ export default function CallManagerPage() {
                         <div className="space-y-1.5">
                           {/* Removed Email in DB per user request */}
                           <div className="flex items-center gap-2">
-                            <div className="text-[12px] font-bold text-gray-800 flex items-center gap-1">
+                            <button 
+                              onClick={() => handleCopyPhone(doc.id, doc.phone)}
+                              className="text-[12px] font-bold text-gray-800 flex items-center gap-1 hover:text-[#D9A11E] transition-colors"
+                              title="Click to copy phone number"
+                            >
                               <PhoneCall className="w-3.5 h-3.5 text-[#D9A11E]" />
                               <span>{doc.phone}</span>
-                            </div>
+                              {copiedPhoneId === doc.id ? (
+                                <Check className="w-3.5 h-3.5 text-green-600 ml-1" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity ml-1" />
+                              )}
+                            </button>
                             {doc.phone && doc.phone !== 'N/A' && (
                               <button
                                 onClick={() => router.push(`/dashboard/doctor-crm/call-manager/dialer?phone=${encodeURIComponent(doc.phone)}&name=${encodeURIComponent(doc.fullName)}&apollo_id=${encodeURIComponent(doc.id)}`)}
