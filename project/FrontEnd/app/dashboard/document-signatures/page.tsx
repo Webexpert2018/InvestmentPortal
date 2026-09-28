@@ -239,8 +239,9 @@ export default function DocumentSignaturesPage() {
                           View Original Document
                         </a>
                       </div>
-                      <table className="w-full text-sm text-left table-fixed">
-                        <thead className="bg-gray-50/50 text-xs text-gray-500 uppercase font-semibold border-b border-gray-200">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left min-w-[800px]">
+                          <thead className="bg-gray-50/50 text-xs text-gray-500 uppercase font-semibold border-b border-gray-200">
                           <tr>
                             <th className="px-4 py-3 w-[20%]">Investor Name</th>
                             <th className="px-4 py-3 w-[15%]">Account Type</th>
@@ -311,7 +312,8 @@ export default function DocumentSignaturesPage() {
                             ))
                           )}
                         </tbody>
-                      </table>
+                        </table>
+                      </div>
                     </div>
                   </AccordionContent>
                 </AccordionItem>

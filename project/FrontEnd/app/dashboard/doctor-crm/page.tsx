@@ -1080,7 +1080,7 @@ export default function DoctorCrmPage() {
           /* Collapsed Pill Button in Bottom Right */
           <button
             onClick={() => setIsAgentOpen(true)}
-            className="fixed right-6 bottom-6 z-40 bg-[#1F1F1F] hover:bg-[#2D2D2D] text-white p-3.5 px-5 rounded-full shadow-2xl border border-gray-700 flex items-center gap-3 transition-all transform hover:scale-105 group cursor-pointer"
+            className="fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-40 bg-[#1F1F1F] hover:bg-[#2D2D2D] text-white p-3.5 px-5 rounded-full shadow-2xl border border-gray-700 flex items-center gap-3 transition-all transform hover:scale-105 group cursor-pointer"
             title="Open Athena AI Agent"
           >
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] font-bold shadow-md shrink-0">
@@ -1099,7 +1099,7 @@ export default function DoctorCrmPage() {
           </button>
         ) : (
           /* Expanded Floating Chat Drawer Window */
-          <div className="fixed right-6 bottom-6 z-40 w-[360px] sm:w-[400px] h-[580px] max-h-[85vh] bg-[#1F1F1F] rounded-[24px] text-white shadow-2xl border border-gray-800 flex flex-col justify-between overflow-hidden transition-all duration-300">
+          <div className="fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-40 w-[calc(100vw-2rem)] sm:w-[400px] h-[580px] max-h-[85vh] bg-[#1F1F1F] rounded-[24px] text-white shadow-2xl border border-gray-800 flex flex-col justify-between overflow-hidden transition-all duration-300">
             {/* Header with Collapse Controls */}
             <div className="p-4 bg-[#181818] border-b border-gray-800 flex items-center justify-between gap-2 shrink-0">
               <div className="flex items-center gap-3 min-w-0">

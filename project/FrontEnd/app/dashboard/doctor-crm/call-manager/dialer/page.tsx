@@ -313,10 +313,10 @@ export default function RingCentralDialer() {
             Back to Call Manager
           </Link>
 
-          <div className="flex gap-8 items-stretch w-full" style={{ display: 'flex', flexDirection: 'row' }}>
+          <div className="flex flex-col lg:flex-row gap-8 items-stretch w-full">
             
             {/* Dialer Card */}
-            <div className="bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden flex flex-col" style={{ width: '60%' }}>
+            <div className="bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden flex flex-col w-full lg:w-3/5">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center text-white relative">
             <h1 className="text-2xl font-bold mb-2">RingCentral Web Phone</h1>
             <p className="text-blue-100 text-sm opacity-90">Real-time WebRTC Dialer</p>
@@ -415,7 +415,7 @@ export default function RingCentralDialer() {
           </div>
 
           {/* Instructions Card */}
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-[24px] shadow-sm border border-amber-200 p-8 flex flex-col justify-center" style={{ width: '40%' }}>
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-[24px] shadow-sm border border-amber-200 p-8 flex flex-col justify-center w-full lg:w-2/5">
             <h3 className="text-xl font-extrabold text-amber-900 mb-6 flex items-center gap-3">
               <Info className="w-6 h-6 text-amber-600" />
               Transcription Rules

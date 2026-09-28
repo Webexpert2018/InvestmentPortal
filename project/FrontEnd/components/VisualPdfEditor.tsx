@@ -425,7 +425,7 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
     setPlacements(prev => prev.filter(p => p.id !== id));
   };
 
-  const tools: { type: FieldType; label: string; icon: any; color: string; bg: string; border: string }[] = 
+  const tools: { type: FieldType; label: string; icon: any; color: string; bg: string; border: string }[] =
     templateType === 'PERSON_TO_PERSON' ? [
       { type: 'sender_name', label: 'Sender Name', icon: Type, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
       { type: 'receiver_name', label: 'Receiver Name', icon: Type, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
@@ -620,7 +620,7 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
                 const shortLabel = placement.type === 'signature' ? 'Sig' :
                   placement.type === 'name' ? 'Name' :
                     placement.type === 'date' ? 'Date' :
-                      placement.type === 'amount' ? 'Amt' : 
+                      placement.type === 'amount' ? 'Amt' :
                         placement.type === 'checkbox' ? 'Check' : tool.label;
 
                 return (
