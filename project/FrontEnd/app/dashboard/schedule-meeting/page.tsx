@@ -724,11 +724,11 @@ export default function ScheduleMeetingPage() {
                             )}
 
                             <div className="flex flex-wrap gap-4 pt-3 text-xs text-[#4B4B4B] dark:text-gray-300">
-                              <div className="flex items-center gap-1.5 bg-[#FFF9EE] px-3 py-1.5 rounded-full text-amber-800 font-medium">
+                              <div className="flex items-center gap-1.5 bg-[#FFF9EE] dark:bg-amber-950/60 px-3 py-1.5 rounded-full text-amber-800 dark:text-amber-300 font-medium border border-amber-200/50 dark:border-amber-800/60">
                                 <Calendar className="h-3.5 w-3.5" />
                                 {formattedDate}
                               </div>
-                              <div className="flex items-center gap-1.5 bg-[#FFF9EE] px-3 py-1.5 rounded-full text-amber-800 font-medium">
+                              <div className="flex items-center gap-1.5 bg-[#FFF9EE] dark:bg-amber-950/60 px-3 py-1.5 rounded-full text-amber-800 dark:text-amber-300 font-medium border border-amber-200/50 dark:border-amber-800/60">
                                 <Clock className="h-3.5 w-3.5" />
                                 {formattedTime}
                               </div>
@@ -737,7 +737,7 @@ export default function ScheduleMeetingPage() {
                                   href={meeting.meeting_link}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-1.5 bg-blue-50 text-blue-800 px-3 py-1.5 rounded-full font-medium hover:bg-blue-100 transition-colors"
+                                  className="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 px-3 py-1.5 rounded-full font-medium hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors border border-blue-200/50 dark:border-blue-800/60"
                                 >
                                   <Video className="h-3.5 w-3.5" />
                                   Join Video Call
@@ -751,14 +751,14 @@ export default function ScheduleMeetingPage() {
                             <div className="flex items-center gap-2 sm:self-start">
                               <button
                                 onClick={() => handleUpdateStatus(meeting.id, 'accepted')}
-                                className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-4 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors cursor-pointer"
+                                className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-4 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
                               >
                                 <Check className="h-3.5 w-3.5 stroke-[3]" />
                                 Accept
                               </button>
                               <button
                                 onClick={() => handleUpdateStatus(meeting.id, 'rejected')}
-                                className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-4 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+                                className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 px-4 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors cursor-pointer"
                               >
                                 <X className="h-3.5 w-3.5 stroke-[3]" />
                                 Reject
@@ -780,7 +780,7 @@ export default function ScheduleMeetingPage() {
                             <div className="flex items-center gap-2 sm:self-start">
                               <button
                                 onClick={() => handleEditClick(meeting)}
-                                className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-4 text-xs font-semibold text-amber-700 hover:bg-amber-100 transition-colors cursor-pointer"
+                                className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-4 text-xs font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-colors cursor-pointer"
                               >
                                 <Pencil className="h-3.5 w-3.5" />
                                 Edit Meeting
@@ -796,9 +796,9 @@ export default function ScheduleMeetingPage() {
                             {meeting.participants.map(p => (
                               <div
                                 key={p.id}
-                                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${p.status === 'accepted' ? 'border-emerald-100 bg-emerald-50/50 text-emerald-800' :
-                                    p.status === 'rejected' ? 'border-rose-100 bg-rose-50/50 text-rose-800' :
-                                      'border-amber-100 bg-amber-50/50 text-amber-800'
+                                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${p.status === 'accepted' ? 'border-emerald-100 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300' :
+                                    p.status === 'rejected' ? 'border-rose-100 dark:border-rose-800/60 bg-rose-50/50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300' :
+                                      'border-amber-100 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300'
                                   }`}
                               >
                                 <span className="h-1.5 w-1.5 rounded-full bg-current"></span>
@@ -822,7 +822,7 @@ export default function ScheduleMeetingPage() {
                   <Info className="h-5 w-5 text-[#E29F3A]" />
                   How to join?
                 </h3>
-                <div className="mt-4 space-y-4 text-xs text-[#8E8E93] leading-relaxed">
+                <div className="mt-4 space-y-4 text-xs text-[#8E8E93] dark:text-gray-400 leading-relaxed">
                   <p>
                     Every participant can Accept or Reject meeting proposals directly from their schedule board.
                   </p>
@@ -832,7 +832,7 @@ export default function ScheduleMeetingPage() {
                   <p>
                     Alternatively, you can join your scheduled sessions instantly by clicking the <strong className="text-gray-800 dark:text-gray-200">"Join Video Call"</strong> button directly from the meeting cards on this page when a call link is active.
                   </p>
-                  <p className="bg-[#FFF9EE] border border-amber-100 text-amber-900 rounded-xl p-3">
+                  <p className="bg-[#FFF9EE] dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/60 text-amber-900 dark:text-amber-200 rounded-xl p-3">
                     <strong>Note:</strong> Meeting organizer permissions are strictly role-based to ensure privacy between staff relationships and investors.
                   </p>
                 </div>
@@ -843,19 +843,19 @@ export default function ScheduleMeetingPage() {
                   <Video className="h-5 w-5 text-[#E29F3A]" />
                   Video Setup (Optional)
                 </h3>
-                <div className="mt-4 space-y-3.5 text-xs text-[#8E8E93] leading-relaxed">
+                <div className="mt-4 space-y-3.5 text-xs text-[#8E8E93] dark:text-gray-400 leading-relaxed">
                   <p>
                     Adding a meeting link is completely <strong>optional</strong>. If you decide to add one, use these tips to ensure the link doesn&apos;t expire:
                   </p>
 
-                  <div className="space-y-1 border-l-2 border-amber-200 pl-3">
+                  <div className="space-y-1 border-l-2 border-amber-200 dark:border-amber-800 pl-3">
                     <p className="font-semibold text-gray-800 dark:text-gray-200">Google Meet</p>
                     <p>
                       Schedule via <strong>Google Calendar</strong> instead of "Instant Meetings" to get a link that lasts 365 days.
                     </p>
                   </div>
 
-                  <div className="space-y-1 border-l-2 border-amber-200 pl-3">
+                  <div className="space-y-1 border-l-2 border-amber-200 dark:border-amber-800 pl-3">
                     <p className="font-semibold text-gray-800 dark:text-gray-200">Zoom</p>
                     <p>
                       Use a scheduled meeting link or your <strong>Personal ID (PMI)</strong> link, both of which will not expire.

@@ -690,12 +690,12 @@ export function AssignedInvestorsMessagesScreen() {
                 onChange={(event) => setSearch(event.target.value)}
                 type="text"
                 placeholder="Search messages here"
-                className="h-[42px] w-full rounded-full bg-[#F5F5F7] pl-11 pr-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#A2A5AA] transition-all focus:ring-1 focus:ring-[#FBCB4B]"
+                className="h-[42px] w-full rounded-full bg-[#F5F5F7] dark:bg-gray-800 pl-11 pr-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#A2A5AA] dark:placeholder:text-gray-500 transition-all focus:ring-1 focus:ring-[#FBCB4B]"
               />
             </label>
             <button
               onClick={() => setIsNewChatModalOpen(true)}
-              className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-[#F5F5F7] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBCB4B] transition-all shadow-sm"
+              className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-[#F5F5F7] dark:bg-gray-800 text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBCB4B] dark:hover:bg-[#FBCB4B] dark:hover:text-gray-900 transition-all shadow-sm"
               title="New Chat"
             >
               <UserPlus className="h-5 w-5" />
@@ -704,7 +704,7 @@ export function AssignedInvestorsMessagesScreen() {
 
           <div className="flex-1 space-y-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200">
             {filteredThreads.length === 0 ? (
-              <p className="py-10 text-center text-[13px] text-[#6F7177]">No conversations found</p>
+              <p className="py-10 text-center text-[13px] text-[#6F7177] dark:text-gray-400">No conversations found</p>
             ) : (
               filteredThreads.map((thread) => {
                 const selected = thread.id === activeThreadId;
@@ -714,8 +714,8 @@ export function AssignedInvestorsMessagesScreen() {
                     type="button"
                     onClick={() => handleThreadSelect(thread.id)}
                     className={cn(
-                      "flex w-full items-start gap-3 px-3 py-3.5 text-left transition-all hover:bg-[#F9FAFB] border-b border-[#F0F0F0] dark:border-gray-700",
-                      selected ? "bg-[#F9FAFB]" : ""
+                      "flex w-full items-start gap-3 px-3 py-3.5 text-left transition-all hover:bg-[#F9FAFB] dark:hover:bg-gray-800/60 border-b border-[#F0F0F0] dark:border-gray-800 rounded-lg",
+                      selected ? "bg-[#FFF9EE] dark:bg-amber-950/40 border-l-4 border-l-[#FBCB4B]" : ""
                     )}
                   >
                     <div className="relative">
@@ -725,22 +725,22 @@ export function AssignedInvestorsMessagesScreen() {
                         className="h-11 w-11 shrink-0 rounded-full shadow-sm"
                       />
                       <div className={cn(
-                        "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white",
+                        "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white dark:border-[#1C1C1C]",
                         thread.isOnline ? "bg-[#34C759]" : "bg-[#9CA1AA]"
                       )}></div>
                     </div>
                     <div className="flex flex-1 flex-col justify-between h-full min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
                         <p className="truncate text-[14px] font-bold text-[#1F1F1F] dark:text-gray-100">{thread.investorName}</p>
-                        <p className="text-[11px] text-[#A2A5AA] whitespace-nowrap ml-2">{thread.timeAgo}</p>
+                        <p className="text-[11px] text-[#A2A5AA] dark:text-gray-400 whitespace-nowrap ml-2">{thread.timeAgo}</p>
                       </div>
                       {thread.isGroup && (
                         <p className="text-[10px] font-bold text-[#FBCB4B] uppercase tracking-wider mb-0.5">Group</p>
                       )}
                       <div className="flex items-center justify-between">
-                        <p className="truncate text-[12px] text-[#6F7177] leading-tight flex-1">{thread.preview}</p>
+                        <p className="truncate text-[12px] text-[#6F7177] dark:text-gray-400 leading-tight flex-1">{thread.preview}</p>
                         {thread.unreadCount > 0 && (
-                          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#EAF6F0] px-1.5 text-[10px] font-bold text-[#34C759] ml-2">
+                          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#EAF6F0] dark:bg-emerald-950/60 px-1.5 text-[10px] font-bold text-[#34C759] dark:text-emerald-400 ml-2">
                             {thread.unreadCount}
                           </span>
                         )}
@@ -757,7 +757,7 @@ export function AssignedInvestorsMessagesScreen() {
           className={cn(
             "rounded-[8px] bg-white dark:bg-[#1C1C1C] p-4 shadow-sm border border-[#F0F0F0] dark:border-gray-700 flex flex-col h-[calc(100vh-160px)] min-h-[500px] relative",
             !isMobileChatOpen ? "hidden md:flex" : "flex",
-            isDragging ? "border-[#FBCB4B] bg-yellow-50/30" : ""
+            isDragging ? "border-[#FBCB4B] bg-yellow-50/30 dark:bg-amber-950/20" : ""
           )}
           onDragOver={(e) => { e.preventDefault(); if (activeThreadId) setIsDragging(true); }}
           onDragEnter={(e) => { e.preventDefault(); if (activeThreadId) setIsDragging(true); }}
@@ -780,7 +780,7 @@ export function AssignedInvestorsMessagesScreen() {
                 <Upload className="h-8 w-8 text-[#FBCB4B]" />
               </div>
               <p className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100">Drop files to attach</p>
-              <p className="text-[12px] text-[#8E8E93] mt-1">Images, PDFs, Docs up to 10MB</p>
+              <p className="text-[12px] text-[#8E8E93] dark:text-gray-400 mt-1">Images, PDFs, Docs up to 10MB</p>
             </div>
           )}
           {activeThread ? (
@@ -788,7 +788,7 @@ export function AssignedInvestorsMessagesScreen() {
               <div className="flex items-center gap-3 border-b border-[#F0F0F0] dark:border-gray-700 pb-4 px-1 shrink-0">
                 <button
                   onClick={() => setIsMobileChatOpen(false)}
-                  className="md:hidden p-2 -ml-2 text-[#6F7177] hover:bg-[#F5F5F7] rounded-full transition-colors"
+                  className="md:hidden p-2 -ml-2 text-[#6F7177] dark:text-gray-300 hover:bg-[#F5F5F7] dark:hover:bg-gray-800 rounded-full transition-colors"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
@@ -799,13 +799,13 @@ export function AssignedInvestorsMessagesScreen() {
                     className="h-10 w-10 rounded-full shadow-sm"
                   />
                   <div className={cn(
-                    "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white",
+                    "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white dark:border-[#1C1C1C]",
                     activeThread.isOnline ? "bg-[#34C759]" : "bg-[#9CA1AA]"
                   )}></div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[15px] font-bold text-[#1F1F1F] dark:text-gray-100 leading-tight truncate">{activeThread.investorName}</p>
-                  <p className="text-[12px] text-[#A2A5AA] mt-0.5">
+                  <p className="text-[12px] text-[#A2A5AA] dark:text-gray-400 mt-0.5">
                     {activeThread.isGroup ? `${activeThread.participants?.length || 0} participants` : activeThread.role}
                   </p>
                 </div>
@@ -813,13 +813,13 @@ export function AssignedInvestorsMessagesScreen() {
                 <div className="flex items-center gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="p-2 hover:bg-[#F5F5F7] rounded-full transition-colors text-[#6F7177]">
+                      <button className="p-2 hover:bg-[#F5F5F7] dark:hover:bg-gray-800 rounded-full transition-colors text-[#6F7177] dark:text-gray-300">
                         <MoreHorizontal className="h-5 w-5" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[200px] rounded-xl shadow-xl border-[#F0F0F0] dark:border-gray-700">
+                    <DropdownMenuContent align="end" className="w-[200px] rounded-xl shadow-xl border-[#F0F0F0] dark:border-gray-700 bg-white dark:bg-[#1C1C1C]">
                       <div className="px-3 py-2 border-b border-[#F0F0F0] dark:border-gray-700 mb-1">
-                        <p className="text-[11px] font-bold text-[#A2A5AA] uppercase tracking-wider">
+                        <p className="text-[11px] font-bold text-[#A2A5AA] dark:text-gray-400 uppercase tracking-wider">
                           {activeThread.isGroup ? 'Group Details' : 'Chat Details'}
                         </p>
                       </div>
@@ -835,7 +835,7 @@ export function AssignedInvestorsMessagesScreen() {
                             {activeThread.isGroup && (activeThread.isCreator || ['admin', 'executive_admin', 'staff'].includes(profile?.role)) && p.id !== profile?.id && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); handleRemoveParticipant(activeThread.id, p.id); }}
-                                className="text-red-500 hover:bg-red-50 p-1 rounded-md transition-colors"
+                                className="text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 p-1 rounded-md transition-colors"
                                 title="Remove Participant"
                               >
                                 <UserMinus className="h-3.5 w-3.5" />
@@ -848,14 +848,14 @@ export function AssignedInvestorsMessagesScreen() {
                       {/* Add Members - Only visible for non-investor users */}
                       {profile?.role !== 'investor' && (
                         <>
-                          <div className="h-[1px] bg-[#F0F0F0] my-1" />
+                          <div className="h-[1px] bg-[#F0F0F0] dark:bg-gray-700 my-1" />
                           <DropdownMenuItem
                             onClick={() => {
                               setSelectedUserIds([]);
                               setIsAddMode(true);
                               setIsNewChatModalOpen(true);
                             }}
-                            className="focus:bg-blue-50 focus:text-blue-600 cursor-pointer flex items-center gap-2 px-3 py-2.5 rounded-lg font-bold text-[#3B6FF0]"
+                            className="focus:bg-blue-50 dark:focus:bg-blue-950/40 focus:text-blue-600 dark:focus:text-blue-400 cursor-pointer flex items-center gap-2 px-3 py-2.5 rounded-lg font-bold text-[#3B6FF0] dark:text-blue-400"
                           >
                             <UserPlus className="h-4 w-4" />
                             <span>Add Members</span>
@@ -865,10 +865,10 @@ export function AssignedInvestorsMessagesScreen() {
 
                       {activeThread.isGroup && (
                         <>
-                          <div className="h-[1px] bg-[#F0F0F0] my-1" />
+                          <div className="h-[1px] bg-[#F0F0F0] dark:bg-gray-700 my-1" />
                           <DropdownMenuItem
                             onClick={() => handleLeaveGroup(activeThread.id)}
-                            className="text-red-500 focus:text-red-500 focus:bg-red-50 cursor-pointer flex items-center gap-2 px-3 py-2.5 rounded-lg"
+                            className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/40 cursor-pointer flex items-center gap-2 px-3 py-2.5 rounded-lg"
                           >
                             <LogOut className="h-4 w-4" />
                             <span>Leave Group</span>
@@ -884,9 +884,9 @@ export function AssignedInvestorsMessagesScreen() {
                 {groupedMessages.YESTERDAY.length > 0 && (
                   <>
                     <div className="flex items-center gap-4 my-2">
-                      <div className="h-[1px] flex-1 bg-[#F0F0F0]"></div>
-                      <div className="text-[11px] font-bold tracking-[0.1em] text-[#A2A5AA] uppercase">YESTERDAY</div>
-                      <div className="h-[1px] flex-1 bg-[#F0F0F0]"></div>
+                      <div className="h-[1px] flex-1 bg-[#F0F0F0] dark:bg-gray-800"></div>
+                      <div className="text-[11px] font-bold tracking-[0.1em] text-[#A2A5AA] dark:text-gray-500 uppercase">YESTERDAY</div>
+                      <div className="h-[1px] flex-1 bg-[#F0F0F0] dark:bg-gray-800"></div>
                     </div>
                     <div className="space-y-4">
                       {groupedMessages.YESTERDAY.map((message) => (
@@ -904,12 +904,12 @@ export function AssignedInvestorsMessagesScreen() {
                                 />
                                 <div className="flex flex-col items-start flex-1">
                                   {activeThread?.isGroup && (
-                                    <span className="text-[11px] font-bold text-[#6F7177] mb-1 ml-1 block">
+                                    <span className="text-[11px] font-bold text-[#6F7177] dark:text-gray-400 mb-1 ml-1 block">
                                       {message.sender_name || 'Participant'}
                                     </span>
                                   )}
                                   {message.isAttachment ? (
-                                    <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] dark:text-gray-100 border border-[#D9E6FC] shadow-sm">
+                                    <div className="bg-[#E8F0FE] dark:bg-blue-950/70 rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] dark:text-gray-100 border border-[#D9E6FC] dark:border-blue-900/60 shadow-sm">
                                       <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 shrink-0 flex items-center justify-center">
                                           <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8" />
@@ -924,11 +924,11 @@ export function AssignedInvestorsMessagesScreen() {
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 leading-relaxed border border-[#D9E6FC] shadow-sm">
+                                    <div className="bg-[#E8F0FE] dark:bg-blue-950/70 rounded-[18px] rounded-bl-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 leading-relaxed border border-[#D9E6FC] dark:border-blue-900/60 shadow-sm">
                                       {message.text}
                                     </div>
                                   )}
-                                  <span className="text-[11px] text-[#A2A5AA] mt-1.5 ml-1">{message.time}</span>
+                                  <span className="text-[11px] text-[#A2A5AA] dark:text-gray-400 mt-1.5 ml-1">{message.time}</span>
                                 </div>
                               </div>
                             ) : (
@@ -936,7 +936,7 @@ export function AssignedInvestorsMessagesScreen() {
                                 <div className="flex items-start gap-2 relative">
 
                                   {editingMessageId === message.id ? (
-                                    <div className="flex flex-col bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] p-4 border border-[#EBEBEB] w-[260px] sm:w-[320px] shadow-sm relative overflow-hidden">
+                                    <div className="flex flex-col bg-[#F5F5F5] dark:bg-gray-800 rounded-[18px] rounded-br-[4px] p-4 border border-[#EBEBEB] dark:border-gray-700 w-[260px] sm:w-[320px] shadow-sm relative overflow-hidden">
                                       <textarea
                                         value={editInput}
                                         onChange={(e) => setEditInput(e.target.value)}
@@ -946,20 +946,20 @@ export function AssignedInvestorsMessagesScreen() {
                                       <div className="flex justify-end gap-2 mt-2">
                                         <button
                                           onClick={() => setEditingMessageId(null)}
-                                          className="flex items-center justify-center h-8 w-8 hover:bg-gray-200 rounded-full text-[#6F7177] transition-colors"
+                                          className="flex items-center justify-center h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-[#6F7177] dark:text-gray-400 transition-colors"
                                         >
                                           <X className="h-4.5 w-4.5" />
                                         </button>
                                         <button
                                           onClick={() => handleEditMessage(message.id)}
-                                          className="flex items-center justify-center h-8 w-8 bg-[#FBCB4B] rounded-full text-[#1F1F1F] dark:text-gray-100 shadow-sm hover:scale-105 active:scale-95 transition-all"
+                                          className="flex items-center justify-center h-8 w-8 bg-[#FBCB4B] rounded-full text-[#1F1F1F] dark:text-gray-900 shadow-sm hover:scale-105 active:scale-95 transition-all"
                                         >
                                           <Check className="h-4.5 w-4.5" />
                                         </button>
                                       </div>
                                     </div>
                                   ) : message.isAttachment ? (
-                                    <div className="bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] p-3 text-[#1F1F1F] dark:text-gray-100 border border-[#EBEBEB] shadow-sm">
+                                    <div className="bg-[#F5F5F5] dark:bg-gray-800 rounded-[18px] rounded-br-[4px] p-3 text-[#1F1F1F] dark:text-gray-100 border border-[#EBEBEB] dark:border-gray-700 shadow-sm">
                                       <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 shrink-0 flex items-center justify-center">
                                           <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8" />
@@ -974,7 +974,7 @@ export function AssignedInvestorsMessagesScreen() {
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 leading-relaxed border border-[#EBEBEB] whitespace-pre-line shadow-sm">
+                                    <div className="bg-[#F5F5F5] dark:bg-gray-800 rounded-[18px] rounded-br-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 leading-relaxed border border-[#EBEBEB] dark:border-gray-700 whitespace-pre-line shadow-sm">
                                       {message.text}
                                       {message.updatedAt && message.updatedAt !== message.createdAt && (
                                         <span className="block mt-0.5 text-[9px] opacity-40 text-right italic">(edited)</span>
@@ -982,7 +982,7 @@ export function AssignedInvestorsMessagesScreen() {
                                     </div>
                                   )}
                                 </div>
-                                <span className="text-[11px] text-[#A2A5AA] mt-1.5 mr-1">{message.time}</span>
+                                <span className="text-[11px] text-[#A2A5AA] dark:text-gray-400 mt-1.5 mr-1">{message.time}</span>
                               </div>
                             )}
                           </div>
@@ -994,9 +994,9 @@ export function AssignedInvestorsMessagesScreen() {
 
                 {groupedMessages.TODAY.length > 0 && (
                   <div className="flex items-center gap-4 my-2">
-                    <div className="h-[1px] flex-1 bg-[#F0F0F0]"></div>
-                    <div className="text-[11px] font-bold tracking-[0.1em] text-[#A2A5AA] uppercase">TODAY</div>
-                    <div className="h-[1px] flex-1 bg-[#F0F0F0]"></div>
+                    <div className="h-[1px] flex-1 bg-[#F0F0F0] dark:bg-gray-800"></div>
+                    <div className="text-[11px] font-bold tracking-[0.1em] text-[#A2A5AA] dark:text-gray-500 uppercase">TODAY</div>
+                    <div className="h-[1px] flex-1 bg-[#F0F0F0] dark:bg-gray-800"></div>
                   </div>
                 )}
 
@@ -1010,23 +1010,23 @@ export function AssignedInvestorsMessagesScreen() {
                         {message.sender === 'investor' ? (
                           <div className="flex flex-col items-start max-w-[85%] sm:max-w-[80%]">
                             {activeThread?.isGroup && (
-                              <span className="text-[11px] font-bold text-[#6F7177] mb-1 ml-1 block">
+                              <span className="text-[11px] font-bold text-[#6F7177] dark:text-gray-400 mb-1 ml-1 block">
                                 {message.sender_name || 'Participant'}
                               </span>
                             )}
                             {message.text.includes('Monday, 8 December') ? (
-                              <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-3 text-[14px] text-[#1F1F1F] dark:text-gray-100 border border-[#D9E6FC] shadow-sm">
+                              <div className="bg-[#E8F0FE] dark:bg-blue-950/70 rounded-[18px] rounded-bl-[4px] px-4 py-3 text-[14px] text-[#1F1F1F] dark:text-gray-100 border border-[#D9E6FC] dark:border-blue-900/60 shadow-sm">
                                 <p className="mb-2 font-medium">{message.text.split('\n')[0]}</p>
-                                <div className="bg-white dark:bg-[#1C1C1C]/50 rounded-xl p-3 space-y-1.5 border border-white/40">
+                                <div className="bg-white dark:bg-[#1C1C1C]/50 rounded-xl p-3 space-y-1.5 border border-white/40 dark:border-gray-700/40">
                                   {message.text.split('\n').slice(1).map((line, i) => (
-                                    <p key={i} className={cn("text-[13px]", line.includes('http') ? "text-[#007AFF] font-semibold underline decoration-2 underline-offset-2" : "text-[#4B4B4B] dark:text-gray-300")}>
+                                    <p key={i} className={cn("text-[13px]", line.includes('http') ? "text-[#007AFF] dark:text-blue-400 font-semibold underline decoration-2 underline-offset-2" : "text-[#4B4B4B] dark:text-gray-300")}>
                                       {line}
                                     </p>
                                   ))}
                                 </div>
                               </div>
                             ) : message.isAttachment ? (
-                              <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] dark:text-gray-100 border border-[#D9E6FC] shadow-sm">
+                              <div className="bg-[#E8F0FE] dark:bg-blue-950/70 rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] dark:text-gray-100 border border-[#D9E6FC] dark:border-blue-900/60 shadow-sm">
                                 <div className="flex items-center gap-3">
                                   <div className="h-10 w-10 shrink-0 flex items-center justify-center">
                                     <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8" />
@@ -1041,18 +1041,18 @@ export function AssignedInvestorsMessagesScreen() {
                                 </div>
                               </div>
                             ) : (
-                              <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 leading-relaxed border border-[#D9E6FC] shadow-sm">
+                              <div className="bg-[#E8F0FE] dark:bg-blue-950/70 rounded-[18px] rounded-bl-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 leading-relaxed border border-[#D9E6FC] dark:border-blue-900/60 shadow-sm">
                                 {message.text}
                               </div>
                             )}
-                            <span className="text-[11px] text-[#A2A5AA] mt-1.5 ml-1">{message.time}</span>
+                            <span className="text-[11px] text-[#A2A5AA] dark:text-gray-400 mt-1.5 ml-1">{message.time}</span>
                           </div>
                         ) : (
                           <div className="flex flex-col items-end max-w-[85%] sm:max-w-[80%]">
                             <div className="flex items-start gap-2 relative">
 
                               {editingMessageId === message.id ? (
-                                <div className="flex flex-col bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] p-4 border border-[#EBEBEB] w-[260px] sm:w-[320px] shadow-sm relative overflow-hidden">
+                                <div className="flex flex-col bg-[#F5F5F5] dark:bg-gray-800 rounded-[18px] rounded-br-[4px] p-4 border border-[#EBEBEB] dark:border-gray-700 w-[260px] sm:w-[320px] shadow-sm relative overflow-hidden">
                                   <textarea
                                     value={editInput}
                                     onChange={(e) => setEditInput(e.target.value)}
@@ -1062,20 +1062,20 @@ export function AssignedInvestorsMessagesScreen() {
                                   <div className="flex justify-end gap-2 mt-2">
                                     <button
                                       onClick={() => setEditingMessageId(null)}
-                                      className="flex items-center justify-center h-8 w-8 hover:bg-gray-200 rounded-full text-[#6F7177] transition-colors"
+                                      className="flex items-center justify-center h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-[#6F7177] dark:text-gray-400 transition-colors"
                                     >
                                       <X className="h-4.5 w-4.5" />
                                     </button>
                                     <button
                                       onClick={() => handleEditMessage(message.id)}
-                                      className="flex items-center justify-center h-8 w-8 bg-[#FBCB4B] rounded-full text-[#1F1F1F] dark:text-gray-100 shadow-sm hover:scale-105 active:scale-95 transition-all"
+                                      className="flex items-center justify-center h-8 w-8 bg-[#FBCB4B] rounded-full text-[#1F1F1F] dark:text-gray-900 shadow-sm hover:scale-105 active:scale-95 transition-all"
                                     >
                                       <Check className="h-4.5 w-4.5" />
                                     </button>
                                   </div>
                                 </div>
                               ) : message.isAttachment ? (
-                                <div className="bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] p-3 text-[#1F1F1F] dark:text-gray-100 border border-[#EBEBEB] shadow-sm">
+                                <div className="bg-[#F5F5F5] dark:bg-gray-800 rounded-[18px] rounded-br-[4px] p-3 text-[#1F1F1F] dark:text-gray-100 border border-[#EBEBEB] dark:border-gray-700 shadow-sm">
                                   <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 shrink-0 flex items-center justify-center">
                                       <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8" />
@@ -1090,7 +1090,7 @@ export function AssignedInvestorsMessagesScreen() {
                                   </div>
                                 </div>
                               ) : (
-                                <div className="bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 leading-relaxed border border-[#EBEBEB] whitespace-pre-line shadow-sm">
+                                <div className="bg-[#F5F5F5] dark:bg-gray-800 rounded-[18px] rounded-br-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 leading-relaxed border border-[#EBEBEB] dark:border-gray-700 whitespace-pre-line shadow-sm">
                                   {message.text}
                                   {message.updatedAt && message.updatedAt !== message.createdAt && (
                                     <span className="block mt-0.5 text-[9px] opacity-40 text-right italic">(edited)</span>
@@ -1098,15 +1098,15 @@ export function AssignedInvestorsMessagesScreen() {
                                 </div>
                               )}
                             </div>
-                            <span className="text-[11px] text-[#A2A5AA] mt-1.5 mr-1">{message.time}</span>
+                            <span className="text-[11px] text-[#A2A5AA] dark:text-gray-400 mt-1.5 mr-1">{message.time}</span>
                           </div>
                         )}
                       </div>
                     </div>
                   ))}
                   {isUploading && (
-                    <div className="mr-auto max-w-[75%] sm:max-w-[70%] rounded-[18px] bg-[#E8F0FE] p-3 animate-pulse border border-[#D9E6FC] shadow-sm">
-                      <div className="flex items-center gap-2 text-[#2A4474]">
+                    <div className="mr-auto max-w-[75%] sm:max-w-[70%] rounded-[18px] bg-[#E8F0FE] dark:bg-blue-950/70 p-3 animate-pulse border border-[#D9E6FC] dark:border-blue-900/60 shadow-sm">
+                      <div className="flex items-center gap-2 text-[#2A4474] dark:text-blue-300">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         <span className="text-[12px] font-medium">Uploading attachment...</span>
                       </div>
@@ -1118,17 +1118,17 @@ export function AssignedInvestorsMessagesScreen() {
 
               <div className="mt-4 pt-4 border-t border-[#F0F0F0] dark:border-gray-700 shrink-0">
                 {selectedFile && (
-                  <div className="mb-3 flex w-fit max-w-[95%] sm:max-w-[380px] items-center gap-3 rounded-2xl bg-[#F9FAFB] p-3 border border-[#F0F0F0] dark:border-gray-700 shadow-sm animate-in slide-in-from-bottom-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-[#1C1C1C] border border-[#EDEDED] shadow-sm">
+                  <div className="mb-3 flex w-fit max-w-[95%] sm:max-w-[380px] items-center gap-3 rounded-2xl bg-[#F9FAFB] dark:bg-gray-800 p-3 border border-[#F0F0F0] dark:border-gray-700 shadow-sm animate-in slide-in-from-bottom-2">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-[#1C1C1C] border border-[#EDEDED] dark:border-gray-700 shadow-sm">
                       <img src={getFileIcon(selectedFile.originalName)} alt="file" className="h-6 w-6" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="truncate text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{selectedFile.originalName}</p>
-                      <p className="text-[11px] text-[#A2A5AA]">{selectedFile.size}</p>
+                      <p className="text-[11px] text-[#A2A5AA] dark:text-gray-400">{selectedFile.size}</p>
                     </div>
                     <button
                       onClick={() => setSelectedFile(null)}
-                      className="ml-2 text-[#A2A5AA] hover:text-red-500 transition-colors bg-white dark:bg-[#1C1C1C] hover:bg-red-50 p-1.5 rounded-full shadow-sm border border-[#F0F0F0] dark:border-gray-700"
+                      className="ml-2 text-[#A2A5AA] hover:text-red-500 transition-colors bg-white dark:bg-[#1C1C1C] hover:bg-red-50 dark:hover:bg-red-950/30 p-1.5 rounded-full shadow-sm border border-[#F0F0F0] dark:border-gray-700"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -1138,7 +1138,7 @@ export function AssignedInvestorsMessagesScreen() {
                 <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handleFilePicked} />
                 <input ref={documentInputRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png" className="hidden" onChange={handleFilePicked} />
 
-                <div className="relative flex items-center gap-2 bg-[#F9F9FB] rounded-[20px] px-3.5 py-2.5 border border-[#EBEBEB] transition-all focus-within:border-[#FBCB4B] focus-within:shadow-md focus-within:bg-white dark:bg-[#1C1C1C]">
+                <div className="relative flex items-center gap-2 bg-[#F9F9FB] dark:bg-gray-800 rounded-[20px] px-3.5 py-2.5 border border-[#EBEBEB] dark:border-gray-700 transition-all focus-within:border-[#FBCB4B] focus-within:shadow-md focus-within:bg-white dark:focus-within:bg-gray-800">
                   {showMenu && (
                     <div className="absolute bottom-full left-0 mb-3 z-10 w-[220px] rounded-[16px] border border-[#F0F0F0] dark:border-gray-700 bg-white dark:bg-[#1C1C1C] p-1.5 shadow-[0_12px_30px_rgba(0,0,0,0.15)] animate-in zoom-in-95 duration-150 origin-bottom-left">
                       <button onClick={() => { photoInputRef.current?.click(); setShowMenu(false); }} className="flex w-full items-center gap-3 px-3.5 py-3 text-left text-[14px] text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F9FAFB] rounded-xl transition-colors">
