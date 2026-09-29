@@ -2,25 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { 
-  GitFork, 
-  ArrowLeft, 
-  Search, 
-  RefreshCw, 
-  Mail, 
-  Calendar, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  AlertCircle, 
-  ChevronRight, 
-  User, 
-  Building2, 
-  MapPin, 
-  Sparkles, 
-  PhoneCall, 
-  Send, 
-  Eye, 
+import {
+  GitFork,
+  ArrowLeft,
+  Search,
+  RefreshCw,
+  Mail,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  ChevronRight,
+  User,
+  Building2,
+  MapPin,
+  Sparkles,
+  PhoneCall,
+  Send,
+  Eye,
   X,
   Filter,
   Check,
@@ -117,9 +117,9 @@ const SEQUENCE_STAGES = [
     stepNumber: 5,
     title: 'Day 5 Email (Sent)',
     subtitle: 'Final Call & Notice',
-    badgeColor: 'bg-pink-50 text-pink-700 border-pink-200',
-    headerBg: 'bg-gradient-to-r from-pink-500/10 via-pink-50 to-rose-50/50',
-    borderColor: 'border-pink-200',
+    badgeColor: 'bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400 border-pink-200 dark:border-pink-800/50',
+    headerBg: 'bg-gradient-to-r from-pink-500/10 via-pink-50 dark:via-pink-900/10 to-rose-50/50 dark:to-rose-900/10',
+    borderColor: 'border-pink-200 dark:border-pink-800/50',
     accentColor: '#EC4899',
     description: 'Day 5 email sent, awaiting physician reply'
   },
@@ -128,9 +128,9 @@ const SEQUENCE_STAGES = [
     stepNumber: 6,
     title: 'Interested',
     subtitle: 'Positive Response',
-    badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    headerBg: 'bg-gradient-to-r from-emerald-500/10 via-emerald-50 to-teal-50/50',
-    borderColor: 'border-emerald-200',
+    badgeColor: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50',
+    headerBg: 'bg-gradient-to-r from-emerald-500/10 via-emerald-50 dark:via-emerald-900/10 to-teal-50/50 dark:to-teal-900/10',
+    borderColor: 'border-emerald-200 dark:border-emerald-800/50',
     accentColor: '#10B981',
     description: 'Doctors who confirmed interest or registered for webinar'
   },
@@ -140,7 +140,7 @@ const SEQUENCE_STAGES = [
     title: 'Not Interested / Needs Call',
     subtitle: 'Declined or No Response',
     badgeColor: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/50',
-    headerBg: 'bg-gradient-to-r from-rose-500/10 via-rose-50 to-red-50/50',
+    headerBg: 'bg-gradient-to-r from-rose-500/10 via-rose-50 dark:via-rose-900/10 to-red-50/50 dark:to-red-900/10',
     borderColor: 'border-rose-200 dark:border-rose-800/50',
     accentColor: '#F43F5E',
     description: 'Doctors who declined outreach, opted out, or did not respond post-sequence'
@@ -157,7 +157,7 @@ export default function DoctorEmailSequenceFlowPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'interested' | 'not_interested' | 'sent'>('all');
-  
+
   // Selected doctor for email preview modal
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorProspect | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
@@ -184,7 +184,7 @@ export default function DoctorEmailSequenceFlowPage() {
           let seqArr: any[] = [];
           if (r.ai_sequence) {
             if (typeof r.ai_sequence === 'string') {
-              try { seqArr = JSON.parse(r.ai_sequence); } catch(e){}
+              try { seqArr = JSON.parse(r.ai_sequence); } catch (e) { }
             } else if (Array.isArray(r.ai_sequence)) {
               seqArr = r.ai_sequence;
             }
@@ -242,7 +242,7 @@ export default function DoctorEmailSequenceFlowPage() {
             minute: '2-digit'
           });
         }
-      } catch(e) {}
+      } catch (e) { }
     }
 
     // 3. Fallback: Calculate estimated scheduled date based on doctor creation / updated date
@@ -264,7 +264,7 @@ export default function DoctorEmailSequenceFlowPage() {
         hour: '2-digit',
         minute: '2-digit'
       }) + ' @ 9:00 AM EST';
-    } catch(e) {
+    } catch (e) {
       return 'Scheduled Drip Step';
     }
   };
@@ -338,8 +338,8 @@ export default function DoctorEmailSequenceFlowPage() {
     const nextStepItem = doc.aiSequence.find(s => s.day === nextStepNum);
     const nextScheduledDate = nextStepItem ? getScheduledDateForStep(nextStepItem, doc.createdAt, nextStepNum) : undefined;
 
-    return { 
-      stageId, 
+    return {
+      stageId,
       lastSentDate: maxStep.sentAt || doc.updatedAt || doc.createdAt,
       lastSentDay: maxStep.day,
       nextScheduledDate
@@ -352,7 +352,7 @@ export default function DoctorEmailSequenceFlowPage() {
     if (['interested', 'email_replied', 'luma_registered', 'converted_investor'].includes(s)) {
       return {
         label: 'Interested',
-        bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        bg: 'bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50',
         dot: 'bg-emerald-500',
         icon: CheckCircle2
       };
@@ -360,7 +360,7 @@ export default function DoctorEmailSequenceFlowPage() {
     if (['not_interested', 'declined', 'unsubscribed', 'needs_call', 'call_queue', 'didnt_pick_up', 'call_back_later'].includes(s)) {
       return {
         label: 'Not Interested / Needs Call',
-        bg: 'bg-rose-50 text-rose-700 border-rose-200',
+        bg: 'bg-rose-50 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/50',
         dot: 'bg-rose-500',
         icon: XCircle
       };
@@ -368,14 +368,14 @@ export default function DoctorEmailSequenceFlowPage() {
     if (s === 'sent') {
       return {
         label: 'Email Sent',
-        bg: 'bg-blue-50 text-blue-700 border-blue-200',
+        bg: 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/50',
         dot: 'bg-blue-500',
         icon: Send
       };
     }
     return {
       label: 'Pending Outreach',
-      bg: 'bg-amber-50 text-amber-700 border-amber-200',
+      bg: 'bg-amber-100/90 dark:bg-amber-900/50 text-amber-900 dark:text-amber-300 border-amber-300 dark:border-amber-700/60',
       dot: 'bg-amber-500',
       icon: Clock
     };
@@ -383,7 +383,7 @@ export default function DoctorEmailSequenceFlowPage() {
 
   // Filter doctors based on search query and status tab
   const filteredDoctors = doctors.filter(doc => {
-    const matchesSearch = 
+    const matchesSearch =
       doc.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.organization.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -419,7 +419,7 @@ export default function DoctorEmailSequenceFlowPage() {
         hour: '2-digit',
         minute: '2-digit'
       });
-    } catch(e) {
+    } catch (e) {
       return null;
     }
   };
@@ -433,7 +433,7 @@ export default function DoctorEmailSequenceFlowPage() {
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               {fromCrm && (
                 <>
-                  <Link 
+                  <Link
                     href="/dashboard/doctor-crm"
                     className="inline-flex items-center gap-1 text-[13px] font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 transition-colors"
                   >
@@ -527,7 +527,7 @@ export default function DoctorEmailSequenceFlowPage() {
                     <div className={`p-4 ${stageItem.headerBg} border-b border-gray-100 dark:border-gray-800 shrink-0`}>
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span 
+                          <span
                             className="w-6 h-6 rounded-full text-white font-bold text-[11px] flex items-center justify-center shadow-xs"
                             style={{ backgroundColor: stageItem.accentColor }}
                           >
@@ -576,14 +576,14 @@ export default function DoctorEmailSequenceFlowPage() {
                           const formattedSentDate = formatDate(stageInfo.lastSentDate);
 
                           return (
-                            <div 
+                            <div
                               key={doc.id}
                               className="bg-white dark:bg-[#1C1C1C] rounded-[16px] p-3.5 border border-gray-200 dark:border-gray-800 hover:border-blue-400 hover:shadow-md transition-all group relative space-y-2.5"
                             >
                               {/* Top Row: Avatar & Name */}
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex items-center gap-2.5">
-                                  <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-[12px] flex items-center justify-center border border-slate-200 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-700 dark:text-gray-200 font-bold text-[12px] flex items-center justify-center border border-slate-200 dark:border-gray-700 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                     {doc.fullName.replace('Dr. ', '').charAt(0)}
                                   </div>
                                   <div>
@@ -615,28 +615,28 @@ export default function DoctorEmailSequenceFlowPage() {
 
                               {/* Sent Date or Scheduled Date info */}
                               {formattedSentDate ? (
-                                <div className="text-[11px] font-medium text-blue-700 bg-blue-50/90 px-2.5 py-1 rounded-md border border-blue-100 flex items-center gap-1.5">
+                                <div className="text-[11px] font-medium text-blue-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-900/40 px-2.5 py-1 rounded-md border border-blue-100 dark:border-blue-800/50 flex items-center gap-1.5">
                                   <Calendar className="w-3 h-3 text-blue-500 shrink-0" />
                                   <span className="truncate">Sent: {formattedSentDate}</span>
                                 </div>
                               ) : stageInfo.nextScheduledDate ? (
-                                <div className="text-[11px] font-medium text-amber-800 bg-amber-50/90 px-2.5 py-1 rounded-md border border-amber-200/70 flex items-center gap-1.5">
-                                  <Clock className="w-3 h-3 text-amber-600 shrink-0" />
+                                <div className="text-[11px] font-medium text-amber-800 dark:text-amber-300 bg-amber-50/90 dark:bg-amber-900/40 px-2.5 py-1 rounded-md border border-amber-200/70 dark:border-amber-800/50 flex items-center gap-1.5">
+                                  <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
                                   <span className="truncate" title={`Scheduled for ${stageInfo.nextScheduledDate}`}>
                                     Sched: {stageInfo.nextScheduledDate}
                                   </span>
                                 </div>
                               ) : (
-                                <div className="text-[11px] font-medium text-amber-700 bg-amber-50/80 px-2.5 py-1 rounded-md border border-amber-100 flex items-center gap-1.5">
-                                  <Clock className="w-3 h-3 text-amber-500 shrink-0" />
-                                  <span>Pending First Email</span>
+                                <div className="text-[11px] font-medium text-amber-800 dark:text-amber-300 bg-amber-100/90 dark:bg-amber-900/50 px-2.5 py-1 rounded-md border border-amber-300 dark:border-amber-700/60 flex items-center gap-1.5 shadow-2xs">
+                                  <Clock className="w-3 h-3 text-amber-700 dark:text-amber-400 shrink-0" />
+                                  <span className="font-bold">Pending First Email</span>
                                 </div>
                               )}
 
                               {/* Bottom Status & Action Row */}
                               <div className="pt-1 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 gap-1">
                                 {/* Status Badge */}
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${statusBadge.bg}`}>
+                                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1 shadow-2xs ${statusBadge.bg}`}>
                                   <StatusIcon className="w-3 h-3" />
                                   <span>{statusBadge.label}</span>
                                 </span>
@@ -648,9 +648,9 @@ export default function DoctorEmailSequenceFlowPage() {
                                     setActiveModalTab(stageInfo.lastSentDay || 1);
                                     setIsPreviewOpen(true);
                                   }}
-                                  className="text-[11px] font-bold text-gray-600 dark:text-gray-400 hover:text-blue-600 flex items-center gap-1 px-2 py-1 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
+                                  className="text-[11px] font-bold text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 px-2.5 py-1 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all cursor-pointer border border-gray-200 dark:border-gray-700"
                                 >
-                                  <Eye className="w-3 h-3" />
+                                  <Eye className="w-3 h-3 text-blue-500" />
                                   <span>View Email</span>
                                 </button>
                               </div>
@@ -663,7 +663,7 @@ export default function DoctorEmailSequenceFlowPage() {
 
                   {/* Flow Connector Arrow between stages */}
                   {index < SEQUENCE_STAGES.length - 1 && (
-                    <div className="flex flex-col items-center justify-center shrink-0 px-1 text-gray-300">
+                    <div className="flex flex-col items-center justify-center shrink-0 px-1 text-gray-300 dark:text-gray-700">
                       <div className="w-6 h-6 rounded-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 flex items-center justify-center shadow-2xs">
                         <ChevronRight className="w-4 h-4 text-blue-500" />
                       </div>
@@ -680,7 +680,7 @@ export default function DoctorEmailSequenceFlowPage() {
           <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               {/* Modal Header */}
-              <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-start justify-between bg-slate-900 text-white">
+              <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-start justify-between bg-slate-900 dark:bg-[#121212] text-white">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-400 bg-yellow-400/10 px-2.5 py-0.5 rounded-full border border-yellow-400/20">
@@ -690,21 +690,21 @@ export default function DoctorEmailSequenceFlowPage() {
                   <h2 className="text-[20px] font-goudy font-bold text-white mt-1">
                     {selectedDoctor.fullName}
                   </h2>
-                  <p className="text-[12px] text-gray-300 mt-0.5">
+                  <p className="text-[12px] text-gray-300 dark:text-gray-400 mt-0.5">
                     {selectedDoctor.specialty} • {selectedDoctor.organization} ({selectedDoctor.email})
                   </p>
                 </div>
 
                 <button
                   onClick={() => setIsPreviewOpen(false)}
-                  className="w-8 h-8 rounded-full bg-white dark:bg-[#1C1C1C]/10 hover:bg-white dark:bg-[#1C1C1C]/20 text-white flex items-center justify-center transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Day Selection Tabs (Day 1 to Day 5) */}
-              <div className="bg-slate-50 border-b border-gray-200 dark:border-gray-800 p-2.5 flex items-center gap-1.5 overflow-x-auto">
+              <div className="bg-slate-50 dark:bg-[#181818] border-b border-gray-200 dark:border-gray-800 p-2.5 flex items-center gap-1.5 overflow-x-auto">
                 {[1, 2, 3, 4, 5].map((dayNum) => {
                   const dayStep = selectedDoctor.aiSequence?.find(s => s.day === dayNum);
                   const isSent = dayStep?.status === 'sent' || dayStep?.sentAt;
@@ -715,11 +715,10 @@ export default function DoctorEmailSequenceFlowPage() {
                       key={dayNum}
                       onClick={() => setActiveModalTab(dayNum)}
                       title={isSent ? `Sent: ${formatDate(dayStep?.sentAt)}` : `Scheduled for: ${schedDateText}`}
-                      className={`px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                        activeModalTab === dayNum
+                      className={`px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${activeModalTab === dayNum
                           ? 'bg-blue-600 text-white shadow-xs'
-                          : 'bg-white dark:bg-[#1C1C1C] text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-800'
-                      }`}
+                          : 'bg-white dark:bg-[#1C1C1C] text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800'
+                        }`}
                     >
                       <span>Day {dayNum}</span>
                       {isSent ? (
@@ -742,9 +741,9 @@ export default function DoctorEmailSequenceFlowPage() {
                   return (
                     <div className="space-y-4">
                       {/* Step Header info */}
-                      <div className="flex items-center justify-between bg-blue-50/60 p-3.5 rounded-[14px] border border-blue-100">
+                      <div className="flex items-center justify-between bg-blue-50/60 dark:bg-blue-950/30 p-3.5 rounded-[14px] border border-blue-100 dark:border-blue-900/40">
                         <div>
-                          <div className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">
+                          <div className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
                             Sequence Step {activeModalTab} of 5
                           </div>
                           <div className="text-[13px] font-bold text-gray-900 dark:text-gray-100 mt-0.5">
@@ -753,13 +752,13 @@ export default function DoctorEmailSequenceFlowPage() {
                         </div>
 
                         {isSent ? (
-                          <div className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <div className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/40 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800/50 flex items-center gap-1.5 shadow-2xs">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                             <span>Sent {formattedDate ? `on ${formattedDate}` : ''}</span>
                           </div>
                         ) : (
-                          <div className="text-[11px] font-bold text-amber-800 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200/80 flex items-center gap-1.5 shadow-2xs">
-                            <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <div className="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/40 px-3 py-1.5 rounded-full border border-amber-200/80 dark:border-amber-800/50 flex items-center gap-1.5 shadow-2xs">
+                            <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                             <span>Scheduled: {getScheduledDateForStep(currentStep, selectedDoctor.createdAt, activeModalTab)}</span>
                           </div>
                         )}
@@ -778,7 +777,7 @@ export default function DoctorEmailSequenceFlowPage() {
                         <div className="text-[11px] font-bold text-gray-400 uppercase">Email Content Body</div>
                         {currentStep?.body ? (
                           /<[a-z][\s\S]*>/i.test(currentStep.body) ? (
-                            <div 
+                            <div
                               className="text-[13px] text-gray-800 dark:text-gray-200 leading-relaxed font-sans [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3 [&_li]:mb-1 [&_strong]:font-bold [&_strong]:text-gray-900 dark:text-gray-100 [&_a]:inline-block p-3 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800"
                               dangerouslySetInnerHTML={{ __html: currentStep.body }}
                             />
