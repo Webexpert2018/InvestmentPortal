@@ -220,12 +220,12 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: (value: boo
 }
 
 function SectionCard({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-[6px] border border-[#ECEDEF] bg-white dark:bg-[#1C1C1C]">{children}</div>;
+  return <div className="rounded-[6px] border border-[#ECEDEF] dark:border-gray-800 bg-white dark:bg-[#1C1C1C]">{children}</div>;
 }
 
 function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="border-b border-[#ECEDEF] px-4 py-3">
+    <div className="border-b border-[#ECEDEF] dark:border-gray-800 px-4 py-3">
       <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] dark:text-gray-100">{title}</h3>
     </div>
   );
@@ -2770,7 +2770,7 @@ export function InvestorSettingsScreen() {
       </div>
 
       {activeTab !== 'add-account' && (
-        <div className="mt-4 border-b border-[#E5E5EA]">
+        <div className="mt-4 border-b border-[#E5E5EA] dark:border-gray-800">
           <div className="flex items-center gap-8 overflow-x-auto pb-0">
             {tabs
               .filter((tab) => {
@@ -2787,7 +2787,7 @@ export function InvestorSettingsScreen() {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`relative shrink-0 pb-[10px] font-goudy text-[16px] leading-5 ${selected ? 'text-[#274583]' : 'text-[#8E8E93]'}`}
+                    className={`relative shrink-0 pb-[10px] font-goudy text-[16px] leading-5 transition-colors ${selected ? 'text-[#274583] dark:text-[#FBCB4B] font-semibold' : 'text-[#8E8E93] dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
                   >
                     {tab.label}
                     {selected && (

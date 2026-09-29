@@ -317,7 +317,7 @@ export default function EditNAVEntryPage() {
                 <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-200 dark:border-gray-800">
                   <Button
                     onClick={handleCancel}
-                    className="px-6 py-2 bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-700 dark:text-gray-300 rounded-full font-medium"
+                    className="px-6 py-2 bg-[#FEF3E2] hover:bg-[#fde8c8] dark:bg-[#1C1C1C] dark:hover:bg-[#2A2A2A] text-gray-700 dark:text-gray-300 border border-transparent dark:border-gray-800 rounded-full font-medium"
                   >
                     Cancel
                   </Button>
@@ -397,7 +397,7 @@ export default function EditNAVEntryPage() {
               <div className="flex justify-end gap-4">
                 <Button
                   onClick={cancelPublish}
-                  className="px-8 py-2 bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-900 dark:text-gray-100 rounded-full font-medium"
+                  className="px-8 py-2 bg-[#FEF3E2] hover:bg-[#fde8c8] dark:bg-[#1C1C1C] dark:hover:bg-[#2A2A2A] text-gray-900 dark:text-gray-100 border border-transparent dark:border-gray-800 rounded-full font-medium"
                 >
                   Cancel
                 </Button>

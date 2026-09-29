@@ -202,11 +202,11 @@ export default function NAVManagementPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Published':
-        return 'text-emerald-600 bg-emerald-50';
+        return 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-100 dark:border-emerald-800/30';
       case 'Draft':
-        return 'text-sky-700 bg-sky-50';
+        return 'text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/40 border border-sky-100 dark:border-sky-800/30';
       case 'Inactive':
-        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800';
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700';
       default:
         return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800';
     }

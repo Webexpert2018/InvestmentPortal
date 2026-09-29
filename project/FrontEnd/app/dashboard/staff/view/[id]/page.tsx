@@ -173,10 +173,10 @@ export default function ViewStaffPage() {
         </div>
 
         {/* Top Header Summary Profile Card */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50/40 via-white to-gray-50/40 rounded-2xl border border-amber-100/60 shadow-xs mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50/40 via-white to-gray-50/40 dark:from-amber-950/20 dark:via-[#1C1C1C] dark:to-gray-900/30 rounded-2xl border border-amber-100/60 dark:border-amber-900/40 shadow-xs mb-6">
           {/* Left: Avatar & Name/Joined Date */}
           <div className="flex items-center gap-3 min-w-0">
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-amber-200/80 shadow-xs overflow-hidden bg-amber-100 shrink-0 flex items-center justify-center">
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-amber-200/80 dark:border-amber-700/60 shadow-xs overflow-hidden bg-amber-100 dark:bg-amber-900/40 shrink-0 flex items-center justify-center">
               {staff.profile_image_url ? (
                 <Image
                   src={staff.profile_image_url}
@@ -185,7 +185,7 @@ export default function ViewStaffPage() {
                   className="object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-[#1F1F1F] dark:text-gray-100 text-xl sm:text-2xl font-extrabold tracking-tight">
+                <div className="w-full h-full bg-[#FCD34D] dark:bg-[#D9A11E] flex items-center justify-center text-[#1F1F1F] dark:text-gray-900 text-xl sm:text-2xl font-extrabold tracking-tight">
                   {getInitials(staff.full_name)}
                 </div>
               )}
@@ -204,13 +204,13 @@ export default function ViewStaffPage() {
           <div className="flex items-center justify-start sm:justify-end gap-2 overflow-x-auto max-w-full pb-1 shrink-0">
             <button
               onClick={() => setIsDeleteModalOpen(true)}
-              className="h-9 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
+              className="h-9 px-5 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-red-50 text-red-700 hover:bg-red-100 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-900/60 dark:border-red-900/50"
             >
               Delete
             </button>
             <Link
               href={`/dashboard/staff/edit/${staff.id}`}
-              className="h-9 px-6 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent"
+              className="h-9 px-6 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] dark:bg-[#FCD34D] dark:text-gray-900 hover:bg-[#FBD24E] border-transparent"
             >
               Edit
             </Link>

@@ -415,23 +415,23 @@ export default function RingCentralDialer() {
           </div>
 
           {/* Instructions Card */}
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-[24px] shadow-sm border border-amber-200 p-8 flex flex-col justify-center w-full lg:w-2/5">
-            <h3 className="text-xl font-extrabold text-amber-900 mb-6 flex items-center gap-3">
-              <Info className="w-6 h-6 text-amber-600" />
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-amber-900/30 rounded-[24px] shadow-sm border border-amber-200 dark:border-amber-800/50 p-8 flex flex-col justify-center w-full lg:w-2/5">
+            <h3 className="text-xl font-extrabold text-amber-900 dark:text-amber-300 mb-6 flex items-center gap-3">
+              <Info className="w-6 h-6 text-amber-600 dark:text-amber-400" />
               Transcription Rules
             </h3>
-            <ul className="space-y-6 text-amber-900 text-[15px] leading-relaxed font-medium">
-              <li className="flex items-start gap-4 bg-white dark:bg-[#1C1C1C]/60 p-4 rounded-xl border border-amber-100 shadow-sm">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-bold text-sm">1</span>
-                <span>In order to get the transcription, you <strong className="text-red-600">MUST</strong> start recording the call during the conversation. Use the red record button once connected.</span>
+            <ul className="space-y-6 text-amber-900 dark:text-amber-200 text-[15px] leading-relaxed font-medium">
+              <li className="flex items-start gap-4 bg-white dark:bg-[#1C1C1C] p-4 rounded-xl border border-amber-100 dark:border-amber-800/40 shadow-sm">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-100 flex items-center justify-center font-bold text-sm">1</span>
+                <span>In order to get the transcription, you <strong className="text-red-600 dark:text-red-400">MUST</strong> start recording the call during the conversation. Use the red record button once connected.</span>
               </li>
-              <li className="flex items-start gap-4 bg-white dark:bg-[#1C1C1C]/60 p-4 rounded-xl border border-amber-100 shadow-sm">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-bold text-sm">2</span>
+              <li className="flex items-start gap-4 bg-white dark:bg-[#1C1C1C] p-4 rounded-xl border border-amber-100 dark:border-amber-800/40 shadow-sm">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-100 flex items-center justify-center font-bold text-sm">2</span>
                 <span>Once the call finishes, RingCentral will take a little time (usually 1-2 minutes) for the recording to get fetched and processed on their end. Please wait a moment and then refresh the page to see the new call log appear below.</span>
               </li>
-              <li className="flex items-start gap-4 bg-white dark:bg-[#1C1C1C]/60 p-4 rounded-xl border border-amber-100 shadow-sm">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-bold text-sm">3</span>
-                <span>After waiting a minute, you <strong className="text-red-600">MUST</strong> click the "View Transcript" button on the call log below. This forces the system to pull the recording, generate the transcript, and permanently save it into our database.</span>
+              <li className="flex items-start gap-4 bg-white dark:bg-[#1C1C1C] p-4 rounded-xl border border-amber-100 dark:border-amber-800/40 shadow-sm">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-100 flex items-center justify-center font-bold text-sm">3</span>
+                <span>After waiting a minute, you <strong className="text-red-600 dark:text-red-400">MUST</strong> click the "View Transcript" button on the call log below. This forces the system to pull the recording, generate the transcript, and permanently save it into our database.</span>
               </li>
             </ul>
           </div>
@@ -444,7 +444,7 @@ export default function RingCentralDialer() {
           <div className="w-full">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 flex items-center gap-3">
               Recent Call Logs
-              <span className="text-sm font-medium px-3 py-1 bg-gray-100 text-gray-600 dark:text-gray-400 rounded-full">RingCentral API</span>
+              <span className="text-sm font-medium px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full">RingCentral API</span>
             </h2>
             {callLogs.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400 text-center py-4">No recent calls found.</p>
@@ -466,7 +466,7 @@ export default function RingCentralDialer() {
                       {log.recording && (
                         <button
                           onClick={() => handleDownloadAudio(log.recording.id)}
-                          className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 font-medium flex items-center gap-2"
+                          className="px-3 py-1.5 text-sm bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/60 font-medium flex items-center gap-2"
                         >
                           Fetch Audio File
                         </button>
@@ -474,7 +474,7 @@ export default function RingCentralDialer() {
                       <button
                         onClick={() => handleViewTranscript(log.sessionId, log.startTime, log.recording?.id)}
                         disabled={loadingTranscripts[log.sessionId]}
-                        className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 font-medium disabled:opacity-50"
+                        className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 font-medium disabled:opacity-50"
                       >
                         {loadingTranscripts[log.sessionId] ? 'Loading...' : transcripts[log.sessionId] ? 'Refresh Transcript' : 'View Transcript'}
                       </button>

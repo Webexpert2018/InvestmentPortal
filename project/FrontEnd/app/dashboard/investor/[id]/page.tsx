@@ -226,7 +226,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       case 'active':
       case 'approved':
       case 'verified':
-        return 'bg-green-100 text-green-700';
+        return 'bg-green-100 dark:bg-green-900/40 text-green-700';
       case 'pending':
         return 'bg-yellow-100 text-yellow-700';
       case 'rejected':
@@ -420,7 +420,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-white dark:bg-[#1C1C1C] overflow-hidden shadow-xs rounded-xl p-4 flex flex-col justify-between h-24 border border-gray-100 dark:border-gray-800 border-t-4 border-t-[#FCD34D] hover:shadow-md transition-all">
           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Profile Value</p>
-          <p className="text-xl sm:text-2xl font-bold text-[#1F1F1F] dark:text-gray-100">${Number(stats.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#1F1F1F] dark:text-gray-100 dark:text-gray-100">${Number(stats.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
         </div>
         <div className="bg-white dark:bg-[#1C1C1C] overflow-hidden shadow-xs rounded-xl p-4 flex flex-col justify-between h-24 border border-gray-100 dark:border-gray-800 border-t-4 border-t-[#2A4474] hover:shadow-md transition-all">
           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Units</p>
@@ -560,7 +560,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       <td className="px-4 py-3 whitespace-nowrap text-xs">
                         <Link
                           href={`/dashboard/funding/${fund.id}`}
-                          className="px-3 py-1.5 text-xs font-bold text-[#1F1F1F] dark:text-gray-100 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors inline-block"
+                          className="px-3 py-1.5 text-xs font-bold text-[#1F1F1F] dark:text-gray-100 bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-900/50 rounded-lg transition-colors inline-block"
                         >
                           View Fund Details
                         </Link>
@@ -687,7 +687,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === tab.id
-                      ? 'border-[#FCD34D] text-[#2A4474] font-bold'
+                      ? 'border-[#FCD34D] text-[#2A4474] dark:text-[#FCD34D] font-bold'
                       : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300'
                       }`}
                   >
@@ -711,7 +711,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                               onClick={handleMasterStatusToggle}
                               disabled={isSuspending}
                               className={`h-8 px-4 rounded-full text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-1.5 border mb-1.5 ${hasInactive
-                                ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/40'
                                 : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
                                 }`}
                             >
@@ -742,7 +742,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
             {activeTab === 'basic' && (
               <div className="space-y-5">
                 {/* Header Summary Profile Card */}
-                <div className="flex flex-col lg:flex-row items-start lg:items-center overflow-x-auto justify-between gap-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50/40 via-white to-gray-50/40 rounded-2xl border border-amber-100/60 shadow-xs w-full">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center overflow-x-auto justify-between gap-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50/40 via-white to-gray-50/40 dark:from-[#1C1C1C] dark:via-[#1A1A1A] dark:to-[#121212] rounded-2xl border border-amber-100/60 dark:border-gray-800 shadow-xs w-full">
                   {/* Left: Avatar & Name & Meta Info */}
                   <div className="flex items-start gap-3 min-w-0 shrink-0">
                     <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-amber-200/80 shadow-xs overflow-hidden bg-amber-100 shrink-0 flex items-center justify-center">
@@ -850,7 +850,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 disabled={isSuspending || isPending}
                                 className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${!isPending
                                   ? (investorData.status === 'suspended'
-                                    ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                    ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/40'
                                     : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
                                   )
                                   : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
@@ -1069,7 +1069,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                                   }}
                                                   className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full transition-all border flex items-center gap-1 shadow-xs active:scale-95 ${isSuspended
                                                     ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                                                    : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                                    : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/40'
                                                     }`}
                                                 >
                                                   {isSuspended ? <X className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
@@ -1089,7 +1089,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                       </div>
                                       <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 dark:border-gray-800 mt-auto">
                                         <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">#{account.account_number || 'N/A'}</p>
-                                        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${isSuspended ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${isSuspended ? 'bg-red-100 text-red-600' : 'bg-green-100 dark:bg-green-900/40 text-green-600'}`}>
                                           <div className={`w-1 h-1 rounded-full ${isSuspended ? 'bg-red-500' : 'bg-green-500'}`} />
                                           {isSuspended ? 'Suspended' : 'Activated'}
                                         </div>
@@ -1134,7 +1134,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                                   }}
                                                   className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full transition-all border flex items-center gap-1 shadow-xs active:scale-95 ${isSuspended
                                                     ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                                                    : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                                    : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/40'
                                                     }`}
                                                 >
                                                   {isSuspended ? <X className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
@@ -1154,7 +1154,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                       </div>
                                       <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 dark:border-gray-800 mt-auto">
                                         <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">{displayName}</p>
-                                        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${isSuspended ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${isSuspended ? 'bg-red-100 text-red-600' : 'bg-green-100 dark:bg-green-900/40 text-green-600'}`}>
                                           <div className={`w-1 h-1 rounded-full ${isSuspended ? 'bg-red-500' : 'bg-green-500'}`} />
                                           {isSuspended ? 'Suspended' : 'Activated'}
                                         </div>
@@ -1198,7 +1198,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                       <div className={`p-1 rounded-md ${isLatest && !isExpired ? 'bg-amber-100 text-amber-700' : 'bg-gray-200 text-gray-500 dark:text-gray-400'}`}>
                                         <Mail className="h-3 w-3" />
                                       </div>
-                                      <span className={`text-[9px] font-bold uppercase tracking-tight px-1.5 py-0.5 rounded ${isExpired ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                      <span className={`text-[9px] font-bold uppercase tracking-tight px-1.5 py-0.5 rounded ${isExpired ? 'bg-red-100 text-red-600' : 'bg-green-100 dark:bg-green-900/40 text-green-600'}`}>
                                         {isExpired ? 'Expired' : 'Valid'}
                                       </span>
                                     </div>
@@ -1250,9 +1250,9 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
               return (
                 <div className="space-y-6">
-                  <div className={`rounded-2xl border px-5 py-4 md:flex items-center md:justify-between ${investorData.kycStatus === 'approved' ? 'bg-green-50 border-green-100' : 'bg-orange-50 border-orange-100'}`}>
+                  <div className={`rounded-2xl border px-5 py-4 md:flex items-center md:justify-between ${investorData.kycStatus === 'approved' ? 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/30' : 'bg-orange-50 dark:bg-orange-900/20 border-orange-100 dark:border-orange-800/30'}`}>
                     <div className="flex items-center gap-3">
-                      <div className={`p-2.5 rounded-xl ${investorData.kycStatus === 'approved' ? 'bg-green-100' : 'bg-orange-100'}`}>
+                      <div className={`p-2.5 rounded-xl ${investorData.kycStatus === 'approved' ? 'bg-green-100 dark:bg-green-900/40' : 'bg-orange-100 dark:bg-orange-900/40'}`}>
                         <Shield className={`h-5 w-5 ${investorData.kycStatus === 'approved' ? 'text-green-600' : 'text-orange-600'}`} />
                       </div>
                       <div>
@@ -1272,7 +1272,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             toast.error('Failed to approve KYC');
                           }
                         }}
-                        className="px-5 py-2 mt-2 md:mt-0 bg-green-600 text-white font-bold text-xs rounded-xl hover:bg-green-700 transition-all shadow-md shadow-green-100 active:scale-95"
+                        className="px-5 py-2 mt-2 md:mt-0 bg-green-600 text-white font-bold text-xs rounded-xl hover:bg-green-700 transition-all shadow-md shadow-green-100 dark:shadow-green-900/20 active:scale-95"
                       >
                         Approve KYC
                       </button>
@@ -1513,7 +1513,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                   {prefix}${parseFloat(transfer.investment_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${transfer.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${transfer.status === 'COMPLETED' ? 'bg-green-100 dark:bg-green-900/40 text-green-700' :
                                       transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 text-yellow-700' :
                                         'bg-gray-100 text-gray-700 dark:text-gray-300'
                                     }`}>
@@ -1583,8 +1583,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">{holding.fund_name}</td>
                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-medium">
                                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${holding.account_type?.toLowerCase() === 'personal'
-                                      ? 'bg-green-100 text-green-700 border border-green-200'
-                                      : 'bg-purple-100 text-purple-700 border border-purple-200'
+                                      ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800/30'
+                                      : 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/30'
                                       }`}>
                                       {holding.account_type}
                                     </span>
@@ -1633,7 +1633,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 <tr key={index} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
                                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">{holding.fund_name}</td>
                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-medium">
-                                    <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                                    <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/30">
                                       {holding.account_type}
                                     </span>
                                   </td>
@@ -1691,7 +1691,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           onClick={() => setLegacyDocFilter('ALL')}
                           className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${legacyDocFilter === 'ALL'
                             ? 'bg-[#1F3B6E] text-white shadow-sm'
-                            : 'bg-gray-100 text-gray-600 dark:text-gray-400 hover:bg-gray-200 border border-transparent'
+                            : 'bg-gray-100 dark:bg-[#1C1C1C] text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#2A2A2A] border border-transparent dark:border-gray-800'
                             }`}
                         >
                           All ({oldDocuments.length})
@@ -1703,11 +1703,11 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             onClick={() => setLegacyDocFilter(type)}
                             className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${legacyDocFilter === type
                               ? 'bg-[#1F3B6E] text-white shadow-sm'
-                              : 'bg-gray-100 text-gray-700 dark:text-gray-300 hover:bg-gray-200 border border-transparent'
+                              : 'bg-gray-100 dark:bg-[#1C1C1C] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2A2A2A] border border-transparent dark:border-gray-800'
                               }`}
                           >
                             <span>{type}</span>
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${legacyDocFilter === type ? 'bg-white dark:bg-[#1C1C1C]/20 text-white' : 'bg-gray-200 text-gray-700 dark:text-gray-300'
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${legacyDocFilter === type ? 'bg-white dark:bg-[#1C1C1C]/20 text-white' : 'bg-gray-200 dark:bg-[#2A2A2A] text-gray-700 dark:text-gray-300'
                               }`}>
                               {docTypeCounts[type]}
                             </span>
@@ -2032,7 +2032,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   disabled={isSuspending}
                   onClick={handleSuspendAccount}
                   className={`w-full py-4 text-sm font-bold text-white rounded-2xl transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${investorData.status === 'suspended'
-                    ? 'bg-green-600 hover:bg-green-700 shadow-green-100'
+                    ? 'bg-green-600 hover:bg-green-700 shadow-green-100 dark:shadow-green-900/20'
                     : 'bg-red-600 hover:bg-red-700 shadow-red-100'
                     }`}
                 >

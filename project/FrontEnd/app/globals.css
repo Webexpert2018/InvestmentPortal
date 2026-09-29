@@ -171,10 +171,26 @@ html.dark *::-webkit-scrollbar-thumb:hover {
     font-family: 'GoudyOldStyle', Georgia, serif !important;
     font-weight: 400;
     line-height: 1.5;
-    color: #4B4B4B !important;
+    color: #4B4B4B;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+}
+
+html.dark body {
+  color: #E5E7EB;
+}
+
+html.dark input,
+html.dark textarea,
+html.dark select {
+  color: #F3F4F6 !important;
+  background-color: #262626 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #9CA3AF !important;
 }
 
 /* =======================

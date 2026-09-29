@@ -64,14 +64,14 @@ export default function InternalCallLogsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-50 text-purple-600 border border-purple-200">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50">
                 <FileText className="w-4 h-4" />
               </span>
             </div>
             <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F] dark:text-gray-100">
               Internal Call Logs
             </h1>
-            <p className="text-[#8E8E93] text-[14px] mt-1 max-w-3xl">
+            <p className="text-[#8E8E93] dark:text-gray-400 text-[14px] mt-1 max-w-3xl">
               A historical log of all outbound physician calls made via the dialer, saved directly to the database.
             </p>
           </div>
@@ -79,9 +79,9 @@ export default function InternalCallLogsPage() {
           <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
             <Link
               href="/dashboard/doctor-crm/call-manager"
-              className="px-4 py-2 bg-white dark:bg-[#1C1C1C] hover:bg-gray-100 dark:hover:bg-gray-700 text-[#1F1F1F] dark:text-gray-100 text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-[#E8E8E8] dark:border-[#2A2A2A]"
+              className="px-4 py-2 bg-white dark:bg-[#1C1C1C] hover:bg-gray-100 dark:hover:bg-gray-800 text-[#1F1F1F] dark:text-gray-100 text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-[#E8E8E8] dark:border-[#2A2A2A]"
             >
-              <ArrowLeft className="w-4 h-4 text-[#8E8E93]" />
+              <ArrowLeft className="w-4 h-4 text-[#8E8E93] dark:text-gray-400" />
               <span>Back to Call Manager</span>
             </Link>
           </div>
@@ -92,30 +92,30 @@ export default function InternalCallLogsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#E8E8E8] dark:border-[#2A2A2A] bg-[#FAFAFA]">
-                  <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Date & Time</th>
-                  <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Prospect</th>
-                  <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Phone</th>
-                  <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Duration</th>
-                  <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider text-right">Transcript</th>
+                <tr className="border-b border-[#E8E8E8] dark:border-[#2A2A2A] bg-[#FAFAFA] dark:bg-[#181818]">
+                  <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                  <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] dark:text-gray-400 uppercase tracking-wider">Prospect</th>
+                  <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] dark:text-gray-400 uppercase tracking-wider">Phone</th>
+                  <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] dark:text-gray-400 uppercase tracking-wider">Duration</th>
+                  <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] dark:text-gray-400 uppercase tracking-wider text-right">Transcript</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E8E8E8]">
+              <tbody className="divide-y divide-[#E8E8E8] dark:divide-gray-800">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-[#8E8E93]">
+                    <td colSpan={5} className="py-12 text-center text-[#8E8E93] dark:text-gray-400">
                       Loading internal call logs...
                     </td>
                   </tr>
                 ) : logs.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-[#8E8E93]">
+                    <td colSpan={5} className="py-12 text-center text-[#8E8E93] dark:text-gray-400">
                       No internal call logs found. Start dialing!
                     </td>
                   </tr>
                 ) : (
                   logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                    <tr key={log.id} className="hover:bg-gray-50 dark:bg-gray-800/40 dark:hover:bg-gray-800 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-gray-400" />
@@ -125,14 +125,14 @@ export default function InternalCallLogsPage() {
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <span className="text-[14px] font-bold text-blue-600">
+                        <span className="text-[14px] font-bold text-blue-600 dark:text-blue-400">
                           {log.first_name || log.last_name ? `${log.first_name || ''} ${log.last_name || ''}` : 'Unknown Prospect'}
                         </span>
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                           <PhoneCall className="w-4 h-4 text-gray-400" />
-                          <span className="text-[14px] text-gray-600 dark:text-gray-400 font-medium">
+                          <span className="text-[14px] text-gray-600 dark:text-gray-300 font-medium">
                             {log.phone_number || 'N/A'}
                           </span>
                         </div>
@@ -140,7 +140,7 @@ export default function InternalCallLogsPage() {
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-[14px] text-gray-600 dark:text-gray-400">
+                          <span className="text-[14px] text-gray-600 dark:text-gray-300">
                             {formatDuration(log.duration)}
                           </span>
                         </div>
@@ -149,13 +149,13 @@ export default function InternalCallLogsPage() {
                         {log.transcription_text ? (
                           <button
                             onClick={() => openTranscriptModal(log.transcription_text)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 rounded-lg text-sm font-semibold transition-colors"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/50 rounded-lg text-sm font-semibold transition-colors"
                           >
                             <FileText className="w-4 h-4" />
                             View Transcript
                           </button>
                         ) : (
-                          <span className="text-[13px] text-gray-400 italic">No Transcript</span>
+                          <span className="text-[13px] text-gray-400 dark:text-gray-500 italic">No Transcript</span>
                         )}
                       </td>
                     </tr>

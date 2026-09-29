@@ -877,12 +877,12 @@ export default function OldFundDetailPage() {
                   {fund.projectName}
                 </h1>
                 {fund.status && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-100">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800/30">
                     {fund.status}
                   </span>
                 )}
                 {fund.projectType && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 text-gray-600 dark:text-gray-400">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 dark:bg-[#2A2A2A] text-gray-600 dark:text-gray-400 border border-transparent dark:border-gray-800">
                     {fund.projectType}
                   </span>
                 )}
@@ -920,7 +920,7 @@ export default function OldFundDetailPage() {
               >
                 <Users className="h-5 w-5" />
                 <span>Associated Investors</span>
-                <span className="inline-flex items-center justify-center bg-gray-100 text-gray-800 dark:text-gray-200 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
+                <span className="inline-flex items-center justify-center bg-gray-100 dark:bg-[#2A2A2A] text-gray-800 dark:text-gray-200 border border-transparent dark:border-gray-800 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
                   {fund.investors ? fund.investors.length : 0}
                 </span>
               </button>
@@ -941,7 +941,7 @@ export default function OldFundDetailPage() {
               >
                 <DollarSign className="h-5 w-5" />
                 <span>Distributions</span>
-                <span className="inline-flex items-center justify-center bg-gray-100 text-gray-800 dark:text-gray-200 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
+                <span className="inline-flex items-center justify-center bg-gray-100 dark:bg-[#2A2A2A] text-gray-800 dark:text-gray-200 border border-transparent dark:border-gray-800 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
                   {fund.distributions ? fund.distributions.filter((d: any) => d.status !== '0' && d.status !== 'Draft').length : 0}
                 </span>
               </button>
@@ -963,7 +963,7 @@ export default function OldFundDetailPage() {
               >
                 <Split className="h-5 w-5" />
                 <span>Waterfalls</span>
-                <span className="inline-flex items-center justify-center bg-gray-100 text-gray-800 dark:text-gray-200 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
+                <span className="inline-flex items-center justify-center bg-gray-100 dark:bg-[#2A2A2A] text-gray-800 dark:text-gray-200 border border-transparent dark:border-gray-800 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
                   {waterfallsList.length}
                 </span>
               </button>
@@ -1060,7 +1060,7 @@ export default function OldFundDetailPage() {
                               {formatDate(inv.receivedOn)}
                             </td>
                             <td className="py-4 text-right pr-3 w-[14%]">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/30">
                                 {inv.status}
                               </span>
                             </td>
@@ -1142,7 +1142,7 @@ export default function OldFundDetailPage() {
                             onClick={() => setSelectedInvestorDocType('ALL')}
                             className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${selectedInvestorDocType === 'ALL'
                               ? 'bg-[#1F3B6E] text-white shadow-sm'
-                              : 'bg-gray-100 text-gray-600 dark:text-gray-400 hover:bg-gray-200 border border-transparent'
+                              : 'bg-gray-100 dark:bg-[#1C1C1C] text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#2A2A2A] border border-transparent dark:border-gray-800'
                               }`}
                           >
                             All ({selectedInvestorDocs.length})
@@ -1154,11 +1154,11 @@ export default function OldFundDetailPage() {
                               onClick={() => setSelectedInvestorDocType(type)}
                               className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${selectedInvestorDocType === type
                                 ? 'bg-[#1F3B6E] text-white shadow-sm'
-                                : 'bg-gray-100 text-gray-700 dark:text-gray-300 hover:bg-gray-200 border border-transparent'
+                                : 'bg-gray-100 dark:bg-[#1C1C1C] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#2A2A2A] border border-transparent dark:border-gray-800'
                                 }`}
                             >
                               <span>{type}</span>
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${selectedInvestorDocType === type ? 'bg-white dark:bg-[#1C1C1C]/20 text-white' : 'bg-gray-200 text-gray-700 dark:text-gray-300'
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${selectedInvestorDocType === type ? 'bg-white dark:bg-[#1C1C1C]/20 text-white' : 'bg-gray-200 dark:bg-[#2A2A2A] text-gray-700 dark:text-gray-300'
                                 }`}>
                                 {docTypeCounts[type]}
                               </span>
@@ -1168,7 +1168,7 @@ export default function OldFundDetailPage() {
                             <button
                               type="button"
                               onClick={() => setSelectedInvestorDocType('ALL')}
-                              className="text-xs text-[#1F3B6E] hover:text-[#162a4f] font-semibold flex items-center gap-1 ml-2 underline"
+                              className="text-xs text-[#1F3B6E] dark:text-blue-400 hover:text-[#162a4f] dark:hover:text-blue-300 font-semibold flex items-center gap-1 ml-2 underline"
                             >
                               <X className="h-3.5 w-3.5" /> Reset Filter
                             </button>
@@ -1251,7 +1251,7 @@ export default function OldFundDetailPage() {
                                         setSelectedInvestorDocType(doc.document_type || 'Tax Document');
                                       }}
                                       className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${selectedInvestorDocType === (doc.document_type || 'Tax Document')
-                                        ? 'bg-[#1F3B6E]/10 text-[#1F3B6E] border border-[#1F3B6E]/20 font-bold shadow-sm'
+                                        ? 'bg-[#1F3B6E]/10 dark:bg-blue-900/40 text-[#1F3B6E] dark:text-blue-400 border border-[#1F3B6E]/20 dark:border-blue-800/30 font-bold shadow-sm'
                                         : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-[#1F3B6E]/5 hover:text-[#1F3B6E] border border-gray-200 dark:border-gray-800/60'
                                         }`}
                                       title={`Click to filter by ${doc.document_type || 'Tax Document'}`}
@@ -1450,7 +1450,7 @@ export default function OldFundDetailPage() {
                                     {ownershipPercent}
                                   </td>
                                   <td className="py-4 text-right">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/30">
                                       {investor.status}
                                     </span>
                                   </td>

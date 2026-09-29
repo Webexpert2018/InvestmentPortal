@@ -417,7 +417,7 @@ export function AccountantSettingsScreen() {
      TAB 1 - Profile Information
      ----------------------------------- */
   const renderProfileTab = () => (
-    <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white dark:bg-[#1C1C1C] p-6 sm:p-8">
+    <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] p-6 sm:p-8">
       {loading ? (
         <div className="flex items-center justify-center py-8">
           <p className="text-[12px] text-[#A2A5AA]">Loading your profile...</p>
@@ -780,8 +780,8 @@ export function AccountantSettingsScreen() {
   const renderSecurityTab = () => (
     <div className="space-y-5">
       {/* Change Password */}
-      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white dark:bg-[#1C1C1C]">
-        <div className="border-b border-[#ECEDEF] px-6 py-4">
+      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] dark:border-gray-800 bg-white dark:bg-[#1C1C1C]">
+        <div className="border-b border-[#ECEDEF] dark:border-gray-800 px-6 py-4">
           <h3 className="text-[17px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Change Password</h3>
         </div>
         <div className="p-6">
@@ -861,20 +861,20 @@ export function AccountantSettingsScreen() {
       </div>
 
       {/* Two-Factor Authentication */}
-      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white dark:bg-[#1C1C1C]">
-        <div className="border-b border-[#ECEDEF] px-6 py-4">
+      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] dark:border-gray-800 bg-white dark:bg-[#1C1C1C]">
+        <div className="border-b border-[#ECEDEF] dark:border-gray-800 px-6 py-4">
           <h3 className="text-[17px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Two-Factor Authentication</h3>
         </div>
         <div className="px-6 py-2">
           {/* Authenticator App */}
-          <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
+          <div className="flex items-center justify-between border-b border-[#ECEDEF] dark:border-gray-800 py-4">
             <div>
               <p className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-helvetica">Authenticator App</p>
               <p className="mt-[2px] text-[12px] text-[#9CA3AF] font-helvetica">Time-based one-time password (OTP)</p>
             </div>
             {renderToggle(authApp, () => setAuthApp(!authApp))}
           </div>
-          <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
+          <div className="flex items-center justify-between border-b border-[#ECEDEF] dark:border-gray-800 py-4">
             <div>
               <p className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-helvetica">SMS Backup Codes</p>
               <p className="mt-[2px] text-[12px] text-[#9CA3AF] font-helvetica">Receive codes via text message as a backup.</p>
@@ -894,8 +894,8 @@ export function AccountantSettingsScreen() {
       </div>
 
       {/* Active Sessions */}
-      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white dark:bg-[#1C1C1C]">
-        <div className="border-b border-[#ECEDEF] px-6 py-4">
+      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] dark:border-gray-800 bg-white dark:bg-[#1C1C1C]">
+        <div className="border-b border-[#ECEDEF] dark:border-gray-800 px-6 py-4">
           <h3 className="text-[17px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Active Sessions</h3>
         </div>
         <div className="px-6 py-3">
@@ -1025,13 +1025,13 @@ export function AccountantSettingsScreen() {
      ----------------------------------- */
   const renderNotificationsTab = () => (
     <div>
-      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white dark:bg-[#1C1C1C]">
-        <div className="border-b border-[#ECEDEF] px-6 py-4">
+      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] dark:border-gray-800 bg-white dark:bg-[#1C1C1C]">
+        <div className="border-b border-[#ECEDEF] dark:border-gray-800 px-6 py-4">
           <h3 className="text-[17px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Notifications</h3>
         </div>
         <div className="px-6 py-2">
           {/* New document uploaded */}
-          <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
+          <div className="flex items-center justify-between border-b border-[#ECEDEF] dark:border-gray-800 py-4">
             <span className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">New document uploaded</span>
             {renderToggle(notifDocUploaded, () => {
               const newState = !notifDocUploaded;
@@ -1044,7 +1044,7 @@ export function AccountantSettingsScreen() {
             })}
           </div>
           {/* Missing document alerts */}
-          <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
+          <div className="flex items-center justify-between border-b border-[#ECEDEF] dark:border-gray-800 py-4">
             <span className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">Missing document alerts</span>
             {renderToggle(notifMissingDoc, () => {
               const newState = !notifMissingDoc;
@@ -1057,7 +1057,7 @@ export function AccountantSettingsScreen() {
             })}
           </div>
           {/* New investor messages */}
-          <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
+          <div className="flex items-center justify-between border-b border-[#ECEDEF] dark:border-gray-800 py-4">
             <span className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">New investor messages</span>
             {renderToggle(notifInvestorMsg, () => {
               const newState = !notifInvestorMsg;
@@ -1159,15 +1159,15 @@ export function AccountantSettingsScreen() {
       </p>
 
       {/* Tabs */}
-      <div className="mt-5 flex gap-6 border-b border-[#ECEDEF]">
+      <div className="mt-5 flex gap-6 border-b border-[#ECEDEF] dark:border-gray-800 dark:border-gray-800">
         {TAB_LIST.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
             className={`relative pb-3 text-[14px] font-helvetica transition-colors ${tab === t.id
-              ? 'font-medium text-[#2A4474]'
-              : 'text-[#9CA3AF] hover:text-[#6B7280]'
+              ? 'font-medium text-[#2A4474] dark:text-[#FBCB4B]'
+              : 'text-[#9CA3AF] dark:text-gray-400 hover:text-[#6B7280] dark:hover:text-gray-200'
               }`}
           >
             {t.label}

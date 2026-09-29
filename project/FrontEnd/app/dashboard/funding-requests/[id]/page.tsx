@@ -203,13 +203,13 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
       case 'Pending':
       case 'Subscription Submitted':
       case 'Awaiting Funding':
-        return 'text-orange-600 bg-orange-50';
+        return 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/40 border border-orange-100 dark:border-orange-800/30';
       case 'Rejected':
-        return 'text-red-600 bg-red-50';
+        return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/40 border border-red-100 dark:border-red-800/30';
       case 'Approved':
       case 'Funds Received':
       case 'Units Issued':
-        return 'text-green-600 bg-green-50';
+        return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/40 border border-green-100 dark:border-green-800/30';
       default:
         return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800';
     }
@@ -371,7 +371,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                       {matchedOA && (
                         <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 hover:border-[#FCD34D] hover:bg-amber-50/10 transition-all duration-200 group">
                           <div className="flex items-center gap-3">
-                            <div className="p-2.5 rounded-lg bg-amber-50 text-[#92400E] group-hover:scale-110 transition-transform">
+                            <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-900/40 text-[#92400E] dark:text-amber-400 group-hover:scale-110 transition-transform">
                               <FileText className="h-5 w-5" />
                             </div>
                             <div>
@@ -402,7 +402,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                       {matchedSA && (
                         <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 hover:border-[#FCD34D] hover:bg-amber-50/10 transition-all duration-200 group">
                           <div className="flex items-center gap-3">
-                            <div className="p-2.5 rounded-lg bg-amber-50 text-[#92400E] group-hover:scale-110 transition-transform">
+                            <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-900/40 text-[#92400E] dark:text-amber-400 group-hover:scale-110 transition-transform">
                               <FileText className="h-5 w-5" />
                             </div>
                             <div>

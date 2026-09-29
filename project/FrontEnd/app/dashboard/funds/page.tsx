@@ -377,7 +377,7 @@ export default function FundsPage() {
                           {fund.distributionsToDate}
                         </td>
                         <td className="px-6 py-5 whitespace-nowrap">
-                          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-100">
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800/30">
                             {fund.status}
                           </span>
                         </td>

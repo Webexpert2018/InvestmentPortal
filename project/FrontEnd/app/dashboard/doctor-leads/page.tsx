@@ -682,18 +682,18 @@ export default function DoctorLeadsPage() {
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Date Added</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F2F2F2]">
+              <tbody className="divide-y divide-[#F2F2F2] dark:divide-gray-800">
                 {displayedProspects.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-14 text-center bg-[#FCFCFC]/80">
+                    <td colSpan={8} className="px-6 py-14 text-center bg-[#FCFCFC]/80 dark:bg-[#1C1C1C]">
                       <div className="flex flex-col items-center justify-center gap-2.5 max-w-md mx-auto">
-                        <div className="w-12 h-12 rounded-full bg-[#FFD66B]/20 flex items-center justify-center text-[#D9A11E] mb-1">
+                        <div className="w-12 h-12 rounded-full bg-[#FFD66B]/20 dark:bg-amber-900/30 flex items-center justify-center text-[#D9A11E] dark:text-amber-400 mb-1">
                           <Stethoscope className="w-6 h-6" />
                         </div>
                         <p className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100">
                           {activeTab === 'saved' ? 'No Saved Database Leads Found' : 'No Unenriched Apollo Leads Ingested Yet'}
                         </p>
-                        <p className="text-[13px] text-[#8E8E93] leading-relaxed">
+                        <p className="text-[13px] text-[#8E8E93] dark:text-gray-400 leading-relaxed">
                           {activeTab === 'saved'
                             ? 'Ingest prospects via Apollo above and click "Enrich Selected & Save to DB" to store leads in PostgreSQL.'
                             : 'Click "Search & Ingest Leads via Apollo" above to ingest fresh physician prospects.'}

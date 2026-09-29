@@ -493,7 +493,7 @@ export default function EditFundPage() {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#262626] text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent"
               >
                 <option value="Active" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Active</option>
                 <option value="Closed" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Closed</option>

@@ -204,7 +204,7 @@ export default function DocumentSignaturesPage() {
                 <AccordionItem key={campaign.id} value={campaign.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
                   <AccordionTrigger className="px-6 py-4 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors hover:no-underline">
                     <div className="flex items-center gap-4 text-left">
-                      <div className="bg-[#F0F4F8] p-3 rounded-lg text-[#2A6CB5]">
+                      <div className="bg-[#F0F4F8] dark:bg-gray-800 p-3 rounded-lg text-[#2A6CB5] dark:text-blue-400">
                         <FileText className="w-6 h-6" />
                       </div>
                       <div>
@@ -250,7 +250,7 @@ export default function DocumentSignaturesPage() {
                             <th className="px-4 py-3 w-[20%] text-right">Action</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                           {campaign.recipients.length === 0 ? (
                             <tr>
                               <td colSpan={5} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
@@ -264,7 +264,7 @@ export default function DocumentSignaturesPage() {
                                   {recipient.investor_name || 'Unknown'}
                                 </td>
                                 <td className="px-4 py-3">
-                                  <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">
+                                  <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">
                                     {recipient.account_type || 'Personal'}
                                   </span>
                                 </td>
@@ -273,12 +273,12 @@ export default function DocumentSignaturesPage() {
                                 </td>
                                 <td className="px-4 py-3">
                                   {recipient.status === 'SIGNED' ? (
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200 dark:bg-emerald-900/40 dark:text-emerald-400 dark:border-emerald-800/50">
                                       <CheckCircle2 className="w-3.5 h-3.5" />
                                       Signed
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/40 dark:text-amber-400 dark:border-amber-800/50">
                                       <Clock className="w-3.5 h-3.5" />
                                       Pending
                                     </span>
