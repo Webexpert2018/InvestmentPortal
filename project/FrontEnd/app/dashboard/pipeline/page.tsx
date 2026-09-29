@@ -6,6 +6,7 @@ import { X, GripVertical, UserPlus, Mail, Phone, Loader2, ChevronDown, Pencil, C
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 
 import { apiClient } from '@/lib/api/client';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +32,20 @@ const formatCompactAmount = (amount: number) => {
   }
   const m = amount / 1000000;
   return `$${Number.isInteger(m) ? m : m.toFixed(1)}M`;
+};
+
+const getDarkStageColor = (hex: string) => {
+  const map: Record<string, string> = {
+    '#F3F4F6': '#1F2937', // Gray
+    '#DBEAFE': '#1E3A8A', // Blue
+    '#D1FAE5': '#064E3B', // Green
+    '#E9D5FF': '#4C1D95', // Purple
+    '#DDD6FE': '#312E81', // Indigo
+    '#FED7AA': '#7C2D12', // Orange
+    '#FCA5A5': '#7F1D1D', // Red
+    '#FDE68A': '#713F12', // Yellow
+  };
+  return map[hex?.toUpperCase()] || '#1C1C1C';
 };
 
 const formatPhoneDisplay = (phoneStr: string | null | undefined): string => {
@@ -93,6 +108,12 @@ const formatPhoneDisplay = (phoneStr: string | null | undefined): string => {
 export default function PipelinePage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { toast } = useToast();
   const [stages, setStages] = useState<any[]>([]);
@@ -673,43 +694,43 @@ export default function PipelinePage() {
     }
 
     return (
-      <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 mt-12 mb-12">
+      <div className="bg-white dark:bg-[#1C1C1C] rounded-[2rem] p-8 shadow-sm border border-gray-100 dark:border-gray-800 mt-12 mb-12">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
               <CalendarDays className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{monthNames[month]} {year}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{monthNames[month]} {year}</h2>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Pipeline Schedule</p>
             </div>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setCalendarDate(new Date(year, month - 1, 1))}
-              className="p-2 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100"
+              className="p-2 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded-xl transition-colors border border-gray-100 dark:border-gray-800"
             >
-              <ChevronLeft className="h-5 w-5 text-gray-500" />
+              <ChevronLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
             <button
               onClick={() => setCalendarDate(new Date())}
-              className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100"
+              className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded-xl transition-colors border border-gray-100 dark:border-gray-800"
             >
               Today
             </button>
             <button
               onClick={() => setCalendarDate(new Date(year, month + 1, 1))}
-              className="p-2 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100"
+              className="p-2 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded-xl transition-colors border border-gray-100 dark:border-gray-800"
             >
-              <ChevronRight className="h-5 w-5 text-gray-500" />
+              <ChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
         </div>
 
         <div className="overflow-x-auto pipeline-scroll pb-2">
-          <div className="grid grid-cols-7 gap-px bg-gray-100 rounded-2xl overflow-hidden border border-gray-100 min-w-[700px]">
+          <div className="grid grid-cols-7 gap-px bg-gray-100 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 min-w-[700px]">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
-              <div key={d} className="bg-gray-50 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+              <div key={d} className="bg-gray-50 dark:bg-gray-800 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                 {d}
               </div>
             ))}
@@ -722,13 +743,13 @@ export default function PipelinePage() {
                 <div
                   key={i}
                   className={cn(
-                    "bg-white min-h-[100px] p-2 transition-all relative group/day",
-                    !d.currentMonth && "bg-gray-50/50"
+                    "bg-white dark:bg-[#1C1C1C] min-h-[100px] p-2 transition-all relative group/day",
+                    !d.currentMonth && "bg-gray-50/50 dark:bg-gray-800/50"
                   )}
                 >
                   <div className={cn(
                     "w-7 h-7 flex items-center justify-center text-sm font-bold rounded-lg mb-1",
-                    isToday ? "bg-yellow-400 text-white shadow-lg shadow-yellow-100" : d.currentMonth ? "text-gray-700" : "text-gray-300"
+                    isToday ? "bg-yellow-400 text-white shadow-lg shadow-yellow-100" : d.currentMonth ? "text-gray-700 dark:text-gray-300" : "text-gray-300"
                   )}>
                     {d.day}
                   </div>
@@ -742,24 +763,24 @@ export default function PipelinePage() {
                         <p className="text-[10px] font-bold text-red-600 truncate">{note.investorName}</p>
 
                         {/* Tooltip */}
-                        <div className="absolute bottom-full left-0 mb-2 w-72 bg-white text-gray-900 p-5 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 opacity-0 group-hover/note:opacity-100 pointer-events-none transition-all z-50 translate-y-2 group-hover/note:translate-y-0 backdrop-blur-xl">
+                        <div className="absolute bottom-full left-0 mb-2 w-72 bg-white dark:bg-[#1C1C1C] text-gray-900 dark:text-gray-100 p-5 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 dark:border-gray-800 opacity-0 group-hover/note:opacity-100 pointer-events-none transition-all z-50 translate-y-2 group-hover/note:translate-y-0 backdrop-blur-xl">
                           <div className="space-y-4">
-                            <div className="flex items-center justify-between gap-2 border-b border-gray-50 pb-3">
+                            <div className="flex items-center justify-between gap-2 border-b border-gray-50 dark:border-gray-800 pb-3">
                               <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Scheduled Task</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Scheduled Task</span>
                               </div>
                               <span className="text-[9px] text-gray-400 font-bold">{note.date}</span>
                             </div>
                             <div>
                               <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1">Investor</p>
-                              <p className="text-sm font-bold text-gray-900">{note.investorName}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{note.investorName}</p>
                             </div>
-                            <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                            <div className="bg-gray-50/50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
                               <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1.5">Note</p>
-                              <p className="text-xs font-medium text-gray-700 leading-relaxed italic">"{note.text}"</p>
+                              <p className="text-xs font-medium text-gray-700 dark:text-gray-300 leading-relaxed italic">"{note.text}"</p>
                             </div>
-                            <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-50">
+                            <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-50 dark:border-gray-800">
                               <div>
                                 <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Assigned To</p>
                                 <div className="flex items-center gap-1.5">
@@ -823,7 +844,7 @@ export default function PipelinePage() {
     }
   }, [fetchData, isAdmin, fetchIRStaff, fetchAccountantStaff]);
 
-  if (!isLoaded) return null;
+  if (!isLoaded || !mounted) return null;
 
   const DroppableComponent = Droppable as any;
   const DraggableComponent = Draggable as any;
@@ -835,7 +856,7 @@ export default function PipelinePage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#1F1F1F]">Pipeline</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#1F1F1F] dark:text-gray-100">Pipeline</h1>
           </div>
           {canManageStages && (
             <div className="flex gap-3 flex-wrap">
@@ -847,7 +868,7 @@ export default function PipelinePage() {
               </button>
               <button
                 onClick={() => setShowAddStage(true)}
-                className="px-5 py-2 bg-[#FCD34D] text-gray-800 text-sm font-medium rounded-full hover:bg-[#FBD24E] transition-colors whitespace-nowrap"
+                className="px-5 py-2 bg-[#FCD34D] text-gray-800 dark:text-gray-200 text-sm font-medium rounded-full hover:bg-[#FBD24E] transition-colors whitespace-nowrap"
               >
                 Add Stage
               </button>
@@ -910,7 +931,7 @@ export default function PipelinePage() {
                                 ref={provided.innerRef}
                                 className={`rounded-2xl p-4 min-h-[500px] transition-all duration-200 border-2 ${snapshot.isDraggingOver ? 'border-[#FCD34D] ring-4 ring-[#FCD34D]/10' : 'border-transparent'
                                   }`}
-                                style={{ backgroundColor: stage.color }}
+                                style={{ backgroundColor: theme === 'dark' ? getDarkStageColor(stage.color) : stage.color }}
                               >
                                 {/* Stage Header */}
                                 <div
@@ -921,7 +942,7 @@ export default function PipelinePage() {
                                   )}
                                 >
                                   <div className="flex items-center gap-2 group/header w-full">
-                                    <h3 className="text-sm font-bold text-gray-900 truncate max-w-[150px] uppercase tracking-wider">{stage.name}</h3>
+                                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate max-w-[150px] uppercase tracking-wider">{stage.name}</h3>
                                     {canManageStages && (
                                       <div className="flex items-center gap-1 opacity-0 group-hover/header:opacity-100 transition-opacity">
                                         <button
@@ -932,7 +953,7 @@ export default function PipelinePage() {
                                             setSelectedColor(stage.color);
                                             setShowEditStage(true);
                                           }}
-                                          className="p-1 text-gray-400 hover:text-blue-600 hover:bg-white/50 rounded-md transition-colors"
+                                          className="p-1 text-gray-400 hover:text-blue-600 hover:bg-white dark:bg-[#1C1C1C]/50 rounded-md transition-colors"
                                           title="Edit Stage"
                                         >
                                           <Pencil className="h-3.5 w-3.5" />
@@ -943,7 +964,7 @@ export default function PipelinePage() {
                                             setStageToDelete(stage);
                                             setShowDeleteConfirm(true);
                                           }}
-                                          className="p-1 text-gray-400 hover:text-red-500 hover:bg-white/50 rounded-md transition-colors"
+                                          className="p-1 text-gray-400 hover:text-red-500 hover:bg-white dark:bg-[#1C1C1C]/50 rounded-md transition-colors"
                                           title="Delete Stage"
                                         >
                                           <X className="h-3.5 w-3.5" />
@@ -951,7 +972,7 @@ export default function PipelinePage() {
                                       </div>
                                     )}
                                   </div>
-                                  <span className="flex-none text-[10px] font-bold text-gray-500 bg-white/50 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                  <span className="flex-none text-[10px] font-bold text-gray-500 dark:text-gray-400 bg-white dark:bg-[#1C1C1C]/50 px-2 py-0.5 rounded-full uppercase tracking-tighter">
                                     {stage.count} {stage.count === 1 ? 'investor' : 'investors'}
                                   </span>
                                 </div>
@@ -998,7 +1019,7 @@ export default function PipelinePage() {
                                             }
                                             setShowDetailModal(true);
                                           }}
-                                          className={`bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 group border border-transparent cursor-pointer ${snapshot.isDragging ? 'shadow-2xl scale-[1.02] border-[#FCD34D] rotate-1' : ''
+                                          className={`bg-white dark:bg-[#1C1C1C] rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 group border border-transparent cursor-pointer ${snapshot.isDragging ? 'shadow-2xl scale-[1.02] border-[#FCD34D] rotate-1' : ''
                                             }`}
                                         >
                                           <div className="flex items-center justify-between">
@@ -1016,7 +1037,7 @@ export default function PipelinePage() {
 
                                                   <div className="flex items-center gap-2 min-w-0">
 
-                                                    <span className="text-[17px] font-bold text-gray-800 truncate">
+                                                    <span className="text-[17px] font-bold text-gray-800 dark:text-gray-200 truncate">
 
                                                       {investor.name || investor.fullName || 'Unnamed Investor'}
                                                     </span>
@@ -1070,7 +1091,7 @@ export default function PipelinePage() {
 
                                                     <div className="flex items-start gap-1.5 py-1 rounded-md">
 
-                                                      <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest flex-none">With</span>
+                                                      <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest flex-none">With</span>
 
                                                       <span className={cn(
 
@@ -1090,7 +1111,7 @@ export default function PipelinePage() {
 
                                                   {investor.status === 'prospect' && investor.createdByName && (
                                                     <div className="flex items-center gap-1.5 py-0.5 rounded-md">
-                                                      <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest flex-none">Added by</span>
+                                                      <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest flex-none">Added by</span>
                                                       <span className="text-[10px] font-extrabold text-blue-600 uppercase leading-tight truncate">
                                                         {investor.createdByName}
                                                       </span>
@@ -1129,9 +1150,9 @@ export default function PipelinePage() {
         {/* Add/Edit Stage Modal */}
         {(showAddStage || showEditStage) && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold text-gray-900">{showEditStage ? 'Edit Stage' : 'New Stage'}</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{showEditStage ? 'Edit Stage' : 'New Stage'}</h2>
                 <button
                   onClick={() => {
                     setShowAddStage(false);
@@ -1140,7 +1161,7 @@ export default function PipelinePage() {
                     setNewStageName('');
                     setSelectedColor(colorOptions[0]);
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                 >
                   <X className="h-6 w-6 text-gray-400" />
                 </button>
@@ -1154,7 +1175,7 @@ export default function PipelinePage() {
                     value={newStageName}
                     onChange={(e) => setNewStageName(e.target.value)}
                     placeholder="e.g., Follow up"
-                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-full text-sm font-bold text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                    className="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-full text-sm font-bold text-gray-700 dark:text-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
                   />
                 </div>
 
@@ -1182,14 +1203,14 @@ export default function PipelinePage() {
                       setNewStageName('');
                       setSelectedColor(colorOptions[0]);
                     }}
-                    className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-full transition-all"
+                    className="flex-1 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={showEditStage ? handleUpdateStage : handleAddStage}
                     disabled={!newStageName.trim() || isSubmitting}
-                    className="flex-1 py-4 bg-[#FCD34D] text-gray-800 text-sm font-bold rounded-full hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all disabled:opacity-50"
+                    className="flex-1 py-4 bg-[#FCD34D] text-gray-800 dark:text-gray-200 text-sm font-bold rounded-full hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all disabled:opacity-50"
                   >
                     {isSubmitting ? 'Processing...' : (showEditStage ? 'Save Changes' : 'Create Stage')}
                   </button>
@@ -1202,16 +1223,16 @@ export default function PipelinePage() {
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && stageToDelete && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
               <div className="flex flex-col items-center text-center space-y-6">
                 <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
                   <X className="h-8 w-8 text-red-500" />
                 </div>
 
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-bold text-gray-900">Delete Stage?</h2>
-                  <p className="text-sm text-gray-500 font-medium px-4">
-                    Are you sure you want to delete <span className="font-bold text-gray-900">"{stageToDelete.name}"</span>?
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Delete Stage?</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium px-4">
+                    Are you sure you want to delete <span className="font-bold text-gray-900 dark:text-gray-100">"{stageToDelete.name}"</span>?
                     Any investors currently in this stage will be moved to the first stage.
                   </p>
                 </div>
@@ -1222,7 +1243,7 @@ export default function PipelinePage() {
                       setShowDeleteConfirm(false);
                       setStageToDelete(null);
                     }}
-                    className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-full transition-all"
+                    className="flex-1 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-all"
                   >
                     Cancel
                   </button>
@@ -1242,17 +1263,17 @@ export default function PipelinePage() {
         {/* Investor Detail Modal */}
         {showDetailModal && selectedInvestor && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-4xl shadow-2xl scale-in-95 animate-in overflow-y-auto max-h-[90vh]">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[2.5rem] p-8 w-full max-w-4xl shadow-2xl scale-in-95 animate-in overflow-y-auto max-h-[90vh]">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
                   <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-[#1F3B6E] text-xl font-bold text-white shadow-lg">
                     {selectedInvestor.avatar}
                   </div>
-                  <h2 className="text-3xl font-bold text-gray-900">{selectedInvestor.name || selectedInvestor.fullName}</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{selectedInvestor.name || selectedInvestor.fullName}</h2>
                 </div>
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="p-3 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                 >
                   <X className="h-7 w-7 text-gray-400" />
                 </button>
@@ -1261,14 +1282,14 @@ export default function PipelinePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {/* Left Column: Basic Info & Investment */}
                 <div className="space-y-8">
-                  <div className="bg-gray-50/50 rounded-3xl p-6 space-y-6 border border-gray-100">
+                  <div className="bg-gray-50/50 dark:bg-gray-800/50 rounded-3xl p-6 space-y-6 border border-gray-100 dark:border-gray-800">
                     <div className="flex items-center gap-4 group">
                       <div className="w-12 h-12 bg-blue-100/50 text-blue-600 rounded-2xl flex items-center justify-center flex-none">
                         <Mail className="h-6 w-6" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email Address</p>
-                        <p className="text-sm font-bold text-gray-700 truncate">{selectedInvestor.email || 'N/A'}</p>
+                        <p className="text-sm font-bold text-gray-700 dark:text-gray-300 truncate">{selectedInvestor.email || 'N/A'}</p>
                       </div>
                     </div>
 
@@ -1278,19 +1299,19 @@ export default function PipelinePage() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</p>
-                        <p className="text-sm font-bold text-gray-700 truncate">{formatPhoneDisplay(selectedInvestor.phone) || 'N/A'}</p>
+                        <p className="text-sm font-bold text-gray-700 dark:text-gray-300 truncate">{formatPhoneDisplay(selectedInvestor.phone) || 'N/A'}</p>
                       </div>
                     </div>
                   </div>
 
                   {selectedInvestor.status === 'prospect' && selectedInvestor.createdByName && (
-                    <div className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100 flex items-center gap-4 group animate-in fade-in duration-200">
+                    <div className="bg-gray-50/50 dark:bg-gray-800/50 rounded-3xl p-6 border border-gray-100 dark:border-gray-800 flex items-center gap-4 group animate-in fade-in duration-200">
                       <div className="w-12 h-12 bg-purple-100/50 text-purple-600 rounded-2xl flex items-center justify-center flex-none animate-pulse">
                         <UserPlus className="h-6 w-6" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Added By</p>
-                        <p className="text-sm font-bold text-gray-700 truncate">{selectedInvestor.createdByName}</p>
+                        <p className="text-sm font-bold text-gray-700 dark:text-gray-300 truncate">{selectedInvestor.createdByName}</p>
                       </div>
                     </div>
                   )}
@@ -1303,14 +1324,14 @@ export default function PipelinePage() {
                           value={selectedIrStaff}
                           onChange={(e) => setSelectedIrStaff(e.target.value)}
                           disabled={isIrLoading}
-                          className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
+                          className="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-full text-sm font-bold text-gray-700 dark:text-gray-300 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
                         >
                           <option value="">{isIrLoading ? 'Loading staff...' : 'Unassigned / Select IR Officer'}</option>
                           {irStaffList.map((staff: any) => (
                             <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
                           ))}
                         </select>
-                        <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 transition-colors" />
+                        <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 dark:text-gray-400 transition-colors" />
                       </div>
                     </div>
                   )}
@@ -1324,7 +1345,7 @@ export default function PipelinePage() {
                           value={expectedInvestment}
                           onChange={(e) => setExpectedInvestment(e.target.value)}
                           placeholder="0.00"
-                          className="w-full pl-10 pr-5 py-4 bg-gray-50 border rounded-full text-lg font-black text-[#1F3B6E] placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                          className="w-full pl-10 pr-5 py-4 bg-gray-50 dark:bg-gray-800 border rounded-full text-lg font-black text-[#1F3B6E] placeholder:text-gray-300 focus:ring-2 focus:ring-[#FCD34D] transition-all"
                         />
                       </div>
                     </div>
@@ -1338,14 +1359,14 @@ export default function PipelinePage() {
                             value={selectedIrStaff}
                             onChange={(e) => setSelectedIrStaff(e.target.value)}
                             disabled={isIrLoading}
-                            className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
+                            className="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-full text-sm font-bold text-gray-700 dark:text-gray-300 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
                           >
                             <option value="">{isIrLoading ? 'Loading staff...' : 'Unassigned / Select IR Officer'}</option>
                             {irStaffList.map((staff: any) => (
                               <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
                             ))}
                           </select>
-                          <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 transition-colors" />
+                          <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 dark:text-gray-400 transition-colors" />
                         </div>
                       </div>
 
@@ -1356,14 +1377,14 @@ export default function PipelinePage() {
                             value={selectedAccountant}
                             onChange={(e) => setSelectedAccountant(e.target.value)}
                             disabled={isAccountantLoading}
-                            className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
+                            className="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-full text-sm font-bold text-gray-700 dark:text-gray-300 appearance-none focus:ring-2 focus:ring-[#FCD34D] transition-all cursor-pointer disabled:opacity-50"
                           >
                             <option value="">{isAccountantLoading ? 'Loading staff...' : 'Unassigned / Select Accountant'}</option>
                             {accountantStaffList.map((staff: any) => (
                               <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
                             ))}
                           </select>
-                          <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 transition-colors" />
+                          <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 dark:text-gray-400 transition-colors" />
                         </div>
                       </div>
                     </div>
@@ -1379,7 +1400,7 @@ export default function PipelinePage() {
                         onClick={() => setShowDatePicker(!showDatePicker)}
                         className={cn(
                           "p-1.5 rounded-lg transition-colors",
-                          showDatePicker ? "bg-blue-100 text-blue-600" : "text-gray-400 hover:bg-gray-100"
+                          showDatePicker ? "bg-blue-100 text-blue-600" : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                         )}
                         title="Schedule a date"
                       >
@@ -1408,12 +1429,12 @@ export default function PipelinePage() {
                           )}
                         </div>
                       )}
-                      <div className="relative border rounded-2xl bg-gray-50 overflow-hidden transition-all">
+                      <div className="relative border rounded-2xl bg-gray-50 dark:bg-gray-800 overflow-hidden transition-all">
                         <textarea
                           value={currentNewNote}
                           onChange={(e) => setCurrentNewNote(e.target.value)}
                           placeholder="Add internal notes about this investor here..."
-                          className="w-full p-4 bg-transparent text-sm font-medium text-gray-700 placeholder:text-gray-300 resize-none min-h-[100px] border-none focus:ring-0"
+                          className="w-full p-4 bg-transparent text-sm font-medium text-gray-700 dark:text-gray-300 placeholder:text-gray-300 resize-none min-h-[100px] border-none focus:ring-0"
                         />
                       </div>
                       <button
@@ -1428,7 +1449,7 @@ export default function PipelinePage() {
                     {/* Notes List / Feed */}
                     <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
                       {notesList.length === 0 ? (
-                        <div className="h-full flex items-center justify-center border-2 border-dashed border-gray-100 rounded-3xl">
+                        <div className="h-full flex items-center justify-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-3xl">
                           <p className="text-sm text-gray-300 font-medium">No notes yet</p>
                         </div>
                       ) : (
@@ -1439,7 +1460,7 @@ export default function PipelinePage() {
                                 <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white uppercase">
                                   {note.author.charAt(0)}
                                 </div>
-                                <span className="text-xs font-bold text-gray-900">{note.author}</span>
+                                <span className="text-xs font-bold text-gray-900 dark:text-gray-100">{note.author}</span>
                                 <span className="text-[10px] font-medium text-gray-400">{note.date}</span>
                               </div>
                               <button
@@ -1449,8 +1470,8 @@ export default function PipelinePage() {
                                 Delete
                               </button>
                             </div>
-                            <div className="p-3 bg-gray-50 rounded-2xl rounded-tl-none border border-gray-100 space-y-2">
-                              <p className="text-sm text-gray-700 leading-relaxed font-normal">{note.text}</p>
+                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-2xl rounded-tl-none border border-gray-100 dark:border-gray-800 space-y-2">
+                              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-normal">{note.text}</p>
                               {note.scheduledDate && (
                                 <div className="flex items-center gap-1.5 px-2 py-1 bg-red-50 text-red-600 rounded-lg w-fit">
                                   <CalendarDays className="h-3 w-3" />
@@ -1468,17 +1489,17 @@ export default function PipelinePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-10 mt-6 border-t border-gray-100">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-10 mt-6 border-t border-gray-100 dark:border-gray-800">
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="w-full py-4 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-full transition-all"
+                  className="w-full py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveChanges}
                   disabled={isUpdatingInvestment}
-                  className="w-full py-4 bg-[#FCD34D] text-gray-800 text-sm font-bold rounded-full hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all disabled:opacity-50"
+                  className="w-full py-4 bg-[#FCD34D] text-gray-800 dark:text-gray-200 text-sm font-bold rounded-full hover:bg-[#FBD24E] shadow-lg shadow-yellow-100 transition-all disabled:opacity-50"
                 >
                   {isUpdatingInvestment ? (
                     <div className="flex items-center justify-center gap-2">
@@ -1497,12 +1518,12 @@ export default function PipelinePage() {
         {/* Add Investor Modal */}
         {showAddInvestorModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[2rem] p-8 w-full max-w-md shadow-2xl scale-in-95 animate-in">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold text-gray-900">Add Lead to Pipeline</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Add Lead to Pipeline</h2>
                 <button
                   onClick={() => setShowAddInvestorModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                 >
                   <X className="h-6 w-6 text-gray-400" />
                 </button>
@@ -1516,7 +1537,7 @@ export default function PipelinePage() {
                     value={newInvestorData.name}
                     onChange={(e) => setNewInvestorData({ ...newInvestorData, name: e.target.value })}
                     placeholder="Enter investor name"
-                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-full text-sm font-bold text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-full text-sm font-bold text-gray-700 dark:text-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-blue-500 transition-all"
                   />
                 </div>
 
@@ -1527,7 +1548,7 @@ export default function PipelinePage() {
                     value={newInvestorData.email}
                     onChange={(e) => setNewInvestorData({ ...newInvestorData, email: e.target.value })}
                     placeholder="Enter email address"
-                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-full text-sm font-bold text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-full text-sm font-bold text-gray-700 dark:text-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-blue-500 transition-all"
                   />
                 </div>
 
@@ -1541,7 +1562,7 @@ export default function PipelinePage() {
                       setNewInvestorData({ ...newInvestorData, phone: val });
                     }}
                     placeholder="Enter 10-digit phone number"
-                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-full text-sm font-bold text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-full text-sm font-bold text-gray-700 dark:text-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-blue-500 transition-all"
                   />
                 </div>
 
@@ -1552,21 +1573,21 @@ export default function PipelinePage() {
                       value={newInvestorData.assignedIrId}
                       onChange={(e) => setNewInvestorData({ ...newInvestorData, assignedIrId: e.target.value })}
                       disabled={isIrLoading}
-                      className="w-full px-5 py-4 bg-gray-50 border-none rounded-full text-sm font-bold text-gray-700 appearance-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer disabled:opacity-50"
+                      className="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-full text-sm font-bold text-gray-700 dark:text-gray-300 appearance-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer disabled:opacity-50"
                     >
                       <option value="">{isIrLoading ? 'Loading staff...' : 'Unassigned / Select IR Officer'}</option>
                       {irStaffList.map((staff: any) => (
                         <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 transition-colors" />
+                    <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none group-hover:text-gray-600 dark:text-gray-400 transition-colors" />
                   </div>
                 </div>
 
                 <div className="flex gap-4 pt-2">
                   <button
                     onClick={() => setShowAddInvestorModal(false)}
-                    className="flex-1 py-4 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-full transition-all"
+                    className="flex-1 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-all"
                   >
                     Cancel
                   </button>

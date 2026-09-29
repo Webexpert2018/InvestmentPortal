@@ -98,7 +98,7 @@ export default function KycVerificationPage() {
       <section className="relative overflow-hidden rounded-[24px] bg-[#ECEFF4] px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12 min-h-[calc(100vh-120px)] flex items-center justify-center">
         <div className="pointer-events-none absolute -bottom-10 left-0 h-[300px] w-full bg-[#E4E9F2]" />
 
-        <div className="relative mx-auto w-full max-w-[1020px] rounded-[20px] border border-[#E9E9E9] bg-white p-6 shadow-[0_16px_32px_rgba(20,26,40,0.08)] sm:p-8 lg:px-12 lg:py-14">
+        <div className="relative mx-auto w-full max-w-[1020px] rounded-[20px] border border-[#E9E9E9] bg-white dark:bg-[#1C1C1C] p-6 shadow-[0_16px_32px_rgba(20,26,40,0.08)] sm:p-8 lg:px-12 lg:py-14">
           {/* Logo */}
           <div className="flex justify-center mb-10">
             <Image src="/images/logo.png" alt="Ovalia Capital" width={188} height={56} className="h-[56px] w-auto" />
@@ -216,7 +216,7 @@ export default function KycVerificationPage() {
                       className={`flex items-center justify-between p-5 rounded-2xl border group transition-all hover:border-[#FCD34D] hover:shadow-sm ${
                         activeDragType === type 
                           ? 'border-[#FCD34D] bg-yellow-50/50' 
-                          : 'bg-[#F9FAFB] border-[#F3F4F6] hover:bg-white'
+                          : 'bg-[#F9FAFB] border-[#F3F4F6] hover:bg-white dark:bg-[#1C1C1C]'
                       }`}
                       onDragOver={(e) => { e.preventDefault(); setActiveDragType(type); }}
                       onDragEnter={(e) => { e.preventDefault(); setActiveDragType(type); }}
@@ -229,12 +229,12 @@ export default function KycVerificationPage() {
                       }}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-xl ${uploads[type].status === 'completed' ? 'bg-green-50' : 'bg-gray-50'}`}>
+                        <div className={`p-3 rounded-xl ${uploads[type].status === 'completed' ? 'bg-green-50' : 'bg-gray-50 dark:bg-gray-800'}`}>
                           <FileText className={`h-6 w-6 ${uploads[type].status === 'completed' ? 'text-green-500' : 'text-gray-400'}`} />
                         </div>
                         <div>
                           <span className="block text-base font-bold text-[#1F2937]">{uploads[type].name}</span>
-                          <span className="text-xs text-gray-500">PDF or Images accepted (Max 10MB) • Drag & drop here</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">PDF or Images accepted (Max 10MB) • Drag & drop here</span>
                         </div>
                       </div>
 
@@ -252,7 +252,7 @@ export default function KycVerificationPage() {
                         {uploads[type].status === 'idle' && (
                           <button
                             onClick={() => fileInputRefs[type].current?.click()}
-                            className="px-6 py-2 text-sm font-bold bg-white border border-[#E5E7EB] text-[#1F3B6E] rounded-xl hover:bg-gray-50 transition-all hover:border-[#1F3B6E] shadow-sm"
+                            className="px-6 py-2 text-sm font-bold bg-white dark:bg-[#1C1C1C] border border-[#E5E7EB] text-[#1F3B6E] rounded-xl hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-all hover:border-[#1F3B6E] shadow-sm"
                           >
                             Select File
                           </button>
@@ -283,7 +283,7 @@ export default function KycVerificationPage() {
                   ))}
                 </div>
 
-                <div className="pt-6 border-t border-gray-100">
+                <div className="pt-6 border-t border-gray-100 dark:border-gray-800">
                   <button
                     type="button"
                     onClick={handleSubmitManual}

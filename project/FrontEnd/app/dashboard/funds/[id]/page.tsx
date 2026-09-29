@@ -213,11 +213,11 @@ export default function FundOverviewPage() {
     return (
       <DashboardLayout>
         <div className="p-6">
-          <button onClick={handleBack} className="mb-4 flex items-center gap-2 text-gray-600">
+          <button onClick={handleBack} className="mb-4 flex items-center gap-2 text-gray-600 dark:text-gray-400">
             <ChevronLeft className="h-5 w-5" /> Back
           </button>
-          <div className="bg-white p-8 rounded-lg text-center">
-            <p className="text-gray-500">Fund not found</p>
+          <div className="bg-white dark:bg-[#1C1C1C] p-8 rounded-lg text-center">
+            <p className="text-gray-500 dark:text-gray-400">Fund not found</p>
           </div>
         </div>
       </DashboardLayout>
@@ -226,17 +226,17 @@ export default function FundOverviewPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-8 bg-[#F9FAFB] min-h-screen">
+      <div className="p-4 sm:p-8 bg-[#F9FAFB] dark:bg-gray-900 min-h-screen">
         {/* Header */}
         <div className="mb-8">
           {/* Back button row */}
           <div className="mb-4">
             <button
               onClick={handleBack}
-              className="p-1.5 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200 group flex items-center gap-1.5 w-fit"
+              className="p-1.5 hover:bg-white dark:bg-[#1C1C1C] rounded-full transition-colors border border-transparent hover:border-gray-200 dark:border-gray-800 group flex items-center gap-1.5 w-fit"
               title="Go back"
             >
-              <ChevronLeft className="h-5 w-5 text-gray-600 transition-transform group-hover:-translate-x-0.5" />
+              <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400 transition-transform group-hover:-translate-x-0.5" />
               <span className="text-sm font-semibold text-[#1F3B6E] pr-2">
                 {fromParam === 'invest' ? 'Back to Investment' : 'Back'}
               </span>
@@ -246,8 +246,8 @@ export default function FundOverviewPage() {
           {/* Heading row */}
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight truncate">{fund.name}</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Fund Details</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 leading-tight truncate">{fund.name}</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Fund Details</p>
             </div>
 
             {!isInvestor && (
@@ -265,11 +265,11 @@ export default function FundOverviewPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center border-b border-gray-200 mb-6">
+        <div className="flex items-center border-b border-gray-200 dark:border-gray-800 mb-6">
           <div className="flex gap-8">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`pb-3 font-medium transition-colors relative ${activeTab === 'overview' ? 'text-[#1F3B6E]' : 'text-gray-600'
+              className={`pb-3 font-medium transition-colors relative ${activeTab === 'overview' ? 'text-[#1F3B6E]' : 'text-gray-600 dark:text-gray-400'
                 }`}
             >
               Fund Overview
@@ -279,7 +279,7 @@ export default function FundOverviewPage() {
             </button>
             <button
               onClick={() => setActiveTab('documents')}
-              className={`pb-3 font-medium transition-colors relative ${activeTab === 'documents' ? 'text-[#1F3B6E]' : 'text-gray-600'
+              className={`pb-3 font-medium transition-colors relative ${activeTab === 'documents' ? 'text-[#1F3B6E]' : 'text-gray-600 dark:text-gray-400'
                 }`}
             >
               Documents
@@ -289,7 +289,7 @@ export default function FundOverviewPage() {
             </button>
             <button
               onClick={() => setActiveTab('bankDetails')}
-              className={`pb-3 font-medium transition-colors relative ${activeTab === 'bankDetails' ? 'text-[#1F3B6E]' : 'text-gray-600'
+              className={`pb-3 font-medium transition-colors relative ${activeTab === 'bankDetails' ? 'text-[#1F3B6E]' : 'text-gray-600 dark:text-gray-400'
                 }`}
             >
               Wire Instructions
@@ -302,12 +302,12 @@ export default function FundOverviewPage() {
 
         {activeTab === 'overview' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm p-8">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-8">
               <div className="flex flex-col lg:flex-row items-start gap-8">
                 {/* Left Side - Image */}
                 <div className="w-full lg:w-[350px] xl:w-[400px] flex-shrink-0">
                   {fund.image ? (
-                    <div className="w-full aspect-[4/3] bg-white rounded-xl shadow-sm border border-[#E5E5EA] flex items-center justify-center overflow-hidden">
+                    <div className="w-full aspect-[4/3] bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-[#E5E5EA] flex items-center justify-center overflow-hidden">
                       <img
                         src={getFullImageUrl(fund.image) || ''}
                         alt={fund.name}
@@ -323,15 +323,15 @@ export default function FundOverviewPage() {
 
                 {/* Right Side - Fund Details */}
                 <div className="flex-1 flex flex-col">
-                  <p className="text-sm text-gray-500 mb-1">Start Date: {formatDate(fund.startDate)}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Start Date: {formatDate(fund.startDate)}</p>
 
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
-                      <h2 className="text-3xl font-bold text-gray-900">{fund.name}</h2>
+                      <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{fund.name}</h2>
                       {!isInvestor && (
                         <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium ${fund.status === 'Active' ? 'bg-[#E8F5E9] text-[#2E7D32]' :
                           fund.status === 'Closed' ? 'bg-[#FFEBEE] text-[#C62828]' :
-                            'bg-gray-100 text-gray-600'
+                            'bg-gray-100 text-gray-600 dark:text-gray-400'
                           }`}>
                           {fund.status || 'Active'}
                         </span>
@@ -342,9 +342,9 @@ export default function FundOverviewPage() {
                       <div className="relative">
                         <button
                           onClick={() => setShowDropdown(!showDropdown)}
-                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100"
+                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors border border-gray-100 dark:border-gray-800"
                         >
-                          <MoreVertical className="h-5 w-5 text-gray-600" />
+                          <MoreVertical className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                         </button>
 
                         {showDropdown && (
@@ -353,31 +353,31 @@ export default function FundOverviewPage() {
                               className="fixed inset-0 z-10"
                               onClick={() => setShowDropdown(false)}
                             />
-                            <div className="absolute right-0 top-full mt-2 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+                            <div className="absolute right-0 top-full mt-2 w-36 bg-white dark:bg-[#1C1C1C] rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 py-2 z-20">
                               <Link
                                 href={`/dashboard/funds/${params.id}/edit`}
-                                className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                                className="block w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors"
                               >
                                 Edit
                               </Link>
                               {fund.status === 'Active' ? (
                                 <button
                                   onClick={() => handleToggleStatus('Closed')}
-                                  className="w-full px-4 py-2 text-left text-xs font-medium text-[#DC2626] hover:bg-gray-50 transition-colors"
+                                  className="w-full px-4 py-2 text-left text-xs font-medium text-[#DC2626] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors"
                                 >
                                   Close Fund
                                 </button>
                               ) : (
                                 <button
                                   onClick={() => handleToggleStatus('Active')}
-                                  className="w-full px-4 py-2 text-left text-xs font-medium text-[#059669] hover:bg-gray-50 transition-colors"
+                                  className="w-full px-4 py-2 text-left text-xs font-medium text-[#059669] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors"
                                 >
                                   Open Fund
                                 </button>
                               )}
                               <button
                                 onClick={handleDelete}
-                                className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                                className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors"
                               >
                                 Delete
                               </button>
@@ -390,8 +390,8 @@ export default function FundOverviewPage() {
 
                   {/* Fund Strategy */}
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">Fund Strategy</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed max-w-2xl">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Fund Strategy</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-2xl">
                       {fund.description || 'No strategy defined for this fund.'}
                     </p>
                   </div>
@@ -402,13 +402,13 @@ export default function FundOverviewPage() {
 
             {/* Note Section */}
             {fund.note && (
-              <div className="bg-white rounded-lg shadow-sm p-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Note</h3>
+              <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-8">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Note</h3>
                 <div className="space-y-3">
                   <p className="text-sm text-gray-400 font-medium italic">
                     (Private note visible only to you)
                   </p>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     {fund.note}
                   </p>
                 </div>
@@ -417,22 +417,22 @@ export default function FundOverviewPage() {
 
 
             {/* Performance Overview */}
-            <div className="bg-white rounded-lg shadow-sm p-8">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-8">
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-lg font-bold text-gray-900">Performance Overview</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Performance Overview</h3>
                 <select
                   value={timeframe}
                   onChange={(e) => setTimeframe(parseInt(e.target.value))}
-                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:border-[#FCD34D] bg-white cursor-pointer"
+                  className="px-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400 focus:outline-none focus:border-[#FCD34D] bg-white dark:bg-[#1C1C1C] cursor-pointer"
                 >
-                  <option value={12}>Last year</option>
-                  <option value={9}>Last 9 months</option>
-                  <option value={6}>Last 6 months</option>
-                  <option value={3}>Last 3 months</option>
+                  <option value={12} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Last year</option>
+                  <option value={9} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Last 9 months</option>
+                  <option value={6} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Last 6 months</option>
+                  <option value={3} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Last 3 months</option>
                 </select>
               </div>
               <div className="mb-6">
-                <p className="text-3xl font-bold text-gray-900">
+                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                   ${performanceData.length > 0 ? performanceData[performanceData.length - 1].value.toFixed(2) : '124.50'}
                 </p>
                 <p className="text-sm text-green-600 font-medium mt-1">
@@ -446,7 +446,7 @@ export default function FundOverviewPage() {
 
               <div className="h-[300px] w-full mt-4">
                 {isPerformanceLoading ? (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                  <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-800">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1F3B6E]"></div>
                   </div>
                 ) : performanceData.length > 0 ? (
@@ -476,8 +476,8 @@ export default function FundOverviewPage() {
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             return (
-                              <div className="bg-white p-3 border border-gray-100 shadow-lg rounded-lg">
-                                <p className="text-xs text-gray-500 mb-1">{payload[0].payload.fullDate}</p>
+                              <div className="bg-white dark:bg-[#1C1C1C] p-3 border border-gray-100 dark:border-gray-800 shadow-lg rounded-lg">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{payload[0].payload.fullDate}</p>
                                 <p className="text-sm font-bold text-[#1F3B6E]">
                                   NAV: ${typeof payload[0].value === 'number' ? payload[0].value.toFixed(2) : payload[0].value}
                                 </p>
@@ -499,8 +499,8 @@ export default function FundOverviewPage() {
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                    <p className="text-gray-500 text-sm">No performance data available for this period</p>
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-800">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">No performance data available for this period</p>
                     <p className="text-xs text-gray-400 mt-1">Start adding NAV entries to see the graph</p>
                   </div>
                 )}
@@ -510,11 +510,11 @@ export default function FundOverviewPage() {
         )}
 
         {activeTab === 'bankDetails' && (
-          <div className="bg-white rounded-lg shadow-sm p-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6 font-goudy">Custodian Wire Instructions</h2>
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-8">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6 font-goudy">Custodian Wire Instructions</h2>
 
             <div className="mb-6">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 These are the wire transfer instructions associated with this fund. Use these details for all incoming investments.
               </p>
             </div>
@@ -522,27 +522,27 @@ export default function FundOverviewPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Bank Name</p>
-                  <p className="font-medium text-gray-900">{fund.bankName || 'N/A'}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Bank Name</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{fund.bankName || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Account Number</p>
-                  <p className="font-medium text-gray-900 text-lg tracking-wider">{fund.accountNumber || 'N/A'}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Account Number</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100 text-lg tracking-wider">{fund.accountNumber || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Routing Number (ABA)</p>
-                  <p className="font-medium text-gray-900">{fund.routingNumber || 'N/A'}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Routing Number (ABA)</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{fund.routingNumber || 'N/A'}</p>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">For Benefit Of</p>
-                  <p className="font-medium text-gray-900">{fund.beneficiaryName || 'N/A'}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">For Benefit Of</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{fund.beneficiaryName || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Bank Address</p>
-                  <p className="font-medium text-gray-900 leading-relaxed whitespace-pre-line">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Bank Address</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100 leading-relaxed whitespace-pre-line">
                     {fund.bankAddress || 'N/A'}
                   </p>
                 </div>
@@ -552,45 +552,45 @@ export default function FundOverviewPage() {
         )}
 
         {activeTab === 'documents' && (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <div className="overflow-x-auto pb-20 custom-scrollbar">
               <div className="min-h-[400px]">
                 <table className="w-full relative">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
                     <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">File Name</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Document Type</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Tax Year</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">AV Scan Status</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Uploaded Date</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Action</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">File Name</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Document Type</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Tax Year</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">AV Scan Status</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Uploaded Date</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {documents.map((doc) => (
                       <tr
                         key={doc.id}
-                        className="hover:bg-gray-50 cursor-pointer"
+                        className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 cursor-pointer"
                         onClick={() => router.push(`/dashboard/funds/${params.id}/documents/${doc.id}`)}
                       >
-                        <td className="px-6 py-4 text-gray-900">{doc.file_name}</td>
-                        <td className="px-6 py-4 text-gray-900 font-medium">
+                        <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{doc.file_name}</td>
+                        <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-medium">
                           {doc.document_type}
                         </td>
-                        <td className="px-6 py-4 text-gray-900">{doc.tax_year || 'N/A'}</td>
+                        <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{doc.tax_year || 'N/A'}</td>
                         <td className="px-6 py-4">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600">
                             Clean
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-gray-900">{formatDate(doc.uploaded_at)}</td>
+                        <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{formatDate(doc.uploaded_at)}</td>
                         <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <div className="relative">
                             <button
                               onClick={() => setActiveDocDropdown(activeDocDropdown === doc.id ? null : doc.id)}
-                              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                             >
-                              <MoreVertical className="h-5 w-5 text-gray-600" />
+                              <MoreVertical className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                             </button>
                             {activeDocDropdown === doc.id && (
                               <>
@@ -598,10 +598,10 @@ export default function FundOverviewPage() {
                                   className="fixed inset-0 z-10"
                                   onClick={() => setActiveDocDropdown(null)}
                                 />
-                                <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+                                <div className="absolute right-0 top-full mt-2 w-40 bg-white dark:bg-[#1C1C1C] rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 py-2 z-20">
                                   <Link
                                     href={`/dashboard/funds/${params.id}/documents/${doc.id}`}
-                                    className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                                    className="block w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors"
                                     onClick={() => setActiveDocDropdown(null)}
                                   >
                                     View
@@ -612,7 +612,7 @@ export default function FundOverviewPage() {
                                       handleDownload(doc.id, doc.file_name);
                                       setActiveDocDropdown(null);
                                     }}
-                                    className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                                    className="block w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors"
                                   >
                                     Download
                                   </button>
@@ -620,7 +620,7 @@ export default function FundOverviewPage() {
                                     <>
                                       <Link
                                         href={`/dashboard/funds/${params.id}/documents/${doc.id}/edit`}
-                                        className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                                        className="block w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors"
                                       >
                                         Edit
                                       </Link>
@@ -645,7 +645,7 @@ export default function FundOverviewPage() {
                     ))}
                     {documents.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                           No documents found for this fund.
                         </td>
                       </tr>
@@ -661,32 +661,32 @@ export default function FundOverviewPage() {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[20px] p-8 max-w-[520px] w-full mx-4 relative shadow-2xl border-none">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[20px] p-8 max-w-[520px] w-full mx-4 relative shadow-2xl border-none">
             <button
               onClick={() => setShowDeleteModal(false)}
-              className="absolute top-6 right-6 text-[#9FA3A9] hover:text-gray-600 transition-colors"
+              className="absolute top-6 right-6 text-[#9FA3A9] hover:text-gray-600 dark:text-gray-400 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
-            <h2 className="font-goudy text-[28px] text-[#1F1F1F] font-normal mb-4">Delete Fund</h2>
+            <h2 className="font-goudy text-[28px] text-[#1F1F1F] dark:text-gray-100 font-normal mb-4">Delete Fund</h2>
             <div className="space-y-3 mb-10">
-              <p className="text-[#4B4B4B] text-[16px] leading-relaxed font-goudy">
+              <p className="text-[#4B4B4B] dark:text-gray-300 text-[16px] leading-relaxed font-goudy">
                 Are you sure you want to delete this fund?
               </p>
-              <p className="text-[#4B4B4B] text-[16px] leading-relaxed font-goudy">
+              <p className="text-[#4B4B4B] dark:text-gray-300 text-[16px] leading-relaxed font-goudy">
                 This action cannot be undone and will permanently remove the fund from the platform.
               </p>
             </div>
             <div className="flex justify-end gap-3">
               <Button
                 onClick={() => setShowDeleteModal(false)}
-                className="h-[46px] min-w-[130px] rounded-full bg-[#FFF5E9] hover:bg-[#FFEBD4] text-[#4B4B4B] border-none text-[15px] font-semibold"
+                className="h-[46px] min-w-[130px] rounded-full bg-[#FFF5E9] hover:bg-[#FFEBD4] text-[#4B4B4B] dark:text-gray-300 border-none text-[15px] font-semibold"
               >
                 Cancel
               </Button>
               <Button
                 onClick={confirmDelete}
-                className="h-[46px] min-w-[150px] rounded-full bg-[#FFD64B] hover:bg-[#FFCC21] text-[#4B4B4B] border-none shadow-sm text-[15px] font-bold"
+                className="h-[46px] min-w-[150px] rounded-full bg-[#FFD64B] hover:bg-[#FFCC21] text-[#4B4B4B] dark:text-gray-300 border-none shadow-sm text-[15px] font-bold"
               >
                 Yes, Delete
               </Button>
@@ -698,26 +698,26 @@ export default function FundOverviewPage() {
       {/* Document Delete Confirmation Modal */}
       {showDocDeleteModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[20px] p-8 max-w-[520px] w-full mx-4 relative shadow-2xl border-none">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[20px] p-8 max-w-[520px] w-full mx-4 relative shadow-2xl border-none">
             <button
               onClick={() => setShowDocDeleteModal(false)}
-              className="absolute top-6 right-6 text-[#9FA3A9] hover:text-gray-600 transition-colors"
+              className="absolute top-6 right-6 text-[#9FA3A9] hover:text-gray-600 dark:text-gray-400 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
-            <h2 className="font-goudy text-[28px] text-[#1F1F1F] font-normal mb-4">Delete Document</h2>
+            <h2 className="font-goudy text-[28px] text-[#1F1F1F] dark:text-gray-100 font-normal mb-4">Delete Document</h2>
             <div className="space-y-3 mb-10">
-              <p className="text-[#4B4B4B] text-[16px] leading-relaxed font-goudy">
-                Are you sure you want to delete <span className="font-bold text-[#1F1F1F]">&quot;{docToDelete?.file_name}&quot;</span>?
+              <p className="text-[#4B4B4B] dark:text-gray-300 text-[16px] leading-relaxed font-goudy">
+                Are you sure you want to delete <span className="font-bold text-[#1F1F1F] dark:text-gray-100">&quot;{docToDelete?.file_name}&quot;</span>?
               </p>
-              <p className="text-[#4B4B4B] text-[16px] leading-relaxed font-goudy">
+              <p className="text-[#4B4B4B] dark:text-gray-300 text-[16px] leading-relaxed font-goudy">
                 This action cannot be undone and will permanently remove the document from the fund.
               </p>
             </div>
             <div className="flex justify-end gap-3">
               <Button
                 onClick={() => setShowDocDeleteModal(false)}
-                className="h-[46px] min-w-[130px] rounded-full bg-[#FFF5E9] hover:bg-[#FFEBD4] text-[#4B4B4B] border-none text-[15px] font-semibold"
+                className="h-[46px] min-w-[130px] rounded-full bg-[#FFF5E9] hover:bg-[#FFEBD4] text-[#4B4B4B] dark:text-gray-300 border-none text-[15px] font-semibold"
               >
                 Cancel
               </Button>
@@ -733,7 +733,7 @@ export default function FundOverviewPage() {
                     setShowDocDeleteModal(false);
                   }
                 }}
-                className="h-[46px] min-w-[150px] rounded-full bg-[#FFD64B] hover:bg-[#FFCC21] text-[#4B4B4B] border-none shadow-sm text-[15px] font-bold"
+                className="h-[46px] min-w-[150px] rounded-full bg-[#FFD64B] hover:bg-[#FFCC21] text-[#4B4B4B] dark:text-gray-300 border-none shadow-sm text-[15px] font-bold"
               >
                 Yes, Delete
               </Button>

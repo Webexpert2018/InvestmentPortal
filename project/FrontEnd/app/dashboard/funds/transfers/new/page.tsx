@@ -295,18 +295,18 @@ export default function NewFundTransferPage() {
     <DashboardLayout>
       <div className="p-0 space-y-6">
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] mb-1 font-goudy tracking-tight">New Fund Transfer</h1>
-          <p className="text-gray-500 font-medium">Create a new fund-to-fund or person-to-person transfer.</p>
+          <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-1 font-goudy tracking-tight">New Fund Transfer</h1>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">Create a new fund-to-fund or person-to-person transfer.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Transfer Type</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Transfer Type</label>
                 <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg">
+                  <label className="flex items-center gap-2 cursor-pointer bg-gray-50 dark:bg-gray-800 px-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg">
                     <input
                       type="radio"
                       name="transferType"
@@ -315,9 +315,9 @@ export default function NewFundTransferPage() {
                       onChange={() => setTransferType('PERSON_TO_PERSON')}
                       className="text-[#1F3B6E] focus:ring-[#1F3B6E]"
                     />
-                    <span className="text-sm font-bold text-gray-800">Person to Person</span>
+                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Person to Person</span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg">
+                  <label className="flex items-center gap-2 cursor-pointer bg-gray-50 dark:bg-gray-800 px-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg">
                     <input
                       type="radio"
                       name="transferType"
@@ -326,13 +326,13 @@ export default function NewFundTransferPage() {
                       onChange={() => setTransferType('FUND_TO_FUND')}
                       className="text-[#1F3B6E] focus:ring-[#1F3B6E]"
                     />
-                    <span className="text-sm font-bold text-gray-800">Fund to Fund</span>
+                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Fund to Fund</span>
                   </label>
                 </div>
               </div>
 
               <div className={transferType === 'FUND_TO_FUND' ? '' : 'md:col-span-2'}>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Seller Fund</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Seller Fund</label>
                 <Combobox
                   options={allFundOptions}
                   value={fromFundId}
@@ -347,7 +347,7 @@ export default function NewFundTransferPage() {
 
               {transferType === 'FUND_TO_FUND' && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Buyer Fund</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Buyer Fund</label>
                   <Combobox
                     options={allFundOptions.filter(f => f.value !== fromFundId)}
                     value={toFundId}
@@ -358,7 +358,7 @@ export default function NewFundTransferPage() {
               )}
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Seller Investor</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Seller Investor</label>
                 <Combobox
                   options={fundInvestorOptions}
                   value={fromInvestorId}
@@ -373,7 +373,7 @@ export default function NewFundTransferPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Investor Account</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Investor Account</label>
                 <Combobox
                   options={[
                     { label: 'Personal Account', value: 'personal' },
@@ -403,7 +403,7 @@ export default function NewFundTransferPage() {
 
               {transferType === 'PERSON_TO_PERSON' && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Buyer Investor</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Buyer Investor</label>
                   <Combobox
                     options={userOptions.filter(u => u.value !== fromInvestorId)}
                     value={toInvestorId}
@@ -418,7 +418,7 @@ export default function NewFundTransferPage() {
               )}
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                   {transferType === 'PERSON_TO_PERSON' ? 'Buyer Account' : 'Destination Account'}
                 </label>
                 <Combobox
@@ -446,13 +446,13 @@ export default function NewFundTransferPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Investment Amount ($)</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Investment Amount ($)</label>
                 <input
                   type="number"
                   step="0.01"
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none transition-all ${selectedSourceFund && parseFloat(investmentAmount) > parseFloat(selectedSourceFund.max_value)
                     ? 'border-red-500 focus:ring-red-500 bg-red-50'
-                    : 'border-gray-200 focus:border-[#1F3B6E] focus:ring-[#1F3B6E]'
+                    : 'border-gray-200 dark:border-gray-800 focus:border-[#1F3B6E] focus:ring-[#1F3B6E]'
                     }`}
                   value={investmentAmount}
                   onChange={(e) => setInvestmentAmount(e.target.value)}
@@ -465,11 +465,11 @@ export default function NewFundTransferPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Units (Calculated from NAV)</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Units (Calculated from NAV)</label>
                 <input
                   type="number"
                   step="0.0001"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg outline-none bg-gray-50 text-gray-500 cursor-not-allowed font-medium"
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-800 rounded-lg outline-none bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed font-medium text-[#111827] dark:text-white"
                   value={units}
                   readOnly
                   placeholder="0.0000"
@@ -477,27 +477,27 @@ export default function NewFundTransferPage() {
               </div>
 
               <div className="md:col-span-2 mt-4">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Transfer Document (PDF)</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Transfer Document (PDF)</label>
                 <div
-                  className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isDragging ? 'border-[#1F3B6E] bg-[#1F3B6E]/5 scale-[1.01]' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                  className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isDragging ? 'border-[#1F3B6E] bg-[#1F3B6E]/5 scale-[1.01]' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800'}`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                 >
                   <UploadCloud className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                  <h3 className="text-sm font-bold text-gray-900 mb-1">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1">
                     {hasTemplate ? 'Use saved template or upload new' : 'Drag & drop document here'}
                   </h3>
-                  <p className="text-xs text-gray-500 mb-4">PDF files only (Max 10MB)</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">PDF files only (Max 10MB)</p>
 
-                  <label className="cursor-pointer bg-white px-5 py-2.5 border border-gray-200 rounded-lg shadow-sm text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-2">
+                  <label className="cursor-pointer bg-white dark:bg-[#1C1C1C] px-5 py-2.5 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors inline-flex items-center gap-2">
                     {hasTemplate ? <Edit className="w-4 h-4" /> : <UploadCloud className="w-4 h-4" />}
                     <span>{hasTemplate ? 'Change Document' : 'Browse Files'}</span>
                     <input
                       type="file"
                       accept=".pdf"
                       onChange={handleFileChange}
-                      className="hidden"
+                      className="hidden text-[#111827] dark:text-white"
                     />
                   </label>
 
@@ -522,10 +522,10 @@ export default function NewFundTransferPage() {
             </div>
 
             {documentFile && (
-              <div className="mt-8 border-t border-gray-100 pt-8">
+              <div className="mt-8 border-t border-gray-100 dark:border-gray-800 pt-8">
                 <h3 className="text-lg font-bold text-[#1F3B6E] mb-4">Configure Signature Placements</h3>
-                <p className="text-sm text-gray-500 mb-4">Drag and drop the signature, name, and date fields onto the document where the sender needs to sign.</p>
-                <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-gray-50 p-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Drag and drop the signature, name, and date fields onto the document where the sender needs to sign.</p>
+                <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm bg-gray-50 dark:bg-gray-800 p-1">
                   <VisualPdfEditor
                     file={documentFile}
                     initialValues={{ placements }}
@@ -539,13 +539,13 @@ export default function NewFundTransferPage() {
             )}
           </div>
 
-          <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+          <div className="p-6 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={() => router.back()}
               disabled={isSubmitting}
-              className="px-6 border-gray-300 text-gray-700 font-semibold"
+              className="px-6 border-gray-300 text-gray-700 dark:text-gray-300 font-semibold"
             >
               Cancel
             </Button>

@@ -129,8 +129,8 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
   if (!investorData) {
     return (
       <DashboardLayout>
-        <div className="p-8 text-center bg-white rounded-xl shadow-sm">
-          <p className="text-gray-500">Investor not found</p>
+        <div className="p-8 text-center bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm">
+          <p className="text-gray-500 dark:text-gray-400">Investor not found</p>
           <button onClick={() => router.back()} className="mt-4 text-[#1F3B6E] font-medium underline">Go Back</button>
         </div>
       </DashboardLayout>
@@ -144,11 +144,11 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push('/dashboard/kyc-console')}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
+            <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <h1 className="text-2xl font-semibold text-[#1F1F1F]">Profile Information</h1>
+          <h1 className="text-2xl font-semibold text-[#1F1F1F] dark:text-gray-100">Profile Information</h1>
         </div>
 
         {/* Top Header Summary Profile Card */}
@@ -166,18 +166,18 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                   className="object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-[#1F1F1F] text-xl sm:text-2xl font-extrabold tracking-tight">
+                <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-[#1F1F1F] dark:text-gray-100 text-xl sm:text-2xl font-extrabold tracking-tight">
                   {(investorData.firstName?.[0] || '') + (investorData.lastName?.[0] || '')}
                 </div>
               )}
             </div>
             <div className="flex flex-col min-w-0">
-              <h2 className="text-xl sm:text-2xl font-bold text-[#1F1F1F] leading-tight truncate">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1F1F1F] dark:text-gray-100 leading-tight truncate">
                 {investorData.firstName} {investorData.lastName}
               </h2>
-              <p className="text-xs text-gray-500 font-medium mt-1 flex items-center gap-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1 flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                Joined date: <span className="text-gray-800 font-semibold">{new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                Joined date: <span className="text-gray-800 dark:text-gray-200 font-semibold">{new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
               </p>
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                   setIrLoading(false);
                 }
               }}
-              className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
+              className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent"
             >
               {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
             </button>
@@ -218,8 +218,8 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
         </div>
 
         {/* Details Card Section */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 sm:p-6 space-y-4">
-          <h3 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider pb-2 border-b border-gray-100">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl border border-gray-200 dark:border-gray-800/80 shadow-xs p-5 sm:p-6 space-y-4">
+          <h3 className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider pb-2 border-b border-gray-100 dark:border-gray-800">
             Personal & Account Details
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -229,7 +229,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                 href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(investorData.email || '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs sm:text-sm font-bold text-gray-900 truncate block hover:text-[#2A4474] hover:underline cursor-pointer transition-colors"
+                className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100 truncate block hover:text-[#2A4474] hover:underline cursor-pointer transition-colors"
                 title="Click to compose email in Gmail"
               >
                 {investorData.email}
@@ -245,7 +245,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                     toast.success('Phone number copied to clipboard');
                   }
                 }}
-                className="text-xs sm:text-sm font-bold text-gray-900 cursor-pointer hover:text-amber-600 transition-colors block"
+                className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-amber-600 transition-colors block"
                 title="Click to copy phone number"
               >
                 {formatPhoneDisplay(investorData.phone) || 'Not set'}
@@ -254,34 +254,34 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
 
             <div className="space-y-0.5">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Tax ID</span>
-              <p className="text-xs sm:text-sm font-bold text-gray-900">{investorData.taxId || 'Not set'}</p>
+              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">{investorData.taxId || 'Not set'}</p>
             </div>
 
             <div className="space-y-0.5">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Date of Birth</span>
-              <p className="text-xs sm:text-sm font-bold text-gray-900">
+              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">
                 {investorData.dob ? new Date(investorData.dob).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not set'}
               </p>
             </div>
 
             <div className="space-y-0.5">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Account Type</span>
-              <p className="text-xs sm:text-sm font-bold text-gray-900">{investorData.accountType || 'Personal Account'}</p>
+              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">{investorData.accountType || 'Personal Account'}</p>
             </div>
 
             <div className="space-y-0.5">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Assigned Investor Relation</span>
-              <p className="text-xs sm:text-sm font-bold text-gray-900">{investorData.assignedIrName || 'Not assigned'}</p>
+              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">{investorData.assignedIrName || 'Not assigned'}</p>
             </div>
 
             <div className="space-y-0.5">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Assigned Accountant</span>
-              <p className="text-xs sm:text-sm font-bold text-gray-900">{investorData.assignedAccountantName || 'Not assigned'}</p>
+              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">{investorData.assignedAccountantName || 'Not assigned'}</p>
             </div>
 
-            <div className="sm:col-span-2 md:col-span-3 lg:col-span-4 space-y-0.5 pt-2 border-t border-gray-100">
+            <div className="sm:col-span-2 md:col-span-3 lg:col-span-4 space-y-0.5 pt-2 border-t border-gray-100 dark:border-gray-800">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Address</span>
-              <p className="text-xs sm:text-sm font-bold text-gray-900 leading-relaxed">
+              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100 leading-relaxed">
                 {investorData.addressLine1 || investorData.addressLine2 || investorData.city || investorData.state || investorData.zipCode ? (
                   `${investorData.addressLine1 || ''}${investorData.addressLine2 ? `, ${investorData.addressLine2}` : ''}${investorData.city ? `, ${investorData.city}` : ''}${investorData.state ? `, ${investorData.state}` : ''}${investorData.zipCode ? ` ${investorData.zipCode}` : ''}`
                 ) : 'Not set'}
@@ -291,8 +291,8 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
         </div>
 
         {/* KYC Documents Section */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 sm:p-6 space-y-4">
-          <h3 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider pb-2 border-b border-gray-100">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl border border-gray-200 dark:border-gray-800/80 shadow-xs p-5 sm:p-6 space-y-4">
+          <h3 className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider pb-2 border-b border-gray-100 dark:border-gray-800">
             KYC Documents
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -300,13 +300,13 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
               kycDocuments
                 .filter((doc: any) => ['tax_return_y1', 'tax_return_y2', 'balance_sheet'].includes(doc.document_type))
                 .map((doc, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-4 bg-gray-50/60 rounded-xl border border-gray-100 hover:border-amber-200 transition-all shadow-2xs">
+                  <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-amber-200 transition-all shadow-2xs">
                     <div className="flex items-center gap-3 min-w-0 pr-2">
                       <div className="p-2.5 bg-red-50 rounded-xl shrink-0">
                         <FileText className="h-6 w-6 text-red-500" />
                       </div>
                       <div className="overflow-hidden min-w-0">
-                        <span className="block text-xs font-bold text-gray-900 truncate" title={getDocTypeName(doc.document_type)}>
+                        <span className="block text-xs font-bold text-gray-900 dark:text-gray-100 truncate" title={getDocTypeName(doc.document_type)}>
                           {getDocTypeName(doc.document_type)}
                         </span>
                         <span className="text-[10px] text-gray-400 font-medium block truncate" title={doc.file_name}>
@@ -329,7 +329,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                             toast.error('Failed to view document');
                           }
                         }}
-                        className="p-1.5 text-gray-400 hover:text-[#1F3B6E] hover:bg-white rounded-lg transition-all"
+                        className="p-1.5 text-gray-400 hover:text-[#1F3B6E] hover:bg-white dark:bg-[#1C1C1C] rounded-lg transition-all"
                         title="View"
                       >
                         <FileText className="h-4 w-4" />
@@ -358,7 +358,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                             toast.error('Failed to download document');
                           }
                         }}
-                        className="p-1.5 text-gray-400 hover:text-[#1F3B6E] hover:bg-white rounded-lg transition-all"
+                        className="p-1.5 text-gray-400 hover:text-[#1F3B6E] hover:bg-white dark:bg-[#1C1C1C] rounded-lg transition-all"
                         title="Download"
                       >
                         <Download className="h-4 w-4" />
@@ -367,7 +367,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                   </div>
                 ))
             ) : (
-              <div className="col-span-full py-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+              <div className="col-span-full py-8 text-center bg-gray-50/50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
                 <p className="text-xs text-gray-400 italic">No KYC documents uploaded yet.</p>
               </div>
             )}
@@ -378,30 +378,30 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
       {/* Assign Investor Relation Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-8 space-y-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-[#1F1F1F]">
+                  <h2 className="text-2xl font-bold text-[#1F1F1F] dark:text-gray-100">
                     {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
                   </h2>
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                     Select an Investor Relation to manage this investor's KYC verification.
                   </p>
                 </div>
-                <button onClick={() => setShowAssignModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <button onClick={() => setShowAssignModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
                   <X className="h-6 w-6 text-gray-400" />
                 </button>
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-bold text-gray-700 ml-1">Investor Relation</label>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">Investor Relation</label>
                 <div className="relative">
                   <select
                     value={selectedAssociate}
                     onChange={(e) => setSelectedAssociate(e.target.value)}
                     disabled={irLoading}
-                    className="w-full px-6 py-4 bg-[#F9FAFB] border border-transparent rounded-2xl text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:bg-white transition-all font-bold cursor-pointer disabled:opacity-50"
+                    className="w-full px-6 py-4 bg-[#F9FAFB] border border-transparent rounded-2xl text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:bg-white dark:bg-[#1C1C1C] transition-all font-bold cursor-pointer disabled:opacity-50"
                   >
                     <option value="">{irLoading ? 'Loading associates...' : 'Select Associate'}</option>
                     {irStaffList.map((staff: any) => (
@@ -415,7 +415,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
               <div className="flex gap-4 pt-4">
                 <button
                   onClick={() => setShowAssignModal(false)}
-                  className="flex-1 py-4 text-sm font-bold text-[#6B7280] bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all"
+                  className="flex-1 py-4 text-sm font-bold text-[#6B7280] bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-2xl transition-all"
                 >
                   Cancel
                 </button>

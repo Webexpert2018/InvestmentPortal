@@ -36,20 +36,20 @@ export function SendEmailModal({ isOpen, onClose, onSend, selectedCount }: SendE
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-[600px] overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] shadow-2xl w-full max-w-[600px] overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="p-6 border-b border-[#F2F2F2] flex items-center justify-between bg-[#fcfcfc]">
           <div>
-            <h3 className="text-xl font-bold text-[#1F1F1F]">Send Email</h3>
+            <h3 className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">Send Email</h3>
             <p className="text-[#8E8E93] text-[13px]">To {selectedCount} selected investor{selectedCount > 1 ? 's' : ''}</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-[#8E8E93]">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors text-[#8E8E93]">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div>
-            <label className="block text-[13px] font-medium text-[#1F1F1F] mb-1.5 ml-1">Subject</label>
+            <label className="block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 mb-1.5 ml-1">Subject</label>
             <input
               type="text"
               required
@@ -61,7 +61,7 @@ export function SendEmailModal({ isOpen, onClose, onSend, selectedCount }: SendE
           </div>
 
           <div>
-            <label className="block text-[13px] font-medium text-[#1F1F1F] mb-1.5 ml-1">Message</label>
+            <label className="block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 mb-1.5 ml-1">Message</label>
             <textarea
               required
               rows={8}
@@ -76,14 +76,14 @@ export function SendEmailModal({ isOpen, onClose, onSend, selectedCount }: SendE
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-full text-[14px] font-semibold text-[#1F1F1F] hover:bg-gray-100 transition-colors"
+              className="px-6 py-2.5 rounded-full text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSending || !subject || !message}
-              className="bg-[#FFD66B] hover:bg-[#FFC840] disabled:opacity-50 disabled:cursor-not-allowed text-[#1F1F1F] px-8 py-2.5 rounded-full font-semibold transition-all flex items-center gap-2 shadow-sm"
+              className="bg-[#FFD66B] hover:bg-[#FFC840] disabled:opacity-50 disabled:cursor-not-allowed text-[#1F1F1F] dark:text-gray-100 px-8 py-2.5 rounded-full font-semibold transition-all flex items-center gap-2 shadow-sm"
             >
               {isSending ? (
                 <>

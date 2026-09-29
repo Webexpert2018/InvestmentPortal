@@ -39,7 +39,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="bg-white py-8 px-4 shadow-2xl sm:rounded-lg sm:px-10">
+    <div className="bg-white dark:bg-[#1C1C1C] py-8 px-4 shadow-2xl sm:rounded-lg sm:px-10">
       <div className="sm:mx-auto sm:w-full sm:max-w-md mb-6">
         <a href="/" className="flex justify-center">
           <img src={logo.src} alt="Ovalia Capital" className="h-16 object-contain logo-con" />
@@ -47,10 +47,10 @@ export default function ForgotPassword() {
         
         {step === 'email' && (
           <>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
               Forgot Password?
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
               Enter your email address and we'll send you a code to reset your password.
             </p>
           </>
@@ -58,10 +58,10 @@ export default function ForgotPassword() {
 
         {step === 'otp' && (
           <>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
               Check your email
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
               We sent a verification code to {email}. Please enter the code below.
             </p>
           </>
@@ -69,10 +69,10 @@ export default function ForgotPassword() {
 
         {step === 'reset' && (
           <>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
               Reset Password
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
               Create a new password for your account.
             </p>
           </>
@@ -83,10 +83,10 @@ export default function ForgotPassword() {
             <div className="flex justify-center mt-4">
               <CheckCircle className="h-16 w-16 text-green-500" />
             </div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
               Password Reset
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
               Your password has been successfully reset. You can now log in with your new password.
             </p>
           </>
@@ -96,7 +96,7 @@ export default function ForgotPassword() {
       {step === 'email' && (
         <form className="space-y-6" onSubmit={handleEmailSubmit}>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Email
             </label>
             <div className="mt-1 relative rounded-md shadow-sm">
@@ -118,7 +118,7 @@ export default function ForgotPassword() {
           </div>
 
           <div className="flex items-center justify-between">
-            <a href="/login" className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900">
+            <a href="/login" className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100">
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back to Login
             </a>
@@ -138,7 +138,7 @@ export default function ForgotPassword() {
       {step === 'otp' && (
         <form className="space-y-6" onSubmit={handleOtpSubmit}>
           <div>
-            <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="otp" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Verification Code
             </label>
             <div className="mt-1">
@@ -160,7 +160,7 @@ export default function ForgotPassword() {
             <button
               type="button"
               onClick={() => setStep('email')}
-              className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
+              className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
@@ -188,7 +188,7 @@ export default function ForgotPassword() {
       {step === 'reset' && (
         <form className="space-y-6" onSubmit={handleResetSubmit}>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               New Password
             </label>
             <div className="mt-1 relative rounded-md shadow-sm">
@@ -208,7 +208,7 @@ export default function ForgotPassword() {
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                 <button
                   type="button"
-                  className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                  className="text-gray-400 hover:text-gray-500 dark:text-gray-400 focus:outline-none"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -222,7 +222,7 @@ export default function ForgotPassword() {
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Confirm Password
             </label>
             <div className="mt-1 relative rounded-md shadow-sm">

@@ -216,15 +216,15 @@ export default function InvestorPage() {
   const getKycStatusStyle = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'approved':
-        return 'bg-[#F2FAF6] text-[#10B981] border-[#D1FAE5]';
+        return 'bg-[#F2FAF6] dark:bg-emerald-900/30 text-[#10B981] dark:text-emerald-400 border-[#D1FAE5] dark:border-emerald-800/50';
       case 'pending':
-        return 'bg-[#FFF9EE] text-[#F59E0B] border-[#FEF3C7]';
+        return 'bg-[#FFF9EE] dark:bg-amber-900/30 text-[#F59E0B] dark:text-amber-400 border-[#FEF3C7] dark:border-amber-800/50';
       case 'rejected':
-        return 'bg-[#FEF2F2] text-[#EF4444] border-[#FEE2E2]';
+        return 'bg-[#FEF2F2] dark:bg-red-900/30 text-[#EF4444] dark:text-red-400 border-[#FEE2E2] dark:border-red-800/50';
       case 'unverified':
-        return 'bg-gray-100 text-gray-500 border-gray-200';
+        return 'bg-gray-100 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700';
       default:
-        return 'bg-gray-100 text-gray-500 border-gray-200';
+        return 'bg-gray-100 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700';
     }
   };
 
@@ -463,7 +463,7 @@ export default function InvestorPage() {
         {/* Header */}
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5 px-2 w-full">
           <div className="w-full xl:w-auto">
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] tracking-tight">Investors</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] dark:text-white tracking-tight">Investors</h1>
             <p className="text-[#6B7280] mt-1 font-medium text-sm sm:text-base">
               View and manage all investor accounts.
             </p>
@@ -498,7 +498,7 @@ export default function InvestorPage() {
                     setShowTransferModal(true);
                   }}
                   disabled={!selectedInvestorId || selectedInvestor?.investorType === 'entity' || selectedInvestor?.investorType === 'minor'}
-                  className="px-8 py-3 bg-white text-[#4B5563] border border-[#E5E7EB] text-sm font-bold rounded-full hover:bg-gray-50 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-8 py-3 bg-white dark:bg-[#1C1C1C] text-[#4B5563] dark:text-gray-100 border border-[#E5E7EB] dark:border-gray-800 text-sm font-bold rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <History className="h-4 w-4 text-[#D1A94C]" />
                   Transfer In IRA
@@ -542,10 +542,10 @@ export default function InvestorPage() {
         </div>
 
         {/* Filters, Tabs, and Table Container */}
-        <div className="bg-[#FFFFFF] rounded-[24px] shadow-sm border border-[#F3F4F6] overflow-hidden w-full">
+        <div className="bg-[#FFFFFF] dark:bg-[#1C1C1C] rounded-[24px] shadow-sm border border-[#F3F4F6] dark:border-gray-800 overflow-hidden w-full">
 
           {/* 1. Common Action/Filter Bar (TOP) */}
-          <div className="px-4 py-3 sm:px-6 sm:py-3.5 border-b border-[#F3F4F6] bg-white" onClick={(e) => e.stopPropagation()}>
+          <div className="px-4 py-3 sm:px-6 sm:py-3.5 border-b border-[#F3F4F6] bg-white dark:bg-[#1C1C1C]" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col md:flex-row md:items-center gap-3 w-full flex-wrap">
               {/* Search Box */}
               <div className="relative max-w-md w-full xl:max-w-xs flex-1">
@@ -555,7 +555,7 @@ export default function InvestorPage() {
                   placeholder="Find something here..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-11 pr-4 py-2.5 bg-white border border-[#E5E7EB] rounded-full text-xs sm:text-sm font-bold text-[#111827] placeholder:text-[#6B7280] placeholder:font-medium hover:border-[#FCD34D] focus:outline-none focus:border-[#D1A94C] focus:ring-2 focus:ring-[#FCD34D]/40 transition-all shadow-sm"
+                  className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-[#1C1C1C] border border-[#E5E7EB] dark:border-gray-700 rounded-full text-xs sm:text-sm font-bold text-[#111827] dark:text-gray-100 placeholder:text-[#6B7280] dark:placeholder-gray-500 placeholder:font-medium hover:border-[#FCD34D] focus:outline-none focus:border-[#D1A94C] focus:ring-2 focus:ring-[#FCD34D]/40 transition-all shadow-sm"
                 />
               </div>
 
@@ -564,15 +564,15 @@ export default function InvestorPage() {
                 <select
                   value={kycFilter}
                   onChange={(e) => setKycFilter(e.target.value)}
-                  className="appearance-none w-full lg:w-auto pl-4 pr-9 py-2.5 bg-white border border-[#E5E7EB] rounded-full text-xs sm:text-sm font-bold text-[#1F2937] cursor-pointer hover:border-[#FCD34D] focus:outline-none focus:border-[#D1A94C] focus:ring-2 focus:ring-[#FCD34D]/40 transition-all min-w-[140px] shadow-sm"
+                  className="appearance-none w-full lg:w-auto pl-4 pr-9 py-2.5 bg-white dark:bg-[#1C1C1C] border border-[#E5E7EB] dark:border-gray-700 rounded-full text-xs sm:text-sm font-bold text-[#1F2937] dark:text-gray-100 cursor-pointer hover:border-[#FCD34D] focus:outline-none focus:border-[#D1A94C] focus:ring-2 focus:ring-[#FCD34D]/40 transition-all min-w-[140px] shadow-sm"
                 >
-                  <option value="">KYC Status</option>
-                  <option value="approved">Approved</option>
-                  <option value="pending">Pending</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="unverified">Unverified</option>
+                  <option value="" className="bg-white dark:bg-gray-800">KYC Status</option>
+                  <option value="approved" className="bg-white dark:bg-gray-800">Approved</option>
+                  <option value="pending" className="bg-white dark:bg-gray-800">Pending</option>
+                  <option value="rejected" className="bg-white dark:bg-gray-800">Rejected</option>
+                  <option value="unverified" className="bg-white dark:bg-gray-800">Unverified</option>
                 </select>
-                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1F2937] stroke-[2.5] pointer-events-none" />
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1F2937] dark:text-gray-100 stroke-[2.5] pointer-events-none" />
               </div>
 
               {/* Account Type Filter */}
@@ -580,19 +580,19 @@ export default function InvestorPage() {
                 <select
                   value={accountTypeFilter}
                   onChange={(e) => setAccountTypeFilter(e.target.value)}
-                  className="appearance-none w-full lg:w-auto pl-4 pr-9 py-2.5 bg-white border border-[#E5E7EB] rounded-full text-xs sm:text-sm font-bold text-[#1F2937] cursor-pointer hover:border-[#FCD34D] focus:outline-none focus:border-[#D1A94C] focus:ring-2 focus:ring-[#FCD34D]/40 transition-all min-w-[140px] shadow-sm"
+                  className="appearance-none w-full lg:w-auto pl-4 pr-9 py-2.5 bg-white dark:bg-[#1C1C1C] border border-[#E5E7EB] dark:border-gray-700 rounded-full text-xs sm:text-sm font-bold text-[#1F2937] dark:text-gray-100 cursor-pointer hover:border-[#FCD34D] focus:outline-none focus:border-[#D1A94C] focus:ring-2 focus:ring-[#FCD34D]/40 transition-all min-w-[140px] shadow-sm"
                 >
-                  <option value="">Account Type</option>
-                  <option value="personal">Personal</option>
-                  <option value="entity">Entity</option>
-                  <option value="minor">Minor</option>
-                  <option value="SEP">SEP</option>
-                  <option value="Roth SEP">Roth SEP</option>
-                  <option value="DB Plan">DB Plan</option>
-                  <option value="Roth IRA">Roth IRA</option>
-                  <option value="Traditional IRA">Traditional IRA</option>
+                  <option value="" className="bg-white dark:bg-gray-800">Account Type</option>
+                  <option value="personal" className="bg-white dark:bg-gray-800">Personal</option>
+                  <option value="entity" className="bg-white dark:bg-gray-800">Entity</option>
+                  <option value="minor" className="bg-white dark:bg-gray-800">Minor</option>
+                  <option value="SEP" className="bg-white dark:bg-gray-800">SEP</option>
+                  <option value="Roth SEP" className="bg-white dark:bg-gray-800">Roth SEP</option>
+                  <option value="DB Plan" className="bg-white dark:bg-gray-800">DB Plan</option>
+                  <option value="Roth IRA" className="bg-white dark:bg-gray-800">Roth IRA</option>
+                  <option value="Traditional IRA" className="bg-white dark:bg-gray-800">Traditional IRA</option>
                 </select>
-                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1F2937] stroke-[2.5] pointer-events-none" />
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1F2937] dark:text-gray-100 stroke-[2.5] pointer-events-none" />
               </div>
 
               {/* Account Status Filter */}
@@ -600,14 +600,14 @@ export default function InvestorPage() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="appearance-none w-full lg:w-auto pl-4 pr-9 py-2.5 bg-white border border-[#E5E7EB] rounded-full text-xs sm:text-sm font-bold text-[#1F2937] cursor-pointer hover:border-[#FCD34D] focus:outline-none focus:border-[#D1A94C] focus:ring-2 focus:ring-[#FCD34D]/40 transition-all min-w-[140px] shadow-sm"
+                  className="appearance-none w-full lg:w-auto pl-4 pr-9 py-2.5 bg-white dark:bg-[#1C1C1C] border border-[#E5E7EB] dark:border-gray-700 rounded-full text-xs sm:text-sm font-bold text-[#1F2937] dark:text-gray-100 cursor-pointer hover:border-[#FCD34D] focus:outline-none focus:border-[#D1A94C] focus:ring-2 focus:ring-[#FCD34D]/40 transition-all min-w-[140px] shadow-sm"
                 >
-                  <option value="">Account Status</option>
-                  <option value="active">Active</option>
-                  <option value="pending">Pending</option>
-                  <option value="suspended">Suspended</option>
+                  <option value="" className="bg-white dark:bg-gray-800">Account Status</option>
+                  <option value="active" className="bg-white dark:bg-gray-800">Active</option>
+                  <option value="pending" className="bg-white dark:bg-gray-800">Pending</option>
+                  <option value="suspended" className="bg-white dark:bg-gray-800">Suspended</option>
                 </select>
-                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1F2937] stroke-[2.5] pointer-events-none" />
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1F2937] dark:text-gray-100 stroke-[2.5] pointer-events-none" />
               </div>
 
               {/* Reset Button */}
@@ -622,17 +622,17 @@ export default function InvestorPage() {
           </div>
 
           {/* 2. Tab Bar Row (MIDDLE - compressed vertical space) */}
-          <div className="px-4 py-2 sm:px-6 sm:py-2.5 border-b border-[#F3F4F6] bg-white overflow-x-auto custom-scrollbar">
-            <div className="inline-flex items-center gap-1 p-1 bg-[#F9FAFB] rounded-[16px] border border-[#E5E7EB]">
+          <div className="px-4 py-2 sm:px-6 sm:py-2.5 border-b border-[#F3F4F6] bg-white dark:bg-[#1C1C1C] overflow-x-auto custom-scrollbar">
+            <div className="inline-flex items-center gap-1 p-1 bg-[#F9FAFB] dark:bg-gray-900 rounded-[16px] border border-[#E5E7EB] dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => { setViewMode('active'); setActiveTab('active'); }}
                 className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${viewMode === 'active' && activeTab === 'active'
                   ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
-                  : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
+                  : 'bg-transparent text-[#374151] dark:text-gray-300 hover:text-[#111827] dark:text-white dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-800 border-r border-gray-200 dark:border-gray-800'
                   }`}
               >
-                <User className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'active' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                <User className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'active' ? 'text-[#1F2937]' : 'text-[#4B5563] dark:text-gray-300'}`} />
                 Active Investors ({activeInvestors.length})
               </button>
 
@@ -641,10 +641,10 @@ export default function InvestorPage() {
                 onClick={() => { setViewMode('active'); setActiveTab('ira'); }}
                 className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${viewMode === 'active' && activeTab === 'ira'
                   ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
-                  : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
+                  : 'bg-transparent text-[#374151] dark:text-gray-300 hover:text-[#111827] dark:text-white dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-800 border-r border-gray-200 dark:border-gray-800'
                   }`}
               >
-                <Landmark className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'ira' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                <Landmark className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'ira' ? 'text-[#1F2937]' : 'text-[#4B5563] dark:text-gray-300'}`} />
                 Active IRA Accounts ({activeIraInvestors.length})
               </button>
 
@@ -653,10 +653,10 @@ export default function InvestorPage() {
                 onClick={() => { setViewMode('active'); setActiveTab('pending'); }}
                 className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${viewMode === 'active' && activeTab === 'pending'
                   ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
-                  : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
+                  : 'bg-transparent text-[#374151] dark:text-gray-300 hover:text-[#111827] dark:text-white dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-800 border-r border-gray-200 dark:border-gray-800'
                   }`}
               >
-                <Mail className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'pending' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                <Mail className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'pending' ? 'text-[#1F2937]' : 'text-[#4B5563] dark:text-gray-300'}`} />
                 Pending Invitations ({pendingInvestors.length})
               </button>
 
@@ -665,10 +665,10 @@ export default function InvestorPage() {
                 onClick={() => { setViewMode('active'); setActiveTab('suspended'); }}
                 className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${viewMode === 'active' && activeTab === 'suspended'
                   ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
-                  : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
+                  : 'bg-transparent text-[#374151] dark:text-gray-300 hover:text-[#111827] dark:text-white dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-800 border-r border-gray-200 dark:border-gray-800'
                   }`}
               >
-                <UserX className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'suspended' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                <UserX className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'suspended' ? 'text-[#1F2937]' : 'text-[#4B5563] dark:text-gray-300'}`} />
                 Suspended Login/IRA Accounts ({suspendedInvestors.length})
               </button>
 
@@ -677,10 +677,10 @@ export default function InvestorPage() {
                 onClick={() => setViewMode('old')}
                 className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${viewMode === 'old'
                   ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
-                  : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50'
+                  : 'bg-transparent text-[#374151] dark:text-gray-300 hover:text-[#111827] dark:text-white dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-800'
                   }`}
               >
-                <History className={`h-4 w-4 stroke-[2.5] ${viewMode === 'old' ? 'text-[#1F2937]' : 'text-[#4B5563]'}`} />
+                <History className={`h-4 w-4 stroke-[2.5] ${viewMode === 'old' ? 'text-[#1F2937]' : 'text-[#4B5563] dark:text-gray-300'}`} />
                 IMS Investors {oldInvestors.length > 0 ? `(${filteredOldInvestors.length})` : ''}
               </button>
             </div>
@@ -693,7 +693,7 @@ export default function InvestorPage() {
                 {viewMode === 'old' ? (
                   <thead>
                     <tr className="text-[#6B7280] text-[13px] font-semibold uppercase tracking-wider">
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] w-20 whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 w-20 whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">
                         <input
                           type="checkbox"
                           className="rounded border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E] cursor-pointer h-4 w-4"
@@ -709,28 +709,28 @@ export default function InvestorPage() {
                           }}
                         />
                       </th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">IMS Profile ID</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Investor Name</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Email</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Total Funds</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Total Invested</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Action</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">IMS Profile ID</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Investor Name</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Email</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Total Funds</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Total Invested</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-right text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Action</th>
                     </tr>
                   </thead>
                 ) : (
                   <thead>
                     <tr className="text-[#6B7280] text-[13px] font-semibold uppercase tracking-wider">
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize w-20 whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Select</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Investor Name</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Email</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Account Type</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Account Status</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">KYC Status</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Units</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Invested</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Assigned To</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Date Joined</th>
-                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize whitespace-nowrap bg-white border-b shadow-[0_1px_0_0_#F3F4F6]">Action</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize w-20 whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Select</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Investor Name</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Email</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Account Type</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Account Status</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">KYC Status</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Units</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Invested</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Assigned To</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Date Joined</th>
+                      <th className="sticky top-0 z-20 px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize whitespace-nowrap bg-white dark:bg-[#1C1C1C] border-b shadow-[0_1px_0_0_#F3F4F6]">Action</th>
                     </tr>
                   </thead>
                 )}
@@ -740,7 +740,7 @@ export default function InvestorPage() {
                     {loadingOld ? (
                       Array.from({ length: 5 }).map((_, i) => (
                         <tr key={i} className="animate-pulse">
-                          <td colSpan={6} className="px-8 py-6 h-[80px] bg-white"></td>
+                          <td colSpan={6} className="px-8 py-6 h-[80px] bg-white dark:bg-[#1C1C1C]"></td>
                         </tr>
                       ))
                     ) : filteredOldInvestors.length === 0 ? (
@@ -751,7 +751,7 @@ export default function InvestorPage() {
                       </tr>
                     ) : (
                       <>
-                        <tr className="bg-[#F9FAFB]/50">
+                        <tr className="bg-[#F9FAFB] dark:bg-gray-800/50">
                           <td colSpan={6} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
                             Old Investors ({filteredOldInvestors.length})
                           </td>
@@ -759,7 +759,7 @@ export default function InvestorPage() {
                         {displayedOldInvestors.map((inv) => (
                           <tr
                             key={inv.ims_profile_id}
-                            className="transition-all duration-200 hover:bg-[#FFFBEB] cursor-pointer group"
+                            className="transition-all duration-200 hover:bg-[#FFFBEB] dark:hover:bg-gray-800 cursor-pointer group"
                             onClick={() => {
                               if (inv.totalInvestments === 0) {
                                 toast.error('No investments made by them');
@@ -783,7 +783,7 @@ export default function InvestorPage() {
                               />
                             </td>
                             <td className="px-6 py-4">
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
                                 #{inv.ims_profile_id}
                               </span>
                             </td>
@@ -792,21 +792,21 @@ export default function InvestorPage() {
                                 <div className="w-10 h-10 rounded-full bg-[#1F3B6E]/10 text-[#1F3B6E] font-bold flex items-center justify-center text-xs">
                                   {inv.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                                 </div>
-                                <span className="text-sm font-bold text-[#111827]">{inv.fullName}</span>
+                                <span className="text-sm font-bold text-[#111827] dark:text-white">{inv.fullName}</span>
                                 {inv.isPresent && (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E6F4EA] text-[#137333] border border-[#A3E2B5] ml-2 capitalize">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E6F4EA] dark:bg-emerald-900/30 text-[#137333] dark:text-emerald-400 border border-[#A3E2B5] dark:border-emerald-800/50 ml-2 capitalize">
                                     {inv.status || 'Present'}
                                   </span>
                                 )}
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-sm text-[#4B5563] font-medium">
+                            <td className="px-6 py-4 text-sm text-[#4B5563] dark:text-gray-300 font-medium">
                               {inv.email || 'N/A'}
                             </td>
-                            <td className="px-6 py-4 text-sm text-[#4B5563] font-medium">
+                            <td className="px-6 py-4 text-sm text-[#4B5563] dark:text-gray-300 font-medium">
                               {inv.totalFunds} Fund{inv.totalFunds > 1 ? 's' : ''}
                             </td>
-                            <td className="px-6 py-4 text-sm font-bold text-[#111827]">
+                            <td className="px-6 py-4 text-sm font-bold text-[#111827] dark:text-white">
                               {inv.totalInvested}
                             </td>
                             <td className="px-6 py-4 text-right">
@@ -820,7 +820,7 @@ export default function InvestorPage() {
                                     router.push(`/dashboard/funds/old/${inv.defaultFundId || 40458}/investor/${inv.ims_profile_id}?from=investors`);
                                   }
                                 }}
-                                className="px-4 py-2 bg-white text-[#1F2937] text-xs font-bold rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm"
+                                className="px-4 py-2 bg-white dark:bg-[#1C1C1C] text-[#1F2937] dark:text-gray-100 text-xs font-bold rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors shadow-sm"
                               >
                                 View Profile
                               </button>
@@ -835,7 +835,7 @@ export default function InvestorPage() {
                     {loading ? (
                       Array.from({ length: 5 }).map((_, i) => (
                         <tr key={i} className="animate-pulse">
-                          <td colSpan={11} className="px-8 py-6 h-[80px] bg-white"></td>
+                          <td colSpan={11} className="px-8 py-6 h-[80px] bg-white dark:bg-[#1C1C1C]"></td>
                         </tr>
                       ))
                     ) : (
@@ -843,7 +843,7 @@ export default function InvestorPage() {
                         {/* TAB 1: ACTIVE INVESTORS */}
                         {activeTab === 'active' && (
                           <>
-                            <tr className="bg-[#F9FAFB]/30">
+                            <tr className="bg-[#F9FAFB] dark:bg-gray-800/30">
                               <td colSpan={11} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
                                 Active Investors ({activeInvestors.length})
                               </td>
@@ -861,8 +861,8 @@ export default function InvestorPage() {
                                   <tr
                                     key={rowKey}
                                     className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
-                                      ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
-                                      : 'hover:bg-[#F8FAFC]'
+                                      ? 'bg-[#FFFBEB] dark:bg-gray-800 shadow-[inset_6px_0_0_0_#D1A94C]'
+                                      : 'hover:bg-[#F8FAFC] dark:hover:bg-gray-800'
                                       }`}
                                     onClick={() => {
                                       handleSelectRow(investor);
@@ -881,7 +881,7 @@ export default function InvestorPage() {
                                       }}
                                     >
                                       <div className="flex items-center justify-center">
-                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white dark:bg-[#1C1C1C]' : 'border-gray-300 bg-white dark:bg-[#1C1C1C]'}`}>
                                           {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
                                         </div>
                                       </div>
@@ -908,23 +908,23 @@ export default function InvestorPage() {
                                           )}
                                         </div>
                                         <div>
-                                          <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
+                                          <p className="text-sm font-bold text-[#111827] dark:text-white whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
                                         </div>
                                       </div>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
+                                      <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">{investor.email}</span>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap capitalize">
+                                      <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap capitalize">
                                         {investor.investorType || 'Personal'}
                                       </span>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
                                       {investor.accountStatus === 'suspended' ? (
-                                        <span className="text-[11px] font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 italic">Suspended</span>
+                                        <span className="text-[11px] font-bold text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-transparent dark:border-red-800/50 px-3 py-1 rounded-full border border-red-100 italic">Suspended</span>
                                       ) : (
-                                        <span className="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">Active</span>
+                                        <span className="text-[11px] font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-transparent dark:border-green-800/50 px-3 py-1 rounded-full border border-green-100">Active</span>
                                       )}
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
@@ -932,21 +932,21 @@ export default function InvestorPage() {
                                         {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
                                       </span>
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] dark:text-white whitespace-nowrap">
                                       {investor.units || '0.00'}
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] dark:text-white whitespace-nowrap">
                                       {investor.invested || '-'}
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">
                                       <div className="flex flex-col gap-0.5">
                                         {investor.assigned_ir_name && (
-                                          <span className="text-sm text-[#4B5563] font-medium">
+                                          <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium">
                                             IR: {investor.assigned_ir_name}
                                           </span>
                                         )}
                                         {investor.assigned_accountant_name && (
-                                          <span className="text-sm text-[#4B5563] font-medium">
+                                          <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium">
                                             Acc: {investor.assigned_accountant_name}
                                           </span>
                                         )}
@@ -955,7 +955,7 @@ export default function InvestorPage() {
                                         )}
                                       </div>
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">
                                       {new Date(investor.createdAt).toLocaleDateString('en-US', {
                                         month: 'short',
                                         day: 'numeric',
@@ -970,7 +970,7 @@ export default function InvestorPage() {
                                           handleSelectRow(investor);
                                         }}
                                       >
-                                        <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                        <button className="px-4 py-2 bg-[#F9FAFB] dark:bg-gray-800 border border-[#E5E7EB] dark:border-gray-700 text-[#4B5563] dark:text-gray-300 text-xs font-bold rounded-full hover:bg-[#F3F4F6] dark:bg-gray-800 dark:hover:bg-gray-700 hover:border-[#D1D5DB] dark:hover:border-gray-600 transition-all whitespace-nowrap shadow-sm">
                                           View Profile
                                         </button>
                                       </Link>
@@ -985,7 +985,7 @@ export default function InvestorPage() {
                         {/* TAB 2: ACTIVE IRA ACCOUNTS */}
                         {activeTab === 'ira' && (
                           <>
-                            <tr className="bg-[#F9FAFB]/30">
+                            <tr className="bg-[#F9FAFB] dark:bg-gray-800/30">
                               <td colSpan={11} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
                                 Active IRA Accounts ({activeIraInvestors.length})
                               </td>
@@ -1003,8 +1003,8 @@ export default function InvestorPage() {
                                   <tr
                                     key={rowKey}
                                     className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
-                                      ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
-                                      : 'hover:bg-[#F8FAFC]'
+                                      ? 'bg-[#FFFBEB] dark:bg-gray-800 shadow-[inset_6px_0_0_0_#D1A94C]'
+                                      : 'hover:bg-[#F8FAFC] dark:hover:bg-gray-800'
                                       }`}
                                     onClick={() => {
                                       handleSelectRow(investor);
@@ -1023,7 +1023,7 @@ export default function InvestorPage() {
                                       }}
                                     >
                                       <div className="flex items-center justify-center">
-                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white dark:bg-[#1C1C1C]' : 'border-gray-300 bg-white dark:bg-[#1C1C1C]'}`}>
                                           {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
                                         </div>
                                       </div>
@@ -1050,21 +1050,21 @@ export default function InvestorPage() {
                                           )}
                                         </div>
                                         <div>
-                                          <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
+                                          <p className="text-sm font-bold text-[#111827] dark:text-white whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
                                         </div>
                                       </div>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
+                                      <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">{investor.email}</span>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.accountType}</span>
+                                      <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">{investor.accountType}</span>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
                                       {investor.accountStatus === 'suspended' ? (
-                                        <span className="text-[11px] font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100 italic">Suspended</span>
+                                        <span className="text-[11px] font-bold text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-transparent dark:border-red-800/50 px-3 py-1 rounded-full border border-red-100 italic">Suspended</span>
                                       ) : (
-                                        <span className="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">Active</span>
+                                        <span className="text-[11px] font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-transparent dark:border-green-800/50 px-3 py-1 rounded-full border border-green-100">Active</span>
                                       )}
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
@@ -1072,21 +1072,21 @@ export default function InvestorPage() {
                                         {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
                                       </span>
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] dark:text-white whitespace-nowrap">
                                       {investor.units || '0.00'}
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] dark:text-white whitespace-nowrap">
                                       {investor.invested || '-'}
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">
                                       <div className="flex flex-col gap-0.5">
                                         {investor.assigned_ir_name && (
-                                          <span className="text-sm text-[#4B5563] font-medium">
+                                          <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium">
                                             IR: {investor.assigned_ir_name}
                                           </span>
                                         )}
                                         {investor.assigned_accountant_name && (
-                                          <span className="text-sm text-[#4B5563] font-medium">
+                                          <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium">
                                             Acc: {investor.assigned_accountant_name}
                                           </span>
                                         )}
@@ -1095,7 +1095,7 @@ export default function InvestorPage() {
                                         )}
                                       </div>
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">
                                       {new Date(investor.createdAt).toLocaleDateString('en-US', {
                                         month: 'short',
                                         day: 'numeric',
@@ -1110,7 +1110,7 @@ export default function InvestorPage() {
                                           handleSelectRow(investor);
                                         }}
                                       >
-                                        <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                        <button className="px-4 py-2 bg-[#F9FAFB] dark:bg-gray-800 border border-[#E5E7EB] dark:border-gray-700 text-[#4B5563] dark:text-gray-300 text-xs font-bold rounded-full hover:bg-[#F3F4F6] dark:bg-gray-800 dark:hover:bg-gray-700 hover:border-[#D1D5DB] dark:hover:border-gray-600 transition-all whitespace-nowrap shadow-sm">
                                           View Profile
                                         </button>
                                       </Link>
@@ -1125,7 +1125,7 @@ export default function InvestorPage() {
                         {/* TAB 3: PENDING INVITATIONS */}
                         {activeTab === 'pending' && (
                           <>
-                            <tr className="bg-[#F9FAFB]/30">
+                            <tr className="bg-[#F9FAFB] dark:bg-gray-800/30">
                               <td colSpan={11} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
                                 Pending Invitations ({pendingInvestors.length})
                               </td>
@@ -1143,8 +1143,8 @@ export default function InvestorPage() {
                                   <tr
                                     key={rowKey}
                                     className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
-                                      ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
-                                      : 'hover:bg-[#F8FAFC]'
+                                      ? 'bg-[#FFFBEB] dark:bg-gray-800 shadow-[inset_6px_0_0_0_#D1A94C]'
+                                      : 'hover:bg-[#F8FAFC] dark:hover:bg-gray-800'
                                       }`}
                                     onClick={() => {
                                       handleSelectRow(investor);
@@ -1163,7 +1163,7 @@ export default function InvestorPage() {
                                       }}
                                     >
                                       <div className="flex items-center justify-center">
-                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white dark:bg-[#1C1C1C]' : 'border-gray-300 bg-white dark:bg-[#1C1C1C]'}`}>
                                           {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
                                         </div>
                                       </div>
@@ -1179,39 +1179,39 @@ export default function InvestorPage() {
                                           />
                                         </div>
                                         <div>
-                                          <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
+                                          <p className="text-sm font-bold text-[#111827] dark:text-white whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
                                         </div>
                                       </div>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
+                                      <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">{investor.email}</span>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap capitalize">{investor.investorType || 'Personal'}</span>
+                                      <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap capitalize">{investor.investorType || 'Personal'}</span>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                      <span className="text-[11px] font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">Pending</span>
+                                      <span className="text-[11px] font-bold text-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-transparent dark:border-amber-800/50 px-3 py-1 rounded-full border border-amber-100">Pending</span>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                      <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 text-gray-400 border border-gray-200 whitespace-nowrap">
+                                      <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gray-50 dark:bg-gray-800 text-gray-400 border border-gray-200 dark:border-gray-800 whitespace-nowrap">
                                         Invited
                                       </span>
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] dark:text-white whitespace-nowrap">
                                       0.00
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] dark:text-white whitespace-nowrap">
                                       -
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">
                                       <div className="flex flex-col gap-0.5">
                                         {investor.assigned_ir_name && (
-                                          <span className="text-sm text-[#4B5563] font-medium">
+                                          <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium">
                                             IR: {investor.assigned_ir_name}
                                           </span>
                                         )}
                                         {investor.assigned_accountant_name && (
-                                          <span className="text-sm text-[#4B5563] font-medium">
+                                          <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium">
                                             Acc: {investor.assigned_accountant_name}
                                           </span>
                                         )}
@@ -1220,7 +1220,7 @@ export default function InvestorPage() {
                                         )}
                                       </div>
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">
                                       {new Date(investor.createdAt).toLocaleDateString('en-US', {
                                         month: 'short',
                                         day: 'numeric',
@@ -1235,7 +1235,7 @@ export default function InvestorPage() {
                                           handleSelectRow(investor);
                                         }}
                                       >
-                                        <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                        <button className="px-4 py-2 bg-[#F9FAFB] dark:bg-gray-800 border border-[#E5E7EB] dark:border-gray-700 text-[#4B5563] dark:text-gray-300 text-xs font-bold rounded-full hover:bg-[#F3F4F6] dark:bg-gray-800 dark:hover:bg-gray-700 hover:border-[#D1D5DB] dark:hover:border-gray-600 transition-all whitespace-nowrap shadow-sm">
                                           View Profile
                                         </button>
                                       </Link>
@@ -1268,8 +1268,8 @@ export default function InvestorPage() {
                                   <tr
                                     key={rowKey}
                                     className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
-                                      ? 'bg-[#FFFBEB] shadow-[inset_6px_0_0_0_#D1A94C]'
-                                      : 'hover:bg-[#F8FAFC]'
+                                      ? 'bg-[#FFFBEB] dark:bg-gray-800 shadow-[inset_6px_0_0_0_#D1A94C]'
+                                      : 'hover:bg-[#F8FAFC] dark:hover:bg-gray-800'
                                       }`}
                                     onClick={() => {
                                       handleSelectRow(investor);
@@ -1289,7 +1289,7 @@ export default function InvestorPage() {
                                       }}
                                     >
                                       <div className="flex items-center justify-center">
-                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white' : 'border-gray-300 bg-white'}`}>
+                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white dark:bg-[#1C1C1C]' : 'border-gray-300 bg-white dark:bg-[#1C1C1C]'}`}>
                                           {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
                                         </div>
                                       </div>
@@ -1305,44 +1305,44 @@ export default function InvestorPage() {
                                           />
                                         </div>
                                         <div>
-                                          <p className="text-sm font-bold text-[#111827] whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
+                                          <p className="text-sm font-bold text-[#111827] dark:text-white whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
                                         </div>
                                       </div>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap">{investor.email}</span>
+                                      <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">{investor.email}</span>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                      <span className="text-sm text-[#4B5563] font-medium whitespace-nowrap capitalize">{investor.accountType || investor.investorType || 'Personal'}</span>
+                                      <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap capitalize">{investor.accountType || investor.investorType || 'Personal'}</span>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
-                                      <span className="text-[11px] font-bold text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">Suspended</span>
+                                      <span className="text-[11px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-transparent dark:border-red-800/50 px-3 py-1 rounded-full border border-red-100">Suspended</span>
                                     </td>
                                     <td className="px-3 sm:px-4 lg:px-6 py-4">
                                       <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
                                         {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
                                       </span>
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] dark:text-white whitespace-nowrap">
                                       {investor.units || '0.00'}
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] dark:text-white whitespace-nowrap">
                                       {investor.invested || '-'}
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">
                                       <div className="flex flex-col gap-0.5">
                                         {investor.assigned_ir_name && (
-                                          <span className="text-sm text-[#4B5563] font-medium">IR: {investor.assigned_ir_name}</span>
+                                          <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium">IR: {investor.assigned_ir_name}</span>
                                         )}
                                         {investor.assigned_accountant_name && (
-                                          <span className="text-sm text-[#4B5563] font-medium">Acc: {investor.assigned_accountant_name}</span>
+                                          <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium">Acc: {investor.assigned_accountant_name}</span>
                                         )}
                                         {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
                                           <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
                                         )}
                                       </div>
                                     </td>
-                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] font-medium whitespace-nowrap">
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">
                                       {new Date(investor.createdAt).toLocaleDateString('en-US', {
                                         month: 'short',
                                         day: 'numeric',
@@ -1357,7 +1357,7 @@ export default function InvestorPage() {
                                           handleSelectRow(investor);
                                         }}
                                       >
-                                        <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                                        <button className="px-4 py-2 bg-[#F9FAFB] dark:bg-gray-800 border border-[#E5E7EB] dark:border-gray-700 text-[#4B5563] dark:text-gray-300 text-xs font-bold rounded-full hover:bg-[#F3F4F6] dark:bg-gray-800 dark:hover:bg-gray-700 hover:border-[#D1D5DB] dark:hover:border-gray-600 transition-all whitespace-nowrap shadow-sm">
                                           View Profile
                                         </button>
                                       </Link>
@@ -1408,17 +1408,17 @@ export default function InvestorPage() {
       {/* Admin Transfer IRA Modal */}
       {showTransferModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4" onClick={() => setShowTransferModal(false)}>
-          <div className="w-full max-w-md rounded-[10px] bg-white shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b bg-white px-6 py-4">
+          <div className="w-full max-w-md rounded-[10px] bg-white dark:bg-[#1C1C1C] shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b bg-white dark:bg-[#1C1C1C] px-6 py-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFF8E1]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-900/30">
                   <History className="h-4 w-4 text-[#D1A94C]" />
                 </div>
-                <h2 className="text-[18px] font-bold text-[#1F1F1F]">Transfer IRA</h2>
+                <h2 className="text-[18px] font-bold text-[#1F1F1F] dark:text-gray-100">Transfer IRA</h2>
               </div>
               <button
                 onClick={() => setShowTransferModal(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FAFAFA] text-[#9CA3AF] hover:bg-[#F3F4F6] transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FAFAFA] dark:bg-gray-800/50 text-[#9CA3AF] hover:bg-[#F3F4F6] dark:bg-gray-800 transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1432,7 +1432,7 @@ export default function InvestorPage() {
                   placeholder="Enter current account number"
                   value={transferForm.accountNumber}
                   onChange={e => setTransferForm({ ...transferForm, accountNumber: e.target.value })}
-                  className="w-full h-[42px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] outline-none focus:border-[#D1A94C] bg-white transition-all"
+                  className="w-full h-[42px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
                 />
               </div>
               <div>
@@ -1442,7 +1442,7 @@ export default function InvestorPage() {
                   placeholder="e.g. Fidelity, Vanguard"
                   value={transferForm.custodian}
                   onChange={e => setTransferForm({ ...transferForm, custodian: e.target.value })}
-                  className="w-full h-[42px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] outline-none focus:border-[#D1A94C] bg-white transition-all"
+                  className="w-full h-[42px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
                 />
               </div>
 
@@ -1462,17 +1462,17 @@ export default function InvestorPage() {
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-[#000000]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[1.5rem] w-full max-w-4xl shadow-2xl relative overflow-hidden animate-in fade-in zoom-in duration-300">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[1.5rem] w-full max-w-4xl shadow-2xl relative overflow-hidden animate-in fade-in zoom-in duration-300">
             <div className="p-10 max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="absolute right-8 top-8 p-2 text-[#9CA3AF] hover:text-[#111827] hover:bg-[#F3F4F6] rounded-full transition-all"
+                className="absolute right-8 top-8 p-2 text-[#9CA3AF] hover:text-[#111827] dark:text-white hover:bg-[#F3F4F6] dark:bg-gray-800 rounded-full transition-all"
               >
                 <X className="h-6 w-6" />
               </button>
 
               <div className="mb-8 text-center md:text-left">
-                <h3 className="text-3xl font-bold text-[#111827] font-goudy mb-2">Invite New Investor</h3>
+                <h3 className="text-3xl font-bold text-[#111827] dark:text-white font-goudy mb-2">Invite New Investor</h3>
                 <p className="text-[#6B7280] font-medium">Pre-fill investor profile for a seamless onboarding experience.</p>
               </div>
 
@@ -1484,27 +1484,27 @@ export default function InvestorPage() {
                       <h4 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-widest mb-4">General Information</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">First Name</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">First Name</label>
                           <input
                             type="text"
                             placeholder="e.g. John"
                             value={inviteForm.first_name}
                             onChange={(e) => setInviteForm({ ...inviteForm, first_name: e.target.value })}
-                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
+                            className="w-full px-5 py-4 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">Last Name</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">Last Name</label>
                           <input
                             type="text"
                             placeholder="e.g. Doe"
                             value={inviteForm.last_name}
                             onChange={(e) => setInviteForm({ ...inviteForm, last_name: e.target.value })}
-                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
+                            className="w-full px-5 py-4 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">Email (Required)</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">Email (Required)</label>
                           <input
                             type="email"
                             placeholder="e.g. john@example.com"
@@ -1513,21 +1513,21 @@ export default function InvestorPage() {
                               setInviteForm({ ...inviteForm, email: e.target.value });
                               if (emailError) setEmailError('');
                             }}
-                            className={`w-full px-5 py-4 bg-[#F9FAFB] border rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 transition-all placeholder:text-[#9CA3AF] ${emailError ? 'border-red-300 ring-2 ring-red-100' : 'border-[#F3F4F6] focus:ring-[#FCD34D]'}`}
+                            className={`w-full px-5 py-4 bg-[#F9FAFB] dark:bg-gray-800 border rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none focus:ring-2 transition-all placeholder:text-[#9CA3AF] ${emailError ? 'border-red-300 ring-2 ring-red-100' : 'border-[#F3F4F6] focus:ring-[#FCD34D]'}`}
                           />
                           {emailError && <p className="text-[11px] font-bold text-red-500 ml-1 mt-1">{emailError}</p>}
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">Phone</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">Phone</label>
                           <div className="flex gap-2">
                             <select
                               value={inviteForm.phone_code}
                               onChange={(e) => setInviteForm({ ...inviteForm, phone_code: e.target.value })}
-                              className="px-3 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none"
+                              className="px-3 py-4 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none"
                             >
-                              <option value="+1">+1</option>
-                              <option value="+44">+44</option>
-                              <option value="+91">+91</option>
+                              <option value="+1" className="bg-white dark:bg-gray-800">+1</option>
+                              <option value="+44" className="bg-white dark:bg-gray-800">+44</option>
+                              <option value="+91" className="bg-white dark:bg-gray-800">+91</option>
                             </select>
                             <input
                               type="tel"
@@ -1538,22 +1538,22 @@ export default function InvestorPage() {
                                 setInviteForm({ ...inviteForm, phone: value });
                                 if (phoneError) setPhoneError('');
                               }}
-                              className={`flex-1 px-5 py-4 bg-[#F9FAFB] border rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 transition-all placeholder:text-[#9CA3AF] ${phoneError ? 'border-red-300 ring-2 ring-red-100' : 'border-[#F3F4F6] focus:ring-[#FCD34D]'}`}
+                              className={`flex-1 px-5 py-4 bg-[#F9FAFB] dark:bg-gray-800 border rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none focus:ring-2 transition-all placeholder:text-[#9CA3AF] ${phoneError ? 'border-red-300 ring-2 ring-red-100' : 'border-[#F3F4F6] focus:ring-[#FCD34D]'}`}
                             />
                           </div>
                           {phoneError && <p className="text-[11px] font-bold text-red-500 ml-1 mt-1">{phoneError}</p>}
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">Date of Birth</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">Date of Birth</label>
                           <input
                             type="date"
                             value={inviteForm.dob}
                             onChange={(e) => setInviteForm({ ...inviteForm, dob: e.target.value })}
-                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                            className="w-full px-5 py-4 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">Tax ID / SSN</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">Tax ID / SSN</label>
                           <input
                             type="text"
                             placeholder="Format: XXX-XX-XXXX"
@@ -1571,7 +1571,7 @@ export default function InvestorPage() {
                               }
                               setInviteForm({ ...inviteForm, tax_id: formatted });
                             }}
-                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
+                            className="w-full px-5 py-4 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
                           />
                         </div>
                       </div>
@@ -1583,28 +1583,28 @@ export default function InvestorPage() {
                       <h4 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-widest mb-4">Internal Assignment</h4>
                       <div className="space-y-6">
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">Investor Relation</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">Investor Relation</label>
                           <select
                             value={inviteForm.assigned_ir_id}
                             onChange={(e) => setInviteForm({ ...inviteForm, assigned_ir_id: e.target.value })}
-                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                            className="w-full px-5 py-4 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all"
                           >
-                            <option value="">Select IR Staff</option>
+                            <option value="" className="bg-white dark:bg-gray-800">Select IR Staff</option>
                             {irStaff?.map((staff) => (
-                              <option key={staff.id} value={staff.id}>{staff.full_name}</option>
+                              <option key={staff.id} value={staff.id} className="bg-white dark:bg-gray-800">{staff.full_name}</option>
                             ))}
                           </select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">Accountant</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">Accountant</label>
                           <select
                             value={inviteForm.assigned_accountant_id}
                             onChange={(e) => setInviteForm({ ...inviteForm, assigned_accountant_id: e.target.value })}
-                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all"
+                            className="w-full px-5 py-4 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all"
                           >
-                            <option value="">Select Accountant</option>
+                            <option value="" className="bg-white dark:bg-gray-800">Select Accountant</option>
                             {accountantStaff?.map((staff) => (
-                              <option key={staff.id} value={staff.id}>{staff.full_name}</option>
+                              <option key={staff.id} value={staff.id} className="bg-white dark:bg-gray-800">{staff.full_name}</option>
                             ))}
                           </select>
                         </div>
@@ -1633,27 +1633,27 @@ export default function InvestorPage() {
                     return (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">Address Line 1</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">Address Line 1</label>
                           <input
                             type="text"
                             placeholder="Street Address"
                             value={inviteForm.address_line1}
                             onChange={(e) => setInviteForm({ ...inviteForm, address_line1: e.target.value })}
-                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
+                            className="w-full px-5 py-4 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">Address Line 2 (Optional)</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">Address Line 2 (Optional)</label>
                           <input
                             type="text"
                             placeholder="Apt, Suite, etc."
                             value={inviteForm.address_line2}
                             onChange={(e) => setInviteForm({ ...inviteForm, address_line2: e.target.value })}
-                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
+                            className="w-full px-5 py-4 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">Country</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">Country</label>
                           <Combobox
                             options={allCountries.map(c => ({ label: c.name, value: c.isoCode }))}
                             value={inviteForm.country}
@@ -1661,39 +1661,39 @@ export default function InvestorPage() {
                               setInviteForm({ ...inviteForm, country: val, state: '', city: '' });
                             }}
                             placeholder="Select country"
-                            className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
+                            className="w-full h-[52px] px-5 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm text-[#111827] dark:text-white"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">State / Province</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">State / Province</label>
                           <Combobox
                             options={availableStates.map(s => ({ label: s.name, value: s.isoCode }))}
                             value={inviteForm.state}
                             onChange={(val) => setInviteForm({ ...inviteForm, state: val, city: '' })}
                             placeholder="Select state"
                             disabled={!inviteForm.country}
-                            className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
+                            className="w-full h-[52px] px-5 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm text-[#111827] dark:text-white"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">City</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">City</label>
                           <Combobox
                             options={availableCities.map(city => ({ label: city.name, value: city.name }))}
                             value={inviteForm.city}
                             onChange={(val) => setInviteForm({ ...inviteForm, city: val })}
                             placeholder="Select city"
                             disabled={!inviteForm.state}
-                            className="w-full h-[52px] px-5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm text-[#111827]"
+                            className="w-full h-[52px] px-5 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm text-[#111827] dark:text-white"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-[#4B5563] ml-1">ZIP Code</label>
+                          <label className="text-xs font-bold text-[#4B5563] dark:text-gray-300 ml-1">ZIP Code</label>
                           <input
                             type="text"
                             placeholder="e.g. 10001"
                             value={inviteForm.zip_code}
                             onChange={(e) => setInviteForm({ ...inviteForm, zip_code: e.target.value })}
-                            className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#F3F4F6] rounded-2xl text-sm font-bold text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
+                            className="w-full px-5 py-4 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FCD34D] transition-all placeholder:text-[#9CA3AF]"
                           />
                         </div>
                       </div>
@@ -1705,7 +1705,7 @@ export default function InvestorPage() {
               <div className="flex gap-4 mt-12">
                 <button
                   onClick={() => setShowInviteModal(false)}
-                  className="flex-1 py-4 bg-[#F9FAFB] text-[#4B5563] text-sm font-bold rounded-2xl hover:bg-[#F3F4F6] transition-all"
+                  className="flex-1 py-4 bg-[#F9FAFB] dark:bg-gray-800 text-[#4B5563] dark:text-gray-300 text-sm font-bold rounded-2xl hover:bg-[#F3F4F6] dark:bg-gray-800 transition-all"
                 >
                   Cancel
                 </button>
@@ -1731,12 +1731,12 @@ export default function InvestorPage() {
       {/* Cancel Confirmation Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-4" onClick={() => setShowCancelModal(false)}>
-          <div className="w-full max-w-sm rounded-[24px] bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-[24px] bg-white dark:bg-[#1C1C1C] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
             <div className="p-8 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 mb-5">
                 <X className="h-7 w-7 text-red-500" />
               </div>
-              <h3 className="text-xl font-bold text-[#111827] mb-2">Cancel Invitation?</h3>
+              <h3 className="text-xl font-bold text-[#111827] dark:text-white mb-2">Cancel Invitation?</h3>
               <p className="text-sm text-[#6B7280] font-medium leading-relaxed">
                 Are you sure you want to cancel this invitation? This action will delete the investor record and cannot be undone.
               </p>
@@ -1744,7 +1744,7 @@ export default function InvestorPage() {
             <div className="flex border-t divide-x">
               <button
                 onClick={() => setShowCancelModal(false)}
-                className="flex-1 py-4 text-sm font-bold text-[#6B7280] hover:bg-gray-50 transition-all"
+                className="flex-1 py-4 text-sm font-bold text-[#6B7280] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-all"
               >
                 No, Keep it
               </button>

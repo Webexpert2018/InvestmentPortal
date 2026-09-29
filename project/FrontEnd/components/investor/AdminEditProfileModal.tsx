@@ -166,18 +166,18 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in duration-200">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-2xl animate-in fade-in zoom-in duration-200">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-8 py-5">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white dark:bg-[#1C1C1C] px-8 py-5">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-50">
               <Pencil className="h-5 w-5 text-amber-600" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Edit Investor Profile</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Edit Investor Profile</h2>
           </div>
           <button
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100 transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-800 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -200,7 +200,7 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
                     <select
                       value={form.lastName}
                       onChange={e => setForm({ ...form, lastName: e.target.value })}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none transition-all focus:ring-2 focus:ring-amber-200 focus:border-amber-400"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] text-sm outline-none transition-all focus:ring-2 focus:ring-amber-200 focus:border-amber-400"
                     >
                       <option value="">Select Entity Type</option>
                       <option value="LLC">LLC</option>
@@ -240,7 +240,7 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
                     type="email"
                     value={form.email}
                     disabled
-                    className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed text-sm"
+                    className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed text-sm"
                   />
                 </div>
                 <p className="mt-1.5 text-[10px] text-gray-400">Email cannot be changed for security reasons</p>
@@ -252,7 +252,7 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
                   <select
                     value={form.phoneCode}
                     onChange={e => setForm({ ...form, phoneCode: e.target.value })}
-                    className="h-11 px-3 rounded-xl border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none transition-all"
+                    className="h-11 px-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none transition-all"
                   >
                     <option value="+1">+1 (USA)</option>
                     <option value="+44">+44 (UK)</option>
@@ -266,7 +266,7 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
                       value={form.phone}
                       onChange={e => setForm({ ...form, phone: e.target.value })}
                       placeholder="Phone number"
-                      className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none transition-all"
+                      className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -283,7 +283,7 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
                     type="date"
                     value={form.dob}
                     onChange={e => setForm({ ...form, dob: e.target.value })}
-                    className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none transition-all"
+                    className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none transition-all"
                   />
                 </div>
               </div>
@@ -305,7 +305,7 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
                         else if (val.length > 5) formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
                         setForm({ ...form, taxId: formatted });
                     }}
-                    className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none transition-all"
+                    className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none transition-all"
                   />
                 </div>
                 {errors.taxId && <p className="mt-1 text-[10px] text-red-500">{errors.taxId}</p>}
@@ -313,10 +313,10 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
             </div>
 
             {/* Address */}
-            <div className="space-y-4 pt-4 border-t border-gray-100">
+            <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-800">
               <div className="flex items-center gap-2 mb-2">
                 <MapPin className="h-4 w-4 text-amber-600" />
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Address Details</h3>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Address Details</h3>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -372,17 +372,17 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-10 border-t border-gray-100 mt-8">
+          <div className="flex items-center justify-end gap-3 pt-10 border-t border-gray-100 dark:border-gray-800 mt-8">
             <button
               onClick={onClose}
-              className="px-6 py-2.5 rounded-full text-sm font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 transition-all"
+              className="px-6 py-2.5 rounded-full text-sm font-bold text-gray-500 dark:text-gray-400 bg-gray-100 hover:bg-gray-200 transition-all"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={loading}
-              className="flex items-center gap-2 px-10 py-2.5 rounded-full text-sm font-bold text-gray-900 bg-amber-400 hover:bg-amber-500 shadow-lg shadow-amber-100 transition-all disabled:opacity-50 disabled:shadow-none"
+              className="flex items-center gap-2 px-10 py-2.5 rounded-full text-sm font-bold text-gray-900 dark:text-gray-100 bg-amber-400 hover:bg-amber-500 shadow-lg shadow-amber-100 transition-all disabled:opacity-50 disabled:shadow-none"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Changes'}
             </button>
@@ -403,7 +403,7 @@ function InputField({ label, value, onChange, error, placeholder = "" }: { label
         placeholder={placeholder}
         value={value}
         onChange={e => onChange(e.target.value)}
-        className={`w-full h-11 px-4 rounded-xl border ${error ? 'border-red-500 focus:ring-red-200' : 'border-gray-200 focus:ring-amber-200 focus:border-amber-400'} bg-white text-sm outline-none transition-all focus:ring-2`}
+        className={`w-full h-11 px-4 rounded-xl border ${error ? 'border-red-500 focus:ring-red-200' : 'border-gray-200 dark:border-gray-800 focus:ring-amber-200 focus:border-amber-400'} bg-white dark:bg-[#1C1C1C] text-sm outline-none transition-all focus:ring-2`}
       />
       {error && <p className="mt-1 text-[10px] text-red-500">{error}</p>}
     </div>

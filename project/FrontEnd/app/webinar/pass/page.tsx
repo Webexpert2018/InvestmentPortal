@@ -126,7 +126,7 @@ function WebinarPassContent() {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4">
         <div className="w-10 h-10 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-[14px] font-bold text-gray-700">Verifying VIP Physician Access Pass...</p>
+        <p className="text-[14px] font-bold text-gray-700 dark:text-gray-300">Verifying VIP Physician Access Pass...</p>
       </div>
     );
   }
@@ -134,8 +134,8 @@ function WebinarPassContent() {
   const doctorName = doctor?.fullName || doctor?.full_name || 'Physician';
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-helvetica text-[#1F1F1F] flex flex-col items-center justify-center p-4 md:p-6">
-      <div className="max-w-xl w-full bg-white rounded-[24px] border border-[#EAEAEA] shadow-xl overflow-hidden">
+    <div className="min-h-screen bg-[#F8FAFC] font-helvetica text-[#1F1F1F] dark:text-gray-100 flex flex-col items-center justify-center p-4 md:p-6">
+      <div className="max-w-xl w-full bg-white dark:bg-[#1C1C1C] rounded-[24px] border border-[#EAEAEA] shadow-xl overflow-hidden">
         {/* Top Header Branding Banner */}
         <div className="bg-gradient-to-r from-[#1F1F1F] via-[#2A2A2A] to-[#1F1F1F] text-white p-6 text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10">
@@ -163,9 +163,9 @@ function WebinarPassContent() {
             </div>
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-amber-800">Welcome</div>
-              <div className="text-[16px] font-bold text-[#1F1F1F]">{doctorName}</div>
+              <div className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100">{doctorName}</div>
               {doctor?.specialty && (
-                <div className="text-[12px] text-gray-600 flex items-center gap-1 mt-0.5">
+                <div className="text-[12px] text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-0.5">
                   <Stethoscope className="w-3 h-3 text-amber-600" />
                   <span>{doctor.specialty}</span>
                   {doctor?.organization && (
@@ -184,7 +184,7 @@ function WebinarPassContent() {
           <div className="space-y-4">
             <div className="space-y-1">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#8E8E93]">Scheduled Briefing</span>
-              <h2 className="text-[22px] font-goudy font-bold text-[#1F1F1F] leading-tight">
+              <h2 className="text-[22px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100 leading-tight">
                 {webinar?.title}
               </h2>
               <p className="text-[13px] text-[#6C6C6C] pt-1 leading-relaxed">
@@ -192,7 +192,7 @@ function WebinarPassContent() {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 bg-[#F8F9FA] p-4 rounded-xl border border-[#EDEDED] text-[13px] font-medium text-gray-700">
+            <div className="flex flex-wrap items-center gap-4 bg-[#F8F9FA] p-4 rounded-xl border border-[#EDEDED] text-[13px] font-medium text-gray-700 dark:text-gray-300">
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4 text-amber-600" />
                 <span>{webinar?.formattedDate || webinar?.date}</span>
@@ -211,7 +211,7 @@ function WebinarPassContent() {
             <button
               onClick={handleJoinMeeting}
               disabled={isJoining}
-              className="w-full bg-[#FFC63F] hover:bg-[#F2B62D] text-[#1F1F1F] py-4 rounded-full font-bold text-[15px] shadow-md transition-all flex items-center justify-center gap-2 group cursor-pointer"
+              className="w-full bg-[#FFC63F] hover:bg-[#F2B62D] text-[#1F1F1F] dark:text-gray-100 py-4 rounded-full font-bold text-[15px] shadow-md transition-all flex items-center justify-center gap-2 group cursor-pointer"
             >
               {isJoining ? (
                 <>
@@ -225,9 +225,9 @@ function WebinarPassContent() {
                 </>
               ) : (
                 <>
-                  <Video className="w-5 h-5 text-[#1F1F1F]" />
+                  <Video className="w-5 h-5 text-[#1F1F1F] dark:text-gray-100" />
                   <span>Enter Live Webinar Session</span>
-                  <ExternalLink className="w-4 h-4 text-[#1F1F1F] group-hover:translate-x-0.5 transition-transform" />
+                  <ExternalLink className="w-4 h-4 text-[#1F1F1F] dark:text-gray-100 group-hover:translate-x-0.5 transition-transform" />
                 </>
               )}
             </button>
@@ -239,7 +239,7 @@ function WebinarPassContent() {
         </div>
 
         {/* Footer */}
-        <div className="bg-[#F8F9FA] border-t border-[#EDEDED] p-4 text-center text-[12px] text-gray-500 flex items-center justify-between px-6">
+        <div className="bg-[#F8F9FA] border-t border-[#EDEDED] p-4 text-center text-[12px] text-gray-500 dark:text-gray-400 flex items-center justify-between px-6">
           <span>Ovalia Capital Investor Relations</span>
           <a
             href="https://mail.google.com/mail/?view=cm&fs=1&to=portal@ovaliacapital.com&su=Physician+Webinar+Support+Query"
@@ -261,7 +261,7 @@ export default function WebinarPassPage() {
       fallback={
         <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4">
           <div className="w-10 h-10 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-[14px] font-bold text-gray-700">Loading Access Pass...</p>
+          <p className="text-[14px] font-bold text-gray-700 dark:text-gray-300">Loading Access Pass...</p>
         </div>
       }
     >

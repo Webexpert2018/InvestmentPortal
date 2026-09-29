@@ -58,7 +58,7 @@ export default function InternalCallLogsPage() {
 
   return (
     <DashboardLayout>
-      <div className="w-full font-helvetica text-[#1F1F1F] relative space-y-6">
+      <div className="w-full font-helvetica text-[#1F1F1F] dark:text-gray-100 relative space-y-6">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -68,7 +68,7 @@ export default function InternalCallLogsPage() {
                 <FileText className="w-4 h-4" />
               </span>
             </div>
-            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">
+            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F] dark:text-gray-100">
               Internal Call Logs
             </h1>
             <p className="text-[#8E8E93] text-[14px] mt-1 max-w-3xl">
@@ -79,7 +79,7 @@ export default function InternalCallLogsPage() {
           <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
             <Link
               href="/dashboard/doctor-crm/call-manager"
-              className="px-4 py-2 bg-white hover:bg-gray-100 text-[#1F1F1F] text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-[#E8E8E8]"
+              className="px-4 py-2 bg-white dark:bg-[#1C1C1C] hover:bg-gray-100 dark:hover:bg-gray-700 text-[#1F1F1F] dark:text-gray-100 text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-[#E8E8E8] dark:border-[#2A2A2A]"
             >
               <ArrowLeft className="w-4 h-4 text-[#8E8E93]" />
               <span>Back to Call Manager</span>
@@ -88,11 +88,11 @@ export default function InternalCallLogsPage() {
         </div>
 
         {/* Table Section */}
-        <div className="bg-white rounded-[24px] shadow-sm border border-[#E8E8E8] overflow-hidden">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] shadow-sm border border-[#E8E8E8] dark:border-[#2A2A2A] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#E8E8E8] bg-[#FAFAFA]">
+                <tr className="border-b border-[#E8E8E8] dark:border-[#2A2A2A] bg-[#FAFAFA]">
                   <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Date & Time</th>
                   <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Prospect</th>
                   <th className="py-4 px-6 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Phone</th>
@@ -115,11 +115,11 @@ export default function InternalCallLogsPage() {
                   </tr>
                 ) : (
                   logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={log.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-gray-400" />
-                          <span className="text-[14px] font-medium text-[#1F1F1F]">
+                          <span className="text-[14px] font-medium text-[#1F1F1F] dark:text-gray-100">
                             {formatDate(log.start_time)}
                           </span>
                         </div>
@@ -132,7 +132,7 @@ export default function InternalCallLogsPage() {
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                           <PhoneCall className="w-4 h-4 text-gray-400" />
-                          <span className="text-[14px] text-gray-600 font-medium">
+                          <span className="text-[14px] text-gray-600 dark:text-gray-400 font-medium">
                             {log.phone_number || 'N/A'}
                           </span>
                         </div>
@@ -140,7 +140,7 @@ export default function InternalCallLogsPage() {
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-[14px] text-gray-600">
+                          <span className="text-[14px] text-gray-600 dark:text-gray-400">
                             {formatDuration(log.duration)}
                           </span>
                         </div>
@@ -171,9 +171,9 @@ export default function InternalCallLogsPage() {
       {/* Transcript Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-blue-500" />
                 Call Transcript
               </h2>
@@ -181,15 +181,15 @@ export default function InternalCallLogsPage() {
                 onClick={() => setIsModalOpen(false)}
                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
-            <div className="p-6 overflow-y-auto bg-white flex-1">
-              <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap font-mono text-[13px] leading-relaxed">
+            <div className="p-6 overflow-y-auto bg-white dark:bg-[#1C1C1C] flex-1">
+              <div className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono text-[13px] leading-relaxed">
                 {selectedTranscript}
               </div>
             </div>
-            <div className="p-4 border-t border-gray-100 bg-gray-50 text-right">
+            <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 text-right">
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="px-6 py-2 bg-gray-900 hover:bg-black text-white text-sm font-bold rounded-xl transition-colors"

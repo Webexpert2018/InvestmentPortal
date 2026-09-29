@@ -206,9 +206,9 @@ export default function NAVManagementPage() {
       case 'Draft':
         return 'text-sky-700 bg-sky-50';
       case 'Inactive':
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800';
     }
   };
 
@@ -243,12 +243,12 @@ export default function NAVManagementPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">NAV Management</h1>
-            <p className="text-gray-500 font-medium">Performance Overview</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">NAV Management</h1>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Performance Overview</p>
           </div>
           <Button
             onClick={() => router.push('/dashboard/nav-management/entry')}
-            className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-6 py-2.5 rounded-full font-bold shadow-sm transition-all active:scale-95"
+            className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-100 px-6 py-2.5 rounded-full font-bold shadow-sm transition-all active:scale-95"
           >
             NAV Entry
           </Button>
@@ -262,9 +262,9 @@ export default function NAVManagementPage() {
             </div>
           ) : (
             stats.map((stat, index) => (
-              <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <div key={index} className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
                 <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">{stat.label}</p>
-                <p className={`text-2xl sm:text-3xl font-bold ${stat.isPositive ? 'text-green-600' : 'text-gray-900'}`}>
+                <p className={`text-2xl sm:text-3xl font-bold ${stat.isPositive ? 'text-green-600' : 'text-gray-900 dark:text-gray-100'}`}>
                   {stat.value}
                 </p>
               </div>
@@ -273,16 +273,16 @@ export default function NAVManagementPage() {
         </div>
 
         {/* Performance Overview Section */}
-        <div className="mb-8 bg-white">
-          <h2 className="text-2xl font-semibold text-gray-900 p-5 border-b">Performance Overview</h2>
+        <div className="mb-8 bg-white dark:bg-[#1C1C1C]">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 p-5 border-b">Performance Overview</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Official NAV Trend */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Official NAV Trend</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Official NAV Trend</h3>
                 <Select value={navRange} onValueChange={setNavRange}>
-                  <SelectTrigger className="w-[140px] h-8 text-xs border-gray-200 rounded-full">
+                  <SelectTrigger className="w-[140px] h-8 text-xs border-gray-200 dark:border-gray-800 rounded-full">
                     <SelectValue placeholder="Time Range" />
                   </SelectTrigger>
                   <SelectContent>
@@ -295,7 +295,7 @@ export default function NAVManagementPage() {
               </div>
 
               <div className="mb-4">
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(navStats.value)}
                 </p>
                 <p className={`text-sm ${navStats.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -333,11 +333,11 @@ export default function NAVManagementPage() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-white p-3 border border-gray-100 shadow-xl rounded-xl">
-                              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">
+                            <div className="bg-white dark:bg-[#1C1C1C] p-3 border border-gray-100 dark:border-gray-800 shadow-xl rounded-xl">
+                              <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">
                                 {new Date(payload[0].payload.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                               </p>
-                              <p className="text-sm font-bold text-gray-900">
+                              <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
                                 NAV: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(payload[0].value))}
                               </p>
                             </div>
@@ -360,11 +360,11 @@ export default function NAVManagementPage() {
             </div>
 
             {/* BTC Reference Trend */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">BTC Reference Trend (Unit)</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">BTC Reference Trend (Unit)</h3>
                 <Select value={btcRange} onValueChange={setBtcRange}>
-                  <SelectTrigger className="w-[140px] h-8 text-xs border-gray-200 rounded-full">
+                  <SelectTrigger className="w-[140px] h-8 text-xs border-gray-200 dark:border-gray-800 rounded-full">
                     <SelectValue placeholder="Time Range" />
                   </SelectTrigger>
                   <SelectContent>
@@ -377,7 +377,7 @@ export default function NAVManagementPage() {
               </div>
 
               <div className="mb-4">
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {btcStats.value > 0 ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(btcStats.value) : '$0.00'}
                 </p>
                 <p className={`text-sm ${btcStats.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -415,11 +415,11 @@ export default function NAVManagementPage() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-white p-3 border border-gray-100 shadow-xl rounded-xl">
-                              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">
+                            <div className="bg-white dark:bg-[#1C1C1C] p-3 border border-gray-100 dark:border-gray-800 shadow-xl rounded-xl">
+                              <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">
                                 {new Date(payload[0].payload.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                               </p>
-                              <p className="text-sm font-bold text-gray-900">
+                              <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
                                 BTC: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(payload[0].value))}
                               </p>
                             </div>
@@ -445,13 +445,13 @@ export default function NAVManagementPage() {
 
         {/* Daily BTC Reference */}
         <div className="mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-2">Daily BTC Reference</h3>
-            <p className="text-sm text-gray-600 mb-6">Reflects varying market price and official fund NAV</p>
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-6">
+            <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Daily BTC Reference</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Reflects varying market price and official fund NAV</p>
 
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full">
-                <thead className="bg-gray-50/50 border-b border-gray-100">
+                <thead className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
                   <tr>
                     <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Date</th>
                     <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Price (USD)</th>
@@ -461,10 +461,10 @@ export default function NAVManagementPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {btcTableData.length > 0 ? btcTableData.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 text-gray-900 font-medium whitespace-nowrap">{item.date}</td>
-                      <td className="px-6 py-4 text-gray-900 font-bold whitespace-nowrap">{item.price}</td>
-                      <td className="px-6 py-4 text-gray-500 font-medium whitespace-nowrap">{item.source}</td>
+                    <tr key={item.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors">
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{item.date}</td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{item.price}</td>
+                      <td className="px-6 py-4 text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">{item.source}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {item.status === 'success' ? (
                           <div className="flex items-center gap-2 text-green-600">
@@ -480,7 +480,7 @@ export default function NAVManagementPage() {
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan={4} className="px-6 py-4 text-center text-gray-500 italic">
+                      <td colSpan={4} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400 italic">
                         {loading ? 'Fetching live market data...' : 'No BTC data available'}
                       </td>
                     </tr>
@@ -493,14 +493,14 @@ export default function NAVManagementPage() {
 
         {/* NAV History */}
         <div>
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-2xl font-semibold text-gray-900">NAV History</h3>
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+              <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">NAV History</h3>
             </div>
 
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full">
-                <thead className="bg-gray-50/50 border-b border-gray-100">
+                <thead className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
                   <tr>
                     <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Quarter</th>
                     <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Year</th>
@@ -512,11 +512,11 @@ export default function NAVManagementPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {navHistoryData.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 text-gray-900 font-bold whitespace-nowrap">{item.quarter}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium whitespace-nowrap">{item.year}</td>
-                      <td className="px-6 py-4 text-gray-900 font-bold whitespace-nowrap">{item.pricePerUnit}</td>
-                      <td className="px-6 py-4 text-gray-900 font-bold whitespace-nowrap">{item.totalValue}</td>
+                    <tr key={item.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors">
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{item.quarter}</td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{item.year}</td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{item.pricePerUnit}</td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{item.totalValue}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${getStatusBadge(item.status)}`}>
                           {item.status}
@@ -525,11 +525,11 @@ export default function NAVManagementPage() {
                       <td className="px-6 py-4 text-center whitespace-nowrap">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors outline-none">
-                              <MoreVertical className="h-5 w-5 text-gray-600" />
+                            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors outline-none">
+                              <MoreVertical className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                             </button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-32 bg-white">
+                          <DropdownMenuContent align="end" className="w-32 bg-white dark:bg-[#1C1C1C]">
                             <DropdownMenuItem
                               className="cursor-pointer"
                               onClick={() => handleEdit(item.id)}

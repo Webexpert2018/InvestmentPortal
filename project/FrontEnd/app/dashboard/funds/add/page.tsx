@@ -251,7 +251,7 @@ export default function AddFundPage() {
         <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 mb-4"
           >
             <ChevronLeft className="h-5 w-5" />
             Add New Fund
@@ -259,10 +259,10 @@ export default function AddFundPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-lg shadow-sm p-8">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-8">
           {/* Upload Image */}
           <div className="flex items-center gap-4 mb-8">
-            <label className="relative flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors overflow-hidden">
+            <label className="relative flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors overflow-hidden">
 
               {imagePreview ? (
                 <img
@@ -273,22 +273,22 @@ export default function AddFundPage() {
               ) : (
                 <>
                   <Plus className="h-8 w-8 text-gray-400 mb-1" />
-                  <span className="text-sm text-gray-500">Upload</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Upload</span>
                 </>
               )}
 
               <input
                 type="file"
                 accept="image/*"
-                className="hidden"
+                className="hidden text-[#111827] dark:text-white"
                 onChange={handleImageUpload}
               />
             </label>
 
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
               <p>Upload fund image here</p>
               {fundImage && (
-                <p className="mt-1 text-xs text-gray-500 truncate max-w-[200px]">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
                   {fundImage.name}
                 </p>
               )}
@@ -303,7 +303,7 @@ export default function AddFundPage() {
             <div className="space-y-6">
               {/* Fund Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Fund Name
                 </label>
                 <input
@@ -316,7 +316,7 @@ export default function AddFundPage() {
                       setErrors({ ...errors, fundName: '' });
                     }
                   }}
-                  className={`date-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.fundName ? 'border-red-500' : 'border-gray-200'
+                  className={`date-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.fundName ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                   style={{
                     WebkitAppearance: 'none',
@@ -329,7 +329,7 @@ export default function AddFundPage() {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Description
                 </label>
                 <div className="relative">
@@ -343,7 +343,7 @@ export default function AddFundPage() {
                       }
                     }}
                     rows={4}
-                    className={`w-full px-4 py-2 pb-8 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.description ? 'border-red-500' : 'border-gray-200'
+                    className={`w-full px-4 py-2 pb-8 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.description ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                       }`}
                   />
                   <span className="absolute bottom-2 right-3 text-xs text-gray-400">
@@ -360,7 +360,7 @@ export default function AddFundPage() {
             <div className="space-y-6">
               {/* Start Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Start Date
                 </label>
                 <div className="relative">
@@ -373,7 +373,7 @@ export default function AddFundPage() {
                         setErrors({ ...errors, startDate: '' });
                       }
                     }}
-                    className={`date-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent pr-10 ${errors.startDate ? 'border-red-500' : 'border-gray-200'
+                    className={`date-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent pr-10 ${errors.startDate ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                       }`}
                   />
                   {/* Custom calendar icon */}
@@ -386,7 +386,7 @@ export default function AddFundPage() {
 
               {/* Note */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Note
                 </label>
                 <div className="relative">
@@ -400,7 +400,7 @@ export default function AddFundPage() {
                       }
                     }}
                     rows={4}
-                    className={`w-full px-4 py-2 pb-6 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.note ? 'border-red-500' : 'border-gray-200'
+                    className={`w-full px-4 py-2 pb-6 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.note ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                       }`}
                   />
                   <span className="absolute bottom-2 right-3 text-xs text-gray-400">
@@ -415,11 +415,11 @@ export default function AddFundPage() {
           </div>
 
           {/* Bank Details Section */}
-          <div className="border-t border-gray-100 pt-8 mb-8">
-            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-6">Bank Details (Wire Instructions)</h3>
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-8 mb-8">
+            <h3 className="font-goudy text-lg text-[#1F1F1F] dark:text-gray-100 mb-6">Bank Details (Wire Instructions)</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bank Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Metropolitan Commercial Bank"
@@ -428,7 +428,7 @@ export default function AddFundPage() {
                     setBankName(e.target.value);
                     if (errors.bankName) setErrors({ ...errors, bankName: '' });
                   }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.bankName ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.bankName ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 {errors.bankName && (
@@ -436,7 +436,7 @@ export default function AddFundPage() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Account Number</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Account Number</label>
                 <input
                   type="text"
                   placeholder="Enter account number"
@@ -445,7 +445,7 @@ export default function AddFundPage() {
                     setAccountNumber(e.target.value);
                     if (errors.accountNumber) setErrors({ ...errors, accountNumber: '' });
                   }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.accountNumber ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.accountNumber ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 {errors.accountNumber && (
@@ -453,7 +453,7 @@ export default function AddFundPage() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Routing Number (ABA)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Routing Number (ABA)</label>
                 <input
                   type="text"
                   placeholder="Enter routing number"
@@ -462,7 +462,7 @@ export default function AddFundPage() {
                     setRoutingNumber(e.target.value);
                     if (errors.routingNumber) setErrors({ ...errors, routingNumber: '' });
                   }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.routingNumber ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.routingNumber ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 {errors.routingNumber && (
@@ -470,7 +470,7 @@ export default function AddFundPage() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">For Benefit Of</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">For Benefit Of</label>
                 <input
                   type="text"
                   placeholder="Enter for benefit of name"
@@ -479,7 +479,7 @@ export default function AddFundPage() {
                     setBeneficiaryName(e.target.value);
                     if (errors.beneficiaryName) setErrors({ ...errors, beneficiaryName: '' });
                   }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.beneficiaryName ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.beneficiaryName ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 {errors.beneficiaryName && (
@@ -487,7 +487,7 @@ export default function AddFundPage() {
                 )}
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Bank Address</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bank Address</label>
                 <textarea
                   placeholder="Enter full bank address"
                   value={bankAddress}
@@ -496,7 +496,7 @@ export default function AddFundPage() {
                     if (errors.bankAddress) setErrors({ ...errors, bankAddress: '' });
                   }}
                   rows={2}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.bankAddress ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.bankAddress ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 {errors.bankAddress && (
@@ -507,22 +507,22 @@ export default function AddFundPage() {
           </div>
 
           {/* Operating Agreement Section */}
-          <div className="border-t border-gray-100 pt-8 mb-8 pb-8 border-b">
-            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-2">Operating Agreement (OA) <span className="text-red-500">*</span></h3>
-            <p className="text-sm text-gray-500 mb-6">
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-8 mb-8 pb-8 border-b">
+            <h3 className="font-goudy text-lg text-[#1F1F1F] dark:text-gray-100 mb-2">Operating Agreement (OA) <span className="text-red-500">*</span></h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               Upload the required PDF Operating Agreement for this fund.
             </p>
 
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Upload PDF Document</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload PDF Document</label>
                 <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors text-sm font-medium text-gray-700">
+                  <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 cursor-pointer transition-colors text-sm font-medium text-gray-700 dark:text-gray-300">
                     <span>Choose File</span>
                     <input
                       type="file"
                       accept=".pdf"
-                      className="hidden"
+                      className="hidden text-[#111827] dark:text-white"
                       onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
                           setOaDocFile(e.target.files[0]);
@@ -530,7 +530,7 @@ export default function AddFundPage() {
                       }}
                     />
                   </label>
-                  <span className="text-sm text-gray-500 flex items-center gap-2">
+                  <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                     {oaDocFile ? oaDocFile.name : 'No file chosen (Using system defaults)'}
                     {oaDocFile && (
                       <button
@@ -574,22 +574,22 @@ export default function AddFundPage() {
           </div>
 
           {/* Subscription Document Section */}
-          <div className="border-t border-gray-100 pt-8 mb-8 border-b pb-8">
-            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-2">Subscription Document <span className="text-red-500">*</span></h3>
-            <p className="text-sm text-gray-500 mb-6">
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-8 mb-8 border-b pb-8">
+            <h3 className="font-goudy text-lg text-[#1F1F1F] dark:text-gray-100 mb-2">Subscription Document <span className="text-red-500">*</span></h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               Upload the required PDF subscription document for this fund.
             </p>
 
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Upload PDF Document</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload PDF Document</label>
                 <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors text-sm font-medium text-gray-700">
+                  <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 cursor-pointer transition-colors text-sm font-medium text-gray-700 dark:text-gray-300">
                     <span>Choose File</span>
                     <input
                       type="file"
                       accept=".pdf"
-                      className="hidden"
+                      className="hidden text-[#111827] dark:text-white"
                       onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
                           setSubDocFile(e.target.files[0]);
@@ -597,7 +597,7 @@ export default function AddFundPage() {
                       }}
                     />
                   </label>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
                     {subDocFile ? subDocFile.name : 'No file chosen (Using system defaults)'}
                   </span>
                 </div>
@@ -633,20 +633,20 @@ export default function AddFundPage() {
           <div className="flex justify-between items-center">
             <Button
               onClick={() => router.back()}
-              className="bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-900 px-8 py-2 rounded-full font-medium"
+              className="bg-[#FEF3E2] dark:bg-gray-800 hover:bg-[#fde8c8] dark:hover:bg-gray-700 text-gray-900 dark:text-gray-300 px-8 py-2 rounded-full font-medium"
             >
               Cancel
             </Button>
             <div className="flex gap-4">
               <Button
                 onClick={handleSaveDraft}
-                className="bg-white hover:bg-gray-50 text-gray-900 px-8 py-2 rounded-full font-medium border border-gray-200"
+                className="bg-white dark:bg-[#1C1C1C] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 px-8 py-2 rounded-full font-medium border border-gray-200 dark:border-gray-800"
               >
                 Save Draft
               </Button>
               <Button
                 onClick={handlePublish}
-                className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-8 py-2 rounded-full font-medium"
+                className="bg-[#FCD34D] dark:bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-900 px-8 py-2 rounded-full font-medium"
               >
                 Publish Fund
               </Button>
@@ -658,23 +658,23 @@ export default function AddFundPage() {
       {/* Publish Confirmation Modal */}
       {showPublishModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="relative w-full max-w-[520px] bg-white rounded-md px-6 py-5 shadow-lg">
+          <div className="relative w-full max-w-[520px] bg-white dark:bg-[#1C1C1C] rounded-md px-6 py-5 shadow-lg">
 
             {/* Close icon */}
             <button
               onClick={() => setShowPublishModal(false)}
-              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:text-gray-400"
             >
               ✕
             </button>
 
             {/* Title */}
-            <h2 className="text-[16px] font-semibold text-gray-900 mb-1">
+            <h2 className="text-[16px] font-semibold text-gray-900 dark:text-gray-100 mb-1">
               Publish Fund
             </h2>
 
             {/* Description */}
-            <p className="text-[13px] leading-[1.5] text-gray-500">
+            <p className="text-[13px] leading-[1.5] text-gray-500 dark:text-gray-400">
               You are about to publish this fund and make it available across the
               platform. Once published, investors and Staff will be able to view this
               fund and its details based on their permissions.
@@ -684,7 +684,7 @@ export default function AddFundPage() {
             <div className="mt-5 flex justify-end gap-3">
               <button
                 onClick={() => setShowPublishModal(false)}
-                className="min-w-[96px] rounded-full bg-[#FEF3E2] px-4 py-1.5 text-[13px] font-medium text-gray-600"
+                className="min-w-[96px] rounded-full bg-[#FEF3E2] px-4 py-1.5 text-[13px] font-medium text-gray-600 dark:text-gray-400"
               >
                 Cancel
               </button>

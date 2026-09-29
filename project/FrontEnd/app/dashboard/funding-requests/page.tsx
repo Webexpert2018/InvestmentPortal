@@ -41,15 +41,15 @@ export default function FundingRequestsPage() {
       case 'Pending':
       case 'Subscription Submitted':
       case 'Awaiting Funding':
-        return 'text-orange-600 bg-orange-50';
+        return 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 border border-transparent dark:border-orange-800/50';
       case 'Rejected':
-        return 'text-red-600 bg-red-50';
+        return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-transparent dark:border-red-800/50';
       case 'Approved':
       case 'Funds Received':
       case 'Units Issued':
-        return 'text-green-600 bg-green-50';
+        return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-transparent dark:border-green-800/50';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800';
     }
   };
 
@@ -109,7 +109,7 @@ export default function FundingRequestsPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-10 w-10 text-[#1F3B6E] animate-spin" />
+          <Loader2 className="h-10 w-10 text-[#1F3B6E] dark:text-blue-400 animate-spin" />
         </div>
       </DashboardLayout>
     );
@@ -120,8 +120,8 @@ export default function FundingRequestsPage() {
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900">Connection Error</h2>
-          <p className="text-gray-500 mt-2">{error}</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Connection Error</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">{error}</p>
           <Button onClick={fetchData} className="mt-6 bg-[#1F3B6E] text-white px-6 py-2 rounded-full">
             Try Again
           </Button>
@@ -135,12 +135,12 @@ export default function FundingRequestsPage() {
       <div className="p-0">
         {/* Header */}
         <div className="mb-8 font-helvetica">
-          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-2 font-goudy">Funding Requests</h1>
-          <p className="text-gray-600">Review and manage incoming investment funding requests.</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-2 font-goudy">Funding Requests</h1>
+          <p className="text-gray-600 dark:text-gray-400">Review and manage incoming investment funding requests.</p>
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6 mb-6">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-4 md:p-6 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 lg:items-center">
             {/* Search */}
             <div className="flex-1 relative">
@@ -150,7 +150,7 @@ export default function FundingRequestsPage() {
                 placeholder="Find something here..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/10 focus:border-[#1F3B6E] transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 text-[#111827] dark:text-white border border-gray-100 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/10 focus:border-[#1F3B6E] transition-all"
               />
             </div>
 
@@ -161,12 +161,12 @@ export default function FundingRequestsPage() {
                 <select
                   value={fundStatusFilter}
                   onChange={(e) => setFundStatusFilter(e.target.value)}
-                  className="appearance-none w-full md:w-auto px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white cursor-pointer"
+                  className="appearance-none text-[#111827] dark:text-white w-full md:w-auto px-4 py-2 pr-10 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white dark:bg-[#1C1C1C] cursor-pointer"
                 >
-                  <option value="all">Fund Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="all" className="bg-white dark:bg-gray-800">Fund Status</option>
+                  <option value="pending" className="bg-white dark:bg-gray-800">Pending</option>
+                  <option value="approved" className="bg-white dark:bg-gray-800">Approved</option>
+                  <option value="rejected" className="bg-white dark:bg-gray-800">Rejected</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
               </div>
@@ -176,11 +176,11 @@ export default function FundingRequestsPage() {
                 <select
                   value={paymentTypeFilter}
                   onChange={(e) => setPaymentTypeFilter(e.target.value)}
-                  className="appearance-none w-full md:w-auto px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white cursor-pointer"
+                  className="appearance-none text-[#111827] dark:text-white w-full md:w-auto px-4 py-2 pr-10 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white dark:bg-[#1C1C1C] cursor-pointer"
                 >
-                  <option value="all">Payment Type</option>
-                  <option value="wire">Wire</option>
-                  <option value="ach">ACH</option>
+                  <option value="all" className="bg-white dark:bg-gray-800">Payment Type</option>
+                  <option value="wire" className="bg-white dark:bg-gray-800">Wire</option>
+                  <option value="ach" className="bg-white dark:bg-gray-800">ACH</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
               </div>
@@ -189,20 +189,20 @@ export default function FundingRequestsPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Request ID</th>
-                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Investor Name</th>
-                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Account Type</th>
-                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Amount</th>
-                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Payment</th>
-                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Submitted Date</th>
-                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Status</th>
-                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Funding History</th>
-                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] uppercase tracking-wider whitespace-nowrap">Action</th>
+                <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Request ID</th>
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Investor Name</th>
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Amount</th>
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Payment</th>
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Submitted Date</th>
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Status</th>
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Funding History</th>
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -215,11 +215,11 @@ export default function FundingRequestsPage() {
                     const initials = investorName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
 
                     return (
-                      <tr key={request.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0">
+                      <tr key={request.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors border-b border-gray-50 dark:border-gray-800 last:border-0">
                         <td className="px-6 py-5 whitespace-nowrap">
                           <Link
                             href={`/dashboard/funding-requests/${request.id}`}
-                            className="font-bold text-[#1F3B6E] hover:text-blue-600 transition-colors"
+                            className="font-bold text-[#1F3B6E] dark:text-blue-400 hover:text-blue-600 transition-colors"
                           >
                             {requestId}
                           </Link>
@@ -230,7 +230,7 @@ export default function FundingRequestsPage() {
                               <img
                                 src={request.avatar_url}
                                 alt={investorName}
-                                className="w-9 h-9 rounded-full object-cover border border-gray-100 shadow-sm"
+                                className="w-9 h-9 rounded-full object-cover border border-gray-100 dark:border-gray-800 shadow-sm"
                                 onError={(e) => {
                                   (e.target as any).style.display = 'none';
                                   (e.target as any).nextSibling.style.display = 'flex';
@@ -245,20 +245,20 @@ export default function FundingRequestsPage() {
                             </div>
                             <Link
                               href={`/dashboard/investor/${request.user_id}?from=funding-requests`}
-                              className="font-bold text-gray-800 hover:text-[#1F3B6E] transition-colors"
+                              className="font-bold text-gray-800 dark:text-gray-200 hover:text-[#1F3B6E] dark:text-blue-400 transition-colors"
                             >
                               {investorName}
                             </Link>
                           </div>
                         </td>
-                        <td className="px-6 py-5 text-gray-700 font-medium whitespace-nowrap capitalize">
+                        <td className="px-6 py-5 text-gray-700 dark:text-gray-300 font-medium whitespace-nowrap capitalize">
                           {request.account_type || 'Personal'}
                         </td>
-                        <td className="px-6 py-5 text-gray-900 font-bold whitespace-nowrap">
+                        <td className="px-6 py-5 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">
                           {formatCurrency(request.investment_amount)}
                         </td>
-                        <td className="px-6 py-5 text-gray-600 font-medium whitespace-nowrap">Wire</td>
-                        <td className="px-6 py-5 text-gray-500 font-medium whitespace-nowrap">{formatDate(request.created_at)}</td>
+                        <td className="px-6 py-5 text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">Wire</td>
+                        <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">{formatDate(request.created_at)}</td>
                         <td className="px-6 py-5 whitespace-nowrap">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${getStatusColor(request.status || 'Pending')}`}>
                             {request.status || 'Pending'}
@@ -266,14 +266,14 @@ export default function FundingRequestsPage() {
                         </td>
                         <td className="px-6 py-5 whitespace-nowrap">
                           <Link href={`/dashboard/investor/${request.user_id}?tab=funding&from=funding-requests`}>
-                            <button className="px-5 py-2 bg-white border border-gray-200 text-[#1F3B6E] text-[11px] font-bold rounded-full hover:bg-[#1F3B6E] hover:text-white hover:border-[#1F3B6E] transition-all shadow-sm">
+                            <button className="px-5 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 text-[#1F3B6E] dark:text-blue-400 text-[11px] font-bold rounded-full hover:bg-[#1F3B6E] hover:text-white hover:border-[#1F3B6E] transition-all shadow-sm">
                               View History
                             </button>
                           </Link>
                         </td>
                         <td className="px-6 py-5 whitespace-nowrap">
                           <Link href={`/dashboard/funding-requests/${request.id}`}>
-                            <button className="px-5 py-2 bg-white border border-gray-200 text-gray-600 text-[11px] font-bold rounded-full hover:bg-[#1F3B6E] hover:text-white hover:border-[#1F3B6E] transition-all shadow-sm">
+                            <button className="px-5 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 text-[11px] font-bold rounded-full hover:bg-[#1F3B6E] hover:text-white hover:border-[#1F3B6E] transition-all shadow-sm">
                               View Request
                             </button>
                           </Link>
@@ -297,11 +297,11 @@ export default function FundingRequestsPage() {
 
           {/* Pagination */}
           {filteredRequests.length > itemsPerPage && (
-            <div className="flex items-center justify-center px-6 py-4 border-t border-gray-200 font-helvetica">
+            <div className="flex items-center justify-center px-6 py-4 border-t border-gray-200 dark:border-gray-800 font-helvetica">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
               >
                 Previous
               </button>
@@ -313,7 +313,7 @@ export default function FundingRequestsPage() {
                     onClick={() => setCurrentPage(page)}
                     className={`w-8 h-8 rounded font-medium transition-colors ${currentPage === page
                       ? 'bg-[#1F3B6E] text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
                   >
                     {page}
@@ -324,7 +324,7 @@ export default function FundingRequestsPage() {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
               >
                 Next
               </button>

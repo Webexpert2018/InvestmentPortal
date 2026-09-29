@@ -70,7 +70,7 @@ export default function StaffDetailPage() {
   if (!staffData) {
     return (
       <DashboardLayout>
-        <div className="p-8 text-center text-gray-500">
+        <div className="p-8 text-center text-gray-500 dark:text-gray-400">
           Staff member not found.
         </div>
       </DashboardLayout>
@@ -84,14 +84,14 @@ export default function StaffDetailPage() {
         <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 mb-6 transition-colors"
           >
             <ChevronLeft className="h-5 w-5" />
             <span className="font-medium">Back</span>
           </button>
           <div>
-            <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-2">Staff Details</h1>
-            <p className="text-gray-600">View and manage staff member information and permissions</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-2">Staff Details</h1>
+            <p className="text-gray-600 dark:text-gray-400">View and manage staff member information and permissions</p>
           </div>
         </div>
 
@@ -108,17 +108,17 @@ export default function StaffDetailPage() {
                   className="object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-[#1F1F1F] text-xl sm:text-2xl font-extrabold tracking-tight">
+                <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-[#1F1F1F] dark:text-gray-100 text-xl sm:text-2xl font-extrabold tracking-tight">
                   {getInitials(staffData.full_name || staffData.name)}
                 </div>
               )}
             </div>
             <div className="flex flex-col min-w-0">
-              <h2 className="text-xl sm:text-2xl font-bold text-[#1F1F1F] leading-tight truncate">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1F1F1F] dark:text-gray-100 leading-tight truncate">
                 {staffData.full_name || staffData.name}
               </h2>
-              <p className="text-xs text-gray-500 font-medium mt-1 flex items-center gap-1">
-                Joined date: <span className="text-gray-800 font-semibold">{new Date(staffData.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1 flex items-center gap-1">
+                Joined date: <span className="text-gray-800 dark:text-gray-200 font-semibold">{new Date(staffData.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
               </p>
             </div>
           </div>
@@ -143,7 +143,7 @@ export default function StaffDetailPage() {
             </button>
             <button
               onClick={() => router.push(`/dashboard/staff/edit/${staffData.id}`)}
-              className="h-9 px-6 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
+              className="h-9 px-6 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent"
             >
               Edit
             </button>
@@ -151,8 +151,8 @@ export default function StaffDetailPage() {
         </div>
 
         {/* Details Card Section */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 sm:p-6 space-y-4 mb-6">
-          <h3 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider pb-2 border-b border-gray-100">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl border border-gray-200 dark:border-gray-800/80 shadow-xs p-5 sm:p-6 space-y-4 mb-6">
+          <h3 className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider pb-2 border-b border-gray-100 dark:border-gray-800">
             Staff Details
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -162,7 +162,7 @@ export default function StaffDetailPage() {
                 href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(staffData.email || '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs sm:text-sm font-bold text-gray-900 truncate block hover:text-[#2A4474] hover:underline cursor-pointer transition-colors"
+                className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100 truncate block hover:text-[#2A4474] hover:underline cursor-pointer transition-colors"
                 title="Click to compose email in Gmail"
               >
                 {staffData.email}
@@ -178,7 +178,7 @@ export default function StaffDetailPage() {
                     toast.success('Phone number copied to clipboard');
                   }
                 }}
-                className="text-xs sm:text-sm font-bold text-gray-900 cursor-pointer hover:text-amber-600 transition-colors block"
+                className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-amber-600 transition-colors block"
                 title="Click to copy phone number"
               >
                 {staffData.phone || '(Not set)'}
@@ -187,29 +187,29 @@ export default function StaffDetailPage() {
 
             <div className="space-y-0.5">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Password</span>
-              <p className="text-xs sm:text-sm font-bold text-gray-900">••••••••</p>
+              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">••••••••</p>
             </div>
 
             <div className="space-y-0.5">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Role</span>
-              <p className="text-xs sm:text-sm font-bold text-gray-900 capitalize">{staffData.role?.replace('_', ' ')}</p>
+              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100 capitalize">{staffData.role?.replace('_', ' ')}</p>
             </div>
           </div>
         </div>
 
         {/* Assigned Investors Table Section */}
         {staffData.role !== 'partnership' && (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 sm:p-6 space-y-4">
-            <h3 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider pb-2 border-b border-gray-100">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl border border-gray-200 dark:border-gray-800/80 shadow-xs p-5 sm:p-6 space-y-4">
+            <h3 className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider pb-2 border-b border-gray-100 dark:border-gray-800">
               Assigned Investors
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Assigned Date</th>
-                    <th className="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Investor Name</th>
-                    <th className="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-right pr-6">Action</th>
+                  <tr className="border-b border-gray-100 dark:border-gray-800">
+                    <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Assigned Date</th>
+                    <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Investor Name</th>
+                    <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right pr-6">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -221,8 +221,8 @@ export default function StaffDetailPage() {
                     </tr>
                   ) : (
                     currentInvestors.map((investor) => (
-                      <tr key={investor.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 text-xs text-gray-600 font-medium">
+                      <tr key={investor.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                        <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400 font-medium">
                           {new Date(investor.updated_at || investor.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </td>
                         <td className="px-4 py-3">
@@ -230,14 +230,14 @@ export default function StaffDetailPage() {
                             <div className="w-7 h-7 rounded-full bg-[#274583] flex items-center justify-center text-white font-bold text-[10px] shrink-0">
                               {getInitials(investor.full_name)}
                             </div>
-                            <span className="text-xs font-bold text-[#1F1F1F]">{investor.full_name}</span>
+                            <span className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100">{investor.full_name}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right pr-6">
                           <div className="relative inline-block text-left">
                             <button
                               onClick={() => setActiveDropdown(activeDropdown === investor.id ? null : investor.id)}
-                              className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
                             >
                               <MoreVertical className="h-4 w-4 text-gray-400" />
                             </button>
@@ -248,10 +248,10 @@ export default function StaffDetailPage() {
                                   className="fixed inset-0 z-10"
                                   onClick={() => setActiveDropdown(null)}
                                 />
-                                <div className="absolute right-0 top-full mt-1 w-36 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-20">
+                                <div className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-[#1C1C1C] rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 py-1.5 z-20">
                                   <Link
                                     href={`/dashboard/investor/${investor.id}`}
-                                    className="block w-full px-3 py-1.5 text-left text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                    className="block w-full px-3 py-1.5 text-left text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors"
                                   >
                                     View Profile
                                   </Link>
@@ -269,11 +269,11 @@ export default function StaffDetailPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-end pt-3 gap-3 border-t border-gray-100">
+              <div className="flex items-center justify-end pt-3 gap-3 border-t border-gray-100 dark:border-gray-800">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className={`flex items-center gap-1 text-xs font-bold ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-gray-800'}`}
+                  className={`flex items-center gap-1 text-xs font-bold ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:text-gray-200'}`}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span>Previous</span>
@@ -284,7 +284,7 @@ export default function StaffDetailPage() {
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors ${currentPage === page ? 'bg-[#1F3B6E] text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+                      className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors ${currentPage === page ? 'bg-[#1F3B6E] text-white' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                     >
                       {page}
                     </button>
@@ -294,7 +294,7 @@ export default function StaffDetailPage() {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className={`flex items-center gap-1 text-xs font-bold ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-800'}`}
+                  className={`flex items-center gap-1 text-xs font-bold ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-800 dark:text-gray-200'}`}
                 >
                   <span>Next</span>
                   <ChevronLeft className="h-4 w-4 rotate-180" />

@@ -65,7 +65,7 @@ export default function RedemptionRequestsPage() {
       case 'Approved':
         return 'text-green-600 bg-green-50 font-medium border border-green-100';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 dark:bg-gray-800';
     }
   };
 
@@ -88,8 +88,8 @@ export default function RedemptionRequestsPage() {
         {/* Header */}
         <div className="mb-5 md:mb-8 md:flex md:justify-between md:items-center">
           <div className="mb-3 md:mb-0">
-            <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-2 tracking-tight">Redemption Requests</h1>
-            <p className="text-gray-500">Review and process investor withdrawal and capital redemption requests.</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-2 tracking-tight">Redemption Requests</h1>
+            <p className="text-gray-500 dark:text-gray-400">Review and process investor withdrawal and capital redemption requests.</p>
           </div>
           <Button
             onClick={fetchRedemptions}
@@ -103,7 +103,7 @@ export default function RedemptionRequestsPage() {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-0 md:p-6 mb-6">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-0 md:p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4 p-2 md:p-0">
             {/* Search */}
             <div className="flex-1 relative">
@@ -113,7 +113,7 @@ export default function RedemptionRequestsPage() {
                 placeholder="Search by ID, investor, or fund..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-800 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
               />
             </div>
 
@@ -122,7 +122,7 @@ export default function RedemptionRequestsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full appearance-none px-4 py-2.5 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] bg-white cursor-pointer transition-all"
+                className="w-full appearance-none px-4 py-2.5 pr-10 border border-gray-200 dark:border-gray-800 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] bg-white dark:bg-[#1C1C1C] cursor-pointer transition-all"
               >
                 <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>
@@ -135,10 +135,10 @@ export default function RedemptionRequestsPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full">
-              <thead className="bg-[#F8FAFC] border-b border-gray-100">
+              <thead className="bg-[#F8FAFC] dark:bg-[#121212] border-b border-gray-100 dark:border-gray-800">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Request ID</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Investor Name</th>
@@ -150,10 +150,10 @@ export default function RedemptionRequestsPage() {
                   <th className="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                       <div className="flex flex-col items-center gap-2">
                         <RefreshCw className="h-8 w-8 animate-spin text-gray-300" />
                         <span>Loading requests...</span>
@@ -162,17 +162,17 @@ export default function RedemptionRequestsPage() {
                   </tr>
                 ) : currentRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                       No matching redemption requests found.
                     </td>
                   </tr>
                 ) : (
                   currentRequests.map((request) => (
-                    <tr key={request.id} className="hover:bg-gray-50/50 transition-colors group">
+                    <tr key={request.id} className="hover:bg-gray-50 dark:bg-gray-900 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors group">
                       <td className="px-6 py-4">
                         <Link
                           href={`/dashboard/redemption-requests/${request.id}`}
-                          className="text-sm font-bold text-[#1F3B6E] uppercase hover:underline cursor-pointer whitespace-nowrap"
+                          className="text-sm font-bold text-[#1F3B6E] dark:text-blue-400 uppercase hover:underline cursor-pointer whitespace-nowrap"
                         >
                           RED-{request.id.substring(0, 6).toUpperCase()}
                         </Link>
@@ -189,20 +189,20 @@ export default function RedemptionRequestsPage() {
                               request.investor_name?.split(' ').map((n: string) => n[0]).join('')
                             )}
                           </div>
-                          <span className="font-semibold text-gray-900 group-hover/name:text-[#1F3B6E] group-hover/name:underline transition-colors whitespace-nowrap">{request.investor_name}</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-100 group-hover/name:text-[#1F3B6E] dark:text-blue-400 group-hover/name:underline transition-colors whitespace-nowrap">{request.investor_name}</span>
                         </Link>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-gray-600 whitespace-nowrap">{request.fund_name}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">{request.fund_name}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm font-medium text-gray-900 whitespace-nowrap">{parseFloat(request.units).toFixed(4)}</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-100 whitespace-nowrap">{parseFloat(request.units).toFixed(4)}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm font-bold text-[#1F3B6E] whitespace-nowrap">{formatCurrency(request.amount)}</span>
+                        <span className="text-sm font-bold text-[#1F3B6E] dark:text-blue-400 whitespace-nowrap">{formatCurrency(request.amount)}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-gray-500 whitespace-nowrap">{new Date(request.created_at).toLocaleDateString()}</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{new Date(request.created_at).toLocaleDateString()}</span>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold leading-none whitespace-nowrap ${getStatusColor(request.status)}`}>
@@ -221,9 +221,9 @@ export default function RedemptionRequestsPage() {
                                 left: rect.right - 192, // 192 is the width of the dropdown (w-48)
                               });
                             }}
-                            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors inline-flex group-hover:bg-gray-100"
+                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors inline-flex group-hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
-                            <MoreVertical className="h-5 w-5 text-gray-400 group-hover:text-gray-600" />
+                            <MoreVertical className="h-5 w-5 text-gray-400 group-hover:text-gray-600 dark:text-gray-400" />
                           </button>
 
                           {(activeDropdown as any)?.id === request.id && (
@@ -233,18 +233,18 @@ export default function RedemptionRequestsPage() {
                                 onClick={() => setActiveDropdown(null)}
                               />
                               <div
-                                className="fixed w-48 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[101] animate-in fade-in slide-in-from-top-1 duration-200"
+                                className="fixed w-48 bg-white dark:bg-[#1C1C1C] rounded-xl shadow-2xl border border-gray-100 dark:border-gray-800 py-2 z-[101] animate-in fade-in slide-in-from-top-1 duration-200"
                                 style={{
                                   top: `${(activeDropdown as any).top - window.scrollY}px`,
                                   left: `${(activeDropdown as any).left}px`
                                 }}
                               >
-                                <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">
+                                <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-50 dark:border-gray-800 mb-1">
                                   Actions
                                 </div>
 
                                 <Link href={`/dashboard/redemption-requests/${request.id}`}>
-                                  <button className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
+                                  <button className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors flex items-center gap-2">
                                     <Search className="h-4 w-4" />
                                     View Details
                                   </button>
@@ -263,11 +263,11 @@ export default function RedemptionRequestsPage() {
 
           {/* Pagination */}
           {!loading && filteredRequests.length > 0 && (
-            <div className="flex items-center justify-center px-6 py-6 bg-[#F8FAFC] border-t border-gray-100 font-helvetica">
+            <div className="flex items-center justify-center px-6 py-6 bg-[#F8FAFC] dark:bg-[#121212] border-t border-gray-100 dark:border-gray-800 font-helvetica">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 text-sm text-gray-500 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed font-bold transition-colors"
+                className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 dark:text-gray-100 disabled:opacity-30 disabled:cursor-not-allowed font-bold transition-colors"
               >
                 Previous
               </button>
@@ -279,7 +279,7 @@ export default function RedemptionRequestsPage() {
                     onClick={() => setCurrentPage(page)}
                     className={`w-8 h-8 rounded text-sm font-bold transition-all ${currentPage === page
                       ? 'bg-[#1F3B6E] text-white shadow-md shadow-[#1F3B6E]/20'
-                      : 'text-gray-500 hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:bg-[#1C1C1C] hover:shadow-sm border border-transparent hover:border-gray-200 dark:border-gray-800 dark:border-gray-800'
                       }`}
                   >
                     {page}
@@ -290,7 +290,7 @@ export default function RedemptionRequestsPage() {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 text-sm text-gray-500 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed font-bold transition-colors"
+                className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 dark:text-gray-100 disabled:opacity-30 disabled:cursor-not-allowed font-bold transition-colors"
               >
                 Next
               </button>

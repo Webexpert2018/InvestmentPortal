@@ -229,11 +229,11 @@ export default function CRMBulkOpsPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F]">
+      <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F] dark:text-gray-100">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">CRM & Bulk Ops</h1>
+            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F] dark:text-gray-100">CRM & Bulk Ops</h1>
             <p className="text-[#8E8E93] text-[14px] mt-1">Manage active investors and perform bulk operations like email or message outreach.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -241,8 +241,8 @@ export default function CRMBulkOpsPage() {
               onClick={() => setIsEmailModalOpen(true)}
               disabled={selectedIds.length === 0}
               className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${selectedIds.length > 0
-                ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F] dark:text-gray-100'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed shadow-none'
                 }`}
             >
               <Mail className="h-4 w-4" />
@@ -253,8 +253,8 @@ export default function CRMBulkOpsPage() {
               onClick={() => setIsMessageModalOpen(true)}
               disabled={selectedIds.length === 0}
               className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-semibold transition-all shadow-sm ${selectedIds.length > 0
-                ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F]'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                ? 'bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F] dark:text-gray-100'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed shadow-none'
                 }`}
             >
               <MessageSquare className="h-4 w-4" />
@@ -270,7 +270,7 @@ export default function CRMBulkOpsPage() {
             <input
               type="text"
               placeholder="Search by name, email or phone..."
-              className="w-full bg-[#f8f9fa] border-none rounded-full py-2.5 pl-11 pr-4 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none"
+              className="w-full bg-[#f8f9fa] dark:bg-[#1C1C1C] border border-transparent dark:border-gray-800 rounded-full py-2.5 pl-11 pr-4 text-[14px] text-[#1F1F1F] dark:text-gray-100 focus:ring-1 focus:ring-[#FFD66B] outline-none"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -278,13 +278,13 @@ export default function CRMBulkOpsPage() {
 
           <div className="relative min-w-[200px]">
             <select
-              className="w-full bg-[#f8f9fa] border-none rounded-full py-2.5 px-6 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer text-[#4B4B4B] font-medium"
+              className="w-full bg-[#f8f9fa] dark:bg-[#1C1C1C] border border-transparent dark:border-gray-800 rounded-full py-2.5 px-6 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer text-[#4B4B4B] dark:text-gray-300 font-medium"
               value={selectedFundId}
               onChange={(e) => setSelectedFundId(e.target.value)}
             >
-              <option value="all">All Funds</option>
+              <option value="all" className="bg-white dark:bg-gray-800 text-[#1F1F1F] dark:text-gray-100">All Funds</option>
               {funds.map(fund => (
-                <option key={fund.id} value={fund.id}>{fund.name}</option>
+                <option key={fund.id} value={fund.id} className="bg-white dark:bg-gray-800 text-[#1F1F1F] dark:text-gray-100">{fund.name}</option>
               ))}
             </select>
             <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-[#8E8E93]">
@@ -296,7 +296,7 @@ export default function CRMBulkOpsPage() {
 
           <div className="flex items-center gap-2 ml-auto text-[13px] text-[#8E8E93]">
             {selectedIds.length > 0 && (
-              <span className="flex items-center gap-1.5 text-[#1F1F1F] font-medium bg-[#FFD66B]/10 px-4 py-1.5 rounded-full">
+              <span className="flex items-center gap-1.5 text-[#1F1F1F] dark:text-gray-100 font-medium bg-[#FFD66B]/10 px-4 py-1.5 rounded-full">
                 <CheckCircle2 className="h-3.5 w-3.5 text-[#E2B93B]" />
                 {selectedIds.length} selected
               </span>
@@ -306,11 +306,11 @@ export default function CRMBulkOpsPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-[16px] shadow-sm border border-[#F2F2F2] overflow-hidden">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-[16px] shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A] overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#F2F2F2] bg-[#fcfcfc]">
+                <tr className="border-b border-[#F2F2F2] dark:border-[#2A2A2A] dark:border-gray-800 bg-[#fcfcfc] dark:bg-[#121212]">
                   <th className="px-6 py-4 w-[50px] whitespace-nowrap">
                     <div className="flex items-center">
                       <input
@@ -328,7 +328,7 @@ export default function CRMBulkOpsPage() {
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F2F2F2]">
+              <tbody className="divide-y divide-[#F2F2F2] dark:divide-gray-800">
                 {loading ? (
                   <tr>
                     <td colSpan={6} className="py-20 text-center">
@@ -345,7 +345,7 @@ export default function CRMBulkOpsPage() {
                   filteredInvestors.map((investor) => (
                     <tr
                       key={investor.id}
-                      className={`hover:bg-gray-50/50 transition-colors cursor-pointer ${selectedIds.includes(investor.id) ? 'bg-[#FFD66B]/5' : ''}`}
+                      className={`hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors cursor-pointer ${selectedIds.includes(investor.id) ? 'bg-[#FFD66B]/5' : ''}`}
                       onClick={() => toggleSelect(investor.id)}
                     >
                       <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
@@ -363,16 +363,16 @@ export default function CRMBulkOpsPage() {
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2A4474] to-[#1F3B6E] flex items-center justify-center text-[11px] font-bold text-white uppercase shadow-sm">
                             {investor.fullName?.charAt(0) || '?'}
                           </div>
-                          <span className="text-[14px] font-semibold text-[#1F1F1F]">{investor.fullName}</span>
+                          <span className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100">{investor.fullName}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] whitespace-nowrap">{investor.email}</td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] font-medium whitespace-nowrap">
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] dark:text-gray-300 whitespace-nowrap">{investor.email}</td>
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] dark:text-gray-300 font-medium whitespace-nowrap">
                         {formatPhoneDisplay(investor.phone) || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] whitespace-nowrap">{formatDate(investor.dateJoined)}</td>
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] dark:text-gray-300 whitespace-nowrap">{formatDate(investor.dateJoined)}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase bg-green-50 text-green-600 border border-green-100">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-800/50">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                           Active
                         </span>

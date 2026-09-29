@@ -265,24 +265,26 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
 
   const SidebarContent = () => (
     <aside
-      className={`fixed left-0 top-0 h-screen bg-[#F8F8F8] transition-all duration-300
+      className={`fixed left-0 top-0 h-screen bg-[#F8F8F8] dark:bg-[#121212] transition-all duration-300
     ${isCollapsed ? "w-20" : "w-[255px]"}
   `}
     >
-      <div className="flex h-full flex-col border-b bg-white">
+      <div className="flex h-full flex-col border-b bg-white dark:bg-[#1C1C1C]">
 
         {/* ================= LOGO SECTION ================= */}
-        <div className="flex items-center justify-center border-b border-r border-[#EEEEEE] px-3 dashboard-logo-container relative h-[70px]">
-          <Image
-            src="/images/dashboard-logo.png"
-            alt="Dashboard Logo"
-            fill
-            className="object-contain"
-          />
+        <div className="flex items-center justify-center border-b border-r border-[#EEEEEE] dark:border-gray-800 px-3 dashboard-logo-container relative h-[85px]">
+          <div className="relative w-[80px] h-[80px] rounded-full overflow-hidden flex-shrink-0">
+            <Image
+              src="/images/dashboard-logo.png"
+              alt="Dashboard Logo"
+              fill
+              className="object-cover scale-110 mix-blend-multiply dark:mix-blend-normal"
+            />
+          </div>
         </div>
 
         {/* ================= MENU ================= */}
-        <div className="flex-1 overflow-y-auto py-3 px-3 border-r border-[#EEEEEE]">
+        <div className="flex-1 overflow-y-auto py-3 px-3 border-r border-[#EEEEEE] dark:border-gray-800">
           <nav className="space-y-2">
 
             {filteredMenuItems.map((item) => {
@@ -321,7 +323,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
                   onClick={handleMenuItemClick}
                   className={cn(
                     "group relative flex items-center font-goudy justify-center rounded-full h-[40px] text-[15px] font-medium transition-all duration-300 ease-out overflow-hidden antialiased will-change-transform",
-                    "bg-[#ECECEC]",
+                    "bg-[#ECECEC] dark:bg-gray-800",
                     !isCollapsed && "px-5 justify-start",
                     isActive ? "scale-100 shadow-md" : "hover:scale-[1.03] hover:shadow-md active:scale-[0.97]"
                   )}
@@ -333,7 +335,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
                     )}
                   />
 
-                  <span className={cn("relative z-10 flex items-center transition-colors duration-300 transform-gpu", !isCollapsed && "gap-3", isActive ? "text-gray-900" : "text-[#2F3A4C] group-hover:text-gray-900")}>
+                  <span className={cn("relative z-10 flex items-center transition-colors duration-300 transform-gpu", !isCollapsed && "gap-3", isActive ? "text-gray-900 dark:text-gray-100" : "text-[#2F3A4C] dark:text-gray-300 group-hover:text-gray-900 dark:text-gray-100 dark:group-hover:text-gray-100")}>
                     <Icon className="h-5 w-5 shrink-0" />
                     {!isCollapsed && <span>{item.title}</span>}
                   </span>
@@ -345,14 +347,14 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
         </div>
 
         {/* ================= FOOTER changes ================= */}
-        <div className="border-t border-[#EEEEEE] px-4 py-4 font-helvetica">
+        <div className="border-t border-[#EEEEEE] dark:border-gray-800 px-4 py-4 font-helvetica">
 
           {/* Sign Out Button */}
           <button
             onClick={handleLogout}
             className={cn(
               "w-full rounded-full h-[40px] text-[14px] font-bold mx-auto transition-all duration-200 font-helvetica",
-              "bg-[#FFF9EE] text-[#FFC63F] hover:bg-[#F3EAD7]",
+              "bg-[#FFF9EE] dark:bg-gray-800 text-[#FFC63F] hover:bg-[#F3EAD7] dark:hover:bg-gray-700",
               "flex items-center justify-center gap-2"
             )}
           >
@@ -371,7 +373,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
 
           {/* Footer Text */}
           {!isCollapsed && (
-            <div className="mt-2 text-center font-bold text-[12px] text-[#4B4B4B] leading-relaxed font-helvetica">
+            <div className="mt-2 text-center font-bold text-[12px] text-[#4B4B4B] dark:text-gray-400 leading-relaxed font-helvetica">
               © {new Date().getFullYear()} All Rights Reserved, by Ovalia Capital.
             </div>
           )}
@@ -388,7 +390,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
       {/* Mobile hamburger menu */}
       <button
         onClick={toggleSidebar} style={{ top: "15px" }}
-        className="fixed left-4 z-50 rounded-sm bg-white p-2 shadow-sm lg:hidden dark:bg-gray-800"
+        className="fixed left-4 z-50 rounded-sm bg-white dark:bg-[#1C1C1C] p-2 shadow-sm lg:hidden dark:bg-gray-800"
         aria-label="Toggle menu"
       >
         <img
@@ -412,7 +414,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isOpen = false, onToggl
             className="fixed inset-0 z-40 bg-black/50 lg:hidden"
             onClick={toggleSidebar}
           />
-          <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl lg:hidden dark:bg-gray-900">
+          <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#1C1C1C] shadow-xl lg:hidden dark:bg-gray-900">
             <SidebarContent />
           </aside>
         </>

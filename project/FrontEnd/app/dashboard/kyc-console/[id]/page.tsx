@@ -52,7 +52,7 @@ export default function KYCProfilePage({ params }: PageProps) {
         <div className="mb-6">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 mb-4"
           >
             <ChevronLeft className="h-5 w-5" />
             <span className="font-medium">Profile Information</span>
@@ -60,7 +60,7 @@ export default function KYCProfilePage({ params }: PageProps) {
         </div>
 
         {/* Profile Card */}
-        <div className="bg-white rounded-lg shadow-sm p-8">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-8">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Left Side - Photo */}
             <div className="flex-shrink-0">
@@ -77,15 +77,15 @@ export default function KYCProfilePage({ params }: PageProps) {
             <div className="flex-1">
               <div className="flex flex-col lg:flex-row justify-between items-start mb-8">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{profile.name}</h1>
-                  <p className="text-gray-500">Joined date: {profile.joinedDate}</p>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{profile.name}</h1>
+                  <p className="text-gray-500 dark:text-gray-400">Joined date: {profile.joinedDate}</p>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 mt-4 lg:mt-0">
                   <Button
                     onClick={() => setShowAssignModal(true)}
-                    className="bg-[#FCD34D] text-gray-900 hover:bg-[#FDE68A] font-semibold px-6"
+                    className="bg-[#FCD34D] text-gray-900 dark:text-gray-100 hover:bg-[#FDE68A] font-semibold px-6"
                   >
                     Assign Investor Relation
                   </Button>
@@ -107,28 +107,28 @@ export default function KYCProfilePage({ params }: PageProps) {
               {/* Info Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-sm text-gray-500 mb-1 block">Email</label>
-                  <p className="text-gray-900 font-medium">{profile.email}</p>
+                  <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Email</label>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{profile.email}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500 mb-1 block">Phone Number</label>
-                  <p className="text-gray-900 font-medium">{profile.phone}</p>
+                  <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Phone Number</label>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{profile.phone}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500 mb-1 block">Tax ID</label>
-                  <p className="text-gray-900 font-medium">{profile.taxId}</p>
+                  <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Tax ID</label>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{profile.taxId}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500 mb-1 block">Date of Birth</label>
-                  <p className="text-gray-900 font-medium">{profile.dob}</p>
+                  <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Date of Birth</label>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{profile.dob}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500 mb-1 block">Account Type</label>
-                  <p className="text-gray-900 font-medium">{profile.accountType}</p>
+                  <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Account Type</label>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{profile.accountType}</p>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="text-sm text-gray-500 mb-1 block">Address</label>
-                  <p className="text-gray-900 font-medium">{profile.address}</p>
+                  <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Address</label>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{profile.address}</p>
                 </div>
               </div>
             </div>
@@ -136,19 +136,19 @@ export default function KYCProfilePage({ params }: PageProps) {
 
           {/* KYC Documents Section */}
           <div className="mt-12">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">KYC Document</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">KYC Document</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {documents.map((doc, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
+                  className="flex items-start gap-3 p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
                 >
                   <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
                     <FileText className="h-6 w-6 text-red-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-gray-900 font-medium truncate">{doc.name}</p>
-                    <p className="text-sm text-gray-500 mt-1">{doc.date}</p>
+                    <p className="text-gray-900 dark:text-gray-100 font-medium truncate">{doc.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{doc.date}</p>
                   </div>
                 </div>
               ))}
@@ -164,22 +164,22 @@ export default function KYCProfilePage({ params }: PageProps) {
               onClick={() => setShowAssignModal(false)}
             />
             <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-xl max-w-md w-full p-6">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-bold text-gray-900">Assign Investor Relation</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Assign Investor Relation</h3>
                   <button
                     onClick={() => setShowAssignModal(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 dark:text-gray-400"
                   >
                     ✕
                   </button>
                 </div>
-                <p className="text-sm text-gray-600 mb-6">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
                   Select an Investor Relation to manage this investor's KYC documents and communication.
                 </p>
                 <div className="mb-6">
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Investor Relation</label>
-                  <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white text-gray-500">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Investor Relation</label>
+                  <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white dark:bg-[#1C1C1C] text-gray-500 dark:text-gray-400">
                     <option>Select Investor Relation</option>
                     <option>John Smith</option>
                     <option>Sarah Johnson</option>
@@ -191,12 +191,12 @@ export default function KYCProfilePage({ params }: PageProps) {
                   <Button
                     variant="outline"
                     onClick={() => setShowAssignModal(false)}
-                    className="px-6 border-gray-300 text-gray-700"
+                    className="px-6 border-gray-300 text-gray-700 dark:text-gray-300"
                   >
                     Cancel
                   </Button>
                   <Button
-                    className="bg-[#FCD34D] text-gray-900 hover:bg-[#FDE68A] px-6 font-semibold"
+                    className="bg-[#FCD34D] text-gray-900 dark:text-gray-100 hover:bg-[#FDE68A] px-6 font-semibold"
                     onClick={() => setShowAssignModal(false)}
                   >
                     Assign
@@ -215,17 +215,17 @@ export default function KYCProfilePage({ params }: PageProps) {
               onClick={() => setShowRejectModal(false)}
             />
             <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-xl max-w-md w-full p-6">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-bold text-gray-900">Reject Request</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Reject Request</h3>
                   <button
                     onClick={() => setShowRejectModal(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 dark:text-gray-400"
                   >
                     ✕
                   </button>
                 </div>
-                <p className="text-sm text-gray-600 mb-6">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
                   Are you sure you want to reject this request?<br />
                   You may add a note explaining the reason.
                 </p>
@@ -249,12 +249,12 @@ export default function KYCProfilePage({ params }: PageProps) {
                       setShowRejectModal(false);
                       setRejectReason('');
                     }}
-                    className="px-8 border-gray-300 text-gray-700"
+                    className="px-8 border-gray-300 text-gray-700 dark:text-gray-300"
                   >
                     No
                   </Button>
                   <Button
-                    className="bg-[#FCD34D] text-gray-900 hover:bg-[#FDE68A] px-8 font-semibold"
+                    className="bg-[#FCD34D] text-gray-900 dark:text-gray-100 hover:bg-[#FDE68A] px-8 font-semibold"
                     onClick={() => {
                       setShowRejectModal(false);
                       setRejectReason('');
@@ -276,17 +276,17 @@ export default function KYCProfilePage({ params }: PageProps) {
               onClick={() => setShowApproveModal(false)}
             />
             <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-xl max-w-md w-full p-6">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-bold text-gray-900">Approve Request</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Approve Request</h3>
                   <button
                     onClick={() => setShowApproveModal(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 dark:text-gray-400"
                   >
                     ✕
                   </button>
                 </div>
-                <p className="text-sm text-gray-600 mb-8">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-8">
                   Are you sure you want to approve this request?<br />
                   Once approved, the action will be processed and the investor will be notified.
                 </p>
@@ -294,12 +294,12 @@ export default function KYCProfilePage({ params }: PageProps) {
                   <Button
                     variant="outline"
                     onClick={() => setShowApproveModal(false)}
-                    className="px-8 border-gray-300 text-gray-700"
+                    className="px-8 border-gray-300 text-gray-700 dark:text-gray-300"
                   >
                     No
                   </Button>
                   <Button
-                    className="bg-[#FCD34D] text-gray-900 hover:bg-[#FDE68A] px-8 font-semibold"
+                    className="bg-[#FCD34D] text-gray-900 dark:text-gray-100 hover:bg-[#FDE68A] px-8 font-semibold"
                     onClick={() => setShowApproveModal(false)}
                   >
                     Yes

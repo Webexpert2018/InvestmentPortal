@@ -227,18 +227,18 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 mt-30 md:mt-0">
-      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white shadow-2xl">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white dark:bg-[#1C1C1C] shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 md:px-8 py-5">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white dark:bg-[#1C1C1C] px-3 md:px-8 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-900/30">
               <Plus className="h-5 w-5 text-[#D1A94C]" />
             </div>
-            <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] font-goudy">Admin: Create Sub Account</h2>
+            <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy">Admin: Create Sub Account</h2>
           </div>
           <button
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAFAFA] text-[#9CA3AF] hover:bg-[#F3F4F6] transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAFAFA] dark:bg-gray-800/50 text-[#9CA3AF] hover:bg-[#F3F4F6] dark:bg-gray-800 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -254,21 +254,21 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
             <div className="flex flex-col gap-8">
               
               {/* SECTION: Parent Investor Info (Read-Only) */}
-              <div className="rounded-[16px] border border-[#F0F0F0] bg-[#FAFAFA] p-4 md:p-6">
+              <div className="rounded-[16px] border border-[#F0F0F0] dark:border-gray-700 bg-[#FAFAFA] dark:bg-gray-800/50 p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <User className="h-4 w-4 text-[#D1A94C]" />
-                  <h3 className="text-[15px] font-bold text-[#1F1F1F] font-goudy">Parent Investor Details</h3>
+                  <h3 className="text-[15px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy">Parent Investor Details</h3>
                 </div>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   <div>
                     <p className="text-[11px] font-medium text-[#9CA3AF] mb-1 uppercase tracking-wider font-helvetica">Parent Name</p>
-                    <p className="text-[14px] text-[#1F1F1F] font-semibold font-helvetica">
+                    <p className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-semibold font-helvetica">
                       {parentInvestor?.firstName || ''} {parentInvestor?.lastName || ''}
                     </p>
                   </div>
                   <div>
                     <p className="text-[11px] font-medium text-[#9CA3AF] mb-1 uppercase tracking-wider font-helvetica">Parent Email</p>
-                    <p className="text-[14px] text-[#1F1F1F] font-semibold font-helvetica">{parentInvestor?.email || '-'}</p>
+                    <p className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-semibold font-helvetica">{parentInvestor?.email || '-'}</p>
                   </div>
                   <div>
                     <p className="text-[11px] font-medium text-[#9CA3AF] mb-1 uppercase tracking-wider font-helvetica">Investor Type</p>
@@ -283,7 +283,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <FileText className="h-4 w-4 text-[#D1A94C]" />
-                  <h3 className="text-[16px] font-bold text-[#1F1F1F] font-goudy border-b pb-1">Sub Account Details</h3>
+                  <h3 className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy border-b pb-1">Sub Account Details</h3>
                 </div>
 
                 <div className="grid gap-5 md:grid-cols-2">
@@ -296,7 +296,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                           setSubAccountType(e.target.value as 'minor' | 'entity');
                           setErrors({});
                         }}
-                        className="h-[40px] w-full appearance-none rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] text-[#1F1F1F] outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm"
+                        className="h-[40px] w-full appearance-none rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm"
                       >
                         <option value="minor">Minor</option>
                         <option value="entity">Entity</option>
@@ -320,7 +320,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                             setErrors(prev => ({ ...prev, firstName: '' }));
                           }}
                           className={cn(
-                            "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm",
+                            "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm",
                             errors.firstName && "border-[#E05252]"
                           )}
                         />
@@ -337,7 +337,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                             setErrors(prev => ({ ...prev, lastName: '' }));
                           }}
                           className={cn(
-                            "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm",
+                            "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm",
                             errors.lastName && "border-[#E05252]"
                           )}
                         />
@@ -353,7 +353,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                             setErrors(prev => ({ ...prev, dob: '' }));
                           }}
                           className={cn(
-                            "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm",
+                            "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm",
                             errors.dob && "border-[#E05252]"
                           )}
                         />
@@ -373,7 +373,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                             setErrors(prev => ({ ...prev, entityName: '' }));
                           }}
                           className={cn(
-                            "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm",
+                            "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm",
                             errors.entityName && "border-[#E05252]"
                           )}
                         />
@@ -385,7 +385,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                           <select
                             value={subForm.entityType}
                             onChange={(e) => setSubForm(prev => ({ ...prev, entityType: e.target.value }))}
-                            className="h-[40px] w-full appearance-none rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] text-[#1F1F1F] outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm"
+                            className="h-[40px] w-full appearance-none rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm"
                           >
                             <option value="LLC">LLC</option>
                             <option value="Corporation">Corporation</option>
@@ -411,7 +411,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                         setErrors(prev => ({ ...prev, email: '' }));
                       }}
                       className={cn(
-                        "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm",
+                        "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm",
                         errors.email && "border-[#E05252]"
                       )}
                     />
@@ -430,14 +430,14 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                           setErrors(prev => ({ ...prev, password: '' }));
                         }}
                         className={cn(
-                          "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] pl-4 pr-10 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm",
+                          "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] pl-4 pr-10 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm",
                           errors.password && "border-[#E05252]"
                         )}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A2A5AA] hover:text-[#4B4B4B]"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A2A5AA] hover:text-[#4B4B4B] dark:text-gray-300"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -460,7 +460,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                             }));
                             setErrors((prev) => ({ ...prev, phone: '' }));
                           }}
-                          className="h-[40px] w-full appearance-none rounded-[8px] border border-[#E5E7EB] px-3 text-[12px] text-[#4B4B4B] outline-none bg-white shadow-sm"
+                          className="h-[40px] w-full appearance-none rounded-[8px] border border-[#E5E7EB] px-3 text-[12px] text-[#4B4B4B] dark:text-gray-300 outline-none bg-white dark:bg-[#1C1C1C] shadow-sm"
                         >
                           {COUNTRY_CODES.map(code => (
                             <option key={code} value={code}>{code}</option>
@@ -481,7 +481,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                           setErrors((prev) => ({ ...prev, phone: '' }));
                         }}
                         className={cn(
-                          "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm",
+                          "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm",
                           errors.phone && "border-[#E05252]"
                         )}
                       />
@@ -516,7 +516,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                         setErrors(prev => ({ ...prev, taxId: '' }));
                       }}
                       className={cn(
-                        "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm",
+                        "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm",
                         errors.taxId && "border-[#E05252]"
                       )}
                     />
@@ -529,7 +529,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <MapPin className="h-4 w-4 text-[#D1A94C]" />
-                  <h3 className="text-[16px] font-bold text-[#1F1F1F] font-goudy border-b pb-1">Address Details</h3>
+                  <h3 className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy border-b pb-1">Address Details</h3>
                 </div>
 
                 <div className="grid gap-5 md:grid-cols-2">
@@ -544,7 +544,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                         setErrors(prev => ({ ...prev, addressLine1: '' }));
                       }}
                       className={cn(
-                        "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm",
+                        "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm",
                         errors.addressLine1 && "border-[#E05252]"
                       )}
                     />
@@ -558,7 +558,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                       placeholder="Apartment, suite, unit, building, floor, etc."
                       value={subForm.addressLine2}
                       onChange={(e) => setSubForm(prev => ({ ...prev, addressLine2: e.target.value }))}
-                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm"
+                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm"
                     />
                   </div>
 
@@ -620,7 +620,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                         setErrors(prev => ({ ...prev, zipCode: '' }));
                       }}
                       className={cn(
-                        "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm",
+                        "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm",
                         errors.zipCode && "border-[#E05252]"
                       )}
                     />
@@ -634,7 +634,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-2.5 rounded-full text-[14px] font-medium text-[#6B7280] bg-[#F3F4F6] hover:bg-[#E5E7EB] transition-colors"
+                  className="px-6 py-2.5 rounded-full text-[14px] font-medium text-[#6B7280] bg-[#F3F4F6] dark:bg-gray-800 hover:bg-[#E5E7EB] dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>

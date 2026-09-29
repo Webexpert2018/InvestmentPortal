@@ -101,7 +101,7 @@ export default function ForgotPassword() {
         className="object-cover object-center z-0"
       />
 
-      <div className="relative z-10 w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
+      <div className="relative z-10 w-full max-w-md bg-white dark:bg-[#1C1C1C] rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
 
         {/* Logo */}
         <a href="/" className="flex justify-center mb-3 sm:mb-4">
@@ -118,7 +118,7 @@ export default function ForgotPassword() {
         {/* HEADINGS */}
         {step === 'email' && (
           <>
-            <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">Forgot Password?</h2>
+            <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F] dark:text-gray-100">Forgot Password?</h2>
             <p className="mt-1 text-center text-md sm:text-xl">
               Enter your email to receive a reset code
             </p>
@@ -127,7 +127,7 @@ export default function ForgotPassword() {
 
         {step === 'otp' && (
           <>
-            <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">Check your email</h2>
+            <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F] dark:text-gray-100">Check your email</h2>
             <p className="mt-1 text-center text-md sm:text-xl">
               We sent a code to {email}
             </p>
@@ -136,7 +136,7 @@ export default function ForgotPassword() {
 
         {step === 'reset' && (
           <>
-            <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">Reset Password</h2>
+            <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F] dark:text-gray-100">Reset Password</h2>
             <p className="mt-1 text-center text-md sm:text-xl">
               Create a new password
             </p>
@@ -148,7 +148,7 @@ export default function ForgotPassword() {
             <div className="flex justify-center mt-2">
               <CheckCircle className="h-14 w-14 text-green-500" />
             </div>
-            <h2 className="mt-4 text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
+            <h2 className="mt-4 text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F] dark:text-gray-100">
               Password Reset
             </h2>
             <p className="mt-1 text-center text-md sm:text-xl">
@@ -181,7 +181,7 @@ export default function ForgotPassword() {
 
               <Link
                 href={`/auth/login?flow=${flow}`}
-                className="flex items-center text-sm text-gray-600 hover:text-gray-900"
+                className="flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> Back to login
               </Link>
@@ -254,7 +254,7 @@ export default function ForgotPassword() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <p className="text-[10px] text-gray-500">
+              <p className="text-[10px] text-gray-500 dark:text-gray-400">
                 At least 8 chars, 1 uppercase, 1 number, 1 special char.
               </p>
 

@@ -208,12 +208,12 @@ export default function PortfolioFundDetailsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 font-helvetica text-[#1F1F1F]">
+      <div className="space-y-6 font-helvetica text-[#1F1F1F] dark:text-gray-100">
         {/* Breadcrumb / back */}
         <button
           type="button"
           onClick={() => router.back()}
-          className="mt-2 inline-flex items-center gap-2 text-sm text-[#4B4B4B] hover:text-[#1F1F1F]"
+          className="mt-2 inline-flex items-center gap-2 text-sm text-[#4B4B4B] dark:text-gray-300 hover:text-[#1F1F1F] dark:text-gray-100"
         >
           <ChevronLeft className="h-4 w-4" />
           <span>{fundName}</span>
@@ -221,19 +221,19 @@ export default function PortfolioFundDetailsPage() {
 
         {/* Top metrics row */}
         <div className="grid gap-4 md:grid-cols-4">
-          <div className="rounded-xl bg-white px-6 py-5">
+          <div className="rounded-xl bg-white dark:bg-[#1C1C1C] px-6 py-5">
             <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">Current Value</p>
-            <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(currentValue)}</p>
+            <p className="mt-3 text-2xl font-semibold text-[#1F1F1F] dark:text-gray-100">{formatCurrency(currentValue)}</p>
           </div>
-          <div className="rounded-xl bg-white px-6 py-5">
+          <div className="rounded-xl bg-white dark:bg-[#1C1C1C] px-6 py-5">
             <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">Units Held</p>
-            <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{unitsHeld.toLocaleString(undefined, { maximumFractionDigits: 4 })}</p>
+            <p className="mt-3 text-2xl font-semibold text-[#1F1F1F] dark:text-gray-100">{unitsHeld.toLocaleString(undefined, { maximumFractionDigits: 4 })}</p>
           </div>
-          <div className="rounded-xl bg-white px-6 py-5">
+          <div className="rounded-xl bg-white dark:bg-[#1C1C1C] px-6 py-5">
             <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">Current NAV</p>
-            <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(currentNavValue)}</p>
+            <p className="mt-3 text-2xl font-semibold text-[#1F1F1F] dark:text-gray-100">{formatCurrency(currentNavValue)}</p>
           </div>
-          <div className="rounded-xl bg-white px-6 py-5">
+          <div className="rounded-xl bg-white dark:bg-[#1C1C1C] px-6 py-5">
             <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">Total Gain/Loss</p>
             <p className={`mt-3 text-2xl font-semibold ${isPositive ? 'text-[#2BB673]' : 'text-[#E04343]'}`}>
               {isPositive ? '+' : ''}{formatCurrency(gainLoss)}
@@ -246,27 +246,27 @@ export default function PortfolioFundDetailsPage() {
 
         {/* Main grid: chart + holdings */}
         <div className="grid gap-6 xl:grid-cols-[minmax(0,2.5fr)_minmax(0,1.1fr)]">
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
+          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <h2 className="font-goudy text-base">Performance Overview</h2>
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setRangeOpen((open) => !open)}
-                  className="flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs text-[#4B4B4B]"
+                  className="flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-800 px-3 py-1 text-xs text-[#4B4B4B] dark:text-gray-300"
                 >
                   {rangeLabel[range]}
                   <ChevronDown className="h-3 w-3" />
                 </button>
                 {rangeOpen && (
-                  <div className="absolute right-0 z-10 mt-2 w-36 rounded-xl bg-white py-2 text-xs shadow-lg ring-1 ring-black/5">
+                  <div className="absolute right-0 z-10 mt-2 w-36 rounded-xl bg-white dark:bg-[#1C1C1C] py-2 text-xs shadow-lg ring-1 ring-black/5">
                     <button
                       type="button"
                       onClick={() => {
                         setRange('3m');
                         setRangeOpen(false);
                       }}
-                      className="block w-full px-4 py-2 text-left text-[#4B4B4B] hover:bg-gray-50"
+                      className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800"
                     >
                       Last 3 months
                     </button>
@@ -276,7 +276,7 @@ export default function PortfolioFundDetailsPage() {
                         setRange('6m');
                         setRangeOpen(false);
                       }}
-                      className="block w-full px-4 py-2 text-left text-[#4B4B4B] hover:bg-gray-50"
+                      className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800"
                     >
                       Last 6 months
                     </button>
@@ -286,7 +286,7 @@ export default function PortfolioFundDetailsPage() {
                         setRange('1y');
                         setRangeOpen(false);
                       }}
-                      className="block w-full px-4 py-2 text-left text-[#4B4B4B] hover:bg-gray-50"
+                      className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800"
                     >
                       Last year
                     </button>
@@ -296,7 +296,7 @@ export default function PortfolioFundDetailsPage() {
             </div>
 
             <div className={`mt-6 transition-opacity duration-300 ${isRefreshing ? 'opacity-50' : 'opacity-100'}`}>
-              <p className="text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(currentValue)}</p>
+              <p className="text-2xl font-semibold text-[#1F1F1F] dark:text-gray-100">{formatCurrency(currentValue)}</p>
               <p className={`mt-1 text-sm font-medium ${displayRangePct.startsWith('+') ? 'text-[#2BB673]' : 'text-[#E04343]'}`}>
                 {rangeLabel[range]} {displayRangePct}
               </p>
@@ -334,11 +334,11 @@ export default function PortfolioFundDetailsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <div className="border-b border-[#F2F2F2] pb-3">
+          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-6 shadow-sm">
+            <div className="border-b border-[#F2F2F2] dark:border-[#2A2A2A] pb-3">
               <h2 className="font-goudy text-base">Your Holdings</h2>
             </div>
-            <div className="mt-4 space-y-6 text-sm text-[#4B4B4B]">
+            <div className="mt-4 space-y-6 text-sm text-[#4B4B4B] dark:text-gray-300">
               <div className="flex items-center justify-between">
                 <span>Cost basis:</span>
                 <span className="text-right font-semibold">{formatCurrency(costBasis)}</span>
@@ -382,8 +382,8 @@ export default function PortfolioFundDetailsPage() {
         </div>
 
         {/* Bottom tabs */}
-        <div className="rounded-2xl bg-white pt-4 shadow-sm">
-          <div className="flex gap-8 border-b border-gray-100 px-6">
+        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] pt-4 shadow-sm">
+          <div className="flex gap-8 border-b border-gray-100 dark:border-gray-800 px-6">
             <button
               type="button"
               onClick={() => {
@@ -431,7 +431,7 @@ export default function PortfolioFundDetailsPage() {
           {activeTab === 'transactions' && (
             <div className="overflow-x-auto px-6 pb-6 pt-4">
               <table className="min-w-full text-left text-sm">
-                <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
+                <thead className="border-b border-gray-100 dark:border-gray-800 text-xs font-semibold text-[#8E8E93]">
                   <tr>
                     <th className="px-4 py-3">
                       <button
@@ -495,13 +495,13 @@ export default function PortfolioFundDetailsPage() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                   {sortedTransactions.map((tx: any) => (
-                    <tr key={tx.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-[#4B4B4B]">{tx.date}</td>
-                      <td className="px-4 py-3 text-[#4B4B4B]">{tx.type}</td>
-                      <td className="px-4 py-3 text-[#4B4B4B]">{formatCurrency(tx.amount)}</td>
-                      <td className="px-4 py-3 text-[#4B4B4B]">{tx.units}</td>
+                    <tr key={tx.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800">
+                      <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">{tx.date}</td>
+                      <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">{tx.type}</td>
+                      <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">{formatCurrency(tx.amount)}</td>
+                      <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">{tx.units}</td>
                         <td className={`px-4 py-3 text-sm font-medium ${
                           tx.status === 'Rejected'
                             ? 'text-red-600'
@@ -519,19 +519,19 @@ export default function PortfolioFundDetailsPage() {
           {activeTab === 'documents' && (
             <div className="overflow-x-auto px-6 pb-6 pt-4">
               <table className="min-w-full text-left text-sm">
-                <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
+                <thead className="border-b border-gray-100 dark:border-gray-800 text-xs font-semibold text-[#8E8E93]">
                   <tr>
                     <th className="px-4 py-3">Document Name</th>
                     <th className="px-4 py-3">Date</th>
                     <th className="px-4 py-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                   {documents.length > 0 ? (
                     documents.map((doc) => (
-                      <tr key={doc.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-[#1F1F1F] font-medium">{doc.file_name}</td>
-                        <td className="px-4 py-3 text-[#4B4B4B]">
+                      <tr key={doc.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800">
+                        <td className="px-4 py-3 text-[#1F1F1F] dark:text-gray-100 font-medium">{doc.file_name}</td>
+                        <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">
                           {new Date(doc.uploaded_at || doc.created_at).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
@@ -545,21 +545,21 @@ export default function PortfolioFundDetailsPage() {
                               onClick={() =>
                                 setOpenMenuId((current) => (current === doc.id ? null : doc.id))
                               }
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
                               <MoreVertical className="h-4 w-4 text-[#8E8E93]" />
                             </button>
                             {openMenuId === doc.id && (
-                              <div className="absolute right-0 z-10 mt-2 w-40 rounded-xl bg-white py-2 text-xs shadow-lg ring-1 ring-black/5">
+                              <div className="absolute right-0 z-10 mt-2 w-40 rounded-xl bg-white dark:bg-[#1C1C1C] py-2 text-xs shadow-lg ring-1 ring-black/5">
                                 <button
                                   onClick={() => handleViewDocument(doc.id)}
-                                  className="block w-full px-4 py-2 text-left text-[#4B4B4B] hover:bg-gray-50"
+                                  className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800"
                                 >
                                   View Document
                                 </button>
                                 <button
                                   onClick={() => handleDownloadDocument(doc.id)}
-                                  className="block w-full px-4 py-2 text-left text-[#4B4B4B] hover:bg-gray-50"
+                                  className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800"
                                 >
                                   Download
                                 </button>
@@ -582,8 +582,8 @@ export default function PortfolioFundDetailsPage() {
           )}
 
           {activeTab === 'fundInfo' && (
-            <div className="px-6 pb-6 pt-4 text-sm text-[#4B4B4B]">
-              <h3 className="mb-2 font-semibold text-[#1F1F1F]">
+            <div className="px-6 pb-6 pt-4 text-sm text-[#4B4B4B] dark:text-gray-300">
+              <h3 className="mb-2 font-semibold text-[#1F1F1F] dark:text-gray-100">
                 {investment?.fund_name}
               </h3>
               <p className="text-xs leading-relaxed text-[#6B7280]">

@@ -617,19 +617,19 @@ export default function DoctorCrmPage() {
 
   return (
     <DashboardLayout>
-      <div className="w-full font-helvetica text-[#1F1F1F] relative">
+      <div className="w-full font-helvetica text-[#1F1F1F] dark:text-gray-100 relative">
         {/* Main Full Width Content Section */}
         <div className="w-full space-y-6">
           {/* Header */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
             {/* Left Column: Header Box */}
             <div className="md:col-span-8">
-              <div className="bg-white p-5 rounded-[20px] border border-[#F0F0F0] shadow-sm">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-200/60 rounded-full text-blue-800 text-[11px] font-bold uppercase tracking-wider mb-2">
+              <div className="bg-white dark:bg-[#1C1C1C] p-5 rounded-[20px] border border-[#F0F0F0] dark:border-[#2A2A2A] dark:border-gray-800 shadow-sm">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 border border-blue-200/60 dark:border-blue-800/50 rounded-full text-blue-800 dark:text-blue-400 text-[11px] font-bold uppercase tracking-wider mb-2">
                   <Target className="w-3.5 h-3.5 text-[#1a73e8]" />
                   <span>Step 2: CRM &amp; Meeting Intelligence</span>
                 </div>
-                <h1 className="text-[26px] font-goudy font-bold text-[#1F1F1F] tracking-tight">
+                <h1 className="text-[26px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100 tracking-tight">
                   Doctor Outreach CRM &amp; AI Agent
                 </h1>
                 <p className="text-[13px] text-[#6C6C6C] mt-1">
@@ -642,7 +642,7 @@ export default function DoctorCrmPage() {
             <div className="md:col-span-4 flex items-center justify-end gap-2 flex-wrap">
               <Link
                 href="/dashboard/doctor-crm/email-sequence?from=crm"
-                className="flex-1 flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:bg-blue-50/40 text-[#1a73e8] px-3.5 py-3 rounded-xl font-semibold text-[12px] shadow-sm transition-all whitespace-nowrap"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-white dark:bg-[#1C1C1C] border border-[#dadce0] dark:border-[#2A2A2A] hover:bg-blue-50/40 text-[#1a73e8] px-3.5 py-3 rounded-xl font-semibold text-[12px] shadow-sm transition-all whitespace-nowrap"
               >
                 <GitFork className="w-4 h-4 text-[#1a73e8]" />
                 <span>View Email Sequence</span>
@@ -650,7 +650,7 @@ export default function DoctorCrmPage() {
 
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-[#FFC63F] hover:bg-[#F2B62D] text-[#1F1F1F] px-3.5 py-3 rounded-xl font-bold text-[13px] shadow-sm transition-all whitespace-nowrap"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-[#FFC63F] hover:bg-[#F2B62D] text-[#1F1F1F] dark:text-gray-100 px-3.5 py-3 rounded-xl font-bold text-[13px] shadow-sm transition-all whitespace-nowrap"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Add Doctor Lead</span>
@@ -658,7 +658,7 @@ export default function DoctorCrmPage() {
 
               <button
                 onClick={() => setIsBulkUploadModalOpen(true)}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:bg-blue-50/40 text-[#1a73e8] px-3.5 py-3 rounded-xl font-semibold text-[12px] shadow-sm transition-all whitespace-nowrap"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-white dark:bg-[#1C1C1C] border border-[#dadce0] dark:border-[#2A2A2A] hover:bg-blue-50/40 text-[#1a73e8] px-3.5 py-3 rounded-xl font-semibold text-[12px] shadow-sm transition-all whitespace-nowrap"
               >
                 <Upload className="w-4 h-4 text-[#1a73e8]" />
                 <span>Bulk Upload</span>
@@ -669,13 +669,13 @@ export default function DoctorCrmPage() {
           {/* Top 4 Dynamic KPI Cards Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {/* Card 1: Total Docs */}
-            <div className="bg-white rounded-[18px] p-5 shadow-sm border border-[#F2F2F2]">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[18px] p-5 shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A]">
               <div className="text-[12px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">TOTAL DOCS</div>
               <div className="flex items-baseline justify-between">
-                <div className="text-[28px] font-goudy font-bold text-[#1F1F1F]">
+                <div className="text-[28px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">
                   {isLoading ? '...' : `${totalDocsCount} Doctors`}
                 </div>
-                <span className="text-[12px] font-bold text-green-600 bg-green-50 px-2.5 py-0.5 rounded-full">
+                <span className="text-[12px] font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2.5 py-0.5 rounded-full">
                   Database Active
                 </span>
               </div>
@@ -683,13 +683,13 @@ export default function DoctorCrmPage() {
             </div>
 
             {/* Card 2: Interested */}
-            <div className="bg-white rounded-[18px] p-5 shadow-sm border border-[#F2F2F2]">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[18px] p-5 shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A]">
               <div className="text-[12px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">INTERESTED</div>
               <div className="flex items-baseline justify-between">
-                <div className="text-[28px] font-goudy font-bold text-[#1F1F1F]">
+                <div className="text-[28px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">
                   {isLoading ? '...' : `${interestedCount} Doctors`}
                 </div>
-                <span className="text-[12px] font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
+                <span className="text-[12px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 rounded-full">
                   High Intent
                 </span>
               </div>
@@ -697,13 +697,13 @@ export default function DoctorCrmPage() {
             </div>
 
             {/* Card 3: Pending Outreach */}
-            <div className="bg-white rounded-[18px] p-5 shadow-sm border border-[#F2F2F2]">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[18px] p-5 shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A]">
               <div className="text-[12px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">PENDING OUTREACH</div>
               <div className="flex items-baseline justify-between">
-                <div className="text-[28px] font-goudy font-bold text-[#1F1F1F]">
+                <div className="text-[28px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">
                   {isLoading ? '...' : `${pendingOutreachCount} Doctors`}
                 </div>
-                <span className="text-[12px] font-bold text-purple-600 bg-purple-50 px-2.5 py-0.5 rounded-full">
+                <span className="text-[12px] font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 px-2.5 py-0.5 rounded-full">
                   In Progress
                 </span>
               </div>
@@ -711,13 +711,13 @@ export default function DoctorCrmPage() {
             </div>
 
             {/* Card 4: Schedule for Call */}
-            <div className="bg-white rounded-[18px] p-5 shadow-sm border border-[#F2F2F2]">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[18px] p-5 shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A]">
               <div className="text-[12px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">SCHEDULE FOR CALL</div>
               <div className="flex items-baseline justify-between">
-                <div className="text-[28px] font-goudy font-bold text-[#1F1F1F]">
+                <div className="text-[28px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">
                   {isLoading ? '...' : `${scheduleForCallCount} Doctors`}
                 </div>
-                <span className="text-[12px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-100">
+                <span className="text-[12px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2.5 py-0.5 rounded-full border border-amber-100">
                   Needs Phone Call
                 </span>
               </div>
@@ -726,13 +726,13 @@ export default function DoctorCrmPage() {
           </div>
 
           {/* Pipeline Navigation Tabs & Search */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-[18px] border border-[#F0F0F0] shadow-sm">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-[#1C1C1C] p-3 rounded-[18px] border border-[#F0F0F0] dark:border-[#2A2A2A] dark:border-gray-800 shadow-sm">
             <div className="flex items-center gap-2 overflow-x-auto">
               <button
                 onClick={() => handleTabChange('all')}
                 className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${activeTab === 'all'
-                  ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm'
-                  : 'bg-white hover:bg-gray-100 text-[#6C6C6C]'
+                  ? 'bg-[#FFC63F] text-[#1F1F1F] dark:text-gray-100 shadow-sm'
+                  : 'bg-white dark:bg-[#1C1C1C] hover:bg-gray-100 dark:hover:bg-gray-700 text-[#6C6C6C]'
                   }`}
               >
                 All Prospects ({doctors.length})
@@ -742,7 +742,7 @@ export default function DoctorCrmPage() {
                 onClick={() => handleTabChange('interested')}
                 className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'interested'
                   ? 'bg-green-600 text-white shadow-sm'
-                  : 'bg-white hover:bg-green-50 text-green-700 border border-green-200'
+                  : 'bg-white dark:bg-[#1C1C1C] hover:bg-green-50 text-green-700 border border-green-200'
                   }`}
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
@@ -753,7 +753,7 @@ export default function DoctorCrmPage() {
                 onClick={() => handleTabChange('pending_outreach')}
                 className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'pending_outreach'
                   ? 'bg-purple-600 text-white shadow-sm'
-                  : 'bg-white hover:bg-purple-50 text-purple-700 border border-purple-200'
+                  : 'bg-white dark:bg-[#1C1C1C] hover:bg-purple-50 text-purple-700 border border-purple-200'
                   }`}
               >
                 <Mail className="w-3.5 h-3.5" />
@@ -764,7 +764,7 @@ export default function DoctorCrmPage() {
                 onClick={() => handleTabChange('needs_call')}
                 className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'needs_call'
                   ? 'bg-amber-600 text-white shadow-sm'
-                  : 'bg-white hover:bg-amber-50 text-amber-800 border border-amber-300'
+                  : 'bg-white dark:bg-[#1C1C1C] hover:bg-amber-50 text-amber-800 border border-amber-300'
                   }`}
               >
                 <PhoneCall className="w-3.5 h-3.5" />
@@ -779,17 +779,17 @@ export default function DoctorCrmPage() {
                 placeholder="Filter doctors..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#F8F9FA] border border-[#E8E8E8] rounded-full py-2 pl-9 pr-4 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                className="w-full bg-[#F8F9FA] dark:bg-[#1C1C1C] border border-[#E8E8E8] dark:border-[#2A2A2A] dark:border-gray-800 rounded-full py-2 pl-9 pr-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
               />
             </div>
           </div>
 
           {/* CRM Pipeline Table */}
-          <div className="bg-white rounded-[20px] shadow-sm border border-[#F2F2F2] overflow-hidden">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[20px] shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A] overflow-hidden">
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[#F2F2F2] bg-[#FCFCFC]">
+                  <tr className="border-b border-[#F2F2F2] dark:border-[#2A2A2A] dark:border-gray-800 bg-[#FCFCFC] dark:bg-[#121212]">
                     <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Doctor &amp; Specialty</th>
                     <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Email Info</th>
                     <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Phone Info</th>
@@ -817,17 +817,17 @@ export default function DoctorCrmPage() {
                     </tr>
                   ) : (
                     filteredDoctors.map((doc) => (
-                      <tr key={doc.id} className="hover:bg-gray-50/80 transition-colors group">
+                      <tr key={doc.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/80 transition-colors group">
                         {/* Column 1: Doctor & Specialty */}
                         <td className="px-6 py-4.5 whitespace-nowrap">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] flex items-center justify-center font-bold text-[14px] shadow-xs">
+                            <div className="w-10 h-10 rounded-full bg-[#FFF9EE] dark:bg-amber-900/30 text-[#D9A11E] dark:text-amber-400 border border-[#FFE7A8] dark:border-amber-800/50 flex items-center justify-center font-bold text-[14px] shadow-xs">
                               {doc.fullName ? doc.fullName.replace(/^Dr\.?\s+/i, '')[0] : 'D'}
                             </div>
                             <div>
                               <Link
                                 href={`/dashboard/doctor-leads/${doc.id}`}
-                                className="font-bold text-[14px] text-[#1F1F1F] hover:text-[#D9A11E] hover:underline transition-colors block cursor-pointer"
+                                className="font-bold text-[14px] text-[#1F1F1F] dark:text-gray-100 hover:text-[#D9A11E] hover:underline transition-colors block cursor-pointer"
                                 title="Click to view full physician profile dossier & AI campaign"
                               >
                                 {doc.fullName}
@@ -838,25 +838,25 @@ export default function DoctorCrmPage() {
                         </td>
 
                         {/* Column 2: Email Info */}
-                        <td className="px-6 py-4.5 whitespace-nowrap text-[13px] text-[#1F1F1F]">
+                        <td className="px-6 py-4.5 whitespace-nowrap text-[13px] text-[#1F1F1F] dark:text-gray-100">
                           <div>
-                            <span className="font-semibold text-gray-500 mr-1">Work:</span>
+                            <span className="font-semibold text-gray-500 dark:text-gray-400 mr-1">Work:</span>
                             <span className="font-medium">{doc.email && doc.email !== 'No Email' && doc.email !== 'Email in DB' ? doc.email : 'null'}</span>
                           </div>
                           <div className="mt-1">
-                            <span className="font-semibold text-gray-500 mr-1">Pers:</span>
+                            <span className="font-semibold text-gray-500 dark:text-gray-400 mr-1">Pers:</span>
                             <span className="font-medium">{doc.personalEmails && doc.personalEmails.length > 0 ? doc.personalEmails[0] : 'null'}</span>
                           </div>
                         </td>
 
                         {/* Column 2.5: Phone Info */}
-                        <td className="px-6 py-4.5 whitespace-nowrap text-[13px] text-[#1F1F1F]">
+                        <td className="px-6 py-4.5 whitespace-nowrap text-[13px] text-[#1F1F1F] dark:text-gray-100">
                           <div>
-                            <span className="font-semibold text-gray-500 mr-1">Work:</span>
+                            <span className="font-semibold text-gray-500 dark:text-gray-400 mr-1">Work:</span>
                             <span className="font-medium">{doc.workPhone && doc.workPhone !== 'N/A' ? doc.workPhone : 'null'}</span>
                           </div>
                           <div className="mt-1">
-                            <span className="font-semibold text-gray-500 mr-1">Pers:</span>
+                            <span className="font-semibold text-gray-500 dark:text-gray-400 mr-1">Pers:</span>
                             <span className="font-medium">{doc.phone && doc.phone !== 'N/A' ? doc.phone : 'null'}</span>
                           </div>
                         </td>
@@ -864,7 +864,7 @@ export default function DoctorCrmPage() {
                         {/* Column 3: Practice Location */}
                         <td className="px-6 py-4.5 whitespace-nowrap">
                           <div>
-                            <div className="text-[13px] font-semibold text-[#1F1F1F]">{doc.organization}</div>
+                            <div className="text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100">{doc.organization}</div>
                             <div className="text-[12px] text-[#8E8E93] flex items-center gap-1 mt-0.5">
                               <MapPin className="w-3.5 h-3.5 text-[#8E8E93]" />
                               <span>{doc.location}</span>
@@ -879,18 +879,18 @@ export default function DoctorCrmPage() {
                               value={doc.stage}
                               onChange={(e) => handleUpdateStage(doc.id, e.target.value)}
                               className={`pl-3 pr-8 py-1 rounded-full text-[11px] font-bold border focus:outline-none cursor-pointer appearance-none bg-no-repeat bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[position:right_8px_center] ${['interested', 'luma_registered', 'converted_investor'].includes(doc.stage)
-                                ? 'bg-green-50 text-green-700 border-green-200'
+                                ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800/50'
                                 : doc.stage === 'email_replied'
-                                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800/50'
                                   : ['call_queue', 'needs_call', 'call_back_later'].includes(doc.stage)
-                                    ? 'bg-amber-50 text-amber-800 border-amber-300'
+                                    ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border-amber-300 dark:border-amber-800/50'
                                     : doc.stage === 'pending_outreach'
-                                      ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                      ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800/50'
                                       : doc.stage === 'not_interested'
-                                        ? 'bg-red-50 text-red-700 border-red-200'
+                                        ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800/50'
                                         : doc.stage === 'sent'
-                                          ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                                          : 'bg-gray-100 text-gray-700 border-gray-200'
+                                          ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/50'
+                                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
                                 }`}
                             >
                               <option value="interested">Interested</option>
@@ -920,11 +920,11 @@ export default function DoctorCrmPage() {
                         {/* Column 5: Lead Source */}
                         <td className="px-6 py-4.5 whitespace-nowrap">
                           {doc.id?.startsWith('manual-') || (doc as any).apolloId?.startsWith('manual-') || (doc as any).apollo_id?.startsWith('manual-') ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FFF9EE] text-[#805C00] border border-[#FFE494]">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FFF9EE] dark:bg-amber-900/30 text-[#805C00] dark:text-amber-400 border border-[#FFE494] dark:border-amber-800/50">
                               Manual
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50">
                               Apollo
                             </span>
                           )}
@@ -935,7 +935,7 @@ export default function DoctorCrmPage() {
                           <div className="flex items-center justify-end gap-2">
                             <Link
                               href={`/dashboard/doctor-leads/${doc.id}`}
-                              className="px-4 py-2 rounded-full text-[12px] font-extrabold bg-white hover:bg-[#f8fafd] text-[#1a73e8] border border-[#d2e3fc] shadow-xs flex items-center gap-1.5 transition-all inline-flex cursor-pointer"
+                              className="px-4 py-2 rounded-full text-[12px] font-extrabold bg-white dark:bg-[#1C1C1C] hover:bg-[#f8fafd] dark:hover:bg-blue-900/30 text-[#1a73e8] border border-[#d2e3fc] dark:border-gray-800 shadow-xs flex items-center gap-1.5 transition-all inline-flex cursor-pointer"
                             >
                               <span>View Profile</span>
                               <ChevronRight className="w-3.5 h-3.5" />
@@ -954,20 +954,20 @@ export default function DoctorCrmPage() {
         {/* Add Doctor Lead Modal */}
         {isAddModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-gray-200 space-y-5 animate-in fade-in zoom-in-95 duration-200">
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] flex items-center justify-center font-bold">
+                  <div className="w-9 h-9 rounded-xl bg-[#FFF9EE] dark:bg-amber-900/30 text-[#D9A11E] dark:text-amber-400 border border-[#FFE7A8] dark:border-amber-800/50 flex items-center justify-center font-bold">
                     <UserPlus className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F]">Add New Physician Lead</h3>
-                    <p className="text-[12px] text-gray-500">Save lead to PostgreSQL with stage set to Pending Outreach</p>
+                    <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">Add New Physician Lead</h3>
+                    <p className="text-[12px] text-gray-500 dark:text-gray-400">Save lead to PostgreSQL with stage set to Pending Outreach</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setIsAddModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-[#1F1F1F] transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#1F1F1F] dark:text-gray-100 transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -975,43 +975,43 @@ export default function DoctorCrmPage() {
 
               <form onSubmit={handleCreateDoctor} className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Full Name *</label>
+                  <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Full Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Dr. Marcus Vance, MD"
                     value={newFullName}
                     onChange={(e) => setNewFullName(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Email Address *</label>
+                  <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Email Address *</label>
                   <input
                     type="email"
                     required
                     placeholder="e.g. marcus.vance@clinic.org"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Medical Specialty</label>
+                    <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Medical Specialty</label>
                     <input
                       type="text"
                       placeholder="e.g. Dermatology"
                       value={newSpecialty}
                       onChange={(e) => setNewSpecialty(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Phone Number</label>
+                    <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Phone Number</label>
                     <input
                       type="tel"
                       placeholder="e.g. +1 (305) 555-0103"
@@ -1021,30 +1021,30 @@ export default function DoctorCrmPage() {
                         const filtered = e.target.value.replace(/[^0-9+\-\(\)\s\.]/g, '');
                         setNewPhone(filtered);
                       }}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Practice / Clinic Name</label>
+                  <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Practice / Clinic Name</label>
                   <input
                     type="text"
                     placeholder="e.g. Vance Dermatology Group"
                     value={newOrganization}
                     onChange={(e) => setNewOrganization(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Practice Location</label>
+                  <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Practice Location</label>
                   <input
                     type="text"
                     placeholder="e.g. Miami, FL"
                     value={newLocation}
                     onChange={(e) => setNewLocation(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                   />
                 </div>
 
@@ -1053,18 +1053,18 @@ export default function DoctorCrmPage() {
                   <span>The new physician lead will be initialized in stage <strong>Pending Outreach</strong> and can be included in 5-day AI email drip campaigns.</span>
                 </div>
 
-                <div className="pt-3 flex items-center justify-end gap-3 border-t border-gray-100">
+                <div className="pt-3 flex items-center justify-end gap-3 border-t border-gray-100 dark:border-gray-800">
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+                    className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSavingDoctor}
-                    className="px-6 py-2.5 rounded-full text-[13px] font-bold bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-sm flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+                    className="px-6 py-2.5 rounded-full text-[13px] font-bold bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 shadow-sm flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
                   >
                     {isSavingDoctor ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                     <span>Save &amp; Add to Pipeline</span>
@@ -1083,8 +1083,8 @@ export default function DoctorCrmPage() {
             className="fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-40 bg-[#1F1F1F] hover:bg-[#2D2D2D] text-white p-3.5 px-5 rounded-full shadow-2xl border border-gray-700 flex items-center gap-3 transition-all transform hover:scale-105 group cursor-pointer"
             title="Open Athena AI Agent"
           >
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] font-bold shadow-md shrink-0">
-              <AthenaIcon className="w-5 h-5 text-[#1F1F1F]" />
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] dark:text-gray-100 font-bold shadow-md shrink-0">
+              <AthenaIcon className="w-5 h-5 text-[#1F1F1F] dark:text-gray-100" />
             </div>
             <div className="text-left pr-1">
               <div className="text-[13px] font-bold text-white flex items-center gap-1.5 leading-tight">
@@ -1093,7 +1093,7 @@ export default function DoctorCrmPage() {
               </div>
               <div className="text-[11px] text-gray-400">Ask AI Agent</div>
             </div>
-            <div className="w-7 h-7 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center text-gray-300 ml-1">
+            <div className="w-7 h-7 rounded-full bg-white dark:bg-[#1C1C1C]/10 group-hover:bg-white dark:bg-[#1C1C1C]/20 flex items-center justify-center text-gray-300 ml-1">
               <Maximize2 className="w-3.5 h-3.5" />
             </div>
           </button>
@@ -1103,8 +1103,8 @@ export default function DoctorCrmPage() {
             {/* Header with Collapse Controls */}
             <div className="p-4 bg-[#181818] border-b border-gray-800 flex items-center justify-between gap-2 shrink-0">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] font-bold shadow-md shrink-0">
-                  <AthenaIcon className="w-5 h-5 text-[#1F1F1F]" />
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] dark:text-gray-100 font-bold shadow-md shrink-0">
+                  <AthenaIcon className="w-5 h-5 text-[#1F1F1F] dark:text-gray-100" />
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-goudy text-[16px] font-bold text-white flex items-center gap-2 flex-wrap leading-snug">
@@ -1123,21 +1123,21 @@ export default function DoctorCrmPage() {
                     text: 'Hello! I am Athena, your Executive Assistant AI Agent. Ask me anything about your physician pipeline or scheduled webinars!',
                     timestamp: 'Just now'
                   }])}
-                  className="text-[11px] text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
+                  className="text-[11px] text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white dark:bg-[#1C1C1C]/10 cursor-pointer"
                   title="Clear Chat"
                 >
                   Clear
                 </button>
                 <button
                   onClick={() => setIsAgentOpen(false)}
-                  className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-gray-300 hover:text-white transition-all cursor-pointer"
+                  className="w-7 h-7 rounded-full bg-white dark:bg-[#1C1C1C]/10 hover:bg-white dark:bg-[#1C1C1C]/20 flex items-center justify-center text-gray-300 hover:text-white transition-all cursor-pointer"
                   title="Minimize Assistant"
                 >
                   <Minimize2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setIsAgentOpen(false)}
-                  className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-gray-300 hover:text-white transition-all cursor-pointer"
+                  className="w-7 h-7 rounded-full bg-white dark:bg-[#1C1C1C]/10 hover:bg-white dark:bg-[#1C1C1C]/20 flex items-center justify-center text-gray-300 hover:text-white transition-all cursor-pointer"
                   title="Close Assistant"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -1154,8 +1154,8 @@ export default function DoctorCrmPage() {
                 >
                   <div
                     className={`max-w-[90%] px-4 py-3 rounded-[16px] text-[13px] leading-relaxed ${msg.sender === 'user'
-                      ? 'bg-[#FFC63F] text-[#1F1F1F] font-semibold rounded-br-none shadow-sm'
-                      : 'bg-white/10 text-gray-200 rounded-bl-none border border-white/10 [&>p]:mb-2 last:[&>p]:mb-0 [&_strong]:font-bold [&_em]:italic [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_a]:text-blue-400 [&_a]:underline'
+                      ? 'bg-[#FFC63F] text-[#1F1F1F] dark:text-gray-100 font-semibold rounded-br-none shadow-sm'
+                      : 'bg-white dark:bg-[#1C1C1C]/10 text-gray-200 rounded-bl-none border border-white/10 [&>p]:mb-2 last:[&>p]:mb-0 [&_strong]:font-bold [&_em]:italic [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_a]:text-blue-400 [&_a]:underline'
                       }`}
                   >
                     {msg.sender === 'user' ? (
@@ -1166,7 +1166,7 @@ export default function DoctorCrmPage() {
                       </ReactMarkdown>
                     )}
                   </div>
-                  <span className="text-[10px] text-gray-500 mt-1 px-1">{msg.timestamp}</span>
+                  <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 px-1">{msg.timestamp}</span>
                 </div>
               ))}
               {isAgentThinking && (
@@ -1189,7 +1189,7 @@ export default function DoctorCrmPage() {
                   <button
                     key={idx}
                     onClick={() => handleAgentSend(chip)}
-                    className="text-[10px] font-medium bg-white/5 hover:bg-white/15 text-gray-300 px-2.5 py-1 rounded-full border border-white/10 transition-colors cursor-pointer"
+                    className="text-[10px] font-medium bg-white dark:bg-[#1C1C1C]/5 hover:bg-white dark:bg-[#1C1C1C]/15 text-gray-300 px-2.5 py-1 rounded-full border border-white/10 transition-colors cursor-pointer"
                   >
                     {chip}
                   </button>
@@ -1228,7 +1228,7 @@ export default function DoctorCrmPage() {
                 <button
                   type="submit"
                   disabled={!agentInput.trim() || isAgentThinking}
-                  className="w-10 h-10 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] flex items-center justify-center font-bold shadow-md transition-all disabled:opacity-50 shrink-0 cursor-pointer mb-[1px]"
+                  className="w-10 h-10 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 flex items-center justify-center font-bold shadow-md transition-all disabled:opacity-50 shrink-0 cursor-pointer mb-[1px]"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -1240,16 +1240,16 @@ export default function DoctorCrmPage() {
         {/* Bulk Upload Doctor Leads Modal */}
         {isBulkUploadModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-[24px] max-w-3xl w-full p-6 shadow-2xl border border-gray-200 space-y-5 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-3xl w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 space-y-5 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
               {/* Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100 shrink-0">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800 shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] flex items-center justify-center font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF9EE] dark:bg-amber-900/30 text-[#D9A11E] dark:text-amber-400 border border-[#FFE7A8] dark:border-amber-800/50 flex items-center justify-center font-bold">
                     <FileSpreadsheet className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-goudy text-[22px] font-bold text-[#1F1F1F]">Bulk Upload Doctor Leads</h3>
-                    <p className="text-[12px] text-gray-500">Upload Excel spreadsheet (.xlsx, .xls, .csv) to save doctor prospects into PostgreSQL</p>
+                    <h3 className="font-goudy text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100">Bulk Upload Doctor Leads</h3>
+                    <p className="text-[12px] text-gray-500 dark:text-gray-400">Upload Excel spreadsheet (.xlsx, .xls, .csv) to save doctor prospects into PostgreSQL</p>
                   </div>
                 </div>
                 <button
@@ -1258,7 +1258,7 @@ export default function DoctorCrmPage() {
                     setParsedLeads([]);
                     setUploadedFileName('');
                   }}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-[#1F1F1F] transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#1F1F1F] dark:text-gray-100 transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1284,21 +1284,21 @@ export default function DoctorCrmPage() {
                     Your Excel file can use separate individual field headers (matching the lead form) or combined table columns:
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 pt-1">
-                    <div className="bg-white p-2.5 rounded-xl border border-blue-100 text-[12px]">
-                      <span className="font-bold text-gray-900 block">Full Name &amp; Email</span>
-                      <span className="text-gray-500 text-[11px]">Full Name | Email Address</span>
+                    <div className="bg-white dark:bg-[#1C1C1C] p-2.5 rounded-xl border border-blue-100 text-[12px]">
+                      <span className="font-bold text-gray-900 dark:text-gray-100 block">Full Name &amp; Email</span>
+                      <span className="text-gray-500 dark:text-gray-400 text-[11px]">Full Name | Email Address</span>
                     </div>
-                    <div className="bg-white p-2.5 rounded-xl border border-blue-100 text-[12px]">
-                      <span className="font-bold text-gray-900 block">Specialty &amp; Phone</span>
-                      <span className="text-gray-500 text-[11px]">Medical Specialty | Phone Number</span>
+                    <div className="bg-white dark:bg-[#1C1C1C] p-2.5 rounded-xl border border-blue-100 text-[12px]">
+                      <span className="font-bold text-gray-900 dark:text-gray-100 block">Specialty &amp; Phone</span>
+                      <span className="text-gray-500 dark:text-gray-400 text-[11px]">Medical Specialty | Phone Number</span>
                     </div>
-                    <div className="bg-white p-2.5 rounded-xl border border-blue-100 text-[12px]">
-                      <span className="font-bold text-gray-900 block">Practice &amp; Location</span>
-                      <span className="text-gray-500 text-[11px]">Practice / Clinic Name | Location</span>
+                    <div className="bg-white dark:bg-[#1C1C1C] p-2.5 rounded-xl border border-blue-100 text-[12px]">
+                      <span className="font-bold text-gray-900 dark:text-gray-100 block">Practice &amp; Location</span>
+                      <span className="text-gray-500 dark:text-gray-400 text-[11px]">Practice / Clinic Name | Location</span>
                     </div>
-                    <div className="bg-white p-2.5 rounded-xl border border-blue-100 text-[12px]">
-                      <span className="font-bold text-gray-900 block">Stage</span>
-                      <span className="text-gray-500 text-[11px]">pending_outreach | interested | needs_call </span>
+                    <div className="bg-white dark:bg-[#1C1C1C] p-2.5 rounded-xl border border-blue-100 text-[12px]">
+                      <span className="font-bold text-gray-900 dark:text-gray-100 block">Stage</span>
+                      <span className="text-gray-500 dark:text-gray-400 text-[11px]">pending_outreach | interested | needs_call </span>
                     </div>
                   </div>
                 </div>
@@ -1314,7 +1314,7 @@ export default function DoctorCrmPage() {
                       processExcelFile(e.dataTransfer.files[0]);
                     }
                   }}
-                  className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${dragActive ? 'border-[#FFC63F] bg-[#FFF9EE]' : 'border-gray-300 hover:border-gray-400 bg-gray-50/50'
+                  className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${dragActive ? 'border-[#FFC63F] bg-[#FFF9EE]' : 'border-gray-300 hover:border-gray-400 bg-gray-50/50 dark:bg-gray-800/50'
                     }`}
                 >
                   <input
@@ -1333,11 +1333,11 @@ export default function DoctorCrmPage() {
                       <Upload className="w-6 h-6" />
                     </div>
                     <div>
-                      <span className="font-bold text-[#1F1F1F] text-[14px]">
+                      <span className="font-bold text-[#1F1F1F] dark:text-gray-100 text-[14px]">
                         {uploadedFileName ? uploadedFileName : 'Click to upload'}
                       </span>
                       {!uploadedFileName && (
-                        <span className="text-gray-500 text-[14px]"> or drag and drop your Excel file here</span>
+                        <span className="text-gray-500 dark:text-gray-400 text-[14px]"> or drag and drop your Excel file here</span>
                       )}
                     </div>
                     <p className="text-[11px] text-gray-400">Supports .xlsx, .xls, and .csv files</p>
@@ -1349,7 +1349,7 @@ export default function DoctorCrmPage() {
                   <div className="space-y-3 pt-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#1F1F1F] text-[14px]">Preview Parsed Doctor Leads ({parsedLeads.length})</span>
+                        <span className="font-bold text-[#1F1F1F] dark:text-gray-100 text-[14px]">Preview Parsed Doctor Leads ({parsedLeads.length})</span>
                         <span className="text-[11px] font-bold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-full border border-green-200">Ready to save</span>
                       </div>
                       <button
@@ -1361,9 +1361,9 @@ export default function DoctorCrmPage() {
                       </button>
                     </div>
 
-                    <div className="max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white custom-scrollbar">
+                    <div className="max-h-56 overflow-y-auto rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] custom-scrollbar">
                       <table className="w-full text-left text-[12px]">
-                        <thead className="bg-gray-50 sticky top-0 border-b border-gray-200 font-bold text-gray-600">
+                        <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 border-b border-gray-200 dark:border-gray-800 font-bold text-gray-600 dark:text-gray-400">
                           <tr>
                             <th className="px-3 py-2">Doctor &amp; Specialty</th>
                             <th className="px-3 py-2">Contact Info</th>
@@ -1373,15 +1373,15 @@ export default function DoctorCrmPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {parsedLeads.map((lead, i) => (
-                            <tr key={i} className="hover:bg-gray-50">
-                              <td className="px-3 py-2 font-medium text-gray-900">
-                                {lead.fullName} <span className="text-gray-500 font-normal">({lead.specialty})</span>
+                            <tr key={i} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800">
+                              <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">
+                                {lead.fullName} <span className="text-gray-500 dark:text-gray-400 font-normal">({lead.specialty})</span>
                               </td>
-                              <td className="px-3 py-2 text-gray-700">
+                              <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
                                 <div>{lead.email}</div>
                                 <div className="text-gray-400 text-[11px]">{lead.phone}</div>
                               </td>
-                              <td className="px-3 py-2 text-gray-700">
+                              <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
                                 <div>{lead.organization}</div>
                                 <div className="text-gray-400 text-[11px]">{lead.location}</div>
                               </td>
@@ -1400,7 +1400,7 @@ export default function DoctorCrmPage() {
               </div>
 
               {/* Modal Actions */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 shrink-0">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 shrink-0">
                 <button
                   type="button"
                   onClick={() => {
@@ -1408,7 +1408,7 @@ export default function DoctorCrmPage() {
                     setParsedLeads([]);
                     setUploadedFileName('');
                   }}
-                  className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all cursor-pointer"
+                  className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 dark:text-gray-400 bg-gray-100 hover:bg-gray-200 transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1417,11 +1417,11 @@ export default function DoctorCrmPage() {
                   type="button"
                   onClick={handleBulkUploadSubmit}
                   disabled={parsedLeads.length === 0 || isUploadingBulk}
-                  className="px-6 py-2.5 rounded-full text-[13px] font-bold text-[#1F1F1F] bg-[#FFC63F] hover:bg-[#F1B92E] shadow-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+                  className="px-6 py-2.5 rounded-full text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100 bg-[#FFC63F] hover:bg-[#F1B92E] shadow-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   {isUploadingBulk ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
+                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F] dark:text-gray-100" />
                       <span>Saving to Database...</span>
                     </>
                   ) : (

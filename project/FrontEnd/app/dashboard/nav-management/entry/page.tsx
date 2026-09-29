@@ -132,7 +132,7 @@ export default function NAVEntryPage() {
         <div className="mb-6">
           <button
             onClick={handleCancel}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 mb-4"
           >
             <ChevronLeft className="h-5 w-5 mr-1" />
             <span className="font-medium">Quarterly NAV Entry</span>
@@ -140,8 +140,8 @@ export default function NAVEntryPage() {
         </div>
 
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-0">Quarterly NAV Entry</h1>
-          <p className="text-sm text-gray-600 mt-3">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-0">Quarterly NAV Entry</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
             Enter the official total fund value for the quarter. NAV per unit will be calculated automatically using the system's total units for the selected date.
           </p>
         </div>
@@ -149,12 +149,12 @@ export default function NAVEntryPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Side - Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-4 md:p-8">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-4 md:p-8">
               <div className="space-y-6">
                 {/* Effective Date and Total Fund Value */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                    <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                       Effective Date
                     </label>
                     <Popover>
@@ -188,11 +188,11 @@ export default function NAVEntryPage() {
                         />
                       </PopoverContent>
                     </Popover>
-                    <p className="text-xs text-gray-500 mt-1">Cannot be a future date</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Cannot be a future date</p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                    <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                       Total Fund Value
                     </label>
                     <input
@@ -218,7 +218,7 @@ export default function NAVEntryPage() {
                 {/* Total Units and NAV per Unit */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                    <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                       Total Units (system)
                     </label>
                     <input
@@ -241,7 +241,7 @@ export default function NAVEntryPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                    <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                       NAV per Unit (calculated)
                     </label>
                     <input
@@ -249,18 +249,18 @@ export default function NAVEntryPage() {
                       placeholder="$0.00"
                       value={formData.navPerUnit ? parseFloat(formData.navPerUnit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
                       readOnly
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Total Value / Total Units. Converted to 2 decimal places</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Value / Total Units. Converted to 2 decimal places</p>
                   </div>
                 </div>
 
                 {/* Note */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                     Note
                   </label>
-                  <p className="text-xs text-gray-500 mb-2">Private note visible only to you</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Private note visible only to you</p>
                   <textarea
                     placeholder="Enter note"
                     value={formData.note}
@@ -270,28 +270,28 @@ export default function NAVEntryPage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none"
                   />
                   <div className="flex justify-end mt-1">
-                    <span className="text-xs text-gray-500">{formData.note.length}/1000</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{formData.note.length}/1000</span>
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-200">
+                <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-200 dark:border-gray-800">
                   <Button
                     onClick={handleCancel}
-                    className="px-6 py-2 bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-700 rounded-full font-medium"
+                    className="px-6 py-2 bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-700 dark:text-gray-300 rounded-full font-medium"
                   >
                     Cancel
                   </Button>
                   <div className="flex gap-3">
                     <Button
                       onClick={handleSaveDraft}
-                      className="px-6 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-full font-medium"
+                      className="px-6 py-2 bg-white dark:bg-[#1C1C1C] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 rounded-full font-medium"
                     >
                       Save Draft
                     </Button>
                     <Button
                       onClick={handlePublishNAV}
-                      className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 rounded-full font-medium"
+                      className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-100 rounded-full font-medium"
                     >
                       Publish NAV
                     </Button>
@@ -303,16 +303,16 @@ export default function NAVEntryPage() {
 
           {/* Right Side - Recent NAV Entries */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 border-b p-6">Recent NAV Entries</h3>
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b p-6">Recent NAV Entries</h3>
               <div className="space-y-3 p-6">
                 {recentEntries.map((entry, index) => (
-                  <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                  <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{entry.quarter}</p>
-                      <p className="text-xs text-gray-500">{entry.date}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{entry.quarter}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{entry.date}</p>
                     </div>
-                    <p className="text-sm font-semibold text-gray-900">{entry.value}</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{entry.value}</p>
                   </div>
                 ))}
               </div>
@@ -323,18 +323,18 @@ export default function NAVEntryPage() {
         {/* Confirm Publish NAV Modal */}
         {showPublishModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 w-full max-w-2xl mx-4 relative">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-lg p-8 w-full max-w-2xl mx-4 relative">
               {/* Close Button */}
               <button
                 onClick={cancelPublish}
-                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 dark:text-gray-400 transition-colors"
               >
                 <X className="h-6 w-6" />
               </button>
 
               <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Confirm Publish NAV</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">Confirm Publish NAV</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                   You are about to publish the official NAV for {getQuarterYear(formData.effectiveDate)}. This action will recompute positions and performance snapshots, and notify investors (if enabled). Do you want to proceed?
                 </p>
               </div>
@@ -348,7 +348,7 @@ export default function NAVEntryPage() {
                     onChange={(e) => setConfirmationChecked(e.target.checked)}
                     className="mt-0.5 h-4 w-4 text-[#1F3B6E] focus:ring-[#1F3B6E] border-gray-300 rounded"
                   />
-                  <span className="ml-3 text-sm text-gray-700">
+                  <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">
                     I confirm I have reviewed the calculation and have authorization to publish.
                   </span>
                 </label>
@@ -358,7 +358,7 @@ export default function NAVEntryPage() {
               <div className="flex justify-end gap-4">
                 <Button
                   onClick={cancelPublish}
-                  className="px-8 py-2 bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-900 rounded-full font-medium"
+                  className="px-8 py-2 bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-900 dark:text-gray-100 rounded-full font-medium"
                 >
                   Cancel
                 </Button>
@@ -366,7 +366,7 @@ export default function NAVEntryPage() {
                   onClick={confirmPublish}
                   disabled={!confirmationChecked}
                   className={`px-8 py-2 rounded-full font-medium ${confirmationChecked
-                    ? 'bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900'
+                    ? 'bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-100'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                 >

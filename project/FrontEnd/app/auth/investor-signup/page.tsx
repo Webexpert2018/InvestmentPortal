@@ -447,7 +447,7 @@ function InvestorSignupForm() {
       />
 
       {!showProfileFlow ? (
-        <div className="relative z-10 w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
+        <div className="relative z-10 w-full max-w-md bg-white dark:bg-[#1C1C1C] rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
           {/* Logo */}
           <a href="/" className="flex justify-center mb-3 sm:mb-4">
             <Image
@@ -460,7 +460,7 @@ function InvestorSignupForm() {
             />
           </a>
 
-          <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
+          <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F] dark:text-gray-100">
             Create Your Ovalia Capital
           </h2>
           <p className="mt-1 text-center text-md sm:text-xl">
@@ -530,7 +530,7 @@ function InvestorSignupForm() {
             <button
               onClick={handleCreateAccount}
               disabled={loading}
-              className="h-11 mt-6 w-full rounded-full bg-yellow-400 font-bold text-[#1F1F1F] transition-all hover:bg-yellow-500 disabled:opacity-70 flex items-center justify-center gap-2"
+              className="h-11 mt-6 w-full rounded-full bg-yellow-400 font-bold text-[#1F1F1F] dark:text-gray-100 transition-all hover:bg-yellow-500 disabled:opacity-70 flex items-center justify-center gap-2"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               Create Account
@@ -553,7 +553,7 @@ function InvestorSignupForm() {
                 </a>
               </div>
 
-              <h3 className="text-[24px] text-[#1F1F1F] font-bold">Complete Your Profile</h3>
+              <h3 className="text-[24px] text-[#1F1F1F] dark:text-gray-100 font-bold">Complete Your Profile</h3>
               <p className="mb-4 font-helvetica text-lg">Just a few steps to get started</p>
 
               <div className="mb-3 flex items-center gap-2 pb-4 overflow-x-auto">
@@ -572,9 +572,9 @@ function InvestorSignupForm() {
               </div>
 
               {verifyingInvite && (
-                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+                <div className="absolute inset-0 bg-white dark:bg-[#1C1C1C]/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
                   <Loader2 className="h-10 w-10 animate-spin text-yellow-500 mb-2" />
-                  <p className="text-sm font-bold text-[#1F1F1F]">Verifying Invitation...</p>
+                  <p className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100">Verifying Invitation...</p>
                 </div>
               )}
             </div>
@@ -671,7 +671,7 @@ function InvestorSignupForm() {
               onChange={(e) => setField('email', e.target.value)}
               placeholder="Enter email"
               disabled={isInvited}
-              className={`h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm ${isInvited ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+              className={`h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm ${isInvited ? 'bg-gray-100 text-gray-500 dark:text-gray-400 cursor-not-allowed' : ''}`}
             />
           </FormField>
 
@@ -710,7 +710,7 @@ function InvestorSignupForm() {
                     border border-[#E6E6E6]
                     px-3 pr-4
                     font-helvetica text-sm
-                    text-[#1F1F1F]
+                    text-[#1F1F1F] dark:text-gray-100
                     focus:border-yellow-400
                     outline-none
                     "
@@ -798,14 +798,14 @@ function InvestorSignupForm() {
     if (currentStep === 3 && !otpSent) {
       return (
         <div className="max-w-[540px] space-y-3">
-          <h4 className="text-[20px] text-[#4B4B4B] font-medium">Email Verification</h4>
+          <h4 className="text-[20px] text-[#4B4B4B] dark:text-gray-300 font-medium">Email Verification</h4>
           <p className="font-helvetica text-sm text-[#A0A0A0]">We&apos;ll send you a verification code to confirm your email address.</p>
 
           <FormField label="Verification Email" error={errors.email}>
             <input
               value={form.email}
               readOnly
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
             />
           </FormField>
         </div>

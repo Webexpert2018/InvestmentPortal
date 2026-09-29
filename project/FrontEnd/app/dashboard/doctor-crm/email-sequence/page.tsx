@@ -62,9 +62,9 @@ const SEQUENCE_STAGES = [
     id: 'pending_outreach',
     stepNumber: 0,
     title: 'Pending Outreach',
-    badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
-    headerBg: 'bg-gradient-to-r from-amber-500/10 via-amber-50 to-orange-50/50',
-    borderColor: 'border-amber-200',
+    badgeColor: 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/50',
+    headerBg: 'bg-gradient-to-r from-amber-500/10 via-amber-50 dark:via-amber-900/10 to-orange-50/50 dark:to-orange-900/10',
+    borderColor: 'border-amber-200 dark:border-amber-800/50',
     accentColor: '#F59E0B',
     description: 'Initial physician queue awaiting first drip dispatch'
   },
@@ -73,9 +73,9 @@ const SEQUENCE_STAGES = [
     stepNumber: 1,
     title: 'Day 1 Email (Sent)',
     subtitle: 'Intro & Opportunity',
-    badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
-    headerBg: 'bg-gradient-to-r from-blue-500/10 via-blue-50 to-indigo-50/50',
-    borderColor: 'border-blue-200',
+    badgeColor: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800/50',
+    headerBg: 'bg-gradient-to-r from-blue-500/10 via-blue-50 dark:via-blue-900/10 to-indigo-50/50 dark:to-indigo-900/10',
+    borderColor: 'border-blue-200 dark:border-blue-800/50',
     accentColor: '#3B82F6',
     description: 'Day 1 email sent, awaiting physician reply'
   },
@@ -84,9 +84,9 @@ const SEQUENCE_STAGES = [
     stepNumber: 2,
     title: 'Day 2 Email (Sent)',
     subtitle: 'Value Prop & Case Study',
-    badgeColor: 'bg-cyan-50 text-cyan-700 border-cyan-200',
-    headerBg: 'bg-gradient-to-r from-cyan-500/10 via-cyan-50 to-sky-50/50',
-    borderColor: 'border-cyan-200',
+    badgeColor: 'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 border-cyan-200 dark:border-cyan-800/50',
+    headerBg: 'bg-gradient-to-r from-cyan-500/10 via-cyan-50 dark:via-cyan-900/10 to-sky-50/50 dark:to-sky-900/10',
+    borderColor: 'border-cyan-200 dark:border-cyan-800/50',
     accentColor: '#06B6D4',
     description: 'Day 2 email sent, awaiting physician reply'
   },
@@ -95,9 +95,9 @@ const SEQUENCE_STAGES = [
     stepNumber: 3,
     title: 'Day 3 Email (Sent)',
     subtitle: 'Webinar Pass & Access',
-    badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    headerBg: 'bg-gradient-to-r from-indigo-500/10 via-indigo-50 to-purple-50/50',
-    borderColor: 'border-indigo-200',
+    badgeColor: 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/50',
+    headerBg: 'bg-gradient-to-r from-indigo-500/10 via-indigo-50 dark:via-indigo-900/10 to-purple-50/50 dark:to-purple-900/10',
+    borderColor: 'border-indigo-200 dark:border-indigo-800/50',
     accentColor: '#6366F1',
     description: 'Day 3 email sent, awaiting physician reply'
   },
@@ -106,9 +106,9 @@ const SEQUENCE_STAGES = [
     stepNumber: 4,
     title: 'Day 4 Email (Sent)',
     subtitle: 'Tax Strategy & Equity',
-    badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
-    headerBg: 'bg-gradient-to-r from-purple-500/10 via-purple-50 to-fuchsia-50/50',
-    borderColor: 'border-purple-200',
+    badgeColor: 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800/50',
+    headerBg: 'bg-gradient-to-r from-purple-500/10 via-purple-50 dark:via-purple-900/10 to-fuchsia-50/50 dark:to-fuchsia-900/10',
+    borderColor: 'border-purple-200 dark:border-purple-800/50',
     accentColor: '#8B5CF6',
     description: 'Day 4 email sent, awaiting physician reply'
   },
@@ -139,9 +139,9 @@ const SEQUENCE_STAGES = [
     stepNumber: 7,
     title: 'Not Interested / Needs Call',
     subtitle: 'Declined or No Response',
-    badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
+    badgeColor: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/50',
     headerBg: 'bg-gradient-to-r from-rose-500/10 via-rose-50 to-red-50/50',
-    borderColor: 'border-rose-200',
+    borderColor: 'border-rose-200 dark:border-rose-800/50',
     accentColor: '#F43F5E',
     description: 'Doctors who declined outreach, opted out, or did not respond post-sequence'
   }
@@ -426,7 +426,7 @@ export default function DoctorEmailSequenceFlowPage() {
 
   return (
     <DashboardLayout>
-      <div className="w-full font-helvetica text-[#1F1F1F] space-y-6 pb-12">
+      <div className="w-full font-helvetica text-[#1F1F1F] dark:text-gray-100 space-y-6 pb-12">
         {/* Top Navigation & Breadcrumb */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -435,7 +435,7 @@ export default function DoctorEmailSequenceFlowPage() {
                 <>
                   <Link 
                     href="/dashboard/doctor-crm"
-                    className="inline-flex items-center gap-1 text-[13px] font-bold text-gray-500 hover:text-gray-900 transition-colors"
+                    className="inline-flex items-center gap-1 text-[13px] font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 transition-colors"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     <span>Doctor Outreach CRM</span>
@@ -443,12 +443,12 @@ export default function DoctorEmailSequenceFlowPage() {
                   <span className="text-gray-300">/</span>
                 </>
               )}
-              <span className="text-[12px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100 flex items-center gap-1.5">
+              <span className="text-[12px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 rounded-full border border-blue-100 dark:border-blue-800/50 flex items-center gap-1.5">
                 <GitFork className="w-3 h-3" />
                 Physician Sequence Pipeline
               </span>
             </div>
-            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">
+            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F] dark:text-gray-100">
               Sequence Pipeline
             </h1>
             <p className="text-[#8E8E93] text-[14px] mt-1 max-w-3xl">
@@ -460,7 +460,7 @@ export default function DoctorEmailSequenceFlowPage() {
             <button
               onClick={loadDoctors}
               disabled={isLoading}
-              className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-[#1F1F1F] text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer"
+              className="px-4 py-2 bg-white dark:bg-[#1C1C1C] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800 text-[#1F1F1F] dark:text-gray-100 text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               <span>Refresh Pipeline</span>
@@ -470,19 +470,19 @@ export default function DoctorEmailSequenceFlowPage() {
 
         {/* Top Summary Cards Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-white rounded-[16px] p-4 border border-[#EBEBEB] shadow-xs">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[16px] p-4 border border-[#EBEBEB] dark:border-[#2A2A2A] shadow-xs">
             <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Total Prospects</div>
-            <div className="text-[24px] font-goudy font-bold text-[#1F1F1F] mt-0.5">{totalCount} Doctors</div>
-            <div className="text-[11px] text-gray-500 mt-1">Saved in database</div>
+            <div className="text-[24px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100 mt-0.5">{totalCount} Doctors</div>
+            <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Saved in database</div>
           </div>
 
-          <div className="bg-white rounded-[16px] p-4 border border-[#EBEBEB] shadow-xs">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[16px] p-4 border border-[#EBEBEB] dark:border-[#2A2A2A] shadow-xs">
             <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">🟢 Interested</div>
             <div className="text-[24px] font-goudy font-bold text-emerald-700 mt-0.5">{interestedCount} Doctors</div>
             <div className="text-[11px] text-emerald-600/80 mt-1">High Intent &amp; Replies</div>
           </div>
 
-          <div className="bg-white rounded-[16px] p-4 border border-[#EBEBEB] shadow-xs">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[16px] p-4 border border-[#EBEBEB] dark:border-[#2A2A2A] shadow-xs">
             <div className="text-[11px] font-bold uppercase tracking-wider text-rose-600">🔴 Not Interested / Needs Call</div>
             <div className="text-[24px] font-goudy font-bold text-rose-700 mt-0.5">{notInterestedCount} Doctors</div>
             <div className="text-[11px] text-rose-600/80 mt-1">Declined / Opted Out / No Response</div>
@@ -490,8 +490,8 @@ export default function DoctorEmailSequenceFlowPage() {
         </div>
 
         {/* Search Bar Row */}
-        <div className="bg-white p-3.5 rounded-[18px] border border-[#EBEBEB] shadow-xs flex items-center justify-between gap-3">
-          <div className="text-[13px] font-bold text-gray-700 flex items-center gap-2">
+        <div className="bg-white dark:bg-[#1C1C1C] p-3.5 rounded-[18px] border border-[#EBEBEB] dark:border-[#2A2A2A] shadow-xs flex items-center justify-between gap-3">
+          <div className="text-[13px] font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
             <GitFork className="w-4 h-4 text-blue-600" />
             <span>Outreach Pipeline Stage Stream</span>
           </div>
@@ -504,7 +504,7 @@ export default function DoctorEmailSequenceFlowPage() {
               placeholder="Search doctor, specialty, email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              className="w-full pl-9 pr-3 py-1.5 text-[13px] bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
           </div>
         </div>
@@ -522,9 +522,9 @@ export default function DoctorEmailSequenceFlowPage() {
               return (
                 <div key={stageItem.id} className="flex items-center gap-3 shrink-0">
                   {/* Stage Node Box */}
-                  <div className={`w-[260px] bg-white rounded-[20px] border ${stageItem.borderColor} shadow-sm overflow-hidden flex flex-col h-[560px]`}>
+                  <div className={`w-[260px] bg-white dark:bg-[#1C1C1C] rounded-[20px] border ${stageItem.borderColor} shadow-sm overflow-hidden flex flex-col h-[560px]`}>
                     {/* Stage Header */}
-                    <div className={`p-4 ${stageItem.headerBg} border-b border-gray-100 shrink-0`}>
+                    <div className={`p-4 ${stageItem.headerBg} border-b border-gray-100 dark:border-gray-800 shrink-0`}>
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span 
@@ -533,7 +533,7 @@ export default function DoctorEmailSequenceFlowPage() {
                           >
                             {stageItem.stepNumber}
                           </span>
-                          <h3 className="font-goudy font-bold text-[16px] text-gray-900 leading-tight">
+                          <h3 className="font-goudy font-bold text-[16px] text-gray-900 dark:text-gray-100 leading-tight">
                             {stageItem.title}
                           </h3>
                         </div>
@@ -544,7 +544,7 @@ export default function DoctorEmailSequenceFlowPage() {
                       </div>
 
                       {stageItem.subtitle && (
-                        <div className="text-[11px] font-bold text-gray-500 mt-1">
+                        <div className="text-[11px] font-bold text-gray-500 dark:text-gray-400 mt-1">
                           {stageItem.subtitle}
                         </div>
                       )}
@@ -555,13 +555,13 @@ export default function DoctorEmailSequenceFlowPage() {
                     </div>
 
                     {/* Doctors List in Stage (Scrollable) */}
-                    <div className="p-3 flex-1 space-y-3 bg-[#FAFBFD] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                    <div className="p-3 flex-1 space-y-3 bg-[#FAFBFD] dark:bg-[#121212] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                       {isLoading ? (
                         <div className="py-12 text-center text-gray-400 text-[12px]">
                           Loading doctors...
                         </div>
                       ) : doctorsInStage.length === 0 ? (
-                        <div className="py-12 text-center border-2 border-dashed border-gray-200 rounded-[14px] bg-white/60 p-4">
+                        <div className="py-12 text-center border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-[14px] bg-white dark:bg-[#1C1C1C]/60 p-4">
                           <div className="text-[20px] mb-1">📭</div>
                           <div className="text-[12px] font-bold text-gray-400">No Doctors at this Stage</div>
                           <div className="text-[11px] text-gray-400 mt-1">
@@ -578,7 +578,7 @@ export default function DoctorEmailSequenceFlowPage() {
                           return (
                             <div 
                               key={doc.id}
-                              className="bg-white rounded-[16px] p-3.5 border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all group relative space-y-2.5"
+                              className="bg-white dark:bg-[#1C1C1C] rounded-[16px] p-3.5 border border-gray-200 dark:border-gray-800 hover:border-blue-400 hover:shadow-md transition-all group relative space-y-2.5"
                             >
                               {/* Top Row: Avatar & Name */}
                               <div className="flex items-start justify-between gap-2">
@@ -587,10 +587,10 @@ export default function DoctorEmailSequenceFlowPage() {
                                     {doc.fullName.replace('Dr. ', '').charAt(0)}
                                   </div>
                                   <div>
-                                    <div className="font-bold text-[13px] text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                                    <div className="font-bold text-[13px] text-gray-900 dark:text-gray-100 group-hover:text-blue-600 transition-colors line-clamp-1">
                                       {doc.fullName}
                                     </div>
-                                    <div className="text-[11px] text-gray-500 line-clamp-1">
+                                    <div className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1">
                                       {doc.specialty}
                                     </div>
                                   </div>
@@ -598,7 +598,7 @@ export default function DoctorEmailSequenceFlowPage() {
                               </div>
 
                               {/* Details: Clinic & Location */}
-                              <div className="text-[11px] text-gray-500 space-y-1 bg-gray-50/80 p-2 rounded-[10px] border border-gray-100">
+                              <div className="text-[11px] text-gray-500 dark:text-gray-400 space-y-1 bg-gray-50 dark:bg-gray-800/80 p-2 rounded-[10px] border border-gray-100 dark:border-gray-800">
                                 <div className="flex items-center gap-1.5 truncate">
                                   <Building2 className="w-3 h-3 text-gray-400 shrink-0" />
                                   <span className="truncate">{doc.organization}</span>
@@ -607,7 +607,7 @@ export default function DoctorEmailSequenceFlowPage() {
                                   <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
                                   <span className="truncate">{doc.location}</span>
                                 </div>
-                                <div className="flex items-center gap-1.5 truncate text-gray-600 font-mono text-[10.5px]">
+                                <div className="flex items-center gap-1.5 truncate text-gray-600 dark:text-gray-400 font-mono text-[10.5px]">
                                   <Mail className="w-3 h-3 text-gray-400 shrink-0" />
                                   <span className="truncate">{doc.email}</span>
                                 </div>
@@ -634,7 +634,7 @@ export default function DoctorEmailSequenceFlowPage() {
                               )}
 
                               {/* Bottom Status & Action Row */}
-                              <div className="pt-1 flex items-center justify-between border-t border-gray-100 gap-1">
+                              <div className="pt-1 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 gap-1">
                                 {/* Status Badge */}
                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${statusBadge.bg}`}>
                                   <StatusIcon className="w-3 h-3" />
@@ -648,7 +648,7 @@ export default function DoctorEmailSequenceFlowPage() {
                                     setActiveModalTab(stageInfo.lastSentDay || 1);
                                     setIsPreviewOpen(true);
                                   }}
-                                  className="text-[11px] font-bold text-gray-600 hover:text-blue-600 flex items-center gap-1 px-2 py-1 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
+                                  className="text-[11px] font-bold text-gray-600 dark:text-gray-400 hover:text-blue-600 flex items-center gap-1 px-2 py-1 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
                                 >
                                   <Eye className="w-3 h-3" />
                                   <span>View Email</span>
@@ -664,7 +664,7 @@ export default function DoctorEmailSequenceFlowPage() {
                   {/* Flow Connector Arrow between stages */}
                   {index < SEQUENCE_STAGES.length - 1 && (
                     <div className="flex flex-col items-center justify-center shrink-0 px-1 text-gray-300">
-                      <div className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-2xs">
+                      <div className="w-6 h-6 rounded-full bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 flex items-center justify-center shadow-2xs">
                         <ChevronRight className="w-4 h-4 text-blue-500" />
                       </div>
                     </div>
@@ -678,9 +678,9 @@ export default function DoctorEmailSequenceFlowPage() {
         {/* EMAIL PREVIEW & SEQUENCE MODAL */}
         {isPreviewOpen && selectedDoctor && (
           <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-[24px] max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               {/* Modal Header */}
-              <div className="p-5 border-b border-gray-100 flex items-start justify-between bg-slate-900 text-white">
+              <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-start justify-between bg-slate-900 text-white">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-400 bg-yellow-400/10 px-2.5 py-0.5 rounded-full border border-yellow-400/20">
@@ -697,14 +697,14 @@ export default function DoctorEmailSequenceFlowPage() {
 
                 <button
                   onClick={() => setIsPreviewOpen(false)}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-white dark:bg-[#1C1C1C]/10 hover:bg-white dark:bg-[#1C1C1C]/20 text-white flex items-center justify-center transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Day Selection Tabs (Day 1 to Day 5) */}
-              <div className="bg-slate-50 border-b border-gray-200 p-2.5 flex items-center gap-1.5 overflow-x-auto">
+              <div className="bg-slate-50 border-b border-gray-200 dark:border-gray-800 p-2.5 flex items-center gap-1.5 overflow-x-auto">
                 {[1, 2, 3, 4, 5].map((dayNum) => {
                   const dayStep = selectedDoctor.aiSequence?.find(s => s.day === dayNum);
                   const isSent = dayStep?.status === 'sent' || dayStep?.sentAt;
@@ -718,7 +718,7 @@ export default function DoctorEmailSequenceFlowPage() {
                       className={`px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                         activeModalTab === dayNum
                           ? 'bg-blue-600 text-white shadow-xs'
-                          : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                          : 'bg-white dark:bg-[#1C1C1C] text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-800'
                       }`}
                     >
                       <span>Day {dayNum}</span>
@@ -747,7 +747,7 @@ export default function DoctorEmailSequenceFlowPage() {
                           <div className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">
                             Sequence Step {activeModalTab} of 5
                           </div>
-                          <div className="text-[13px] font-bold text-gray-900 mt-0.5">
+                          <div className="text-[13px] font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                             {currentStep?.title || `Day ${activeModalTab} Follow-up Email`}
                           </div>
                         </div>
@@ -766,29 +766,29 @@ export default function DoctorEmailSequenceFlowPage() {
                       </div>
 
                       {/* Subject Line */}
-                      <div className="bg-gray-50 p-3 rounded-[12px] border border-gray-200">
+                      <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-[12px] border border-gray-200 dark:border-gray-800">
                         <div className="text-[11px] font-bold text-gray-400 uppercase">Subject Line</div>
-                        <div className="text-[13px] font-bold text-gray-900 mt-0.5">
+                        <div className="text-[13px] font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                           {currentStep?.subject ? currentStep.subject : <span className="text-gray-400 font-normal italic">— (Email not sent yet)</span>}
                         </div>
                       </div>
 
                       {/* Body */}
-                      <div className="bg-white p-4 rounded-[14px] border border-gray-200 space-y-2">
+                      <div className="bg-white dark:bg-[#1C1C1C] p-4 rounded-[14px] border border-gray-200 dark:border-gray-800 space-y-2">
                         <div className="text-[11px] font-bold text-gray-400 uppercase">Email Content Body</div>
                         {currentStep?.body ? (
                           /<[a-z][\s\S]*>/i.test(currentStep.body) ? (
                             <div 
-                              className="text-[13px] text-gray-800 leading-relaxed font-sans [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3 [&_li]:mb-1 [&_strong]:font-bold [&_strong]:text-gray-900 [&_a]:inline-block p-3 rounded-xl bg-gray-50/50 border border-gray-100"
+                              className="text-[13px] text-gray-800 dark:text-gray-200 leading-relaxed font-sans [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3 [&_li]:mb-1 [&_strong]:font-bold [&_strong]:text-gray-900 dark:text-gray-100 [&_a]:inline-block p-3 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800"
                               dangerouslySetInnerHTML={{ __html: currentStep.body }}
                             />
                           ) : (
-                            <div className="text-[13px] text-gray-700 whitespace-pre-wrap leading-relaxed font-sans p-3 rounded-xl bg-gray-50/50 border border-gray-100">
+                            <div className="text-[13px] text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed font-sans p-3 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
                               {currentStep.body}
                             </div>
                           )
                         ) : (
-                          <div className="py-8 text-center text-gray-400 text-[13px] italic border-2 border-dashed border-gray-200 rounded-[12px] bg-gray-50/50">
+                          <div className="py-8 text-center text-gray-400 text-[13px] italic border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-[12px] bg-gray-50/50 dark:bg-gray-800/50">
                             Email not sent yet. This sequence step is pending dispatch.
                           </div>
                         )}
@@ -799,9 +799,9 @@ export default function DoctorEmailSequenceFlowPage() {
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between gap-3">
-                <div className="text-[12px] text-gray-500 truncate">
-                  Current Database Stage: <strong className="text-gray-900 uppercase font-mono">{selectedDoctor.stage}</strong>
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between gap-3">
+                <div className="text-[12px] text-gray-500 dark:text-gray-400 truncate">
+                  Current Database Stage: <strong className="text-gray-900 dark:text-gray-100 uppercase font-mono">{selectedDoctor.stage}</strong>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">

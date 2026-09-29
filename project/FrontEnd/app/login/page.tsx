@@ -20,7 +20,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-orange-500 border-t-transparent mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading dashboard...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -31,14 +31,14 @@ export default function DashboardPage() {
     <DashboardLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F]">Investment Dashboard</h1>
-          <p className="font-helvetica text-[#4B4B4B] text-md sm:text-lg mt-2">Welcome back! Here's your portfolio overview.</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] dark:text-gray-100">Investment Dashboard</h1>
+          <p className="font-helvetica text-[#4B4B4B] dark:text-gray-300 text-md sm:text-lg mt-2">Welcome back! Here's your portfolio overview.</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Bitcoin Balance
               </CardTitle>
               <Bitcoin className="h-5 w-5 text-orange-500" />
@@ -47,13 +47,13 @@ export default function DashboardPage() {
               <div className="text-2xl font-bold">
                 {formatBTC(portfolio?.bitcoinBalance || 0)}
               </div>
-              <p className="text-xs text-gray-500 mt-1">Total BTC holdings</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total BTC holdings</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Portfolio Value
               </CardTitle>
               <Wallet className="h-5 w-5 text-blue-500" />
@@ -62,13 +62,13 @@ export default function DashboardPage() {
               <div className="text-2xl font-bold">
                 {formatUSD(portfolio?.nav || 0)}
               </div>
-              <p className="text-xs text-gray-500 mt-1">Net asset value</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Net asset value</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Performance
               </CardTitle>
               <TrendingUp className="h-5 w-5 text-green-500" />
@@ -77,7 +77,7 @@ export default function DashboardPage() {
               <div className="text-2xl font-bold text-green-600">
                 {portfolio?.performancePercentage?.toFixed(2) || '0.00'}%
               </div>
-              <p className="text-xs text-gray-500 mt-1">All-time return</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">All-time return</p>
             </CardContent>
           </Card>
         </div>
@@ -89,7 +89,7 @@ export default function DashboardPage() {
           <CardContent>
             {transactions.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500">No transactions yet</p>
+                <p className="text-gray-500 dark:text-gray-400">No transactions yet</p>
                 <Button className="mt-4">Make Your First Deposit</Button>
               </div>
             ) : (
@@ -98,7 +98,7 @@ export default function DashboardPage() {
                   <div key={tx.id} className="flex items-center justify-between border-b pb-4 last:border-0">
                     <div>
                       <p className="font-medium capitalize">{tx.type}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {new Date(tx.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -144,15 +144,15 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Total Invested:</span>
+                <span className="text-gray-600 dark:text-gray-400">Total Invested:</span>
                 <span className="font-semibold">{formatUSD(portfolio?.totalInvested || 0)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Total Withdrawn:</span>
+                <span className="text-gray-600 dark:text-gray-400">Total Withdrawn:</span>
                 <span className="font-semibold">{formatUSD(portfolio?.totalWithdrawn || 0)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Account Status:</span>
+                <span className="text-gray-600 dark:text-gray-400">Account Status:</span>
                 <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
                   Active
                 </span>

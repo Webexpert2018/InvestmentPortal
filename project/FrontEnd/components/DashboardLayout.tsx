@@ -201,7 +201,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   if (user && !isAuthorized) return null; // Prevent flash of unauthorized children while redirecting
 
   return (
-    <div className="relative flex h-screen overflow-hidden bg-gray-50">
+    <div className="relative flex h-screen overflow-hidden bg-background">
       {user && <Sidebar isCollapsed={isCollapsed} />}
 
       <div
@@ -216,7 +216,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         )}
 
 
-        <main className={`flex-1 overflow-y-auto overflow-x-auto px-4 py-6 sm:px-6 bg-[#F5F7FA]
+        <main className={`flex-1 overflow-y-auto overflow-x-auto px-4 py-6 sm:px-6 bg-[#F5F7FA] dark:bg-[#121212]
             ${user
             ? isCollapsed
               ? "sidebar_closed"
@@ -233,18 +233,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {sessionExpired && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-2xl bg-white px-8 py-7 shadow-2xl">
+          <div className="relative w-full max-w-md rounded-2xl bg-background px-8 py-7 shadow-2xl border border-border">
             <button
               type="button"
               onClick={() => {
                 setSessionExpired(false);
                 router.push("/");
               }}
-              className="absolute right-4 top-4 text-sm text-gray-400 hover:text-gray-600"
+              className="absolute right-4 top-4 text-sm text-gray-400 hover:text-gray-600 dark:text-gray-400"
             >
               ×
             </button>
-            <h2 className="font-goudy text-xl text-[#1F1F1F]">Session Expired</h2>
+            <h2 className="font-goudy text-xl text-[#1F1F1F] dark:text-gray-100">Session Expired</h2>
             <p className="mt-2 text-sm text-[#6C6C6C]">
               For your security, your session has timed out. Please sign in again to continue.
             </p>
@@ -255,7 +255,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   setSessionExpired(false);
                   router.push("/");
                 }}
-                className="rounded-full bg-[#F5F5F5] px-6 py-2 text-sm font-medium text-[#4B4B4B] hover:bg-[#E8E8E8]"
+                className="rounded-full bg-[#F5F5F5] px-6 py-2 text-sm font-medium text-[#4B4B4B] dark:text-gray-300 hover:bg-[#E8E8E8]"
               >
                 Close
               </button>
@@ -265,7 +265,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   setSessionExpired(false);
                   router.push("/auth/login");
                 }}
-                className="rounded-full bg-[#FFC63F] px-7 py-2 text-sm font-semibold text-[#1F1F1F] hover:bg-[#F1B92E]"
+                className="rounded-full bg-[#FFC63F] px-7 py-2 text-sm font-semibold text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F1B92E]"
               >
                 Log In
               </button>

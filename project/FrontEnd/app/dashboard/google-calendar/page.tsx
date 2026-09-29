@@ -92,23 +92,23 @@ export default function GoogleCalendarPage() {
         {/* Back navigation */}
         <button
           onClick={() => router.push('/dashboard/webinars')}
-          className="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-wider mb-6"
+          className="inline-flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 transition-colors uppercase tracking-wider mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Webinars
         </button>
 
         {/* Card Panel */}
-        <div className="bg-white rounded-[24px] border border-[#E8E8E8] shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] border border-[#E8E8E8] dark:border-[#2A2A2A] shadow-sm overflow-hidden">
           
           {/* Header */}
-          <div className="border-b border-[#F0F0F0] p-6 bg-gradient-to-r from-gray-50 to-white flex items-center justify-between">
+          <div className="border-b border-[#F0F0F0] dark:border-[#2A2A2A] p-6 bg-gradient-to-r from-gray-50 to-white flex items-center justify-between">
             <div className="flex items-center gap-3.5">
               <div className="p-3 bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] rounded-2xl">
                 <Calendar className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#1F1F1F]">Google Calendar Integration</h1>
+                <h1 className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">Google Calendar Integration</h1>
                 <p className="text-xs text-[#6C6C6C] mt-0.5">Manage your calendar sync for webinar invitations and reminder schedules</p>
               </div>
             </div>
@@ -116,7 +116,7 @@ export default function GoogleCalendarPage() {
             <button
               onClick={checkStatus}
               disabled={loading || actionLoading}
-              className="p-2 text-gray-400 hover:text-[#D9A11E] transition-colors rounded-lg border border-[#F0F0F0] hover:bg-gray-50"
+              className="p-2 text-gray-400 hover:text-[#D9A11E] transition-colors rounded-lg border border-[#F0F0F0] dark:border-[#2A2A2A] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800"
               title="Refresh connection status"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -126,7 +126,7 @@ export default function GoogleCalendarPage() {
           {/* Content */}
           <div className="p-8 text-center">
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-3 text-gray-500">
+              <div className="flex flex-col items-center justify-center py-12 gap-3 text-gray-500 dark:text-gray-400">
                 <Loader2 className="w-8 h-8 animate-spin text-[#D9A11E]" />
                 <span className="text-sm font-medium">Checking Google Calendar status...</span>
               </div>
@@ -137,14 +137,14 @@ export default function GoogleCalendarPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-gray-900">Google Calendar Connected</h3>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Google Calendar Connected</h3>
                   <p className="text-sm text-[#6C6C6C] max-w-md mx-auto">
                     Your account is active. Webinars created will automatically schedule events and issue invites to attendees.
                   </p>
                 </div>
 
                 {connectedEmail && (
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-700">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-2xl text-sm font-semibold text-gray-700 dark:text-gray-300">
                     <Mail className="w-4 h-4 text-gray-400" />
                     {connectedEmail}
                   </div>
@@ -154,7 +154,7 @@ export default function GoogleCalendarPage() {
                   <button
                     onClick={handleConnect}
                     disabled={actionLoading}
-                    className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-white border border-[#dadce0] hover:bg-gray-50 text-gray-700 font-bold text-sm rounded-xl transition duration-150 shadow-sm"
+                    className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-white dark:bg-[#1C1C1C] border border-[#dadce0] dark:border-[#2A2A2A] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold text-sm rounded-xl transition duration-150 shadow-sm"
                   >
                     {actionLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                     Switch Google Account
@@ -176,7 +176,7 @@ export default function GoogleCalendarPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-gray-900">Not Connected</h3>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Not Connected</h3>
                   <p className="text-sm text-[#6C6C6C] max-w-md mx-auto">
                     Authorize Google Calendar to enable campaign invite dispatches, Zoom/Google Meet link sync, and countdown reminders.
                   </p>
@@ -186,7 +186,7 @@ export default function GoogleCalendarPage() {
                   <button
                     onClick={handleConnect}
                     disabled={actionLoading}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] font-bold text-sm rounded-xl transition duration-150 shadow-md shadow-amber-500/10"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 font-bold text-sm rounded-xl transition duration-150 shadow-md shadow-amber-500/10"
                   >
                     {actionLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                     Connect Google Calendar

@@ -122,13 +122,13 @@ export function MessageItem({
     
     if (isWeTransfer) {
       return (
-        <div className="mt-2 overflow-hidden rounded-lg border border-black/10 bg-white shadow-sm transition-transform hover:scale-[1.02]">
+        <div className="mt-2 overflow-hidden rounded-lg border border-black/10 bg-white dark:bg-[#1C1C1C] shadow-sm transition-transform hover:scale-[1.02]">
           <div className="flex bg-[#F5F5F5] p-3">
-             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white border border-[#EDEDED] shadow-sm">
+             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white dark:bg-[#1C1C1C] border border-[#EDEDED] shadow-sm">
                 <img src="/images/message/document.svg" alt="doc" className="h-8 w-8" />
              </div>
              <div className="ml-3 flex-1 min-w-0">
-                <p className="truncate text-[14px] font-bold text-[#1F1F1F]">APlus-Publish Code 24042026.zip</p>
+                <p className="truncate text-[14px] font-bold text-[#1F1F1F] dark:text-gray-100">APlus-Publish Code 24042026.zip</p>
                 <p className="text-[12px] text-[#6F7177] mt-1 line-clamp-2">1 file sent via WeTransfer, the simplest way to send your files around the world</p>
                 <p className="text-[11px] text-[#A2A5AA] mt-1">we.tl</p>
              </div>
@@ -151,7 +151,7 @@ export function MessageItem({
       {/* Reaction & Action Bar */}
       {isHovered && !isEditing && (
         <div className={cn(
-          "absolute -top-10 z-10 flex items-center gap-1 rounded-full bg-white/95 backdrop-blur-sm px-2 py-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.12)] border border-[#EDEDED] animate-in slide-in-from-bottom-2 fade-in duration-200",
+          "absolute -top-10 z-10 flex items-center gap-1 rounded-full bg-white dark:bg-[#1C1C1C]/95 backdrop-blur-sm px-2 py-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.12)] border border-[#EDEDED] animate-in slide-in-from-bottom-2 fade-in duration-200",
           isMe ? "right-0" : "left-0"
         )}>
           {reactionEmojis.map((emoji) => (
@@ -177,7 +177,7 @@ export function MessageItem({
                     setEditValue(message.text);
                   }} 
                   className={cn(
-                    "p-1.5 text-[#6F7177] hover:text-[#1F1F1F] transition-colors rounded-full hover:bg-gray-100",
+                    "p-1.5 text-[#6F7177] hover:text-[#1F1F1F] dark:text-gray-100 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-700",
                     !isMe && "hidden" // Only sender can edit
                   )}
                 >
@@ -190,7 +190,7 @@ export function MessageItem({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="p-1.5 text-[#6F7177] hover:text-[#1F1F1F] transition-colors rounded-full hover:bg-gray-100">
+              <button className="p-1.5 text-[#6F7177] hover:text-[#1F1F1F] dark:text-gray-100 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
                 <MoreHorizontal className="h-4 w-4" />
               </button>
             </DropdownMenuTrigger>
@@ -239,7 +239,7 @@ export function MessageItem({
         isEditing && "w-full"
       )}>
         {isEditing ? (
-          <div className="flex flex-col gap-2 rounded-xl bg-white p-3 shadow-lg ring-1 ring-black/5">
+          <div className="flex flex-col gap-2 rounded-xl bg-white dark:bg-[#1C1C1C] p-3 shadow-lg ring-1 ring-black/5">
             <textarea
               ref={editInputRef}
               value={editValue}
@@ -256,7 +256,7 @@ export function MessageItem({
             <div className="flex justify-end gap-2">
               <button 
                 onClick={() => setIsEditing(false)}
-                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold text-gray-500 hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <X className="h-3.5 w-3.5" /> Cancel
               </button>
@@ -271,13 +271,13 @@ export function MessageItem({
         ) : message.isAttachment ? (
           <div className={cn(
             "rounded-[16px] p-4 shadow-sm mb-1 border-none transition-all hover:shadow-md",
-            isMe ? "bg-white/10 ring-1 ring-white/20 text-white" : "bg-[#EEF2F9] text-[#2A4474]"
+            isMe ? "bg-white dark:bg-[#1C1C1C]/10 ring-1 ring-white/20 text-white" : "bg-[#EEF2F9] text-[#2A4474]"
           )}
           style={isMe ? { background: 'linear-gradient(135deg, #7A69F0 0%, #6A5AE0 100%)' } : {}}
           >
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] bg-white/20">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] bg-white dark:bg-[#1C1C1C]/20">
                   <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8 filter brightness-0 invert" />
                 </div>
                 <div className="min-w-0">
@@ -287,7 +287,7 @@ export function MessageItem({
               </div>
               <button
                 onClick={() => onDownload?.(message.fileUrl!, message.attachmentName!)}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white dark:bg-[#1C1C1C]/10 hover:bg-white dark:bg-[#1C1C1C]/20 transition-colors"
               >
                 <Download className="h-4 w-4" />
               </button>
@@ -298,7 +298,7 @@ export function MessageItem({
             "group relative rounded-[18px] px-4 py-3 text-[14px] leading-[1.6] transition-all duration-300 shadow-sm",
             isMe 
               ? "text-white rounded-tr-none hover:shadow-lg" 
-              : "bg-[#F3F4F6] text-[#1F1F1F] rounded-tl-none hover:bg-[#EBEDF0]",
+              : "bg-[#F3F4F6] dark:bg-gray-800 text-[#1F1F1F] dark:text-gray-100 rounded-tl-none hover:bg-[#EBEDF0]",
             isLink(message.text) && !isMe && "text-white hover:opacity-95" 
           )}
           style={isMe || (isLink(message.text) && !isMe) ? { 
@@ -329,12 +329,12 @@ export function MessageItem({
                     <button
                       onClick={() => handleReaction(emoji)}
                       className={cn(
-                        "flex items-center gap-1 rounded-full bg-white/90 backdrop-blur-sm px-1.5 py-0.5 text-[12px] font-medium shadow-sm border border-[#EDEDED] transition-all hover:scale-105 active:scale-95",
+                        "flex items-center gap-1 rounded-full bg-white dark:bg-[#1C1C1C]/90 backdrop-blur-sm px-1.5 py-0.5 text-[12px] font-medium shadow-sm border border-[#EDEDED] transition-all hover:scale-105 active:scale-95",
                         userIds.includes(currentUserId) && "border-[#6A5AE0] bg-[#F5F3FF]"
                       )}
                     >
                       <span>{emoji}</span>
-                      <span className="text-[10px] text-gray-500">{userIds.length}</span>
+                      <span className="text-[10px] text-gray-500 dark:text-gray-400">{userIds.length}</span>
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>

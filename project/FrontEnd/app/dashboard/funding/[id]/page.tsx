@@ -148,7 +148,7 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
     if (s.includes('pending') || s.includes('submitted') || s.includes('awaiting')) {
       return 'text-yellow-600';
     }
-    return 'text-gray-600';
+    return 'text-gray-600 dark:text-gray-400';
   };
 
   const tabs = [
@@ -164,29 +164,29 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
+            <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <h1 className="text-2xl font-semibold text-[#1F1F1F]">{fundData.fundName}</h1>
+          <h1 className="text-2xl font-semibold text-[#1F1F1F] dark:text-gray-100">{fundData.fundName}</h1>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <p className="text-sm text-gray-500 mb-2">Current Value</p>
-            <p className="text-2xl font-bold text-[#1F1F1F]">{fundData.currentValue}</p>
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm p-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Current Value</p>
+            <p className="text-2xl font-bold text-[#1F1F1F] dark:text-gray-100">{fundData.currentValue}</p>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <p className="text-sm text-gray-500 mb-2">Units Held</p>
-            <p className="text-2xl font-bold text-[#1F1F1F]">{fundData.unitsHeld}</p>
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm p-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Units Held</p>
+            <p className="text-2xl font-bold text-[#1F1F1F] dark:text-gray-100">{fundData.unitsHeld}</p>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <p className="text-sm text-gray-500 mb-2">Current NAV</p>
-            <p className="text-2xl font-bold text-[#1F1F1F]">{fundData.currentNav}</p>
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm p-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Current NAV</p>
+            <p className="text-2xl font-bold text-[#1F1F1F] dark:text-gray-100">{fundData.currentNav}</p>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <p className="text-sm text-gray-500 mb-2">Total gain/loss</p>
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm p-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Total gain/loss</p>
             <p className={`text-2xl font-bold ${isGain ? 'text-green-600' : 'text-red-600'}`}>
               {fundData.totalGainLoss}
             </p>
@@ -199,13 +199,13 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
         {/* Performance Overview and Your Holdings */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Performance Overview - 2/3 width */}
-          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+          <div className="lg:col-span-2 bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-[#1F1F1F]">Performance Overview</h2>
+              <h2 className="text-lg font-semibold text-[#1F1F1F] dark:text-gray-100">Performance Overview</h2>
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FCD34D]"
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FCD34D]"
               >
                 <option value="12">Last year</option>
                 <option value="6">Last 6 months</option>
@@ -249,7 +249,7 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-white p-3 border border-gray-100 shadow-xl rounded-xl text-xs text-gray-800">
+                            <div className="bg-white dark:bg-[#1C1C1C] p-3 border border-gray-100 dark:border-gray-800 shadow-xl rounded-xl text-xs text-gray-800 dark:text-gray-200">
                               <p className="font-semibold">{new Date(payload[0].payload.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                               <p className="text-[#92400E] font-bold mt-1">Current Value: ${parseFloat(payload[0].value as any).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                               <p className="text-gray-400 font-medium">Total Invested: ${parseFloat(payload[0].payload.totalInvested as any).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
@@ -286,41 +286,41 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
           </div>
 
           {/* Your Holdings - 1/3 width */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-[#1F1F1F] mb-6">Your Holdings</h2>
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-[#1F1F1F] dark:text-gray-100 mb-6">Your Holdings</h2>
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-500 mb-1">Cost basis:</p>
-                <p className="text-lg font-semibold text-[#1F1F1F]">{fundData.costBasis}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Cost basis:</p>
+                <p className="text-lg font-semibold text-[#1F1F1F] dark:text-gray-100">{fundData.costBasis}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-1">Unrealized Gain:</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Unrealized Gain:</p>
                 <p className={`text-lg font-semibold ${isGain ? 'text-green-600' : 'text-red-600'}`}>{fundData.unrealizedGain}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-1">% Return:</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">% Return:</p>
                 <p className={`text-lg font-semibold ${isGain ? 'text-green-600' : 'text-red-600'}`}>{fundData.percentReturn}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-1">Inception Date:</p>
-                <p className="text-lg font-semibold text-[#1F1F1F]">{fundData.inceptionDate}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Inception Date:</p>
+                <p className="text-lg font-semibold text-[#1F1F1F] dark:text-gray-100">{fundData.inceptionDate}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Tabs and Content */}
-        <div className="bg-white rounded-xl shadow-sm">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm">
           {/* Tabs */}
-          <div className="border-b border-gray-200">
+          <div className="border-b border-gray-200 dark:border-gray-800">
             <div className="flex gap-2 px-6 overflow-x-auto">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === tab.id
-                      ? 'border-red-500 text-[#1F1F1F]'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-red-500 text-[#1F1F1F] dark:text-gray-100'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300'
                     }`}
                 >
                   {tab.label}
@@ -334,22 +334,22 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
             {activeTab === 'transactions' && (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="border-b border-gray-200">
+                  <thead className="border-b border-gray-200 dark:border-gray-800">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Units</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Units</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {transactions.map((transaction) => (
-                      <tr key={transaction.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">{transaction.date}</td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">{transaction.type}</td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">{transaction.amount}</td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">{transaction.units}</td>
+                      <tr key={transaction.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{transaction.date}</td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{transaction.type}</td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{transaction.amount}</td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{transaction.units}</td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm">
                           <span className={`font-medium ${getStatusColor(transaction.status)}`}>
                             {transaction.status}
@@ -365,16 +365,16 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
             {activeTab === 'documents' && (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="border-b border-gray-200">
+                  <thead className="border-b border-gray-200 dark:border-gray-800">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Document Name</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Document Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {documents.map((document) => (
-                      <tr key={document.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-4 text-sm text-gray-700 font-medium">{document.name}</td>
+                      <tr key={document.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                        <td className="px-4 py-4 text-sm text-gray-700 dark:text-gray-300 font-medium">{document.name}</td>
                         <td className="px-4 py-4 text-sm">
                           <div className="flex items-center gap-2">
                             <button
@@ -405,14 +405,14 @@ export default function FundingDetailsPage({ params }: { params: { id: string } 
               <div className="space-y-6">
                 <div>
                   <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Fund Description</h3>
-                  <p className="text-sm text-gray-700 leading-relaxed max-w-3xl whitespace-pre-wrap">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl whitespace-pre-wrap">
                     {investment.fund_description || "No description provided for this fund."}
                   </p>
                 </div>
                 {/* {investment.fund_description && (
                   <div>
                     <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Key Highlights</h3>
-                    <ul className="list-disc list-inside space-y-2 text-sm text-[#1F1F1F] font-semibold">
+                    <ul className="list-disc list-inside space-y-2 text-sm text-[#1F1F1F] dark:text-gray-100 font-semibold">
                       <li>Long-term institutional BTC exposure</li>
                       <li>Optimized for tax-advantaged accounts</li>
                       <li>Low operational friction</li>

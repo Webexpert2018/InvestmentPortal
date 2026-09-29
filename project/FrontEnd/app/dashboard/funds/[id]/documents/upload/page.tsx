@@ -142,30 +142,30 @@ export default function UploadDocumentPage() {
         <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="mb-1 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            className="mb-1 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 transition-colors"
           >
             <ChevronLeft className="h-5 w-5" />
             Back to Fund
           </button>
-          <h1 className="text-2xl font-semibold text-gray-900 mt-4 font-serif">Upload Document</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-4 font-serif">Upload Document</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Upload investor documents securely. All files are scanned before being added to the vault.
           </p>
         </div>
 
         <form onSubmit={handleUpload} className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm  p-4 md:p-8">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm  p-4 md:p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               {/* Document Type */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Document Type</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Document Type</label>
                 <select
                   required
                   value={formData.document_type}
                   onChange={(e) => setFormData({ ...formData, document_type: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-[#FCD34D] outline-none transition-all"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-[#FCD34D] outline-none transition-all"
                 >
-                  <option value="">Select document type</option>
+                  <option value="" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Select document type</option>
                   {DOCUMENT_TYPES.map((type) => (
                     <option key={type} value={type}>
                       {type}
@@ -176,13 +176,13 @@ export default function UploadDocumentPage() {
 
               {/* Tax Year */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Tax Year</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tax Year</label>
                 <select
                   value={formData.tax_year}
                   onChange={(e) => setFormData({ ...formData, tax_year: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-[#FCD34D] outline-none transition-all"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-[#FCD34D] outline-none transition-all"
                 >
-                  <option value="">Select tax year</option>
+                  <option value="" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Select tax year</option>
                   {TAX_YEARS.map((year) => (
                     <option key={year} value={year}>
                       {year}
@@ -195,7 +195,7 @@ export default function UploadDocumentPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               {/* Description */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 flex justify-between">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex justify-between">
                   Description
                   <span className="text-xs text-gray-400 font-normal">{formData.description.length}/1000</span>
                 </label>
@@ -204,13 +204,13 @@ export default function UploadDocumentPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Enter description"
                   maxLength={1000}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-[#FCD34D] outline-none transition-all h-32 resize-none"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-[#FCD34D] outline-none transition-all h-32 resize-none"
                 />
               </div>
 
               {/* Note */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 flex justify-between">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex justify-between">
                   Note
                   <span className="text-xs text-gray-400 font-normal">{formData.note.length}/1000</span>
                 </label>
@@ -219,7 +219,7 @@ export default function UploadDocumentPage() {
                   onChange={(e) => setFormData({ ...formData, note: e.target.value })}
                   placeholder="Add a private note visible only to you"
                   maxLength={1000}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-[#FCD34D] outline-none transition-all h-32 resize-none"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg focus:ring-2 focus:ring-[#FCD34D] focus:border-[#FCD34D] outline-none transition-all h-32 resize-none"
                 />
               </div>
             </div>
@@ -231,14 +231,14 @@ export default function UploadDocumentPage() {
               onDragEnter={handleDragEnter}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center cursor-pointer transition-all ${file ? "border-[#FCD34D] bg-[#FFFBEB]" : isDragging ? "border-[#FCD34D] bg-[#FFFBEB]" : "border-gray-200 hover:border-[#FCD34D] hover:bg-gray-50"
+              className={`border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center cursor-pointer transition-all ${file ? "border-[#FCD34D] bg-[#FFFBEB]" : isDragging ? "border-[#FCD34D] bg-[#FFFBEB]" : "border-gray-200 dark:border-gray-800 hover:border-[#FCD34D] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800"
                 }`}
             >
               <input
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                className="hidden"
+                className="hidden text-[#111827] dark:text-white"
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
               />
               {file ? (
@@ -246,8 +246,8 @@ export default function UploadDocumentPage() {
                   <div className="w-16 h-16 bg-[#FCD34D] rounded-full flex items-center justify-center mb-4">
                     <Upload className="h-8 w-8 text-white" />
                   </div>
-                  <p className="font-medium text-gray-900">{file.name}</p>
-                  <p className="text-sm text-gray-500 mt-1">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{file.name}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -261,11 +261,11 @@ export default function UploadDocumentPage() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-[#FFFBEB] transition-colors">
+                  <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4 group-hover:bg-[#FFFBEB] transition-colors">
                     <Upload className="h-8 w-8 text-gray-400" />
                   </div>
-                  <p className="text-gray-900 font-medium">Drag & drop files here</p>
-                  <p className="text-sm text-gray-500 mt-1">Support for PDF, DOC, JPG, PNG</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">Drag & drop files here</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Support for PDF, DOC, JPG, PNG</p>
                 </div>
               )}
             </div>
@@ -277,14 +277,14 @@ export default function UploadDocumentPage() {
               type="button"
               variant="outline"
               onClick={() => router.back()}
-              className="px-8 py-2.5 border-none bg-gray-50 text-gray-600 hover:bg-gray-100 font-medium transition-all"
+              className="px-8 py-2.5 border-none bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-all"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isLoading || !file}
-              className="px-12 py-2.5 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 font-semibold shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
+              className="px-12 py-2.5 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-100 font-semibold shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
             >
               {isLoading ? (
                 <>

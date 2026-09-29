@@ -92,12 +92,12 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId }: SendI
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm font-helvetica">
-      <div className="bg-white rounded-[24px] shadow-xl w-full max-w-md overflow-hidden border border-gray-100 flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-xl font-bold text-[#1F1F1F]">Send Investment Invite</h2>
+      <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] shadow-xl w-full max-w-md overflow-hidden border border-gray-100 dark:border-gray-800 flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+          <h2 className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">Send Investment Invite</h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-white rounded-full transition-all"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-400 hover:bg-white dark:bg-[#1C1C1C] rounded-full transition-all"
           >
             <X className="w-5 h-5" />
           </button>
@@ -111,12 +111,12 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId }: SendI
           <div className="p-6 overflow-y-auto custom-scrollbar">
             <form id="invite-form" onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Fund <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Fund <span className="text-red-500">*</span></label>
                 <select
                   value={selectedFundId}
                   onChange={(e) => setSelectedFundId(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white dark:bg-[#1C1C1C] transition-all text-sm font-medium"
                 >
                   <option value="">Select a fund</option>
                   {funds.map((f) => (
@@ -126,11 +126,11 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId }: SendI
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Account</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Account</label>
                 <select
                   value={selectedAccountId}
                   onChange={(e) => setSelectedAccountId(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white dark:bg-[#1C1C1C] transition-all text-sm font-medium"
                 >
                   <option value="personal">Personal Account</option>
                   {iraAccounts.map((ira) => (
@@ -148,7 +148,7 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId }: SendI
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Amount ($) <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Amount ($) <span className="text-red-500">*</span></label>
                 <input
                   type="number"
                   value={amount}
@@ -157,18 +157,18 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId }: SendI
                   min="0"
                   step="0.01"
                   placeholder="e.g. 50000"
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white dark:bg-[#1C1C1C] transition-all text-sm font-medium"
                 />
               </div>
             </form>
           </div>
         )}
 
-        <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
+        <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2.5 text-sm font-semibold text-gray-600 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl transition-colors"
+            className="px-6 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-400 bg-white dark:bg-[#1C1C1C] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl transition-colors"
           >
             Cancel
           </button>
@@ -176,7 +176,7 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId }: SendI
             type="submit"
             form="invite-form"
             disabled={submitting || loading}
-            className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-[#1F1F1F] bg-gradient-to-r from-[#FBCB4B] to-[#E2B93B] hover:opacity-90 rounded-xl transition-all shadow-sm hover:shadow disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-[#1F1F1F] dark:text-gray-100 bg-gradient-to-r from-[#FBCB4B] to-[#E2B93B] hover:opacity-90 rounded-xl transition-all shadow-sm hover:shadow disabled:opacity-50"
           >
             {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
             {submitting ? 'Sending...' : 'Send Invite'}

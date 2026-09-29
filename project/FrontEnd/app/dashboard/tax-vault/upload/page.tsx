@@ -153,20 +153,20 @@ export default function UploadTaxDocumentPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F]">
+      <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F] dark:text-gray-100">
         <div>
-          <h1 className="font-goudy font-bol text-lg md:text-2xl text-[#1F1F1F]">Upload Document</h1>
+          <h1 className="font-goudy font-bol text-lg md:text-2xl text-[#1F1F1F] dark:text-gray-100">Upload Document</h1>
           <p className="mt-1 text-[14px] leading-6 text-[#8E8E93]">
             Upload investor documents securely. All files are scanned before being added to the vault.
           </p>
         </div>
 
         <div className="px-2 md:px-10">
-          <div className="mt-6 rounded-[10px] bg-white px-6 py-6">
+          <div className="mt-6 rounded-[10px] bg-white dark:bg-[#1C1C1C] px-6 py-6">
             <div className="grid gap-5 md:grid-cols-2">
               {(user?.role === 'admin' || user?.role === 'accountant' || user?.role === 'executive_admin') && (
                 <div className="md:col-span-2">
-                  <label className="mb-2 block text-[14px] text-[#4B4B4B]">Select Investor</label>
+                  <label className="mb-2 block text-[14px] text-[#4B4B4B] dark:text-gray-300">Select Investor</label>
                   <div className="relative">
                     <select
                       value={selectedInvestorId}
@@ -175,7 +175,7 @@ export default function UploadTaxDocumentPage() {
                         setErrors((prev) => ({ ...prev, investor: undefined }));
                       }}
                       className={`h-[48px] w-full appearance-none rounded-[8px] border px-4 text-left text-[14px] outline-none ${errors.investor ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                        } ${selectedInvestorId ? 'text-[#1F1F1F]' : 'text-[#A2A5AA]'}`}
+                        } ${selectedInvestorId ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#A2A5AA]'}`}
                     >
                       <option value="">{isLoadingInvestors ? 'Loading investors...' : 'Select an investor'}</option>
                       {investors.map((inv: any) => (
@@ -191,7 +191,7 @@ export default function UploadTaxDocumentPage() {
               )}
 
               <div>
-                <label className="mb-2 block text-[14px] text-[#4B4B4B]">Document Type</label>
+                <label className="mb-2 block text-[14px] text-[#4B4B4B] dark:text-gray-300">Document Type</label>
                 <div className="relative">
                   <select
                     value={documentType}
@@ -200,7 +200,7 @@ export default function UploadTaxDocumentPage() {
                       setErrors((prev) => ({ ...prev, documentType: undefined }));
                     }}
                     className={`h-[48px] w-full appearance-none rounded-[8px] border px-4 text-left text-[14px] outline-none ${errors.documentType ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                      } ${documentType ? 'text-[#1F1F1F]' : 'text-[#A2A5AA]'}`}
+                      } ${documentType ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#A2A5AA]'}`}
                   >
                     <option value="">Select document type</option>
                     <option value="K-1">K-1</option>
@@ -213,7 +213,7 @@ export default function UploadTaxDocumentPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-[14px] text-[#4B4B4B]">Tax Year</label>
+                <label className="mb-2 block text-[14px] text-[#4B4B4B] dark:text-gray-300">Tax Year</label>
                 <div className="relative">
                   <select
                     value={taxYear}
@@ -222,7 +222,7 @@ export default function UploadTaxDocumentPage() {
                       setErrors((prev) => ({ ...prev, taxYear: undefined }));
                     }}
                     className={`h-[48px] w-full appearance-none rounded-[8px] border px-4 text-left text-[14px] outline-none ${errors.taxYear ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                      } ${taxYear ? 'text-[#1F1F1F]' : 'text-[#A2A5AA]'}`}
+                      } ${taxYear ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#A2A5AA]'}`}
                   >
                     <option value="">Select tax year</option>
                     <option value="2026">2026</option>
@@ -235,7 +235,7 @@ export default function UploadTaxDocumentPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-[14px] text-[#4B4B4B]">Description</label>
+                <label className="mb-2 block text-[14px] text-[#4B4B4B] dark:text-gray-300">Description</label>
                 <div className="relative">
                   <textarea
                     rows={3}
@@ -245,7 +245,7 @@ export default function UploadTaxDocumentPage() {
                       setErrors((prev) => ({ ...prev, description: undefined }));
                     }}
                     placeholder="Enter description"
-                    className={`h-[91px] w-full resize-none rounded-[8px] border px-4 py-3 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] ${errors.description ? 'border-[#E05252]' : 'border-[#E5E5EA]'
+                    className={`h-[91px] w-full resize-none rounded-[8px] border px-4 py-3 text-[14px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#A2A5AA] ${errors.description ? 'border-[#E05252]' : 'border-[#E5E5EA]'
                       }`}
                   />
                   <span className="absolute bottom-2 right-3 text-[10px] text-[#D1D1D6]">
@@ -256,14 +256,14 @@ export default function UploadTaxDocumentPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-[14px] text-[#4B4B4B]">Note</label>
+                <label className="mb-2 block text-[14px] text-[#4B4B4B] dark:text-gray-300">Note</label>
                 <div className="relative">
                   <textarea
                     rows={3}
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
                     placeholder="Add a private note visible only to you"
-                    className="h-[91px] w-full resize-none rounded-[8px] border border-[#E5E5EA] px-4 py-3 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA]"
+                    className="h-[91px] w-full resize-none rounded-[8px] border border-[#E5E5EA] px-4 py-3 text-[14px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#A2A5AA]"
                   />
                   <span className="absolute bottom-2 right-3 text-[10px] text-[#D1D1D6]">{note.length}/1000</span>
                 </div>
@@ -271,7 +271,7 @@ export default function UploadTaxDocumentPage() {
             </div>
 
             <div className="mt-6">
-              <p className="mb-2 text-[14px] text-[#4B4B4B]">Upload File here</p>
+              <p className="mb-2 text-[14px] text-[#4B4B4B] dark:text-gray-300">Upload File here</p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -287,7 +287,7 @@ export default function UploadTaxDocumentPage() {
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={handleDrop}
                 disabled={isUploading}
-                className={`flex h-[103px] w-full flex-col items-center justify-center rounded-[8px] border border-dashed ${selectedFileName ? 'text-[#1F1F1F] font-bold' : 'text-[#A2A5AA]'
+                className={`flex h-[103px] w-full flex-col items-center justify-center rounded-[8px] border border-dashed ${selectedFileName ? 'text-[#1F1F1F] dark:text-gray-100 font-bold' : 'text-[#A2A5AA]'
                   } ${isDragging ? 'border-[#FBCB4B] bg-yellow-50' : errors.file ? 'border-[#E05252]' : 'border-[#E5E5EA]'
                   } ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#FAFBFC]'}`}
               >
@@ -310,7 +310,7 @@ export default function UploadTaxDocumentPage() {
                 type="button"
                 onClick={handleCancel}
                 disabled={isUploading}
-                className="h-[42px] min-w-[112px] rounded-full bg-[#FFF3D6] px-6 text-[16px] text-[#4B4B4B] disabled:opacity-50"
+                className="h-[42px] min-w-[112px] rounded-full bg-[#FFF3D6] px-6 text-[16px] text-[#4B4B4B] dark:text-gray-300 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -318,7 +318,7 @@ export default function UploadTaxDocumentPage() {
                 type="button"
                 onClick={handleSave}
                 disabled={isUploading}
-                className="flex h-[42px] min-w-[112px] items-center justify-center gap-2 rounded-full bg-[#FBCB4B] px-6 text-[16px] font-bold text-[#1F1F1F] shadow-sm transition-all hover:bg-[#F9B800] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="flex h-[42px] min-w-[112px] items-center justify-center gap-2 rounded-full bg-[#FBCB4B] px-6 text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100 shadow-sm transition-all hover:bg-[#F9B800] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isUploading ? (
                   <>

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface DashboardHeaderProps {
   isCollapsed: boolean;
@@ -86,12 +87,12 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-[85px] items-center justify-between border-b border-[#EEEEEE] bg-white px-3 sm:px-4 lg:px-5">
+    <header className="sticky top-0 z-30 flex h-[85px] items-center justify-between border-b border-[#EEEEEE] bg-white dark:bg-[#1C1C1C] px-3 sm:px-4 lg:px-5">
       <div className="flex items-center">
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="cursor-pointer rounded-md p-2 transition hover:bg-gray-100 active:scale-95 dashboard-toggle-button"
+          className="cursor-pointer rounded-md p-2 transition hover:bg-gray-100 dark:hover:bg-gray-700 active:scale-95 dashboard-toggle-button"
           aria-label="Toggle sidebar"
         >
           <Image src="/images/menu-icon.svg" alt="Open menu" width={20} height={20} className="h-5 w-5" />
@@ -110,12 +111,12 @@ export function DashboardHeader({
         <Link
           href="/dashboard/schedule-meeting"
           className={cn(
-            "relative inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] transition hover:bg-[#EBEBEB]",
+            "relative inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] dark:bg-gray-800 transition hover:bg-[#EBEBEB] dark:hover:bg-gray-700",
             pathname === "/dashboard/schedule-meeting" && "ring-2 ring-[#D9DEE7]",
           )}
           aria-label="Schedule Meeting"
         >
-          <CalendarDays className="h-[21px] w-[21px] text-[#555555]" strokeWidth={1.8} />
+          <CalendarDays className="h-[21px] w-[21px] text-[#555555] dark:text-gray-300" strokeWidth={1.8} />
           {unreadMeetingsCount > 0 && (
             <span className="absolute -right-1 -top-1 flex h-[21px] min-w-[21px] items-center justify-center rounded-full bg-[#FF4D4F] px-1 text-[11px] font-bold leading-none text-white shadow-[0_2px_4px_rgba(255,77,79,0.3)] outline outline-2 outline-white">
               {unreadMeetingsCount > 99 ? '99+' : unreadMeetingsCount}
@@ -126,12 +127,12 @@ export function DashboardHeader({
         <Link
           href="/dashboard/messages"
           className={cn(
-            "relative inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] transition hover:bg-[#EBEBEB]",
+            "relative inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] dark:bg-gray-800 transition hover:bg-[#EBEBEB] dark:hover:bg-gray-700",
             pathname?.startsWith("/dashboard/messages") && "ring-2 ring-[#D9DEE7]",
           )}
           aria-label="Messages"
         >
-          <MessageCircle className="h-[21px] w-[21px] text-[#555555]" strokeWidth={1.8} />
+          <MessageCircle className="h-[21px] w-[21px] text-[#555555] dark:text-gray-300" strokeWidth={1.8} />
           {unreadMessagesCount > 0 && (
             <span className="absolute -right-1 -top-1 flex h-[21px] min-w-[21px] items-center justify-center rounded-full bg-[#FF4D4F] px-1 text-[11px] font-bold leading-none text-white shadow-[0_2px_4px_rgba(255,77,79,0.3)] outline outline-2 outline-white">
               {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
@@ -142,13 +143,13 @@ export function DashboardHeader({
         <Link
           href="/notifications"
           className={cn(
-            "relative inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] transition hover:bg-[#EBEBEB]",
+            "relative inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] dark:bg-gray-800 transition hover:bg-[#EBEBEB] dark:hover:bg-gray-700",
             pathname === "/notifications" && "ring-2 ring-[#D9DEE7]",
           )}
           aria-label="Notifications"
           onClick={() => setUnreadCount(0)}
         >
-          <Bell className="h-[21px] w-[21px] text-[#555555]" strokeWidth={1.8} />
+          <Bell className="h-[21px] w-[21px] text-[#555555] dark:text-gray-300" strokeWidth={1.8} />
           {unreadCount > 0 && (
             <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#FF4D4F] px-1.5 text-[10px] font-bold text-white shadow-sm">
               {unreadCount > 99 ? '99+' : unreadCount}
@@ -156,7 +157,9 @@ export function DashboardHeader({
           )}
         </Link>
 
-        <div className="h-[50px] w-px bg-[#EEEEEE]" />
+        <ThemeToggle />
+
+        <div className="h-[50px] w-px bg-[#EEEEEE] dark:bg-gray-700" />
 
         <div ref={profileMenuRef} className="relative pr-1">
           <button
@@ -191,14 +194,14 @@ export function DashboardHeader({
             </div>
 
             <div className="hidden text-left md:block">
-              <p className="font-helvetica text-[15px] font-bold leading-[1] text-[#2A2A2A]">{displayName}</p>
+              <p className="font-helvetica text-[15px] font-bold leading-[1] text-[#2A2A2A] dark:text-gray-100">{displayName}</p>
               {/* <p className="mt-1 font-helvetica text-[14px] leading-[1] text-[#7A7A7A]">{accountLabel}</p> */}
-              <p className="mt-1 text-xs text-[#A0A0A0]">role: <span className="font-mono text-[12px] text-[#666]">{user?.role ?? 'none'}</span></p>
+              <p className="mt-1 text-xs text-[#A0A0A0]">role: <span className="font-mono text-[12px] text-[#666] dark:text-gray-400">{user?.role ?? 'none'}</span></p>
             </div>
 
             <svg
               className={cn(
-                "h-[22px] w-[22px] text-[#B6B6B6] transition-transform",
+                "h-[22px] w-[22px] text-[#B6B6B6] dark:text-gray-400 transition-transform",
                 isProfileMenuOpen && "rotate-180",
               )}
               viewBox="0 0 24 24"
@@ -211,11 +214,11 @@ export function DashboardHeader({
           </button>
 
           {isProfileMenuOpen && (
-            <div className="absolute right-0 top-full z-40 mt-2 w-[190px] rounded-[10px] border border-[#ECECEC] bg-white p-2 shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
+            <div className="absolute right-0 top-full z-40 mt-2 w-[190px] rounded-[10px] border border-[#ECECEC] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] p-2 shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#FFF9EE] px-4 py-2 font-helvetica text-[14px] font-bold text-[#FFC63F] hover:bg-[#F3EAD7]"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#FFF9EE] dark:bg-gray-800 px-4 py-2 font-helvetica text-[14px] font-bold text-[#FFC63F] hover:bg-[#F3EAD7] dark:hover:bg-gray-700"
               >
                 <Image
                   src="/images/sign_out.svg"

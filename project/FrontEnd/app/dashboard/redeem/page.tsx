@@ -334,7 +334,7 @@ export default function RedeemPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-8xl px-4 py-8 font-helvetica text-[#1F1F1F]">
+      <div className="mx-auto max-w-8xl px-4 py-8 font-helvetica text-[#1F1F1F] dark:text-gray-100">
         {/* Header */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
@@ -353,8 +353,8 @@ export default function RedeemPage() {
             disabled={!selectedFundId}
             className={`w-full sm:w-auto text-center rounded-full px-8 py-2.5 text-sm font-bold border transition-all shadow-none ${
               selectedFundId
-                ? 'bg-[#FBCB4B] text-[#1F1F1F] border-[#FBCB4B] hover:bg-[#F9B800] hover:border-[#F9B800] cursor-pointer shadow-md transform hover:-translate-y-0.5'
-                : 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed pointer-events-none'
+                ? 'bg-[#FBCB4B] text-[#1F1F1F] dark:text-gray-100 border-[#FBCB4B] hover:bg-[#F9B800] hover:border-[#F9B800] cursor-pointer shadow-md transform hover:-translate-y-0.5'
+                : 'bg-gray-50 dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-800 cursor-not-allowed pointer-events-none'
             }`}
           >
             Redemption Request
@@ -364,7 +364,7 @@ export default function RedeemPage() {
         {/* Active Funds Holdings List */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Select invested fund</h2>
+            <h2 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Select invested fund</h2>
             {selectedFundId && (
               <button
                 type="button"
@@ -378,7 +378,7 @@ export default function RedeemPage() {
           {loading ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {[1, 2].map(n => (
-                <div key={n} className="animate-pulse bg-white border border-gray-100 rounded-2xl p-6 sm:p-7 h-[130px]"></div>
+                <div key={n} className="animate-pulse bg-white dark:bg-[#1C1C1C] border border-gray-100 dark:border-gray-800 rounded-2xl p-6 sm:p-7 h-[130px]"></div>
               ))}
             </div>
           ) : activeHoldings.length > 0 ? (
@@ -389,10 +389,10 @@ export default function RedeemPage() {
                   <div
                     key={holding.fundId}
                     onClick={() => setSelectedFundId(prev => prev === holding.fundId ? null : holding.fundId)}
-                    className={`cursor-pointer rounded-2xl bg-white p-6 sm:p-7 border transition-all duration-200 hover:shadow-md flex flex-col justify-between ${
+                    className={`cursor-pointer rounded-2xl bg-white dark:bg-[#1C1C1C] p-6 sm:p-7 border transition-all duration-200 hover:shadow-md flex flex-col justify-between ${
                       isSelected
                         ? 'border-[#FBCB4B] shadow-sm bg-[#FFFDF6]'
-                        : 'border-gray-100 shadow-xs'
+                        : 'border-gray-100 dark:border-gray-800 shadow-xs'
                     }`}
                   >
                     <div>
@@ -402,7 +402,7 @@ export default function RedeemPage() {
                             <img
                               src={getFullImageUrl(holding.fundImage) || ''}
                               alt={holding.fundName}
-                              className="w-12 h-12 rounded-full object-cover border border-gray-100 shadow-xs shrink-0"
+                              className="w-12 h-12 rounded-full object-cover border border-gray-100 dark:border-gray-800 shadow-xs shrink-0"
                             />
                           ) : (
                             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-sm shadow-xs shrink-0">
@@ -410,7 +410,7 @@ export default function RedeemPage() {
                             </div>
                           )}
                           <div>
-                            <h3 className="font-bold text-base text-gray-900 leading-tight">{holding.fundName}</h3>
+                            <h3 className="font-bold text-base text-gray-900 dark:text-gray-100 leading-tight">{holding.fundName}</h3>
                             <p className="text-xs text-[#8E8E93] mt-1">
                               {holding.totalUnits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })} Units
                             </p>
@@ -427,16 +427,16 @@ export default function RedeemPage() {
                         )}
                       </div>
                     </div>
-                    <div className="border-t border-gray-100/60 pt-4 mt-4 flex justify-between items-center text-sm">
+                    <div className="border-t border-gray-100 dark:border-gray-800/60 pt-4 mt-4 flex justify-between items-center text-sm">
                       <span className="text-gray-400">Total Invested:</span>
-                      <span className="font-bold text-gray-800">{formatCurrency(holding.totalInvested)}</span>
+                      <span className="font-bold text-gray-800 dark:text-gray-200">{formatCurrency(holding.totalInvested)}</span>
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div className="bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 py-12 text-center text-gray-500">
+            <div className="bg-gray-50/50 dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800 py-12 text-center text-gray-500 dark:text-gray-400">
               <Landmark className="h-10 w-10 mx-auto opacity-20 mb-2.5" />
               <p className="text-sm font-medium">No active investments found to redeem.</p>
             </div>
@@ -446,17 +446,17 @@ export default function RedeemPage() {
         {/* Requests Table */}
         <div className="mb-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+            <h2 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
               {selectedFundId ? `Redemption requests for ${selectedHolding?.fundName}` : 'All redemption requests'}
             </h2>
           </div>
         </div>
         
-        <div className="overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100">
-          <div className="overflow-x-auto bg-white p-6 pb-20">
-            <table className="min-w-full text-xs text-[#4B4B4B]">
+        <div className="overflow-hidden rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-sm border border-gray-100 dark:border-gray-800">
+          <div className="overflow-x-auto bg-white dark:bg-[#1C1C1C] p-6 pb-20">
+            <table className="min-w-full text-xs text-[#4B4B4B] dark:text-gray-300">
               <thead className="bg-[#F8FAFC] text-[13px] capitalize tracking-normal text-[#8E8E93]">
-                <tr className="border-b border-gray-100">
+                <tr className="border-b border-gray-100 dark:border-gray-800">
                   <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[120px]">Request ID</th>
                   <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[150px]">Fund</th>
                   <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[100px]">Amount</th>
@@ -467,7 +467,7 @@ export default function RedeemPage() {
                   <th className="px-6 py-4 text-right font-bold tracking-normal whitespace-nowrap min-w-[100px]">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F9F9F9] bg-white text-[13px]">
+              <tbody className="divide-y divide-[#F9F9F9] bg-white dark:bg-[#1C1C1C] text-[13px]">
                 {loading ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-20 text-center">
@@ -484,19 +484,19 @@ export default function RedeemPage() {
                       onClick={() => router.push(`/dashboard/redemption/${row.id}`)}
                       className="hover:bg-[#F9FAFB]/50 cursor-pointer transition-colors group"
                     >
-                      <td className="px-6 py-4 align-middle font-bold text-[#1F1F1F] whitespace-nowrap">
+                      <td className="px-6 py-4 align-middle font-bold text-[#1F1F1F] dark:text-gray-100 whitespace-nowrap">
                         RED-{row.id.substring(0, 6).toUpperCase()}
                       </td>
-                      <td className="px-6 py-4 align-middle font-medium text-gray-700 whitespace-nowrap">
+                      <td className="px-6 py-4 align-middle font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                         {row.fund_name}
                       </td>
                       <td className="px-6 py-4 align-middle font-bold text-[#1F3B6E] whitespace-nowrap">
                         {formatCurrency(row.amount)}
                       </td>
-                      <td className="px-6 py-4 align-middle font-medium text-gray-700 whitespace-nowrap">
+                      <td className="px-6 py-4 align-middle font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                         {parseFloat(row.units).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                       </td>
-                      <td className="px-6 py-4 align-middle text-gray-500 italic whitespace-nowrap">
+                      <td className="px-6 py-4 align-middle text-gray-500 dark:text-gray-400 italic whitespace-nowrap">
                         {row.bank_info?.label || 'Bank transfer'}
                       </td>
                       <td className="px-6 py-4 align-middle">
@@ -504,7 +504,7 @@ export default function RedeemPage() {
                           {row.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 align-middle text-gray-500 font-medium whitespace-nowrap">
+                      <td className="px-6 py-4 align-middle text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">
                         {formatDate(row.created_at)}
                       </td>
                       <td className="px-6 py-4 align-middle">
@@ -515,7 +515,7 @@ export default function RedeemPage() {
                               e.stopPropagation();
                               setActiveMenuId((prev) => (prev === row.id ? null : row.id));
                             }}
-                            className="rounded-full p-2 text-gray-400 hover:bg-[#F3F4F6] hover:text-[#1F1F1F] transition-all"
+                            className="rounded-full p-2 text-gray-400 hover:bg-[#F3F4F6] hover:text-[#1F1F1F] dark:text-gray-100 transition-all"
                           >
                             <MoreVertical className="h-4 w-4" />
                           </button>
@@ -531,11 +531,11 @@ export default function RedeemPage() {
                               />
                               <div
                                 onClick={(e) => e.stopPropagation()}
-                                className={`absolute right-0 z-20 w-48 rounded-xl border border-gray-100 bg-white py-2 text-[12px] text-[#4B4B4B] shadow-xl animate-in fade-in duration-200 ${
+                                className={`absolute right-0 z-20 w-48 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] py-2 text-[12px] text-[#4B4B4B] dark:text-gray-300 shadow-xl animate-in fade-in duration-200 ${
                                   index === currentRows.length - 1 ? 'bottom-full mb-2 slide-in-from-bottom-1' : 'top-full mt-2 slide-in-from-top-1'
                                 }`}
                               >
-                                <div className="px-4 py-1 text-[10px] font-bold text-gray-300 uppercase tracking-widest border-b border-gray-50 mb-1">
+                                <div className="px-4 py-1 text-[10px] font-bold text-gray-300 uppercase tracking-widest border-b border-gray-50 dark:border-gray-800 mb-1">
                                   Management
                                 </div>
                                 <Link
@@ -554,7 +554,7 @@ export default function RedeemPage() {
                                       setRedemptionToCancel(row);
                                       setActiveMenuId(null);
                                     }}
-                                    className="flex items-center gap-2 w-full px-4 py-2.5 text-left hover:bg-red-50 text-red-500 transition-colors font-medium border-t border-gray-50 mt-1"
+                                    className="flex items-center gap-2 w-full px-4 py-2.5 text-left hover:bg-red-50 text-red-500 transition-colors font-medium border-t border-gray-50 dark:border-gray-800 mt-1"
                                   >
                                     <XCircle className="h-3.5 w-3.5" />
                                     Cancel Request
@@ -599,7 +599,7 @@ export default function RedeemPage() {
                   onClick={() => setCurrentPage(page)}
                   className={`h-8 w-8 flex-shrink-0 rounded-lg text-xs font-bold transition-all shadow-sm ${currentPage === page
                     ? 'bg-[#1F3B6E] text-white shadow-[#1F3B6E]/20'
-                    : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'
+                    : 'bg-white dark:bg-[#1C1C1C] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-800'
                     }`}
                 >
                   {page}
@@ -620,18 +620,18 @@ export default function RedeemPage() {
 
         {/* Cancellation AlertDialog */}
         <AlertDialog open={!!redemptionToCancel} onOpenChange={(isOpen) => !isOpen && setRedemptionToCancel(null)}>
-          <AlertDialogContent className="bg-white rounded-[20px] border-none shadow-2xl p-8 max-w-[520px]">
-            <div className="absolute right-6 top-6 text-[#9FA3A9] cursor-pointer hover:text-gray-600 transition-colors" onClick={() => setRedemptionToCancel(null)}>
+          <AlertDialogContent className="bg-white dark:bg-[#1C1C1C] rounded-[20px] border-none shadow-2xl p-8 max-w-[520px]">
+            <div className="absolute right-6 top-6 text-[#9FA3A9] cursor-pointer hover:text-gray-600 dark:text-gray-400 transition-colors" onClick={() => setRedemptionToCancel(null)}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </div>
 
             <AlertDialogHeader>
-              <AlertDialogTitle className="font-goudy text-[28px] text-[#1F1F1F] font-normal">Cancel Redemption</AlertDialogTitle>
+              <AlertDialogTitle className="font-goudy text-[28px] text-[#1F1F1F] dark:text-gray-100 font-normal">Cancel Redemption</AlertDialogTitle>
               <div className="mt-4 space-y-3">
-                <p className="text-[#4B4B4B] text-[16px] leading-relaxed font-goudy">
-                  Are you sure you want to cancel the redemption request <span className="font-bold text-[#1F1F1F]">"RED-{redemptionToCancel?.id.substring(0, 6).toUpperCase()}"</span> for <span className="font-bold text-[#1F1F1F]">{redemptionToCancel?.fund_name}</span>?
+                <p className="text-[#4B4B4B] dark:text-gray-300 text-[16px] leading-relaxed font-goudy">
+                  Are you sure you want to cancel the redemption request <span className="font-bold text-[#1F1F1F] dark:text-gray-100">"RED-{redemptionToCancel?.id.substring(0, 6).toUpperCase()}"</span> for <span className="font-bold text-[#1F1F1F] dark:text-gray-100">{redemptionToCancel?.fund_name}</span>?
                 </p>
-                <p className="text-[#4B4B4B] text-[16px] leading-relaxed font-goudy">
+                <p className="text-[#4B4B4B] dark:text-gray-300 text-[16px] leading-relaxed font-goudy">
                   This action will stop the redemption process and cannot be undone.
                 </p>
               </div>
@@ -639,14 +639,14 @@ export default function RedeemPage() {
 
             <AlertDialogFooter className="mt-10 flex items-center justify-center sm:justify-end gap-3 sm:space-x-0">
               <AlertDialogCancel
-                className="h-[46px] min-w-[130px] rounded-full bg-[#FFF5E9] border-none text-[#4B4B4B] text-[15px] font-semibold hover:bg-[#FFEBD4] transition-all"
+                className="h-[46px] min-w-[130px] rounded-full bg-[#FFF5E9] border-none text-[#4B4B4B] dark:text-gray-300 text-[15px] font-semibold hover:bg-[#FFEBD4] transition-all"
               >
                 Go Back
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleCancelRequest}
                 disabled={cancelling}
-                className="h-[46px] min-w-[150px] rounded-full bg-[#FFD64B] hover:bg-[#FFCC21] text-[#4B4B4B] text-[15px] font-bold border-none shadow-sm transition-all"
+                className="h-[46px] min-w-[150px] rounded-full bg-[#FFD64B] hover:bg-[#FFCC21] text-[#4B4B4B] dark:text-gray-300 text-[15px] font-bold border-none shadow-sm transition-all"
               >
                 {cancelling ? (
                   <>

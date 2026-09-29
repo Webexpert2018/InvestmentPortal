@@ -104,12 +104,12 @@ export default function OldFundInvestorDetailPage() {
                 router.push(`/dashboard/funds/old/${params.id}`);
               }
             }}
-            className="mb-4 flex items-center gap-2 text-gray-600 font-semibold"
+            className="mb-4 flex items-center gap-2 text-gray-600 dark:text-gray-400 font-semibold"
           >
             <ChevronLeft className="h-5 w-5" /> {from === 'investors' ? 'Back to Investors' : 'Back to Fund Details'}
           </button>
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 text-center shadow-sm">
-            <p className="text-gray-500 font-medium">Investor details not found</p>
+          <div className="bg-white dark:bg-[#1C1C1C] p-8 rounded-2xl border border-gray-100 dark:border-gray-800 text-center shadow-sm">
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Investor details not found</p>
           </div>
         </div>
       </DashboardLayout>
@@ -118,7 +118,7 @@ export default function OldFundInvestorDetailPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-8 bg-[#F9FAFB] min-h-screen">
+      <div className="p-4 sm:p-8 bg-[#F9FAFB] dark:bg-gray-900 min-h-screen">
         {/* Header navigation */}
         <div className="mb-8">
           <div className="mb-4">
@@ -130,10 +130,10 @@ export default function OldFundInvestorDetailPage() {
                   router.push(`/dashboard/funds/old/${params.id}`);
                 }
               }}
-              className="p-1.5 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200 group flex items-center gap-1.5 w-fit"
+              className="p-1.5 hover:bg-white dark:bg-[#1C1C1C] rounded-full transition-colors border border-transparent hover:border-gray-200 dark:border-gray-800 group flex items-center gap-1.5 w-fit"
               title={from === 'investors' ? 'Back to Investors' : 'Back to Fund Details'}
             >
-              <ChevronLeft className="h-5 w-5 text-gray-600 transition-transform group-hover:-translate-x-0.5" />
+              <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400 transition-transform group-hover:-translate-x-0.5" />
               <span className="text-sm font-semibold text-[#1F3B6E] pr-2">
                 {from === 'investors' ? 'Back to Investors' : 'Back to Fund Details'}
               </span>
@@ -142,10 +142,10 @@ export default function OldFundInvestorDetailPage() {
 
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight truncate font-goudy">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 leading-tight truncate font-goudy">
                 {investorData.fullName}
               </h1>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                 Legacy Investor Profile &bull; ID: {investorData.profileId}
               </p>
             </div>
@@ -153,7 +153,7 @@ export default function OldFundInvestorDetailPage() {
         </div>
 
         {/* Investor Summary Card */}
-        <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col md:flex-row gap-8 items-start md:items-center mb-8">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl p-8 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col md:flex-row gap-8 items-start md:items-center mb-8">
           <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex-shrink-0 flex items-center justify-center text-white font-bold text-3xl shadow-md">
             {getInitials(investorData.fullName)}
           </div>
@@ -164,8 +164,8 @@ export default function OldFundInvestorDetailPage() {
               {/* Profile Details */}
               <div className="space-y-1.5">
                 <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Investor Details</span>
-                <h3 className="text-lg font-bold text-gray-900 leading-snug">{investorData.fullName}</h3>
-                <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">{investorData.fullName}</h3>
+                <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
                   <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   <span className="truncate">{investorData.email}</span>
                 </div>
@@ -175,18 +175,18 @@ export default function OldFundInvestorDetailPage() {
               <div className="space-y-1.5">
                 <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Investments</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-gray-900">{investorData.totalInvestmentsCount}</span>
+                  <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">{investorData.totalInvestmentsCount}</span>
                 </div>
-                <p className="text-sm text-gray-500">Historical count of legacy transactions</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Historical count of legacy transactions</p>
               </div>
 
               {/* Aggregated Total Capital */}
               <div className="space-y-1.5">
                 <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Investment</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-gray-900">{investorData.totalInvestment}</span>
+                  <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">{investorData.totalInvestment}</span>
                 </div>
-                <p className="text-sm text-gray-500">Aggregated historical total across all funds</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Aggregated historical total across all funds</p>
               </div>
 
               {/* Total Distributed Amount */}
@@ -195,7 +195,7 @@ export default function OldFundInvestorDetailPage() {
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-bold text-[#2BB673]">{investorData.totalDistributedAmount}</span>
                 </div>
-                <p className="text-sm text-gray-500">Total historical return of capital</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total historical return of capital</p>
               </div>
 
             </div>
@@ -203,9 +203,9 @@ export default function OldFundInvestorDetailPage() {
         </div>
 
         {/* Investments list Table */}
-        <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
-          <div className="border-b border-gray-50 pb-3 flex justify-between items-center">
-            <h3 className="text-lg font-bold text-gray-900 font-goudy">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl p-8 border border-gray-100 dark:border-gray-800 shadow-sm space-y-6">
+          <div className="border-b border-gray-50 dark:border-gray-800 pb-3 flex justify-between items-center">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-goudy">
               Investments across All Funds
             </h3>
             <span className="inline-flex items-center justify-center bg-blue-50 text-[#1F3B6E] text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-100">
@@ -217,7 +217,7 @@ export default function OldFundInvestorDetailPage() {
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="border-b border-gray-100">
+                  <tr className="border-b border-gray-100 dark:border-gray-800">
                     <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">No.</th>
                     <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pl-3">Fund</th>
                     <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pl-3">Investor Name</th>
@@ -228,28 +228,28 @@ export default function OldFundInvestorDetailPage() {
                     <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                   {investorData.investments.map((inv: any, idx: number) => (
-                    <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={idx} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="py-4 text-sm font-medium text-gray-400 text-left">
                         #{idx + 1}
                       </td>
                       <td className="py-4 text-left text-sm font-semibold text-[#1F3B6E] pl-3">
                         {inv.projectName}
                       </td>
-                      <td className="py-4 text-left text-sm font-medium text-gray-600 pl-3">
+                      <td className="py-4 text-left text-sm font-medium text-gray-600 dark:text-gray-400 pl-3">
                         {inv.investorName || 'N/A'}
                       </td>
-                      <td className="py-4 text-right text-sm font-bold text-gray-900">
+                      <td className="py-4 text-right text-sm font-bold text-gray-900 dark:text-gray-100">
                         {inv.amount}
                       </td>
-                      <td className="py-4 text-right text-sm font-medium text-gray-500">
+                      <td className="py-4 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
                         {inv.ownership ? inv.ownership : '0.00%'}
                       </td>
-                      <td className="py-4 text-center text-sm text-gray-600">
+                      <td className="py-4 text-center text-sm text-gray-600 dark:text-gray-400">
                         {formatDate(inv.placedOn)}
                       </td>
-                      <td className="py-4 text-center text-sm text-gray-600">
+                      <td className="py-4 text-center text-sm text-gray-600 dark:text-gray-400">
                         {formatDate(inv.receivedOn)}
                       </td>
                       <td className="py-4 text-right">
@@ -296,10 +296,10 @@ export default function OldFundInvestorDetailPage() {
           }
 
           return (
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6 mt-8">
-              <div className="border-b border-gray-50 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl p-8 border border-gray-100 dark:border-gray-800 shadow-sm space-y-6 mt-8">
+              <div className="border-b border-gray-50 dark:border-gray-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-bold text-gray-900 font-goudy">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-goudy">
                     Legacy Investor Documents
                   </h3>
                   <span className="inline-flex items-center justify-center bg-blue-50 text-[#1F3B6E] text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-100">
@@ -315,9 +315,9 @@ export default function OldFundInvestorDetailPage() {
                     <select
                       value={selectedDocType}
                       onChange={(e) => setSelectedDocType(e.target.value)}
-                      className="text-xs font-semibold bg-gray-50 border border-gray-200 text-[#1F3B6E] rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 cursor-pointer"
+                      className="text-xs font-semibold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 text-[#1F3B6E] rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 cursor-pointer"
                     >
-                      <option value="ALL">All Document Types ({documents.length})</option>
+                      <option value="ALL" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">All Document Types ({documents.length})</option>
                       {uniqueDocTypes.map((type) => (
                         <option key={type} value={type}>
                           {type} ({docTypeCounts[type]})
@@ -336,7 +336,7 @@ export default function OldFundInvestorDetailPage() {
                     onClick={() => setSelectedDocType('ALL')}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${selectedDocType === 'ALL'
                       ? 'bg-[#1F3B6E] text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent'
+                      : 'bg-gray-100 text-gray-600 dark:text-gray-400 hover:bg-gray-200 border border-transparent'
                       }`}
                   >
                     All ({documents.length})
@@ -348,11 +348,11 @@ export default function OldFundInvestorDetailPage() {
                       onClick={() => setSelectedDocType(type)}
                       className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${selectedDocType === type
                         ? 'bg-[#1F3B6E] text-white shadow-sm'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent'
+                        : 'bg-gray-100 text-gray-700 dark:text-gray-300 hover:bg-gray-200 border border-transparent'
                         }`}
                     >
                       <span>{type}</span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${selectedDocType === type ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${selectedDocType === type ? 'bg-white dark:bg-[#1C1C1C]/20 text-white' : 'bg-gray-200 text-gray-700 dark:text-gray-300'
                         }`}>
                         {docTypeCounts[type]}
                       </span>
@@ -371,10 +371,10 @@ export default function OldFundInvestorDetailPage() {
               )}
 
               {displayedDocs && displayedDocs.length > 0 ? (
-                <div className="overflow-x-auto max-h-[540px] overflow-y-auto border border-gray-100/80 rounded-2xl">
+                <div className="overflow-x-auto max-h-[540px] overflow-y-auto border border-gray-100 dark:border-gray-800/80 rounded-2xl">
                   <table className="w-full border-collapse">
-                    <thead className="sticky top-0 bg-white shadow-xs z-10">
-                      <tr className="border-b border-gray-100 bg-white">
+                    <thead className="sticky top-0 bg-white dark:bg-[#1C1C1C] shadow-xs z-10">
+                      <tr className="border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1C1C1C]">
                         <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">No.</th>
                         <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider pl-3">Document Name</th>
                         <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider pl-3">
@@ -385,7 +385,7 @@ export default function OldFundInvestorDetailPage() {
                               else if (typeSortOrder === 'asc') setTypeSortOrder('desc');
                               else setTypeSortOrder(null);
                             }}
-                            className="flex items-center gap-1.5 hover:text-gray-700 focus:outline-none font-semibold group"
+                            className="flex items-center gap-1.5 hover:text-gray-700 dark:text-gray-300 focus:outline-none font-semibold group"
                             title="Click to sort by Document Type"
                           >
                             <span>Type</span>
@@ -400,7 +400,7 @@ export default function OldFundInvestorDetailPage() {
                         <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider pr-2">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                       {displayedDocs.map((doc: any, idx: number) => (
                         <tr
                           key={doc.id || idx}
@@ -446,17 +446,17 @@ export default function OldFundInvestorDetailPage() {
                               }}
                               className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${selectedDocType === (doc.document_type || 'Tax Document')
                                 ? 'bg-[#1F3B6E]/10 text-[#1F3B6E] border border-[#1F3B6E]/20 font-bold shadow-sm'
-                                : 'bg-gray-50 text-gray-700 hover:bg-[#1F3B6E]/5 hover:text-[#1F3B6E] border border-gray-200/60'
+                                : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-[#1F3B6E]/5 hover:text-[#1F3B6E] border border-gray-200 dark:border-gray-800/60'
                                 }`}
                               title={`Click to filter by ${doc.document_type || 'Tax Document'}`}
                             >
                               <span>{doc.document_type || 'Tax Document'}</span>
                             </button>
                           </td>
-                          <td className="py-4 text-center text-sm font-medium text-gray-700">
+                          <td className="py-4 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
                             {doc.tax_year || 'N/A'}
                           </td>
-                          <td className="py-4 text-center text-sm text-gray-600">
+                          <td className="py-4 text-center text-sm text-gray-600 dark:text-gray-400">
                             {formatDate(doc.created_at)}
                           </td>
                           <td className="py-4 text-right pr-2">
@@ -479,8 +479,8 @@ export default function OldFundInvestorDetailPage() {
                   </table>
                 </div>
               ) : (
-                <div className="text-center py-8 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-                  <p className="text-sm text-gray-500 font-medium">
+                <div className="text-center py-8 bg-gray-50 dark:bg-gray-900/50 dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
                     No documents matching type "{selectedDocType}".
                   </p>
                   <button

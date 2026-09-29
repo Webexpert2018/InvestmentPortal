@@ -79,12 +79,12 @@ export function SendMessageModal({ isOpen, onClose, onSend, selectedCount }: Sen
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-[600px] overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] shadow-2xl w-full max-w-[600px] overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="p-6 border-b border-[#F2F2F2] flex items-center justify-between bg-[#fcfcfc]">
           <div>
             <div className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-[#FFD66B]" />
-              <h3 className="text-xl font-bold text-[#1F1F1F]">
+              <h3 className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">
                 {isGroup ? 'Create Group Message' : 'Send Message'}
               </h3>
             </div>
@@ -94,7 +94,7 @@ export function SendMessageModal({ isOpen, onClose, onSend, selectedCount }: Sen
                 : 'Send a direct message to the selected investor.'}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-[#8E8E93]">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors text-[#8E8E93]">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -108,7 +108,7 @@ export function SendMessageModal({ isOpen, onClose, onSend, selectedCount }: Sen
                   type="text"
                   placeholder="Enter group name..."
                   required
-                  className="w-full bg-white border border-[#E5E7EB] rounded-xl py-2.5 px-4 text-[14px] outline-none focus:ring-1 focus:ring-[#FFD66B]"
+                  className="w-full bg-white dark:bg-[#1C1C1C] border border-[#E5E7EB] rounded-xl py-2.5 px-4 text-[14px] outline-none focus:ring-1 focus:ring-[#FFD66B]"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
                 />
@@ -132,7 +132,7 @@ export function SendMessageModal({ isOpen, onClose, onSend, selectedCount }: Sen
                     onDrop={handleAvatarDrop}
                     disabled={isUploadingAvatar}
                     className={cn(
-                      "h-10 w-10 rounded-xl shrink-0 border-2 border-dashed flex items-center justify-center transition-all bg-white",
+                      "h-10 w-10 rounded-xl shrink-0 border-2 border-dashed flex items-center justify-center transition-all bg-white dark:bg-[#1C1C1C]",
                       isDraggingAvatar ? "border-[#FFD66B] bg-yellow-50" : "border-[#E5E7EB] hover:border-[#FFD66B]"
                     )}
                     title="Click or Drag & Drop to upload avatar"
@@ -151,7 +151,7 @@ export function SendMessageModal({ isOpen, onClose, onSend, selectedCount }: Sen
           )}
 
           <div>
-            <label className="block text-[13px] font-medium text-[#1F1F1F] mb-1.5 ml-1">Message Content</label>
+            <label className="block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 mb-1.5 ml-1">Message Content</label>
             <textarea
               required
               rows={isGroup ? 4 : 8}
@@ -166,14 +166,14 @@ export function SendMessageModal({ isOpen, onClose, onSend, selectedCount }: Sen
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-full text-[14px] font-semibold text-[#1F1F1F] hover:bg-gray-100 transition-colors"
+              className="px-6 py-2.5 rounded-full text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSending || !message || (isGroup && !groupName)}
-              className="bg-[#FFD66B] hover:bg-[#FFC840] disabled:opacity-50 disabled:cursor-not-allowed text-[#1F1F1F] px-8 py-2.5 rounded-full font-semibold transition-all flex items-center gap-2 shadow-sm active:scale-95"
+              className="bg-[#FFD66B] hover:bg-[#FFC840] disabled:opacity-50 disabled:cursor-not-allowed text-[#1F1F1F] dark:text-gray-100 px-8 py-2.5 rounded-full font-semibold transition-all flex items-center gap-2 shadow-sm active:scale-95"
             >
               {isSending ? (
                 <>

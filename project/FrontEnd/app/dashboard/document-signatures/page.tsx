@@ -169,8 +169,8 @@ export default function DocumentSignaturesPage() {
       <div className="p-0 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] mb-1 font-goudy tracking-tight">Document Signatures</h1>
-            <p className="text-gray-500 font-medium">Manage and track documents sent for signature.</p>
+            <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-1 font-goudy tracking-tight">Document Signatures</h1>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Manage and track documents sent for signature.</p>
           </div>
           <Button
             onClick={() => router.push('/dashboard/document-signatures/new')}
@@ -186,40 +186,40 @@ export default function DocumentSignaturesPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2A6CB5]"></div>
           </div>
         ) : campaigns.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-12 text-center">
             <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-gray-900 mb-2">No documents sent yet</h3>
-            <p className="text-gray-500 mb-6 max-w-md mx-auto">Send a document to investors to collect their signatures electronically.</p>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">No documents sent yet</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">Send a document to investors to collect their signatures electronically.</p>
             <Button
               onClick={() => router.push('/dashboard/document-signatures/new')}
-              className="bg-[#FFC63F] hover:bg-[#F1DD58] text-[#1F1F1F] px-6 font-bold shadow-sm transition-all"
+              className="bg-[#FFC63F] hover:bg-[#F1DD58] text-[#1F1F1F] dark:text-gray-100 px-6 font-bold shadow-sm transition-all"
             >
               Send Your First Document
             </Button>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
             <Accordion type="multiple" className="w-full">
               {campaigns.map((campaign) => (
-                <AccordionItem key={campaign.id} value={campaign.id} className="border-b border-gray-100 last:border-0">
-                  <AccordionTrigger className="px-6 py-4 hover:bg-gray-50 transition-colors hover:no-underline">
+                <AccordionItem key={campaign.id} value={campaign.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                  <AccordionTrigger className="px-6 py-4 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors hover:no-underline">
                     <div className="flex items-center gap-4 text-left">
                       <div className="bg-[#F0F4F8] p-3 rounded-lg text-[#2A6CB5]">
                         <FileText className="w-6 h-6" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-900 text-lg">{campaign.name}</h3>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg">{campaign.name}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                           Sent on {new Date(campaign.created_at).toLocaleDateString()} • {campaign.recipients.length} Recipients
                         </p>
                       </div>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="px-6 pb-6 pt-2 bg-gray-50/50">
-                    <div className="mt-4 bg-white border border-gray-200 rounded-lg overflow-hidden">
-                      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
+                  <AccordionContent className="px-6 pb-6 pt-2 bg-gray-50/50 dark:bg-gray-800/50">
+                    <div className="mt-4 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+                      <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
                         <div className="flex items-center gap-4">
-                          <h4 className="font-semibold text-gray-700 text-sm">Recipient Status</h4>
+                          <h4 className="font-semibold text-gray-700 dark:text-gray-300 text-sm">Recipient Status</h4>
                           <Button
                             variant="outline"
                             size="sm"
@@ -241,7 +241,7 @@ export default function DocumentSignaturesPage() {
                       </div>
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left min-w-[800px]">
-                          <thead className="bg-gray-50/50 text-xs text-gray-500 uppercase font-semibold border-b border-gray-200">
+                          <thead className="bg-gray-50/50 dark:bg-gray-800/50 text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold border-b border-gray-200 dark:border-gray-800">
                           <tr>
                             <th className="px-4 py-3 w-[20%]">Investor Name</th>
                             <th className="px-4 py-3 w-[15%]">Account Type</th>
@@ -253,14 +253,14 @@ export default function DocumentSignaturesPage() {
                         <tbody className="divide-y divide-gray-100">
                           {campaign.recipients.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500 text-sm">
+                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
                                 No recipients added yet. Click "Add Recipients" to invite investors.
                               </td>
                             </tr>
                           ) : (
                             campaign.recipients.map((recipient: any) => (
-                              <tr key={recipient.id} className="hover:bg-gray-50/50 transition-colors">
-                                <td className="px-4 py-3 font-medium text-gray-900 truncate">
+                              <tr key={recipient.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors">
+                                <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 truncate">
                                   {recipient.investor_name || 'Unknown'}
                                 </td>
                                 <td className="px-4 py-3">
@@ -268,7 +268,7 @@ export default function DocumentSignaturesPage() {
                                     {recipient.account_type || 'Personal'}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-gray-500 truncate">
+                                <td className="px-4 py-3 text-gray-500 dark:text-gray-400 truncate">
                                   {recipient.investor_email}
                                 </td>
                                 <td className="px-4 py-3">
@@ -326,23 +326,23 @@ export default function DocumentSignaturesPage() {
       {/* Add Recipients Modal */}
       {isAddRecipientsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
               <h2 className="text-lg font-bold text-[#1F3B6E]">Add Recipients</h2>
               <button
                 onClick={closeAddRecipientsModal}
-                className="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-500"
+                className="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-500 dark:text-gray-400"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6 flex-1 overflow-y-auto">
-              <p className="text-sm text-gray-500 mb-6">Select the investors you want to invite to sign this document.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Select the investors you want to invite to sign this document.</p>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Fund</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Filter by Fund</label>
                   <Combobox
                     options={funds}
                     value={selectedFundId}
@@ -355,26 +355,26 @@ export default function DocumentSignaturesPage() {
                   <input
                     type="text"
                     placeholder="Search investors by name or email..."
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1F3B6E] focus:ring-1 focus:ring-[#1F3B6E]"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:border-[#1F3B6E] focus:ring-1 focus:ring-[#1F3B6E]"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
 
-                <div className="max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
+                <div className="max-h-60 overflow-y-auto bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg divide-y divide-gray-100">
                   {filteredUsers.length > 0 && (
                     <label
                       onClick={toggleSelectAll}
-                      className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-100 bg-gray-50/50"
+                      className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50"
                     >
-                      <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${filteredUsers.every(u => selectedInvestorIds.includes(u.compositeId)) ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white'}`}>
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${filteredUsers.every(u => selectedInvestorIds.includes(u.compositeId)) ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white dark:bg-[#1C1C1C]'}`}>
                         {filteredUsers.every(u => selectedInvestorIds.includes(u.compositeId)) && <Check className="w-3.5 h-3.5 text-white" />}
                       </div>
-                      <div className="font-semibold text-sm text-gray-900">Select All ({filteredUsers.length})</div>
+                      <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">Select All ({filteredUsers.length})</div>
                     </label>
                   )}
                   {filteredUsers.length === 0 ? (
-                    <div className="p-4 text-center text-sm text-gray-500">No investors found.</div>
+                    <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">No investors found.</div>
                   ) : (
                     filteredUsers.map((user) => {
                       const isSelected = selectedInvestorIds.includes(user.compositeId);
@@ -382,17 +382,17 @@ export default function DocumentSignaturesPage() {
                       return (
                         <label
                           key={user.compositeId}
-                          className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50/30' : ''}`}
+                          className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors ${isSelected ? 'bg-blue-50/30' : ''}`}
                         >
-                          <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white'}`}>
+                          <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white dark:bg-[#1C1C1C]'}`}>
                             {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
                           </div>
                           <div className="flex-1 min-w-0 flex items-center gap-2">
-                            <span className="font-semibold text-sm text-gray-900 truncate">{name}</span>
+                            <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{name}</span>
                             <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                               {user.accountType}
                             </span>
-                            <span className="text-sm text-gray-500 truncate ml-auto">{user.email}</span>
+                            <span className="text-sm text-gray-500 dark:text-gray-400 truncate ml-auto">{user.email}</span>
                           </div>
                           <input
                             type="checkbox"
@@ -411,7 +411,7 @@ export default function DocumentSignaturesPage() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
+            <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3 bg-gray-50 dark:bg-gray-800">
               <Button
                 variant="outline"
                 onClick={closeAddRecipientsModal}

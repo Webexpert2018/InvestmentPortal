@@ -232,7 +232,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       case 'rejected':
         return 'bg-red-100 text-red-700';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gray-100 text-gray-700 dark:text-gray-300';
     }
   };
 
@@ -259,8 +259,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   if (!investorData) {
     return (
       <DashboardLayout>
-        <div className="p-8 text-center bg-white rounded-xl shadow-sm">
-          <p className="text-gray-500">Investor not found</p>
+        <div className="p-8 text-center bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm">
+          <p className="text-gray-500 dark:text-gray-400">Investor not found</p>
           <button onClick={() => router.back()} className="mt-4 text-red-500 font-medium">Go Back</button>
         </div>
       </DashboardLayout>
@@ -418,16 +418,16 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     <div className="space-y-4 font-helvetica">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-white overflow-hidden shadow-xs rounded-xl p-4 flex flex-col justify-between h-24 border border-gray-100 border-t-4 border-t-[#FCD34D] hover:shadow-md transition-all">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Profile Value</p>
-          <p className="text-xl sm:text-2xl font-bold text-[#1F1F1F]">${Number(stats.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        <div className="bg-white dark:bg-[#1C1C1C] overflow-hidden shadow-xs rounded-xl p-4 flex flex-col justify-between h-24 border border-gray-100 dark:border-gray-800 border-t-4 border-t-[#FCD34D] hover:shadow-md transition-all">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Profile Value</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#1F1F1F] dark:text-gray-100">${Number(stats.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
         </div>
-        <div className="bg-white overflow-hidden shadow-xs rounded-xl p-4 flex flex-col justify-between h-24 border border-gray-100 border-t-4 border-t-[#2A4474] hover:shadow-md transition-all">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Units</p>
-          <p className="text-xl sm:text-2xl font-bold text-[#1F1F1F]">{Number(stats.totalUnits || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</p>
+        <div className="bg-white dark:bg-[#1C1C1C] overflow-hidden shadow-xs rounded-xl p-4 flex flex-col justify-between h-24 border border-gray-100 dark:border-gray-800 border-t-4 border-t-[#2A4474] hover:shadow-md transition-all">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Units</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#1F1F1F] dark:text-gray-100">{Number(stats.totalUnits || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</p>
         </div>
-        <div className="bg-white overflow-hidden shadow-xs rounded-xl p-4 flex flex-col justify-between h-24 border border-gray-100 border-t-4 border-t-green-500 hover:shadow-md transition-all">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">YTD Return</p>
+        <div className="bg-white dark:bg-[#1C1C1C] overflow-hidden shadow-xs rounded-xl p-4 flex flex-col justify-between h-24 border border-gray-100 dark:border-gray-800 border-t-4 border-t-green-500 hover:shadow-md transition-all">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">YTD Return</p>
           <p className={`text-xl sm:text-2xl font-bold ${stats.ytdReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {stats.ytdReturn >= 0 ? '+' : ''}{stats.ytdReturn.toFixed(1)}%
           </p>
@@ -435,24 +435,24 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       </div>
 
       {/* Funding Table */}
-      <div className="border border-gray-200 rounded-xl overflow-hidden shadow-xs bg-white">
+      <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-xs bg-white dark:bg-[#1C1C1C]">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
               <tr>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Account Type</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Units</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Current Value</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Cost Basis</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Gain/Loss</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Action</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">OA</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">SA</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Units</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Current Value</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Cost Basis</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Gain/Loss</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Action</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">OA</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">SA</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
+            <tbody className="bg-white dark:bg-[#1C1C1C] divide-y divide-gray-100">
               {displayedFundingHistory.length > 0 ? (
                 displayedFundingHistory.map((fund) => {
                   const costBasisValue = parseFloat(fund.investment_amount);
@@ -545,13 +545,13 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   }
 
                   return (
-                    <tr key={fund.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 whitespace-nowrap text-xs font-bold text-gray-900">{fund.fund_name}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-medium">{fund.account_type}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-medium">{parseFloat(fund.estimated_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-medium">${parseFloat(fund.unit_price || 0).toFixed(2)}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-bold">${currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 font-medium">${costBasisValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <tr key={fund.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                      <td className="px-4 py-3 whitespace-nowrap text-xs font-bold text-gray-900 dark:text-gray-100">{fund.fund_name}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 dark:text-gray-300 font-medium">{fund.account_type}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 dark:text-gray-300 font-medium">{parseFloat(fund.estimated_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 dark:text-gray-300 font-medium">${parseFloat(fund.unit_price || 0).toFixed(2)}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 dark:text-gray-300 font-bold">${currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-700 dark:text-gray-300 font-medium">${costBasisValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-xs font-bold">
                         <span className={isGain ? 'text-green-600' : 'text-red-600'}>
                           {isGain ? '+' : '-'}${Math.abs(gainLossValue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({isGain ? '+' : ''}{gainLossPercent.toFixed(2)}%)
@@ -560,7 +560,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       <td className="px-4 py-3 whitespace-nowrap text-xs">
                         <Link
                           href={`/dashboard/funding/${fund.id}`}
-                          className="px-3 py-1.5 text-xs font-bold text-[#1F1F1F] bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors inline-block"
+                          className="px-3 py-1.5 text-xs font-bold text-[#1F1F1F] dark:text-gray-100 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors inline-block"
                         >
                           View Fund Details
                         </Link>
@@ -570,14 +570,14 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => handleViewDocument(finalOA)}
-                              className="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+                              className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                               title="View Operating Agreement"
                             >
                               <Eye className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleDownloadDocument(finalOA)}
-                              className="p-1 text-gray-500 hover:text-[#2BB673] hover:bg-green-50 rounded transition-colors"
+                              className="p-1 text-gray-500 dark:text-gray-400 hover:text-[#2BB673] hover:bg-green-50 rounded transition-colors"
                               title="Download Operating Agreement"
                             >
                               <Download className="h-4 w-4" />
@@ -592,14 +592,14 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => handleViewDocument(finalSA)}
-                              className="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+                              className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                               title="View Subscription Agreement"
                             >
                               <Eye className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleDownloadDocument(finalSA)}
-                              className="p-1 text-gray-500 hover:text-[#2BB673] hover:bg-green-50 rounded transition-colors"
+                              className="p-1 text-gray-500 dark:text-gray-400 hover:text-[#2BB673] hover:bg-green-50 rounded transition-colors"
                               title="Download Subscription Agreement"
                             >
                               <Download className="h-4 w-4" />
@@ -625,12 +625,12 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
         {/* Pagination */}
         {fundingTotalPages > 1 && (
-          <div className="px-4 py-2.5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-center">
+          <div className="px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center">
             <div className="flex items-center justify-center gap-2">
               <button
                 onClick={() => setFundingPage(Math.max(1, fundingPage - 1))}
                 disabled={fundingPage === 1}
-                className="inline-flex items-center gap-1 px-3 py-1 text-xs text-gray-600 disabled:opacity-40 font-medium hover:text-gray-900 transition-colors"
+                className="inline-flex items-center gap-1 px-3 py-1 text-xs text-gray-600 dark:text-gray-400 disabled:opacity-40 font-medium hover:text-gray-900 dark:text-gray-100 transition-colors"
               >
                 Previous
               </button>
@@ -641,7 +641,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     onClick={() => setFundingPage(page)}
                     className={`h-7 w-7 rounded-md text-xs font-bold transition-colors ${fundingPage === page
                       ? "bg-[#1F3B6E] text-white"
-                      : "text-gray-600 hover:bg-gray-200/60"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-200/60"
                       }`}
                   >
                     {page}
@@ -651,7 +651,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
               <button
                 onClick={() => setFundingPage(Math.min(fundingTotalPages, fundingPage + 1))}
                 disabled={fundingPage === fundingTotalPages}
-                className="inline-flex items-center gap-1 px-3 py-1 text-xs text-gray-600 disabled:opacity-40 font-medium hover:text-gray-900 transition-colors"
+                className="inline-flex items-center gap-1 px-3 py-1 text-xs text-gray-600 dark:text-gray-400 disabled:opacity-40 font-medium hover:text-gray-900 dark:text-gray-100 transition-colors"
               >
                 Next
               </button>
@@ -669,17 +669,17 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         <div className="flex items-center gap-3">
           <button
             onClick={handleBack}
-            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
+            <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <h1 className="text-xl sm:text-2xl font-semibold text-[#1F1F1F]">Profile Information</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#1F1F1F] dark:text-gray-100">Profile Information</h1>
         </div>
 
         {/* Main Content Card */}
-        <div className="bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-xs border border-gray-100 dark:border-gray-800 overflow-hidden">
           {/* Tabs and Action Buttons */}
-          <div className="border-b border-gray-200">
+          <div className="border-b border-gray-200 dark:border-gray-800">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 pt-3 pb-0 gap-3">
               <div className="flex gap-1 sm:gap-2 overflow-x-auto w-full sm:w-auto">
                 {tabs.map((tab) => (
@@ -688,7 +688,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === tab.id
                       ? 'border-[#FCD34D] text-[#2A4474] font-bold'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300'
                       }`}
                   >
                     {tab.label}
@@ -756,14 +756,14 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           className="object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-[#1F1F1F] text-xl sm:text-2xl font-extrabold tracking-tight">
+                        <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-[#1F1F1F] dark:text-gray-100 text-xl sm:text-2xl font-extrabold tracking-tight">
                           {(investorData.firstName?.[0] || '') + (investorData.lastName?.[0] || '')}
                         </div>
                       )}
                     </div>
                     <div className="flex flex-col min-w-0 shrink-0">
                       <div className="flex items-center gap-2">
-                        <h2 className="text-xl sm:text-2xl font-bold text-[#1F1F1F] leading-tight whitespace-nowrap">
+                        <h2 className="text-xl sm:text-2xl font-bold text-[#1F1F1F] dark:text-gray-100 leading-tight whitespace-nowrap">
                           {investorData.firstName} {investorData.lastName}
                         </h2>
                         {canEditProfile && (
@@ -777,25 +777,25 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         )}
                       </div>
                       {/* Meta Info below Investor Name (stacked vertically) */}
-                      <div className="flex flex-col gap-1 mt-1.5 text-xs text-gray-500 font-medium">
+                      <div className="flex flex-col gap-1 mt-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
                         <p className="flex items-center gap-1.5 whitespace-nowrap">
                           <Calendar className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                          Joined date: <span className="text-gray-800 font-semibold">{new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                          Joined date: <span className="text-gray-800 dark:text-gray-200 font-semibold">{new Date(investorData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         </p>
                         <p className="flex items-center gap-1.5 whitespace-nowrap">
                           <Shield className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                          Accountant: <span className="text-gray-900 font-bold">{investorData.assignedAccountantName || 'Not assigned'}</span>
+                          Accountant: <span className="text-gray-900 dark:text-gray-100 font-bold">{investorData.assignedAccountantName || 'Not assigned'}</span>
                         </p>
                         <p className="flex items-center gap-1.5 whitespace-nowrap">
                           <User className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                          Investor Relation: <span className="text-gray-900 font-bold">{investorData.assignedIrName || 'Not assigned'}</span>
+                          Investor Relation: <span className="text-gray-900 dark:text-gray-100 font-bold">{investorData.assignedIrName || 'Not assigned'}</span>
                         </p>
                       </div>
                     </div>
                   </div>
 
                   {/* Right: Action Buttons in top right on large screens */}
-                  <div className="flex flex-wrap items-center justify-start lg:justify-end gap-2 w-full lg:w-auto shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-gray-100/80">
+                  <div className="flex flex-wrap items-center justify-start lg:justify-end gap-2 w-full lg:w-auto shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-gray-100 dark:border-gray-800/80">
                     {(() => {
                       const isPending = investorData.status === 'pending';
 
@@ -807,7 +807,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           onClick={handleSendInvite}
                           disabled={isSendingInvite || !isPending}
                           className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${isPending
-                            ? 'bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent'
+                            ? 'bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent'
                             : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
                             }`}
                         >
@@ -881,7 +881,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             } catch (err) { console.error('Failed to fetch IR staff:', err); }
                             finally { setIrLoading(false); }
                           }}
-                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
+                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent"
                         >
                           {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
                         </button>,
@@ -897,7 +897,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             } catch (err) { console.error('Failed to fetch accountants:', err); }
                             finally { setAccountantLoading(false); }
                           }}
-                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
+                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent"
                         >
                           {investorData.assignedAccountantId ? 'Change Accountant' : 'Assign Accountant'}
                         </button>,
@@ -922,9 +922,9 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
 
                 {/* Embedded Funding History Section at Bottom of Basic Details Tab */}
-                <div className="pt-6 border-t-2 border-gray-100 space-y-4">
+                <div className="pt-6 border-t-2 border-gray-100 dark:border-gray-800 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                    <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
                       Funding History
                     </h3>
@@ -933,29 +933,29 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 </div>
 
                 {/* Combined Collapsible Container for All Three Sections */}
-                <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden flex flex-col transition-all mt-6">
+                <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl border border-gray-200 dark:border-gray-800/80 shadow-xs overflow-hidden flex flex-col transition-all mt-6">
                   <button
                     onClick={() => setIsDetailsOpen(!isDetailsOpen)}
-                    className="w-full px-4 sm:px-5 py-3.5 bg-gray-50/80 hover:bg-gray-100/80 flex items-center justify-between transition-colors cursor-pointer"
+                    className="w-full px-4 sm:px-5 py-3.5 bg-gray-50 dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700/80 flex items-center justify-between transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs sm:text-sm font-bold text-[#1F1F1F] uppercase tracking-wider">Account & Profile Details</span>
+                      <span className="text-xs sm:text-sm font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider">Account & Profile Details</span>
                       <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
                         Personal, Custodian & Invitations
                       </span>
                     </div>
-                    <div className="p-1 rounded-md text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1">
-                      <span className="text-xs font-semibold text-gray-500">{isDetailsOpen ? 'Collapse' : 'Expand'}</span>
+                    <div className="p-1 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 transition-colors flex items-center gap-1">
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">{isDetailsOpen ? 'Collapse' : 'Expand'}</span>
                       {isDetailsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </div>
                   </button>
 
                   {isDetailsOpen && (
-                    <div className="p-4 sm:p-5 border-t border-gray-100 max-h-[380px] overflow-y-auto space-y-4">
+                    <div className="p-4 sm:p-5 border-t border-gray-100 dark:border-gray-800 max-h-[380px] overflow-y-auto space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 items-start">
                         {/* Section 1: Personal Details */}
-                        <div className="bg-gray-50/60 p-4 rounded-xl border border-gray-100 space-y-3">
-                          <h4 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider pb-1.5 border-b border-gray-200/60">Personal Details</h4>
+                        <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3">
+                          <h4 className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider pb-1.5 border-b border-gray-200 dark:border-gray-800/60">Personal Details</h4>
                           <div className="space-y-3">
                             <div className="space-y-0.5">
                               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Email</span>
@@ -963,7 +963,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(investorData.email || '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs sm:text-sm font-bold text-gray-900 truncate block hover:text-[#2A4474] hover:underline cursor-pointer transition-colors"
+                                className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100 truncate block hover:text-[#2A4474] hover:underline cursor-pointer transition-colors"
                                 title="Click to compose email in Gmail"
                               >
                                 {investorData.email}
@@ -978,7 +978,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                     toast.success('Phone number copied to clipboard');
                                   }
                                 }}
-                                className="text-xs sm:text-sm font-bold text-gray-900 cursor-pointer hover:text-amber-600 transition-colors block"
+                                className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-amber-600 transition-colors block"
                                 title="Click to copy phone number"
                               >
                                 {formatPhoneDisplay(investorData.phone) || 'Not provided'}
@@ -997,17 +997,17 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                   </button>
                                 )}
                               </div>
-                              <p className="text-xs sm:text-sm font-bold text-gray-900">
+                              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">
                                 {investorData.taxId ? (investorData.taxId.length === 9 && !investorData.taxId.includes('-') ? `${investorData.taxId.slice(0, 3)}-${investorData.taxId.slice(3, 5)}-${investorData.taxId.slice(5)}` : investorData.taxId) : 'Not provided'}
                               </p>
                             </div>
                             <div className="space-y-0.5">
                               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Date of Birth</span>
-                              <p className="text-xs sm:text-sm font-bold text-gray-900">{investorData.dob ? new Date(investorData.dob).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not provided'}</p>
+                              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">{investorData.dob ? new Date(investorData.dob).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not provided'}</p>
                             </div>
-                            <div className="space-y-0.5 pt-1 border-t border-gray-200/60">
+                            <div className="space-y-0.5 pt-1 border-t border-gray-200 dark:border-gray-800/60">
                               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Address</span>
-                              <p className="text-xs sm:text-sm font-bold text-gray-900">
+                              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">
                                 {investorData.addressLine1 ? [
                                   investorData.addressLine1,
                                   investorData.addressLine2,
@@ -1022,9 +1022,9 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         </div>
 
                         {/* Section 2: Linked Accounts */}
-                        <div className="bg-gray-50/60 p-4 rounded-xl border border-gray-100 space-y-3">
-                          <div className="flex items-center justify-between pb-1.5 border-b border-gray-200/60">
-                            <h4 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider">Linked Accounts</h4>
+                        <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3">
+                          <div className="flex items-center justify-between pb-1.5 border-b border-gray-200 dark:border-gray-800/60">
+                            <h4 className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider">Linked Accounts</h4>
                             {(iraAccounts.length > 0 || subAccounts.length > 0) && (
                               <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
                                 {iraAccounts.length + subAccounts.length}
@@ -1045,11 +1045,11 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                   const isSuspended = account.status === 'suspended';
 
                                   return (
-                                    <div key={account.id} className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${isSuspended ? 'bg-red-50/20 border-red-100 opacity-80' : 'bg-white border-gray-200/70 hover:border-amber-200'}`}>
+                                    <div key={account.id} className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${isSuspended ? 'bg-red-50/20 border-red-100 opacity-80' : 'bg-white dark:bg-[#1C1C1C] border-gray-200 dark:border-gray-800/70 hover:border-amber-200'}`}>
                                       <div className="flex items-start justify-between mb-2">
                                         <div>
                                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">{account.account_type} Account</span>
-                                          <p className="text-xs font-bold text-gray-900">${netValue.toLocaleString()}</p>
+                                          <p className="text-xs font-bold text-gray-900 dark:text-gray-100">${netValue.toLocaleString()}</p>
                                         </div>
                                         <div className="flex items-center gap-2">
                                           <TooltipProvider>
@@ -1087,8 +1087,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                           </TooltipProvider>
                                         </div>
                                       </div>
-                                      <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 mt-auto">
-                                        <p className="text-[10px] text-gray-500 font-medium">#{account.account_number || 'N/A'}</p>
+                                      <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 dark:border-gray-800 mt-auto">
+                                        <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">#{account.account_number || 'N/A'}</p>
                                         <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${isSuspended ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
                                           <div className={`w-1 h-1 rounded-full ${isSuspended ? 'bg-red-500' : 'bg-green-500'}`} />
                                           {isSuspended ? 'Suspended' : 'Activated'}
@@ -1110,11 +1110,11 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                   const displayName = account.investorType === 'entity' ? (account.entityName || account.fullName) : account.fullName;
 
                                   return (
-                                    <div key={account.id} className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${isSuspended ? 'bg-red-50/20 border-red-100 opacity-80' : 'bg-white border-gray-200/70 hover:border-amber-200'}`}>
+                                    <div key={account.id} className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${isSuspended ? 'bg-red-50/20 border-red-100 opacity-80' : 'bg-white dark:bg-[#1C1C1C] border-gray-200 dark:border-gray-800/70 hover:border-amber-200'}`}>
                                       <div className="flex items-start justify-between mb-2">
                                         <div>
                                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Subaccount ({account.investorType || 'minor'})</span>
-                                          <p className="text-xs font-bold text-gray-900">${netValue.toLocaleString()}</p>
+                                          <p className="text-xs font-bold text-gray-900 dark:text-gray-100">${netValue.toLocaleString()}</p>
                                         </div>
                                         <div className="flex items-center gap-2">
                                           <TooltipProvider>
@@ -1152,8 +1152,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                           </TooltipProvider>
                                         </div>
                                       </div>
-                                      <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 mt-auto">
-                                        <p className="text-[10px] text-gray-500 font-medium">{displayName}</p>
+                                      <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 dark:border-gray-800 mt-auto">
+                                        <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">{displayName}</p>
                                         <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${isSuspended ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
                                           <div className={`w-1 h-1 rounded-full ${isSuspended ? 'bg-red-500' : 'bg-green-500'}`} />
                                           {isSuspended ? 'Suspended' : 'Activated'}
@@ -1164,15 +1164,15 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 })}
                               </>
                             ) : (
-                              <p className="text-xs text-gray-400 italic bg-white p-3 rounded-xl border border-gray-200/70 text-center">No linked accounts found</p>
+                              <p className="text-xs text-gray-400 italic bg-white dark:bg-[#1C1C1C] p-3 rounded-xl border border-gray-200 dark:border-gray-800/70 text-center">No linked accounts found</p>
                             )}
                           </div>
                         </div>
 
                         {/* Section 3: Invitation History */}
-                        <div className="bg-gray-50/60 p-4 rounded-xl border border-gray-100 space-y-3">
-                          <div className="flex items-center justify-between pb-1.5 border-b border-gray-200/60">
-                            <h4 className="text-xs font-bold text-[#1F1F1F] uppercase tracking-wider">Invitation History</h4>
+                        <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3">
+                          <div className="flex items-center justify-between pb-1.5 border-b border-gray-200 dark:border-gray-800/60">
+                            <h4 className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider">Invitation History</h4>
                             {investorData.invitationLogs?.length > 0 && (
                               <span className="text-[10px] font-bold bg-[#FFF9EE] text-[#D1A94C] border border-[#FEF3C7] px-2 py-0.5 rounded-full">
                                 {investorData.invitationLogs.length}
@@ -1187,7 +1187,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 const isLatest = idx === 0;
 
                                 return (
-                                  <div key={idx} className={`relative group p-3 rounded-xl border transition-all ${isLatest && !isExpired ? 'bg-amber-50/30 border-amber-200 shadow-xs' : 'bg-white border-gray-200/70 opacity-90'}`}>
+                                  <div key={idx} className={`relative group p-3 rounded-xl border transition-all ${isLatest && !isExpired ? 'bg-amber-50/30 border-amber-200 shadow-xs' : 'bg-white dark:bg-[#1C1C1C] border-gray-200 dark:border-gray-800/70 opacity-90'}`}>
                                     {isLatest && !isExpired && (
                                       <div className="absolute -top-2 -right-2 bg-green-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-xs animate-pulse">
                                         ACTIVE LINK
@@ -1195,7 +1195,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                     )}
 
                                     <div className="flex items-center justify-between mb-1.5">
-                                      <div className={`p-1 rounded-md ${isLatest && !isExpired ? 'bg-amber-100 text-amber-700' : 'bg-gray-200 text-gray-500'}`}>
+                                      <div className={`p-1 rounded-md ${isLatest && !isExpired ? 'bg-amber-100 text-amber-700' : 'bg-gray-200 text-gray-500 dark:text-gray-400'}`}>
                                         <Mail className="h-3 w-3" />
                                       </div>
                                       <span className={`text-[9px] font-bold uppercase tracking-tight px-1.5 py-0.5 rounded ${isExpired ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
@@ -1206,21 +1206,21 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                     <div className="space-y-1.5">
                                       <div className="flex flex-col">
                                         <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Sent On</span>
-                                        <p className="text-xs font-bold text-gray-900">
+                                        <p className="text-xs font-bold text-gray-900 dark:text-gray-100">
                                           {sentDate.toLocaleString('en-US', {
                                             month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
                                           })}
                                         </p>
                                       </div>
 
-                                      <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-gray-100">
+                                      <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-gray-100 dark:border-gray-800">
                                         <div className="flex flex-col">
                                           <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">By Admin</span>
-                                          <p className="text-[10px] font-bold text-gray-700 truncate">{log.sent_by_name}</p>
+                                          <p className="text-[10px] font-bold text-gray-700 dark:text-gray-300 truncate">{log.sent_by_name}</p>
                                         </div>
                                         <div className="flex flex-col">
                                           <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">To Investor</span>
-                                          <p className="text-[10px] font-bold text-gray-700 truncate">{investorData.firstName}</p>
+                                          <p className="text-[10px] font-bold text-gray-700 dark:text-gray-300 truncate">{investorData.firstName}</p>
                                         </div>
                                       </div>
                                     </div>
@@ -1228,7 +1228,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 );
                               })
                             ) : (
-                              <div className="bg-white rounded-xl p-3 border border-gray-200/70 flex flex-col items-center justify-center text-center">
+                              <div className="bg-white dark:bg-[#1C1C1C] rounded-xl p-3 border border-gray-200 dark:border-gray-800/70 flex flex-col items-center justify-center text-center">
                                 <Mail className="h-5 w-5 text-gray-300 mb-1" />
                                 <p className="text-xs text-gray-400 italic">No invitation records found.</p>
                               </div>
@@ -1256,8 +1256,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         <Shield className={`h-5 w-5 ${investorData.kycStatus === 'approved' ? 'text-green-600' : 'text-orange-600'}`} />
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-900 text-base capitalize">{investorData.kycStatus || 'pending verification'}</h3>
-                        <p className="text-xs text-gray-500">Investor has uploaded {verificationDocs.length} mandatory documents for review.</p>
+                        <h3 className="font-bold text-gray-900 dark:text-gray-100 text-base capitalize">{investorData.kycStatus || 'pending verification'}</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Investor has uploaded {verificationDocs.length} mandatory documents for review.</p>
                       </div>
                     </div>
                     {investorData.kycStatus !== 'approved' && (
@@ -1284,7 +1284,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     {verificationDocs.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {verificationDocs.map((doc, index) => (
-                          <div key={index} className="group relative flex flex-col p-4 bg-white border border-gray-100 rounded-xl hover:border-amber-200 hover:shadow-md transition-all">
+                          <div key={index} className="group relative flex flex-col p-4 bg-white dark:bg-[#1C1C1C] border border-gray-100 dark:border-gray-800 rounded-xl hover:border-amber-200 hover:shadow-md transition-all">
                             <div className="flex items-start justify-between mb-3">
                               <div className="p-2.5 bg-red-50 rounded-lg">
                                 <FileText className="w-5 h-5 text-red-500" />
@@ -1300,7 +1300,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                       console.error('View error:', err);
                                     }
                                   }}
-                                  className="p-1.5 bg-gray-50 text-gray-600 hover:bg-neutral-800 hover:text-white rounded-md transition-colors"
+                                  className="p-1.5 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-neutral-800 hover:text-white rounded-md transition-colors"
                                   title="View"
                                 >
                                   <FileText className="w-3.5 h-3.5" />
@@ -1329,7 +1329,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                       toast.error('Failed to download document');
                                     }
                                   }}
-                                  className="p-1.5 bg-gray-50 text-gray-600 hover:bg-neutral-800 hover:text-white rounded-md transition-colors"
+                                  className="p-1.5 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-neutral-800 hover:text-white rounded-md transition-colors"
                                   title="Download"
                                 >
                                   <Download className="w-3.5 h-3.5" />
@@ -1338,18 +1338,18 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             </div>
                             <div className="space-y-0.5">
                               <p className="text-[10px] font-bold text-red-500 uppercase tracking-tight">{getDocTypeName(doc.document_type)}</p>
-                              <p className="text-xs font-bold text-gray-900 truncate">{doc.file_name}</p>
+                              <p className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate">{doc.file_name}</p>
                               <p className="text-[10px] text-gray-400 font-medium">Uploaded on {new Date(doc.uploaded_at).toLocaleDateString()}</p>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="p-8 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                      <div className="p-8 text-center bg-gray-50 dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800">
                         <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                           <FileText className="w-6 h-6 text-gray-300" />
                         </div>
-                        <p className="text-xs text-gray-500 font-medium">No documents uploaded yet.</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">No documents uploaded yet.</p>
                       </div>
                     )}
                   </div>
@@ -1360,7 +1360,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
             {activeTab === 'funding' && (
               <div className="space-y-4 font-helvetica">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                  <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
                     Funding History
                   </h3>
@@ -1372,27 +1372,27 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
             {activeTab === 'redemption' && (
               <div className="space-y-6">
                 {/* Redemption Table */}
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
+                      <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Request ID</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Amount</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Units Relinquent</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Destination Bank</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Requested Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Action</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Request ID</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Amount</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Units Relinquent</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Destination Bank</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Requested Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-100">
+                      <tbody className="bg-white dark:bg-[#1C1C1C] divide-y divide-gray-100">
                         {displayedRedemptionHistory.map((redemption) => (
-                          <tr key={redemption.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">RED-{redemption.id.substring(0, 6).toUpperCase()}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${parseFloat(redemption.amount).toLocaleString()}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{parseFloat(redemption.units).toFixed(2)}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          <tr key={redemption.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">RED-{redemption.id.substring(0, 6).toUpperCase()}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${parseFloat(redemption.amount).toLocaleString()}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{parseFloat(redemption.units).toFixed(2)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                               {redemption.bank_info?.accountName || 'Bank Transfer'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -1400,13 +1400,13 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 {redemption.status}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                               {new Date(redemption.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <Link
                                 href={`/dashboard/redemption/${redemption.id}`}
-                                className="px-3 py-3 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors inline-block"
+                                className="px-3 py-3 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors inline-block"
                               >
                                 View Fund Details
                               </Link>
@@ -1418,12 +1418,12 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   </div>
 
                   {/* Pagination */}
-                  <div className="px-6 py-4 bg-white border-t border-gray-100 flex items-center justify-center">
+                  <div className="px-6 py-4 bg-white dark:bg-[#1C1C1C] border-t border-gray-100 dark:border-gray-800 flex items-center justify-center">
                     <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => setRedemptionPage(Math.max(1, redemptionPage - 1))}
                         disabled={redemptionPage === 1}
-                        className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
+                        className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] dark:text-gray-100 transition-colors font-medium"
                       >
                         Previous
                       </button>
@@ -1434,7 +1434,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             onClick={() => setRedemptionPage(page)}
                             className={`h-10 w-10 rounded-lg text-[13px] font-medium transition-colors font-helvetica ${redemptionPage === page
                               ? "bg-[#1F3B6E] text-white"
-                              : "text-[#6B7280] hover:bg-gray-100"
+                              : "text-[#6B7280] hover:bg-gray-100 dark:hover:bg-gray-700"
                               }`}
                           >
                             {page}
@@ -1444,7 +1444,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       <button
                         onClick={() => setRedemptionPage(Math.min(redemptionTotalPages, redemptionPage + 1))}
                         disabled={redemptionPage === redemptionTotalPages}
-                        className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
+                        className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] dark:text-gray-100 transition-colors font-medium"
                       >
                         Next
                       </button>
@@ -1457,29 +1457,29 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
             {activeTab === 'transfers' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                  <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#1F3B6E] inline-block"></span>
                     Fund Transfer History
                   </h3>
                 </div>
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
+                      <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Type</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">From</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">To</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Amount</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Document</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">From</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">To</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Amount</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Document</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-100">
+                      <tbody className="bg-white dark:bg-[#1C1C1C] divide-y divide-gray-100">
                         {transferHistory && transferHistory.length > 0 ? (
                           transferHistory.map((transfer: any, index: number) => {
-                            let amountColor = 'text-gray-900';
+                            let amountColor = 'text-gray-900 dark:text-gray-100';
                             let prefix = '';
                             if (!transfer.to_investor_id || transfer.from_investor_id === transfer.to_investor_id) {
                               amountColor = 'text-yellow-600'; // Fund to fund
@@ -1492,22 +1492,22 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             }
 
                             return (
-                              <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                              <tr key={index} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                   {new Date(transfer.created_at).toLocaleDateString()}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                   {transfer.transfer_type?.replace(/_/g, ' ').toUpperCase()}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                   {transfer.from_investor_name || 'Unknown Investor'}
-                                  {transfer.from_account_type && <span className="text-gray-500 text-xs ml-1">({transfer.from_account_type})</span>}
-                                  <div className="text-xs text-gray-500">{transfer.from_fund_name}</div>
+                                  {transfer.from_account_type && <span className="text-gray-500 dark:text-gray-400 text-xs ml-1">({transfer.from_account_type})</span>}
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">{transfer.from_fund_name}</div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                   {transfer.to_investor_name || transfer.from_investor_name || 'Unknown Investor'}
-                                  {(transfer.to_account_type || transfer.from_account_type) && <span className="text-gray-500 text-xs ml-1">({transfer.to_account_type || transfer.from_account_type})</span>}
-                                  <div className="text-xs text-gray-500">{transfer.to_fund_name || transfer.from_fund_name}</div>
+                                  {(transfer.to_account_type || transfer.from_account_type) && <span className="text-gray-500 dark:text-gray-400 text-xs ml-1">({transfer.to_account_type || transfer.from_account_type})</span>}
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">{transfer.to_fund_name || transfer.from_fund_name}</div>
                                 </td>
                                 <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${amountColor}`}>
                                   {prefix}${parseFloat(transfer.investment_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1515,7 +1515,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${transfer.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
                                       transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 text-yellow-700' :
-                                        'bg-gray-100 text-gray-700'
+                                        'bg-gray-100 text-gray-700 dark:text-gray-300'
                                     }`}>
                                     {transfer.status}
                                   </span>
@@ -1527,7 +1527,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                       const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
                                       window.open(`${API_URL}/fund-transfers/${transfer.id}/pdf${tokenParam}`, '_blank');
                                     }}
-                                    className="inline-flex items-center justify-center p-2 text-gray-500 hover:text-[#1F3B6E] hover:bg-blue-50 rounded-lg transition-colors"
+                                    className="inline-flex items-center justify-center p-2 text-gray-500 dark:text-gray-400 hover:text-[#1F3B6E] hover:bg-blue-50 rounded-lg transition-colors"
                                     title="View Document"
                                   >
                                     <FileText className="w-5 h-5" />
@@ -1538,7 +1538,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           })
                         ) : (
                           <tr>
-                            <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
+                            <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                               No transfer history found.
                             </td>
                           </tr>
@@ -1559,29 +1559,29 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   {/* Active Funds Section */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                      <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#1F3B6E] inline-block"></span>
                         Active Funds
                       </h3>
                     </div>
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full table-fixed">
-                          <thead className="bg-gray-50 border-b border-gray-200">
+                          <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
                             <tr>
-                              <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
-                              <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Account Type</th>
-                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Units</th>
-                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
-                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Total Value</th>
+                              <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                              <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Units</th>
+                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
+                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Total Value</th>
                             </tr>
                           </thead>
-                          <tbody className="bg-white divide-y divide-gray-100">
+                          <tbody className="bg-white dark:bg-[#1C1C1C] divide-y divide-gray-100">
                             {activeFunds.length > 0 ? (
                               activeFunds.map((holding: any, index: number) => (
-                                <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{holding.fund_name}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                <tr key={index} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">{holding.fund_name}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-medium">
                                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${holding.account_type?.toLowerCase() === 'personal'
                                       ? 'bg-green-100 text-green-700 border border-green-200'
                                       : 'bg-purple-100 text-purple-700 border border-purple-200'
@@ -1589,14 +1589,14 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                       {holding.account_type}
                                     </span>
                                   </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F]">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F] dark:text-gray-100">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                 </tr>
                               ))
                             ) : (
                               <tr>
-                                <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                                <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                                   No active fund holdings found.
                                 </td>
                               </tr>
@@ -1610,41 +1610,41 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   {/* Real Estate (Old) Funds Section */}
                   <div className="space-y-4 pt-2">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                      <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
                         Real Estate Funds
                       </h3>
                     </div>
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full table-fixed">
-                          <thead className="bg-gray-50 border-b border-gray-200">
+                          <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
                             <tr>
-                              <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
-                              <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Account Type</th>
-                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Units</th>
-                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
-                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Total Value</th>
+                              <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                              <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Units</th>
+                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
+                              <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Total Value</th>
                             </tr>
                           </thead>
-                          <tbody className="bg-white divide-y divide-gray-100">
+                          <tbody className="bg-white dark:bg-[#1C1C1C] divide-y divide-gray-100">
                             {oldFunds.length > 0 ? (
                               oldFunds.map((holding: any, index: number) => (
-                                <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{holding.fund_name}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                <tr key={index} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">{holding.fund_name}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-medium">
                                     <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
                                       {holding.account_type}
                                     </span>
                                   </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F]">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F] dark:text-gray-100">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                 </tr>
                               ))
                             ) : (
                               <tr>
-                                <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                                <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                                   No real estate fund holdings found.
                                 </td>
                               </tr>
@@ -1691,7 +1691,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           onClick={() => setLegacyDocFilter('ALL')}
                           className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${legacyDocFilter === 'ALL'
                             ? 'bg-[#1F3B6E] text-white shadow-sm'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent'
+                            : 'bg-gray-100 text-gray-600 dark:text-gray-400 hover:bg-gray-200 border border-transparent'
                             }`}
                         >
                           All ({oldDocuments.length})
@@ -1703,11 +1703,11 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             onClick={() => setLegacyDocFilter(type)}
                             className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${legacyDocFilter === type
                               ? 'bg-[#1F3B6E] text-white shadow-sm'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent'
+                              : 'bg-gray-100 text-gray-700 dark:text-gray-300 hover:bg-gray-200 border border-transparent'
                               }`}
                           >
                             <span>{type}</span>
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${legacyDocFilter === type ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${legacyDocFilter === type ? 'bg-white dark:bg-[#1C1C1C]/20 text-white' : 'bg-gray-200 text-gray-700 dark:text-gray-300'
                               }`}>
                               {docTypeCounts[type]}
                             </span>
@@ -1732,7 +1732,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                   const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
                                   window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${doc.id}/view${tokenParam}`, '_blank');
                                 }}
-                                className="p-2 bg-white text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors border border-gray-100 shadow-sm"
+                                className="p-2 bg-white dark:bg-[#1C1C1C] text-gray-600 dark:text-gray-400 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors border border-gray-100 dark:border-gray-800 shadow-sm"
                                 title="View"
                               >
                                 <Eye className="w-4 h-4" />
@@ -1743,7 +1743,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                   const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
                                   window.open(`${apiClient.getApiUrl()}/documents/old-investor/file/${doc.id}/download${tokenParam}`, '_blank');
                                 }}
-                                className="p-2 bg-white text-gray-600 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors border border-gray-100 shadow-sm"
+                                className="p-2 bg-white dark:bg-[#1C1C1C] text-gray-600 dark:text-gray-400 hover:bg-neutral-800 hover:text-white rounded-lg transition-colors border border-gray-100 dark:border-gray-800 shadow-sm"
                                 title="Download"
                               >
                                 <Download className="w-4 h-4" />
@@ -1759,18 +1759,18 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             >
                               {doc.document_type || 'Tax Document'}
                             </button>
-                            <p className="text-sm font-bold text-gray-900 truncate">{doc.file_name}</p>
+                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">{doc.file_name}</p>
                             <p className="text-[10px] text-gray-400 font-medium">Uploaded on {new Date(doc.created_at).toLocaleDateString()}</p>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="p-8 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                    <div className="p-8 text-center bg-gray-50 dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800">
                       <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                         <FileText className="w-6 h-6 text-gray-300" />
                       </div>
-                      <p className="text-xs text-gray-500 font-medium">No legacy documents matching type "{legacyDocFilter}"</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">No legacy documents matching type "{legacyDocFilter}"</p>
                       <button
                         type="button"
                         onClick={() => setLegacyDocFilter('ALL')}
@@ -1790,19 +1790,19 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       {/* Assign Investor Relation Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl w-full max-w-md shadow-xl">
             <div className="p-6 space-y-4">
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-[#1F1F1F]">Assign Investor Relation</h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <h2 className="text-xl font-semibold text-[#1F1F1F] dark:text-gray-100">Assign Investor Relation</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     Select an Investor Relation member to manage this investor's KYC documents and communication.
                   </p>
                 </div>
                 <button
                   onClick={() => setShowAssignModal(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 dark:text-gray-400 transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1810,7 +1810,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
               {/* Dropdown */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-700">Investor Relation</label>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Investor Relation</label>
                 <div className="relative">
                   <select
                     value={selectedIrStaff}
@@ -1831,7 +1831,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
               <div className="flex justify-end gap-4 pt-4">
                 <button
                   onClick={() => setShowAssignModal(false)}
-                  className="px-6 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+                  className="px-6 py-2.5 text-sm font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
@@ -1851,7 +1851,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       setAssigning(false);
                     }
                   }}
-                  className="px-6 py-2.5 bg-[#FCD34D] text-[#1F1F1F] text-sm font-bold rounded-xl hover:bg-[#FBD24E] transition-all shadow-lg shadow-amber-100 active:scale-95 disabled:opacity-50"
+                  className="px-6 py-2.5 bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 text-sm font-bold rounded-xl hover:bg-[#FBD24E] transition-all shadow-lg shadow-amber-100 active:scale-95 disabled:opacity-50"
                 >
                   {assigning ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Assign'}
                 </button>
@@ -1864,19 +1864,19 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       {/* Assign Accountant Modal */}
       {showAccountantModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl w-full max-w-md shadow-xl">
             <div className="p-6 space-y-4">
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-[#1F1F1F]">Assign Accountant</h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <h2 className="text-xl font-semibold text-[#1F1F1F] dark:text-gray-100">Assign Accountant</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     Select an accountant to manage this investor's financial records.
                   </p>
                 </div>
                 <button
                   onClick={() => setShowAccountantModal(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 dark:text-gray-400 transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1884,7 +1884,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
               {/* Dropdown */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-700">Accountant</label>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Accountant</label>
                 <div className="relative">
                   <select
                     value={selectedAccountant}
@@ -1905,7 +1905,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
               <div className="flex justify-end gap-4 pt-4">
                 <button
                   onClick={() => setShowAccountantModal(false)}
-                  className="px-6 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+                  className="px-6 py-2.5 text-sm font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
@@ -1925,7 +1925,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                       setAssigning(false);
                     }
                   }}
-                  className="px-6 py-2.5 bg-[#FCD34D] text-[#1F1F1F] text-sm font-bold rounded-xl hover:bg-[#FBD24E] transition-all shadow-lg shadow-amber-100 active:scale-95 disabled:opacity-50"
+                  className="px-6 py-2.5 bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 text-sm font-bold rounded-xl hover:bg-[#FBD24E] transition-all shadow-lg shadow-amber-100 active:scale-95 disabled:opacity-50"
                 >
                   {assigning ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Assign'}
                 </button>
@@ -1938,19 +1938,19 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       {/* Note Modal */}
       {showNoteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl w-full max-w-md shadow-xl">
             <div className="p-6 space-y-4">
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-[#1F1F1F]">Note</h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <h2 className="text-xl font-semibold text-[#1F1F1F] dark:text-gray-100">Note</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     (Private note visible only to you)
                   </p>
                 </div>
                 <button
                   onClick={() => setShowNoteModal(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 dark:text-gray-400 transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1967,7 +1967,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     rows={6}
                     className="w-full px-5 py-4 bg-[#F9FAFB] border-none rounded-2xl text-sm text-[#111827] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] resize-none font-medium"
                   />
-                  <span className="absolute bottom-4 right-5 text-[10px] font-bold text-gray-400 bg-white/80 px-1.5 py-0.5 rounded-md">
+                  <span className="absolute bottom-4 right-5 text-[10px] font-bold text-gray-400 bg-white dark:bg-[#1C1C1C]/80 px-1.5 py-0.5 rounded-md">
                     {noteText.length}/1000
                   </span>
                 </div>
@@ -2003,7 +2003,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       {/* Suspend Account Confirmation Modal */}
       {showSuspendModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden transform transition-all">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden transform transition-all">
             <div className="p-8">
               {/* Icon & Title */}
               <div className="flex flex-col items-center text-center space-y-4">
@@ -2015,10 +2015,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   )}
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-bold text-gray-900 leading-tight">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
                     {investorData.status === 'suspended' ? 'Activate Account?' : 'Suspend Account?'}
                   </h2>
-                  <p className="text-gray-500 text-sm leading-relaxed max-w-[280px]">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-[280px]">
                     {investorData.status === 'suspended'
                       ? "Are you sure you want to activate this account? The investor will be able to log in to the portal."
                       : "Are you sure you want to suspend this account? The investor will no longer be able to log in to the portal."}
@@ -2045,7 +2045,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 <button
                   onClick={() => setShowSuspendModal(false)}
                   disabled={isSuspending}
-                  className="w-full py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-all"
+                  className="w-full py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded-2xl transition-all"
                 >
                   Cancel
                 </button>
@@ -2070,7 +2070,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       {/* Cancel Confirmation Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-4" onClick={() => setShowCancelModal(false)}>
-          <div className="w-full max-w-sm rounded-[24px] bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-[24px] bg-white dark:bg-[#1C1C1C] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
             <div className="p-8 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 mb-5">
                 <X className="h-7 w-7 text-red-500" />
@@ -2083,7 +2083,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
             <div className="flex border-t divide-x">
               <button
                 onClick={() => setShowCancelModal(false)}
-                className="flex-1 py-4 text-sm font-bold text-[#6B7280] hover:bg-gray-50 transition-all"
+                className="flex-1 py-4 text-sm font-bold text-[#6B7280] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-all"
               >
                 No, Keep it
               </button>

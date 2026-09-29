@@ -541,20 +541,20 @@ export default function CallManagerPage() {
 
   return (
     <DashboardLayout>
-      <div className="w-full font-helvetica text-[#1F1F1F] relative space-y-6">
+      <div className="w-full font-helvetica text-[#1F1F1F] dark:text-gray-100 relative space-y-6">
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-50 text-amber-600 border border-amber-200">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
                 <PhoneCall className="w-4 h-4" />
               </span>
-              <span className="text-[12px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+              <span className="text-[12px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/50">
                 Step 3: Direct Phone Outreach &amp; Calling Intelligence
               </span>
             </div>
-            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">
+            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F] dark:text-gray-100">
               Physician Call Manager Console
             </h1>
             <p className="text-[#8E8E93] text-[14px] mt-1 max-w-3xl">
@@ -579,7 +579,7 @@ export default function CallManagerPage() {
             </Link>
             <Link
               href="/dashboard/doctor-crm"
-              className="px-4 py-2 bg-white hover:bg-gray-100 text-[#1F1F1F] text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-[#E8E8E8]"
+              className="px-4 py-2 bg-white dark:bg-[#1C1C1C] hover:bg-gray-100 dark:hover:bg-gray-700 text-[#1F1F1F] dark:text-gray-100 text-[13px] font-bold rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-[#E8E8E8] dark:border-[#2A2A2A]"
             >
               <ArrowLeft className="w-4 h-4 text-[#8E8E93]" />
               <span>Back to Doctor CRM</span>
@@ -590,13 +590,13 @@ export default function CallManagerPage() {
         {/* Top 3 Dynamic KPI Cards Row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Card 1: Call Queue */}
-          <div className="bg-white rounded-[18px] p-5 shadow-sm border border-[#F2F2F2]">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[18px] p-5 shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A]">
             <div className="text-[12px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">CALL QUEUE ACTIVE</div>
             <div className="flex items-baseline justify-between">
-              <div className="text-[28px] font-goudy font-bold text-[#1F1F1F]">
+              <div className="text-[28px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">
                 {isLoading ? '...' : `${scheduleForCallCount} Doctors`}
               </div>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
                 Needs Phone Call
               </span>
             </div>
@@ -604,13 +604,13 @@ export default function CallManagerPage() {
           </div>
 
           {/* Card 2: Not Interested */}
-          <div className="bg-white rounded-[18px] p-5 shadow-sm border border-[#F2F2F2]">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[18px] p-5 shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A]">
             <div className="text-[12px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">NOT INTERESTED</div>
             <div className="flex items-baseline justify-between">
-              <div className="text-[28px] font-goudy font-bold text-[#1F1F1F]">
+              <div className="text-[28px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">
                 {isLoading ? '...' : `${notInterestedCount} Doctors`}
               </div>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800/50">
                 Not Interested
               </span>
             </div>
@@ -618,13 +618,13 @@ export default function CallManagerPage() {
           </div>
 
           {/* Card 3: Total Database Docs */}
-          <div className="bg-white rounded-[18px] p-5 shadow-sm border border-[#F2F2F2]">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[18px] p-5 shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A]">
             <div className="text-[12px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">TOTAL DATABASE DOCS</div>
             <div className="flex items-baseline justify-between">
-              <div className="text-[28px] font-goudy font-bold text-[#1F1F1F]">
+              <div className="text-[28px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">
                 {isLoading ? '...' : `${doctors.length} Doctors`}
               </div>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50">
                 Database Active
               </span>
             </div>
@@ -641,17 +641,17 @@ export default function CallManagerPage() {
               placeholder="Search by doctor, phone, action..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-[#E8E8E8] rounded-full py-2 pl-10 pr-4 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+              className="w-full bg-white dark:bg-[#1C1C1C] border border-[#E8E8E8] dark:border-[#2A2A2A] dark:border-gray-800 rounded-full py-2 pl-10 pr-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
             />
           </div>
         </div>
 
         {/* Call Manager Table */}
-        <div className="bg-white rounded-[20px] shadow-sm border border-[#F2F2F2] overflow-hidden">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-[20px] shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A] overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#F2F2F2] bg-[#FCFCFC]">
+                <tr className="border-b border-[#F2F2F2] dark:border-[#2A2A2A] dark:border-gray-800 bg-[#FCFCFC] dark:bg-[#121212]">
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Doctor &amp; Specialty</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Contact &amp; Phone</th>
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider">Practice Location</th>
@@ -678,17 +678,17 @@ export default function CallManagerPage() {
                   </tr>
                 ) : (
                   filteredDoctors.map((doc) => (
-                    <tr key={doc.id} className="hover:bg-gray-50/80 transition-colors group">
+                    <tr key={doc.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/80 transition-colors group">
                       {/* Column 1: Doctor & Specialty */}
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] flex items-center justify-center font-bold text-[14px] shadow-xs">
+                          <div className="w-10 h-10 rounded-full bg-[#FFF9EE] dark:bg-amber-900/30 text-[#D9A11E] dark:text-amber-400 border border-[#FFE7A8] dark:border-amber-800/50 flex items-center justify-center font-bold text-[14px] shadow-xs">
                             {doc.fullName ? doc.fullName.replace(/^Dr\.?\s+/i, '')[0] : 'D'}
                           </div>
                           <div>
                             <Link
                               href={`/dashboard/doctor-leads/${doc.id}`}
-                              className="font-bold text-[14px] text-[#1F1F1F] hover:text-[#D9A11E] hover:underline transition-colors block cursor-pointer"
+                              className="font-bold text-[14px] text-[#1F1F1F] dark:text-gray-100 hover:text-[#D9A11E] hover:underline transition-colors block cursor-pointer"
                               title="Click to view full physician profile dossier & AI campaign"
                             >
                               {doc.fullName}
@@ -705,7 +705,7 @@ export default function CallManagerPage() {
                           <div className="flex items-center gap-2">
                             <button 
                               onClick={() => handleCopyPhone(doc.id, doc.phone)}
-                              className="text-[12px] font-bold text-gray-800 flex items-center gap-1 hover:text-[#D9A11E] transition-colors"
+                              className="text-[12px] font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1 hover:text-[#D9A11E] transition-colors"
                               title="Click to copy phone number"
                             >
                               <PhoneCall className="w-3.5 h-3.5 text-[#D9A11E]" />
@@ -733,7 +733,7 @@ export default function CallManagerPage() {
                       {/* Column 3: Practice Location */}
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         <div>
-                          <div className="text-[13px] font-semibold text-[#1F1F1F]">{doc.organization}</div>
+                          <div className="text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100">{doc.organization}</div>
                           <div className="text-[12px] text-[#8E8E93] flex items-center gap-1 mt-0.5">
                             <MapPin className="w-3.5 h-3.5 text-[#8E8E93]" />
                             <span>{doc.location}</span>
@@ -747,7 +747,7 @@ export default function CallManagerPage() {
                           <select
                             value={['interested', 'not_interested', 'didnt_pick_up', 'call_back_later'].includes(doc.stage) ? doc.stage : 'needs_call'}
                             onChange={(e) => handleUpdateStage(doc.id, e.target.value)}
-                            className="bg-gray-50 border border-gray-300 rounded-lg px-2.5 py-1 text-[12px] font-bold text-gray-800 focus:outline-none focus:border-[#FFC63F]"
+                            className="bg-gray-50 dark:bg-gray-800 border border-gray-300 rounded-lg px-2.5 py-1 text-[12px] font-bold text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#FFC63F]"
                           >
                             {!['interested', 'not_interested', 'didnt_pick_up', 'call_back_later'].includes(doc.stage) && (
                               <option value="needs_call" disabled>📞 Needs Call (needs_call)</option>
@@ -769,7 +769,7 @@ export default function CallManagerPage() {
                         <div className="flex items-center gap-1.5 justify-start">
                           <button
                             onClick={() => handleOpenCallActionModal(doc)}
-                            className="w-44 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[12px] font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                            className="w-44 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 dark:hover:bg-amber-800/50 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 rounded-lg text-[12px] font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                             title="Click to view or edit call action"
                           >
                             <Activity className="w-3.5 h-3.5 text-amber-600 shrink-0" />
@@ -786,7 +786,7 @@ export default function CallManagerPage() {
                       <td className="px-6 py-4.5 text-right whitespace-nowrap">
                         <button
                           onClick={() => handleOpenNotesHistory(doc)}
-                          className="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[12px] font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer ml-auto"
+                          className="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-800/50 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 rounded-lg text-[12px] font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer ml-auto"
                           title="Click to view previous call notes & save a new note"
                         >
                           <FileText className="w-3.5 h-3.5 text-blue-600" />
@@ -804,27 +804,27 @@ export default function CallManagerPage() {
         {/* Add Doctor Lead Modal */}
         {isAddModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-gray-100 relative animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-gray-100 dark:border-gray-800 relative animate-in fade-in zoom-in-95 duration-200">
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="absolute right-5 top-5 p-1.5 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+                className="absolute right-5 top-5 p-1.5 text-gray-400 hover:text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
 
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-full bg-[#FFF9EE] dark:bg-amber-900/30 text-[#D9A11E] dark:text-amber-400 border border-[#FFE7A8] dark:border-amber-800/50 flex items-center justify-center font-bold">
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-goudy text-[22px] font-bold text-[#1F1F1F]">Add New Doctor Lead</h3>
+                  <h3 className="font-goudy text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100">Add New Doctor Lead</h3>
                   <p className="text-[12px] text-[#8E8E93]">Save physician prospect to database with stage set to Pending Outreach</p>
                 </div>
               </div>
 
               <form onSubmit={handleCreateDoctor} className="space-y-4">
                 <div>
-                  <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1">
+                  <label className="block text-[12px] font-bold text-[#1F1F1F] dark:text-gray-100 mb-1">
                     Full Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -833,12 +833,12 @@ export default function CallManagerPage() {
                     placeholder="e.g. Dr. Denver Vance, MD"
                     value={newFullName}
                     onChange={(e) => setNewFullName(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1">
+                  <label className="block text-[12px] font-bold text-[#1F1F1F] dark:text-gray-100 mb-1">
                     Email Address <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -847,74 +847,74 @@ export default function CallManagerPage() {
                     placeholder="e.g. dr.vance@example.com"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1">Medical Specialty</label>
+                    <label className="block text-[12px] font-bold text-[#1F1F1F] dark:text-gray-100 mb-1">Medical Specialty</label>
                     <input
                       type="text"
                       placeholder="e.g. Orthopedic Surgery"
                       value={newSpecialty}
                       onChange={(e) => setNewSpecialty(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1">Phone Number</label>
+                    <label className="block text-[12px] font-bold text-[#1F1F1F] dark:text-gray-100 mb-1">Phone Number</label>
                     <input
                       type="text"
                       placeholder="e.g. +1 (305) 555-0103"
                       value={newPhone}
                       onChange={(e) => setNewPhone(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1">Practice / Clinic Name</label>
+                    <label className="block text-[12px] font-bold text-[#1F1F1F] dark:text-gray-100 mb-1">Practice / Clinic Name</label>
                     <input
                       type="text"
                       placeholder="e.g. Vance Spine & Joint"
                       value={newOrganization}
                       onChange={(e) => setNewOrganization(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1">Practice Location</label>
+                    <label className="block text-[12px] font-bold text-[#1F1F1F] dark:text-gray-100 mb-1">Practice Location</label>
                     <input
                       type="text"
                       placeholder="e.g. Austin, TX"
                       value={newLocation}
                       onChange={(e) => setNewLocation(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 mt-6">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 mt-6">
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[13px] font-bold rounded-full transition-all"
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:text-gray-300 text-[13px] font-bold rounded-full transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSavingDoctor}
-                    className="px-5 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] text-[13px] font-bold rounded-full transition-all shadow-sm flex items-center gap-2"
+                    className="px-5 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 text-[13px] font-bold rounded-full transition-all shadow-sm flex items-center gap-2"
                   >
                     {isSavingDoctor ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
+                        <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F] dark:text-gray-100" />
                         <span>Saving to DB...</span>
                       </>
                     ) : (
@@ -933,14 +933,14 @@ export default function CallManagerPage() {
         {/* Bulk Upload Modal */}
         {isBulkUploadModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-[24px] max-w-3xl w-full p-6 shadow-2xl border border-gray-100 relative animate-in fade-in zoom-in-95 duration-200 my-8">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-3xl w-full p-6 shadow-2xl border border-gray-100 dark:border-gray-800 relative animate-in fade-in zoom-in-95 duration-200 my-8">
               <button
                 onClick={() => {
                   setIsBulkUploadModalOpen(false);
                   setParsedLeads([]);
                   setUploadedFileName('');
                 }}
-                className="absolute right-5 top-5 p-1.5 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+                className="absolute right-5 top-5 p-1.5 text-gray-400 hover:text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -950,7 +950,7 @@ export default function CallManagerPage() {
                   <FileSpreadsheet className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-goudy text-[22px] font-bold text-[#1F1F1F]">Bulk Upload Doctor Leads (Excel / CSV)</h3>
+                  <h3 className="font-goudy text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100">Bulk Upload Doctor Leads (Excel / CSV)</h3>
                   <p className="text-[12px] text-[#8E8E93]">Upload doctor leads spreadsheet directly into PostgreSQL doctor_prospects table</p>
                 </div>
               </div>
@@ -972,14 +972,14 @@ export default function CallManagerPage() {
                   </button>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[11px] text-amber-900 pt-1">
-                  <div className="bg-white/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Full Name</div>
-                  <div className="bg-white/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Email Address</div>
-                  <div className="bg-white/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Medical Specialty</div>
-                  <div className="bg-white/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Phone Number</div>
-                  <div className="bg-white/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Practice / Clinic</div>
-                  <div className="bg-white/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Practice Location</div>
-                  <div className="bg-white/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Stage (needs_call)</div>
-                  <div className="bg-white/80 px-2 py-1 rounded border border-amber-200 text-amber-800 font-semibold">• Combined Columns</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Full Name</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Email Address</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Medical Specialty</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Phone Number</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Practice / Clinic</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Practice Location</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Stage (needs_call)</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 text-amber-800 font-semibold">• Combined Columns</div>
                 </div>
               </div>
 
@@ -994,11 +994,11 @@ export default function CallManagerPage() {
                     processExcelFile(e.dataTransfer.files[0]);
                   }
                 }}
-                className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${dragActive ? 'border-[#FFC63F] bg-[#FFF9EE]' : 'border-gray-300 bg-gray-50/50 hover:bg-gray-50'
+                className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${dragActive ? 'border-[#FFC63F] bg-[#FFF9EE]' : 'border-gray-300 bg-gray-50/50 dark:bg-gray-800/50 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800'
                   }`}
               >
                 <Upload className="w-8 h-8 text-[#8E8E93] mx-auto mb-2" />
-                <p className="text-[13px] font-bold text-[#1F1F1F]">Drag and drop your Excel (.xlsx, .xls) or CSV file here</p>
+                <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">Drag and drop your Excel (.xlsx, .xls) or CSV file here</p>
                 <p className="text-[12px] text-[#8E8E93] mt-1">or click below to choose file from your computer</p>
 
                 <input
@@ -1033,14 +1033,14 @@ export default function CallManagerPage() {
               {parsedLeads.length > 0 && (
                 <div className="mt-5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-[13px] font-bold text-[#1F1F1F] flex items-center gap-2">
+                    <h4 className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
                       <span>Preview Parsed Leads ({parsedLeads.length})</span>
                       <span className="text-[11px] font-normal text-[#8E8E93]">Ready to save into PostgreSQL</span>
                     </h4>
                   </div>
-                  <div className="max-h-56 overflow-y-auto border border-gray-200 rounded-xl">
+                  <div className="max-h-56 overflow-y-auto border border-gray-200 dark:border-gray-800 rounded-xl">
                     <table className="w-full text-left border-collapse text-[12px]">
-                      <thead className="sticky top-0 bg-gray-100 font-bold text-gray-700 border-b border-gray-200">
+                      <thead className="sticky top-0 bg-gray-100 font-bold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-800">
                         <tr>
                           <th className="px-3 py-2">Doctor Name</th>
                           <th className="px-3 py-2">Specialty</th>
@@ -1051,15 +1051,15 @@ export default function CallManagerPage() {
                           <th className="px-3 py-2">Stage</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100 bg-white">
+                      <tbody className="divide-y divide-gray-100 bg-white dark:bg-[#1C1C1C]">
                         {parsedLeads.slice(0, 15).map((lead, idx) => (
-                          <tr key={idx} className="hover:bg-gray-50">
-                            <td className="px-3 py-1.5 font-bold text-gray-900">{lead.fullName}</td>
-                            <td className="px-3 py-1.5 text-gray-600">{lead.specialty}</td>
-                            <td className="px-3 py-1.5 text-gray-600">{lead.organization}</td>
-                            <td className="px-3 py-1.5 text-gray-600">{lead.location}</td>
-                            <td className="px-3 py-1.5 text-gray-600">{lead.email}</td>
-                            <td className="px-3 py-1.5 text-gray-600">{lead.phone}</td>
+                          <tr key={idx} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800">
+                            <td className="px-3 py-1.5 font-bold text-gray-900 dark:text-gray-100">{lead.fullName}</td>
+                            <td className="px-3 py-1.5 text-gray-600 dark:text-gray-400">{lead.specialty}</td>
+                            <td className="px-3 py-1.5 text-gray-600 dark:text-gray-400">{lead.organization}</td>
+                            <td className="px-3 py-1.5 text-gray-600 dark:text-gray-400">{lead.location}</td>
+                            <td className="px-3 py-1.5 text-gray-600 dark:text-gray-400">{lead.email}</td>
+                            <td className="px-3 py-1.5 text-gray-600 dark:text-gray-400">{lead.phone}</td>
                             <td className="px-3 py-1.5">
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
                                 {lead.stage}
@@ -1076,7 +1076,7 @@ export default function CallManagerPage() {
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800 mt-6">
                 <button
                   type="button"
                   onClick={() => {
@@ -1084,7 +1084,7 @@ export default function CallManagerPage() {
                     setParsedLeads([]);
                     setUploadedFileName('');
                   }}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[13px] font-bold rounded-full transition-all"
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:text-gray-300 text-[13px] font-bold rounded-full transition-all"
                 >
                   Cancel
                 </button>
@@ -1092,11 +1092,11 @@ export default function CallManagerPage() {
                   type="button"
                   onClick={handleBulkUploadSubmit}
                   disabled={isUploadingBulk || parsedLeads.length === 0}
-                  className="px-6 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] text-[13px] font-bold rounded-full transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
+                  className="px-6 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 text-[13px] font-bold rounded-full transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
                 >
                   {isUploadingBulk ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
+                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F] dark:text-gray-100" />
                       <span>Saving {parsedLeads.length} Leads to DB...</span>
                     </>
                   ) : (
@@ -1114,20 +1114,20 @@ export default function CallManagerPage() {
         {/* Call Action Edit Modal */}
         {selectedDoctorForAction && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-[24px] max-w-md w-full p-6 shadow-2xl border border-gray-100 relative animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-gray-800 relative animate-in fade-in zoom-in-95 duration-200">
               <button
                 onClick={() => setSelectedDoctorForAction(null)}
-                className="absolute right-5 top-5 p-1.5 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+                className="absolute right-5 top-5 p-1.5 text-gray-400 hover:text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
 
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 flex items-center justify-center font-bold">
                   <Activity className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-goudy text-[22px] font-bold text-[#1F1F1F]">
+                  <h3 className="font-goudy text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100">
                     Call Action
                   </h3>
                   <p className="text-[12px] text-[#8E8E93]">
@@ -1141,10 +1141,10 @@ export default function CallManagerPage() {
 
                 {/* Previous Call Actions History */}
                 {tempCallHistory.length > 0 && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2 max-h-40 overflow-y-auto">
-                    <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Previous Actions</h4>
+                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl p-3 space-y-2 max-h-40 overflow-y-auto">
+                    <h4 className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Previous Actions</h4>
                     {tempCallHistory.map((historyItem, idx) => (
-                      <div key={idx} className="text-[12px] text-gray-700 bg-white border border-gray-100 p-2 rounded-lg">
+                      <div key={idx} className="text-[12px] text-gray-700 dark:text-gray-300 bg-white dark:bg-[#1C1C1C] border border-gray-100 dark:border-gray-800 p-2 rounded-lg">
                         {historyItem}
                       </div>
                     ))}
@@ -1153,7 +1153,7 @@ export default function CallManagerPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1.5 flex justify-between items-center">
+                    <label className="block text-[12px] font-bold text-[#1F1F1F] dark:text-gray-100 mb-1.5 flex justify-between items-center">
                       <span>Call Number</span>
                       <button
                         type="button"
@@ -1188,12 +1188,12 @@ export default function CallManagerPage() {
                         New Call +
                       </button>
                     </label>
-                    <div className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] font-semibold flex items-center h-[38px]">
+                    <div className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] dark:text-gray-100 font-semibold flex items-center h-[38px]">
                       {tempCallAttempt || '1st Call'}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1.5">
+                    <label className="block text-[12px] font-bold text-[#1F1F1F] dark:text-gray-100 mb-1.5">
                       First Seconds / Duration
                     </label>
                     <input
@@ -1201,12 +1201,12 @@ export default function CallManagerPage() {
                       placeholder="e.g. 15s, Voicemail..."
                       value={tempCallDuration}
                       onChange={(e) => setTempCallDuration(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[12px] font-bold text-[#1F1F1F] mb-1.5">
+                  <label className="block text-[12px] font-bold text-[#1F1F1F] dark:text-gray-100 mb-1.5">
                     Call Notes / Action
                   </label>
                   <textarea
@@ -1214,15 +1214,15 @@ export default function CallManagerPage() {
                     placeholder="Type call action..."
                     value={tempCallActionText}
                     onChange={(e) => setTempCallActionText(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] resize-none"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F] resize-none"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-4">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800 mt-4">
                 <button
                   onClick={() => setSelectedDoctorForAction(null)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[13px] font-bold rounded-full transition-all"
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:text-gray-300 text-[13px] font-bold rounded-full transition-all"
                 >
                   Cancel
                 </button>
@@ -1237,16 +1237,16 @@ export default function CallManagerPage() {
                     handleUpdateCallAction(selectedDoctorForAction.id, finalText);
                   }}
                   disabled={savingActionId === selectedDoctorForAction.id}
-                  className="px-5 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] text-[13px] font-bold rounded-full transition-all shadow-sm flex items-center gap-2"
+                  className="px-5 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 text-[13px] font-bold rounded-full transition-all shadow-sm flex items-center gap-2"
                 >
                   {savingActionId === selectedDoctorForAction.id ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
+                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F] dark:text-gray-100" />
                       <span>Saving...</span>
                     </>
                   ) : (
                     <>
-                      <Save className="w-4 h-4 text-[#1F1F1F]" />
+                      <Save className="w-4 h-4 text-[#1F1F1F] dark:text-gray-100" />
                       <span>Save Action</span>
                     </>
                   )}
@@ -1259,10 +1259,10 @@ export default function CallManagerPage() {
         {/* Saved Call Notes History Modal */}
         {selectedDoctorForNotes && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-[24px] max-w-xl w-full p-6 shadow-2xl border border-gray-100 relative animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-xl w-full p-6 shadow-2xl border border-gray-100 dark:border-gray-800 relative animate-in fade-in zoom-in-95 duration-200">
               <button
                 onClick={() => setSelectedDoctorForNotes(null)}
-                className="absolute right-5 top-5 p-1.5 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+                className="absolute right-5 top-5 p-1.5 text-gray-400 hover:text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1272,7 +1272,7 @@ export default function CallManagerPage() {
                   <PhoneCall className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-goudy text-[22px] font-bold text-[#1F1F1F]">
+                  <h3 className="font-goudy text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100">
                     Call Notes History: {selectedDoctorForNotes.fullName}
                   </h3>
                   <p className="text-[12px] text-[#8E8E93]">
@@ -1282,7 +1282,7 @@ export default function CallManagerPage() {
               </div>
 
               {/* Quick Add Note Form in Modal */}
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-3 mb-4 flex items-center gap-2">
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-2xl p-3 mb-4 flex items-center gap-2">
                 <input
                   type="text"
                   placeholder="Add new call note for this doctor..."
@@ -1291,7 +1291,7 @@ export default function CallManagerPage() {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleSaveCallNote(selectedDoctorForNotes.id);
                   }}
-                  className="bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-[12px] text-[#1F1F1F] w-full focus:outline-none focus:border-[#FFC63F]"
+                  className="bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-1.5 text-[12px] text-[#1F1F1F] dark:text-gray-100 w-full focus:outline-none focus:border-[#FFC63F]"
                 />
                 <button
                   onClick={() => handleSaveCallNote(selectedDoctorForNotes.id)}
@@ -1320,11 +1320,11 @@ export default function CallManagerPage() {
                   </div>
                 ) : (
                   historyNotes.map((n) => (
-                    <div key={n.id} className="bg-gray-50/80 border border-gray-200/80 rounded-xl p-3.5 flex items-start justify-between gap-3">
+                    <div key={n.id} className="bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-800/80 rounded-xl p-3.5 flex items-start justify-between gap-3">
                       <div className="space-y-1">
-                        <p className="text-[13px] font-semibold text-[#1F1F1F] leading-snug">{n.note}</p>
+                        <p className="text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 leading-snug">{n.note}</p>
                         <div className="text-[11px] text-[#8E8E93] flex items-center gap-2">
-                          <span className="font-bold text-gray-700">{n.author_name || 'Call Manager'}</span>
+                          <span className="font-bold text-gray-700 dark:text-gray-300">{n.author_name || 'Call Manager'}</span>
                           <span>•</span>
                           <span>{n.created_at ? new Date(n.created_at).toLocaleString() : 'Just now'}</span>
                         </div>
@@ -1341,7 +1341,7 @@ export default function CallManagerPage() {
                 )}
               </div>
 
-              <div className="flex items-center justify-end pt-4 border-t border-gray-100 mt-4">
+              <div className="flex items-center justify-end pt-4 border-t border-gray-100 dark:border-gray-800 mt-4">
                 <button
                   onClick={() => setSelectedDoctorForNotes(null)}
                   className="px-5 py-1.5 bg-[#1F1F1F] text-white text-[12px] font-bold rounded-full transition-all"

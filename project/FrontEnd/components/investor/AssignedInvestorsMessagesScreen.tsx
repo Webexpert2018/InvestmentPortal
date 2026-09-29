@@ -89,7 +89,7 @@ export const AvatarDisplay = ({ src, name, className }: { src?: string; name: st
   const diceAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=FBCB4B,3B6FF0,34C759,FF9500&fontSize=40&fontWeight=700`;
 
   return (
-    <div className={cn("relative overflow-hidden flex items-center justify-center shrink-0", className, showInitials && "bg-[#F3F4F6] shadow-inner")}>
+    <div className={cn("relative overflow-hidden flex items-center justify-center shrink-0", className, showInitials && "bg-[#F3F4F6] dark:bg-gray-800 shadow-inner")}>
       {showInitials ? (
         <img
           src={diceAvatar}
@@ -674,12 +674,12 @@ export function AssignedInvestorsMessagesScreen() {
   }
 
   return (
-    <div className="mx-auto max-w-8xl px-2 font-helvetica text-[#1F1F1F]">
-      <h1 className="font-goudy font-bold text-[24px] leading-tight text-[#1F1F1F]">Messages</h1>
+    <div className="mx-auto max-w-8xl px-2 font-helvetica text-[#1F1F1F] dark:text-gray-100">
+      <h1 className="font-goudy font-bold text-[24px] leading-tight text-[#1F1F1F] dark:text-gray-100">Messages</h1>
 
       <div className="mt-3 grid gap-3 md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr]">
         <section className={cn(
-          "rounded-[8px] bg-white p-4 shadow-sm border border-[#F0F0F0] h-[calc(100vh-160px)] min-h-[500px] flex flex-col",
+          "rounded-[8px] bg-white dark:bg-[#1C1C1C] p-4 shadow-sm border border-[#F0F0F0] dark:border-gray-700 h-[calc(100vh-160px)] min-h-[500px] flex flex-col",
           isMobileChatOpen ? "hidden md:flex" : "flex"
         )}>
           <div className="flex items-center gap-2 mb-4 px-1">
@@ -690,12 +690,12 @@ export function AssignedInvestorsMessagesScreen() {
                 onChange={(event) => setSearch(event.target.value)}
                 type="text"
                 placeholder="Search messages here"
-                className="h-[42px] w-full rounded-full bg-[#F5F5F7] pl-11 pr-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] transition-all focus:ring-1 focus:ring-[#FBCB4B]"
+                className="h-[42px] w-full rounded-full bg-[#F5F5F7] pl-11 pr-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#A2A5AA] transition-all focus:ring-1 focus:ring-[#FBCB4B]"
               />
             </label>
             <button
               onClick={() => setIsNewChatModalOpen(true)}
-              className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-[#F5F5F7] text-[#1F1F1F] hover:bg-[#FBCB4B] transition-all shadow-sm"
+              className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-[#F5F5F7] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBCB4B] transition-all shadow-sm"
               title="New Chat"
             >
               <UserPlus className="h-5 w-5" />
@@ -714,7 +714,7 @@ export function AssignedInvestorsMessagesScreen() {
                     type="button"
                     onClick={() => handleThreadSelect(thread.id)}
                     className={cn(
-                      "flex w-full items-start gap-3 px-3 py-3.5 text-left transition-all hover:bg-[#F9FAFB] border-b border-[#F0F0F0]",
+                      "flex w-full items-start gap-3 px-3 py-3.5 text-left transition-all hover:bg-[#F9FAFB] border-b border-[#F0F0F0] dark:border-gray-700",
                       selected ? "bg-[#F9FAFB]" : ""
                     )}
                   >
@@ -731,7 +731,7 @@ export function AssignedInvestorsMessagesScreen() {
                     </div>
                     <div className="flex flex-1 flex-col justify-between h-full min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
-                        <p className="truncate text-[14px] font-bold text-[#1F1F1F]">{thread.investorName}</p>
+                        <p className="truncate text-[14px] font-bold text-[#1F1F1F] dark:text-gray-100">{thread.investorName}</p>
                         <p className="text-[11px] text-[#A2A5AA] whitespace-nowrap ml-2">{thread.timeAgo}</p>
                       </div>
                       {thread.isGroup && (
@@ -755,7 +755,7 @@ export function AssignedInvestorsMessagesScreen() {
 
         <section
           className={cn(
-            "rounded-[8px] bg-white p-4 shadow-sm border border-[#F0F0F0] flex flex-col h-[calc(100vh-160px)] min-h-[500px] relative",
+            "rounded-[8px] bg-white dark:bg-[#1C1C1C] p-4 shadow-sm border border-[#F0F0F0] dark:border-gray-700 flex flex-col h-[calc(100vh-160px)] min-h-[500px] relative",
             !isMobileChatOpen ? "hidden md:flex" : "flex",
             isDragging ? "border-[#FBCB4B] bg-yellow-50/30" : ""
           )}
@@ -775,17 +775,17 @@ export function AssignedInvestorsMessagesScreen() {
           onDrop={handleDrop}
         >
           {isDragging && activeThreadId && (
-            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm border-2 border-dashed border-[#FBCB4B] rounded-[8px] animate-in fade-in duration-200">
+            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-[#1C1C1C]/90 backdrop-blur-sm border-2 border-dashed border-[#FBCB4B] rounded-[8px] animate-in fade-in duration-200">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FBCB4B]/20 text-[#FBCB4B] mb-4">
                 <Upload className="h-8 w-8 text-[#FBCB4B]" />
               </div>
-              <p className="text-[16px] font-bold text-[#1F1F1F]">Drop files to attach</p>
+              <p className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100">Drop files to attach</p>
               <p className="text-[12px] text-[#8E8E93] mt-1">Images, PDFs, Docs up to 10MB</p>
             </div>
           )}
           {activeThread ? (
             <>
-              <div className="flex items-center gap-3 border-b border-[#F0F0F0] pb-4 px-1 shrink-0">
+              <div className="flex items-center gap-3 border-b border-[#F0F0F0] dark:border-gray-700 pb-4 px-1 shrink-0">
                 <button
                   onClick={() => setIsMobileChatOpen(false)}
                   className="md:hidden p-2 -ml-2 text-[#6F7177] hover:bg-[#F5F5F7] rounded-full transition-colors"
@@ -804,7 +804,7 @@ export function AssignedInvestorsMessagesScreen() {
                   )}></div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-bold text-[#1F1F1F] leading-tight truncate">{activeThread.investorName}</p>
+                  <p className="text-[15px] font-bold text-[#1F1F1F] dark:text-gray-100 leading-tight truncate">{activeThread.investorName}</p>
                   <p className="text-[12px] text-[#A2A5AA] mt-0.5">
                     {activeThread.isGroup ? `${activeThread.participants?.length || 0} participants` : activeThread.role}
                   </p>
@@ -817,15 +817,15 @@ export function AssignedInvestorsMessagesScreen() {
                         <MoreHorizontal className="h-5 w-5" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[200px] rounded-xl shadow-xl border-[#F0F0F0]">
-                      <div className="px-3 py-2 border-b border-[#F0F0F0] mb-1">
+                    <DropdownMenuContent align="end" className="w-[200px] rounded-xl shadow-xl border-[#F0F0F0] dark:border-gray-700">
+                      <div className="px-3 py-2 border-b border-[#F0F0F0] dark:border-gray-700 mb-1">
                         <p className="text-[11px] font-bold text-[#A2A5AA] uppercase tracking-wider">
                           {activeThread.isGroup ? 'Group Details' : 'Chat Details'}
                         </p>
                       </div>
                       <div className="max-h-[300px] overflow-y-auto thin-scrollbar px-1">
                         {activeThread.participants?.map((p: any) => (
-                          <div key={p.id} className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#1F1F1F]">
+                          <div key={p.id} className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#1F1F1F] dark:text-gray-100">
                             <AvatarDisplay
                               src={p.avatar}
                               name={p.name}
@@ -909,7 +909,7 @@ export function AssignedInvestorsMessagesScreen() {
                                     </span>
                                   )}
                                   {message.isAttachment ? (
-                                    <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] border border-[#D9E6FC] shadow-sm">
+                                    <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] dark:text-gray-100 border border-[#D9E6FC] shadow-sm">
                                       <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 shrink-0 flex items-center justify-center">
                                           <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8" />
@@ -918,13 +918,13 @@ export function AssignedInvestorsMessagesScreen() {
                                           <p className="truncate text-[13px] font-bold">{message.attachmentName}</p>
                                           <p className="text-[11px] opacity-70">{message.attachmentSize}</p>
                                         </div>
-                                        <button onClick={() => downloadFile(message.fileUrl!, message.attachmentName!)} className="p-2 hover:bg-white/50 rounded-full transition-colors">
+                                        <button onClick={() => downloadFile(message.fileUrl!, message.attachmentName!)} className="p-2 hover:bg-white dark:bg-[#1C1C1C]/50 rounded-full transition-colors">
                                           <Download className="h-4 w-4" />
                                         </button>
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] leading-relaxed border border-[#D9E6FC] shadow-sm">
+                                    <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 leading-relaxed border border-[#D9E6FC] shadow-sm">
                                       {message.text}
                                     </div>
                                   )}
@@ -940,7 +940,7 @@ export function AssignedInvestorsMessagesScreen() {
                                       <textarea
                                         value={editInput}
                                         onChange={(e) => setEditInput(e.target.value)}
-                                        className="bg-transparent text-[14px] outline-none resize-none min-h-[80px] w-full text-[#1F1F1F] leading-relaxed"
+                                        className="bg-transparent text-[14px] outline-none resize-none min-h-[80px] w-full text-[#1F1F1F] dark:text-gray-100 leading-relaxed"
                                         autoFocus
                                       />
                                       <div className="flex justify-end gap-2 mt-2">
@@ -952,14 +952,14 @@ export function AssignedInvestorsMessagesScreen() {
                                         </button>
                                         <button
                                           onClick={() => handleEditMessage(message.id)}
-                                          className="flex items-center justify-center h-8 w-8 bg-[#FBCB4B] rounded-full text-[#1F1F1F] shadow-sm hover:scale-105 active:scale-95 transition-all"
+                                          className="flex items-center justify-center h-8 w-8 bg-[#FBCB4B] rounded-full text-[#1F1F1F] dark:text-gray-100 shadow-sm hover:scale-105 active:scale-95 transition-all"
                                         >
                                           <Check className="h-4.5 w-4.5" />
                                         </button>
                                       </div>
                                     </div>
                                   ) : message.isAttachment ? (
-                                    <div className="bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] p-3 text-[#1F1F1F] border border-[#EBEBEB] shadow-sm">
+                                    <div className="bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] p-3 text-[#1F1F1F] dark:text-gray-100 border border-[#EBEBEB] shadow-sm">
                                       <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 shrink-0 flex items-center justify-center">
                                           <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8" />
@@ -968,13 +968,13 @@ export function AssignedInvestorsMessagesScreen() {
                                           <p className="truncate text-[13px] font-bold">{message.attachmentName}</p>
                                           <p className="text-[11px] opacity-70">{message.attachmentSize}</p>
                                         </div>
-                                        <button onClick={() => downloadFile(message.fileUrl!, message.attachmentName!)} className="p-2 hover:bg-white/50 rounded-full transition-colors">
+                                        <button onClick={() => downloadFile(message.fileUrl!, message.attachmentName!)} className="p-2 hover:bg-white dark:bg-[#1C1C1C]/50 rounded-full transition-colors">
                                           <Download className="h-4 w-4" />
                                         </button>
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] leading-relaxed border border-[#EBEBEB] whitespace-pre-line shadow-sm">
+                                    <div className="bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 leading-relaxed border border-[#EBEBEB] whitespace-pre-line shadow-sm">
                                       {message.text}
                                       {message.updatedAt && message.updatedAt !== message.createdAt && (
                                         <span className="block mt-0.5 text-[9px] opacity-40 text-right italic">(edited)</span>
@@ -1015,18 +1015,18 @@ export function AssignedInvestorsMessagesScreen() {
                               </span>
                             )}
                             {message.text.includes('Monday, 8 December') ? (
-                              <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-3 text-[14px] text-[#1F1F1F] border border-[#D9E6FC] shadow-sm">
+                              <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-3 text-[14px] text-[#1F1F1F] dark:text-gray-100 border border-[#D9E6FC] shadow-sm">
                                 <p className="mb-2 font-medium">{message.text.split('\n')[0]}</p>
-                                <div className="bg-white/50 rounded-xl p-3 space-y-1.5 border border-white/40">
+                                <div className="bg-white dark:bg-[#1C1C1C]/50 rounded-xl p-3 space-y-1.5 border border-white/40">
                                   {message.text.split('\n').slice(1).map((line, i) => (
-                                    <p key={i} className={cn("text-[13px]", line.includes('http') ? "text-[#007AFF] font-semibold underline decoration-2 underline-offset-2" : "text-[#4B4B4B]")}>
+                                    <p key={i} className={cn("text-[13px]", line.includes('http') ? "text-[#007AFF] font-semibold underline decoration-2 underline-offset-2" : "text-[#4B4B4B] dark:text-gray-300")}>
                                       {line}
                                     </p>
                                   ))}
                                 </div>
                               </div>
                             ) : message.isAttachment ? (
-                              <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] border border-[#D9E6FC] shadow-sm">
+                              <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] p-3 text-[#1F1F1F] dark:text-gray-100 border border-[#D9E6FC] shadow-sm">
                                 <div className="flex items-center gap-3">
                                   <div className="h-10 w-10 shrink-0 flex items-center justify-center">
                                     <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8" />
@@ -1035,13 +1035,13 @@ export function AssignedInvestorsMessagesScreen() {
                                     <p className="truncate text-[13px] font-bold">{message.attachmentName}</p>
                                     <p className="text-[11px] opacity-70">{message.attachmentSize}</p>
                                   </div>
-                                  <button onClick={() => downloadFile(message.fileUrl!, message.attachmentName!)} className="p-2 hover:bg-white/50 rounded-full transition-colors">
+                                  <button onClick={() => downloadFile(message.fileUrl!, message.attachmentName!)} className="p-2 hover:bg-white dark:bg-[#1C1C1C]/50 rounded-full transition-colors">
                                     <Download className="h-4 w-4" />
                                   </button>
                                 </div>
                               </div>
                             ) : (
-                              <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] leading-relaxed border border-[#D9E6FC] shadow-sm">
+                              <div className="bg-[#E8F0FE] rounded-[18px] rounded-bl-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 leading-relaxed border border-[#D9E6FC] shadow-sm">
                                 {message.text}
                               </div>
                             )}
@@ -1056,7 +1056,7 @@ export function AssignedInvestorsMessagesScreen() {
                                   <textarea
                                     value={editInput}
                                     onChange={(e) => setEditInput(e.target.value)}
-                                    className="bg-transparent text-[14px] outline-none resize-none min-h-[80px] w-full text-[#1F1F1F] leading-relaxed"
+                                    className="bg-transparent text-[14px] outline-none resize-none min-h-[80px] w-full text-[#1F1F1F] dark:text-gray-100 leading-relaxed"
                                     autoFocus
                                   />
                                   <div className="flex justify-end gap-2 mt-2">
@@ -1068,14 +1068,14 @@ export function AssignedInvestorsMessagesScreen() {
                                     </button>
                                     <button
                                       onClick={() => handleEditMessage(message.id)}
-                                      className="flex items-center justify-center h-8 w-8 bg-[#FBCB4B] rounded-full text-[#1F1F1F] shadow-sm hover:scale-105 active:scale-95 transition-all"
+                                      className="flex items-center justify-center h-8 w-8 bg-[#FBCB4B] rounded-full text-[#1F1F1F] dark:text-gray-100 shadow-sm hover:scale-105 active:scale-95 transition-all"
                                     >
                                       <Check className="h-4.5 w-4.5" />
                                     </button>
                                   </div>
                                 </div>
                               ) : message.isAttachment ? (
-                                <div className="bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] p-3 text-[#1F1F1F] border border-[#EBEBEB] shadow-sm">
+                                <div className="bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] p-3 text-[#1F1F1F] dark:text-gray-100 border border-[#EBEBEB] shadow-sm">
                                   <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 shrink-0 flex items-center justify-center">
                                       <img src={getFileIcon(message.attachmentName)} alt="doc" className="h-8 w-8" />
@@ -1084,13 +1084,13 @@ export function AssignedInvestorsMessagesScreen() {
                                       <p className="truncate text-[13px] font-bold">{message.attachmentName}</p>
                                       <p className="text-[11px] opacity-70">{message.attachmentSize}</p>
                                     </div>
-                                    <button onClick={() => downloadFile(message.fileUrl!, message.attachmentName!)} className="p-2 hover:bg-white/50 rounded-full transition-colors">
+                                    <button onClick={() => downloadFile(message.fileUrl!, message.attachmentName!)} className="p-2 hover:bg-white dark:bg-[#1C1C1C]/50 rounded-full transition-colors">
                                       <Download className="h-4 w-4" />
                                     </button>
                                   </div>
                                 </div>
                               ) : (
-                                <div className="bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] leading-relaxed border border-[#EBEBEB] whitespace-pre-line shadow-sm">
+                                <div className="bg-[#F5F5F5] rounded-[18px] rounded-br-[4px] px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 leading-relaxed border border-[#EBEBEB] whitespace-pre-line shadow-sm">
                                   {message.text}
                                   {message.updatedAt && message.updatedAt !== message.createdAt && (
                                     <span className="block mt-0.5 text-[9px] opacity-40 text-right italic">(edited)</span>
@@ -1116,19 +1116,19 @@ export function AssignedInvestorsMessagesScreen() {
                 </div>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-[#F0F0F0] shrink-0">
+              <div className="mt-4 pt-4 border-t border-[#F0F0F0] dark:border-gray-700 shrink-0">
                 {selectedFile && (
-                  <div className="mb-3 flex w-fit max-w-[95%] sm:max-w-[380px] items-center gap-3 rounded-2xl bg-[#F9FAFB] p-3 border border-[#F0F0F0] shadow-sm animate-in slide-in-from-bottom-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-[#EDEDED] shadow-sm">
+                  <div className="mb-3 flex w-fit max-w-[95%] sm:max-w-[380px] items-center gap-3 rounded-2xl bg-[#F9FAFB] p-3 border border-[#F0F0F0] dark:border-gray-700 shadow-sm animate-in slide-in-from-bottom-2">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-[#1C1C1C] border border-[#EDEDED] shadow-sm">
                       <img src={getFileIcon(selectedFile.originalName)} alt="file" className="h-6 w-6" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="truncate text-[13px] font-bold text-[#1F1F1F]">{selectedFile.originalName}</p>
+                      <p className="truncate text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{selectedFile.originalName}</p>
                       <p className="text-[11px] text-[#A2A5AA]">{selectedFile.size}</p>
                     </div>
                     <button
                       onClick={() => setSelectedFile(null)}
-                      className="ml-2 text-[#A2A5AA] hover:text-red-500 transition-colors bg-white hover:bg-red-50 p-1.5 rounded-full shadow-sm border border-[#F0F0F0]"
+                      className="ml-2 text-[#A2A5AA] hover:text-red-500 transition-colors bg-white dark:bg-[#1C1C1C] hover:bg-red-50 p-1.5 rounded-full shadow-sm border border-[#F0F0F0] dark:border-gray-700"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -1138,16 +1138,16 @@ export function AssignedInvestorsMessagesScreen() {
                 <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handleFilePicked} />
                 <input ref={documentInputRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png" className="hidden" onChange={handleFilePicked} />
 
-                <div className="relative flex items-center gap-2 bg-[#F9F9FB] rounded-[20px] px-3.5 py-2.5 border border-[#EBEBEB] transition-all focus-within:border-[#FBCB4B] focus-within:shadow-md focus-within:bg-white">
+                <div className="relative flex items-center gap-2 bg-[#F9F9FB] rounded-[20px] px-3.5 py-2.5 border border-[#EBEBEB] transition-all focus-within:border-[#FBCB4B] focus-within:shadow-md focus-within:bg-white dark:bg-[#1C1C1C]">
                   {showMenu && (
-                    <div className="absolute bottom-full left-0 mb-3 z-10 w-[220px] rounded-[16px] border border-[#F0F0F0] bg-white p-1.5 shadow-[0_12px_30px_rgba(0,0,0,0.15)] animate-in zoom-in-95 duration-150 origin-bottom-left">
-                      <button onClick={() => { photoInputRef.current?.click(); setShowMenu(false); }} className="flex w-full items-center gap-3 px-3.5 py-3 text-left text-[14px] text-[#4B4B4B] hover:bg-[#F9FAFB] rounded-xl transition-colors">
+                    <div className="absolute bottom-full left-0 mb-3 z-10 w-[220px] rounded-[16px] border border-[#F0F0F0] dark:border-gray-700 bg-white dark:bg-[#1C1C1C] p-1.5 shadow-[0_12px_30px_rgba(0,0,0,0.15)] animate-in zoom-in-95 duration-150 origin-bottom-left">
+                      <button onClick={() => { photoInputRef.current?.click(); setShowMenu(false); }} className="flex w-full items-center gap-3 px-3.5 py-3 text-left text-[14px] text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F9FAFB] rounded-xl transition-colors">
                         <img src="/images/message/gallery.svg" alt="photos" className="h-6 w-6" /> Photos
                       </button>
-                      <button onClick={() => { documentInputRef.current?.click(); setShowMenu(false); }} className="flex w-full items-center gap-3 px-3.5 py-3 text-left text-[14px] text-[#4B4B4B] hover:bg-[#F9FAFB] rounded-xl transition-colors">
+                      <button onClick={() => { documentInputRef.current?.click(); setShowMenu(false); }} className="flex w-full items-center gap-3 px-3.5 py-3 text-left text-[14px] text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F9FAFB] rounded-xl transition-colors">
                         <img src="/images/message/document.svg" alt="docs" className="h-6 w-6" /> Documents
                       </button>
-                      <button onClick={() => { window.open('https://workspace.google.com/products/meet/', '_blank'); setShowMenu(false); }} className="flex w-full items-center gap-3 px-3.5 py-3 text-left text-[14px] text-[#4B4B4B] hover:bg-[#F9FAFB] rounded-xl transition-colors">
+                      <button onClick={() => { window.open('https://workspace.google.com/products/meet/', '_blank'); setShowMenu(false); }} className="flex w-full items-center gap-3 px-3.5 py-3 text-left text-[14px] text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F9FAFB] rounded-xl transition-colors">
                         <img src="/images/message/google_meet.svg" alt="meet" className="h-6 w-6" /> Meeting
                       </button>
                     </div>
@@ -1186,7 +1186,7 @@ export function AssignedInvestorsMessagesScreen() {
                     type="button"
                     onClick={sendMessage}
                     disabled={isUploading || isSending || (!messageInput.trim() && !selectedFile)}
-                    className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FBCB4B] text-[#1F1F1F] shadow-sm transition-all hover:bg-[#fbd364] hover:scale-105 active:scale-95 disabled:grayscale disabled:opacity-50"
+                    className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FBCB4B] text-[#1F1F1F] dark:text-gray-100 shadow-sm transition-all hover:bg-[#fbd364] hover:scale-105 active:scale-95 disabled:grayscale disabled:opacity-50"
                   >
                     {isSending ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
@@ -1199,14 +1199,14 @@ export function AssignedInvestorsMessagesScreen() {
             </>
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center text-[#A2A5AA] bg-[#F9FAFB] rounded-[12px] border border-dashed border-[#E0E0E0]">
-              <div className="h-20 w-20 rounded-full bg-white flex items-center justify-center shadow-sm mb-4">
+              <div className="h-20 w-20 rounded-full bg-white dark:bg-[#1C1C1C] flex items-center justify-center shadow-sm mb-4">
                 <Search className="h-8 w-8 opacity-20" />
               </div>
               <p className="text-[16px] font-medium text-[#6F7177]">Select a conversation to start chatting</p>
               <p className="text-[13px] mt-1 opacity-60">Pick an investor from the sidebar</p>
               <button
                 onClick={() => setIsNewChatModalOpen(true)}
-                className="mt-4 px-4 py-2 bg-[#FBCB4B] text-[#1F1F1F] text-[13px] font-medium rounded-full shadow-sm hover:scale-105 transition-all"
+                className="mt-4 px-4 py-2 bg-[#FBCB4B] text-[#1F1F1F] dark:text-gray-100 text-[13px] font-medium rounded-full shadow-sm hover:scale-105 transition-all"
               >
                 New Chat
               </button>
@@ -1239,7 +1239,7 @@ export function AssignedInvestorsMessagesScreen() {
                 placeholder="Search by name..."
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
-                className="w-full h-10 pl-10 pr-4 bg-[#F5F5F7] border border-transparent rounded-xl text-[13px] outline-none focus:bg-white focus:border-[#FBCB4B] focus:ring-1 focus:ring-[#FBCB4B] transition-all placeholder:text-[#A2A5AA]"
+                className="w-full h-10 pl-10 pr-4 bg-[#F5F5F7] border border-transparent rounded-xl text-[13px] outline-none focus:bg-white dark:bg-[#1C1C1C] focus:border-[#FBCB4B] focus:ring-1 focus:ring-[#FBCB4B] transition-all placeholder:text-[#A2A5AA]"
               />
             </div>
           </div>
@@ -1274,7 +1274,7 @@ export function AssignedInvestorsMessagesScreen() {
                         onClick={() => toggleUserSelection(user.id)}
                         className={cn(
                           "flex w-full items-center gap-3 px-3 py-2.5 text-left rounded-xl transition-all group",
-                          isSelected ? "bg-[#FBCB4B]/10 border-[#FBCB4B] border" : "hover:bg-gray-50 border border-transparent"
+                          isSelected ? "bg-[#FBCB4B]/10 border-[#FBCB4B] border" : "hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 border border-transparent"
                         )}
                       >
                         <div className="relative">
@@ -1282,20 +1282,20 @@ export function AssignedInvestorsMessagesScreen() {
                             {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : (user.full_name?.charAt(0) || '?')}
                           </div>
                           {isSelected && (
-                            <div className="absolute -top-1 -right-1 bg-[#FBCB4B] text-[#1F1F1F] rounded-full p-0.5 shadow-sm">
+                            <div className="absolute -top-1 -right-1 bg-[#FBCB4B] text-[#1F1F1F] dark:text-gray-100 rounded-full p-0.5 shadow-sm">
                               <Check className="w-3 h-3 stroke-[3]" />
                             </div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[14px] font-bold text-[#1F1F1F] truncate group-hover:text-[#FBCB4B] transition-colors">{user.full_name}</p>
+                          <p className="text-[14px] font-bold text-[#1F1F1F] dark:text-gray-100 truncate group-hover:text-[#FBCB4B] transition-colors">{user.full_name}</p>
                           <p className="text-[11px] text-[#8E8E93] uppercase tracking-wider">{user.role}</p>
                         </div>
                         <div className={cn(
                           "w-5 h-5 rounded border transition-all flex items-center justify-center",
                           isSelected ? "bg-[#FBCB4B] border-[#FBCB4B]" : "border-[#D1D1D6] group-hover:border-[#FBCB4B]"
                         )}>
-                          {isSelected && <Check className="w-3.5 h-3.5 text-[#1F1F1F] stroke-[3]" />}
+                          {isSelected && <Check className="w-3.5 h-3.5 text-[#1F1F1F] dark:text-gray-100 stroke-[3]" />}
                         </div>
                       </button>
                     );
@@ -1305,7 +1305,7 @@ export function AssignedInvestorsMessagesScreen() {
             )}
           </div>
 
-          <div className="p-6 pt-2 border-t border-[#F0F0F0] bg-gray-50/50 shrink-0">
+          <div className="p-6 pt-2 border-t border-[#F0F0F0] dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 shrink-0">
             {((!isAddMode && selectedUserIds.length > 1) || (isAddMode && !activeThread?.isGroup && selectedUserIds.length > 0)) && (
               <div className="space-y-3 pt-2">
                 <div>
@@ -1314,7 +1314,7 @@ export function AssignedInvestorsMessagesScreen() {
                     placeholder="Enter group name..."
                     value={groupNameInput}
                     onChange={(e) => setGroupNameInput(e.target.value)}
-                    className="w-full h-11 px-4 bg-white border border-[#F0F0F0] rounded-xl text-[14px] outline-none focus:ring-1 focus:ring-[#FBCB4B] shadow-sm transition-all"
+                    className="w-full h-11 px-4 bg-white dark:bg-[#1C1C1C] border border-[#F0F0F0] dark:border-gray-700 rounded-xl text-[14px] outline-none focus:ring-1 focus:ring-[#FBCB4B] shadow-sm transition-all"
                   />
                 </div>
 
@@ -1331,7 +1331,7 @@ export function AssignedInvestorsMessagesScreen() {
                     <button
                       onClick={() => avatarInputRef.current?.click()}
                       disabled={isUploadingAvatar}
-                      className="h-12 w-12 rounded-xl shrink-0 border-2 border-dashed border-[#E5E7EB] flex items-center justify-center hover:border-[#FBCB4B] transition-all bg-white"
+                      className="h-12 w-12 rounded-xl shrink-0 border-2 border-dashed border-[#E5E7EB] flex items-center justify-center hover:border-[#FBCB4B] transition-all bg-white dark:bg-[#1C1C1C]"
                     >
                       {isUploadingAvatar ? <Loader2 className="h-5 w-5 animate-spin text-[#FBCB4B]" /> : <Plus className="h-5 w-5 text-[#6F7177]" />}
                     </button>
@@ -1341,7 +1341,7 @@ export function AssignedInvestorsMessagesScreen() {
                         key={avatar}
                         onClick={() => setSelectedGroupAvatar(avatar)}
                         className={cn(
-                          "h-12 w-12 rounded-xl shrink-0 border-2 transition-all overflow-hidden bg-gray-50",
+                          "h-12 w-12 rounded-xl shrink-0 border-2 transition-all overflow-hidden bg-gray-50 dark:bg-gray-800",
                           selectedGroupAvatar === avatar ? "border-[#FBCB4B] shadow-md scale-105" : "border-transparent opacity-60 hover:opacity-100"
                         )}
                       >
@@ -1361,7 +1361,7 @@ export function AssignedInvestorsMessagesScreen() {
             <button
               onClick={handleStartChat}
               disabled={selectedUserIds.length === 0 || isCreatingChat}
-              className="w-full h-12 bg-[#FBCB4B] text-[#1F1F1F] font-bold rounded-xl shadow-md hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale transition-all flex items-center justify-center gap-2"
+              className="w-full h-12 bg-[#FBCB4B] text-[#1F1F1F] dark:text-gray-100 font-bold rounded-xl shadow-md hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale transition-all flex items-center justify-center gap-2"
             >
               {isCreatingChat ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                 <>
@@ -1378,13 +1378,13 @@ export function AssignedInvestorsMessagesScreen() {
         <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden border-none shadow-2xl rounded-2xl font-helvetica">
           <div className="p-6">
             <DialogHeader className="mb-4">
-              <DialogTitle className="text-[20px] font-bold text-[#1F1F1F]">{confirmation.title}</DialogTitle>
+              <DialogTitle className="text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">{confirmation.title}</DialogTitle>
             </DialogHeader>
             <p className="text-[14px] text-[#6F7177] leading-relaxed">
               {confirmation.description}
             </p>
           </div>
-          <div className="flex gap-3 p-4 bg-gray-50 border-t border-[#F0F0F0]">
+          <div className="flex gap-3 p-4 bg-gray-50 dark:bg-gray-800 border-t border-[#F0F0F0] dark:border-gray-700">
             <button
               onClick={() => setConfirmation(prev => ({ ...prev, isOpen: false }))}
               className="flex-1 h-11 rounded-xl text-[14px] font-bold text-[#6F7177] hover:bg-gray-200 transition-all"
@@ -1400,7 +1400,7 @@ export function AssignedInvestorsMessagesScreen() {
                 "flex-1 h-11 rounded-xl text-[14px] font-bold transition-all shadow-sm active:scale-95",
                 confirmation.variant === 'destructive'
                   ? "bg-red-500 text-white hover:bg-red-600 shadow-red-100"
-                  : "bg-[#FBCB4B] text-[#1F1F1F] hover:bg-[#F5B50A] shadow-yellow-100"
+                  : "bg-[#FBCB4B] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F5B50A] shadow-yellow-100"
               )}
             >
               {confirmation.confirmText || 'Confirm'}

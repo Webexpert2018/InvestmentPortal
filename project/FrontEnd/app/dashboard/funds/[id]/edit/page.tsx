@@ -326,7 +326,7 @@ export default function EditFundPage() {
         <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 mb-4"
           >
             <ChevronLeft className="h-5 w-5" />
             Edit Fund Details
@@ -334,11 +334,11 @@ export default function EditFundPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-lg shadow-sm p-5 md:p-8">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-5 md:p-8">
           {/* Upload Image */}
           <div className="sm:flex items-center gap-6 mb-8 space-y-4 md:space-y-0">
             <div className="relative group">
-              <div className="w-32 h-32 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
+              <div className="w-32 h-32 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
                 {previewImage ? (
                   <img
                     src={previewImage}
@@ -360,14 +360,14 @@ export default function EditFundPage() {
                 <input
                   type="file"
                   accept="image/*"
-                  className="hidden"
+                  className="hidden text-[#111827] dark:text-white"
                   onChange={handleFileChange}
                 />
               </label>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900 mb-1">Fund image</p>
-              <p className="text-xs text-gray-500">Click image to upload a new one</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Fund image</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Click image to upload a new one</p>
             </div>
           </div>
 
@@ -377,7 +377,7 @@ export default function EditFundPage() {
             <div className="space-y-6">
               {/* Fund Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Fund Name
                 </label>
                 <input
@@ -389,7 +389,7 @@ export default function EditFundPage() {
                       setErrors({ ...errors, fundName: '' });
                     }
                   }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.fundName ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.fundName ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 {errors.fundName && (
@@ -399,7 +399,7 @@ export default function EditFundPage() {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Description
                 </label>
                 <textarea
@@ -411,7 +411,7 @@ export default function EditFundPage() {
                     }
                   }}
                   rows={4}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.description ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.description ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 <div className="flex justify-between mt-1">
@@ -420,7 +420,7 @@ export default function EditFundPage() {
                       <p className="text-red-500 text-xs">{errors.description}</p>
                     )}
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {countWords(description)} words | {description.length} chars
                   </span>
                 </div>
@@ -430,7 +430,7 @@ export default function EditFundPage() {
             {/* Right Column */}
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Start Date
                 </label>
                 <div className="relative">
@@ -443,7 +443,7 @@ export default function EditFundPage() {
                         setErrors({ ...errors, startDate: '' });
                       }
                     }}
-                    className={`date-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent pr-10 ${errors.startDate ? 'border-red-500' : 'border-gray-200'
+                    className={`date-input w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent pr-10 ${errors.startDate ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                       }`}
                   />
                   <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
@@ -455,7 +455,7 @@ export default function EditFundPage() {
 
               {/* Note */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Note
                 </label>
                 <textarea
@@ -467,7 +467,7 @@ export default function EditFundPage() {
                     }
                   }}
                   rows={4}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.note ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.note ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 <div className="flex justify-between mt-1">
@@ -476,7 +476,7 @@ export default function EditFundPage() {
                       <p className="text-red-500 text-xs">{errors.note}</p>
                     )}
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {note.length} chars
                   </span>
                 </div>
@@ -485,40 +485,40 @@ export default function EditFundPage() {
           </div>
 
           {/* Status */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 border-b border-gray-100 pb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 border-b border-gray-100 dark:border-gray-800 pb-8">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Status
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent"
               >
-                <option value="Active">Active</option>
-                <option value="Closed">Closed</option>
-                <option value="Draft">Draft</option>
+                <option value="Active" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Active</option>
+                <option value="Closed" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Closed</option>
+                <option value="Draft" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Draft</option>
               </select>
             </div>
           </div>
 
           {/* Operating Agreement Section */}
-          <div className="border-t border-gray-100 pt-8 mb-8 pb-8 border-b">
-            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-2">Operating Agreement (OA) <span className="text-red-500">*</span></h3>
-            <p className="text-sm text-gray-500 mb-6">
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-8 mb-8 pb-8 border-b">
+            <h3 className="font-goudy text-lg text-[#1F1F1F] dark:text-gray-100 mb-2">Operating Agreement (OA) <span className="text-red-500">*</span></h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               Upload the required PDF Operating Agreement for this fund.
             </p>
 
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Upload PDF Document</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload PDF Document</label>
                 <div className="flex flex-col md:flex-row md:items-center gap-4">
-                  <label className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors text-sm font-medium text-gray-700 shrink-0 whitespace-nowrap w-fit">
+                  <label className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 cursor-pointer transition-colors text-sm font-medium text-gray-700 dark:text-gray-300 shrink-0 whitespace-nowrap w-fit">
                     <span>Choose File</span>
                     <input
                       type="file"
                       accept=".pdf"
-                      className="hidden"
+                      className="hidden text-[#111827] dark:text-white"
                       onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
                           setOaDocFile(e.target.files[0]);
@@ -528,7 +528,7 @@ export default function EditFundPage() {
                     />
                   </label>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 min-w-0 flex-1">
-                    <span className="text-sm text-gray-500 break-all" title={oaDocFile ? oaDocFile.name : oaDocPath ? `${oaDocPath}` : 'No file chosen (Using system defaults)'}>
+                    <span className="text-sm text-gray-500 dark:text-gray-400 break-all" title={oaDocFile ? oaDocFile.name : oaDocPath ? `${oaDocPath}` : 'No file chosen (Using system defaults)'}>
                       {oaDocFile ? oaDocFile.name : oaDocPath ? `${oaDocPath}` : 'No file chosen (Using system defaults)'}
                     </span>
                     {(oaDocFile || oaDocPath) && (
@@ -589,22 +589,22 @@ export default function EditFundPage() {
           </div>
 
           {/* Subscription Document Section */}
-          <div className="border-t border-gray-100 pt-8 mb-8 pb-8 border-b">
-            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-2">Subscription Document <span className="text-red-500">*</span></h3>
-            <p className="text-sm text-gray-500 mb-6">
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-8 mb-8 pb-8 border-b">
+            <h3 className="font-goudy text-lg text-[#1F1F1F] dark:text-gray-100 mb-2">Subscription Document <span className="text-red-500">*</span></h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               Upload the required PDF subscription document for this fund.
             </p>
 
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Upload PDF Document</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload PDF Document</label>
                 <div className="flex flex-col md:flex-row md:items-center gap-4">
-                  <label className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors text-sm font-medium text-gray-700 shrink-0 whitespace-nowrap w-fit">
+                  <label className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 cursor-pointer transition-colors text-sm font-medium text-gray-700 dark:text-gray-300 shrink-0 whitespace-nowrap w-fit">
                     <span>Choose File</span>
                     <input
                       type="file"
                       accept=".pdf"
-                      className="hidden"
+                      className="hidden text-[#111827] dark:text-white"
                       onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
                           setSubDocFile(e.target.files[0]);
@@ -614,7 +614,7 @@ export default function EditFundPage() {
                     />
                   </label>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 min-w-0 flex-1">
-                    <span className="text-sm text-gray-500 break-all" title={subDocFile ? subDocFile.name : subDocPath ? `${subDocPath}` : 'No file chosen (Using system defaults)'}>
+                    <span className="text-sm text-gray-500 dark:text-gray-400 break-all" title={subDocFile ? subDocFile.name : subDocPath ? `${subDocPath}` : 'No file chosen (Using system defaults)'}>
                       {subDocFile ? subDocFile.name : subDocPath ? `${subDocPath}` : 'No file chosen (Using system defaults)'}
                     </span>
                     {(subDocFile || subDocPath) && (
@@ -676,10 +676,10 @@ export default function EditFundPage() {
 
           {/* Bank Details Section */}
           <div className="mb-8">
-            <h3 className="font-goudy text-lg text-[#1F1F1F] mb-6">Bank Details (Wire Instructions)</h3>
+            <h3 className="font-goudy text-lg text-[#1F1F1F] dark:text-gray-100 mb-6">Bank Details (Wire Instructions)</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bank Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Metropolitan Commercial Bank"
@@ -688,7 +688,7 @@ export default function EditFundPage() {
                     setBankName(e.target.value);
                     if (errors.bankName) setErrors({ ...errors, bankName: '' });
                   }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.bankName ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.bankName ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 {errors.bankName && (
@@ -696,7 +696,7 @@ export default function EditFundPage() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Account Number</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Account Number</label>
                 <input
                   type="text"
                   placeholder="Enter account number"
@@ -705,7 +705,7 @@ export default function EditFundPage() {
                     setAccountNumber(e.target.value);
                     if (errors.accountNumber) setErrors({ ...errors, accountNumber: '' });
                   }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.accountNumber ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.accountNumber ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 {errors.accountNumber && (
@@ -713,7 +713,7 @@ export default function EditFundPage() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Routing Number (ABA)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Routing Number (ABA)</label>
                 <input
                   type="text"
                   placeholder="Enter routing number"
@@ -722,7 +722,7 @@ export default function EditFundPage() {
                     setRoutingNumber(e.target.value);
                     if (errors.routingNumber) setErrors({ ...errors, routingNumber: '' });
                   }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.routingNumber ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.routingNumber ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 {errors.routingNumber && (
@@ -730,7 +730,7 @@ export default function EditFundPage() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">For Benefit Of</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">For Benefit Of</label>
                 <input
                   type="text"
                   placeholder="Enter for benefit of name"
@@ -739,7 +739,7 @@ export default function EditFundPage() {
                     setBeneficiaryName(e.target.value);
                     if (errors.beneficiaryName) setErrors({ ...errors, beneficiaryName: '' });
                   }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.beneficiaryName ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent ${errors.beneficiaryName ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 {errors.beneficiaryName && (
@@ -747,7 +747,7 @@ export default function EditFundPage() {
                 )}
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Bank Address</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bank Address</label>
                 <textarea
                   placeholder="Enter full bank address"
                   value={bankAddress}
@@ -756,7 +756,7 @@ export default function EditFundPage() {
                     if (errors.bankAddress) setErrors({ ...errors, bankAddress: '' });
                   }}
                   rows={2}
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.bankAddress ? 'border-red-500' : 'border-gray-200'
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent resize-none ${errors.bankAddress ? 'border-red-500' : 'border-gray-200 dark:border-gray-800'
                     }`}
                 />
                 {errors.bankAddress && (
@@ -770,14 +770,14 @@ export default function EditFundPage() {
           <div className="flex justify-end gap-4">
             <Button
               onClick={() => router.back()}
-              className="bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-900 px-8 py-2 rounded-full font-medium"
+              className="bg-[#FEF3E2] dark:bg-gray-800 hover:bg-[#fde8c8] dark:hover:bg-gray-700 text-gray-900 dark:text-gray-300 px-8 py-2 rounded-full font-medium"
             >
               Cancel
             </Button>
             <Button
               onClick={handleUpdate}
               disabled={isUpdating}
-              className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-8 py-2 rounded-full font-medium"
+              className="bg-[#FCD34D] dark:bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-900 px-8 py-2 rounded-full font-medium"
             >
               {isUpdating ? 'Updating...' : 'Update'}
             </Button>

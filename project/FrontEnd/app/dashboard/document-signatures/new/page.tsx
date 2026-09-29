@@ -168,21 +168,21 @@ export default function NewDocumentSignaturePage() {
     <DashboardLayout>
       <div className="p-0 space-y-6">
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] mb-1 font-goudy tracking-tight">New Signature Request</h1>
-          <p className="text-gray-500 font-medium">Send a document to multiple investors for electronic signature.</p>
+          <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-1 font-goudy tracking-tight">New Signature Request</h1>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">Send a document to multiple investors for electronic signature.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
           <div className="p-6 space-y-8">
             {/* Document Details */}
             <div>
               <h3 className="text-lg font-bold text-[#1F3B6E] mb-4">1. Document Details</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Document Name</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Document Name</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#1F3B6E] focus:ring-1 focus:ring-[#1F3B6E] transition-all"
+                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:border-[#1F3B6E] focus:ring-1 focus:ring-[#1F3B6E] transition-all"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Q3 Investor Update & Consent Form"
@@ -191,18 +191,18 @@ export default function NewDocumentSignaturePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Upload Document (PDF)</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Upload Document (PDF)</label>
                   <div
-                    className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isDragging ? 'border-[#1F3B6E] bg-[#1F3B6E]/5 scale-[1.01]' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                    className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isDragging ? 'border-[#1F3B6E] bg-[#1F3B6E]/5 scale-[1.01]' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800'}`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                   >
                     <UploadCloud className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                    <h3 className="text-sm font-bold text-gray-900 mb-1">Drag & drop document here</h3>
-                    <p className="text-xs text-gray-500 mb-4">PDF files only (Max 10MB)</p>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1">Drag & drop document here</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">PDF files only (Max 10MB)</p>
 
-                    <label className="cursor-pointer bg-white px-5 py-2.5 border border-gray-200 rounded-lg shadow-sm text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-2">
+                    <label className="cursor-pointer bg-white dark:bg-[#1C1C1C] px-5 py-2.5 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors inline-flex items-center gap-2">
                       <UploadCloud className="w-4 h-4" />
                       <span>Browse Files</span>
                       <input
@@ -228,10 +228,10 @@ export default function NewDocumentSignaturePage() {
 
             {/* Signature Placements */}
             {documentFile && (
-              <div className="border-t border-gray-100 pt-8">
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-8">
                 <h3 className="text-lg font-bold text-[#1F3B6E] mb-4">2. Configure Signature Placements</h3>
-                <p className="text-sm text-gray-500 mb-4">Drag and drop the signature and name fields onto the document.</p>
-                <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-gray-50 p-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Drag and drop the signature and name fields onto the document.</p>
+                <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm bg-gray-50 dark:bg-gray-800 p-1">
                   <VisualPdfEditor
                     file={documentFile}
                     initialValues={{ placements }}
@@ -245,13 +245,13 @@ export default function NewDocumentSignaturePage() {
             )}
 
             {/* Select Investors */}
-            <div className="border-t border-gray-100 pt-8">
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-8">
               <h3 className="text-lg font-bold text-[#1F3B6E] mb-1">3. Select Recipients</h3>
-              <p className="text-sm text-gray-500 mb-4">Choose the investors who need to sign this document.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Choose the investors who need to sign this document.</p>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Fund</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Filter by Fund</label>
                   <Combobox
                     options={funds}
                     value={selectedFundId}
@@ -264,26 +264,26 @@ export default function NewDocumentSignaturePage() {
                   <input
                     type="text"
                     placeholder="Search investors by name or email..."
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1F3B6E] focus:ring-1 focus:ring-[#1F3B6E]"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:border-[#1F3B6E] focus:ring-1 focus:ring-[#1F3B6E]"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
 
-                <div className="max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
+                <div className="max-h-60 overflow-y-auto bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg divide-y divide-gray-100">
                   {filteredUsers.length > 0 && (
                     <label
                       onClick={toggleSelectAll}
-                      className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-100 bg-gray-50/50"
+                      className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50"
                     >
-                      <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${filteredUsers.every(u => selectedInvestorIds.includes(u.compositeId)) ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white'}`}>
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${filteredUsers.every(u => selectedInvestorIds.includes(u.compositeId)) ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white dark:bg-[#1C1C1C]'}`}>
                         {filteredUsers.every(u => selectedInvestorIds.includes(u.compositeId)) && <Check className="w-3.5 h-3.5 text-white" />}
                       </div>
-                      <div className="font-semibold text-sm text-gray-900">Select All ({filteredUsers.length})</div>
+                      <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">Select All ({filteredUsers.length})</div>
                     </label>
                   )}
                   {filteredUsers.length === 0 ? (
-                    <div className="p-4 text-center text-sm text-gray-500">No investors found.</div>
+                    <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">No investors found.</div>
                   ) : (
                     filteredUsers.map((user) => {
                       const isSelected = selectedInvestorIds.includes(user.compositeId);
@@ -291,17 +291,17 @@ export default function NewDocumentSignaturePage() {
                       return (
                         <label
                           key={user.compositeId}
-                          className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50/30' : ''}`}
+                          className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors ${isSelected ? 'bg-blue-50/30' : ''}`}
                         >
-                          <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white'}`}>
+                          <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white dark:bg-[#1C1C1C]'}`}>
                             {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
                           </div>
                           <div className="flex-1 min-w-0 flex items-center gap-2">
-                            <span className="font-semibold text-sm text-gray-900 truncate">{name}</span>
+                            <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{name}</span>
                             <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                               {user.accountType}
                             </span>
-                            <span className="text-sm text-gray-500 truncate ml-auto">{user.email}</span>
+                            <span className="text-sm text-gray-500 dark:text-gray-400 truncate ml-auto">{user.email}</span>
                           </div>
                           <input
                             type="checkbox"
@@ -321,13 +321,13 @@ export default function NewDocumentSignaturePage() {
             </div>
           </div>
 
-          <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+          <div className="p-6 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={() => router.back()}
               disabled={isSubmitting}
-              className="px-6 border-gray-300 text-gray-700 font-semibold"
+              className="px-6 border-gray-300 text-gray-700 dark:text-gray-300 font-semibold"
             >
               Cancel
             </Button>

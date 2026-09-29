@@ -54,32 +54,32 @@ export default function DocuSignCallback() {
   }, [searchParams, router]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 font-helvetica">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg text-center">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-800 p-4 font-helvetica">
+      <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#1C1C1C] p-8 shadow-lg text-center">
         {status === 'loading' && (
           <div className="space-y-4">
             <Loader2 className="mx-auto h-12 w-12 animate-spin text-[#FBCB4B]" />
-            <h1 className="text-xl font-bold text-[#1F1F1F]">Connecting to DocuSign</h1>
-            <p className="text-sm text-gray-500">Please wait while we finalize your authorization...</p>
+            <h1 className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">Connecting to DocuSign</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Please wait while we finalize your authorization...</p>
           </div>
         )}
 
         {status === 'success' && (
           <div className="space-y-4">
             <CheckCircle2 className="mx-auto h-12 w-12 text-green-500" />
-            <h1 className="text-xl font-bold text-[#1F1F1F]">Connected Successfully!</h1>
-            <p className="text-sm text-gray-500">Redirecting you back to the Investment Portal...</p>
+            <h1 className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">Connected Successfully!</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Redirecting you back to the Investment Portal...</p>
           </div>
         )}
 
         {status === 'error' && (
           <div className="space-y-4">
             <XCircle className="mx-auto h-12 w-12 text-red-500" />
-            <h1 className="text-xl font-bold text-[#1F1F1F]">Authorization Failed</h1>
+            <h1 className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">Authorization Failed</h1>
             <p className="text-sm text-red-600">{error}</p>
             <button
               onClick={() => router.push('/dashboard/invest')}
-              className="mt-6 rounded-full bg-[#FBCB4B] px-8 py-2.5 text-sm font-bold text-[#1F1F1F] hover:bg-[#F9B800] transition-all"
+              className="mt-6 rounded-full bg-[#FBCB4B] px-8 py-2.5 text-sm font-bold text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9B800] transition-all"
             >
               Back to Invest
             </button>

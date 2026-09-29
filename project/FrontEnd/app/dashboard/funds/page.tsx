@@ -69,13 +69,13 @@ export default function FundsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active':
-        return 'text-[#059669] bg-[#ECFDF5]';
+        return 'text-[#059669] dark:text-green-400 bg-[#ECFDF5] dark:bg-green-900/30';
       case 'Closed':
-        return 'text-[#DC2626] bg-[#FEF2F2]';
+        return 'text-[#DC2626] dark:text-red-400 bg-[#FEF2F2] dark:bg-red-900/30';
       case 'Draft':
-        return 'text-[#2563EB] bg-[#EFF6FF]';
+        return 'text-[#2563EB] dark:text-blue-400 bg-[#EFF6FF] dark:bg-blue-900/30';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800';
     }
   };
 
@@ -163,12 +163,12 @@ export default function FundsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] mb-1 font-goudy tracking-tight">Funds</h1>
-            <p className="text-gray-500 font-medium">View, manage, and configure all funds.</p>
+            <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-1 font-goudy tracking-tight">Funds</h1>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">View, manage, and configure all funds.</p>
           </div>
           <Button
             onClick={() => router.push('/dashboard/funds/add')}
-            className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-7 py-3 rounded-full font-bold shadow-sm transition-all active:scale-95 whitespace-nowrap"
+            className="bg-[#FCD34D] dark:bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-900 px-7 py-3 rounded-full font-bold shadow-sm transition-all active:scale-95 whitespace-nowrap"
           >
             Add New Fund
           </Button>
@@ -176,7 +176,7 @@ export default function FundsPage() {
 
         {/* Tab Switcher */}
         <div className="mb-6 overflow-x-auto custom-scrollbar">
-          <div className="inline-flex items-center gap-1 p-1 bg-[#F9FAFB] rounded-[16px] border border-[#E5E7EB]">
+          <div className="inline-flex items-center gap-1 p-1 bg-[#F9FAFB] dark:bg-gray-900 rounded-[16px] border border-[#E5E7EB]">
             <button
               onClick={() => {
                 setActiveTab('current');
@@ -184,7 +184,7 @@ export default function FundsPage() {
               }}
               className={`py-2 px-6 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${activeTab === 'current'
                 ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
-                : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50 border-r border-gray-200'
+                : 'bg-transparent text-[#374151] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-800 border-r border-gray-200 dark:border-gray-800'
                 }`}
             >
               Active Funds
@@ -196,7 +196,7 @@ export default function FundsPage() {
               }}
               className={`py-2 px-6 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${activeTab === 'old'
                 ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
-                : 'bg-transparent text-[#374151] hover:text-[#111827] hover:bg-gray-200/50'
+                : 'bg-transparent text-[#374151] dark:text-gray-300 hover:text-[#111827] dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-800'
                 }`}
             >
               Real Estate Funds
@@ -204,7 +204,7 @@ export default function FundsPage() {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50">
+        <div className="bg-white dark:bg-[#1C1C1C] p-4 rounded-2xl shadow-sm border border-gray-50 dark:border-gray-800">
           {/* Search */}
           <div className="mb-6">
             <div className="relative max-w-md">
@@ -214,17 +214,17 @@ export default function FundsPage() {
                 placeholder={activeTab === 'current' ? "Find active fund..." : "Find Previous platform fund..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/10 focus:border-[#1F3B6E] transition-all"
+                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/10 focus:border-[#1F3B6E] transition-all text-[#111827] dark:text-white"
               />
             </div>
           </div>
 
           {activeTab === 'current' ? (
             /* Current Funds Table */
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full border-collapse">
-                  <thead className="bg-gray-50/50 border-b border-gray-100">
+                  <thead className="bg-gray-50 dark:bg-gray-900/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
                     <tr>
                       <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Fund Name</th>
                       <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Fund Start Date</th>
@@ -238,7 +238,7 @@ export default function FundsPage() {
                     {filteredFunds.map((fund) => (
                       <tr
                         key={fund.id}
-                        className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
+                        className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors border-b border-gray-50 dark:border-gray-800 last:border-0 cursor-pointer"
                         onClick={() => router.push(`/dashboard/funds/${fund.id}`)}
                       >
                         <td className="px-6 py-5 whitespace-nowrap">
@@ -247,18 +247,18 @@ export default function FundsPage() {
                               <img
                                 src={getFullImageUrl(fund.image) || ''}
                                 alt={fund.name}
-                                className="w-10 h-10 rounded-full object-cover border border-gray-100 shadow-sm"
+                                className="w-10 h-10 rounded-full object-cover border border-gray-100 dark:border-gray-800 shadow-sm"
                               />
                             ) : (
                               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-xs shadow-sm">
                                 {getInitials(fund.name)}
                               </div>
                             )}
-                            <span className="font-medium text-gray-900">{fund.name}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{fund.name}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-5 text-[13px] text-gray-600 font-medium whitespace-nowrap">{formatDate(fund.startDate)}</td>
-                        <td className="px-6 py-5 text-[13px] text-gray-900 font-bold whitespace-nowrap">{fund.totalInvestors}</td>
+                        <td className="px-6 py-5 text-[13px] text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">{formatDate(fund.startDate)}</td>
+                        <td className="px-6 py-5 text-[13px] text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{fund.totalInvestors}</td>
                         <td className="px-6 py-5 text-[13px] font-bold text-[#1F3B6E] whitespace-nowrap">
                           {formatAUM(fund.totalAUM)}
                         </td>
@@ -270,11 +270,11 @@ export default function FundsPage() {
                         <td className="px-6 py-5 text-center whitespace-nowrap pr-12" onClick={(e) => e.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                                <MoreVertical className="h-5 w-5 text-gray-600" />
+                              <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <MoreVertical className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                               </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-36 bg-white z-50">
+                            <DropdownMenuContent align="end" className="w-36 bg-white dark:bg-[#1C1C1C] z-50">
                               <DropdownMenuItem asChild>
                                 <Link
                                   href={`/dashboard/funds/${fund.id}`}
@@ -321,22 +321,22 @@ export default function FundsPage() {
                 </table>
                 {filteredFunds.length === 0 && !isLoading && (
                   <div className="text-center py-12">
-                    <p className="text-gray-500">No active funds found matching "{searchQuery}"</p>
+                    <p className="text-gray-500 dark:text-gray-400">No active funds found matching "{searchQuery}"</p>
                   </div>
                 )}
                 {isLoading && (
                   <div className="text-center py-12">
-                    <p className="text-gray-500">Loading funds...</p>
+                    <p className="text-gray-500 dark:text-gray-400">Loading funds...</p>
                   </div>
                 )}
               </div>
             </div>
           ) : (
             /* Old Funds Table */
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full border-collapse">
-                  <thead className="bg-gray-50/50 border-b border-gray-100">
+                  <thead className="bg-gray-50 dark:bg-gray-900/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
                     <tr>
                       <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Fund Name</th>
                       <th className="px-6 py-5 text-left text-sm font-semibold text-[#6B7280] whitespace-nowrap">Closing Date</th>
@@ -350,7 +350,7 @@ export default function FundsPage() {
                     {filteredOldFunds.map((fund) => (
                       <tr
                         key={fund.projectId}
-                        className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 cursor-pointer"
+                        className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors border-b border-gray-50 dark:border-gray-800 last:border-0 cursor-pointer"
                         onClick={() => router.push(`/dashboard/funds/old/${fund.projectId}`)}
                       >
                         <td className="px-6 py-5 whitespace-nowrap">
@@ -359,18 +359,18 @@ export default function FundsPage() {
                               {getInitials(fund.projectName)}
                             </div>
                             <div className="flex flex-col">
-                              <span className="font-medium text-gray-900">{fund.projectName}</span>
-                              <span className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">{fund.projectType}</span>
+                              <span className="font-medium text-gray-900 dark:text-gray-100">{fund.projectName}</span>
+                              <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">{fund.projectType}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-5 text-[13px] text-gray-600 font-medium whitespace-nowrap">
+                        <td className="px-6 py-5 text-[13px] text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
                           {formatDate(fund.closingDate)}
                         </td>
-                        <td className="px-6 py-5 text-[13px] text-gray-900 font-bold whitespace-nowrap">
+                        <td className="px-6 py-5 text-[13px] text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">
                           {fund.totalInvestors}
                         </td>
-                        <td className="px-6 py-5 text-[13px] font-bold text-gray-900 whitespace-nowrap">
+                        <td className="px-6 py-5 text-[13px] font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
                           {fund.totalCapital}
                         </td>
                         <td className="px-6 py-5 text-[13px] font-bold text-[#1F3B6E] whitespace-nowrap">
@@ -387,12 +387,12 @@ export default function FundsPage() {
                 </table>
                 {filteredOldFunds.length === 0 && !isLoadingOld && (
                   <div className="text-center py-12">
-                    <p className="text-gray-500">No Real Estate Funds found matching "{searchQuery}"</p>
+                    <p className="text-gray-500 dark:text-gray-400">No Real Estate Funds found matching "{searchQuery}"</p>
                   </div>
                 )}
                 {isLoadingOld && (
                   <div className="text-center py-12">
-                    <p className="text-gray-500">Loading previous funds...</p>
+                    <p className="text-gray-500 dark:text-gray-400">Loading previous funds...</p>
                   </div>
                 )}
               </div>
@@ -404,28 +404,28 @@ export default function FundsPage() {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-xl w-full mx-4 relative">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-lg p-8 max-w-xl w-full mx-4 relative">
             <button
               onClick={() => setShowDeleteModal(false)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600"
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 dark:text-gray-400"
             >
               <X className="h-5 w-5" />
             </button>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Delete Fund</h2>
-            <p className="text-gray-600 mb-8 leading-relaxed">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Delete Fund</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
               Are you sure you want to delete this fund?<br />
               This action cannot be undone and will permanently remove the fund from the platform.
             </p>
             <div className="flex justify-end gap-4">
               <Button
                 onClick={() => setShowDeleteModal(false)}
-                className="bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-900 px-8 py-2 rounded-full font-medium"
+                className="bg-[#FEF3E2] dark:bg-gray-800 hover:bg-[#fde8c8] dark:hover:bg-gray-700 text-gray-900 dark:text-gray-300 px-8 py-2 rounded-full font-medium"
               >
                 Cancel
               </Button>
               <Button
                 onClick={confirmDelete}
-                className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-8 py-2 rounded-full font-medium"
+                className="bg-[#FCD34D] dark:bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-900 px-8 py-2 rounded-full font-medium"
               >
                 Yes, Delete
               </Button>

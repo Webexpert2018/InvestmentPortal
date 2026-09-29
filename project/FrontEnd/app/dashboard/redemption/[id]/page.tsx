@@ -59,10 +59,10 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
   if (!redemption) {
     return (
       <DashboardLayout>
-        <div className="p-8 text-center bg-white rounded-2xl shadow-sm border border-gray-100 max-w-2xl mx-auto mt-20">
+        <div className="p-8 text-center bg-white dark:bg-[#1C1C1C] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 max-w-2xl mx-auto mt-20">
           <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Request Not Found</h2>
-          <p className="text-gray-500 mb-6">We couldn't find the redemption request you're looking for.</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Request Not Found</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">We couldn't find the redemption request you're looking for.</p>
           <button onClick={() => router.push('/dashboard/redeem')} className="px-6 py-2 bg-[#1F3B6E] text-white rounded-full font-bold">
             Back to List
           </button>
@@ -100,7 +100,7 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-8xl px-4 py-8 font-helvetica text-[#1F1F1F]">
+      <div className="mx-auto max-w-8xl px-4 py-8 font-helvetica text-[#1F1F1F] dark:text-gray-100">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div>
             <button
@@ -111,7 +111,7 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
               Back to Requests
             </button>
 
-            <h1 className="font-goudy text-2xl sm:text-4xl font-bold text-[#1F1F1F] tracking-tight">
+            <h1 className="font-goudy text-2xl sm:text-4xl font-bold text-[#1F1F1F] dark:text-gray-100 tracking-tight">
                RED-{redemption.id.substring(0, 6).toUpperCase()}
             </h1>
             <p className="mt-2 text-sm text-[#8E8E93] font-medium italic">
@@ -133,8 +133,8 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1.2fr)]">
           {/* Status Tracker */}
-          <div className="rounded-3xl bg-white px-6 sm:px-10 py-8 shadow-sm border border-gray-100">
-            <h2 className="font-goudy text-xl text-[#1F1F1F] font-bold">Status Tracker</h2>
+          <div className="rounded-3xl bg-white dark:bg-[#1C1C1C] px-6 sm:px-10 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
+            <h2 className="font-goudy text-xl text-[#1F1F1F] dark:text-gray-100 font-bold">Status Tracker</h2>
             <div className="h-px bg-gray-100 my-6" />
             
             <div className="relative mt-2">
@@ -160,7 +160,7 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
 
                       {/* Dot Indicator */}
                       <div className={`z-10 mt-1.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-500 shadow-sm ${
-                        isDone ? 'bg-[#FBCB4B] border-[#FBCB4B]' : (isActive ? 'bg-white border-[#FBCB4B] ring-4 ring-yellow-50' : 'bg-white border-gray-200')
+                        isDone ? 'bg-[#FBCB4B] border-[#FBCB4B]' : (isActive ? 'bg-white dark:bg-[#1C1C1C] border-[#FBCB4B] ring-4 ring-yellow-50' : 'bg-white dark:bg-[#1C1C1C] border-gray-200 dark:border-gray-800')
                       }`}>
                         {isDone && <CheckCircle2 className="h-2.5 w-2.5 text-white" />}
                         {isActive && <div className="h-1.5 w-1.5 rounded-full bg-[#FBCB4B] animate-pulse" />}
@@ -168,7 +168,7 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
 
                       {/* Content */}
                       <div>
-                        <p className={`text-sm font-bold transition-colors duration-500 ${isDone || isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                        <p className={`text-sm font-bold transition-colors duration-500 ${isDone || isActive ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400'}`}>
                           {step.title}
                         </p>
                         <p className="mt-1 text-[11px] font-medium text-gray-400 font-mono italic">
@@ -181,12 +181,12 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
               </div>
             </div>
 
-            <div className="mt-12 pt-8 border-t border-gray-50 flex flex-wrap gap-4">
-              <button className="flex items-center gap-2 rounded-full bg-gray-50 px-6 py-2.5 text-xs font-bold text-gray-700 hover:bg-gray-100 transition-all border border-gray-100 shadow-sm">
+            <div className="mt-12 pt-8 border-t border-gray-50 dark:border-gray-800 flex flex-wrap gap-4">
+              <button className="flex items-center gap-2 rounded-full bg-gray-50 dark:bg-gray-800 px-6 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all border border-gray-100 dark:border-gray-800 shadow-sm">
                 <Download className="h-3.5 w-3.5" />
                 Download Confirmation
               </button>
-              <button className="flex items-center gap-2 rounded-full bg-gray-50 px-6 py-2.5 text-xs font-bold text-gray-700 hover:bg-gray-100 transition-all border border-gray-100 shadow-sm">
+              <button className="flex items-center gap-2 rounded-full bg-gray-50 dark:bg-gray-800 px-6 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all border border-gray-100 dark:border-gray-800 shadow-sm">
                 <HelpCircle className="h-3.5 w-3.5" />
                 Contact Support
               </button>
@@ -195,9 +195,9 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
 
           <div className="space-y-8">
             {/* Req Details */}
-            <div className="rounded-3xl bg-white px-6 sm:px-8 py-8 shadow-sm border border-gray-100">
+            <div className="rounded-3xl bg-white dark:bg-[#1C1C1C] px-6 sm:px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
               <div className="mb-8 flex items-center justify-between">
-                <h2 className="font-goudy text-xl text-[#1F1F1F] font-bold">Request Details</h2>
+                <h2 className="font-goudy text-xl text-[#1F1F1F] dark:text-gray-100 font-bold">Request Details</h2>
                 <span className={`rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest shadow-sm border ${
                   redemption.status === 'Pending' ? 'bg-orange-50 text-orange-600 border-orange-100' :
                   redemption.status === 'Cancelled' ? 'bg-red-50 text-red-600 border-red-100' :
@@ -213,17 +213,17 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
                 </div>
                 <div>
                   <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-widest mb-1.5">Units Redeemed</p>
-                  <p className="text-base font-bold text-gray-900">{parseFloat(redemption.units).toFixed(4)}</p>
+                  <p className="text-base font-bold text-gray-900 dark:text-gray-100">{parseFloat(redemption.units).toFixed(4)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-widest mb-1.5">NAV at redemption</p>
-                  <p className="text-base font-bold text-gray-900">
+                  <p className="text-base font-bold text-gray-900 dark:text-gray-100">
                     {formatCurrency(parseFloat(redemption.amount) / parseFloat(redemption.units))}
                   </p>
                 </div>
                 <div>
                   <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-widest mb-1.5">Bank Name</p>
-                  <p className="text-sm font-bold text-gray-900 leading-tight">
+                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight">
                     {redemption.bank_info?.bank_name ? `${redemption.bank_info.bank_name} - ****${redemption.bank_info.account_number?.slice(-4)}` : 'Account on file'}
                   </p>
                 </div>
@@ -231,8 +231,8 @@ export default function RedemptionRequestDetailsPage({ params }: { params: { id:
             </div>
 
             {/* Documents Section (Currently Empty) */}
-            <div className="rounded-3xl bg-white px-6 sm:px-8 py-8 shadow-sm border border-gray-100">
-              <h2 className="font-goudy text-xl text-[#1F1F1F] font-bold mb-4">Documents</h2>
+            <div className="rounded-3xl bg-white dark:bg-[#1C1C1C] px-6 sm:px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
+              <h2 className="font-goudy text-xl text-[#1F1F1F] dark:text-gray-100 font-bold mb-4">Documents</h2>
               <p className="text-xs text-gray-400 italic">No documents available for this request.</p>
             </div>
           </div>

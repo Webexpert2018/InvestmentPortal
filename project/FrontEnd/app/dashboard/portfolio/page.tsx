@@ -246,7 +246,7 @@ export default function PortfolioPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 font-helvetica text-[#1F1F1F]">
+      <div className="space-y-6 font-helvetica text-[#1F1F1F] dark:text-gray-100">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-goudy text-2xl">Portfolio</h1>
@@ -260,7 +260,7 @@ export default function PortfolioPage() {
         </div>
 
         {/* Tabs + summary card */}
-        <div className="rounded-2xl bg-white px-8 pb-8 pt-6">
+        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 pb-8 pt-6">
           <div className="flex gap-8 text-sm">
             <button
               type="button"
@@ -296,17 +296,17 @@ export default function PortfolioPage() {
 
           {activeTab === 'investments' && (
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+              <div className="rounded-xl border border-[#F2F2F2] dark:border-[#2A2A2A] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
                   Total BWell Fund Investment
                 </p>
-                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(stats.totalInvested)}</p>
+                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F] dark:text-gray-100">{formatCurrency(stats.totalInvested)}</p>
               </div>
-              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+              <div className="rounded-xl border border-[#F2F2F2] dark:border-[#2A2A2A] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
                   Current Value
                 </p>
-                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(stats.currentValue)}</p>
+                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F] dark:text-gray-100">{formatCurrency(stats.currentValue)}</p>
                 {(() => {
                   const gainLoss = stats.currentValue - stats.totalInvested;
                   const isPositive = gainLoss >= 0;
@@ -317,13 +317,13 @@ export default function PortfolioPage() {
                   );
                 })()}
               </div>
-              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+              <div className="rounded-xl border border-[#F2F2F2] dark:border-[#2A2A2A] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
                   Total Units
                 </p>
-                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{stats.totalUnits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</p>
+                <p className="mt-3 text-2xl font-semibold text-[#1F1F1F] dark:text-gray-100">{stats.totalUnits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</p>
               </div>
-              <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+              <div className="rounded-xl border border-[#F2F2F2] dark:border-[#2A2A2A] px-6 py-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
                   YTD Return
                 </p>
@@ -342,23 +342,23 @@ export default function PortfolioPage() {
 
               {oldInvestments && oldInvestments.length > 0 && (
                 <>
-                  <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+                  <div className="rounded-xl border border-[#F2F2F2] dark:border-[#2A2A2A] px-6 py-5">
                     <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
                       Total Real Estate Investment
                     </p>
-                    <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{formatCurrency(oldStats.totalInvested)}</p>
+                    <p className="mt-3 text-2xl font-semibold text-[#1F1F1F] dark:text-gray-100">{formatCurrency(oldStats.totalInvested)}</p>
                   </div>
-                  <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+                  <div className="rounded-xl border border-[#F2F2F2] dark:border-[#2A2A2A] px-6 py-5">
                     <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
                       Total Real Estate Distributions
                     </p>
                     <p className="mt-3 text-2xl font-semibold text-[#2BB673]">{formatCurrency(oldStats.totalDistributions)}</p>
                   </div>
-                  <div className="rounded-xl border border-[#F2F2F2] px-6 py-5">
+                  <div className="rounded-xl border border-[#F2F2F2] dark:border-[#2A2A2A] px-6 py-5">
                     <p className="text-xs font-medium uppercase tracking-wide text-[#A0A0A0]">
                       Real Estate Funds
                     </p>
-                    <p className="mt-3 text-2xl font-semibold text-[#1F1F1F]">{oldStats.fundCount}</p>
+                    <p className="mt-3 text-2xl font-semibold text-[#1F1F1F] dark:text-gray-100">{oldStats.fundCount}</p>
                   </div>
                 </>
               )}
@@ -374,7 +374,7 @@ export default function PortfolioPage() {
                   className="group flex flex-col sm:flex-row items-center rounded-2xl bg-[#F7F8FA] p-5 sm:p-6 transition hover:bg-[#F1F2F5] hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] duration-300"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center gap-6 w-full">
-                    <div className="flex-shrink-0 w-full sm:w-56 h-40 sm:h-32 bg-white rounded-xl overflow-hidden border border-[#E5E5EA] flex items-center justify-center shadow-sm">
+                    <div className="flex-shrink-0 w-full sm:w-56 h-40 sm:h-32 bg-white dark:bg-[#1C1C1C] rounded-xl overflow-hidden border border-[#E5E5EA] flex items-center justify-center shadow-sm">
                       <img
                         src={getFullImageUrl(fund.image) || "/images/strive_funds.jpg"}
                         alt={fund.name}
@@ -405,29 +405,29 @@ export default function PortfolioPage() {
                 {/* Active Funds Section */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                    <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-[#1F3B6E] inline-block"></span>
                       Active Funds
                     </h3>
                   </div>
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full table-fixed">
-                        <thead className="bg-gray-50 border-b border-gray-200">
+                        <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
                           <tr>
-                            <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
-                            <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Account Type</th>
-                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Units</th>
-                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
-                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Total Value</th>
+                            <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                            <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Units</th>
+                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
+                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Total Value</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-100">
+                        <tbody className="bg-white dark:bg-[#1C1C1C] divide-y divide-gray-100">
                           {activeHoldings.length > 0 ? (
                             activeHoldings.map((holding: any, index: number) => (
-                              <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{holding.fund_name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                              <tr key={index} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">{holding.fund_name}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-medium">
                                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${holding.account_type?.toLowerCase() === 'personal'
                                     ? 'bg-green-100 text-green-700 border border-green-200'
                                     : 'bg-purple-100 text-purple-700 border border-purple-200'
@@ -435,14 +435,14 @@ export default function PortfolioPage() {
                                     {holding.account_type}
                                   </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F]">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F] dark:text-gray-100">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                               </tr>
                             ))
                           ) : (
                             <tr>
-                              <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                              <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                                 No active fund holdings found.
                               </td>
                             </tr>
@@ -456,41 +456,41 @@ export default function PortfolioPage() {
                 {/* Real Estate (Old) Funds Section */}
                 <div className="space-y-4 pt-2">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] flex items-center gap-2">
+                    <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
                       Real Estate Funds
                     </h3>
                   </div>
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full table-fixed">
-                        <thead className="bg-gray-50 border-b border-gray-200">
+                        <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
                           <tr>
-                            <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
-                            <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Account Type</th>
-                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Units</th>
-                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
-                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Total Value</th>
+                            <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                            <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Units</th>
+                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
+                            <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Total Value</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-100">
+                        <tbody className="bg-white dark:bg-[#1C1C1C] divide-y divide-gray-100">
                           {oldHoldings.length > 0 ? (
                             oldHoldings.map((holding: any, index: number) => (
-                              <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{holding.fund_name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                              <tr key={index} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">{holding.fund_name}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-medium">
                                   <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
                                     {holding.account_type}
                                   </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F]">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F] dark:text-gray-100">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                               </tr>
                             ))
                           ) : (
                             <tr>
-                              <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+                              <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                                 No real estate fund holdings found.
                               </td>
                             </tr>
@@ -508,14 +508,14 @@ export default function PortfolioPage() {
         {activeTab === 'investments' && (
           <div className="space-y-6">
             {/* Table */}
-            <div className="rounded-2xl border border-[#F2F2F2] bg-white px-6 pb-6 pt-6">
+            <div className="rounded-2xl border border-[#F2F2F2] dark:border-[#2A2A2A] bg-white dark:bg-[#1C1C1C] px-6 pb-6 pt-6">
               <div className="mb-4">
                 <h2 className="text-lg font-bold text-[#1F3B6E] font-goudy">Active Investments</h2>
-                <p className="text-xs text-gray-500 font-medium">Your current positions and active investments on the platform.</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Your current positions and active investments on the platform.</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
+                  <thead className="border-b border-gray-100 dark:border-gray-800 text-xs font-semibold text-[#8E8E93]">
                     <tr>
                       <th className="px-4 py-3 cursor-pointer select-none group whitespace-nowrap" onClick={() => requestSort('fund_name')}>
                         <div className="flex items-center gap-1">
@@ -568,7 +568,7 @@ export default function PortfolioPage() {
                       <th className="px-4 py-3 text-right whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50 text-sm">
+                  <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
                     {(() => {
                       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
                       const paginatedInvestments = sortedInvestments.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -597,12 +597,12 @@ export default function PortfolioPage() {
                             className="hover:bg-slate-50/80 cursor-pointer transition-colors duration-150"
                             onClick={() => router.push(`/dashboard/portfolio/${row.id}`)}
                           >
-                            <td className="px-4 py-3 text-[#1F1F1F] font-medium">{row.fund_name}</td>
-                            <td className="px-4 py-3 text-[#4B4B4B]">{row.account_type}</td>
-                            <td className="px-4 py-3 text-[#4B4B4B] text-right">{units.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
-                            <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(currentNav)}</td>
-                            <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(currentValue)}</td>
-                            <td className="px-4 py-3 text-[#4B4B4B] text-right">{formatCurrency(costBasis)}</td>
+                            <td className="px-4 py-3 text-[#1F1F1F] dark:text-gray-100 font-medium">{row.fund_name}</td>
+                            <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">{row.account_type}</td>
+                            <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300 text-right">{units.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
+                            <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300 text-right">{formatCurrency(currentNav)}</td>
+                            <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300 text-right">{formatCurrency(currentValue)}</td>
+                            <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300 text-right">{formatCurrency(costBasis)}</td>
                             <td className="px-4 py-3 font-medium">
                               <span className={gainPositive ? 'text-[#2BB673]' : 'text-[#E04343]'}>
                                 {gainPositive ? '+' : ''}{formatCurrency(gainLoss)} ({gainPercent.toFixed(2)}%)
@@ -629,13 +629,13 @@ export default function PortfolioPage() {
                                       current === row.id ? null : row.id,
                                     );
                                   }}
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-gray-100"
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                                 >
                                   <MoreVertical className="h-4 w-4 text-[#777777]" />
                                 </button>
 
                                 {openActionMenuId === row.id && (
-                                  <div className={`absolute right-0 z-20 w-[150px] rounded-[6px] border border-[#ECECEC] bg-white py-1 shadow-[0_6px_16px_rgba(0,0,0,0.08)] ${index === paginatedInvestments.length - 1 ? 'bottom-full mb-1' : 'top-full mt-1'
+                                  <div className={`absolute right-0 z-20 w-[150px] rounded-[6px] border border-[#ECECEC] bg-white dark:bg-[#1C1C1C] py-1 shadow-[0_6px_16px_rgba(0,0,0,0.08)] ${index === paginatedInvestments.length - 1 ? 'bottom-full mb-1' : 'top-full mt-1'
                                     }`}>
                                     <Link
                                       href={`/dashboard/portfolio/${row.id}`}
@@ -682,7 +682,7 @@ export default function PortfolioPage() {
                           onClick={() => setCurrentPage(page)}
                           className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${currentPage === page
                             ? 'bg-[#1F3B6E] text-white shadow-md scale-105'
-                            : 'text-[#4B5563] hover:bg-white'
+                            : 'text-[#4B5563] hover:bg-white dark:bg-[#1C1C1C]'
                             }`}
                         >
                           {page}
@@ -703,14 +703,14 @@ export default function PortfolioPage() {
 
             {/* Previous Platform Investments Section */}
             {oldInvestments && oldInvestments.length > 0 && (
-              <div className="rounded-2xl border border-[#F2F2F2] bg-white px-6 pb-6 pt-6 mt-6 animate-fadeIn">
+              <div className="rounded-2xl border border-[#F2F2F2] dark:border-[#2A2A2A] bg-white dark:bg-[#1C1C1C] px-6 pb-6 pt-6 mt-6 animate-fadeIn">
                 <div className="mb-4">
                   <h2 className="text-lg font-bold text-[#1F3B6E] font-goudy">Real Estate Investments</h2>
-                  <p className="text-xs text-gray-500 font-medium">Historical investments transferred from the previous platform.</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Historical investments transferred from the previous platform.</p>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-left text-sm">
-                    <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
+                    <thead className="border-b border-gray-100 dark:border-gray-800 text-xs font-semibold text-[#8E8E93]">
                       <tr>
                         <th className="px-4 py-3 whitespace-nowrap">Fund Name</th>
                         <th className="px-4 py-3 whitespace-nowrap">Investor Name</th>
@@ -718,7 +718,7 @@ export default function PortfolioPage() {
                         <th className="px-4 py-3 text-right whitespace-nowrap">Total Distributions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50 text-sm">
+                    <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
                       {[...oldInvestments].sort((a, b) => (a.projectName || '').localeCompare(b.projectName || '')).map((row) => {
                         const totalDist = row.distributions && Array.isArray(row.distributions)
                           ? row.distributions.reduce((sum: number, d: any) => {
@@ -736,8 +736,8 @@ export default function PortfolioPage() {
                               setShowOldInvestmentModal(true);
                             }}
                           >
-                            <td className="px-4 py-3 text-[#1F1F1F] font-semibold">{row.projectName}</td>
-                            <td className="px-4 py-3 text-[#4B4B4B]">{row.investorProfileLegalName || 'N/A'}</td>
+                            <td className="px-4 py-3 text-[#1F1F1F] dark:text-gray-100 font-semibold">{row.projectName}</td>
+                            <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">{row.investorProfileLegalName || 'N/A'}</td>
                             <td className="px-4 py-3 text-right text-[#1F3B6E] font-bold">{row.investmentAmount}</td>
                             <td className="px-4 py-3 text-right text-[#2BB673] font-bold">{formatCurrency(totalDist)}</td>
                           </tr>
@@ -751,17 +751,17 @@ export default function PortfolioPage() {
 
             {/* Fund Transfer History Section */}
             {transferHistory && transferHistory.length > 0 && (
-              <div className="rounded-2xl border border-[#F2F2F2] bg-white px-6 pb-6 pt-6 mt-6 animate-fadeIn">
+              <div className="rounded-2xl border border-[#F2F2F2] dark:border-[#2A2A2A] bg-white dark:bg-[#1C1C1C] px-6 pb-6 pt-6 mt-6 animate-fadeIn">
                 <div className="mb-4">
                   <h2 className="text-lg font-bold text-[#1F3B6E] font-goudy flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#1F3B6E] inline-block"></span>
                     Fund Transfer History
                   </h2>
-                  <p className="text-xs text-gray-500 font-medium">Your fund-to-fund and account transfer records.</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Your fund-to-fund and account transfer records.</p>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-left text-sm">
-                    <thead className="border-b border-gray-100 text-xs font-semibold text-[#8E8E93]">
+                    <thead className="border-b border-gray-100 dark:border-gray-800 text-xs font-semibold text-[#8E8E93]">
                       <tr>
                         <th className="px-4 py-3 whitespace-nowrap">Date</th>
                         <th className="px-4 py-3 whitespace-nowrap">Type</th>
@@ -772,9 +772,9 @@ export default function PortfolioPage() {
                         <th className="px-4 py-3 text-center whitespace-nowrap">Document</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50 text-sm">
+                    <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
                       {transferHistory.map((transfer: any, index: number) => {
-                        let amountColor = 'text-gray-900';
+                        let amountColor = 'text-gray-900 dark:text-gray-100';
                         let prefix = '';
                         if (!transfer.to_investor_id || transfer.from_investor_id === transfer.to_investor_id) {
                           amountColor = 'text-yellow-600';
@@ -788,18 +788,18 @@ export default function PortfolioPage() {
 
                         return (
                           <tr key={index} className="hover:bg-slate-50/80 transition-colors duration-150">
-                            <td className="px-4 py-3 text-[#4B4B4B]">
+                            <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">
                               {new Date(transfer.created_at).toLocaleDateString()}
                             </td>
-                            <td className="px-4 py-3 font-medium text-[#1F1F1F]">
+                            <td className="px-4 py-3 font-medium text-[#1F1F1F] dark:text-gray-100">
                               {transfer.transfer_type?.replace(/_/g, ' ').toUpperCase()}
                             </td>
-                            <td className="px-4 py-3 text-[#4B4B4B]">
+                            <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">
                               {transfer.from_investor_name || 'Unknown Investor'}
                               {transfer.from_account_type && <span className="text-gray-400 text-xs ml-1">({transfer.from_account_type})</span>}
                               <div className="text-xs text-gray-400">{transfer.from_fund_name}</div>
                             </td>
-                            <td className="px-4 py-3 text-[#4B4B4B]">
+                            <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">
                               {transfer.to_investor_name || transfer.from_investor_name || 'Unknown Investor'}
                               {(transfer.to_account_type || transfer.from_account_type) && <span className="text-gray-400 text-xs ml-1">({transfer.to_account_type || transfer.from_account_type})</span>}
                               <div className="text-xs text-gray-400">{transfer.to_fund_name || transfer.from_fund_name}</div>
@@ -810,7 +810,7 @@ export default function PortfolioPage() {
                             <td className="px-4 py-3">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${transfer.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
                                 transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-gray-100 text-gray-800'
+                                  'bg-gray-100 text-gray-800 dark:text-gray-200'
                                 }`}>
                                 {transfer.status}
                               </span>
@@ -844,10 +844,10 @@ export default function PortfolioPage() {
       {/* Old Investment Details Modal */}
       {showOldInvestmentModal && selectedOldInvestment && (
         <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl p-6 max-w-2xl w-full mx-4 relative shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200 text-[#1F1F1F]">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl p-6 max-w-2xl w-full mx-4 relative shadow-2xl border border-gray-100 dark:border-gray-800 animate-in fade-in zoom-in duration-200 text-[#1F1F1F] dark:text-gray-100">
             <button
               onClick={() => setShowOldInvestmentModal(false)}
-              className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+              className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-all"
             >
               <X className="h-5 w-5" />
             </button>
@@ -857,22 +857,22 @@ export default function PortfolioPage() {
                 {getInitials(selectedOldInvestment.projectName)}
               </div>
               <div>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-800 border border-gray-200">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-800">
                   {selectedOldInvestment.investmentStatus}
                 </span>
                 <h2 className="text-xl font-bold font-goudy mt-1">{selectedOldInvestment.projectName}</h2>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50/50 p-5 rounded-2xl border border-gray-100 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50/50 dark:bg-gray-800/50 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 mb-4">
               <div>
                 <p className="text-[11px] text-gray-400 font-semibold uppercase">Investment Ownership ID</p>
-                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.investmentOwnershipId}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{selectedOldInvestment.investmentOwnershipId}</p>
               </div>
 
               <div>
                 <p className="text-[11px] text-gray-400 font-semibold uppercase">Project ID</p>
-                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.projectId}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{selectedOldInvestment.projectId}</p>
               </div>
 
               <div>
@@ -884,54 +884,54 @@ export default function PortfolioPage() {
 
               <div>
                 <p className="text-[11px] text-gray-400 font-semibold uppercase">Ownership</p>
-                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.ownership}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{selectedOldInvestment.ownership}</p>
               </div>
 
               <div>
                 <p className="text-[11px] text-gray-400 font-semibold uppercase">% of Proceeds</p>
-                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.ofProceeds || 'N/A'}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{selectedOldInvestment.ofProceeds || 'N/A'}</p>
               </div>
 
               <div>
                 <p className="text-[11px] text-gray-400 font-semibold uppercase">Placed On</p>
-                <p className="text-sm font-bold text-gray-900">{formatDate(selectedOldInvestment.placedOn)}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{formatDate(selectedOldInvestment.placedOn)}</p>
               </div>
 
               <div>
                 <p className="text-[11px] text-gray-400 font-semibold uppercase">Received On</p>
-                <p className="text-sm font-bold text-gray-900">
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
                   {selectedOldInvestment.receivedOn ? formatDate(selectedOldInvestment.receivedOn) : 'N/A'}
                 </p>
               </div>
 
               <div>
                 <p className="text-[11px] text-gray-400 font-semibold uppercase">Payment Method</p>
-                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.investmentDistributionPaymentMethod || 'N/A'}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{selectedOldInvestment.investmentDistributionPaymentMethod || 'N/A'}</p>
               </div>
 
               <div>
                 <p className="text-[11px] text-gray-400 font-semibold uppercase">Default Dist. Method</p>
-                <p className="text-sm font-bold text-gray-900">{selectedOldInvestment.profileDefaultDistributionMethod || 'N/A'}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{selectedOldInvestment.profileDefaultDistributionMethod || 'N/A'}</p>
               </div>
 
-              <div className="sm:col-span-2 border-t border-gray-100 pt-3 mt-1">
+              <div className="sm:col-span-2 border-t border-gray-100 dark:border-gray-800 pt-3 mt-1">
                 <p className="text-[11px] text-gray-400 font-semibold uppercase">Investor Profile Details</p>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Legal Name: <strong>{selectedOldInvestment.investorProfileLegalName}</strong> (Profile ID: {selectedOldInvestment.investorProfileId})
                 </p>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
                   Entity: <strong>{selectedOldInvestment.internalEntity}</strong> (Entity ID: {selectedOldInvestment.internalEntityId})
                 </p>
               </div>
             </div>
 
             {/* Legacy Distributions Section */}
-            <div className="border-t border-gray-100 pt-4 mb-4">
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-4 mb-4">
               <h3 className="text-base font-bold text-[#1F3B6E] font-goudy mb-2.5">Legacy Distributions</h3>
               {selectedOldInvestment.distributions && selectedOldInvestment.distributions.length > 0 ? (
-                <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-2xl">
+                <div className="max-h-64 overflow-y-auto border border-gray-100 dark:border-gray-800 rounded-2xl">
                   <table className="min-w-full text-left text-xs">
-                    <thead className="bg-gray-50 text-[#8E8E93] font-semibold border-b border-gray-100 sticky top-0">
+                    <thead className="bg-gray-50 dark:bg-gray-800 text-[#8E8E93] font-semibold border-b border-gray-100 dark:border-gray-800 sticky top-0">
                       <tr>
                         <th className="px-4 py-2.5">Type</th>
                         <th className="px-4 py-2.5 text-right">Return of Capital</th>
@@ -941,22 +941,22 @@ export default function PortfolioPage() {
                         <th className="px-4 py-2.5">Pay Date</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50 text-[#1F1F1F]">
+                    <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-[#1F1F1F] dark:text-gray-100">
                       {selectedOldInvestment.distributions.map((dist: any) => (
-                        <tr key={dist.distributionId} className="hover:bg-gray-50/50">
+                        <tr key={dist.distributionId} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50">
                           <td className="px-4 py-2.5 font-medium">{dist.distributionType || 'N/A'}</td>
-                          <td className="px-4 py-2.5 text-right font-semibold text-gray-700">{dist.returnOfCapital || '$-'}</td>
+                          <td className="px-4 py-2.5 text-right font-semibold text-gray-700 dark:text-gray-300">{dist.returnOfCapital || '$-'}</td>
                           <td className="px-4 py-2.5 text-right font-bold text-[#2BB673]">{dist.calculatedAmount || '$-'}</td>
-                          <td className="px-4 py-2.5 text-gray-500">{formatDate(dist.batchStartDate)}</td>
-                          <td className="px-4 py-2.5 text-gray-500">{formatDate(dist.batchEndDate)}</td>
-                          <td className="px-4 py-2.5 text-gray-600 font-semibold">{formatDate(dist.batchPayDate)}</td>
+                          <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400">{formatDate(dist.batchStartDate)}</td>
+                          <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400">{formatDate(dist.batchEndDate)}</td>
+                          <td className="px-4 py-2.5 text-gray-600 dark:text-gray-400 font-semibold">{formatDate(dist.batchPayDate)}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               ) : (
-                <div className="bg-gray-50/50 rounded-2xl border border-gray-100 p-4 text-center text-xs text-gray-400 font-medium">
+                <div className="bg-gray-50/50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center text-xs text-gray-400 font-medium">
                   No legacy distribution records found for this investment.
                 </div>
               )}

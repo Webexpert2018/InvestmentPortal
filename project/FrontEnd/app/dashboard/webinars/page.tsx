@@ -636,12 +636,12 @@ export default function WebinarsPage() {
     let matchesSearch = true;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      const inWebinar = webinar.title.toLowerCase().includes(q) || (webinar.description && webinar.description.toLowerCase().includes(q));
+      const inWebinar = (webinar.title || '').toLowerCase().includes(q) || (webinar.description && webinar.description.toLowerCase().includes(q));
       const inAttendees = webinar.attendees.some(
         (a) =>
-          a.fullName.toLowerCase().includes(q) ||
-          a.specialty.toLowerCase().includes(q) ||
-          a.email.toLowerCase().includes(q)
+          (a.fullName || '').toLowerCase().includes(q) ||
+          (a.specialty || '').toLowerCase().includes(q) ||
+          (a.email || '').toLowerCase().includes(q)
       );
       matchesSearch = inWebinar || inAttendees;
     }
@@ -681,17 +681,17 @@ export default function WebinarsPage() {
 
   return (
     <DashboardLayout>
-      <div className="w-full font-helvetica text-[#1F1F1F] space-y-3">
+      <div className="w-full font-helvetica text-[#1F1F1F] dark:text-gray-100 space-y-3">
         {/* Top Row: Header (6 Cols) & Action Buttons (6 Cols) */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
           {/* Left Column: Header Box */}
           <div className="md:col-span-6">
-            <div className="bg-white p-5 rounded-[20px] border border-[#F0F0F0] shadow-sm">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-200/60 rounded-full text-blue-800 text-[11px] font-bold uppercase tracking-wider mb-2">
+            <div className="bg-white dark:bg-[#1C1C1C] p-5 rounded-[20px] border border-[#F0F0F0] dark:border-[#2A2A2A] shadow-sm">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 border border-blue-200/60 dark:border-blue-800/50 rounded-full text-blue-800 dark:text-blue-400 text-[11px] font-bold uppercase tracking-wider mb-2">
                 <Video className="w-3.5 h-3.5 text-[#1a73e8]" />
                 <span>Physician Engagement Center</span>
               </div>
-              <h1 className="text-[26px] font-goudy font-bold text-[#1F1F1F] tracking-tight">
+              <h1 className="text-[26px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100 tracking-tight">
                 Webinar Management &amp; Attendance
               </h1>
               <p className="text-[13px] text-[#6C6C6C] mt-1">
@@ -704,16 +704,16 @@ export default function WebinarsPage() {
           <div className="md:col-span-6 flex flex-wrap items-center justify-end gap-2">
             <button
               onClick={() => window.open("https://us02web.zoom.us/j/6466719252", "_blank", "noopener,noreferrer")}
-              className="flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:bg-gray-50 text-gray-700 px-3.5 py-3 rounded-xl font-bold text-[12px] shadow-sm transition-all whitespace-nowrap cursor-pointer"
+              className="flex items-center justify-center gap-1.5 bg-white dark:bg-[#1C1C1C] border border-[#dadce0] dark:border-[#2A2A2A] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 px-3.5 py-3 rounded-xl font-bold text-[12px] shadow-sm transition-all whitespace-nowrap cursor-pointer"
               title="Join Meeting (Fixed Zoom Link)"
             >
-              <ExternalLink className="w-4 h-4 text-gray-500" />
+              <ExternalLink className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               <span>Join Meeting</span>
             </button>
 
             <button
               onClick={handleCopyHeaderLink}
-              className="flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:bg-gray-50 text-gray-700 px-3.5 py-3 rounded-xl font-bold text-[12px] shadow-sm transition-all whitespace-nowrap cursor-pointer"
+              className="flex items-center justify-center gap-1.5 bg-white dark:bg-[#1C1C1C] border border-[#dadce0] dark:border-[#2A2A2A] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 px-3.5 py-3 rounded-xl font-bold text-[12px] shadow-sm transition-all whitespace-nowrap cursor-pointer"
               title="Copy Fixed Zoom Link"
             >
               {headerCopied ? (
@@ -723,14 +723,14 @@ export default function WebinarsPage() {
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4 text-gray-500" />
+                  <Copy className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                   <span>Copy Link</span>
                 </>
               )}
             </button>
             <button
               onClick={() => loadWebinarsFromDb()}
-              className="p-3 bg-white border border-[#E8E8E8] hover:bg-gray-50 rounded-xl text-gray-700 transition-all shadow-sm shrink-0"
+              className="p-3 bg-white dark:bg-[#1C1C1C] border border-[#E8E8E8] dark:border-[#2A2A2A] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded-xl text-gray-700 dark:text-gray-300 transition-all shadow-sm shrink-0"
               title="Refresh DB Data"
             >
               <RefreshCw className={`w-4 h-4 ${isLoadingWebinars ? 'animate-spin' : ''}`} />
@@ -744,7 +744,7 @@ export default function WebinarsPage() {
                 }
                 setIsCreateModalOpen(true);
               }}
-              className="flex-1 flex items-center justify-center gap-1.5 bg-[#FFC63F] hover:bg-[#F2B62D] text-[#1F1F1F] px-3.5 py-3 rounded-xl font-bold text-[13px] shadow-sm transition-all whitespace-nowrap"
+              className="flex-1 flex items-center justify-center gap-1.5 bg-[#FFC63F] hover:bg-[#F2B62D] text-[#1F1F1F] dark:text-gray-100 px-3.5 py-3 rounded-xl font-bold text-[13px] shadow-sm transition-all whitespace-nowrap"
             >
               <Plus className="w-4 h-4" />
               <span>Create Webinar</span>
@@ -753,7 +753,7 @@ export default function WebinarsPage() {
             {isLoadingGoogleStatus ? (
               <button
                 disabled
-                className="flex-1 flex items-center justify-center gap-1.5 bg-white border border-gray-200 text-gray-400 px-3 py-3 rounded-xl font-semibold text-[12px] shadow-sm shrink-0 whitespace-nowrap"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 text-gray-400 px-3 py-3 rounded-xl font-semibold text-[12px] shadow-sm shrink-0 whitespace-nowrap"
               >
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Checking Google Sync...</span>
@@ -770,9 +770,9 @@ export default function WebinarsPage() {
             ) : (
               <button
                 onClick={() => router.push('/dashboard/google-calendar')}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:bg-gray-50 text-gray-700 px-3 py-3 rounded-xl font-semibold text-[12px] shadow-sm transition-all whitespace-nowrap"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-white dark:bg-[#1C1C1C] border border-[#dadce0] dark:border-[#2A2A2A] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-3 rounded-xl font-semibold text-[12px] shadow-sm transition-all whitespace-nowrap"
               >
-                <CalendarIcon className="w-4 h-4 text-gray-500" />
+                <CalendarIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                 <span>Connect Google Calendar</span>
               </button>
             )}
@@ -781,35 +781,35 @@ export default function WebinarsPage() {
 
         {/* Expanded 3 KPI Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-          <div className="bg-white rounded-[18px] p-4 border border-[#F2F2F2] shadow-sm">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[18px] p-4 border border-[#F2F2F2] dark:border-[#2A2A2A] shadow-sm">
             <div className="text-[10px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">TOTAL WEBINARS</div>
             <div className="flex items-baseline justify-between">
-              <span className="text-[24px] font-goudy font-bold text-[#1F1F1F]">
+              <span className="text-[24px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">
                 {isLoadingWebinars ? '...' : `${totalWebinars} Sessions`}
               </span>
-              <span className="text-[10px] font-bold text-[#1a73e8] bg-blue-50 px-2 py-0.5 rounded-full">Date-Wise</span>
+              <span className="text-[10px] font-bold text-[#1a73e8] bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full">Date-Wise</span>
             </div>
             <div className="text-[11px] text-[#8E8E93] mt-1.5">Active physician briefings</div>
           </div>
 
-          <div className="bg-white rounded-[18px] p-4 border border-[#F2F2F2] shadow-sm">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[18px] p-4 border border-[#F2F2F2] dark:border-[#2A2A2A] shadow-sm">
             <div className="text-[10px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">TOTAL ATTENDEES</div>
             <div className="flex items-baseline justify-between">
-              <span className="text-[24px] font-goudy font-bold text-[#1F1F1F]">
+              <span className="text-[24px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">
                 {isLoadingWebinars ? '...' : `${totalAttendeesCount} Doctors`}
               </span>
-              <span className="text-[10px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Tracked</span>
+              <span className="text-[10px] font-bold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-0.5 rounded-full">Tracked</span>
             </div>
             <div className="text-[11px] text-[#8E8E93] mt-1.5">RSVPs &amp; live session attendees</div>
           </div>
 
-          <div className="bg-white rounded-[18px] p-4 border border-[#F2F2F2] shadow-sm">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[18px] p-4 border border-[#F2F2F2] dark:border-[#2A2A2A] shadow-sm">
             <div className="text-[10px] font-bold uppercase tracking-wider text-[#8E8E93] mb-1">UPCOMING WEBINARS</div>
             <div className="flex items-baseline justify-between">
-              <span className="text-[24px] font-goudy font-bold text-[#1F1F1F]">
+              <span className="text-[24px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">
                 {isLoadingWebinars ? '...' : `${upcomingCount} Active`}
               </span>
-              <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">Scheduled</span>
+              <span className="text-[10px] font-bold text-blue-700 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full">Scheduled</span>
             </div>
             <div className="text-[11px] text-[#8E8E93] mt-1.5">Ready for physician registration</div>
           </div>
@@ -818,13 +818,13 @@ export default function WebinarsPage() {
         {/* Main Content Area: Date-Wise Webinars List */}
         <div className="space-y-3.5">
           {/* Filter Tabs & Search Bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-[18px] border border-[#F0F0F0] shadow-sm">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-[#1C1C1C] p-3 rounded-[18px] border border-[#F0F0F0] dark:border-[#2A2A2A] shadow-sm">
             <div className="flex items-center gap-2 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('all')}
                 className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${activeTab === 'all'
-                  ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm'
-                  : 'bg-white hover:bg-gray-100 text-[#6C6C6C]'
+                  ? 'bg-[#FFC63F] dark:bg-[#FFC63F] text-[#1F1F1F] dark:text-[#1F1F1F] dark:text-gray-100 shadow-sm'
+                  : 'bg-white dark:bg-[#1C1C1C] hover:bg-gray-100 dark:hover:bg-gray-700 text-[#6C6C6C]'
                   }`}
               >
                 All Webinars ({totalWebinars})
@@ -833,7 +833,7 @@ export default function WebinarsPage() {
                 onClick={() => setActiveTab('upcoming')}
                 className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${activeTab === 'upcoming'
                   ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white hover:bg-blue-50 text-blue-700 border border-blue-200'
+                  : 'bg-white dark:bg-[#1C1C1C] hover:bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50'
                   }`}
               >
                 Upcoming ({upcomingCount})
@@ -842,7 +842,7 @@ export default function WebinarsPage() {
                 onClick={() => setActiveTab('completed')}
                 className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${activeTab === 'completed'
                   ? 'bg-gray-800 text-white shadow-sm'
-                  : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
+                  : 'bg-white dark:bg-[#1C1C1C] hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800'
                   }`}
               >
                 Completed ({totalWebinars - upcomingCount})
@@ -856,7 +856,7 @@ export default function WebinarsPage() {
                 placeholder="Filter webinars or attendees..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#F8F9FA] border border-[#E8E8E8] rounded-full py-2 pl-9 pr-4 text-[13px] focus:outline-none focus:border-[#FFC63F]"
+                className="w-full bg-[#F8F9FA] dark:bg-[#1C1C1C] border border-[#E8E8E8] dark:border-[#2A2A2A] dark:border-gray-800 rounded-full py-2 pl-9 pr-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
               />
             </div>
           </div>
@@ -879,14 +879,14 @@ export default function WebinarsPage() {
 
           {/* Webinars Collapsible List */}
           {isLoadingWebinars ? (
-            <div className="bg-white p-12 text-center rounded-[20px] border border-[#F0F0F0]">
+            <div className="bg-white dark:bg-[#1C1C1C] p-12 text-center rounded-[20px] border border-[#F0F0F0] dark:border-[#2A2A2A]">
               <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-[14px] text-gray-600 font-medium">Loading dynamic webinars from database...</p>
+              <p className="text-[14px] text-gray-600 dark:text-gray-400 font-medium">Loading dynamic webinars from database...</p>
             </div>
           ) : filteredWebinars.length === 0 ? (
-            <div className="bg-white p-12 text-center rounded-[20px] border border-[#F0F0F0] space-y-3">
+            <div className="bg-white dark:bg-[#1C1C1C] p-12 text-center rounded-[20px] border border-[#F0F0F0] dark:border-[#2A2A2A] space-y-3">
               <Video className="w-12 h-12 text-gray-300 mx-auto" />
-              <p className="text-[16px] font-bold text-gray-700">No Webinars Found</p>
+              <p className="text-[16px] font-bold text-gray-700 dark:text-gray-300">No Webinars Found</p>
               <p className="text-[13px] text-[#8E8E93] max-w-md mx-auto">
                 There are no scheduled webinars matching your active filters. Click "+ Create Webinar" to add one!
               </p>
@@ -897,14 +897,14 @@ export default function WebinarsPage() {
               return (
                 <div
                   key={webinar.id}
-                  className="bg-white rounded-[22px] border border-[#F0F0F0] shadow-sm hover:border-[#E4E4E4] transition-all overflow-hidden"
+                  className="bg-white dark:bg-[#1C1C1C] rounded-[22px] border border-[#F0F0F0] dark:border-[#2A2A2A] shadow-sm hover:border-[#E4E4E4] dark:border-[#2A2A2A] transition-all overflow-hidden"
                 >
                   {/* Collapsible Card Header */}
-                  <div className="p-4 md:p-4.5 bg-white space-y-3">
+                  <div className="p-4 md:p-4.5 bg-white dark:bg-[#1C1C1C] space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                       {/* Left: Title & Active Now Badge */}
                       <div className="flex flex-wrap items-center gap-2.5">
-                        <h2 className="text-[20px] font-goudy font-bold text-[#1F1F1F] leading-snug">
+                        <h2 className="text-[20px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100 leading-snug">
                           {webinar.title}
                         </h2>
                         {webinar.isLatest ? (
@@ -921,7 +921,7 @@ export default function WebinarsPage() {
                         ) : (
                           <button
                             onClick={() => handleActivateWebinar(webinar.id)}
-                            className="text-[11px] font-bold text-gray-500 hover:text-yellow-700 bg-gray-50 hover:bg-yellow-50 border border-gray-200 hover:border-yellow-300 px-3 py-1 rounded-full shadow-2xs tracking-wide transition-all cursor-pointer"
+                            className="text-[11px] font-bold text-gray-500 dark:text-gray-400 hover:text-yellow-700 bg-gray-50 dark:bg-gray-800 hover:bg-yellow-50 border border-gray-200 dark:border-gray-800 hover:border-yellow-300 px-3 py-1 rounded-full shadow-2xs tracking-wide transition-all cursor-pointer"
                             title="Set this webinar as active"
                           >
                             Set Active
@@ -932,14 +932,14 @@ export default function WebinarsPage() {
                       {/* Right: Date, Status, Time & Duration grouped together */}
                       <div className="flex flex-wrap items-center gap-2.5 text-[12px] font-semibold text-[#6C6C6C]">
                         {/* Date Badge */}
-                        <span className="bg-gray-100 text-gray-800 text-[12px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 border border-gray-200">
-                          <CalendarIcon className="w-3.5 h-3.5 text-gray-600" />
+                        <span className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-[12px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 border border-gray-200 dark:border-gray-800">
+                          <CalendarIcon className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                           {webinar.formattedDate || webinar.date}
                         </span>
 
                         {/* Webinar Status */}
                         {webinar.status === 'upcoming' && (
-                          <span className="bg-blue-50 text-blue-700 border border-blue-200/80 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                          <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50/80 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
                             Upcoming
                           </span>
@@ -951,8 +951,8 @@ export default function WebinarsPage() {
                           </span>
                         )}
                         {webinar.status === 'completed' && (
-                          <span className="bg-gray-100 text-gray-600 border border-gray-200 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-gray-500" />
+                          <span className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                             Completed
                           </span>
                         )}
@@ -984,7 +984,7 @@ export default function WebinarsPage() {
                         {/* Accordion Expand Button */}
                         <button
                           onClick={() => toggleExpand(webinar.id)}
-                          className="flex items-center gap-2 text-[12px] font-bold text-[#1a73e8] bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-full transition-all shrink-0 cursor-pointer"
+                          className="flex items-center gap-2 text-[12px] font-bold text-[#1a73e8] dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-800/50 border border-blue-200 dark:border-blue-800/50 px-4 py-2 rounded-full transition-all shrink-0 cursor-pointer"
                         >
                           <Users className="w-3.5 h-3.5 text-[#1a73e8]" />
                           <span>
@@ -1004,7 +1004,7 @@ export default function WebinarsPage() {
                             }
                             handleOpenAddDoctorModal(webinar);
                           }}
-                          className="bg-[#FFF9E6] hover:bg-[#FFEFC2] text-[#805C00] border border-[#FFE494] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+                          className="bg-[#FFF9E6] dark:bg-amber-900/30 hover:bg-[#FFEFC2] dark:hover:bg-amber-800/50 text-[#805C00] dark:text-amber-400 border border-[#FFE494] dark:border-amber-800/50 text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                           title="Register a new doctor on-the-fly and send calendar invitation"
                         >
                           <Plus className="w-3.5 h-3.5 text-[#805C00]" />
@@ -1020,7 +1020,7 @@ export default function WebinarsPage() {
                             }
                             handleOpenInviteModal(webinar);
                           }}
-                          className="bg-[#FFF9E6] hover:bg-[#FFEFC2] text-[#805C00] border border-[#FFE494] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+                          className="bg-[#FFF9E6] dark:bg-amber-900/30 hover:bg-[#FFEFC2] dark:hover:bg-amber-800/50 text-[#805C00] dark:text-amber-400 border border-[#FFE494] dark:border-amber-800/50 text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                           title="Send Direct Webinar Invitation & Session Pass to Doctors"
                         >
                           <Send className="w-3.5 h-3.5 text-[#805C00]" />
@@ -1037,7 +1037,7 @@ export default function WebinarsPage() {
                             handleImportPrevious(webinar.id);
                           }}
                           disabled={isImporting[webinar.id]}
-                          className="bg-[#FFF9E6] hover:bg-[#FFEFC2] text-[#805C00] border border-[#FFE494] text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-[#FFF9E6] dark:bg-amber-900/30 hover:bg-[#FFEFC2] dark:hover:bg-amber-800/50 text-[#805C00] dark:text-amber-400 border border-[#FFE494] dark:border-amber-800/50 text-[12px] font-bold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Import registered doctors from the previous webinar and send calendar invites"
                         >
                           {isImporting[webinar.id] ? (
@@ -1061,7 +1061,7 @@ export default function WebinarsPage() {
                               onClick={() => handleOpenReminderModal(webinar)}
                               className={`p-2 rounded-full transition-all flex items-center justify-center gap-1 cursor-pointer ${activeRemindersCount > 0
                                 ? 'text-[#1a73e8] bg-blue-100 hover:bg-blue-200 border border-blue-300 font-bold'
-                                : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 border border-gray-200'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
                                 }`}
                               title={
                                 activeRemindersCount > 0
@@ -1080,7 +1080,7 @@ export default function WebinarsPage() {
                         {/* Edit Webinar Button */}
                         <button
                           onClick={() => handleOpenEditModal(webinar)}
-                          className="p-2 text-[#1a73e8] hover:text-[#1557b0] bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-full transition-all flex items-center justify-center"
+                          className="p-2 text-[#1a73e8] hover:text-[#1557b0] bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-800/50 border border-blue-200 dark:border-blue-800/50 rounded-full transition-all flex items-center justify-center"
                           title="Edit Webinar Details"
                         >
                           <Pencil className="w-4 h-4" />
@@ -1089,7 +1089,7 @@ export default function WebinarsPage() {
                         {/* Delete Webinar Button */}
                         <button
                           onClick={() => setDeletingWebinarId(webinar.id)}
-                          className="p-2 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-full transition-all flex items-center justify-center"
+                          className="p-2 text-rose-600 hover:text-rose-700 bg-rose-50 dark:bg-rose-900/30 hover:bg-rose-100 dark:hover:bg-rose-800/50 border border-rose-200/80 dark:border-rose-800/50 rounded-full transition-all flex items-center justify-center"
                           title="Delete Webinar"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1100,25 +1100,25 @@ export default function WebinarsPage() {
 
                   {/* Collapsible Attendee Details Content */}
                   {isExpanded && (
-                    <div className="bg-[#FAFBFD] border-t border-[#EDEDED] p-4 md:p-4.5 space-y-3">
+                    <div className="bg-[#FAFBFD] dark:bg-[#121212] border-t border-[#EDEDED] dark:border-[#2A2A2A] dark:border-gray-800 p-4 md:p-4.5 space-y-3">
                       <div className="flex flex-wrap items-center justify-between gap-4">
                         <div className="flex flex-wrap items-center gap-4">
-                          <h3 className="text-[14px] font-bold text-[#1F1F1F] flex items-center gap-2">
+                          <h3 className="text-[14px] font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
                             <Users className="w-4 h-4 text-amber-600" />
                             <span>Registered Physician Attendees ({webinar.attendees.length})</span>
                           </h3>
 
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="bg-blue-50 text-[#1a73e8] border border-blue-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                            <span className="bg-blue-50 dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-400 border border-blue-200/80 dark:border-blue-800/50 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
                               Registered: {webinar.attendees.filter(a => a.status === 'registered').length}
                             </span>
-                            <span className="bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                            <span className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/50 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
                               Accepted: {webinar.attendees.filter(a => a.status === 'accepted').length}
                             </span>
-                            <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                            <span className="bg-rose-50 dark:bg-rose-900/30 text-rose-800 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/50 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
                               Declined: {webinar.attendees.filter(a => a.status === 'declined').length}
                             </span>
-                            <span className="bg-amber-50 text-amber-800 border border-amber-200/80 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                            <span className="bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/50 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
                               Tentative: {webinar.attendees.filter(a => a.status === 'tentative').length}
                             </span>
                           </div>
@@ -1129,14 +1129,14 @@ export default function WebinarsPage() {
                       </div>
 
                       {webinar.attendees.length === 0 ? (
-                        <div className="p-6 text-center bg-white rounded-xl border border-dashed border-gray-200">
+                        <div className="p-6 text-center bg-white dark:bg-[#1C1C1C] rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
                           <p className="text-[13px] text-[#8E8E93]">No physician RSVPs recorded yet for this session.</p>
                         </div>
                       ) : (
-                        <div className="bg-white rounded-xl border border-[#EBEBEB] overflow-x-auto shadow-xs">
+                        <div className="bg-white dark:bg-[#1C1C1C] rounded-xl border border-[#EBEBEB] dark:border-[#2A2A2A] overflow-x-auto shadow-xs">
                           <table className="w-full text-left border-collapse">
                             <thead>
-                              <tr className="bg-[#F8F9FA] text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider border-b border-[#EBEBEB]">
+                              <tr className="bg-[#F8F9FA] dark:bg-[#1C1C1C] text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider border-b border-[#EBEBEB] dark:border-[#2A2A2A] dark:border-gray-800">
                                 <th className="py-2 px-3">Physician &amp; Specialty</th>
                                 <th className="py-2 px-3">Email Info</th>
                                 <th className="py-2 px-3">Phone Info</th>
@@ -1154,7 +1154,7 @@ export default function WebinarsPage() {
                                         {attendee.fullName.charAt(0)}
                                       </div>
                                       <div>
-                                        <div className="font-bold text-[#1F1F1F]">{attendee.fullName}</div>
+                                        <div className="font-bold text-[#1F1F1F] dark:text-gray-100">{attendee.fullName}</div>
                                         <div className="text-[11px] text-[#6C6C6C] mt-0.5">
                                           {attendee.specialty}
                                         </div>
@@ -1166,12 +1166,12 @@ export default function WebinarsPage() {
                                   <td className="py-2 px-3 text-[#4B5563]">
                                     <div className="space-y-0.5 text-[11px] leading-normal">
                                       <div>
-                                        <span className="font-semibold text-gray-500 mr-1">Work:</span>
-                                        <span className="text-[#1F1F1F] font-medium">{attendee.email && attendee.email !== 'No Email' && attendee.email !== 'Email in DB' ? attendee.email : 'null'}</span>
+                                        <span className="font-semibold text-gray-500 dark:text-gray-400 mr-1">Work:</span>
+                                        <span className="text-[#1F1F1F] dark:text-gray-100 font-medium">{attendee.email && attendee.email !== 'No Email' && attendee.email !== 'Email in DB' ? attendee.email : 'null'}</span>
                                       </div>
                                       <div>
-                                        <span className="font-semibold text-gray-500 mr-1">Pers:</span>
-                                        <span className="text-[#1F1F1F] font-medium">{attendee.personalEmails && attendee.personalEmails.length > 0 ? attendee.personalEmails[0] : 'null'}</span>
+                                        <span className="font-semibold text-gray-500 dark:text-gray-400 mr-1">Pers:</span>
+                                        <span className="text-[#1F1F1F] dark:text-gray-100 font-medium">{attendee.personalEmails && attendee.personalEmails.length > 0 ? attendee.personalEmails[0] : 'null'}</span>
                                       </div>
                                     </div>
                                   </td>
@@ -1180,12 +1180,12 @@ export default function WebinarsPage() {
                                   <td className="py-2 px-3 text-[#4B5563]">
                                     <div className="space-y-0.5 text-[11px] leading-normal">
                                       <div>
-                                        <span className="font-semibold text-gray-500 mr-1">Work:</span>
-                                        <span className="text-[#1F1F1F] font-medium">{attendee.workPhone && attendee.workPhone !== 'N/A' ? attendee.workPhone : 'null'}</span>
+                                        <span className="font-semibold text-gray-500 dark:text-gray-400 mr-1">Work:</span>
+                                        <span className="text-[#1F1F1F] dark:text-gray-100 font-medium">{attendee.workPhone && attendee.workPhone !== 'N/A' ? attendee.workPhone : 'null'}</span>
                                       </div>
                                       <div>
-                                        <span className="font-semibold text-gray-500 mr-1">Pers:</span>
-                                        <span className="text-[#1F1F1F] font-medium">{attendee.phone && attendee.phone !== 'N/A' ? attendee.phone : 'null'}</span>
+                                        <span className="font-semibold text-gray-500 dark:text-gray-400 mr-1">Pers:</span>
+                                        <span className="text-[#1F1F1F] dark:text-gray-100 font-medium">{attendee.phone && attendee.phone !== 'N/A' ? attendee.phone : 'null'}</span>
                                       </div>
                                     </div>
                                   </td>
@@ -1193,29 +1193,29 @@ export default function WebinarsPage() {
                                   {/* Organization & Location */}
                                   <td className="py-2 px-3 text-[#4B5563]">
                                     <div className="space-y-0.5 text-[12px]">
-                                      <div className="font-medium text-gray-800">
+                                      <div className="font-medium text-gray-800 dark:text-gray-200">
                                         {attendee.organization}
                                       </div>
-                                      <div className="text-[11px] text-gray-500">{attendee.location}</div>
+                                      <div className="text-[11px] text-gray-500 dark:text-gray-400">{attendee.location}</div>
                                     </div>
                                   </td>
 
                                   {/* RSVP Status */}
                                   <td className="py-2 px-3 text-right">
                                     {attendee.status === 'accepted' ? (
-                                      <span className="inline-flex items-center text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                                      <span className="inline-flex items-center text-[11px] font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800/50 px-2.5 py-0.5 rounded-full">
                                         Accepted
                                       </span>
                                     ) : attendee.status === 'declined' ? (
-                                      <span className="inline-flex items-center text-[11px] font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
+                                      <span className="inline-flex items-center text-[11px] font-bold text-rose-800 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800/50 px-2.5 py-0.5 rounded-full">
                                         Declined
                                       </span>
                                     ) : attendee.status === 'tentative' ? (
-                                      <span className="inline-flex items-center text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                                      <span className="inline-flex items-center text-[11px] font-bold text-amber-800 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/50 px-2.5 py-0.5 rounded-full">
                                         Tentative
                                       </span>
                                     ) : (
-                                      <span className="inline-flex items-center text-[11px] font-bold text-[#1a73e8] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
+                                      <span className="inline-flex items-center text-[11px] font-bold text-[#1a73e8] dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/50 px-2.5 py-0.5 rounded-full">
                                         Registered
                                       </span>
                                     )}
@@ -1237,21 +1237,21 @@ export default function WebinarsPage() {
         {/* Create & Manage Webinar Modal */}
         {isCreateModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
-            <div className="bg-white rounded-[24px] max-w-3xl w-full p-6 space-y-5 shadow-2xl border border-[#EAEAEA] relative">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-3xl w-full p-6 space-y-5 shadow-2xl border border-[#EAEAEA] dark:border-[#2A2A2A] relative">
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-[#F0F0F0] pb-4">
+              <div className="flex items-center justify-between border-b border-[#F0F0F0] dark:border-[#2A2A2A] pb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center">
                     <Video className="w-5 h-5 text-amber-700" />
                   </div>
                   <div>
-                    <h3 className="text-[18px] font-goudy font-bold text-[#1F1F1F]">Create &amp; Schedule Webinar</h3>
+                    <h3 className="text-[18px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">Create &amp; Schedule Webinar</h3>
                     <p className="text-[12px] text-[#8E8E93]">Set session title, date, time, and meeting link</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-500 dark:text-gray-400 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1270,7 +1270,7 @@ export default function WebinarsPage() {
                     placeholder="e.g. Physician Wealth & Tax-Advantaged Real Estate"
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
-                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] dark:border-[#2A2A2A] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                   />
                 </div>
 
@@ -1284,7 +1284,7 @@ export default function WebinarsPage() {
                     placeholder="Brief summary of session topics for physician prospects..."
                     value={newDescription}
                     onChange={(e) => setNewDescription(e.target.value)}
-                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] min-h-[220px]"
+                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] dark:border-[#2A2A2A] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F] min-h-[220px]"
                   />
                 </div>
 
@@ -1299,7 +1299,7 @@ export default function WebinarsPage() {
                       required
                       value={newDate}
                       onChange={(e) => setNewDate(e.target.value)}
-                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] dark:border-[#2A2A2A] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
 
@@ -1312,7 +1312,7 @@ export default function WebinarsPage() {
                       required
                       value={newTime}
                       onChange={(e) => setNewTime(e.target.value)}
-                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] dark:border-[#2A2A2A] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
 
@@ -1326,7 +1326,7 @@ export default function WebinarsPage() {
                       placeholder="45"
                       value={newDuration}
                       onChange={(e) => setNewDuration(e.target.value)}
-                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] dark:border-[#2A2A2A] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
                 </div>
@@ -1340,23 +1340,23 @@ export default function WebinarsPage() {
                     type="text"
                     disabled
                     value={newMeetingLink}
-                    className="w-full bg-gray-100 border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-gray-400 cursor-not-allowed"
+                    className="w-full bg-gray-100 border border-[#E2E8F0] dark:border-[#2A2A2A] rounded-xl px-4 py-2.5 text-[13px] text-gray-400 cursor-not-allowed"
                   />
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#F0F0F0]">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#F0F0F0] dark:border-[#2A2A2A]">
                   <button
                     type="button"
                     onClick={() => setIsCreateModalOpen(false)}
-                    className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                    className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-6 py-2.5 rounded-full text-[13px] font-bold text-[#1F1F1F] bg-[#FFC63F] hover:bg-[#F2B62D] shadow-sm transition-all flex items-center gap-1.5"
+                    className="px-6 py-2.5 rounded-full text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100 bg-[#FFC63F] hover:bg-[#F2B62D] shadow-sm transition-all flex items-center gap-1.5"
                   >
                     {isSubmitting ? 'Saving to DB...' : 'Create Webinar'}
                   </button>
@@ -1369,13 +1369,13 @@ export default function WebinarsPage() {
         {/* Edit & Reschedule Webinar Modal */}
         {isEditModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
-            <div className="bg-white rounded-[24px] max-w-3xl w-full p-6 md:p-8 space-y-6 shadow-2xl border border-[#EAEAEA] relative">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-3xl w-full p-6 md:p-8 space-y-6 shadow-2xl border border-[#EAEAEA] dark:border-[#2A2A2A] relative">
               <button
                 onClick={() => {
                   setIsEditModalOpen(false);
                   setEditingWebinarId(null);
                 }}
-                className="absolute top-6 right-6 p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                className="absolute top-6 right-6 p-2 rounded-full text-gray-400 hover:text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1385,7 +1385,7 @@ export default function WebinarsPage() {
                   <Pencil className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-[20px] font-goudy font-bold text-[#1F1F1F]">Edit &amp; Reschedule Webinar</h2>
+                  <h2 className="text-[20px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">Edit &amp; Reschedule Webinar</h2>
                   <p className="text-[12px] text-[#8E8E93]">Update session title, date, time, and meeting link</p>
                 </div>
               </div>
@@ -1402,7 +1402,7 @@ export default function WebinarsPage() {
                     placeholder="e.g. Physician Wealth & Tax-Advantaged Real Estate"
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
-                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] dark:border-[#2A2A2A] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                   />
                 </div>
 
@@ -1416,7 +1416,7 @@ export default function WebinarsPage() {
                     placeholder="Brief summary of session topics for physician prospects..."
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
-                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] min-h-[220px]"
+                    className="w-full bg-[#F8F9FA] border border-[#E2E8F0] dark:border-[#2A2A2A] rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F] min-h-[220px]"
                   />
                 </div>
 
@@ -1431,7 +1431,7 @@ export default function WebinarsPage() {
                       required
                       value={editDate}
                       onChange={(e) => setEditDate(e.target.value)}
-                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] dark:border-[#2A2A2A] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
 
@@ -1444,7 +1444,7 @@ export default function WebinarsPage() {
                       required
                       value={editTime}
                       onChange={(e) => setEditTime(e.target.value)}
-                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] dark:border-[#2A2A2A] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
 
@@ -1458,7 +1458,7 @@ export default function WebinarsPage() {
                       placeholder="45"
                       value={editDuration}
                       onChange={(e) => setEditDuration(e.target.value)}
-                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-[#F8F9FA] border border-[#E2E8F0] dark:border-[#2A2A2A] rounded-xl px-3 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
                 </div>
@@ -1472,26 +1472,26 @@ export default function WebinarsPage() {
                     type="text"
                     disabled
                     value={editMeetingLink}
-                    className="w-full bg-gray-100 border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[13px] text-gray-400 cursor-not-allowed"
+                    className="w-full bg-gray-100 border border-[#E2E8F0] dark:border-[#2A2A2A] rounded-xl px-4 py-2.5 text-[13px] text-gray-400 cursor-not-allowed"
                   />
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#F0F0F0]">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#F0F0F0] dark:border-[#2A2A2A]">
                   <button
                     type="button"
                     onClick={() => {
                       setIsEditModalOpen(false);
                       setEditingWebinarId(null);
                     }}
-                    className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                    className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isUpdating}
-                    className="px-6 py-2.5 rounded-full text-[13px] font-bold text-[#1F1F1F] bg-[#FFC63F] hover:bg-[#F2B62D] shadow-sm transition-all flex items-center gap-1.5"
+                    className="px-6 py-2.5 rounded-full text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100 bg-[#FFC63F] hover:bg-[#F2B62D] shadow-sm transition-all flex items-center gap-1.5"
                   >
                     {isUpdating ? 'Updating DB...' : 'Save Changes'}
                   </button>
@@ -1504,33 +1504,33 @@ export default function WebinarsPage() {
         {/* Send Direct Webinar Invite Modal */}
         {isInviteModalOpen && invitingWebinar && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
-            <div className="bg-white rounded-[20px] max-w-xl w-full p-6 space-y-4 shadow-2xl border border-[#dadce0] relative max-h-[90vh] flex flex-col">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[20px] max-w-xl w-full p-6 space-y-4 shadow-2xl border border-[#dadce0] dark:border-[#2A2A2A] relative max-h-[90vh] flex flex-col">
               <button
                 onClick={() => {
                   setIsInviteModalOpen(false);
                   setInvitingWebinar(null);
                 }}
-                className="absolute top-5 right-5 p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+                className="absolute top-5 right-5 p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
 
               {/* Modal Header */}
               <div className="shrink-0 space-y-1">
-                <h2 className="text-[18px] font-bold text-[#1F1F1F] flex items-center gap-2">
+                <h2 className="text-[18px] font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
                   <Send className="w-4 h-4 text-[#1a73e8]" />
                   <span>Invite Physicians to Webinar</span>
                 </h2>
-                <div className="text-[12.5px] text-gray-600 font-medium">
-                  <span className="font-semibold text-gray-900 block text-[13.5px]">{invitingWebinar.title}</span>
-                  <span className="text-[12px] text-gray-500 block mt-0.5">
+                <div className="text-[12.5px] text-gray-600 dark:text-gray-400 font-medium">
+                  <span className="font-semibold text-gray-900 dark:text-gray-100 block text-[13.5px]">{invitingWebinar.title}</span>
+                  <span className="text-[12px] text-gray-500 dark:text-gray-400 block mt-0.5">
                     {invitingWebinar.formattedDate || invitingWebinar.date} • {invitingWebinar.time}
                   </span>
                 </div>
               </div>
 
               {/* Search & Bulk Select Toolbar */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0 pt-2 border-t border-[#F0F0F0]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0 pt-2 border-t border-[#F0F0F0] dark:border-[#2A2A2A]">
                 <div className="relative flex-1">
                   <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -1538,20 +1538,20 @@ export default function WebinarsPage() {
                     placeholder="Search doctors..."
                     value={inviteSearchQuery}
                     onChange={(e) => setInviteSearchQuery(e.target.value)}
-                    className="w-full bg-white border border-[#dadce0] rounded-lg pl-9 pr-3 py-1.5 text-[12.5px] text-[#1F1F1F] focus:outline-none focus:border-[#1a73e8]"
+                    className="w-full bg-white dark:bg-[#1C1C1C] border border-[#dadce0] dark:border-[#2A2A2A] rounded-lg pl-9 pr-3 py-1.5 text-[12.5px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#1a73e8]"
                   />
                 </div>
               </div>
 
               {/* Doctor Prospects List */}
-              <div className="flex-1 overflow-y-auto border border-[#EAEAEA] rounded-xl divide-y divide-[#F5F5F5] p-1 min-h-[220px]">
+              <div className="flex-1 overflow-y-auto border border-[#EAEAEA] dark:border-[#2A2A2A] rounded-xl divide-y divide-[#F5F5F5] p-1 min-h-[220px]">
                 {isLoadingProspects ? (
                   <div className="py-12 text-center space-y-2">
                     <div className="w-5 h-5 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-[12px] text-gray-500 font-medium">Loading physician prospects...</p>
+                    <p className="text-[12px] text-gray-500 dark:text-gray-400 font-medium">Loading physician prospects...</p>
                   </div>
                 ) : prospectsList.length === 0 ? (
-                  <div className="py-12 text-center text-[12px] text-gray-500">
+                  <div className="py-12 text-center text-[12px] text-gray-500 dark:text-gray-400">
                     No doctor prospects found.
                   </div>
                 ) : (() => {
@@ -1574,7 +1574,7 @@ export default function WebinarsPage() {
 
                   if (filtered.length === 0) {
                     return (
-                      <div className="py-8 text-center text-[12px] text-gray-500">
+                      <div className="py-8 text-center text-[12px] text-gray-500 dark:text-gray-400">
                         No doctors match "{inviteSearchQuery}".
                       </div>
                     );
@@ -1593,10 +1593,10 @@ export default function WebinarsPage() {
                       <label
                         key={docId}
                         className={`flex items-center justify-between p-2.5 transition-colors ${isDisabled
-                          ? 'opacity-55 cursor-not-allowed bg-gray-50/40'
+                          ? 'opacity-55 cursor-not-allowed bg-gray-50 dark:bg-gray-800/40'
                           : isSelected
                             ? 'bg-blue-50/30 cursor-pointer'
-                            : 'hover:bg-gray-50/80 cursor-pointer'
+                            : 'hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/80 cursor-pointer'
                           }`}
                       >
                         <div className="flex items-center gap-3 min-w-0 pr-2">
@@ -1616,14 +1616,14 @@ export default function WebinarsPage() {
                           />
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold text-[13px] text-[#1F1F1F] truncate">
+                              <span className="font-semibold text-[13px] text-[#1F1F1F] dark:text-gray-100 truncate">
                                 {doc.full_name || doc.fullName || 'Doctor Prospect'}
                               </span>
-                              <span className="text-[10px] text-gray-500 font-medium">
+                              <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
                                 ({doc.specialty || 'Physician'})
                               </span>
                             </div>
-                            <div className="text-[11.5px] text-gray-500 truncate mt-0.5">
+                            <div className="text-[11.5px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
                               <span>{doc.organization || 'Private Practice'}</span>
                               {doc.email ? (
                                 <>
@@ -1657,8 +1657,8 @@ export default function WebinarsPage() {
               </div>
 
               {/* Modal Footer Actions */}
-              <div className="flex items-center justify-between pt-3 border-t border-[#F0F0F0] shrink-0">
-                <span className="text-[12px] text-gray-600 font-medium">
+              <div className="flex items-center justify-between pt-3 border-t border-[#F0F0F0] dark:border-[#2A2A2A] shrink-0">
+                <span className="text-[12px] text-gray-600 dark:text-gray-400 font-medium">
                   Selected: <strong className="text-[#1a73e8]">{selectedProspectIds.length}</strong> doctor(s)
                 </span>
 
@@ -1670,7 +1670,7 @@ export default function WebinarsPage() {
                       setInvitingWebinar(null);
                     }}
                     disabled={isSendingInvites}
-                    className="px-4 py-1.5 rounded-lg text-[12.5px] font-semibold text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                    className="px-4 py-1.5 rounded-lg text-[12.5px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1701,40 +1701,40 @@ export default function WebinarsPage() {
         {/* Simple Configure Automated Reminders Modal */}
         {isReminderModalOpen && reminderWebinar && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
-            <div className="bg-white rounded-[24px] max-w-lg w-full p-6 md:p-7 space-y-5 shadow-2xl border border-[#EAEAEA] relative">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-lg w-full p-6 md:p-7 space-y-5 shadow-2xl border border-[#EAEAEA] dark:border-[#2A2A2A] relative">
               <button
                 onClick={() => {
                   setIsReminderModalOpen(false);
                   setReminderWebinar(null);
                 }}
-                className="absolute top-5 right-5 p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+                className="absolute top-5 right-5 p-2 rounded-full text-gray-400 hover:text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
 
               {/* Modal Header */}
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-[#FFF9EE] dark:bg-amber-900/30 text-[#D9A11E] dark:text-amber-400 border border-[#FFE7A8] dark:border-amber-800/50 flex items-center justify-center">
                   <Bell className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-[18px] font-goudy font-bold text-[#1F1F1F]">Configure Webinar Reminders</h2>
+                  <h2 className="text-[18px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">Configure Webinar Reminders</h2>
                   <p className="text-[12px] text-[#8E8E93]">Select automated email reminder intervals for attendees</p>
                 </div>
               </div>
 
               {/* Webinar Summary & Currently Scheduled Banner */}
-              <div className="bg-[#FAFBFD] border border-[#EAEAEA] rounded-xl p-3.5 space-y-2 text-[13px]">
+              <div className="bg-[#FAFBFD] border border-[#EAEAEA] dark:border-[#2A2A2A] rounded-xl p-3.5 space-y-2 text-[13px]">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-[#1F1F1F]">{reminderWebinar.title}</span>
-                  <span className="text-[11px] font-semibold text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200">
+                  <span className="font-bold text-[#1F1F1F] dark:text-gray-100">{reminderWebinar.title}</span>
+                  <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200 dark:border-gray-800">
                     {reminderWebinar.formattedDate || reminderWebinar.date}
                   </span>
                 </div>
 
                 {/* Scheduled Status */}
-                <div className="pt-1.5 border-t border-[#EDEDED] flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Scheduled:</span>
+                <div className="pt-1.5 border-t border-[#EDEDED] dark:border-[#2A2A2A] flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Scheduled:</span>
                   {selectedReminderOffsets.length === 0 ? (
                     <span className="text-[12px] italic text-gray-400">No automated reminders configured</span>
                   ) : (
@@ -1781,7 +1781,7 @@ export default function WebinarsPage() {
                         }}
                         className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isChecked
                           ? 'bg-[#FFF9EE] border-[#FFE7A8] shadow-xs'
-                          : 'bg-[#F9FAFB] border-[#E5E7EB] hover:bg-gray-50'
+                          : 'bg-[#F9FAFB] border-[#E5E7EB] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800'
                           }`}
                       >
                         <input
@@ -1791,8 +1791,8 @@ export default function WebinarsPage() {
                           className="mt-0.5 w-4 h-4 text-[#D9A11E] rounded-md border-gray-300 focus:ring-[#FFC63F] cursor-pointer shrink-0"
                         />
                         <div className="min-w-0">
-                          <span className="block font-bold text-[13px] text-[#1F1F1F]">{option.label}</span>
-                          <span className="block text-[11px] text-gray-500 mt-0.5">{option.desc}</span>
+                          <span className="block font-bold text-[13px] text-[#1F1F1F] dark:text-gray-100">{option.label}</span>
+                          <span className="block text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{option.desc}</span>
                         </div>
                       </label>
                     );
@@ -1801,12 +1801,12 @@ export default function WebinarsPage() {
               </div>
 
               {/* Modal Actions */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-[#F0F0F0]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-[#F0F0F0] dark:border-[#2A2A2A]">
                 <button
                   type="button"
                   onClick={handleSendTestReminder}
                   disabled={isSendingTestReminder || (reminderWebinar.attendees?.length ?? 0) === 0}
-                  className="px-3.5 py-1.5 rounded-full text-[12px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3.5 py-1.5 rounded-full text-[12px] font-bold text-blue-700 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-800/50 border border-blue-200 dark:border-blue-800/50 transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Dispatch a test reminder email immediately to all registered attendees"
                 >
                   {isSendingTestReminder ? (
@@ -1830,7 +1830,7 @@ export default function WebinarsPage() {
                       setReminderWebinar(null);
                     }}
                     disabled={isSavingReminders}
-                    className="px-4 py-2 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-full text-[13px] font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1838,7 +1838,7 @@ export default function WebinarsPage() {
                     type="button"
                     onClick={handleSaveReminders}
                     disabled={isSavingReminders}
-                    className="px-5 py-2 rounded-full text-[13px] font-bold text-[#1F1F1F] bg-[#FFC63F] hover:bg-[#F1B92E] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="px-5 py-2 rounded-full text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100 bg-[#FFC63F] hover:bg-[#F1B92E] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     {isSavingReminders ? (
                       <>
@@ -1847,7 +1847,7 @@ export default function WebinarsPage() {
                       </>
                     ) : (
                       <>
-                        <Bell className="w-3.5 h-3.5 text-[#1F1F1F]" />
+                        <Bell className="w-3.5 h-3.5 text-[#1F1F1F] dark:text-gray-100" />
                         <span>Save Reminder Schedule</span>
                       </>
                     )}
@@ -1861,7 +1861,7 @@ export default function WebinarsPage() {
         {/* Add Doctor Modal */}
         {isAddDoctorModalOpen && addingDoctorWebinar && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
-            <div className="bg-white rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-[#EAEAEA] relative animate-scaleUp">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-[#EAEAEA] dark:border-[#2A2A2A] relative animate-scaleUp">
               {/* Close Button */}
               <button
                 type="button"
@@ -1869,7 +1869,7 @@ export default function WebinarsPage() {
                   setIsAddDoctorModalOpen(false);
                   setAddingDoctorWebinar(null);
                 }}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-400 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1877,11 +1877,11 @@ export default function WebinarsPage() {
               <form onSubmit={handleSaveAndSendInvite} className="space-y-4">
                 {/* Modal Header */}
                 <div className="flex items-center gap-3 pb-3 border-b border-[#F5F5F5]">
-                  <div className="w-10 h-10 rounded-full bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-[#FFF9EE] dark:bg-amber-900/30 text-[#D9A11E] dark:text-amber-400 border border-[#FFE7A8] dark:border-amber-800/50 flex items-center justify-center">
                     <Stethoscope className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-[18px] font-goudy font-bold text-[#1F1F1F]">Add New Physician Lead</h2>
+                    <h2 className="text-[18px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">Add New Physician Lead</h2>
                     <p className="text-[12px] text-[#8E8E93]">Save lead and send active webinar invite</p>
                   </div>
                 </div>
@@ -1898,7 +1898,7 @@ export default function WebinarsPage() {
                       value={docFullName}
                       onChange={(e) => setDocFullName(e.target.value)}
                       placeholder="e.g. Dr. Marcus Vance, MD"
-                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F]"
+                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white dark:bg-[#1C1C1C] text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F] dark:text-gray-100"
                     />
                   </div>
 
@@ -1912,7 +1912,7 @@ export default function WebinarsPage() {
                       value={docEmail}
                       onChange={(e) => setDocEmail(e.target.value)}
                       placeholder="e.g. marcus.vance@clinic.org"
-                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F]"
+                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white dark:bg-[#1C1C1C] text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F] dark:text-gray-100"
                     />
                   </div>
 
@@ -1926,7 +1926,7 @@ export default function WebinarsPage() {
                         value={docSpecialty}
                         onChange={(e) => setDocSpecialty(e.target.value)}
                         placeholder="e.g. Dermatology"
-                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F]"
+                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white dark:bg-[#1C1C1C] text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F] dark:text-gray-100"
                       />
                     </div>
 
@@ -1939,7 +1939,7 @@ export default function WebinarsPage() {
                         value={docPhone}
                         onChange={(e) => setDocPhone(e.target.value)}
                         placeholder="e.g. +1 (305) 555-0103"
-                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F]"
+                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white dark:bg-[#1C1C1C] text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F] dark:text-gray-100"
                       />
                     </div>
                   </div>
@@ -1953,7 +1953,7 @@ export default function WebinarsPage() {
                       value={docOrganization}
                       onChange={(e) => setDocOrganization(e.target.value)}
                       placeholder="e.g. Vance Dermatology Group"
-                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F]"
+                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white dark:bg-[#1C1C1C] text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F] dark:text-gray-100"
                     />
                   </div>
 
@@ -1966,7 +1966,7 @@ export default function WebinarsPage() {
                       value={docLocation}
                       onChange={(e) => setDocLocation(e.target.value)}
                       placeholder="e.g. Miami, FL"
-                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F]"
+                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] hover:border-gray-300 focus:border-blue-500 focus:bg-white dark:bg-[#1C1C1C] text-[13px] px-3.5 py-2.5 rounded-xl outline-hidden transition-all text-[#1F1F1F] dark:text-gray-100"
                     />
                   </div>
                 </div>
@@ -1980,14 +1980,14 @@ export default function WebinarsPage() {
                       setAddingDoctorWebinar(null);
                     }}
                     disabled={isSubmittingDoc}
-                    className="px-4 py-2 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-full text-[13px] font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmittingDoc}
-                    className="px-5 py-2 rounded-full text-[13px] font-bold text-[#1F1F1F] bg-[#FFC63F] hover:bg-[#F1B92E] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    className="px-5 py-2 rounded-full text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100 bg-[#FFC63F] hover:bg-[#F1B92E] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
                     {isSubmittingDoc ? (
                       <>
@@ -1996,7 +1996,7 @@ export default function WebinarsPage() {
                       </>
                     ) : (
                       <>
-                        <Send className="w-3.5 h-3.5 text-[#1F1F1F]" />
+                        <Send className="w-3.5 h-3.5 text-[#1F1F1F] dark:text-gray-100" />
                         <span>Save and Send Invite</span>
                       </>
                     )}
@@ -2010,27 +2010,27 @@ export default function WebinarsPage() {
         {/* Delete Confirmation Modal */}
         {deletingWebinarId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
-            <div className="bg-white rounded-[24px] max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#EAEAEA] relative">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#EAEAEA] dark:border-[#2A2A2A] relative">
               <div className="flex items-center gap-3 text-rose-600">
                 <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
                   <Trash2 className="w-5 h-5 text-rose-600" />
                 </div>
                 <div>
-                  <h3 className="text-[17px] font-goudy font-bold text-[#1F1F1F]">Delete Webinar</h3>
+                  <h3 className="text-[17px] font-goudy font-bold text-[#1F1F1F] dark:text-gray-100">Delete Webinar</h3>
                   <p className="text-[12px] text-[#8E8E93]">This action cannot be undone.</p>
                 </div>
               </div>
 
-              <p className="text-[13px] text-gray-600 leading-relaxed">
+              <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-relaxed">
                 Are you sure you want to delete this webinar? All associated physician registration passes and attendance logs will also be permanently removed.
               </p>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#F0F0F0]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#F0F0F0] dark:border-[#2A2A2A]">
                 <button
                   type="button"
                   onClick={() => setDeletingWebinarId(null)}
                   disabled={isDeleting}
-                  className="px-4 py-2 text-[13px] font-semibold text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                  className="px-4 py-2 text-[13px] font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                 >
                   Cancel
                 </button>

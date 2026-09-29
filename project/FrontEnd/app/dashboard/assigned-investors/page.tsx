@@ -184,7 +184,7 @@ export default function AdminAssignedInvestorsPage() {
   const kycColor = (s: string) => {
     if (s === "Approved") return "text-[#16A66A]"
     if (s === "Pending") return "text-[#E5A000]"
-    if (s === "Unverified") return "text-gray-500"
+    if (s === "Unverified") return "text-gray-500 dark:text-gray-400"
     return "text-[#EF4444]"
   }
 
@@ -193,18 +193,18 @@ export default function AdminAssignedInvestorsPage() {
       <div className="p-0 max-w-full overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="font-goudy text-xl md:text-2xl font-bold text-[#1F1F1F]">Assigned Investors</h1>
+            <h1 className="font-goudy text-xl md:text-2xl font-bold text-[#1F1F1F] dark:text-gray-100">Assigned Investors</h1>
             <p className="mt-1 text-[13px] text-[#8E8E93] font-helvetica">View and manage assigned investor accounts.</p>
           </div>
           <button
             onClick={() => exportCsv([...active, ...ira, ...pending, ...suspendedLogin, ...suspendedIra])}
-            className="h-[40px] w-full sm:w-auto rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] shadow-sm hover:shadow-md transition-shadow font-helvetica"
+            className="h-[40px] w-full sm:w-auto rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 shadow-sm hover:shadow-md transition-shadow font-helvetica"
           >
             Export List
           </button>
         </div>
 
-        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-[#F0F0F0] max-w-full">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-xl p-4 sm:p-6 shadow-sm border border-[#F0F0F0] dark:border-[#2A2A2A] max-w-full">
           <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-6">
             <div className="relative w-full lg:w-[320px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
@@ -212,7 +212,7 @@ export default function AdminAssignedInvestorsPage() {
                 value={query}
                 onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }}
                 placeholder="Find something here..."
-                className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] outline-none placeholder:text-[#A2A5AA] font-helvetica border border-transparent focus:border-[#FFC63F] transition-all"
+                className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#A2A5AA] font-helvetica border border-transparent focus:border-[#FFC63F] transition-all"
               />
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
@@ -269,7 +269,7 @@ export default function AdminAssignedInvestorsPage() {
                         key={h.label}
                         style={{ minWidth: h.minWidth }}
                         onClick={() => h.sortKey && requestSort(h.sortKey as keyof Investor)}
-                        className={`px-3 py-3 text-[12px] sm:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap border-b border-[#ECEDEF] ${h.align || ""} ${h.sortKey ? "cursor-pointer hover:bg-gray-50" : ""}`}
+                        className={`px-3 py-3 text-[12px] sm:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap border-b border-[#ECEDEF] ${h.align || ""} ${h.sortKey ? "cursor-pointer hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800" : ""}`}
                       >
                         <span className={`inline-flex items-center gap-1 ${h.align === "text-right" ? "justify-end w-full" : ""}`}>
                           {h.label}
@@ -282,7 +282,7 @@ export default function AdminAssignedInvestorsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="bg-white">
+                  <tr className="bg-white dark:bg-[#1C1C1C]">
                     <td colSpan={7} className="px-3 py-6">
                       <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Active Investors</h2>
                     </td>
@@ -313,7 +313,7 @@ export default function AdminAssignedInvestorsPage() {
                                 {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                               </div>
                             )}
-                            <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{inv.name}</span>
+                            <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{inv.name}</span>
                           </div>
                         </td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate">{inv.email}</td>
@@ -346,7 +346,7 @@ export default function AdminAssignedInvestorsPage() {
                     <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm border-b border-[#F5F5F5]">No active personal investors found.</td></tr>
                   )}
 
-                  <tr className="bg-white">
+                  <tr className="bg-white dark:bg-[#1C1C1C]">
                     <td colSpan={7} className="px-3 py-8 pt-10">
                       <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Active IRA Accounts</h2>
                     </td>
@@ -377,7 +377,7 @@ export default function AdminAssignedInvestorsPage() {
                                 {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                               </div>
                             )}
-                            <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{inv.name}</span>
+                            <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{inv.name}</span>
                           </div>
                         </td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate">{inv.email}</td>
@@ -408,7 +408,7 @@ export default function AdminAssignedInvestorsPage() {
                     <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm border-b border-[#F5F5F5]">No active IRA investors found.</td></tr>
                   )}
 
-                  <tr className="bg-white">
+                  <tr className="bg-white dark:bg-[#1C1C1C]">
                     <td colSpan={7} className="px-3 py-8 pt-10">
                       <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Pending Investors</h2>
                     </td>
@@ -433,7 +433,7 @@ export default function AdminAssignedInvestorsPage() {
                                 {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                               </div>
                             )}
-                            <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{inv.name}</span>
+                            <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{inv.name}</span>
                           </div>
                         </td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate opacity-60">{inv.email}</td>
@@ -465,7 +465,7 @@ export default function AdminAssignedInvestorsPage() {
                     <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm border-b border-[#F5F5F5]">No pending investors found.</td></tr>
                   )}
 
-                  <tr className="bg-white">
+                  <tr className="bg-white dark:bg-[#1C1C1C]">
                     <td colSpan={7} className="px-3 py-8 pt-10">
                       <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Suspended Login Accounts</h2>
                     </td>
@@ -490,7 +490,7 @@ export default function AdminAssignedInvestorsPage() {
                                 {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                               </div>
                             )}
-                            <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{inv.name}</span>
+                            <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{inv.name}</span>
                           </div>
                         </td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate opacity-50">{inv.email}</td>
@@ -522,7 +522,7 @@ export default function AdminAssignedInvestorsPage() {
                     <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm">No suspended login accounts found.</td></tr>
                   )}
 
-                  <tr className="bg-white">
+                  <tr className="bg-white dark:bg-[#1C1C1C]">
                     <td colSpan={7} className="px-3 py-8 pt-10">
                       <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Suspended IRA Accounts</h2>
                     </td>
@@ -547,7 +547,7 @@ export default function AdminAssignedInvestorsPage() {
                                 {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                               </div>
                             )}
-                            <span className="text-[13px] font-medium text-[#1F1F1F] font-helvetica truncate">{inv.name}</span>
+                            <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{inv.name}</span>
                           </div>
                         </td>
                         <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate opacity-50">{inv.email}</td>
@@ -587,7 +587,7 @@ export default function AdminAssignedInvestorsPage() {
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
+                className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] dark:text-gray-100 transition-colors font-medium"
               >
                 <ChevronLeft className="h-4 w-4" /> Previous
               </button>
@@ -599,7 +599,7 @@ export default function AdminAssignedInvestorsPage() {
                     onClick={() => setCurrentPage(p)}
                     className={`h-10 w-10 rounded-lg text-[13px] font-medium transition-colors font-helvetica ${currentPage === p
                       ? "bg-[#1F3B6E] text-white"
-                      : "text-[#6B7280] hover:bg-gray-100"
+                      : "text-[#6B7280] hover:bg-gray-100 dark:hover:bg-gray-700"
                       }`}
                   >
                     {p}
@@ -610,14 +610,14 @@ export default function AdminAssignedInvestorsPage() {
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] transition-colors font-medium"
+                className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] dark:text-gray-100 transition-colors font-medium"
               >
                 Next <ChevronRight className="h-4 w-4" />
               </button>
             </div>
 
             <div className="text-[13px] text-[#8E8E93] font-helvetica">
-              Showing <span className="font-medium text-[#1F1F1F]">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium text-[#1F1F1F]">{Math.min(currentPage * ITEMS_PER_PAGE, active.length)}</span> of <span className="font-medium text-[#1F1F1F]">{active.length}</span> active investors
+              Showing <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{Math.min(currentPage * ITEMS_PER_PAGE, active.length)}</span> of <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{active.length}</span> active investors
             </div>
           </div>
         </div>

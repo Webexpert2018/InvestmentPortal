@@ -92,12 +92,12 @@ function PasswordInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
       <input
         {...props}
         type={showPassword ? 'text' : 'password'}
-        className={`h-[42px] w-full rounded-[8px] border border-[#E5E7EB] bg-white pl-4 pr-10 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica ${props.className ?? ''}`}
+        className={`h-[42px] w-full rounded-[8px] border border-[#E5E7EB] bg-white dark:bg-[#1C1C1C] pl-4 pr-10 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica ${props.className ?? ''}`}
       />
       <button
         type="button"
         onClick={() => setShowPassword(!showPassword)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A2A5AA] hover:text-[#4B4B4B]"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A2A5AA] hover:text-[#4B4B4B] dark:text-gray-300"
       >
         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
       </button>
@@ -407,7 +407,7 @@ export function AccountantSettingsScreen() {
         className={`relative inline-flex h-[22px] w-[42px] shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${on ? 'bg-[#12B87A]' : 'bg-[#D1D5DB]'}`}
       >
         <span
-          className={`pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-white shadow-sm transition-transform duration-200 ${on ? 'translate-x-[22px]' : 'translate-x-[2px]'}`}
+          className={`pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-white dark:bg-[#1C1C1C] shadow-sm transition-transform duration-200 ${on ? 'translate-x-[22px]' : 'translate-x-[2px]'}`}
         />
       </button>
     );
@@ -417,7 +417,7 @@ export function AccountantSettingsScreen() {
      TAB 1 - Profile Information
      ----------------------------------- */
   const renderProfileTab = () => (
-    <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white p-6 sm:p-8">
+    <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white dark:bg-[#1C1C1C] p-6 sm:p-8">
       {loading ? (
         <div className="flex items-center justify-center py-8">
           <p className="text-[12px] text-[#A2A5AA]">Loading your profile...</p>
@@ -476,13 +476,13 @@ export function AccountantSettingsScreen() {
                 </div>
               )}
               {saving && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white/70">
+                <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-[#1C1C1C]/70">
                   <Loader2 className="h-5 w-5 animate-spin text-[#D1A94C]" />
                 </div>
               )}
             </button>
             <div>
-              <p className="text-[13px] font-medium text-[#1F1F1F]">
+              <p className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">
                 {profileImageUrl ? 'Change Profile Picture' : 'Upload Profile Picture'}
               </p>
               <p className="text-[11px] text-[#9CA3AF]">
@@ -495,42 +495,42 @@ export function AccountantSettingsScreen() {
           <div className="grid gap-5 sm:grid-cols-2">
             {/* First Name */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">First Name</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">First Name</label>
               <input
                 placeholder="Enter first name"
                 value={firstName}
                 onChange={(e) => { setFirstName(e.target.value); setProfileErrors((p) => ({ ...p, firstName: '' })); }}
-                className={`h-[42px] w-full rounded-[8px] border ${profileErrors.firstName ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white px-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
+                className={`h-[42px] w-full rounded-[8px] border ${profileErrors.firstName ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white dark:bg-[#1C1C1C] px-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
               />
               {profileErrors.firstName && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.firstName}</p>}
             </div>
             {/* Last Name */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Last Name</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">Last Name</label>
               <input
                 placeholder="Enter last name"
                 value={lastName}
                 onChange={(e) => { setLastName(e.target.value); setProfileErrors((p) => ({ ...p, lastName: '' })); }}
-                className={`h-[42px] w-full rounded-[8px] border ${profileErrors.lastName ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white px-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
+                className={`h-[42px] w-full rounded-[8px] border ${profileErrors.lastName ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white dark:bg-[#1C1C1C] px-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
               />
               {profileErrors.lastName && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.lastName}</p>}
             </div>
             {/* Email */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Email</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">Email</label>
               <input
                 type="email"
                 placeholder="Enter email"
                 value={email}
                 disabled
                 title="Email cannot be changed"
-                className={`h-[42px] w-full rounded-[8px] border ${profileErrors.email ? 'border-red-400' : 'border-[#E5E7EB]'} bg-gray-100 px-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica disabled:opacity-60`}
+                className={`h-[42px] w-full rounded-[8px] border ${profileErrors.email ? 'border-red-400' : 'border-[#E5E7EB]'} bg-gray-100 dark:bg-[#1C1C1C] px-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica disabled:opacity-60`}
               />
               <p className="mt-1 text-[11px] text-[#9CA3AF] font-helvetica">Email cannot be changed for security reasons</p>
             </div>
             {/* Phone Number */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Phone Number</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">Phone Number</label>
               <div className="flex gap-2">
                 <div className="relative w-[120px] shrink-0">
                   <select
@@ -541,7 +541,7 @@ export function AccountantSettingsScreen() {
                       setPhone(formatPhoneNumber(phone, newCode));
                       setProfileErrors((p) => ({ ...p, phone: '' }));
                     }}
-                    className="h-[42px] w-full appearance-none rounded-[8px] border border-[#E5E7EB] bg-white pl-3 pr-7 text-[13px] text-[#374151] outline-none font-helvetica"
+                    className="h-[42px] w-full appearance-none rounded-[8px] border border-[#E5E7EB] bg-white dark:bg-[#1C1C1C] pl-3 pr-7 text-[13px] text-[#374151] outline-none font-helvetica"
                   >
                     {COUNTRY_CODES.map(code => (
                       <option key={code} value={code}>{code}</option>
@@ -558,14 +558,14 @@ export function AccountantSettingsScreen() {
                     setPhone(val);
                     setProfileErrors((p) => ({ ...p, phone: '' }));
                   }}
-                  className={`h-[42px] w-full rounded-[8px] border ${profileErrors.phone ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white px-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
+                  className={`h-[42px] w-full rounded-[8px] border ${profileErrors.phone ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white dark:bg-[#1C1C1C] px-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
                 />
               </div>
               {profileErrors.phone && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.phone}</p>}
             </div>
             {/* Date of Birth */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Date of Birth</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">Date of Birth</label>
               <div className="relative">
                 <input
                   ref={dobRef}
@@ -574,7 +574,7 @@ export function AccountantSettingsScreen() {
                   value={dob}
                   max={new Date().toISOString().split('T')[0]}
                   onChange={(e) => { setDob(e.target.value); setProfileErrors((p) => ({ ...p, dob: '' })); }}
-                  className={`h-[42px] w-full rounded-[8px] border ${profileErrors.dob ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white px-4 pr-10 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
+                  className={`h-[42px] w-full rounded-[8px] border ${profileErrors.dob ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white dark:bg-[#1C1C1C] px-4 pr-10 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
                   style={{ colorScheme: 'light' }}
                 />
                 <button type="button" onClick={() => dobRef.current?.showPicker()} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]">
@@ -587,30 +587,30 @@ export function AccountantSettingsScreen() {
 
             {/* Street Address Line 1 */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Street Address Line 1</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">Street Address Line 1</label>
               <input
                 placeholder="Enter street address line 1"
                 value={addressLine1}
                 onChange={(e) => { setAddressLine1(e.target.value); setProfileErrors((p) => ({ ...p, addressLine1: '' })); }}
-                className={`h-[42px] w-full rounded-[8px] border ${profileErrors.addressLine1 ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white px-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
+                className={`h-[42px] w-full rounded-[8px] border ${profileErrors.addressLine1 ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white dark:bg-[#1C1C1C] px-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
               />
               {profileErrors.addressLine1 && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.addressLine1}</p>}
             </div>
 
             {/* Street Address Line 2 */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Street Address Line 2</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">Street Address Line 2</label>
               <input
                 placeholder="Enter street address line 2"
                 value={addressLine2}
                 onChange={(e) => setAddressLine2(e.target.value)}
-                className="h-[42px] w-full rounded-[8px] border border-[#E5E7EB] bg-white px-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica"
+                className="h-[42px] w-full rounded-[8px] border border-[#E5E7EB] bg-white dark:bg-[#1C1C1C] px-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica"
               />
             </div>
 
             {/* Country */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Country</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">Country</label>
               <Combobox
                 options={countries.map((c) => ({ label: c.name, value: c.isoCode }))}
                 value={country}
@@ -631,7 +631,7 @@ export function AccountantSettingsScreen() {
 
             {/* State */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">State</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">State</label>
               <Combobox
                 options={states.map((s) => ({ label: s.name, value: s.isoCode }))}
                 value={state}
@@ -651,7 +651,7 @@ export function AccountantSettingsScreen() {
 
             {/* City */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">City</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">City</label>
               <Combobox
                 options={cities.map((c) => ({ label: c.name, value: c.name }))}
                 value={city}
@@ -670,19 +670,19 @@ export function AccountantSettingsScreen() {
 
             {/* Zip Code */}
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Zip Code</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">Zip Code</label>
               <input
                 placeholder="Enter zip code"
                 value={zipCode}
                 onChange={(e) => { setZipCode(e.target.value); setProfileErrors((p) => ({ ...p, zipCode: '' })); }}
-                className={`h-[42px] w-full rounded-[8px] border ${profileErrors.zipCode ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white px-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
+                className={`h-[42px] w-full rounded-[8px] border ${profileErrors.zipCode ? 'border-red-400' : 'border-[#E5E7EB]'} bg-white dark:bg-[#1C1C1C] px-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica`}
               />
               {profileErrors.zipCode && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{profileErrors.zipCode}</p>}
             </div>
           </div>
 
           <div className="mt-6 max-w-[360px]">
-            <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">TAX Information</label>
+            <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">TAX Information</label>
             <p className="mb-2 text-[11px] text-[#9CA3AF] font-helvetica">Social Security Number / Tax ID</p>
             <input
               placeholder="Format: XXX-XX-XXXX"
@@ -700,7 +700,7 @@ export function AccountantSettingsScreen() {
                 }
                 setTaxId(formatted);
               }}
-              className="h-[42px] w-full rounded-[8px] border border-[#E5E7EB] bg-white px-4 text-[13px] text-[#1F1F1F] outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica"
+              className="h-[42px] w-full rounded-[8px] border border-[#E5E7EB] bg-white dark:bg-[#1C1C1C] px-4 text-[13px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#9CA3AF] focus:border-[#D1A94C] font-helvetica"
             />
             <p className="mt-1 text-[11px] text-[#9CA3AF] font-helvetica">Your information is encrypted and secure</p>
           </div>
@@ -718,7 +718,7 @@ export function AccountantSettingsScreen() {
                 setProfileErrors({});
                 setProfileSaved(false);
               }}
-              className="h-[40px] min-w-[100px] rounded-full border border-[#E5E7EB] bg-white px-6 text-[13px] font-medium text-[#6B7280] hover:bg-[#F9FAFB] transition-colors font-helvetica"
+              className="h-[40px] min-w-[100px] rounded-full border border-[#E5E7EB] bg-white dark:bg-[#1C1C1C] px-6 text-[13px] font-medium text-[#6B7280] hover:bg-[#F9FAFB] transition-colors font-helvetica"
             >
               Cancel
             </button>
@@ -764,7 +764,7 @@ export function AccountantSettingsScreen() {
                   setSaving(false);
                 }
               }}
-              className="h-[40px] min-w-[100px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] shadow-sm hover:shadow-md transition-shadow font-helvetica disabled:opacity-50"
+              className="h-[40px] min-w-[100px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 shadow-sm hover:shadow-md transition-shadow font-helvetica disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save'}
             </button>
@@ -780,14 +780,14 @@ export function AccountantSettingsScreen() {
   const renderSecurityTab = () => (
     <div className="space-y-5">
       {/* Change Password */}
-      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white">
+      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white dark:bg-[#1C1C1C]">
         <div className="border-b border-[#ECEDEF] px-6 py-4">
-          <h3 className="text-[17px] font-semibold text-[#1F1F1F] font-goudy">Change Password</h3>
+          <h3 className="text-[17px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Change Password</h3>
         </div>
         <div className="p-6">
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="sm:col-span-2 sm:max-w-[calc(50%-10px)]">
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Current Password</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">Current Password</label>
               <PasswordInput
                 placeholder="Enter current password"
                 value={curPwd}
@@ -797,7 +797,7 @@ export function AccountantSettingsScreen() {
               {securityErrors.curPwd && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{securityErrors.curPwd}</p>}
             </div>
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">New Password</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">New Password</label>
               <PasswordInput
                 placeholder="Enter new password"
                 value={newPwd}
@@ -807,7 +807,7 @@ export function AccountantSettingsScreen() {
               {securityErrors.newPwd && <p className="mt-1 text-[11px] text-red-500 font-helvetica">{securityErrors.newPwd}</p>}
             </div>
             <div>
-              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] font-helvetica">Confirm Password</label>
+              <label className="mb-[6px] block text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">Confirm Password</label>
               <PasswordInput
                 placeholder="Enter confirm password"
                 value={confirmPwd}
@@ -852,7 +852,7 @@ export function AccountantSettingsScreen() {
                   setSaving(false);
                 }
               }}
-              className="h-[40px] min-w-[100px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] shadow-sm hover:shadow-md transition-all font-helvetica disabled:opacity-50"
+              className="h-[40px] min-w-[100px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 shadow-sm hover:shadow-md transition-all font-helvetica disabled:opacity-50"
             >
               {saving ? 'Updating...' : 'Update Password'}
             </button>
@@ -861,22 +861,22 @@ export function AccountantSettingsScreen() {
       </div>
 
       {/* Two-Factor Authentication */}
-      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white">
+      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white dark:bg-[#1C1C1C]">
         <div className="border-b border-[#ECEDEF] px-6 py-4">
-          <h3 className="text-[17px] font-semibold text-[#1F1F1F] font-goudy">Two-Factor Authentication</h3>
+          <h3 className="text-[17px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Two-Factor Authentication</h3>
         </div>
         <div className="px-6 py-2">
           {/* Authenticator App */}
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
             <div>
-              <p className="text-[14px] font-semibold text-[#1F1F1F] font-helvetica">Authenticator App</p>
+              <p className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-helvetica">Authenticator App</p>
               <p className="mt-[2px] text-[12px] text-[#9CA3AF] font-helvetica">Time-based one-time password (OTP)</p>
             </div>
             {renderToggle(authApp, () => setAuthApp(!authApp))}
           </div>
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
             <div>
-              <p className="text-[14px] font-semibold text-[#1F1F1F] font-helvetica">SMS Backup Codes</p>
+              <p className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-helvetica">SMS Backup Codes</p>
               <p className="mt-[2px] text-[12px] text-[#9CA3AF] font-helvetica">Receive codes via text message as a backup.</p>
             </div>
             {renderToggle(smsCodes, () => setSmsCodes(!smsCodes))}
@@ -894,9 +894,9 @@ export function AccountantSettingsScreen() {
       </div>
 
       {/* Active Sessions */}
-      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white">
+      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white dark:bg-[#1C1C1C]">
         <div className="border-b border-[#ECEDEF] px-6 py-4">
-          <h3 className="text-[17px] font-semibold text-[#1F1F1F] font-goudy">Active Sessions</h3>
+          <h3 className="text-[17px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Active Sessions</h3>
         </div>
         <div className="px-6 py-3">
           <p className="text-[12px] text-[#9CA3AF] font-helvetica">
@@ -913,7 +913,7 @@ export function AccountantSettingsScreen() {
               sessions.map((s) => (
                 <div key={s.id} className="flex items-center justify-between py-4">
                   <div>
-                    <p className="text-[13px] text-[#1F1F1F] font-helvetica">{s.device}</p>
+                    <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{s.device}</p>
                     <p className={`mt-[2px] text-[11px] font-semibold font-helvetica ${s.isActive ? 'text-[#16A66A]' : 'text-[#9CA3AF]'}`}>
                       {s.status}
                     </p>
@@ -936,7 +936,7 @@ export function AccountantSettingsScreen() {
                       setSessionToRevoke(s);
                       setIsConfirmRevokeOpen(true);
                     }}
-                    className="flex h-[32px] items-center justify-center gap-2 rounded-full bg-[#FBCB4B] px-4 text-[11px] font-semibold text-[#1F1F1F] hover:bg-[#F9BF2A] transition-colors font-helvetica disabled:opacity-50"
+                    className="flex h-[32px] items-center justify-center gap-2 rounded-full bg-[#FBCB4B] px-4 text-[11px] font-semibold text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9BF2A] transition-colors font-helvetica disabled:opacity-50"
                   >
                     {revokingSessionId === s.id && <Loader2 className="h-3 w-3 animate-spin" />}
                     Log Out
@@ -950,21 +950,21 @@ export function AccountantSettingsScreen() {
 
       {/* Confirmation Dialog for Revoking Session */}
       <AlertDialog open={isConfirmRevokeOpen} onOpenChange={setIsConfirmRevokeOpen}>
-        <AlertDialogContent className="max-w-[400px] rounded-[20px] border-none bg-white p-6 shadow-2xl">
+        <AlertDialogContent className="max-w-[400px] rounded-[20px] border-none bg-white dark:bg-[#1C1C1C] p-6 shadow-2xl">
           <AlertDialogHeader>
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
               <LogOut className="h-6 w-6 text-red-500" />
             </div>
-            <AlertDialogTitle className="text-center text-[18px] font-semibold text-[#1F1F1F]">
+            <AlertDialogTitle className="text-center text-[18px] font-semibold text-[#1F1F1F] dark:text-gray-100">
               Terminate Session?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-[14px] text-[#6B7280]">
-              Are you sure you want to log out from <span className="font-medium text-[#1F1F1F]">{sessionToRevoke?.device}</span>?
+              Are you sure you want to log out from <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{sessionToRevoke?.device}</span>?
               This will immediately end the session on that device.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-6 flex gap-3 sm:justify-center">
-            <AlertDialogCancel className="h-[44px] flex-1 rounded-full border border-[#E5E7EB] bg-white text-[14px] font-medium text-[#6B7280] hover:bg-[#F9FAFB] transition-colors">
+            <AlertDialogCancel className="h-[44px] flex-1 rounded-full border border-[#E5E7EB] bg-white dark:bg-[#1C1C1C] text-[14px] font-medium text-[#6B7280] hover:bg-[#F9FAFB] transition-colors">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -1025,14 +1025,14 @@ export function AccountantSettingsScreen() {
      ----------------------------------- */
   const renderNotificationsTab = () => (
     <div>
-      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white">
+      <div className="rounded-sm  sm:max-w-6xl mx-auto border border-[#ECEDEF] bg-white dark:bg-[#1C1C1C]">
         <div className="border-b border-[#ECEDEF] px-6 py-4">
-          <h3 className="text-[17px] font-semibold text-[#1F1F1F] font-goudy">Notifications</h3>
+          <h3 className="text-[17px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Notifications</h3>
         </div>
         <div className="px-6 py-2">
           {/* New document uploaded */}
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
-            <span className="text-[14px] text-[#1F1F1F] font-helvetica">New document uploaded</span>
+            <span className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">New document uploaded</span>
             {renderToggle(notifDocUploaded, () => {
               const newState = !notifDocUploaded;
               setNotifDocUploaded(newState);
@@ -1045,7 +1045,7 @@ export function AccountantSettingsScreen() {
           </div>
           {/* Missing document alerts */}
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
-            <span className="text-[14px] text-[#1F1F1F] font-helvetica">Missing document alerts</span>
+            <span className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">Missing document alerts</span>
             {renderToggle(notifMissingDoc, () => {
               const newState = !notifMissingDoc;
               setNotifMissingDoc(newState);
@@ -1058,7 +1058,7 @@ export function AccountantSettingsScreen() {
           </div>
           {/* New investor messages */}
           <div className="flex items-center justify-between border-b border-[#ECEDEF] py-4">
-            <span className="text-[14px] text-[#1F1F1F] font-helvetica">New investor messages</span>
+            <span className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">New investor messages</span>
             {renderToggle(notifInvestorMsg, () => {
               const newState = !notifInvestorMsg;
               setNotifInvestorMsg(newState);
@@ -1071,7 +1071,7 @@ export function AccountantSettingsScreen() {
           </div>
           {/* Reminder */}
           <div className="flex items-center justify-between py-4">
-            <span className="text-[14px] text-[#1F1F1F] font-helvetica">Reminder</span>
+            <span className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">Reminder</span>
             {renderToggle(notifReminder, () => {
               const newState = !notifReminder;
               setNotifReminder(newState);
@@ -1091,7 +1091,7 @@ export function AccountantSettingsScreen() {
             type="button"
             onClick={handleSaveNotifications}
             disabled={savingNotif}
-            className="h-[40px] min-w-[100px] rounded-full bg-[#FBCB4B] px-6 text-[13px] font-semibold text-[#1F1F1F] shadow-sm hover:shadow-md transition-shadow font-helvetica disabled:opacity-50"
+            className="h-[40px] min-w-[100px] rounded-full bg-[#FBCB4B] px-6 text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 shadow-sm hover:shadow-md transition-shadow font-helvetica disabled:opacity-50"
           >
             {savingNotif ? 'Saving...' : 'Save'}
           </button>
@@ -1107,7 +1107,7 @@ export function AccountantSettingsScreen() {
     if (!logoutOpen) return null;
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40">
-        <div className="relative mx-4 w-full max-w-[536px] rounded-sm bg-white p-5 shadow-xl">
+        <div className="relative mx-4 w-full max-w-[536px] rounded-sm bg-white dark:bg-[#1C1C1C] p-5 shadow-xl">
           {/* Close */}
           <button
             type="button"
@@ -1117,7 +1117,7 @@ export function AccountantSettingsScreen() {
             <X className="h-5 w-5" strokeWidth={2.5} />
           </button>
 
-          <h2 className="text-[18px] font-semibold text-[#1F1F1F] font-goudy">Log Out</h2>
+          <h2 className="text-[18px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Log Out</h2>
           <p className="mt-1 text-[13px] text-[#6B7280] font-helvetica">
             Are you sure you want to log out this account?
           </p>
@@ -1126,7 +1126,7 @@ export function AccountantSettingsScreen() {
             <button
               type="button"
               onClick={() => setLogoutOpen(false)}
-              className="h-[40px] min-w-[120px] rounded-full bg-[#FFF8E1] px-7 text-[14px] font-medium text-[#B8860B] hover:bg-[#FFECB3] transition-colors font-helvetica"
+              className="h-[40px] min-w-[120px] rounded-full bg-[#FFF8E1] dark:bg-amber-900/30 px-7 text-[14px] font-medium text-[#B8860B] hover:bg-[#FFECB3] transition-colors font-helvetica"
             >
               No
             </button>
@@ -1153,7 +1153,7 @@ export function AccountantSettingsScreen() {
   return (
     <div className="mx-auto w-full max-w-8xl font-helvetica">
       {/* Title */}
-      <h1 className="text-[26px] font-bold leading-8 text-[#1F1F1F] font-goudy">Settings</h1>
+      <h1 className="text-[26px] font-bold leading-8 text-[#1F1F1F] dark:text-gray-100 font-goudy">Settings</h1>
       <p className="mt-1 text-[13px] text-[#9CA3AF] font-helvetica">
         Manage your account preferences and security.
       </p>

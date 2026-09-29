@@ -50,13 +50,13 @@ function FundTransfersContent() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return 'text-[#059669] bg-[#ECFDF5]';
+        return 'text-[#059669] dark:text-green-400 bg-[#ECFDF5] dark:bg-green-900/30';
       case 'PENDING_SIGNATURE':
         return 'text-[#D97706] bg-[#FEF3C7]';
       case 'FAILED':
-        return 'text-[#DC2626] bg-[#FEF2F2]';
+        return 'text-[#DC2626] dark:text-red-400 bg-[#FEF2F2] dark:bg-red-900/30';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-600 dark:text-gray-400 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 border border-transparent dark:border-gray-700/50 dark:bg-gray-800';
     }
   };
 
@@ -65,21 +65,21 @@ function FundTransfersContent() {
       <div className="p-0 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] mb-1 font-goudy tracking-tight">Fund Transfers</h1>
-            <p className="text-gray-500 font-medium">Manage and track person-to-person and fund-to-fund transfers.</p>
+            <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-1 font-goudy tracking-tight">Fund Transfers</h1>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Manage and track person-to-person and fund-to-fund transfers.</p>
           </div>
           <Link href="/dashboard/funds/transfers/new">
-            <Button className="bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 px-7 py-3 rounded-full font-bold shadow-sm transition-all active:scale-95 whitespace-nowrap">
+            <Button className="bg-[#FCD34D] dark:bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-900 dark:text-gray-100 px-7 py-3 rounded-full font-bold shadow-sm transition-all active:scale-95 whitespace-nowrap">
               <Plus className="h-4 w-4 mr-2" />
               New Transfer
             </Button>
           </Link>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-[#F8FAFC] border-b border-gray-100 text-[#64748B] font-semibold">
+              <thead className="bg-[#F8FAFC] dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-800 text-[#64748B] dark:text-gray-400 font-semibold">
                 <tr>
                   <th className="px-6 py-4">Transfer Date</th>
                   <th className="px-6 py-4">Type</th>
@@ -91,18 +91,18 @@ function FundTransfersContent() {
                   <th className="px-6 py-4">Document</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50 text-gray-700">
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-gray-700 dark:text-gray-300">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                       Loading transfers...
                     </td>
                   </tr>
                 ) : transfers.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                       <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center">
+                        <div className="w-12 h-12 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center">
                           <ArrowRightLeft className="w-6 h-6 text-gray-400" />
                         </div>
                         <p>No transfers found.</p>
@@ -114,32 +114,32 @@ function FundTransfersContent() {
                     <tr 
                       key={transfer.id} 
                       onClick={() => router.push(`/dashboard/funds/transfers/${transfer.id}`)}
-                      className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                      className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
                     >
                       <td className="px-6 py-4">
                         {new Date(transfer.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
                           {transfer.transfer_type === 'PERSON_TO_PERSON' ? 'Person to Person' : 'Fund to Fund'}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="font-medium text-gray-900">{transfer.from_investor_name}</span>
-                          <span className="text-xs text-gray-500">{transfer.from_fund_name}</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{transfer.from_investor_name}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">{transfer.from_fund_name}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="font-medium text-gray-900">{transfer.to_investor_name || transfer.from_investor_name}</span>
-                          <span className="text-xs text-gray-500">{transfer.to_fund_name || transfer.from_fund_name}</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{transfer.to_investor_name || transfer.from_investor_name}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">{transfer.to_fund_name || transfer.from_fund_name}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right font-medium">
                         ${parseFloat(transfer.investment_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="px-6 py-4 text-right text-gray-600">
+                      <td className="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
                         {parseFloat(transfer.units).toFixed(4)}
                       </td>
                       <td className="px-6 py-4">
@@ -177,7 +177,7 @@ function FundTransfersContent() {
 
 export default function FundTransfersPage() {
   return (
-    <Suspense fallback={<DashboardLayout><div className="p-8 text-center text-gray-500">Loading...</div></DashboardLayout>}>
+    <Suspense fallback={<DashboardLayout><div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div></DashboardLayout>}>
       <FundTransfersContent />
     </Suspense>
   );

@@ -365,7 +365,7 @@ export default function CalendarTestPage() {
 
           <div>
             {loadingStatus ? (
-              <div className="flex items-center gap-2 text-gray-500">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                 <Loader2 className="w-4 h-4 animate-spin" /> Checking connection...
               </div>
             ) : isConnected ? (
@@ -408,8 +408,8 @@ export default function CalendarTestPage() {
         )}
 
         {!isConnected && !loadingStatus && (
-          <div className="text-center p-8 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 backdrop-blur-md mb-8">
-            <Calendar className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+          <div className="text-center p-8 rounded-2xl bg-gray-50 dark:bg-white dark:bg-[#1C1C1C]/[0.02] border border-gray-200 dark:border-white/5 backdrop-blur-md mb-8">
+            <Calendar className="w-12 h-12 text-gray-400 dark:text-gray-500 dark:text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Connect Your Google Calendar</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
               You must authenticate with your Google Workspace or Personal Account before scheduling calendar invites.
@@ -429,7 +429,7 @@ export default function CalendarTestPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
             {/* Form Section */}
-            <div className="lg:col-span-4 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm p-6 rounded-2xl h-fit">
+            <div className="lg:col-span-4 bg-white dark:bg-white dark:bg-[#1C1C1C]/[0.02] border border-gray-200 dark:border-white/5 shadow-sm p-6 rounded-2xl h-fit">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Schedule Invite
@@ -445,7 +445,7 @@ export default function CalendarTestPage() {
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full bg-gray-50 dark:bg-white/[0.03] border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150"
+                    className="w-full bg-gray-50 dark:bg-white dark:bg-[#1C1C1C]/[0.03] border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150"
                   />
                 </div>
 
@@ -457,7 +457,7 @@ export default function CalendarTestPage() {
                     rows={3}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full bg-gray-50 dark:bg-white/[0.03] border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150 resize-none"
+                    className="w-full bg-gray-50 dark:bg-white dark:bg-[#1C1C1C]/[0.03] border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150 resize-none"
                   />
                 </div>
 
@@ -470,7 +470,7 @@ export default function CalendarTestPage() {
                     required
                     value={scheduledDate}
                     onChange={(e) => setScheduledDate(e.target.value)}
-                    className="w-full bg-gray-50 dark:bg-white/[0.03] border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150"
+                    className="w-full bg-gray-50 dark:bg-white dark:bg-[#1C1C1C]/[0.03] border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150"
                   />
                 </div>
 
@@ -485,21 +485,21 @@ export default function CalendarTestPage() {
                     max={480}
                     value={durationMinutes}
                     onChange={(e) => setDurationMinutes(parseInt(e.target.value))}
-                    className="w-full bg-gray-50 dark:bg-white/[0.03] border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150"
+                    className="w-full bg-gray-50 dark:bg-white dark:bg-[#1C1C1C]/[0.03] border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 flex items-center justify-between">
                     <span>Send Attendee Invite To</span>
-                    <span className="text-[10px] lowercase text-gray-400 dark:text-gray-500 font-normal">Optional (comma separated)</span>
+                    <span className="text-[10px] lowercase text-gray-400 dark:text-gray-500 dark:text-gray-400 font-normal">Optional (comma separated)</span>
                   </label>
                   <input
                     type="text"
                     value={attendeeEmailInput}
                     onChange={(e) => setAttendeeEmailInput(e.target.value)}
                     placeholder="e.g. user1@test.com, user2@test.com"
-                    className="w-full bg-gray-50 dark:bg-white/[0.03] border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150"
+                    className="w-full bg-gray-50 dark:bg-white dark:bg-[#1C1C1C]/[0.03] border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150"
                   />
                 </div>
 
@@ -516,7 +516,7 @@ export default function CalendarTestPage() {
 
             {/* Event List Section */}
             <div className="lg:col-span-8 space-y-6">
-              <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 shadow-sm p-6 rounded-2xl h-full min-h-[500px]">
+              <div className="bg-white dark:bg-white dark:bg-[#1C1C1C]/[0.02] border border-gray-200 dark:border-white/5 shadow-sm p-6 rounded-2xl h-full min-h-[500px]">
                 <div className="flex items-center justify-between border-b border-gray-100 dark:border-white/5 pb-4 mb-6">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                     <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -524,7 +524,7 @@ export default function CalendarTestPage() {
                   </h2>
                   <button 
                     onClick={() => fetchEvents()}
-                    className="p-2 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                    className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
                     title="Reload meetings list"
                   >
                     <RefreshCw className={`w-4 h-4 ${loadingEvents ? 'animate-spin' : ''}`} />
@@ -546,7 +546,7 @@ export default function CalendarTestPage() {
                       return (
                         <div 
                           key={event.id}
-                          className="p-5 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 text-left flex flex-col md:flex-row md:items-start justify-between gap-6 hover:shadow-md transition-all duration-200"
+                          className="p-5 rounded-2xl bg-gray-50 dark:bg-white dark:bg-[#1C1C1C]/[0.02] border border-gray-200 dark:border-white/5 text-left flex flex-col md:flex-row md:items-start justify-between gap-6 hover:shadow-md transition-all duration-200"
                         >
                           <div className="space-y-3 flex-1 min-w-0">
                             <div>
@@ -593,14 +593,14 @@ export default function CalendarTestPage() {
                             </div>
 
                             {/* Participants List */}
-                            <div className="pt-3 border-t border-gray-200/50 dark:border-white/5 space-y-2">
+                            <div className="pt-3 border-t border-gray-200 dark:border-gray-800/50 dark:border-white/5 space-y-2">
                               <span className="text-[9px] uppercase font-bold tracking-wider text-gray-400 block mb-1">
                                 Invitees & RSVP Status
                               </span>
                               {event.attendees && event.attendees.length > 0 ? (
                                 <div className="space-y-2">
                                   {event.attendees.map((attendee) => (
-                                    <div key={attendee.email} className="flex flex-col sm:flex-row sm:items-center justify-between p-2 rounded-lg bg-white/40 dark:bg-white/[0.01] border border-gray-200/40 dark:border-white/[0.02] gap-2">
+                                    <div key={attendee.email} className="flex flex-col sm:flex-row sm:items-center justify-between p-2 rounded-lg bg-white dark:bg-[#1C1C1C]/40 dark:bg-white dark:bg-[#1C1C1C]/[0.01] border border-gray-200 dark:border-gray-800/40 dark:border-white/[0.02] gap-2">
                                       <div className="min-w-0">
                                         <span className="text-xs font-medium text-gray-700 dark:text-gray-300 block truncate">
                                           {attendee.email}
@@ -648,18 +648,18 @@ export default function CalendarTestPage() {
                           </div>
 
                           {/* Controls Panel */}
-                          <div className="flex flex-col gap-3 shrink-0 w-full md:w-auto md:min-w-[170px] border-t md:border-t-0 pt-4 md:pt-0 border-gray-200/50 dark:border-white/5">
+                          <div className="flex flex-col gap-3 shrink-0 w-full md:w-auto md:min-w-[170px] border-t md:border-t-0 pt-4 md:pt-0 border-gray-200 dark:border-gray-800/50 dark:border-white/5">
                             
                             <button
                               onClick={() => handleSyncStatus(event.google_event_id)}
                               disabled={isSyncing || isResponding}
-                              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-gray-300 dark:border-white/10 text-xs font-semibold text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-all duration-200 disabled:opacity-50"
+                              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-gray-300 dark:border-white/10 text-xs font-semibold text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white dark:bg-[#1C1C1C]/5 transition-all duration-200 disabled:opacity-50"
                             >
                               <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
                               Sync Live RSVPs
                             </button>
 
-                            <div className="pt-2 border-t border-gray-200/50 dark:border-white/5">
+                            <div className="pt-2 border-t border-gray-200 dark:border-gray-800/50 dark:border-white/5">
                               <span className="text-[9px] uppercase font-bold tracking-wider text-gray-400 block mb-1.5 text-center">
                                 Invite Guest
                               </span>
@@ -668,7 +668,7 @@ export default function CalendarTestPage() {
                                 placeholder="Enter guest email"
                                 value={currentGuestEmail}
                                 onChange={(e) => setGuestEmailMap(prev => ({ ...prev, [event.google_event_id]: e.target.value }))}
-                                className="w-full bg-white dark:bg-white/[0.03] border border-gray-300 dark:border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150"
+                                className="w-full bg-white dark:bg-white dark:bg-[#1C1C1C]/[0.03] border border-gray-300 dark:border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150"
                               />
                               <button
                                 onClick={() => handleInviteGuest(event.google_event_id)}
@@ -686,10 +686,10 @@ export default function CalendarTestPage() {
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-24 text-gray-400 dark:text-gray-500 space-y-3">
-                    <Calendar className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto" />
+                  <div className="text-center py-24 text-gray-400 dark:text-gray-500 dark:text-gray-400 space-y-3">
+                    <Calendar className="w-12 h-12 text-gray-300 dark:text-gray-600 dark:text-gray-400 mx-auto" />
                     <p className="text-base font-medium">No sandbox meetings created yet.</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 max-w-sm mx-auto">
+                    <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
                       Fill out the scheduler form on the left to send an invite and start building your test meetings list.
                     </p>
                   </div>

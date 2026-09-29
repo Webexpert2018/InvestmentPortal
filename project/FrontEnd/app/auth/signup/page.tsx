@@ -164,7 +164,7 @@ function SignupForm() {
         priority
         className="object-cover object-center z-0"
       />
-      <div className="relative z-10 w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
+      <div className="relative z-10 w-full max-w-md bg-white dark:bg-[#1C1C1C] rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
         
         <a href="/" className="flex justify-center mb-3 sm:mb-4">
           <Image
@@ -177,7 +177,7 @@ function SignupForm() {
           />
         </a>
 
-        <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
+        <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F] dark:text-gray-100">
           Create Account
         </h2>
         <p className="mt-1 text-center text-md sm:text-xl">
@@ -200,7 +200,7 @@ function SignupForm() {
               onChange={handleChange}
               required
               disabled={loading || verifyingInvite}
-              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:bg-gray-50"
+              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:bg-gray-50 dark:bg-gray-800"
             />
             <input
               name="lastName"
@@ -209,7 +209,7 @@ function SignupForm() {
               onChange={handleChange}
               required
               disabled={loading || verifyingInvite}
-              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:bg-gray-50"
+              className="w-full font-helvetica text-xs sm:text-sm rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:bg-gray-50 dark:bg-gray-800"
             />
           </div>
 
@@ -240,7 +240,7 @@ function SignupForm() {
                 value={formData.phoneCountryCode}
                 onChange={handleChange}
                 disabled={loading}
-                className="h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-3 pr-7 text-xs sm:text-sm font-helvetica outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-50"
+                className="h-10 w-full appearance-none rounded-md border border-gray-300 bg-white dark:bg-[#1C1C1C] pl-3 pr-7 text-xs sm:text-sm font-helvetica outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-50"
               >
                 {COUNTRY_CODES.map(code => (
                   <option key={code} value={code}>{code}</option>
@@ -274,7 +274,7 @@ function SignupForm() {
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               disabled={loading}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition disabled:opacity-50"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 transition disabled:opacity-50"
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -295,7 +295,7 @@ function SignupForm() {
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               disabled={loading}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition disabled:opacity-50"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 transition disabled:opacity-50"
             >
               {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -310,7 +310,7 @@ function SignupForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-6 flex justify-center items-center rounded-full bg-yellow-400 py-2.5 text-sm font-medium text-gray-900 hover:bg-yellow-500 transition"
+            className="w-full mt-6 flex justify-center items-center rounded-full bg-yellow-400 py-2.5 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-yellow-500 transition"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {loading ? 'Creating account...' : 'Sign Up'}

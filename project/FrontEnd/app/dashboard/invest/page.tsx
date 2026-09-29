@@ -627,7 +627,7 @@ export default function InvestPage() {
         {/* <button
           type="button"
           onClick={() => setStep('chooseFund')}
-          className="rounded-full bg-[#FFF3D6] px-10 py-3 text-sm font-semibold text-[#4B4B4B] hover:bg-[#FFE7AF] transition-all"
+          className="rounded-full bg-[#FFF3D6] px-10 py-3 text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FFE7AF] transition-all"
         >
           Cancel
         </button> */}
@@ -636,7 +636,7 @@ export default function InvestPage() {
             <button
               type="button"
               onClick={goBack}
-              className="rounded-full bg-[#FFF3D6] px-10 py-3 text-sm font-semibold text-[#4B4B4B] hover:bg-[#FFE7AF] transition-all"
+              className="rounded-full bg-[#FFF3D6] px-10 py-3 text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FFE7AF] transition-all"
             >
               Back
             </button>
@@ -644,7 +644,7 @@ export default function InvestPage() {
           <button
             type="button"
             onClick={goNext}
-            className="rounded-full bg-[#FBCB4B] px-10 py-3 text-sm font-semibold text-[#1F1F1F] hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm transition-all"
+            className="rounded-full bg-[#FBCB4B] px-10 py-3 text-sm font-semibold text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm transition-all"
             disabled={
               saving ||
               (step === 'fundingAccount' && !selectedAccountId) ||
@@ -663,7 +663,7 @@ export default function InvestPage() {
 
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F]">
+          <h1 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F] dark:text-gray-100">
             Choose a Fund
           </h1>
           <p className="mt-2 text-sm text-[#8E8E93]">
@@ -677,18 +677,18 @@ export default function InvestPage() {
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
+              <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white px-6 py-6 shadow-sm">
+      <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-6 py-6 shadow-sm">
         <div className="mb-6 flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={goNext}
-            className="rounded-full bg-[#FBCB4B] px-6 py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full bg-[#FBCB4B] px-6 py-2 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60"
             disabled={!selectedFundId}
           >
             Invest Now
@@ -702,10 +702,10 @@ export default function InvestPage() {
               <div
                 key={fund.id}
                 onClick={() => setSelectedFundId(fund.id)}
-                className={`flex flex-col sm:flex-row md:flex-col xl:flex-row w-full items-start rounded-xl bg-[#F7F8FA] px-5 py-5 sm:px-6 sm:py-6 text-left transition hover:bg-[#F1F2F5] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : 'border border-transparent hover:border-gray-200'
+                className={`flex flex-col sm:flex-row md:flex-col xl:flex-row w-full items-start rounded-xl bg-[#F7F8FA] px-5 py-5 sm:px-6 sm:py-6 text-left transition hover:bg-[#F1F2F5] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : 'border border-transparent hover:border-gray-200 dark:border-gray-800'
                   }`}
               >
-                <div className="mb-4 sm:mb-0 md:mb-5 xl:mb-0 sm:mr-6 md:mr-0 xl:mr-6 h-40 sm:h-28 md:h-48 xl:h-28 w-full sm:w-48 md:w-full xl:w-48 flex-shrink-0 bg-white rounded-xl overflow-hidden border border-[#E5E5EA] flex items-center justify-center shadow-sm">
+                <div className="mb-4 sm:mb-0 md:mb-5 xl:mb-0 sm:mr-6 md:mr-0 xl:mr-6 h-40 sm:h-28 md:h-48 xl:h-28 w-full sm:w-48 md:w-full xl:w-48 flex-shrink-0 bg-white dark:bg-[#1C1C1C] rounded-xl overflow-hidden border border-[#E5E5EA] flex items-center justify-center shadow-sm">
                   <img
                     src={getFullImageUrl(fund.image)}
                     alt={fund.name}
@@ -714,7 +714,7 @@ export default function InvestPage() {
                 </div>
                 <div className="flex-grow min-w-0 w-full">
                   <div className="flex items-start justify-between gap-4">
-                    <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F] truncate">
+                    <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F] dark:text-gray-100 truncate">
                       {fund.name}
                     </h3>
 
@@ -734,7 +734,7 @@ export default function InvestPage() {
                         title={toggledFundId === fund.id ? "Hide details" : "Show details"}
                       >
                         <span
-                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${toggledFundId === fund.id ? 'translate-x-4' : 'translate-x-0'
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white dark:bg-[#1C1C1C] shadow ring-0 transition duration-200 ease-in-out ${toggledFundId === fund.id ? 'translate-x-4' : 'translate-x-0'
                             }`}
                         />
                       </button>
@@ -750,7 +750,7 @@ export default function InvestPage() {
                       Created: {fund.startDate ? new Date(fund.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : 'N/A'}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#4B4B4B] line-clamp-2 max-w-sm">
+                  <p className="text-[11px] text-[#4B4B4B] dark:text-gray-300 line-clamp-2 max-w-sm">
                     {fund.description || 'Secure institutional-grade Bitcoin strategies.'}
                   </p>
                   {fund.note && (
@@ -772,7 +772,7 @@ export default function InvestPage() {
             <div className="mt-8 border-t border-[#E5E5EA] pt-8 animate-fadeIn">
               <div className="flex items-center gap-2 mb-6">
                 <div className="h-5 w-1 bg-[#274583] rounded-full"></div>
-                <h3 className="font-goudy text-lg sm:text-xl font-bold text-[#1F1F1F]">
+                <h3 className="font-goudy text-lg sm:text-xl font-bold text-[#1F1F1F] dark:text-gray-100">
                   Fund Information: {toggledFund.name}
                 </h3>
               </div>
@@ -780,7 +780,7 @@ export default function InvestPage() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Image and Start Date */}
                 <div className="space-y-4">
-                  <div className="w-full h-60 rounded-xl shadow-sm border border-[#E5E5EA] bg-white flex items-center justify-center overflow-hidden">
+                  <div className="w-full h-60 rounded-xl shadow-sm border border-[#E5E5EA] bg-white dark:bg-[#1C1C1C] flex items-center justify-center overflow-hidden">
                     <img
                       src={getFullImageUrl(toggledFund.image)}
                       alt={toggledFund.name}
@@ -789,7 +789,7 @@ export default function InvestPage() {
                   </div>
                   <div className="bg-[#F7F8FA] p-4 rounded-xl border border-[#E5E5EA]">
                     <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Start Date</p>
-                    <p className="text-sm font-bold text-[#1F1F1F] mt-1">
+                    <p className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">
                       {toggledFund.startDate ? new Date(toggledFund.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : 'N/A'}
                     </p>
                   </div>
@@ -799,7 +799,7 @@ export default function InvestPage() {
                 <div className="lg:col-span-2 space-y-6">
                   <div>
                     <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider mb-2">Description</p>
-                    <p className="text-sm text-[#4B4B4B] leading-relaxed whitespace-pre-line bg-[#F7F8FA] p-4 rounded-xl border border-[#E5E5EA]">
+                    <p className="text-sm text-[#4B4B4B] dark:text-gray-300 leading-relaxed whitespace-pre-line bg-[#F7F8FA] p-4 rounded-xl border border-[#E5E5EA]">
                       {toggledFund.description || 'Secure institutional-grade Bitcoin strategies.'}
                     </p>
                   </div>
@@ -810,24 +810,24 @@ export default function InvestPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 bg-[#F7F8FA] p-5 rounded-xl border border-[#E5E5EA]">
                       <div>
                         <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Bank Name</p>
-                        <p className="text-xs font-bold text-[#1F1F1F] mt-1">{toggledFund.bankName || 'N/A'}</p>
+                        <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">{toggledFund.bankName || 'N/A'}</p>
                       </div>
                       <div>
                         <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Account Number</p>
-                        <p className="text-xs font-bold text-[#1F1F1F] mt-1 tracking-wider">{toggledFund.accountNumber || 'N/A'}</p>
+                        <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1 tracking-wider">{toggledFund.accountNumber || 'N/A'}</p>
                       </div>
                       <div>
                         <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Routing Number (ABA)</p>
-                        <p className="text-xs font-bold text-[#1F1F1F] mt-1">{toggledFund.routingNumber || 'N/A'}</p>
+                        <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">{toggledFund.routingNumber || 'N/A'}</p>
                       </div>
                       <div className="sm:col-span-2 md:col-span-3 border-t border-[#E5E5EA] pt-4 mt-2">
                         <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">For Benefit Of</p>
-                        <p className="text-xs font-bold text-[#1F1F1F] mt-1">{toggledFund.beneficiaryName || 'N/A'}</p>
+                        <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">{toggledFund.beneficiaryName || 'N/A'}</p>
                       </div>
                       {toggledFund.bankAddress && (
                         <div className="sm:col-span-2 md:col-span-3 border-t border-[#E5E5EA] pt-4">
                           <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Custodian Address</p>
-                          <p className="text-xs font-bold text-[#1F1F1F] mt-1 leading-relaxed whitespace-pre-line">{toggledFund.bankAddress}</p>
+                          <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1 leading-relaxed whitespace-pre-line">{toggledFund.bankAddress}</p>
                         </div>
                       )}
                     </div>
@@ -845,7 +845,7 @@ export default function InvestPage() {
     <>
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
             Select Funding Account
           </h1>
           <p className="mt-2 text-sm text-[#8E8E93]">
@@ -858,7 +858,7 @@ export default function InvestPage() {
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
+              <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
             </div>
           </div>
         </div>
@@ -869,7 +869,7 @@ export default function InvestPage() {
         if (accountsInCategory.length === 0) return null;
         return (
           <div key={category} className="mb-8">
-            <h3 className="text-sm font-bold text-[#1F1F1F] mb-4 pl-2 uppercase tracking-wider">{category}</h3>
+            <h3 className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100 mb-4 pl-2 uppercase tracking-wider">{category}</h3>
             <div className="grid gap-6 md:grid-cols-3 px-2">
               {accountsInCategory.map((account: any) => {
           const selected = account.id === selectedAccountId;
@@ -881,19 +881,19 @@ export default function InvestPage() {
               disabled={isSuspended}
               onClick={() => setSelectedAccountId(account.id)}
               className={`flex w-full flex-col items-start rounded-2xl px-6 py-5 text-left transition ${selected
-                ? 'bg-white shadow-md ring-2 ring-[#274583] ring-offset-2'
+                ? 'bg-white dark:bg-[#1C1C1C] shadow-md ring-2 ring-[#274583] ring-offset-2'
                 : isSuspended
-                  ? 'bg-gray-50 opacity-60 cursor-not-allowed border-red-100'
-                  : 'bg-white shadow-sm hover:shadow-md border border-[#E5E5EA]'
+                  ? 'bg-gray-50 dark:bg-gray-800 opacity-60 cursor-not-allowed border-red-100'
+                  : 'bg-white dark:bg-[#1C1C1C] shadow-sm hover:shadow-md border border-[#E5E5EA]'
                 }`}
             >
               <div className="flex w-full items-center justify-between mb-1">
-                <p className={`text-sm font-bold ${isSuspended ? 'text-gray-400' : 'text-[#1F1F1F]'}`}>{account.label}</p>
+                <p className={`text-sm font-bold ${isSuspended ? 'text-gray-400' : 'text-[#1F1F1F] dark:text-gray-100'}`}>{account.label}</p>
                 <div
                   className={`flex h-5 w-5 items-center justify-center rounded-full border ${selected ? 'border-[#274583] bg-[#274583]' : 'border-[#D4D4D4]'
                     } ${isSuspended ? 'opacity-0' : ''}`}
                 >
-                  {selected && <div className="h-2 w-2 rounded-full bg-white" />}
+                  {selected && <div className="h-2 w-2 rounded-full bg-white dark:bg-[#1C1C1C]" />}
                 </div>
               </div>
               <p className={`text-xs font-bold uppercase tracking-wider ${isSuspended ? 'text-red-500' : 'text-[#8E8E93]'}`}>
@@ -915,7 +915,7 @@ export default function InvestPage() {
     <>
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-goudy text-xl sm:text-[28px] font-bold leading-[38px] text-[#1F1F1F]">
+          <h1 className="font-goudy text-xl sm:text-[28px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
             Investment Amount
           </h1>
           <p className="mt-1 text-sm text-[#8E8E93]">Specify how much you&apos;d like to invest.</p>
@@ -926,7 +926,7 @@ export default function InvestPage() {
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
+              <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
             </div>
           </div>
         </div>
@@ -934,8 +934,8 @@ export default function InvestPage() {
 
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
-          <div className="rounded-2xl bg-white px-8 py-8 shadow-sm border border-gray-100">
-            <label className="block text-xs font-bold uppercase tracking-wide text-[#4B4B4B] mb-4">
+          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
+            <label className="block text-xs font-bold uppercase tracking-wide text-[#4B4B4B] dark:text-gray-300 mb-4">
               Amount
             </label>
             <div className="relative">
@@ -944,24 +944,24 @@ export default function InvestPage() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="$0.00"
-                className="w-full rounded-xl border border-[#E5E5EA] bg-white px-6 py-4 text-lg font-medium text-[#1F1F1F] outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] transition-all"
+                className="w-full rounded-xl border border-[#E5E5EA] bg-white dark:bg-[#1C1C1C] px-6 py-4 text-lg font-medium text-[#1F1F1F] dark:text-gray-100 outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] transition-all"
               />
               <p className="mt-3 text-xs text-[#8E8E93]">Minimum investment: $10,000</p>
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white px-8 py-8 shadow-sm border border-gray-100">
-            <p className="text-xs font-bold uppercase tracking-wide text-[#4B4B4B] mb-6">
+          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
+            <p className="text-xs font-bold uppercase tracking-wide text-[#4B4B4B] dark:text-gray-300 mb-6">
               Estimated Units You Will Receive
             </p>
             <div className="grid gap-12 md:grid-cols-2">
-              <div className="border-r border-gray-100 pr-8">
+              <div className="border-r border-gray-100 dark:border-gray-800 pr-8">
                 <p className="text-sm font-medium text-[#8E8E93] mb-1">Unit Price</p>
-                <p className="text-xl font-bold text-[#1F1F1F]">${unitPrice.toFixed(2)}</p>
+                <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">${unitPrice.toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-[#8E8E93] mb-1">Estimated Units</p>
-                <p className="text-xl font-bold text-[#1F1F1F]">
+                <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">
                   {estimatedUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} units
                 </p>
               </div>
@@ -969,12 +969,12 @@ export default function InvestPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white px-8 py-8 shadow-sm border border-gray-100 h-fit">
-          <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] mb-6">Order Summary</h2>
+        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800 h-fit">
+          <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-6">Order Summary</h2>
           <div className="space-y-4 text-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <span className="text-[#8E8E93]">Investment Amount</span>
-              <span className="font-bold text-[#1F1F1F]">
+              <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
                 $
                 {investmentAmount.toLocaleString('en-US', {
                   minimumFractionDigits: 0,
@@ -984,7 +984,7 @@ export default function InvestPage() {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <span className="text-[#8E8E93]">Estimated Units</span>
-              <span className="font-bold text-[#1F1F1F]">
+              <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
                 {estimatedUnits.toLocaleString('en-US', {
                   minimumFractionDigits: 4,
                   maximumFractionDigits: 4,
@@ -993,7 +993,7 @@ export default function InvestPage() {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <span className="text-[#8E8E93]">Processing Fee (0%)</span>
-              <span className="font-bold text-[#1F1F1F]">
+              <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
                 $
                 {processingFee.toLocaleString('en-US', {
                   minimumFractionDigits: 0,
@@ -1025,7 +1025,7 @@ export default function InvestPage() {
     <>
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
             Sign Subscription Documents
           </h1>
           <p className="mt-1 text-sm text-[#8E8E93]">
@@ -1038,7 +1038,7 @@ export default function InvestPage() {
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
+              <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
             </div>
           </div>
         </div>
@@ -1046,19 +1046,19 @@ export default function InvestPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         {/* Left Preview Section */}
-        <div className="rounded-[8px] bg-white p-0 sm:p-4 shadow-sm border border-[#E5E5EA] w-full max-w-full overflow-hidden">
+        <div className="rounded-[8px] bg-white dark:bg-[#1C1C1C] p-0 sm:p-4 shadow-sm border border-[#E5E5EA] w-full max-w-full overflow-hidden">
           <div className="flex flex-col min-h-[750px] lg:min-h-[900px] rounded-[6px] border border-[#E9EBEE] bg-[#F8F9FB] overflow-hidden transition-all w-full max-w-full">
             {/* Toolbar */}
-            <div className="flex h-[44px] items-center justify-between border-b border-[#E2E5EA] bg-white px-2 sm:px-4">
+            <div className="flex h-[44px] items-center justify-between border-b border-[#E2E5EA] bg-white dark:bg-[#1C1C1C] px-2 sm:px-4">
               <div className="flex items-center gap-2 sm:gap-3 text-[12px] text-[#6B7280] min-w-0">
                 <button
                   onClick={() => { setSelectedSubDoc(null); setSelectedPage(1); setStep('investmentAmount'); }}
-                  className="inline-flex items-center gap-0.5 sm:gap-1 text-[#5E6B7F] hover:text-[#1F1F1F] transition-colors flex-shrink-0"
+                  className="inline-flex items-center gap-0.5 sm:gap-1 text-[#5E6B7F] hover:text-[#1F1F1F] dark:text-gray-100 transition-colors flex-shrink-0"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span className="hidden sm:inline">Back</span>
                 </button>
-                <div className="border-l border-gray-200 pl-2 sm:pl-3 min-w-0">
+                <div className="border-l border-gray-200 dark:border-gray-800 pl-2 sm:pl-3 min-w-0">
                   <p className="font-medium text-[#374151] truncate max-w-[120px] sm:max-w-[200px]">
                     {selectedSubDoc?.name || 'Select a document'}
                   </p>
@@ -1081,7 +1081,7 @@ export default function InvestPage() {
 
             <div className="flex flex-col md:grid md:grid-cols-[92px_1fr] flex-1 min-h-0 w-full max-w-full overflow-hidden">
               {/* Dynamic Thumbnail Sidebar */}
-              <aside className="w-full max-w-full border-b md:border-b-0 md:border-r border-[#E2E5EA] bg-white p-2 pb-3 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto h-auto md:max-h-[820px] custom-scrollbar shrink-0">
+              <aside className="w-full max-w-full border-b md:border-b-0 md:border-r border-[#E2E5EA] bg-white dark:bg-[#1C1C1C] p-2 pb-3 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto h-auto md:max-h-[820px] custom-scrollbar shrink-0">
                 {selectedSubDoc && Array.from({ length: selectedSubDoc.pages || 1 }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
@@ -1099,7 +1099,7 @@ export default function InvestPage() {
               {/* Main Content Area */}
               <div className="relative bg-[#ECEDEF] p-0 sm:p-10 flex flex-col items-center overflow-y-auto overflow-x-hidden max-h-[680px] lg:max-h-[820px] custom-scrollbar selection-none w-full min-w-0">
                 <div
-                  className="w-full bg-white shadow-lg border border-[#D9DDE3] rounded-sm relative overflow-hidden transition-all shrink-0"
+                  className="w-full bg-white dark:bg-[#1C1C1C] shadow-lg border border-[#D9DDE3] rounded-sm relative overflow-hidden transition-all shrink-0"
                   style={{
                     maxWidth: zoom <= 100 ? 'min(850px, 100%)' : '100%',
                     width: '100%',
@@ -1114,7 +1114,7 @@ export default function InvestPage() {
                         : `/documents/subscription/${selectedSubDoc.name}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH`
                       }
                       key={`${selectedSubDoc.name}-${selectedPage}`}
-                      className="w-full h-full border-none absolute inset-0 bg-white"
+                      className="w-full h-full border-none absolute inset-0 bg-white dark:bg-[#1C1C1C]"
                       title="Document Preview"
                     />
                   ) : (
@@ -1127,7 +1127,7 @@ export default function InvestPage() {
             </div>
 
             {/* Dynamic Status Bar */}
-            <div className="flex h-[30px] items-center justify-between border-t border-[#E2E5EA] bg-white px-4 text-[10px] text-[#98A1B2]">
+            <div className="flex h-[30px] items-center justify-between border-t border-[#E2E5EA] bg-white dark:bg-[#1C1C1C] px-4 text-[10px] text-[#98A1B2]">
               <p>{selectedSubDoc ? selectedSubDoc.lastModified : 'No selection'}</p>
               <p>{selectedSubDoc ? selectedSubDoc.size : ''}</p>
             </div>
@@ -1136,8 +1136,8 @@ export default function InvestPage() {
 
         {/* Right Action Section */}
         <div className="flex flex-col gap-6">
-          <div className="rounded-2xl bg-white p-8 shadow-sm border border-[#E5E5EA]">
-            <h2 className="font-goudy text-[22px] font-bold text-[#1F1F1F]">Your Document</h2>
+          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-8 shadow-sm border border-[#E5E5EA]">
+            <h2 className="font-goudy text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100">Your Document</h2>
             <p className="mt-4 text-xs text-[#8E8E93] leading-relaxed">
               Please review and sign the documents below, click &quot;Start Signing&quot; to begin.
             </p>
@@ -1153,22 +1153,22 @@ export default function InvestPage() {
                       type="button"
                       onClick={() => { setSelectedSubDoc(doc); setSelectedPage(1); }}
                       className={`flex w-full items-center gap-4 rounded-xl border px-5 py-4 text-left transition-all ${isSelected
-                        ? 'border-[#FBCB4B] bg-white shadow-md ring-1 ring-[#FBCB4B]'
-                        : 'border-[#E5E5EA] bg-white hover:border-gray-300 hover:shadow-sm'
+                        ? 'border-[#FBCB4B] bg-white dark:bg-[#1C1C1C] shadow-md ring-1 ring-[#FBCB4B]'
+                        : 'border-[#E5E5EA] bg-white dark:bg-[#1C1C1C] hover:border-gray-300 hover:shadow-sm'
                         }`}
                     >
                       <div className="relative flex h-10 w-10 items-center justify-center rounded-lg bg-[#FFF5F5]">
                         <div className="absolute inset-0 rounded-lg bg-[rgba(255,82,82,0.1)]" />
                         <FileText className="h-6 w-6 text-[#FF5252]" />
                       </div>
-                      <span className="flex-1 font-semibold text-[#1F1F1F] text-sm truncate">
+                      <span className="flex-1 font-semibold text-[#1F1F1F] dark:text-gray-100 text-sm truncate">
                         {doc.name.replace(/\.[^/.]+$/, "").split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                       </span>
                     </button>
                   );
                 })
               ) : (
-                <div className="py-12 text-center border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50">
+                <div className="py-12 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-2xl bg-gray-50 dark:bg-gray-800">
                   <p className="text-xs text-gray-400 font-medium">No documents found in folder</p>
                 </div>
               )}
@@ -1197,7 +1197,7 @@ export default function InvestPage() {
               <button
                 type="button"
                 onClick={handleDownload}
-                className="w-full rounded-full bg-white py-3.5 text-sm font-bold text-[#1F1F1F] ring-1 ring-[#E5E5EA] hover:bg-[#F9FAFB] shadow-sm transition-all"
+                className="w-full rounded-full bg-white dark:bg-[#1C1C1C] py-3.5 text-sm font-bold text-[#1F1F1F] dark:text-gray-100 ring-1 ring-[#E5E5EA] hover:bg-[#F9FAFB] shadow-sm transition-all"
               >
                 Download Document (PDF)
               </button>
@@ -1230,7 +1230,7 @@ export default function InvestPage() {
               </svg>
             </div>
           </div>
-          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
             Congratulations!
           </h1>
           <p className="mt-2 text-base text-[#8E8E93]">
@@ -1243,15 +1243,15 @@ export default function InvestPage() {
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
+              <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="rounded-2xl bg-white px-8 py-6 shadow-sm border border-[#E5E5EA]">
-          <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] mb-4">Investment Status</h2>
+        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm border border-[#E5E5EA]">
+          <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-4">Investment Status</h2>
           <div className="relative">
             <div className="absolute left-2 top-4 bottom-4 w-px bg-[#E5E5EA]" />
             <div className="space-y-4">
@@ -1298,7 +1298,7 @@ export default function InvestPage() {
                   <div key={item.title} className="flex items-start gap-4">
                     <div className={`relative z-10 mt-1 flex h-4 w-4 items-center justify-center rounded-full border ${isDone ? 'border-[#2BB673] bg-[#2BB673]' :
                       isActive ? 'border-[#FBCB4B] bg-[#FFF3D6]' :
-                        'border-[#E5E5EA] bg-white'
+                        'border-[#E5E5EA] bg-white dark:bg-[#1C1C1C]'
                       }`}>
                       {isDone && (
                         <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
@@ -1308,7 +1308,7 @@ export default function InvestPage() {
                       {isActive && <span className="h-2 w-2 rounded-full bg-[#FBCB4B]" />}
                     </div>
                     <div>
-                      <p className={`text-sm font-medium ${isDone ? 'text-[#1F1F1F]' : isActive ? 'text-[#1F1F1F]' : 'text-[#8E8E93]'}`}>
+                      <p className={`text-sm font-medium ${isDone ? 'text-[#1F1F1F] dark:text-gray-100' : isActive ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#8E8E93]'}`}>
                         {item.title}
                       </p>
                       <p className="mt-1 text-xs text-[#8E8E93]">{item.subtitle}</p>
@@ -1320,9 +1320,9 @@ export default function InvestPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#E5E5EA] bg-white px-8 py-6 shadow-sm h-fit">
+        <div className="rounded-2xl border border-[#E5E5EA] bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm h-fit">
           <div className="pb-3 border-b border-[#E5E5EA]">
-            <h2 className="font-goudy text-base text-[#1F1F1F]">Quick Actions</h2>
+            <h2 className="font-goudy text-base text-[#1F1F1F] dark:text-gray-100">Quick Actions</h2>
           </div>
           <div className="pt-4 space-y-3">
             <button
@@ -1349,21 +1349,21 @@ export default function InvestPage() {
                   }
                 })();
               }}
-              className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF] transition-all"
+              className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FFE7AF] transition-all"
             >
               View Document
             </button>
             <button
               type="button"
               onClick={() => router.push('/dashboard/messages')}
-              className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF] transition-all"
+              className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FFE7AF] transition-all"
             >
               Message
             </button>
             <button
               type="button"
               onClick={() => router.push('/dashboard/document-vault')}
-              className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF] transition-all"
+              className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FFE7AF] transition-all"
             >
               Document Vault
             </button>
@@ -1378,7 +1378,7 @@ export default function InvestPage() {
             localStorage.removeItem('draft_investment');
             setStep('chooseFund');
           }}
-          className="rounded-full bg-[#FBCB4B] px-12 py-3.5 text-sm font-bold text-[#1F1F1F] hover:bg-[#F9B800] shadow-sm transition-all"
+          className="rounded-full bg-[#FBCB4B] px-12 py-3.5 text-sm font-bold text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9B800] shadow-sm transition-all"
         >
           Done
         </button>
@@ -1390,7 +1390,7 @@ export default function InvestPage() {
     <>
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F]">
+          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
             Investment Status
           </h1>
           <p className="mt-2 text-sm text-[#8E8E93]">Track your investment through each stage.</p>
@@ -1401,14 +1401,14 @@ export default function InvestPage() {
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
+              <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="rounded-2xl bg-white px-8 py-6 shadow-sm">
+        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm">
           <div className="relative">
             <div className="absolute left-2 top-4 bottom-4 w-px bg-[#E5E5EA]" />
             <div className="space-y-4">
@@ -1455,7 +1455,7 @@ export default function InvestPage() {
                   <div key={item.title} className="flex items-start gap-4">
                     <div className={`relative z-10 mt-1 flex h-4 w-4 items-center justify-center rounded-full border ${isDone ? 'border-[#2BB673] bg-[#2BB673]' :
                       isActive ? 'border-[#FBCB4B] bg-[#FFF3D6]' :
-                        'border-[#E5E5EA] bg-white'
+                        'border-[#E5E5EA] bg-white dark:bg-[#1C1C1C]'
                       }`}>
                       {isDone && (
                         <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
@@ -1465,7 +1465,7 @@ export default function InvestPage() {
                       {isActive && <span className="h-2 w-2 rounded-full bg-[#FBCB4B]" />}
                     </div>
                     <div>
-                      <p className={`text-sm font-medium ${isDone ? 'text-[#1F1F1F]' : isActive ? 'text-[#1F1F1F]' : 'text-[#8E8E93]'}`}>
+                      <p className={`text-sm font-medium ${isDone ? 'text-[#1F1F1F] dark:text-gray-100' : isActive ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#8E8E93]'}`}>
                         {item.title}
                       </p>
                       <p className="mt-1 text-xs text-[#8E8E93]">{item.subtitle}</p>
@@ -1477,9 +1477,9 @@ export default function InvestPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#E5E5EA] bg-white px-8 py-6 shadow-sm">
+        <div className="rounded-2xl border border-[#E5E5EA] bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm">
           <div className="pb-3 border-b border-[#E5E5EA]">
-            <h2 className="font-goudy text-base text-[#1F1F1F]">Quick Actions</h2>
+            <h2 className="font-goudy text-base text-[#1F1F1F] dark:text-gray-100">Quick Actions</h2>
           </div>
           <div className="pt-4 space-y-3">
             <button
@@ -1506,21 +1506,21 @@ export default function InvestPage() {
                   }
                 })();
               }}
-              className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF]"
+              className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FFE7AF]"
             >
               View Document
             </button>
             <button
               type="button"
               onClick={() => router.push('/dashboard/messages')}
-              className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF]"
+              className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FFE7AF]"
             >
               Message
             </button>
             <button
               type="button"
               onClick={() => router.push('/dashboard/schedule-meeting')}
-              className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#FFE7AF]"
+              className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FFE7AF]"
             >
               Schedule Meeting
             </button>
@@ -1537,11 +1537,11 @@ export default function InvestPage() {
   if (user?.investorType === 'minor' || user?.investorType === 'entity') {
     return (
       <DashboardLayout>
-        <div className="mt-6 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm p-12 text-center flex flex-col items-center justify-center gap-4 max-w-4xl mx-auto">
+        <div className="mt-6 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm p-12 text-center flex flex-col items-center justify-center gap-4 max-w-4xl mx-auto">
           <div className="h-16 w-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center">
             <Info className="h-8 w-8" />
           </div>
-          <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F]">Investments Not Available</h3>
+          <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">Investments Not Available</h3>
           <p className="max-w-md text-[14px] text-[#8E8E93] font-helvetica leading-relaxed">
             Investments cannot be made for Minor or Entity accounts.
           </p>
@@ -1578,7 +1578,7 @@ export default function InvestPage() {
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center min-h-[400px] py-20 text-center animate-in fade-in zoom-in duration-500">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2BB673] mb-6"></div>
-          <h3 className="font-goudy text-xl font-bold text-[#1F1F1F]">Finalizing Your Investment...</h3>
+          <h3 className="font-goudy text-xl font-bold text-[#1F1F1F] dark:text-gray-100">Finalizing Your Investment...</h3>
           <p className="text-sm text-[#8E8E93] mt-2">Please wait while we secure your documents.</p>
         </div>
       </DashboardLayout>
@@ -1595,7 +1595,7 @@ export default function InvestPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 font-helvetica text-[#1F1F1F] w-full max-w-full overflow-x-hidden">{content}</div>
+      <div className="space-y-4 font-helvetica text-[#1F1F1F] dark:text-gray-100 w-full max-w-full overflow-x-hidden">{content}</div>
     </DashboardLayout>
   );
 }
@@ -1619,14 +1619,14 @@ function SuccessView({ onDone }: { onDone: () => void }) {
           </svg>
         </div>
       </div>
-      <h2 className="font-goudy text-4xl font-bold text-[#1F1F1F] mb-4">Investment Submitted!</h2>
+      <h2 className="font-goudy text-4xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-4">Investment Submitted!</h2>
       <p className="text-lg text-[#8E8E93] max-w-md mb-12">
         Your subscription for the fund has been successfully submitted. Our team will review your
         documents and you will receive an email once the units are issued.
       </p>
       <button
         onClick={onDone}
-        className="rounded-full bg-[#FBCB4B] px-12 py-4 text-base font-bold text-[#1F1F1F] hover:bg-[#F9B800] shadow-md transition-all active:scale-95"
+        className="rounded-full bg-[#FBCB4B] px-12 py-4 text-base font-bold text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9B800] shadow-md transition-all active:scale-95"
       >
         Go to Dashboard
       </button>

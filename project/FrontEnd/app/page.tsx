@@ -186,26 +186,26 @@ export default function HomePage() {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="text-gray-300 hover:text-[#D4AF37] hover:bg-white/5 font-semibold transition-colors focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-white/5 data-[state=open]:text-[#D4AF37]"
+                      className="text-gray-300 hover:text-[#D4AF37] hover:bg-white dark:bg-[#1C1C1C]/5 font-semibold transition-colors focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-white dark:bg-[#1C1C1C]/5 data-[state=open]:text-[#D4AF37]"
                     >
                       Sign In
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-44 p-1 bg-[#0B132B]/95 backdrop-blur-md border border-white/10 text-white shadow-2xl" style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" }}>
                     <DropdownMenuItem
-                      className="cursor-pointer text-white hover:text-white focus:text-white hover:bg-white/10 focus:bg-white/10 transition-colors px-3 py-2 rounded-md"
+                      className="cursor-pointer text-white hover:text-white focus:text-white hover:bg-white dark:bg-[#1C1C1C]/10 focus:bg-white dark:bg-[#1C1C1C]/10 transition-colors px-3 py-2 rounded-md"
                       onSelect={() => router.push('/auth/login?flow=admin')}
                     >
                       Admin login
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className="cursor-pointer text-white hover:text-white focus:text-white hover:bg-white/10 focus:bg-white/10 transition-colors px-3 py-2 rounded-md"
+                      className="cursor-pointer text-white hover:text-white focus:text-white hover:bg-white dark:bg-[#1C1C1C]/10 focus:bg-white dark:bg-[#1C1C1C]/10 transition-colors px-3 py-2 rounded-md"
                       onSelect={() => router.push('/auth/login?flow=account')}
                     >
                       Accountant login
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className="cursor-pointer text-white hover:text-white focus:text-white hover:bg-white/10 focus:bg-white/10 transition-colors px-3 py-2 rounded-md"
+                      className="cursor-pointer text-white hover:text-white focus:text-white hover:bg-white dark:bg-[#1C1C1C]/10 focus:bg-white dark:bg-[#1C1C1C]/10 transition-colors px-3 py-2 rounded-md"
                       onSelect={() => router.push('/auth/login?flow=investor')}
                     >
                       Investor login
@@ -225,7 +225,7 @@ export default function HomePage() {
               <div className="lg:hidden flex items-center">
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="text-gray-300 hover:text-[#D4AF37] focus:outline-none p-2 rounded-lg border border-white/20 hover:border-[#D4AF37]/50 hover:bg-white/5 transition-colors"
+                  className="text-gray-300 hover:text-[#D4AF37] focus:outline-none p-2 rounded-lg border border-white/20 hover:border-[#D4AF37]/50 hover:bg-white dark:bg-[#1C1C1C]/5 transition-colors"
                 >
                   {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 </button>
@@ -265,19 +265,19 @@ export default function HomePage() {
                   style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" }}
                 >
                   <DropdownMenuItem
-                    className="w-full text-center py-3.5 text-white hover:text-white focus:text-white cursor-pointer hover:bg-white/10 rounded-xl mb-1 font-semibold text-base transition-colors"
+                    className="w-full text-center py-3.5 text-white hover:text-white focus:text-white cursor-pointer hover:bg-white dark:bg-[#1C1C1C]/10 rounded-xl mb-1 font-semibold text-base transition-colors"
                     onSelect={() => router.push('/auth/login?flow=admin')}
                   >
                     Admin login
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    className="w-full text-center py-3.5 text-white hover:text-white focus:text-white cursor-pointer hover:bg-white/10 rounded-xl mb-1 font-semibold text-base transition-colors"
+                    className="w-full text-center py-3.5 text-white hover:text-white focus:text-white cursor-pointer hover:bg-white dark:bg-[#1C1C1C]/10 rounded-xl mb-1 font-semibold text-base transition-colors"
                     onSelect={() => router.push('/auth/login?flow=account')}
                   >
                     Accountant login
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    className="w-full text-center py-3.5 text-white hover:text-white focus:text-white cursor-pointer hover:bg-white/10 rounded-xl font-semibold text-base transition-colors"
+                    className="w-full text-center py-3.5 text-white hover:text-white focus:text-white cursor-pointer hover:bg-white dark:bg-[#1C1C1C]/10 rounded-xl font-semibold text-base transition-colors"
                     onSelect={() => router.push('/auth/login?flow=investor')}
                   >
                     Investor login
@@ -385,7 +385,7 @@ export default function HomePage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="bg-white/5 backdrop-blur-md text-lg px-12 py-7 rounded-xl border border-white/10 text-white hover:bg-white/10 hover:border-white/20 font-semibold transition-all duration-300 transform hover:-translate-y-1"
+                  className="bg-white dark:bg-[#1C1C1C]/5 backdrop-blur-md text-lg px-12 py-7 rounded-xl border border-white/10 text-white hover:bg-white dark:bg-[#1C1C1C]/10 hover:border-white/20 font-semibold transition-all duration-300 transform hover:-translate-y-1"
                 >
                   Access Your Account
                 </Button>
@@ -462,7 +462,7 @@ export default function HomePage() {
                 </p>
               </div>
               <div className="relative">
-                <div className="relative bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-[4/3]">
+                <div className="relative bg-white dark:bg-[#1C1C1C]/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-[4/3]">
                   <Image
                     src="/images/financial-goals-investment.jpg"
                     alt="Financial Goals"
@@ -528,7 +528,7 @@ export default function HomePage() {
                     </p>
                   </div>
                 </div>
-                <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video relative">
+                <div className="bg-white dark:bg-[#1C1C1C]/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video relative">
                   <Image
                     src="/images/group_investment_meeting.jpg"
                     alt="Multiple investors pooling funds"
@@ -546,8 +546,8 @@ export default function HomePage() {
                 transition={{ duration: 0.8 }}
                 className="grid md:grid-cols-2 gap-12 items-center"
               >
-                <div className="order-2 md:order-1 bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video">
-                  <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video relative">
+                <div className="order-2 md:order-1 bg-white dark:bg-[#1C1C1C]/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video">
+                  <div className="bg-white dark:bg-[#1C1C1C]/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video relative">
                     <Image
                       src="/images/property_renovated_increased.jpg"
                       alt="Property is Renovated"
@@ -587,8 +587,8 @@ export default function HomePage() {
                     </p>
                   </div>
                 </div>
-                <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video">
-                  <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video relative">
+                <div className="bg-white dark:bg-[#1C1C1C]/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video">
+                  <div className="bg-white dark:bg-[#1C1C1C]/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-video relative">
                     <Image
                       src="/images/investors_receive_quarterly.jpg"
                       alt="Investors Receive Quarterly"
@@ -748,7 +748,7 @@ export default function HomePage() {
                   </ul>
                 </div>
 
-                <div className="bg-white/[0.02] overflow-hidden aspect-video relative">
+                <div className="bg-white dark:bg-[#1C1C1C]/[0.02] overflow-hidden aspect-video relative">
                   <Image
                     src="/images/growth_plan.jpg"
                     alt="Growth plan"
@@ -766,7 +766,7 @@ export default function HomePage() {
                 transition={{ duration: 0.8 }}
                 className="invest-card rounded-3xl overflow-hidden transition-all duration-500 group"
               >
-                <div className="bg-white/[0.02] overflow-hidden aspect-video relative">
+                <div className="bg-white dark:bg-[#1C1C1C]/[0.02] overflow-hidden aspect-video relative">
                   <Image
                     src="/images/steady_returns.jpg"
                     alt="Steady returns"
@@ -801,7 +801,7 @@ export default function HomePage() {
         </section>
 
         {/* ── WHY CHOOSE / FEATURES ── */}
-        <section id="insights" className="py-32 px-4 sm:px-6 lg:px-8 bg-white/[0.01] backdrop-blur-sm border-y border-white/5 relative z-10">
+        <section id="insights" className="py-32 px-4 sm:px-6 lg:px-8 bg-white dark:bg-[#1C1C1C]/[0.01] backdrop-blur-sm border-y border-white/5 relative z-10">
           <div className="max-w-7xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -894,7 +894,7 @@ export default function HomePage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="bg-white/5 backdrop-blur-md text-xl px-16 py-8 rounded-xl border border-white/10 text-white hover:bg-white/10 hover:border-white/20 font-semibold transition-all duration-300 transform hover:-translate-y-1"
+                  className="bg-white dark:bg-[#1C1C1C]/5 backdrop-blur-md text-xl px-16 py-8 rounded-xl border border-white/10 text-white hover:bg-white dark:bg-[#1C1C1C]/10 hover:border-white/20 font-semibold transition-all duration-300 transform hover:-translate-y-1"
                 >
                   Sign In to Your Account
                 </Button>
@@ -966,16 +966,16 @@ export default function HomePage() {
         <div className="border-t border-white/10 pt-12 flex flex-col items-center gap-8">
           {/* Social Icons Center */}
           <div className="flex items-center justify-center gap-5">
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="bg-white/5 text-slate-300 p-3.5 rounded-full hover:bg-[#D4AF37]/20 hover:text-[#D4AF37] hover:scale-110 transition-all duration-300 border border-white/10 hover:border-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.05)]">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="bg-white dark:bg-[#1C1C1C]/5 text-slate-300 p-3.5 rounded-full hover:bg-[#D4AF37]/20 hover:text-[#D4AF37] hover:scale-110 transition-all duration-300 border border-white/10 hover:border-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.05)]">
               <Facebook className="h-5 w-5" />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="bg-white/5 text-slate-300 p-3.5 rounded-full hover:bg-[#D4AF37]/20 hover:text-[#D4AF37] hover:scale-110 transition-all duration-300 border border-white/10 hover:border-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.05)]">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="bg-white dark:bg-[#1C1C1C]/5 text-slate-300 p-3.5 rounded-full hover:bg-[#D4AF37]/20 hover:text-[#D4AF37] hover:scale-110 transition-all duration-300 border border-white/10 hover:border-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.05)]">
               <Instagram className="h-5 w-5" />
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="bg-white/5 text-slate-300 p-3.5 rounded-full hover:bg-[#D4AF37]/20 hover:text-[#D4AF37] hover:scale-110 transition-all duration-300 border border-white/10 hover:border-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.05)]">
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="bg-white dark:bg-[#1C1C1C]/5 text-slate-300 p-3.5 rounded-full hover:bg-[#D4AF37]/20 hover:text-[#D4AF37] hover:scale-110 transition-all duration-300 border border-white/10 hover:border-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.05)]">
               <Linkedin className="h-5 w-5" />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="bg-white/5 text-slate-300 p-3.5 rounded-full hover:bg-[#D4AF37]/20 hover:text-[#D4AF37] hover:scale-110 transition-all duration-300 border border-white/10 hover:border-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.05)]">
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="bg-white dark:bg-[#1C1C1C]/5 text-slate-300 p-3.5 rounded-full hover:bg-[#D4AF37]/20 hover:text-[#D4AF37] hover:scale-110 transition-all duration-300 border border-white/10 hover:border-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.05)]">
               <Twitter className="h-5 w-5" />
             </a>
           </div>

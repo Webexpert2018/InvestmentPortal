@@ -142,13 +142,13 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F]">
+      <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F] dark:text-gray-100">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link href="/dashboard/document-vault" className="flex items-center gap-2 text-[#333333] hover:opacity-70 transition-opacity">
               <ChevronLeft className="h-6 w-6" />
             </Link>
-            <h1 className="font-goudy text-[20px] md:text-[28px] lg:text-[34px] leading-tight text-[#1F1F1F]">Document Details</h1>
+            <h1 className="font-goudy text-[20px] md:text-[28px] lg:text-[34px] leading-tight text-[#1F1F1F] dark:text-gray-100">Document Details</h1>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -168,7 +168,7 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
           </div>
         </div>
 
-        <div className="rounded-[12px] bg-white p-6 md:p-8 shadow-sm ring-1 ring-black/5">
+        <div className="rounded-[12px] bg-white dark:bg-[#1C1C1C] p-6 md:p-8 shadow-sm ring-1 ring-black/5">
           <div className="grid grid-cols-1 lg:grid-cols-[6fr_4fr] gap-8 md:gap-12">
             {/* Left side: Document Viewer (60% on desktop) */}
             <div className="flex flex-col overflow-hidden rounded-[8px] bg-[#525659] shadow-inner h-fit">
@@ -203,7 +203,7 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
               {/* Document Content Area */}
               <div className="relative flex-1 bg-[#525659] p-6 flex justify-center overflow-auto min-h-[500px]">
                 <div
-                  className="bg-white shadow-2xl transition-transform duration-200 origin-top w-full"
+                  className="bg-white dark:bg-[#1C1C1C] shadow-2xl transition-transform duration-200 origin-top w-full"
                   style={{ transform: `scale(${zoom / 100})` }}
                 >
                   {viewUrl ? (
@@ -237,37 +237,37 @@ export default function DocumentVaultDetailsPage({ params }: DocumentDetailsPage
             {/* Right side: File Information (40% on desktop) */}
             <div className="flex flex-col">
               <div className="pt-0">
-                <h2 className="font-goudy text-[20px] md:text-[28px] leading-tight text-[#1F1F1F] mb-4">File Information</h2>
+                <h2 className="font-goudy text-[20px] md:text-[28px] leading-tight text-[#1F1F1F] dark:text-gray-100 mb-4">File Information</h2>
                 <div className="border-t border-[#F1F1F1] pt-8 space-y-8">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Upload Date</span>
-                      <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F]">{formattedDate}</p>
+                      <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100">{formattedDate}</p>
                     </div>
                     <div>
                       <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Tax Year</span>
-                      <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F]">{doc.tax_year || 'N/A'}</p>
+                      <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100">{doc.tax_year || 'N/A'}</p>
                     </div>
                   </div>
 
                   <div>
                     <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Document Type</span>
-                    <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F]">{getCategoryName(doc.document_type || doc.category)}</p>
+                    <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100">{getCategoryName(doc.document_type || doc.category)}</p>
                   </div>
 
                   <div>
                     <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">File Size</span>
-                    <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F]">{formattedSize}</p>
+                    <p className="mt-1 text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100">{formattedSize}</p>
                   </div>
 
                   <div>
                     <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Description</span>
-                    <p className="mt-1 text-[15px] leading-relaxed text-[#4B4B4B]">{doc.description || 'No description provided'}</p>
+                    <p className="mt-1 text-[15px] leading-relaxed text-[#4B4B4B] dark:text-gray-300">{doc.description || 'No description provided'}</p>
                   </div>
 
                   <div>
                     <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide">Note</span>
-                    <p className="mt-1 text-[15px] leading-relaxed text-[#4B4B4B]">
+                    <p className="mt-1 text-[15px] leading-relaxed text-[#4B4B4B] dark:text-gray-300">
                       {doc.note || 'No notes added.'}
                     </p>
                   </div>

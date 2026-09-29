@@ -60,7 +60,7 @@ export default function ReconciliationDetailPage({ params }: ReconciliationDetai
         <div className="mb-6">
           <button
             onClick={() => router.back()}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 mb-4"
           >
             <ChevronLeft className="h-5 w-5 mr-1" />
             <span className="font-medium">Reconciliation Details</span>
@@ -69,10 +69,10 @@ export default function ReconciliationDetailPage({ params }: ReconciliationDetai
 
         {/* Record ID and Mark as Resolved Button */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F]">{reconciliationData.recordId}</h1>
+          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] dark:text-gray-100">{reconciliationData.recordId}</h1>
           <Button
             onClick={handleMarkAsResolved}
-            className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 rounded-full font-medium"
+            className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-100 rounded-full font-medium"
           >
             Mark as Resolved
           </Button>
@@ -81,9 +81,9 @@ export default function ReconciliationDetailPage({ params }: ReconciliationDetai
         {/* Two Column Layout - Custodian Data and Internal Ledger Data */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Custodian Data */}
-          <div className="bg-white rounded-lg shadow-sm">
-            <div className="flex items-center justify-between pb-4 mb-6 border-b border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900">Custodian Data</h2>
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm">
+            <div className="flex items-center justify-between pb-4 mb-6 border-b border-gray-200 dark:border-gray-800 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Custodian Data</h2>
               <span className="px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full">
                 {reconciliationData.status}
               </span>
@@ -93,97 +93,97 @@ export default function ReconciliationDetailPage({ params }: ReconciliationDetai
               {/* Row 1: Event ID and Event Type */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Event ID
                   </label>
-                  <p className="text-sm text-gray-900 font-medium">{reconciliationData.custodianData.eventId}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{reconciliationData.custodianData.eventId}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Event Type
                   </label>
-                  <p className="text-sm text-gray-900 font-medium">{reconciliationData.custodianData.eventType}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{reconciliationData.custodianData.eventType}</p>
                 </div>
               </div>
 
               {/* Row 2: Bank Name and Amount */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Bank Name
                   </label>
-                  <p className="text-sm text-gray-900 font-medium">{reconciliationData.custodianData.bankName}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{reconciliationData.custodianData.bankName}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Amount
                   </label>
-                  <p className="text-sm text-gray-900 font-medium">{reconciliationData.custodianData.amount}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{reconciliationData.custodianData.amount}</p>
                 </div>
               </div>
 
               {/* Row 3: Date and Reference ID */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Date
                   </label>
-                  <p className="text-sm text-gray-900 font-medium">{reconciliationData.custodianData.date}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{reconciliationData.custodianData.date}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Reference ID
                   </label>
-                  <p className="text-sm text-gray-900 font-medium">{reconciliationData.custodianData.referenceId}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{reconciliationData.custodianData.referenceId}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Internal Ledger Data */}
-          <div className="bg-white rounded-lg shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900 pb-4 mb-6 border-b border-gray-200 p-6">Internal Ledger Data</h2>
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 pb-4 mb-6 border-b border-gray-200 dark:border-gray-800 p-6">Internal Ledger Data</h2>
 
             <div className="space-y-6 p-6 pt-0">
               {/* Row 1: Ledger ID and Transaction Type */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Ledger ID
                   </label>
-                  <p className="text-sm text-gray-900 font-medium">{reconciliationData.internalData.ledgerId}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{reconciliationData.internalData.ledgerId}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Transaction Type
                   </label>
-                  <p className="text-sm text-gray-900 font-medium">{reconciliationData.internalData.transactionType}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{reconciliationData.internalData.transactionType}</p>
                 </div>
               </div>
 
               {/* Row 2: Recorded Date and Recorded Amount */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Recorded Date
                   </label>
-                  <p className="text-sm text-gray-900 font-medium">{reconciliationData.internalData.recordedDate}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{reconciliationData.internalData.recordedDate}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Recorded Amount
                   </label>
-                  <p className="text-sm text-gray-900 font-medium">{reconciliationData.internalData.recordedAmount}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{reconciliationData.internalData.recordedAmount}</p>
                 </div>
               </div>
 
               {/* Row 3: Internal Ref */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Internal Ref
                   </label>
-                  <p className="text-sm text-gray-900 font-medium">{reconciliationData.internalData.internalId}</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{reconciliationData.internalData.internalId}</p>
                 </div>
               </div>
             </div>
@@ -193,29 +193,29 @@ export default function ReconciliationDetailPage({ params }: ReconciliationDetai
         {/* Mark as Resolved Confirmation Modal */}
         {showResolveModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 w-full max-w-lg mx-4 relative">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-lg p-8 w-full max-w-lg mx-4 relative">
               {/* Close Button */}
               <button
                 onClick={cancelResolve}
-                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 dark:text-gray-400 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
 
               <div className="mb-8">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Mark as Resolved</h3>
-                <p className="text-sm text-gray-600">Are you sure you want to mark as resolved this event?</p>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Mark as Resolved</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Are you sure you want to mark as resolved this event?</p>
               </div>
               <div className="flex justify-end gap-3">
                 <Button
                   onClick={cancelResolve}
-                  className="px-8 py-2 bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-700 rounded-full font-medium"
+                  className="px-8 py-2 bg-[#FEF3E2] hover:bg-[#fde8c8] text-gray-700 dark:text-gray-300 rounded-full font-medium"
                 >
                   No
                 </Button>
                 <Button
                   onClick={confirmResolve}
-                  className="px-8 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 rounded-full font-medium"
+                  className="px-8 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-100 rounded-full font-medium"
                 >
                   Yes
                 </Button>

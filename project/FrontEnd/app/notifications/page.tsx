@@ -73,9 +73,9 @@ function NotificationGroup({
   onMarkRead: (id: string, link?: string) => void;
 }) {
   return (
-    <section className="overflow-hidden rounded-[12px] bg-white shadow-sm border border-[#ECEDEF]">
+    <section className="overflow-hidden rounded-[12px] bg-white dark:bg-[#1C1C1C] shadow-sm border border-[#ECEDEF]">
       <div className="bg-[#F8FAFF] px-6 py-4 border-b border-[#ECEDEF]">
-        <h2 className="font-goudy text-[18px] font-medium text-[#1F1F1F]">{label}</h2>
+        <h2 className="font-goudy text-[18px] font-medium text-[#1F1F1F] dark:text-gray-100">{label}</h2>
       </div>
 
       <div className="divide-y divide-[#ECEDEF]">
@@ -83,7 +83,7 @@ function NotificationGroup({
           <div
             key={item.id}
             onClick={() => onMarkRead(item.id, item.link)}
-            className={`px-6 py-5 cursor-pointer transition-all hover:bg-[#F9FBFF] ${item.is_read ? 'opacity-80' : 'bg-white'}`}
+            className={`px-6 py-5 cursor-pointer transition-all hover:bg-[#F9FBFF] ${item.is_read ? 'opacity-80' : 'bg-white dark:bg-[#1C1C1C]'}`}
           >
             <div className="flex items-start gap-4">
               {!item.is_read && (
@@ -91,7 +91,7 @@ function NotificationGroup({
               )}
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <h3 className={`text-[17px] leading-6 ${item.is_read ? 'font-normal text-[#4A4A4A]' : 'font-semibold text-[#1F1F1F]'}`}>
+                  <h3 className={`text-[17px] leading-6 ${item.is_read ? 'font-normal text-[#4A4A4A]' : 'font-semibold text-[#1F1F1F] dark:text-gray-100'}`}>
                     {item.title}
                   </h3>
                   <span className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wider">
@@ -179,10 +179,10 @@ export default function NotificationsPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-8xl px-2 font-helvetica text-[#1F1F1F]">
+      <div className="mx-auto max-w-8xl px-2 font-helvetica text-[#1F1F1F] dark:text-gray-100">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-goudy text-[24px] leading-7 text-[#1F1F1F]">Notifications</h1>
+            <h1 className="font-goudy text-[24px] leading-7 text-[#1F1F1F] dark:text-gray-100">Notifications</h1>
             <p className="mt-1 text-[14px] text-[#8E8E93]">
               {user?.role === 'investor' 
                 ? 'Stay updated on your account activity, documents, and investments.' 
@@ -213,7 +213,7 @@ export default function NotificationsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative px-6 py-3 text-[15px] font-medium transition-colors ${activeTab === tab.id ? 'text-[#3B6FF0]' : 'text-[#8E8E93] hover:text-[#1F1F1F]'
+              className={`relative px-6 py-3 text-[15px] font-medium transition-colors ${activeTab === tab.id ? 'text-[#3B6FF0]' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-100'
                 }`}
             >
               {tab.label}
@@ -239,13 +239,13 @@ export default function NotificationsPage() {
               {error}
             </div>
           ) : groups.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-[12px] bg-white py-20 text-center">
+            <div className="flex flex-col items-center justify-center rounded-[12px] bg-white dark:bg-[#1C1C1C] py-20 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F8FAFF]">
                 <svg className="h-8 w-8 text-[#3B6FF0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
               </div>
-              <h3 className="mt-4 text-[16px] font-medium text-[#1F1F1F]">No notifications here</h3>
+              <h3 className="mt-4 text-[16px] font-medium text-[#1F1F1F] dark:text-gray-100">No notifications here</h3>
               <p className="mt-1 text-[14px] text-[#8E8E93]">
                 {activeTab === 'unread' ? "You're all caught up!" : "No notifications in this category yet."}
               </p>

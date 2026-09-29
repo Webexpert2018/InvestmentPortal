@@ -111,31 +111,31 @@ const CustomPdfViewer = ({ url, title }: { url: string; title: string }) => {
               type="text"
               value={pageNumber}
               readOnly
-              className="w-8 bg-transparent text-center focus:outline-none text-sm"
+              className="w-8 bg-transparent text-center focus:outline-none text-sm text-[#111827] dark:text-white"
             />
             <span className="text-gray-400 text-sm">/ {numPages || '-'}</span>
           </div>
-          <div className="h-6 w-[1px] bg-white/10 mx-2" />
-          <button onClick={() => changeZoom(-0.1)} className="hover:bg-white/10 p-1 rounded transition-colors">
+          <div className="h-6 w-[1px] bg-white dark:bg-[#1C1C1C]/10 mx-2" />
+          <button onClick={() => changeZoom(-0.1)} className="hover:bg-white dark:bg-[#1C1C1C]/10 p-1 rounded transition-colors">
             <Minus className="h-4 w-4" />
           </button>
           <div className="bg-black/20 px-3 py-1 rounded text-xs min-w-[50px] text-center">
             {Math.round(scale * 100)}%
           </div>
-          <button onClick={() => changeZoom(0.1)} className="hover:bg-white/10 p-1 rounded transition-colors">
+          <button onClick={() => changeZoom(0.1)} className="hover:bg-white dark:bg-[#1C1C1C]/10 p-1 rounded transition-colors">
             <Plus className="h-4 w-4" />
           </button>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="h-6 w-[1px] bg-white/10 mx-2" />
-          <button className="hover:bg-white/10 p-1.5 rounded transition-colors text-white/70" title="Fit to page">
+          <div className="h-6 w-[1px] bg-white dark:bg-[#1C1C1C]/10 mx-2" />
+          <button className="hover:bg-white dark:bg-[#1C1C1C]/10 p-1.5 rounded transition-colors text-white/70" title="Fit to page">
             <Maximize2 className="h-4 w-4" />
           </button>
-          <button className="hover:bg-white/10 p-1.5 rounded transition-colors text-white/70" title="Rotate clockwise">
+          <button className="hover:bg-white dark:bg-[#1C1C1C]/10 p-1.5 rounded transition-colors text-white/70" title="Rotate clockwise">
             <RotateCw className="h-4 w-4" />
           </button>
-          <button className="hover:bg-white/10 p-1.5 rounded transition-colors text-white/70" title="Download">
+          <button className="hover:bg-white dark:bg-[#1C1C1C]/10 p-1.5 rounded transition-colors text-white/70" title="Download">
             <Download className="h-4 w-4" />
           </button>
         </div>
@@ -148,7 +148,7 @@ const CustomPdfViewer = ({ url, title }: { url: string; title: string }) => {
             <span className="text-white/50 text-xs">Loading PDF...</span>
           </div>
         ) : (
-          <canvas ref={canvasRef} className="shadow-2xl bg-white max-w-full" />
+          <canvas ref={canvasRef} className="shadow-2xl bg-white dark:bg-[#1C1C1C] max-w-full" />
         )}
       </div>
 
@@ -275,27 +275,27 @@ export default function DocumentDetailsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-8 max-w-7xl mx-auto bg-gray-50/10 min-h-screen">
+      <div className="p-8 max-w-7xl mx-auto bg-gray-50 dark:bg-gray-800/10 min-h-screen">
         {/* Header */}
         <div className="mb-8 flex items-center">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-400 hover:text-gray-900 transition-colors"
+            className="flex items-center gap-2 text-gray-400 hover:text-gray-900 dark:text-gray-100 transition-colors"
           >
             <ChevronLeft className="h-6 w-6" />
-            <h1 className="text-2xl font-semibold text-gray-800 ml-1">Document Details</h1>
+            <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 ml-1">Document Details</h1>
           </button>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-100 p-10 shadow-sm">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-xl border border-gray-100 dark:border-gray-800 p-10 shadow-sm">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             {/* Left: Preview (approx 40% of card) */}
             <div className="lg:col-span-5 flex flex-col">
-              <div className="rounded-lg overflow-hidden border border-gray-200 aspect-[3/4] bg-[#525659] relative flex flex-col shadow-inner">
+              <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 aspect-[3/4] bg-[#525659] relative flex flex-col shadow-inner">
                 {isPDF ? (
                   <CustomPdfViewer url={fileUrl} title={doc.file_name} />
                 ) : isImage ? (
-                  <div className="w-full h-full flex justify-center items-center p-4 bg-white">
+                  <div className="w-full h-full flex justify-center items-center p-4 bg-white dark:bg-[#1C1C1C]">
                     <img
                       src={fileUrl}
                       alt={doc.file_name}
@@ -303,10 +303,10 @@ export default function DocumentDetailsPage() {
                     />
                   </div>
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 bg-white">
+                  <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 bg-white dark:bg-[#1C1C1C]">
                     <FileText className="h-12 w-12 text-gray-300 mb-4" />
-                    <p className="text-gray-900 font-bold mb-1">No Preview available</p>
-                    <p className="text-gray-500 text-sm">Preview for this file type is not supported.</p>
+                    <p className="text-gray-900 dark:text-gray-100 font-bold mb-1">No Preview available</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Preview for this file type is not supported.</p>
                     <a href={apiClient.getDocumentDownloadUrl(doc.id)} download={doc.file_name} className="mt-4">
                       <Button className="bg-[#FEF3C7] hover:bg-[#FDE68A] text-[#92400E] rounded-full">
                         Download to View
@@ -319,43 +319,43 @@ export default function DocumentDetailsPage() {
 
             {/* Right: Info */}
             <div className="lg:col-span-7 flex flex-col pt-2">
-              <h2 className="text-2xl font-bold text-gray-700 mb-8 border-b border-gray-100 pb-4">File Information</h2>
+              <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-8 border-b border-gray-100 dark:border-gray-800 pb-4">File Information</h2>
 
               <div className="grid grid-cols-2 gap-y-10 gap-x-8">
                 <div>
                   <label className="text-gray-400 font-medium text-sm mb-2 block tracking-wide">Upload Date</label>
-                  <span className="text-xl font-bold text-gray-800">{formatDate(doc.uploaded_at)}</span>
+                  <span className="text-xl font-bold text-gray-800 dark:text-gray-200">{formatDate(doc.uploaded_at)}</span>
                 </div>
                 <div>
                   <label className="text-gray-400 font-medium text-sm mb-2 block tracking-wide">Document Type</label>
-                  <span className="text-xl font-bold text-gray-800">{doc.document_type || 'N/A'}</span>
+                  <span className="text-xl font-bold text-gray-800 dark:text-gray-200">{doc.document_type || 'N/A'}</span>
                 </div>
                 <div>
                   <label className="text-gray-400 font-medium text-sm mb-2 block tracking-wide">Tax Year</label>
-                  <span className="text-xl font-bold text-gray-800">{doc.tax_year || 'N/A'}</span>
+                  <span className="text-xl font-bold text-gray-800 dark:text-gray-200">{doc.tax_year || 'N/A'}</span>
                 </div>
                 <div>
                   <label className="text-gray-400 font-medium text-sm mb-2 block tracking-wide">File Size</label>
-                  <span className="text-xl font-bold text-gray-800">{formatFileSize(doc.file_size)}</span>
+                  <span className="text-xl font-bold text-gray-800 dark:text-gray-200">{formatFileSize(doc.file_size)}</span>
                 </div>
               </div>
 
               <div className="mt-10 space-y-8">
                 <div>
                   <label className="text-gray-400 font-medium text-sm mb-2 block tracking-wide">Description</label>
-                  <p className="text-gray-800 font-bold text-lg leading-relaxed max-w-2xl whitespace-pre-wrap">
+                  <p className="text-gray-800 dark:text-gray-200 font-bold text-lg leading-relaxed max-w-2xl whitespace-pre-wrap">
                     {doc.description || "No description provided."}
                   </p>
                 </div>
                 <div>
                   <label className="text-gray-400 font-medium text-sm mb-2 block tracking-wide">Note</label>
-                  <p className="text-gray-800 font-bold text-lg leading-relaxed max-w-2xl whitespace-pre-wrap">
+                  <p className="text-gray-800 dark:text-gray-200 font-bold text-lg leading-relaxed max-w-2xl whitespace-pre-wrap">
                     {doc.note || "No notes available."}
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-4 mt-12 pt-6 border-t border-gray-100">
+              <div className="flex gap-4 mt-12 pt-6 border-t border-gray-100 dark:border-gray-800">
                 <Button
                   onClick={() => {
                     if (fileUrl) window.open(fileUrl, '_blank');

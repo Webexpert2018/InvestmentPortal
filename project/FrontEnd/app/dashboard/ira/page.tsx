@@ -17,7 +17,7 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">{label}</p>
-      <p className="text-[14px] text-[#1F1F1F] font-helvetica">{value}</p>
+      <p className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{value}</p>
     </div>
   );
 }
@@ -26,7 +26,7 @@ function MaskedField({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">{label}</p>
-      <p className="text-[14px] tracking-[3px] text-[#1F1F1F] font-helvetica">{value}</p>
+      <p className="text-[14px] tracking-[3px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{value}</p>
     </div>
   );
 }
@@ -411,12 +411,12 @@ export default function IRAPage() {
                   router.back();
                 }
               }}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
-              <ChevronLeft className="h-5 w-5 text-gray-600" />
+              <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             </button>
             <div>
-              <h1 className="font-goudy text-[22px] md:text-[26px] font-bold text-[#1F1F1F]">IRA</h1>
+              <h1 className="font-goudy text-[22px] md:text-[26px] font-bold text-[#1F1F1F] dark:text-gray-100">IRA</h1>
               <p className="mt-1 text-[13px] text-[#8E8E93] font-helvetica">
                 {view === 'list'
                   ? 'Manage your IRA-related investments and account information here.'
@@ -428,7 +428,7 @@ export default function IRAPage() {
             <button
               onClick={() => setShowTransferModal(true)}
               disabled={user?.investorType === 'entity' || user?.investorType === 'minor'}
-              className="inline-flex items-center gap-2 border border-[#E5E7EB] bg-white px-5 py-2 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 border border-[#E5E7EB] bg-white dark:bg-[#1C1C1C] px-5 py-2 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <History className="h-4 w-4 text-[#D1A94C]" />
               Transfer In
@@ -446,26 +446,26 @@ export default function IRAPage() {
 
         {/* Main Content Area */}
         {user?.investorType === 'entity' || user?.investorType === 'minor' ? (
-          <div className="mt-6 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm p-12 text-center flex flex-col items-center justify-center gap-4">
+          <div className="mt-6 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm p-12 text-center flex flex-col items-center justify-center gap-4">
             <div className="h-16 w-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center">
               <Info className="h-8 w-8" />
             </div>
-            <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F]">IRA Accounts Not Available</h3>
+            <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">IRA Accounts Not Available</h3>
             <p className="max-w-md text-[14px] text-[#8E8E93] font-helvetica leading-relaxed">
               IRA accounts cannot be created for Minor or Entity accounts.
             </p>
           </div>
         ) : view === 'list' ? (
           <>
-            <div className="mt-6 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm overflow-hidden">
+            <div className="mt-6 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
                 <thead>
-                  <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] w-[25%]">Account Type</th>
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] w-[25%]">Beneficiary</th>
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] text-right w-[25%]">Account Balance</th>
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] text-center w-[25%]">Action</th>
+                  <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] w-[25%]">Account Type</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] w-[25%]">Beneficiary</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] text-right w-[25%]">Account Balance</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] text-center w-[25%]">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F0F0F0]">
@@ -509,16 +509,16 @@ export default function IRAPage() {
                               <FileText className="h-5 w-5 text-[#D1A94C] group-hover:text-white" />
                             </div>
                             <div>
-                              <p className="font-bold text-[#1F1F1F] font-goudy text-[16px]">{acc.account_type}</p>
+                              <p className="font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy text-[16px]">{acc.account_type}</p>
                               <p className="text-[12px] text-[#8E8E93] font-helvetica">{acc.account_number || 'N/A'}</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-5">
-                          <p className="text-[#4B4B4B] font-helvetica">{acc.beneficiary || '-'}</p>
+                          <p className="text-[#4B4B4B] dark:text-gray-300 font-helvetica">{acc.beneficiary || '-'}</p>
                         </td>
                         <td className="px-6 py-5 text-right">
-                          <p className="font-bold text-[#1F1F1F] font-helvetica text-[15px]">
+                          <p className="font-bold text-[#1F1F1F] dark:text-gray-100 font-helvetica text-[15px]">
                             ${calculateBalance(acc.id).toLocaleString()}
                           </p>
                           <p className={`text-[11px] font-medium font-helvetica ${acc.status?.toLowerCase() === 'suspended' ? 'text-red-500' : 'text-[#2BB673]'}`}>
@@ -526,7 +526,7 @@ export default function IRAPage() {
                           </p>
                         </td>
                         <td className="px-6 py-5 text-center">
-                          <button className="h-8 px-4 rounded-full border border-[#E5E7EB] text-[12px] font-bold text-[#4B4B4B] hover:bg-[#F5F5F5] transition-colors">
+                          <button className="h-8 px-4 rounded-full border border-[#E5E7EB] text-[12px] font-bold text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F5F5F5] transition-colors">
                             View Details
                           </button>
                         </td>
@@ -539,13 +539,13 @@ export default function IRAPage() {
           </div>
 
           {/* Legacy Self-Directed IRA Accounts Section */}
-          <div className="mt-8 rounded-[10px] bg-white ring-1 ring-black/5 shadow-sm overflow-hidden py-6">
+          <div className="mt-8 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm overflow-hidden py-6">
             <div className="flex items-center gap-2 mb-6 px-6">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1]">
                 <Sparkles className="h-4 w-4 text-[#D1A94C]" />
               </div>
               <div>
-                <h2 className="font-goudy text-[18px] md:text-[20px] font-bold text-[#1F1F1F]">Legacy Self-Directed IRA Accounts</h2>
+                <h2 className="font-goudy text-[18px] md:text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">Legacy Self-Directed IRA Accounts</h2>
                 <p className="text-[12px] text-[#8E8E93] font-helvetica">Historical accounts matched from your legacy profile records</p>
               </div>
             </div>
@@ -556,17 +556,17 @@ export default function IRAPage() {
                 <p className="text-[#8E8E93] text-[13px] font-helvetica">Retrieving legacy records...</p>
               </div>
             ) : oldIraAccounts.length === 0 ? (
-              <div className="py-10 text-center flex flex-col items-center gap-2 border border-dashed border-[#E5E7EB] rounded-lg bg-gray-50/50 mx-6">
+              <div className="py-10 text-center flex flex-col items-center gap-2 border border-dashed border-[#E5E7EB] rounded-lg bg-gray-50/50 dark:bg-gray-800/50 mx-6">
                 <p className="text-[#8E8E93] text-[13px] font-helvetica">No matching legacy Self-Directed IRA accounts found.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
                   <thead>
-                    <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B]">
-                      <th className="px-6 py-4 border-b border-[#F0F0F0] w-[50%]">Legal Name</th>
-                      <th className="px-6 py-4 border-b border-[#F0F0F0] w-[25%]">Profile Type</th>
-                      <th className="px-6 py-4 border-b border-[#F0F0F0] text-right w-[25%]">Investment Value</th>
+                    <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
+                      <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] w-[50%]">Legal Name</th>
+                      <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] w-[25%]">Profile Type</th>
+                      <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] text-right w-[25%]">Investment Value</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F0F0F0]">
@@ -580,7 +580,7 @@ export default function IRAPage() {
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1]">
                               <FileText className="h-4 w-4 text-[#D1A94C]" />
                             </div>
-                            <p className="font-bold text-[#1F1F1F] font-goudy text-[15px] truncate" title={acc.legal_name}>
+                            <p className="font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy text-[15px] truncate" title={acc.legal_name}>
                               {acc.legal_name}
                             </p>
                           </div>
@@ -604,7 +604,7 @@ export default function IRAPage() {
           </div>
         </>
       ) : (
-          <div className="mt-4 rounded-sm border border-[#F0F0F0] bg-white shadow-sm overflow-hidden">
+          <div className="mt-4 rounded-sm border border-[#F0F0F0] dark:border-[#2A2A2A] bg-white dark:bg-[#1C1C1C] shadow-sm overflow-hidden">
             {/* Suspended Banner */}
             {selectedIra?.status === 'suspended' && (
               <div className="bg-red-50 border-b border-red-100 px-6 py-3 flex items-center gap-3">
@@ -621,7 +621,7 @@ export default function IRAPage() {
                   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
                     <FileText className="h-3.5 w-3.5 text-[#D1A94C]" />
                   </div>
-                  <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">IRA Account Overview</h3>
+                  <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">IRA Account Overview</h3>
                 </div>
                 <button
                   onClick={() => setView('list')}
@@ -652,7 +652,7 @@ export default function IRAPage() {
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
                   <User className="h-3.5 w-3.5 text-[#D1A94C]" />
                 </div>
-                <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Profile Information</h3>
+                <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Profile Information</h3>
                 <StatusBadge verified={d.profileCompleted} label={d.profileCompleted ? "Completed" : "Pending"} />
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
@@ -668,7 +668,7 @@ export default function IRAPage() {
                       <span className="text-[13px] text-[#374151] font-helvetica">{d.phoneCountryCode}</span>
                     </div>
                     <div className="h-[42px] w-[240px] flex items-center rounded-[8px] border border-[#E5E7EB] bg-[#FAFAFA] px-4">
-                      <span className="text-[13px] text-[#1F1F1F] font-helvetica">{d.phoneNumber}</span>
+                      <span className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{d.phoneNumber}</span>
                     </div>
                   </div>
                 </div>
@@ -684,13 +684,13 @@ export default function IRAPage() {
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
                   <MapPin className="h-3.5 w-3.5 text-[#D1A94C]" />
                 </div>
-                <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Address</h3>
+                <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Address</h3>
                 <StatusBadge verified={d.addressCompleted} label={d.addressCompleted ? "Completed" : "Pending"} />
               </div>
 
               <div className="flex flex-col gap-8">
                 <div className="space-y-5">
-                  <h4 className="text-[14px] font-semibold text-[#1F1F1F] font-goudy underline decoration-[#FFC63F] underline-offset-4">Physical Address</h4>
+                  <h4 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy underline decoration-[#FFC63F] underline-offset-4">Physical Address</h4>
                   <div className="grid gap-5 sm:grid-cols-2">
                     <Field label="Street Address Line 1" value={d.addressLine1} />
                     <Field label="Street Address Line 2" value={d.addressLine2} />
@@ -704,7 +704,7 @@ export default function IRAPage() {
                 <div className="border-t border-dashed border-[#ECEDEF]" />
 
                 <div className="space-y-5">
-                  <h4 className="text-[14px] font-semibold text-[#1F1F1F] font-goudy underline decoration-[#FFC63F] underline-offset-4">Mailing Address</h4>
+                  <h4 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy underline decoration-[#FFC63F] underline-offset-4">Mailing Address</h4>
                   <div className="flex items-center gap-6">
                     <div className="flex items-center gap-3">
                       <p className="text-[12px] font-medium text-[#6B7280] font-helvetica">Mailing same as Physical:</p>
@@ -738,13 +738,13 @@ export default function IRAPage() {
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
                   <Phone className="h-3.5 w-3.5 text-[#D1A94C]" />
                 </div>
-                <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Phone Verification</h3>
+                <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Phone Verification</h3>
                 <StatusBadge verified={d.phoneVerified} label={d.phoneVerified ? 'Verified' : 'Pending'} />
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
                   <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Phone Number</p>
-                  <p className="text-[14px] text-[#1F1F1F] font-helvetica">{d.phoneCountryCode} {d.phoneNumber}</p>
+                  <p className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{d.phoneCountryCode} {d.phoneNumber}</p>
                 </div>
                 <Field label="Verified On" value={d.phoneVerifiedAt} />
               </div>
@@ -758,7 +758,7 @@ export default function IRAPage() {
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
                   <FileText className="h-3.5 w-3.5 text-[#D1A94C]" />
                 </div>
-                <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">TAX Information</h3>
+                <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">TAX Information</h3>
                 <StatusBadge verified={d.taxCompleted} label={d.taxCompleted ? "Completed" : "Pending"} />
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
@@ -792,12 +792,12 @@ export default function IRAPage() {
                           }
                           setEditedTaxId(formatted);
                         }}
-                        className="flex-1 h-9 px-3 text-[14px] text-[#1F1F1F] font-helvetica border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#D1A94C]"
+                        className="flex-1 h-9 px-3 text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#D1A94C]"
                       />
                       <button
                         onClick={handleSaveTaxId}
                         disabled={isSavingTaxId}
-                        className="px-3 h-9 text-[12px] font-bold bg-[#FFC63F] text-[#1F1F1F] rounded-lg hover:opacity-90 disabled:opacity-50 font-helvetica"
+                        className="px-3 h-9 text-[12px] font-bold bg-[#FFC63F] text-[#1F1F1F] dark:text-gray-100 rounded-lg hover:opacity-90 disabled:opacity-50 font-helvetica"
                       >
                         {isSavingTaxId ? '...' : 'Save'}
                       </button>
@@ -806,13 +806,13 @@ export default function IRAPage() {
                           setIsEditingTaxId(false);
                           setEditedTaxId(user?.taxId || '');
                         }}
-                        className="px-3 h-9 text-[12px] font-bold bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-helvetica"
+                        className="px-3 h-9 text-[12px] font-bold bg-gray-100 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 font-helvetica"
                       >
                         Cancel
                       </button>
                     </div>
                   ) : (
-                    <p className="text-[14px] tracking-[3px] text-[#1F1F1F] font-helvetica">
+                    <p className="text-[14px] tracking-[3px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">
                       {d.taxId ? (d.taxId.length === 9 && !d.taxId.includes('-') ? `${d.taxId.slice(0, 3)}-${d.taxId.slice(3, 5)}-${d.taxId.slice(5)}` : d.taxId) : 'Not provided'}
                     </p>
                   )}
@@ -835,7 +835,7 @@ export default function IRAPage() {
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
                   <Shield className="h-3.5 w-3.5 text-[#D1A94C]" />
                 </div>
-                <h3 className="text-[16px] font-semibold text-[#1F1F1F] font-goudy">Two-Factor Authentication</h3>
+                <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Two-Factor Authentication</h3>
                 <StatusBadge verified={d.twoFactorEnabled} label={d.twoFactorEnabled ? 'Enabled' : 'Disabled'} />
               </div>
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -863,13 +863,13 @@ export default function IRAPage() {
       {/* ─── ADD IRA MODAL ─── */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 md:px-8 py-5">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white dark:bg-[#1C1C1C] shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white dark:bg-[#1C1C1C] px-3 md:px-8 py-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1]">
                   <Plus className="h-5 w-5 text-[#D1A94C]" />
                 </div>
-                <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] font-goudy">Open New IRA Account</h2>
+                <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy">Open New IRA Account</h2>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -883,7 +883,7 @@ export default function IRAPage() {
               <div className="flex flex-col gap-8">
                 {/* Account Details */}
                 <div>
-                  <h3 className="text-[14px] font-semibold text-[#1F1F1F] mb-4 font-goudy border-b pb-1">Account Details</h3>
+                  <h3 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-4 font-goudy border-b pb-1">Account Details</h3>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Account Type</label>
@@ -900,7 +900,7 @@ export default function IRAPage() {
 
                 {/* Personal Profile */}
                 <div>
-                  <h3 className="text-[14px] font-semibold text-[#1F1F1F] mb-4 font-goudy border-b pb-1">Personal Profile</h3>
+                  <h3 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-4 font-goudy border-b pb-1">Personal Profile</h3>
                   <div className="grid gap-4 md:grid-cols-2 mb-4">
                     <div>
                       <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">First Name (from user)</label>
@@ -930,7 +930,7 @@ export default function IRAPage() {
                         placeholder="Enter middle name"
                         value={iraForm.middleName}
                         onChange={e => setIraForm({ ...iraForm, middleName: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
                       />
                     </div>
                     <div>
@@ -940,7 +940,7 @@ export default function IRAPage() {
                         placeholder="e.g. Jr, Sr"
                         value={iraForm.suffix}
                         onChange={e => setIraForm({ ...iraForm, suffix: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
                       />
                     </div>
                   </div>
@@ -952,19 +952,19 @@ export default function IRAPage() {
                         className="flex items-center gap-2 cursor-pointer group"
                         onClick={() => setIraForm({ ...iraForm, maritalStatus: 'single' })}
                       >
-                        <div className={`h-4 w-4 rounded-full border flex items-center justify-center transition-all ${iraForm.maritalStatus === 'single' ? 'border-[#D1A94C]' : 'border-[#E5E7EB] bg-white'}`}>
+                        <div className={`h-4 w-4 rounded-full border flex items-center justify-center transition-all ${iraForm.maritalStatus === 'single' ? 'border-[#D1A94C]' : 'border-[#E5E7EB] bg-white dark:bg-[#1C1C1C]'}`}>
                           {iraForm.maritalStatus === 'single' && <div className="h-2 w-2 rounded-full bg-[#D1A94C]" />}
                         </div>
-                        <span className={`text-[13px] font-helvetica transition-colors ${iraForm.maritalStatus === 'single' ? 'text-[#1F1F1F]' : 'text-[#6B7280] group-hover:text-[#D1A94C]'}`}>Single</span>
+                        <span className={`text-[13px] font-helvetica transition-colors ${iraForm.maritalStatus === 'single' ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#6B7280] group-hover:text-[#D1A94C]'}`}>Single</span>
                       </div>
                       <div
                         className="flex items-center gap-2 cursor-pointer group"
                         onClick={() => setIraForm({ ...iraForm, maritalStatus: 'married' })}
                       >
-                        <div className={`h-4 w-4 rounded-full border flex items-center justify-center transition-all ${iraForm.maritalStatus === 'married' ? 'border-[#D1A94C]' : 'border-[#E5E7EB] bg-white'}`}>
+                        <div className={`h-4 w-4 rounded-full border flex items-center justify-center transition-all ${iraForm.maritalStatus === 'married' ? 'border-[#D1A94C]' : 'border-[#E5E7EB] bg-white dark:bg-[#1C1C1C]'}`}>
                           {iraForm.maritalStatus === 'married' && <div className="h-2 w-2 rounded-full bg-[#D1A94C]" />}
                         </div>
-                        <span className={`text-[13px] font-helvetica transition-colors ${iraForm.maritalStatus === 'married' ? 'text-[#1F1F1F]' : 'text-[#6B7280] group-hover:text-[#D1A94C]'}`}>Married</span>
+                        <span className={`text-[13px] font-helvetica transition-colors ${iraForm.maritalStatus === 'married' ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#6B7280] group-hover:text-[#D1A94C]'}`}>Married</span>
                       </div>
                     </div>
                   </div>
@@ -972,7 +972,7 @@ export default function IRAPage() {
 
                 {/* Section 2: Security & Beneficiary */}
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1F1F1F] mb-4 font-goudy">Security & Beneficiary</h3>
+                  <h3 className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100 mb-4 font-goudy">Security & Beneficiary</h3>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Social Security Number</label>
@@ -1002,7 +1002,7 @@ export default function IRAPage() {
                             });
                           }
                         }}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
                       />
                       {errors.ssn && <p className="mt-1 text-[11px] text-red-500">{errors.ssn}</p>}
                     </div>
@@ -1013,7 +1013,7 @@ export default function IRAPage() {
                         placeholder="Enter primary beneficiary"
                         value={iraForm.beneficiary}
                         onChange={e => setIraForm({ ...iraForm, beneficiary: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
                       />
                       {errors.beneficiary && <p className="mt-1 text-[11px] text-red-500">{errors.beneficiary}</p>}
                     </div>
@@ -1022,58 +1022,58 @@ export default function IRAPage() {
 
                 {/* Section 3: Address Details */}
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1F1F1F] mb-1 font-goudy">Address Details</h3>
+                  <h3 className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100 mb-1 font-goudy">Address Details</h3>
                   <p className="text-[12px] italic text-[#8E8E93] mb-4 font-helvetica">Physical Address (from your profile)</p>
 
-                  <div className="rounded-[12px] border border-[#F0F0F0] bg-[#FAFAFA] p-5">
+                  <div className="rounded-[12px] border border-[#F0F0F0] dark:border-[#2A2A2A] bg-[#FAFAFA] p-5">
                     <div className="grid grid-cols-2 gap-y-4 gap-x-8">
                       <div>
                         <p className="text-[11px] font-medium text-[#9CA3AF] mb-0.5 uppercase tracking-wider font-helvetica">Street Address 1</p>
-                        <p className="text-[13px] text-[#1F1F1F] font-helvetica">{user?.addressLine1 || '-'}</p>
+                        <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{user?.addressLine1 || '-'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] font-medium text-[#9CA3AF] mb-0.5 uppercase tracking-wider font-helvetica">Street Address 2</p>
-                        <p className="text-[13px] text-[#1F1F1F] font-helvetica">{user?.addressLine2 || '-'}</p>
+                        <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{user?.addressLine2 || '-'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] font-medium text-[#9CA3AF] mb-0.5 uppercase tracking-wider font-helvetica">City</p>
-                        <p className="text-[13px] text-[#1F1F1F] font-helvetica">{user?.city || '-'}</p>
+                        <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{user?.city || '-'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] font-medium text-[#9CA3AF] mb-0.5 uppercase tracking-wider font-helvetica">State</p>
-                        <p className="text-[13px] text-[#1F1F1F] font-helvetica">{user?.state || '-'}</p>
+                        <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{user?.state || '-'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] font-medium text-[#9CA3AF] mb-0.5 uppercase tracking-wider font-helvetica">Zip Code</p>
-                        <p className="text-[13px] text-[#1F1F1F] font-helvetica">{user?.zipCode || '-'}</p>
+                        <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{user?.zipCode || '-'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] font-medium text-[#9CA3AF] mb-0.5 uppercase tracking-wider font-helvetica">Country</p>
-                        <p className="text-[13px] text-[#1F1F1F] font-helvetica">{user?.country || '-'}</p>
+                        <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{user?.country || '-'}</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-6">
-                    <p className="text-[13px] font-medium text-[#1F1F1F] mb-3 font-helvetica">Is mailing address same as physical address?</p>
+                    <p className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 mb-3 font-helvetica">Is mailing address same as physical address?</p>
                     <div className="flex gap-6">
                       <div
                         className="flex items-center gap-2 cursor-pointer group"
                         onClick={() => setIraForm({ ...iraForm, mailingAddressSame: true })}
                       >
-                        <div className={`h-4 w-4 rounded-full border flex items-center justify-center transition-all ${iraForm.mailingAddressSame === true ? 'border-[#D1A94C]' : 'border-[#E5E7EB] bg-white'}`}>
+                        <div className={`h-4 w-4 rounded-full border flex items-center justify-center transition-all ${iraForm.mailingAddressSame === true ? 'border-[#D1A94C]' : 'border-[#E5E7EB] bg-white dark:bg-[#1C1C1C]'}`}>
                           {iraForm.mailingAddressSame === true && <div className="h-2 w-2 rounded-full bg-[#D1A94C]" />}
                         </div>
-                        <span className={`text-[13px] font-helvetica transition-colors ${iraForm.mailingAddressSame === true ? 'text-[#1F1F1F]' : 'text-[#6B7280] group-hover:text-[#D1A94C]'}`}>Yes</span>
+                        <span className={`text-[13px] font-helvetica transition-colors ${iraForm.mailingAddressSame === true ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#6B7280] group-hover:text-[#D1A94C]'}`}>Yes</span>
                       </div>
                       <div
                         className="flex items-center gap-2 cursor-pointer group"
                         onClick={() => setIraForm({ ...iraForm, mailingAddressSame: false })}
                       >
-                        <div className={`h-4 w-4 rounded-full border flex items-center justify-center transition-all ${iraForm.mailingAddressSame === false ? 'border-[#D1A94C]' : 'border-[#E5E7EB] bg-white'}`}>
+                        <div className={`h-4 w-4 rounded-full border flex items-center justify-center transition-all ${iraForm.mailingAddressSame === false ? 'border-[#D1A94C]' : 'border-[#E5E7EB] bg-white dark:bg-[#1C1C1C]'}`}>
                           {iraForm.mailingAddressSame === false && <div className="h-2 w-2 rounded-full bg-[#D1A94C]" />}
                         </div>
-                        <span className={`text-[13px] font-helvetica transition-colors ${iraForm.mailingAddressSame === false ? 'text-[#1F1F1F]' : 'text-[#6B7280] group-hover:text-[#D1A94C]'}`}>No</span>
+                        <span className={`text-[13px] font-helvetica transition-colors ${iraForm.mailingAddressSame === false ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#6B7280] group-hover:text-[#D1A94C]'}`}>No</span>
                       </div>
                     </div>
                   </div>
@@ -1088,7 +1088,7 @@ export default function IRAPage() {
                             placeholder="Address Line 1"
                             value={iraForm.mailingAddress1}
                             onChange={e => setIraForm({ ...iraForm, mailingAddress1: e.target.value })}
-                            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
+                            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
                           />
                         </div>
                         <div>
@@ -1098,7 +1098,7 @@ export default function IRAPage() {
                             placeholder="Address Line 2"
                             value={iraForm.mailingAddress2}
                             onChange={e => setIraForm({ ...iraForm, mailingAddress2: e.target.value })}
-                            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
+                            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
                           />
                         </div>
                       </div>
@@ -1149,7 +1149,7 @@ export default function IRAPage() {
                             placeholder="Zip Code"
                             value={iraForm.mailingZipCode}
                             onChange={e => setIraForm({ ...iraForm, mailingZipCode: e.target.value })}
-                            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
+                            className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
                           />
                         </div>
                       </div>
@@ -1168,7 +1168,7 @@ export default function IRAPage() {
                   <button
                     onClick={handleSaveIRA}
                     disabled={loading}
-                    className="flex items-center gap-2 rounded-full bg-[#FFC63F] px-10 py-2.5 text-sm font-bold text-[#1F1F1F] hover:bg-[#F2B62F] transition-all shadow-md"
+                    className="flex items-center gap-2 rounded-full bg-[#FFC63F] px-10 py-2.5 text-sm font-bold text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F2B62F] transition-all shadow-md"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create'}
                   </button>
@@ -1182,13 +1182,13 @@ export default function IRAPage() {
       {/* ─── TRANSFER IRA MODAL ─── */}
       {showTransferModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-[10px] bg-white shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between border-b bg-white px-6 py-4">
+          <div className="w-full max-w-md rounded-[10px] bg-white dark:bg-[#1C1C1C] shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between border-b bg-white dark:bg-[#1C1C1C] px-6 py-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFF8E1]">
                   <History className="h-4 w-4 text-[#D1A94C]" />
                 </div>
-                <h2 className="text-[18px] font-bold text-[#1F1F1F] font-goudy">Transfer IRA</h2>
+                <h2 className="text-[18px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy">Transfer IRA</h2>
               </div>
               <button
                 onClick={() => setShowTransferModal(false)}
@@ -1206,7 +1206,7 @@ export default function IRAPage() {
                   placeholder="Enter current account number"
                   value={transferForm.accountNumber}
                   onChange={e => setTransferForm({ ...transferForm, accountNumber: e.target.value })}
-                  className="w-full h-[42px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                  className="w-full h-[42px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
                 />
               </div>
               <div>
@@ -1216,7 +1216,7 @@ export default function IRAPage() {
                   placeholder="e.g. Fidelity, Vanguard"
                   value={transferForm.custodian}
                   onChange={e => setTransferForm({ ...transferForm, custodian: e.target.value })}
-                  className="w-full h-[42px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                  className="w-full h-[42px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
                 />
               </div>
 

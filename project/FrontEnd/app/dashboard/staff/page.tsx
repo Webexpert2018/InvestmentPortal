@@ -122,15 +122,15 @@ export default function StaffPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F]">
+      <div className="mx-auto max-w-xxl font-helvetica text-[#1F1F1F] dark:text-gray-100">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">Staff</h1>
+            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F] dark:text-gray-100">Staff</h1>
             <p className="text-[#8E8E93] text-[14px] mt-1">Manage platform users, assign roles and permissions, and view activity</p>
           </div>
           <Link
             href="/dashboard/staff/add"
-            className="bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F] px-6 py-2.5 rounded-full font-semibold transition-colors flex items-center justify-center gap-2 text-[14px]"
+            className="bg-[#FFD66B] hover:bg-[#FFC840] text-[#1F1F1F] dark:text-gray-100 px-6 py-2.5 rounded-full font-semibold transition-colors flex items-center justify-center gap-2 text-[14px]"
           >
             Add Staff
           </Link>
@@ -143,7 +143,7 @@ export default function StaffPage() {
             <input
               type="text"
               placeholder="Find something here..."
-              className="w-full bg-[#f8f9fa] border-none rounded-full py-2.5 pl-11 pr-4 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none"
+              className="w-full bg-[#f8f9fa] dark:bg-[#1C1C1C] dark:text-gray-100 border-none rounded-full py-2.5 pl-11 pr-4 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -152,10 +152,10 @@ export default function StaffPage() {
             <select
               value={activeTab}
               onChange={(e) => setActiveTab(e.target.value)}
-              className="w-full bg-[#f8f9fa] border-none rounded-full py-2.5 pl-6 pr-10 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer font-medium text-[#1F1F1F]"
+              className="w-full bg-[#f8f9fa] dark:bg-[#1C1C1C] border-none rounded-full py-2.5 pl-6 pr-10 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none appearance-none cursor-pointer font-medium text-[#1F1F1F] dark:text-gray-100"
             >
               {ROLE_OPTIONS.map((option) => (
-                <option key={option.id} value={option.id}>
+                <option key={option.id} value={option.id} className="bg-white dark:bg-[#1C1C1C] text-[#1F1F1F] dark:text-gray-100">
                   {option.label}
                 </option>
               ))}
@@ -169,11 +169,11 @@ export default function StaffPage() {
         </div>
 
         {/* Table wrapper - Removed overflow-hidden to prevent dropdown clipping */}
-        <div className="bg-white rounded-[12px] shadow-sm border border-[#F2F2F2]">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-[12px] shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A]">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#F2F2F2]">
+                <tr className="border-b border-[#F2F2F2] dark:border-[#2A2A2A]">
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Name</th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Email</th>
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] whitespace-nowrap">Role Type</th>
@@ -182,7 +182,7 @@ export default function StaffPage() {
                   <th className="px-6 py-4 text-[13px] font-medium text-[#8E8E93] text-right whitespace-nowrap">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F2F2F2]">
+              <tbody className="divide-y divide-[#F2F2F2] dark:divide-[#2A2A2A]">
                 {loading ? (
                   <tr>
                     <td colSpan={6} className="py-20 text-center">
@@ -199,7 +199,7 @@ export default function StaffPage() {
                   displayStaff.map((staff, index) => (
                     <tr
                       key={staff.id}
-                      className="hover:bg-slate-50/80 cursor-pointer transition-colors duration-150"
+                      className="hover:bg-slate-50/80 dark:hover:bg-[#2A2A2A] cursor-pointer transition-colors duration-150"
                       onClick={() => router.push(`/dashboard/staff/view/${staff.id}`)}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -216,10 +216,10 @@ export default function StaffPage() {
                               getInitials(staff.full_name)
                             )}
                           </div>
-                          <span className="text-[14px] font-medium text-[#1F1F1F]">{staff.full_name}</span>
+                          <span className="text-[14px] font-medium text-[#1F1F1F] dark:text-gray-100">{staff.full_name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] whitespace-nowrap">{staff.email}</td>
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] dark:text-gray-300 whitespace-nowrap">{staff.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-3 py-1 rounded-full text-[12px] font-medium ${staff.role === 'executive_admin' ? 'bg-[#1F1F1F] text-white' :
                           staff.role === 'admin' ? 'bg-[#2A4474]/10 text-[#2A4474]' :
@@ -230,10 +230,10 @@ export default function StaffPage() {
                           {ROLE_OPTIONS.find(o => o.id === staff.role)?.label || staff.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] whitespace-nowrap">
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] dark:text-gray-300 whitespace-nowrap">
                         {staff.assigned_investors_count || 0}
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] whitespace-nowrap">{formatDate(staff.created_at)}</td>
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] dark:text-gray-300 whitespace-nowrap">{formatDate(staff.created_at)}</td>
                       <td className="px-6 py-4 text-right relative whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="relative inline-block">
                           <button
@@ -241,7 +241,7 @@ export default function StaffPage() {
                               e.stopPropagation();
                               setActiveDropdown(activeDropdown === staff.id ? null : staff.id);
                             }}
-                            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-[#8E8E93]"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors text-[#8E8E93]"
                           >
                             <MoreVertical className="h-5 w-5" />
                           </button>
@@ -249,26 +249,26 @@ export default function StaffPage() {
                           {activeDropdown === staff.id && (
                             <>
                               <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
-                              <div className={`absolute right-0 bg-white border border-[#F2F2F2] rounded-[8px] shadow-xl py-2 w-[120px] z-50 text-left animate-in fade-in zoom-in duration-200 ${
+                              <div className={`absolute right-0 bg-white dark:bg-[#1C1C1C] border border-[#F2F2F2] dark:border-[#2A2A2A] rounded-[8px] shadow-xl py-2 w-[120px] z-50 text-left animate-in fade-in zoom-in duration-200 ${
                                 index === displayStaff.length - 1 ? 'bottom-full mb-1' : 'top-full mt-1'
                               }`}>
                                 <Link
                                   href={`/dashboard/staff/view/${staff.id}`}
-                                  className="block px-4 py-2 text-[13px] text-[#1F1F1F] hover:bg-gray-50 flex items-center gap-2 font-medium"
+                                  className="block px-4 py-2 text-[13px] text-[#1F1F1F] dark:text-gray-100 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 flex items-center gap-2 font-medium"
                                   onClick={() => setActiveDropdown(null)}
                                 >
                                   View
                                 </Link>
                                 <Link
                                   href={`/dashboard/staff/edit/${staff.id}`}
-                                  className="block px-4 py-2 text-[13px] text-[#1F1F1F] hover:bg-gray-50 flex items-center gap-2 font-medium"
+                                  className="block px-4 py-2 text-[13px] text-[#1F1F1F] dark:text-gray-100 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 flex items-center gap-2 font-medium"
                                   onClick={() => setActiveDropdown(null)}
                                 >
                                   Edit
                                 </Link>
                                 <button
                                   onClick={() => handleDeleteStaff(staff)}
-                                  className="w-full text-left px-4 py-2 text-[13px] text-red-500 hover:bg-gray-50 flex items-center gap-2 border-t border-gray-50 font-medium pt-2 mt-1"
+                                  className="w-full text-left px-4 py-2 text-[13px] text-red-500 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 flex items-center gap-2 border-t border-gray-50 dark:border-gray-800 font-medium pt-2 mt-1"
                                 >
                                   Delete
                                 </button>
@@ -299,7 +299,7 @@ export default function StaffPage() {
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
-              className={`flex items-center gap-1 text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-600 transition-colors'
+              className={`flex items-center gap-1 text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-600 dark:text-gray-400 transition-colors'
                 }`}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -313,7 +313,7 @@ export default function StaffPage() {
                   onClick={() => setCurrentPage(i + 1)}
                   className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === i + 1
                     ? 'bg-[#1F3B6E] text-white'
-                    : 'text-gray-400 hover:bg-gray-100'
+                    : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                 >
                   {i + 1}
@@ -324,7 +324,7 @@ export default function StaffPage() {
             <button
               onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
               disabled={currentPage === pagination.totalPages}
-              className={`flex items-center gap-1 text-sm font-medium ${currentPage === pagination.totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-600 transition-colors'
+              className={`flex items-center gap-1 text-sm font-medium ${currentPage === pagination.totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-600 dark:text-gray-400 transition-colors'
                 }`}
             >
               <span>Next</span>

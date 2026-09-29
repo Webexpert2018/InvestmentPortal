@@ -92,8 +92,8 @@ function LoginForm() {
           <Link
             href="/auth/login?flow=investor"
             className={`flex-1 min-[340px]:flex-none text-center py-2 px-2 sm:px-4 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 shadow-md whitespace-nowrap ${flow === 'investor'
-              ? 'bg-yellow-400 text-gray-900 border border-yellow-400'
-              : 'bg-white/90 text-gray-800 hover:bg-white border border-gray-300 backdrop-blur-sm'
+              ? 'bg-yellow-400 text-gray-900 dark:text-gray-100 border border-yellow-400'
+              : 'bg-white dark:bg-[#1C1C1C]/90 text-gray-800 dark:text-gray-200 hover:bg-white dark:bg-[#1C1C1C] border border-gray-300 backdrop-blur-sm'
               }`}
           >
             Investor Login
@@ -101,8 +101,8 @@ function LoginForm() {
           <Link
             href="/auth/login?flow=admin"
             className={`flex-1 min-[340px]:flex-none text-center py-2 px-2 sm:px-4 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 shadow-md whitespace-nowrap ${flow === 'admin'
-              ? 'bg-yellow-400 text-gray-900 border border-yellow-400'
-              : 'bg-white/90 text-gray-800 hover:bg-white border border-gray-300 backdrop-blur-sm'
+              ? 'bg-yellow-400 text-gray-900 dark:text-gray-100 border border-yellow-400'
+              : 'bg-white dark:bg-[#1C1C1C]/90 text-gray-800 dark:text-gray-200 hover:bg-white dark:bg-[#1C1C1C] border border-gray-300 backdrop-blur-sm'
               }`}
           >
             Admin Login
@@ -112,7 +112,7 @@ function LoginForm() {
           href="https://ovaliacapital.aet.app/auth/login"
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full min-[340px]:w-auto text-center py-2 px-2.5 sm:px-4 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 shadow-md bg-yellow-400 text-gray-900 border border-yellow-400 hover:bg-yellow-500 whitespace-nowrap"
+          className="w-full min-[340px]:w-auto text-center py-2 px-2.5 sm:px-4 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 shadow-md bg-yellow-400 text-gray-900 dark:text-gray-100 border border-yellow-400 hover:bg-yellow-500 whitespace-nowrap"
         >
           Go to IRA Portal
         </a>
@@ -120,7 +120,7 @@ function LoginForm() {
 
       {/* Centered Login Card Container */}
       <main className="relative z-10 flex-1 flex items-center justify-center py-6">
-        <div className="w-full max-w-md bg-white rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
+        <div className="w-full max-w-md bg-white dark:bg-[#1C1C1C] rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
           <div className="flex justify-center mb-3 sm:mb-4">
             <a href="/" className="inline-block">
               <Image
@@ -134,7 +134,7 @@ function LoginForm() {
             </a>
           </div>
 
-          <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F]">
+          <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F] dark:text-gray-100">
             {title}
           </h2>
           <p className="mt-1 text-center text-md sm:text-xl">
@@ -143,7 +143,7 @@ function LoginForm() {
 
           <form onSubmit={handleSubmit} className="mt-6 sm:space-y-5 space-y-4">
             <div>
-              <label className="block font-helvetica font-medium text-sm sm:text-md text-[#4B4B4B] mb-1">Email</label>
+              <label className="block font-helvetica font-medium text-sm sm:text-md text-[#4B4B4B] dark:text-gray-300 mb-1">Email</label>
               <input
                 type="email"
                 placeholder="Enter email"
@@ -156,7 +156,7 @@ function LoginForm() {
             </div>
 
             <div>
-              <label className="block font-helvetica font-medium text-sm sm:text-md text-[#4B4B4B] mb-1">Password</label>
+              <label className="block font-helvetica font-medium text-sm sm:text-md text-[#4B4B4B] dark:text-gray-300 mb-1">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -186,7 +186,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-6 flex justify-center items-center rounded-full bg-yellow-400 py-2.5 text-sm font-medium text-gray-900 hover:bg-yellow-500 transition"
+              className="w-full mt-6 flex justify-center items-center rounded-full bg-yellow-400 py-2.5 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-yellow-500 transition"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {loading ? 'Logging in...' : 'Log In'}

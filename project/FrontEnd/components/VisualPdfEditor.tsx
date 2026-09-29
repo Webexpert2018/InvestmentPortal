@@ -447,12 +447,12 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
     ];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 bg-white rounded-2xl border border-gray-100 p-3 md:p-6 shadow-sm">
+    <div className="flex flex-col lg:flex-row gap-6 bg-white dark:bg-[#1C1C1C] rounded-2xl border border-gray-100 dark:border-gray-800 p-3 md:p-6 shadow-sm">
       {/* Sidebar Tool selection */}
-      <div className="w-full lg:w-72 flex flex-col gap-5 border-r border-gray-100 pr-6">
+      <div className="w-full lg:w-72 flex flex-col gap-5 border-r border-gray-100 dark:border-gray-800 pr-6">
         <div>
           <h3 className="font-goudy text-lg font-bold text-[#1F3B6E] mb-2">Visual Field Designer</h3>
-          <p className="text-xs text-gray-500 leading-relaxed">
+          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
             Select a field below, then click on the PDF to position where the e-signature elements will overlay. You can place as many as you need!
           </p>
         </div>
@@ -470,8 +470,8 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
                 type="button"
                 onClick={() => setActiveTool(isActive ? null : tool.type)}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-semibold text-left transition-all ${isActive
-                  ? 'border-[#FCD34D] bg-[#FEF3E2] text-gray-900 shadow-sm ring-1 ring-[#FCD34D]'
-                  : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
+                  ? 'border-[#FCD34D] bg-[#FEF3E2] text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-[#FCD34D]'
+                  : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
                   }`}
               >
                 <div className="flex items-center gap-3">
@@ -492,7 +492,7 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
 
         {/* Placed fields list with direct page navigation & deletion */}
         {placements.length > 0 && (
-          <div className="flex flex-col gap-2 border-t border-gray-100 pt-4">
+          <div className="flex flex-col gap-2 border-t border-gray-100 dark:border-gray-800 pt-4">
             <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Placed Elements ({placements.length})</h4>
             <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
               {placements.map((placement, index) => {
@@ -500,7 +500,7 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
                 if (!tool) return null;
                 const ToolIcon = tool.icon;
                 return (
-                  <div key={placement.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 border border-gray-100 hover:bg-gray-100/50 transition-colors">
+                  <div key={placement.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
                     <button
                       type="button"
                       onClick={() => setPageNumber(placement.page)}
@@ -510,7 +510,7 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
                         <ToolIcon className="h-3 w-3" />
                       </div>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-semibold text-gray-800 truncate">
+                        <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">
                           {tool.label} #{index + 1}
                         </span>
                         <span className="text-[9px] text-gray-400 font-mono">
@@ -534,20 +534,20 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
         )}
 
         {/* Live Coordinate Status list */}
-        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 mt-auto">
-          <h4 className="text-xs font-semibold text-gray-600 mb-2 flex items-center gap-1.5">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-800 mt-auto">
+          <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-1.5">
             <HelpCircle className="h-3.5 w-3.5" /> Instructions
           </h4>
-          <p className="text-[10px] text-gray-500 leading-relaxed">
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed">
             Click a tool, then click on the page to place. You can drag placed badges directly on the PDF, or click any element in the list above to jump straight to its page.
           </p>
         </div>
       </div>
 
       {/* PDF Viewport Workspace */}
-      <div className="flex-1 flex flex-col items-center gap-4 bg-gray-50 rounded-2xl p-6 border border-gray-100 overflow-auto min-h-[500px]">
+      <div className="flex-1 flex flex-col items-center gap-4 bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 overflow-auto min-h-[500px]">
         {/* Navigation Bar */}
-        <div className="flex items-center justify-between w-full border-b border-gray-200/60 pb-4">
+        <div className="flex items-center justify-between w-full border-b border-gray-200 dark:border-gray-800/60 pb-4">
           <div className="flex items-center gap-2">
             <Button
               type="button"
@@ -559,7 +559,7 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-sm font-semibold text-gray-700 min-w-[80px] text-center">
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 min-w-[80px] text-center">
               Page {pageNumber} of {numPages || '?'}
             </span>
             <Button
@@ -586,16 +586,16 @@ export function VisualPdfEditor({ file, initialValues, onChange, templateType }:
           <div
             ref={pageContainerRef}
             onClick={handlePageClick}
-            className={`relative shadow-lg border border-gray-200 bg-white select-none ${activeTool ? 'cursor-crosshair' : 'cursor-default'
+            className={`relative shadow-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] select-none ${activeTool ? 'cursor-crosshair' : 'cursor-default'
               }`}
             style={{ maxWidth: '100%', minWidth: '400px' }}
           >
             {file ? (
               <div className="relative">
                 {loading && (
-                  <div className="flex flex-col items-center justify-center py-20 px-8 absolute inset-0 bg-white/80 z-10">
+                  <div className="flex flex-col items-center justify-center py-20 px-8 absolute inset-0 bg-white dark:bg-[#1C1C1C]/80 z-10">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1F3B6E] mb-3"></div>
-                    <span className="text-xs text-gray-500 font-medium">Loading document...</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Loading document...</span>
                   </div>
                 )}
                 <canvas ref={canvasRef} className="max-w-full block" />

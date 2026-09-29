@@ -837,12 +837,12 @@ export default function OldFundDetailPage() {
         <div className="p-6">
           <button
             onClick={() => router.push('/dashboard/funds')}
-            className="mb-4 flex items-center gap-2 text-gray-600 font-semibold"
+            className="mb-4 flex items-center gap-2 text-gray-600 dark:text-gray-400 font-semibold"
           >
             <ChevronLeft className="h-5 w-5" /> Back to Funds
           </button>
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 text-center shadow-sm">
-            <p className="text-gray-500 font-medium">Old platform fund not found</p>
+          <div className="bg-white dark:bg-[#1C1C1C] p-8 rounded-2xl border border-gray-100 dark:border-gray-800 text-center shadow-sm">
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Old platform fund not found</p>
           </div>
         </div>
       </DashboardLayout>
@@ -851,29 +851,29 @@ export default function OldFundDetailPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-8 bg-[#F9FAFB] min-h-screen">
+      <div className="p-4 sm:p-8 bg-[#F9FAFB] dark:bg-gray-900 min-h-screen">
         {/* Header navigation & Fund Summary Header */}
         <div className="mb-4 space-y-3">
           <div>
             <button
               onClick={() => router.push('/dashboard/funds')}
-              className="p-1.5 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200 group flex items-center gap-1.5 w-fit"
+              className="p-1.5 hover:bg-white dark:bg-[#1C1C1C] rounded-full transition-colors border border-transparent hover:border-gray-200 dark:border-gray-800 group flex items-center gap-1.5 w-fit"
               title="Back to Funds"
             >
-              <ChevronLeft className="h-5 w-5 text-gray-600 transition-transform group-hover:-translate-x-0.5" />
+              <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400 transition-transform group-hover:-translate-x-0.5" />
               <span className="text-sm font-semibold text-[#1F3B6E] pr-2">
                 Back to Funds
               </span>
             </button>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm flex flex-col md:flex-row gap-6 items-start">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col md:flex-row gap-6 items-start">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#4B5563] to-[#9CA3AF] flex-shrink-0 flex items-center justify-center text-white font-bold text-2xl shadow-md">
               {getInitials(fund.projectName)}
             </div>
             <div className="flex-1 space-y-2.5">
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight font-goudy">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 leading-tight font-goudy">
                   {fund.projectName}
                 </h1>
                 {fund.status && (
@@ -882,13 +882,13 @@ export default function OldFundDetailPage() {
                   </span>
                 )}
                 {fund.projectType && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 text-gray-600">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 text-gray-600 dark:text-gray-400">
                     {fund.projectType}
                   </span>
                 )}
               </div>
               <p className="text-xs text-gray-400 font-medium">Old Platform Fund &bull; Historical Record</p>
-              <p className="text-gray-600 text-sm leading-relaxed w-full">
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed w-full">
                 {fund.description || "This fund represents a legacy investment structure that has been fully closed. Historical performance, capital call contributions, and distributions remain archived for tracking, compliance, and auditing purposes."}
               </p>
             </div>
@@ -899,10 +899,10 @@ export default function OldFundDetailPage() {
 
 
         {/* Associated Investors & Distributions Section (Expanded Full Width) */}
-        <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl p-8 border border-gray-100 dark:border-gray-800 shadow-sm space-y-6">
 
           {/* Tab switcher header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-50 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-50 dark:border-gray-800 pb-4">
             <div className="flex items-center gap-6">
               <button
                 onClick={() => {
@@ -915,12 +915,12 @@ export default function OldFundDetailPage() {
                 }}
                 className={`flex items-center gap-2 pb-2 border-b-2 font-bold transition-all text-base ${activeTab === 'investors'
                   ? 'border-[#1F3B6E] text-[#1F3B6E]'
-                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                  : 'border-transparent text-gray-400 hover:text-gray-600 dark:text-gray-400'
                   }`}
               >
                 <Users className="h-5 w-5" />
                 <span>Associated Investors</span>
-                <span className="inline-flex items-center justify-center bg-gray-100 text-gray-800 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
+                <span className="inline-flex items-center justify-center bg-gray-100 text-gray-800 dark:text-gray-200 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
                   {fund.investors ? fund.investors.length : 0}
                 </span>
               </button>
@@ -936,12 +936,12 @@ export default function OldFundDetailPage() {
                 }}
                 className={`flex items-center gap-2 pb-2 border-b-2 font-bold transition-all text-base ${activeTab === 'distributions'
                   ? 'border-[#1F3B6E] text-[#1F3B6E]'
-                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                  : 'border-transparent text-gray-400 hover:text-gray-600 dark:text-gray-400'
                   }`}
               >
                 <DollarSign className="h-5 w-5" />
                 <span>Distributions</span>
-                <span className="inline-flex items-center justify-center bg-gray-100 text-gray-800 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
+                <span className="inline-flex items-center justify-center bg-gray-100 text-gray-800 dark:text-gray-200 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
                   {fund.distributions ? fund.distributions.filter((d: any) => d.status !== '0' && d.status !== 'Draft').length : 0}
                 </span>
               </button>
@@ -958,12 +958,12 @@ export default function OldFundDetailPage() {
                 }}
                 className={`flex items-center gap-2 pb-2 border-b-2 font-bold transition-all text-base ${activeTab === 'waterfalls'
                   ? 'border-[#1F3B6E] text-[#1F3B6E]'
-                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                  : 'border-transparent text-gray-400 hover:text-gray-600 dark:text-gray-400'
                   }`}
               >
                 <Split className="h-5 w-5" />
                 <span>Waterfalls</span>
-                <span className="inline-flex items-center justify-center bg-gray-100 text-gray-800 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
+                <span className="inline-flex items-center justify-center bg-gray-100 text-gray-800 dark:text-gray-200 text-xs font-bold px-2 py-0.5 rounded-full ml-1">
                   {waterfallsList.length}
                 </span>
               </button>
@@ -988,7 +988,7 @@ export default function OldFundDetailPage() {
             ) : selectedInvestorId !== null && selectedInvestorData ? (
               // Investor detail view (navigated like a directory)
               <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-50 pb-3 gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-50 dark:border-gray-800 pb-3 gap-3">
                   <button
                     onClick={() => {
                       setSelectedInvestorId(null);
@@ -1005,18 +1005,18 @@ export default function OldFundDetailPage() {
                 </div>
 
                 {/* Compact summary cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-900/50 dark:bg-gray-800/50 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
                   <div className="space-y-1">
                     <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Investment on this fund</span>
-                    <span className="text-xl font-bold text-gray-900">{selectedInvestorData.totalInvestment}</span>
+                    <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{selectedInvestorData.totalInvestment}</span>
                   </div>
                   <div className="space-y-1">
                     <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">Total Return of Capital</span>
-                    <span className="text-xl font-bold text-gray-900">{selectedInvestorData.totalDistribution || '$0.00'}</span>
+                    <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{selectedInvestorData.totalDistribution || '$0.00'}</span>
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-50 pb-3 gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-50 dark:border-gray-800 pb-3 gap-4">
                   <h4 className="text-base font-bold text-[#1F3B6E] font-goudy">
                     Investment Records for {selectedInvestorData.fullName}
                   </h4>
@@ -1032,7 +1032,7 @@ export default function OldFundDetailPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
-                        <tr className="border-b border-gray-100">
+                        <tr className="border-b border-gray-100 dark:border-gray-800">
                           <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pl-3 w-[8%]">No.</th>
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[22%] pr-4">Investment Amount</th>
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica w-[16%] pr-4">Ownership</th>
@@ -1041,22 +1041,22 @@ export default function OldFundDetailPage() {
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pr-3 w-[14%]">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-50">
+                      <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                         {selectedInvestorData.investments.map((inv: any, idx: number) => (
                           <tr key={idx} className="bg-blue-50/20 hover:bg-blue-50/40 transition-all border-l-4 border-[#1F3B6E] group">
                             <td className="py-4 pl-3 text-sm font-bold text-[#1F3B6E] text-left w-[8%]">
                               #{idx + 1}
                             </td>
-                            <td className="py-4 text-right text-sm font-bold text-gray-900 w-[22%] pr-4">
+                            <td className="py-4 text-right text-sm font-bold text-gray-900 dark:text-gray-100 w-[22%] pr-4">
                               {inv.amount}
                             </td>
-                            <td className="py-4 text-right text-sm font-medium text-gray-500 w-[16%] pr-4">
+                            <td className="py-4 text-right text-sm font-medium text-gray-500 dark:text-gray-400 w-[16%] pr-4">
                               {inv.ownership || '0.00%'}
                             </td>
-                            <td className="py-4 text-center text-sm text-gray-600 font-medium w-[20%]">
+                            <td className="py-4 text-center text-sm text-gray-600 dark:text-gray-400 font-medium w-[20%]">
                               {formatDate(inv.placedOn)}
                             </td>
-                            <td className="py-4 text-center text-sm text-gray-600 font-medium w-[20%]">
+                            <td className="py-4 text-center text-sm text-gray-600 dark:text-gray-400 font-medium w-[20%]">
                               {formatDate(inv.receivedOn)}
                             </td>
                             <td className="py-4 text-right pr-3 w-[14%]">
@@ -1102,10 +1102,10 @@ export default function OldFundDetailPage() {
                   }
 
                   return (
-                    <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6 mt-8">
-                      <div className="border-b border-gray-50 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl p-8 border border-gray-100 dark:border-gray-800 shadow-sm space-y-6 mt-8">
+                      <div className="border-b border-gray-50 dark:border-gray-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-bold text-gray-900 font-goudy">
+                          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-goudy">
                             Legacy Investor Documents
                           </h3>
                           <span className="inline-flex items-center justify-center bg-blue-50 text-[#1F3B6E] text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-100">
@@ -1121,9 +1121,9 @@ export default function OldFundDetailPage() {
                             <select
                               value={selectedInvestorDocType}
                               onChange={(e) => setSelectedInvestorDocType(e.target.value)}
-                              className="text-xs font-semibold bg-gray-50 border border-gray-200 text-[#1F3B6E] rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 cursor-pointer"
+                              className="text-xs font-semibold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 text-[#1F3B6E] rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 cursor-pointer"
                             >
-                              <option value="ALL">All Document Types ({selectedInvestorDocs.length})</option>
+                              <option value="ALL" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">All Document Types ({selectedInvestorDocs.length})</option>
                               {uniqueDocTypes.map((type) => (
                                 <option key={type} value={type}>
                                   {type} ({docTypeCounts[type]})
@@ -1142,7 +1142,7 @@ export default function OldFundDetailPage() {
                             onClick={() => setSelectedInvestorDocType('ALL')}
                             className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${selectedInvestorDocType === 'ALL'
                               ? 'bg-[#1F3B6E] text-white shadow-sm'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent'
+                              : 'bg-gray-100 text-gray-600 dark:text-gray-400 hover:bg-gray-200 border border-transparent'
                               }`}
                           >
                             All ({selectedInvestorDocs.length})
@@ -1154,11 +1154,11 @@ export default function OldFundDetailPage() {
                               onClick={() => setSelectedInvestorDocType(type)}
                               className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${selectedInvestorDocType === type
                                 ? 'bg-[#1F3B6E] text-white shadow-sm'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent'
+                                : 'bg-gray-100 text-gray-700 dark:text-gray-300 hover:bg-gray-200 border border-transparent'
                                 }`}
                             >
                               <span>{type}</span>
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${selectedInvestorDocType === type ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${selectedInvestorDocType === type ? 'bg-white dark:bg-[#1C1C1C]/20 text-white' : 'bg-gray-200 text-gray-700 dark:text-gray-300'
                                 }`}>
                                 {docTypeCounts[type]}
                               </span>
@@ -1177,10 +1177,10 @@ export default function OldFundDetailPage() {
                       )}
 
                       {displayedDocs && displayedDocs.length > 0 ? (
-                        <div className="overflow-x-auto max-h-[540px] overflow-y-auto border border-gray-100/80 rounded-2xl">
+                        <div className="overflow-x-auto max-h-[540px] overflow-y-auto border border-gray-100 dark:border-gray-800/80 rounded-2xl">
                           <table className="w-full border-collapse">
-                            <thead className="sticky top-0 bg-white shadow-xs z-10">
-                              <tr className="border-b border-gray-100 bg-white">
+                            <thead className="sticky top-0 bg-white dark:bg-[#1C1C1C] shadow-xs z-10">
+                              <tr className="border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1C1C1C]">
                                 <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">No.</th>
                                 <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider pl-3">Document Name</th>
                                 <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider pl-3">
@@ -1191,7 +1191,7 @@ export default function OldFundDetailPage() {
                                       else if (investorDocTypeSortOrder === 'asc') setInvestorDocTypeSortOrder('desc');
                                       else setInvestorDocTypeSortOrder(null);
                                     }}
-                                    className="flex items-center gap-1.5 hover:text-gray-700 focus:outline-none font-semibold group"
+                                    className="flex items-center gap-1.5 hover:text-gray-700 dark:text-gray-300 focus:outline-none font-semibold group"
                                     title="Click to sort by Document Type"
                                   >
                                     <span>Type</span>
@@ -1206,7 +1206,7 @@ export default function OldFundDetailPage() {
                                 <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider pr-2">Actions</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                               {displayedDocs.map((doc: any, idx: number) => (
                                 <tr
                                   key={doc.id || idx}
@@ -1252,17 +1252,17 @@ export default function OldFundDetailPage() {
                                       }}
                                       className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${selectedInvestorDocType === (doc.document_type || 'Tax Document')
                                         ? 'bg-[#1F3B6E]/10 text-[#1F3B6E] border border-[#1F3B6E]/20 font-bold shadow-sm'
-                                        : 'bg-gray-50 text-gray-700 hover:bg-[#1F3B6E]/5 hover:text-[#1F3B6E] border border-gray-200/60'
+                                        : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-[#1F3B6E]/5 hover:text-[#1F3B6E] border border-gray-200 dark:border-gray-800/60'
                                         }`}
                                       title={`Click to filter by ${doc.document_type || 'Tax Document'}`}
                                     >
                                       <span>{doc.document_type || 'Tax Document'}</span>
                                     </button>
                                   </td>
-                                  <td className="py-4 text-center text-sm font-medium text-gray-700">
+                                  <td className="py-4 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
                                     {doc.tax_year || 'N/A'}
                                   </td>
-                                  <td className="py-4 text-center text-sm text-gray-600">
+                                  <td className="py-4 text-center text-sm text-gray-600 dark:text-gray-400">
                                     {formatDate(doc.created_at)}
                                   </td>
                                   <td className="py-4 text-right pr-2">
@@ -1285,8 +1285,8 @@ export default function OldFundDetailPage() {
                           </table>
                         </div>
                       ) : (
-                        <div className="text-center py-8 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-                          <p className="text-sm text-gray-500 font-medium">
+                        <div className="text-center py-8 bg-gray-50 dark:bg-gray-900/50 dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
                             No legacy documents found for this investor.
                           </p>
                         </div>
@@ -1300,13 +1300,13 @@ export default function OldFundDetailPage() {
               fund.investors && fund.investors.length > 0 ? (
                 <div className="space-y-6">
                   <div className="mb-2">
-                    <h3 className="text-lg font-bold text-gray-900 font-goudy pb-2 border-b border-gray-100">Share Classes</h3>
-                    <p className="text-sm font-semibold text-gray-700 mt-1">Select a class to view its associated investors.</p>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-goudy pb-2 border-b border-gray-100 dark:border-gray-800">Share Classes</h3>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mt-1">Select a class to view its associated investors.</p>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
-                        <tr className="border-b border-gray-100">
+                        <tr className="border-b border-gray-100 dark:border-gray-800">
                           <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Class Name</th>
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Investment</th>
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Distribution</th>
@@ -1314,7 +1314,7 @@ export default function OldFundDetailPage() {
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">No. of Investors</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-50">
+                      <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                         {(() => {
                           const counts: Record<string, { count: number; totalInvestment: number; totalShares: number; totalDistribution: number }> = {};
                           fund.investors.forEach((inv: any) => {
@@ -1338,26 +1338,26 @@ export default function OldFundDetailPage() {
                               <tr
                                 key={idx}
                                 onClick={() => setSelectedClassName(name)}
-                                className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                                className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
                               >
                                 <td className="py-4">
                                   <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1F3B6E] to-[#6B7FBA] flex items-center justify-center text-white font-bold text-xs shadow-sm">
                                       {name[0] || 'C'}
                                     </div>
-                                    <span className="text-sm font-semibold text-gray-900 leading-snug">{name}</span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug">{name}</span>
                                   </div>
                                 </td>
-                                <td className="py-4 text-right text-sm font-bold text-gray-900">
+                                <td className="py-4 text-right text-sm font-bold text-gray-900 dark:text-gray-100">
                                   {'$' + data.totalInvestment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
-                                <td className="py-4 text-right text-sm font-bold text-gray-900">
+                                <td className="py-4 text-right text-sm font-bold text-gray-900 dark:text-gray-100">
                                   {'$' + data.totalDistribution.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
-                                <td className="py-4 text-right text-sm font-semibold text-gray-900 font-mono">
+                                <td className="py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100 font-mono">
                                   {classOwnershipPercent}
                                 </td>
-                                <td className="py-4 text-right text-sm font-semibold text-gray-900">
+                                <td className="py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">
                                   {data.count} {data.count === 1 ? 'Investor' : 'Investors'}
                                 </td>
                               </tr>
@@ -1379,7 +1379,7 @@ export default function OldFundDetailPage() {
                 const filteredInvestors = fund.investors.filter((inv: any) => (inv.className || 'Default Class') === selectedClassName);
                 return (
                   <div className="space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-4 gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4 gap-3">
                       <button
                         onClick={() => setSelectedClassName(null)}
                         className="flex items-center gap-1.5 text-sm font-semibold text-[#1F3B6E] hover:text-[#1F3B6E]/80 transition-colors"
@@ -1395,7 +1395,7 @@ export default function OldFundDetailPage() {
                       <div className="overflow-x-auto">
                         <table className="w-full border-collapse">
                           <thead>
-                            <tr className="border-b border-gray-100">
+                            <tr className="border-b border-gray-100 dark:border-gray-800">
                               <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investor</th>
                               <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Profile ID</th>
                               <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Investment</th>
@@ -1405,7 +1405,7 @@ export default function OldFundDetailPage() {
                               <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Status</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-50">
+                          <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                             {filteredInvestors.map((investor: any, idx: number) => {
                               const invAmount = parseFloat(investor.totalInvestment?.replace(/[\$,]/g, '') || '0');
                               const totalCap = parseFloat(fund?.totalCapital?.replace(/[\$,]/g, '') || '0');
@@ -1413,7 +1413,7 @@ export default function OldFundDetailPage() {
                               return (
                                 <tr
                                   key={idx}
-                                  className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                                  className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
                                   onClick={() => handleInvestorClick(investor.externalId)}
                                 >
                                   <td className="py-4">
@@ -1428,25 +1428,25 @@ export default function OldFundDetailPage() {
                                               <ShieldCheck className="w-2.5 h-2.5 stroke-[2.5]" />
                                             </span>
                                           )}
-                                          <span className="text-sm font-semibold text-gray-900 leading-snug">{investor.fullName}</span>
+                                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug">{investor.fullName}</span>
                                         </div>
-                                        <span className="text-xs text-gray-600 mt-0.5">{investor.email}</span>
+                                        <span className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{investor.email}</span>
                                       </div>
                                     </div>
                                   </td>
-                                  <td className="py-4 text-left text-sm font-mono text-gray-500">
+                                  <td className="py-4 text-left text-sm font-mono text-gray-500 dark:text-gray-400">
                                     {investor.externalId}
                                   </td>
-                                  <td className="py-4 text-right text-sm font-semibold text-gray-900">
+                                  <td className="py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">
                                     {investor.totalInvestment}
                                   </td>
-                                  <td className="py-4 text-right text-sm font-semibold text-gray-900">
+                                  <td className="py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">
                                     {investor.totalDistribution || '$0.00'}
                                   </td>
-                                  <td className="py-4 text-right text-sm font-semibold text-gray-900">
+                                  <td className="py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">
                                     {investor.totalOwnership || '0.00%'}
                                   </td>
-                                  <td className="py-4 text-right text-sm font-semibold text-gray-900 font-mono">
+                                  <td className="py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100 font-mono">
                                     {ownershipPercent}
                                   </td>
                                   <td className="py-4 text-right">
@@ -1512,7 +1512,7 @@ export default function OldFundDetailPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                          <button onClick={handleOpenEditModal} disabled={isSubmitting} className="px-4 py-2 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1 disabled:opacity-50">Edit</button>
+                          <button onClick={handleOpenEditModal} disabled={isSubmitting} className="px-4 py-2 border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1 disabled:opacity-50">Edit</button>
                           <button onClick={handleRejectBatch} disabled={isSubmitting} className="px-4 py-2 border border-red-200 hover:bg-red-50 hover:text-red-700 text-red-600 text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1 disabled:opacity-50">Delete</button>
                           <button onClick={handleApproveBatch} disabled={isSubmitting} className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1 disabled:opacity-50">Approve</button>
                         </div>
@@ -1522,19 +1522,19 @@ export default function OldFundDetailPage() {
                     {/* Summary Cards */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                       <div className="bg-sky-50/40 border border-sky-100/50 rounded-2xl p-4 text-center">
-                        <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Distributions</span>
+                        <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Distributions</span>
                         <span className="block text-xl lg:text-2xl font-bold text-[#1F3B6E] mt-1">{formatCurrency(batchTotal)}</span>
                       </div>
                       <div className="bg-sky-50/40 border border-sky-100/50 rounded-2xl p-4 text-center">
-                        <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Sum Of Distributions</span>
+                        <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sum Of Distributions</span>
                         <span className="block text-xl lg:text-2xl font-bold text-[#1F3B6E] mt-1">{formatCurrency(batchTotal)}</span>
                       </div>
                       <div className="bg-sky-50/40 border border-sky-100/50 rounded-2xl p-4 text-center">
-                        <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Out of Balance</span>
+                        <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Out of Balance</span>
                         <span className="block text-xl lg:text-2xl font-bold text-[#1F3B6E] mt-1">--</span>
                       </div>
                       <div className="bg-sky-50/40 border border-sky-100/50 rounded-2xl p-4 text-center">
-                        <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Distributing %</span>
+                        <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Distributing %</span>
                         <span className="block text-xl lg:text-2xl font-bold text-[#1F3B6E] mt-1 font-mono">100.000%</span>
                       </div>
                     </div>
@@ -1550,9 +1550,9 @@ export default function OldFundDetailPage() {
                           Back to Distributions
                         </button>
                       </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-3 gap-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3 gap-2">
                         <div className="flex items-center gap-3">
-                          <span className="text-xl font-bold text-gray-900 font-goudy">{selectedBatchInfo?.distributionType || 'Distribution'}</span>
+                          <span className="text-xl font-bold text-gray-900 dark:text-gray-100 font-goudy">{selectedBatchInfo?.distributionType || 'Distribution'}</span>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${selectedBatchInfo?.status === '2' || selectedBatchInfo?.status === 'Pending for Approval' ? 'bg-amber-50 text-amber-600 border-amber-100'
                             : selectedBatchInfo?.status === '0' || selectedBatchInfo?.status === 'Draft' ? 'bg-amber-50 text-amber-600 border-amber-100'
                               : 'bg-emerald-50 text-emerald-600 border-emerald-100'
@@ -1583,7 +1583,7 @@ export default function OldFundDetailPage() {
                         <div className="overflow-x-auto">
                           <table className="w-full border-collapse">
                             <thead>
-                              <tr className="border-b border-gray-100">
+                              <tr className="border-b border-gray-100 dark:border-gray-800">
                                 <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pl-3">Investor</th>
                                 <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Investment Amount</th>
                                 <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">% Share</th>
@@ -1592,24 +1592,24 @@ export default function OldFundDetailPage() {
                                 <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica pr-3">Send Method</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                               {selectedBatchData.map((row: any, idx: number) => {
                                 const invNum = parseFloat(row.investmentAmount?.replace(/[\$,]/g, '') || '0');
                                 const pct = totalInv > 0 ? ((invNum / totalInv) * 100).toFixed(4) : '0.0000';
                                 return (
-                                  <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                                  <tr key={idx} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors">
                                     <td className="py-4 text-left pl-3">
                                       <div className="flex flex-col">
-                                        <span className="text-sm font-semibold text-gray-900 leading-snug">{row.investorName}</span>
-                                        <span className="text-[11px] font-mono text-gray-500">ID: {row.investorProfileId}</span>
+                                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug">{row.investorName}</span>
+                                        <span className="text-[11px] font-mono text-gray-500 dark:text-gray-400">ID: {row.investorProfileId}</span>
                                       </div>
                                     </td>
-                                    <td className="py-4 text-right text-sm font-semibold text-gray-900">{row.investmentAmount}</td>
-                                    <td className="py-4 text-right text-sm font-mono text-gray-600">{pct}%</td>
+                                    <td className="py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">{row.investmentAmount}</td>
+                                    <td className="py-4 text-right text-sm font-mono text-gray-600 dark:text-gray-400">{pct}%</td>
                                     <td className="py-4 text-right text-sm font-bold text-[#1F3B6E]">{row.calculatedAmount}</td>
                                     <td className="py-4 text-right text-sm font-bold text-emerald-600">{row.distributedAmount}</td>
                                     <td className="py-4 text-center pr-3">
-                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-50 text-gray-600 border border-gray-100">
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-100 dark:border-gray-800">
                                         {row.sendMethod}
                                       </span>
                                     </td>
@@ -1618,12 +1618,12 @@ export default function OldFundDetailPage() {
                               })}
                             </tbody>
                             <tfoot>
-                              <tr className="border-t-2 border-gray-200 bg-gray-50/50">
-                                <td className="py-3 pl-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Total ({selectedBatchData.length} investors)</td>
-                                <td className="py-3 text-right text-sm font-bold text-gray-900">
+                              <tr className="border-t-2 border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 dark:bg-gray-800/50">
+                                <td className="py-3 pl-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total ({selectedBatchData.length} investors)</td>
+                                <td className="py-3 text-right text-sm font-bold text-gray-900 dark:text-gray-100">
                                   ${totalInv.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
-                                <td className="py-3 text-right text-sm font-bold text-gray-900">
+                                <td className="py-3 text-right text-sm font-bold text-gray-900 dark:text-gray-100">
                                   {totalInv > 0 ? '100.0000%' : '--'}
                                 </td>
                                 <td className="py-3 text-right text-sm font-bold text-[#1F3B6E]">
@@ -1653,7 +1653,7 @@ export default function OldFundDetailPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
-                        <tr className="border-b border-gray-100">
+                        <tr className="border-b border-gray-100 dark:border-gray-800">
                           <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Batch ID</th>
                           <th className="py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Type</th>
                           <th className="py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Period Start</th>
@@ -1663,7 +1663,7 @@ export default function OldFundDetailPage() {
                           <th className="py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider font-helvetica">Total Amount</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-50">
+                      <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                         {fund.distributions
                           .filter((d: any) => d.status !== '0' && d.status !== 'Draft')
                           .sort((a: any, b: any) => {
@@ -1676,22 +1676,22 @@ export default function OldFundDetailPage() {
                           .map((dist: any, idx: number) => (
                             <tr
                               key={idx}
-                              className={`transition-colors hover:bg-gray-50/50 cursor-pointer`}
+                              className={`transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 cursor-pointer`}
                               onClick={() => handleBatchClick(dist.distributionBatchId)}
                             >
-                              <td className="py-4 text-left text-sm font-mono text-gray-500">
+                              <td className="py-4 text-left text-sm font-mono text-gray-500 dark:text-gray-400">
                                 {dist.distributionBatchId}
                               </td>
-                              <td className="py-4 text-left text-sm font-semibold text-gray-900 leading-snug">
+                              <td className="py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug">
                                 {dist.distributionType}
                               </td>
-                              <td className="py-4 text-center text-sm text-gray-600">
+                              <td className="py-4 text-center text-sm text-gray-600 dark:text-gray-400">
                                 {formatDate(dist.periodStartDate)}
                               </td>
-                              <td className="py-4 text-center text-sm text-gray-600">
+                              <td className="py-4 text-center text-sm text-gray-600 dark:text-gray-400">
                                 {formatDate(dist.periodEndDate)}
                               </td>
-                              <td className="py-4 text-center text-sm text-gray-600">
+                              <td className="py-4 text-center text-sm text-gray-600 dark:text-gray-400">
                                 {formatDate(dist.payDate)}
                               </td>
                               <td className="py-4 text-right">
@@ -1704,15 +1704,15 @@ export default function OldFundDetailPage() {
                                     : 'Distributed'}
                                 </span>
                               </td>
-                              <td className="py-4 text-right text-sm font-bold text-gray-900">
+                              <td className="py-4 text-right text-sm font-bold text-gray-900 dark:text-gray-100">
                                 {dist.totalAmount}
                               </td>
                             </tr>
                           ))}
                       </tbody>
-                      <tfoot className="bg-gray-50/80 font-bold border-t-2 border-gray-200">
+                      <tfoot className="bg-gray-50 dark:bg-gray-800/80 font-bold border-t-2 border-gray-200 dark:border-gray-800">
                         <tr>
-                          <td colSpan={6} className="py-4 px-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider font-helvetica">
+                          <td colSpan={6} className="py-4 px-4 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-helvetica">
                             Total Distributions
                           </td>
                           <td className="py-4 text-right text-sm font-bold text-[#1F3B6E]">
@@ -1743,10 +1743,10 @@ export default function OldFundDetailPage() {
           {activeTab === 'waterfalls' && (
             !selectedWaterfall ? (
               <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-4 gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4 gap-3">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 font-goudy">Configured Waterfalls</h3>
-                    <p className="text-sm text-gray-500 mt-0.5">Manage distribution structures, splits, and hurdles for this fund.</p>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-goudy">Configured Waterfalls</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Manage distribution structures, splits, and hurdles for this fund.</p>
                   </div>
                   <button
                     onClick={() => { setWaterfallName(''); setShowAddWaterfallModal(true); }}
@@ -1757,13 +1757,13 @@ export default function OldFundDetailPage() {
                 </div>
 
                 {waterfallsList.length === 0 ? (
-                  <div className="bg-gray-50/60 rounded-2xl p-12 border border-dashed border-gray-200 text-center space-y-4">
-                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 mx-auto text-[#1F3B6E]">
+                  <div className="bg-gray-50 dark:bg-gray-800/60 rounded-2xl p-12 border border-dashed border-gray-200 dark:border-gray-800 text-center space-y-4">
+                    <div className="w-14 h-14 bg-white dark:bg-[#1C1C1C] rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-800 mx-auto text-[#1F3B6E]">
                       <Split className="h-7 w-7" />
                     </div>
                     <div className="max-w-md mx-auto space-y-1">
-                      <h4 className="text-base font-bold text-gray-900">No Waterfalls Created Yet</h4>
-                      <p className="text-xs text-gray-500 leading-relaxed">
+                      <h4 className="text-base font-bold text-gray-900 dark:text-gray-100">No Waterfalls Created Yet</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                         Define waterfall structures with distribution templates, splits, and hurdles for this fund.
                       </p>
                     </div>
@@ -1780,7 +1780,7 @@ export default function OldFundDetailPage() {
                       <div
                         key={wf.id}
                         onClick={() => setSelectedWaterfall(wf)}
-                        className="p-6 bg-white border border-gray-200 hover:border-[#1F3B6E] rounded-2xl shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between gap-6"
+                        className="p-6 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 hover:border-[#1F3B6E] rounded-2xl shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between gap-6"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-3">
@@ -1788,8 +1788,8 @@ export default function OldFundDetailPage() {
                               <Layers className="h-5 w-5" />
                             </div>
                             <div>
-                              <h4 className="text-base font-bold text-gray-900 group-hover:text-[#1F3B6E] transition-colors">{wf.name}</h4>
-                              <p className="text-xs text-gray-500 mt-0.5">
+                              <h4 className="text-base font-bold text-gray-900 dark:text-gray-100 group-hover:text-[#1F3B6E] transition-colors">{wf.name}</h4>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                 {wf.rules?.length || 0} {(wf.rules?.length || 0) === 1 ? 'Rule' : 'Rules'} Configured
                               </p>
                             </div>
@@ -1805,7 +1805,7 @@ export default function OldFundDetailPage() {
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
-                        <div className="flex items-center justify-between border-t border-gray-100 pt-3 text-xs font-bold text-[#1F3B6E]">
+                        <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-3 text-xs font-bold text-[#1F3B6E]">
                           <span>Configure Rules</span>
                           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                         </div>
@@ -1816,7 +1816,7 @@ export default function OldFundDetailPage() {
               </div>
             ) : (
               <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-4 gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4 gap-3">
                   <div>
                     <button
                       onClick={() => setSelectedWaterfall(null)}
@@ -1825,7 +1825,7 @@ export default function OldFundDetailPage() {
                       <ChevronLeft className="h-4 w-4" /> Back to Waterfalls List
                     </button>
                     <div className="flex items-center gap-3">
-                      <h3 className="text-xl font-bold text-gray-900 font-goudy">{selectedWaterfall.name}</h3>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 font-goudy">{selectedWaterfall.name}</h3>
                       <span className="px-3 py-0.5 bg-[#1F3B6E]/10 text-[#1F3B6E] text-xs font-bold rounded-full">
                         {selectedWaterfall.rules?.length || 0} {(selectedWaterfall.rules?.length || 0) === 1 ? 'Rule' : 'Rules'}
                       </span>
@@ -1845,13 +1845,13 @@ export default function OldFundDetailPage() {
                 </div>
 
                 {(!selectedWaterfall.rules || selectedWaterfall.rules.length === 0) && !draftRule ? (
-                  <div className="bg-gray-50/60 rounded-2xl p-12 border border-dashed border-gray-200 text-center space-y-4">
-                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 mx-auto text-[#1F3B6E]">
+                  <div className="bg-gray-50 dark:bg-gray-800/60 rounded-2xl p-12 border border-dashed border-gray-200 dark:border-gray-800 text-center space-y-4">
+                    <div className="w-14 h-14 bg-white dark:bg-[#1C1C1C] rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-800 mx-auto text-[#1F3B6E]">
                       <Layers className="h-7 w-7" />
                     </div>
                     <div className="max-w-md mx-auto space-y-1">
-                      <h4 className="text-base font-bold text-gray-900">No Rules Added Yet</h4>
-                      <p className="text-xs text-gray-500 leading-relaxed">
+                      <h4 className="text-base font-bold text-gray-900 dark:text-gray-100">No Rules Added Yet</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                         Add distribution rules to define splits or hurdle structures for this waterfall.
                       </p>
                     </div>
@@ -1875,7 +1875,7 @@ export default function OldFundDetailPage() {
                         <div className="p-4 bg-blue-100/50 border-b border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
                             <span className="px-2.5 py-1 bg-[#1F3B6E] text-white font-bold text-xs rounded-full">New Draft</span>
-                            <div className="px-4 py-1.5 bg-white border border-blue-300 font-bold text-[#1F3B6E] text-sm rounded shadow-2xs">
+                            <div className="px-4 py-1.5 bg-white dark:bg-[#1C1C1C] border border-blue-300 font-bold text-[#1F3B6E] text-sm rounded shadow-2xs">
                               {draftRule.name}
                             </div>
                             {draftRule.section && (
@@ -1885,7 +1885,7 @@ export default function OldFundDetailPage() {
                             )}
                           </div>
                           <div className="flex items-center gap-3 self-end sm:self-auto">
-                            <span className="px-3 py-1 bg-white text-[#1F3B6E] font-bold text-xs rounded-full border border-blue-200 shadow-2xs">
+                            <span className="px-3 py-1 bg-white dark:bg-[#1C1C1C] text-[#1F3B6E] font-bold text-xs rounded-full border border-blue-200 shadow-2xs">
                               {draftRule.template}
                             </span>
                             <button
@@ -1901,19 +1901,19 @@ export default function OldFundDetailPage() {
                           </div>
                         </div>
 
-                        <div className="p-6 bg-white">
+                        <div className="p-6 bg-white dark:bg-[#1C1C1C]">
                           {draftRule.template === 'Splits Template' ? (
                             <div className="space-y-6">
-                              <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
-                                <span className="text-sm font-bold text-gray-800">Split distribution as follows:</span>
+                              <div className="flex items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-3">
+                                <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Split distribution as follows:</span>
                                 <span className="text-xs font-semibold text-[#1F3B6E]">Configure splits below to finalize</span>
                               </div>
 
                               <div className="space-y-8">
                                 {(draftRule.splits || []).map((split: any, splitIdx: number) => (
-                                  <div key={split.id || splitIdx} className="space-y-4 relative pb-6 border-b border-gray-100 last:border-none last:pb-0">
+                                  <div key={split.id || splitIdx} className="space-y-4 relative pb-6 border-b border-gray-100 dark:border-gray-800 last:border-none last:pb-0">
                                     <div className="flex flex-wrap items-center gap-3">
-                                      <span className="font-bold text-gray-700 text-sm w-5">{splitIdx + 1}.</span>
+                                      <span className="font-bold text-gray-700 dark:text-gray-300 text-sm w-5">{splitIdx + 1}.</span>
 
                                       <div className="w-48">
                                         <div className="relative">
@@ -1923,17 +1923,17 @@ export default function OldFundDetailPage() {
                                             placeholder=""
                                             value={split.percentage || ''}
                                             onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'percentage', e.target.value)}
-                                            className="w-full pl-3 pr-9 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                            className="w-full pl-3 pr-9 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-800 dark:text-gray-200 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
                                           />
-                                          <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 border-l border-gray-300 text-gray-600 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
+                                          <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 dark:bg-gray-800 border-l border-gray-300 text-gray-600 dark:text-gray-400 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
                                         </div>
                                       </div>
 
-                                      <span className="text-sm text-gray-800 font-medium px-1">to class(es)</span>
+                                      <span className="text-sm text-gray-800 dark:text-gray-200 font-medium px-1">to class(es)</span>
 
                                       <div className="w-64">
                                         <div className="relative group/cls">
-                                          <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                          <div className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex items-center justify-between select-none">
                                             <span className="truncate uppercase font-semibold">
                                               {split.classes && split.classes.length > 0
                                                 ? split.classes.join(', ')
@@ -1941,7 +1941,7 @@ export default function OldFundDetailPage() {
                                             </span>
                                             <span className="text-gray-400 text-xs">▼</span>
                                           </div>
-                                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/cls:block space-y-1">
+                                          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-2 z-20 hidden group-hover/cls:block space-y-1">
                                             {['gp', 'gp fund'].map((cls) => {
                                               const isSelected = (split.classes || []).includes(cls);
                                               return (
@@ -1951,7 +1951,7 @@ export default function OldFundDetailPage() {
                                                     e.preventDefault();
                                                     handleSelectSplitClass(draftRule.id, split.id, cls);
                                                   }}
-                                                  className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase"
+                                                  className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 uppercase"
                                                 >
                                                   <input
                                                     type="radio"
@@ -1968,7 +1968,7 @@ export default function OldFundDetailPage() {
                                         </div>
                                       </div>
 
-                                      <span className="text-sm text-gray-800 font-medium px-1">using</span>
+                                      <span className="text-sm text-gray-800 dark:text-gray-200 font-medium px-1">using</span>
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-3 sm:pl-8">
@@ -1976,33 +1976,33 @@ export default function OldFundDetailPage() {
                                         <select
                                           value={split.method || ''}
                                           onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'method', e.target.value)}
-                                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                          className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
                                         >
-                                          <option value="">Select Method...</option>
-                                          <option value="Prorata by Ownership">Prorata by Ownership</option>
-                                          <option value="Prorata by Unpaid Preferred Return">Prorata by Unpaid Preferred Return</option>
-                                          <option value="Equal distributions">Equal distributions</option>
+                                          <option value="" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Select Method...</option>
+                                          <option value="Prorata by Ownership" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Prorata by Ownership</option>
+                                          <option value="Prorata by Unpaid Preferred Return" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Prorata by Unpaid Preferred Return</option>
+                                          <option value="Equal distributions" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Equal distributions</option>
                                         </select>
                                       </div>
 
-                                      <span className="text-gray-900 font-black text-lg px-1">•</span>
+                                      <span className="text-gray-900 dark:text-gray-100 font-black text-lg px-1">•</span>
 
                                       <div className="w-64">
                                         <div className="space-y-1">
-                                          <label className="block text-xs font-semibold text-gray-700">
+                                          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                                             Distribution Sub-type *
                                           </label>
                                           <select
                                             value={split.subType || ''}
                                             onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'subType', e.target.value)}
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                            className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
                                           >
-                                            <option value="">Select ...</option>
-                                            <option value="Preferred Return">Preferred Return</option>
-                                            <option value="Return of Capital">Return of Capital</option>
-                                            <option value="Promote">Promote</option>
-                                            <option value="Fees">Fees</option>
-                                            <option value="Excess Cash">Excess Cash</option>
+                                            <option value="" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Select ...</option>
+                                            <option value="Preferred Return" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Preferred Return</option>
+                                            <option value="Return of Capital" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Return of Capital</option>
+                                            <option value="Promote" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Promote</option>
+                                            <option value="Fees" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Fees</option>
+                                            <option value="Excess Cash" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Excess Cash</option>
                                           </select>
                                         </div>
                                       </div>
@@ -2011,7 +2011,7 @@ export default function OldFundDetailPage() {
                                 ))}
                               </div>
 
-                              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                              <div className="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-3">
                                 <Button
                                   type="button"
                                   variant="outline"
@@ -2032,32 +2032,32 @@ export default function OldFundDetailPage() {
                           ) : draftRule.template === 'Splits with Hurdles Template' ? (
                             <div className="space-y-6">
                               {/* ── SPLITS SECTION ── */}
-                              <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
-                                <span className="text-sm font-bold text-gray-800">Split <span className="text-[#1F3B6E]">distribution</span> as follows:</span>
+                              <div className="flex items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-3">
+                                <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Split <span className="text-[#1F3B6E]">distribution</span> as follows:</span>
                               </div>
                               <div className="space-y-8">
                                 {(draftRule.splits || []).map((split: any, splitIdx: number) => (
-                                  <div key={split.id || splitIdx} className="space-y-4 relative pb-6 border-b border-gray-100 last:border-none last:pb-0">
+                                  <div key={split.id || splitIdx} className="space-y-4 relative pb-6 border-b border-gray-100 dark:border-gray-800 last:border-none last:pb-0">
                                     <div className="flex flex-wrap items-center gap-3">
-                                      <span className="font-bold text-gray-700 text-sm w-5">{splitIdx + 1}.</span>
+                                      <span className="font-bold text-gray-700 dark:text-gray-300 text-sm w-5">{splitIdx + 1}.</span>
                                       <div className="w-48">
                                         <div className="relative">
-                                          <input type="number" step="any" placeholder="" value={split.percentage || ''} onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'percentage', e.target.value)} className="w-full pl-3 pr-9 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
-                                          <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 border-l border-gray-300 text-gray-600 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
+                                          <input type="number" step="any" placeholder="" value={split.percentage || ''} onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'percentage', e.target.value)} className="w-full pl-3 pr-9 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-800 dark:text-gray-200 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
+                                          <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 dark:bg-gray-800 border-l border-gray-300 text-gray-600 dark:text-gray-400 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
                                         </div>
                                       </div>
-                                      <span className="text-sm text-gray-800 font-medium px-1">to class(es)</span>
+                                      <span className="text-sm text-gray-800 dark:text-gray-200 font-medium px-1">to class(es)</span>
                                       <div className="w-64">
                                         <div className="relative group/scls">
-                                          <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                          <div className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex items-center justify-between select-none">
                                             <span className="truncate uppercase font-semibold">{split.classes && split.classes.length > 0 ? split.classes.join(', ') : 'Select Class...'}</span>
                                             <span className="text-gray-400 text-xs">▼</span>
                                           </div>
-                                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/scls:block space-y-1">
+                                          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-2 z-20 hidden group-hover/scls:block space-y-1">
                                             {['gp', 'gp fund'].map((cls) => {
                                               const isSelected = (split.classes || []).includes(cls);
                                               return (
-                                                <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectSplitClass(draftRule.id, split.id, cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase">
+                                                <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectSplitClass(draftRule.id, split.id, cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 uppercase">
                                                   <input type="radio" name={`sh_split_class_${draftRule.id}_${split.id}`} checked={isSelected} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]" />
                                                   <span>{cls}</span>
                                                 </label>
@@ -2066,28 +2066,28 @@ export default function OldFundDetailPage() {
                                           </div>
                                         </div>
                                       </div>
-                                      <span className="text-sm text-gray-800 font-medium px-1">using</span>
+                                      <span className="text-sm text-gray-800 dark:text-gray-200 font-medium px-1">using</span>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-3 sm:pl-8">
                                       <div className="w-64">
-                                        <select value={split.method || ''} onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'method', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]">
-                                          <option value="">Select Method...</option>
-                                          <option value="Prorata by Ownership">Prorata by Ownership</option>
-                                          <option value="Prorata by Unpaid Preferred Return">Prorata by Unpaid Preferred Return</option>
-                                          <option value="Equal distributions">Equal distributions</option>
+                                        <select value={split.method || ''} onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'method', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]">
+                                          <option value="" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Select Method...</option>
+                                          <option value="Prorata by Ownership" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Prorata by Ownership</option>
+                                          <option value="Prorata by Unpaid Preferred Return" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Prorata by Unpaid Preferred Return</option>
+                                          <option value="Equal distributions" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Equal distributions</option>
                                         </select>
                                       </div>
-                                      <span className="text-gray-900 font-black text-lg px-1">•</span>
+                                      <span className="text-gray-900 dark:text-gray-100 font-black text-lg px-1">•</span>
                                       <div className="w-64">
                                         <div className="space-y-1">
-                                          <label className="block text-xs font-semibold text-gray-700">Distribution Sub-type *</label>
-                                          <select value={split.subType || ''} onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'subType', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]">
-                                            <option value="">Select ...</option>
-                                            <option value="Preferred Return">Preferred Return</option>
-                                            <option value="Return of Capital">Return of Capital</option>
-                                            <option value="Promote">Promote</option>
-                                            <option value="Fees">Fees</option>
-                                            <option value="Excess Cash">Excess Cash</option>
+                                          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">Distribution Sub-type *</label>
+                                          <select value={split.subType || ''} onChange={(e) => handleUpdateSplit(draftRule.id, split.id, 'subType', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]">
+                                            <option value="" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Select ...</option>
+                                            <option value="Preferred Return" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Preferred Return</option>
+                                            <option value="Return of Capital" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Return of Capital</option>
+                                            <option value="Promote" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Promote</option>
+                                            <option value="Fees" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Fees</option>
+                                            <option value="Excess Cash" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Excess Cash</option>
                                           </select>
                                         </div>
                                       </div>
@@ -2097,28 +2097,28 @@ export default function OldFundDetailPage() {
                               </div>
 
                               {/* ── HURDLES SECTION ── */}
-                              <div className="flex items-center gap-4 border-b border-gray-100 pb-3 pt-2">
-                                <span className="text-sm font-bold text-gray-800">Until <span className="text-[#1F3B6E]">the following</span> happens:</span>
+                              <div className="flex items-center gap-4 border-b border-gray-100 dark:border-gray-800 pb-3 pt-2">
+                                <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Until <span className="text-[#1F3B6E]">the following</span> happens:</span>
                               </div>
                               <div className="space-y-8">
                                 {(draftRule.hurdles || []).map((hurdle: any, hurdleIdx: number) => (
-                                  <div key={hurdle.id || hurdleIdx} className="space-y-3 relative pb-6 border-b border-gray-100 last:border-none last:pb-0">
+                                  <div key={hurdle.id || hurdleIdx} className="space-y-3 relative pb-6 border-b border-gray-100 dark:border-gray-800 last:border-none last:pb-0">
                                     <div className="flex flex-wrap items-center gap-3">
-                                      <span className="font-bold text-gray-700 text-sm w-5">{hurdleIdx + 1}.</span>
+                                      <span className="font-bold text-gray-700 dark:text-gray-300 text-sm w-5">{hurdleIdx + 1}.</span>
                                       {/* Receiving Class */}
                                       <div className="w-44">
                                         <div className="relative group/hcls">
-                                          <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                          <div className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex items-center justify-between select-none">
                                             <span className="truncate uppercase font-semibold text-xs">
                                               {hurdle.classes && hurdle.classes.length > 0 ? hurdle.classes.join(', ') : 'Select Classes...'}
                                             </span>
                                             <span className="text-gray-400 text-xs">▼</span>
                                           </div>
-                                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/hcls:block space-y-1">
+                                          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-2 z-20 hidden group-hover/hcls:block space-y-1">
                                             {['gp', 'gp fund'].map((cls) => {
                                               const isSelected = (hurdle.classes || []).includes(cls);
                                               return (
-                                                <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectHurdleClass(draftRule.id, hurdle.id, 'classes', cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase">
+                                                <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectHurdleClass(draftRule.id, hurdle.id, 'classes', cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 uppercase">
                                                   <input type="radio" name={`hurdle_class_${draftRule.id}_${hurdle.id}`} checked={isSelected} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]" />
                                                   <span>{cls}</span>
                                                 </label>
@@ -2127,31 +2127,31 @@ export default function OldFundDetailPage() {
                                           </div>
                                         </div>
                                       </div>
-                                      <span className="text-sm text-gray-700 font-medium">receives</span>
+                                      <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">receives</span>
                                       {/* Hurdle Type */}
                                       <div className="w-56">
-                                        <select value={hurdle.type || ''} onChange={(e) => handleUpdateHurdle(draftRule.id, hurdle.id, 'type', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]">
-                                          <option value="">Select receives type...</option>
-                                          <option value="an IRR of...">an IRR of...</option>
-                                          <option value="Return of its Capital">a Return of its Capital</option>
-                                          <option value="a Preferred Return of...">a Preferred Return of...</option>
-                                          <option value="its Preferred Return">its Preferred Return</option>
-                                          <option value="an Equity Multiple of...">an Equity Multiple of...</option>
-                                          <option value="a percentage equal to">a percentage equal to</option>
+                                        <select value={hurdle.type || ''} onChange={(e) => handleUpdateHurdle(draftRule.id, hurdle.id, 'type', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]">
+                                          <option value="" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Select receives type...</option>
+                                          <option value="an IRR of..." className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">an IRR of...</option>
+                                          <option value="Return of its Capital" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">a Return of its Capital</option>
+                                          <option value="a Preferred Return of..." className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">a Preferred Return of...</option>
+                                          <option value="its Preferred Return" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">its Preferred Return</option>
+                                          <option value="an Equity Multiple of..." className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">an Equity Multiple of...</option>
+                                          <option value="a percentage equal to" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">a percentage equal to</option>
                                         </select>
                                       </div>
                                       {/* IRR / Preferred Return / percentage equal to → % field */}
                                       {['an IRR of...', 'a Preferred Return of...', 'a percentage equal to'].includes(hurdle.type) && (
                                         <div className="w-36">
                                           <div className="relative">
-                                            <input type="number" step="any" placeholder="%" value={hurdle.percentage || ''} onChange={(e) => handleUpdateHurdle(draftRule.id, hurdle.id, 'percentage', e.target.value)} className="w-full pl-3 pr-9 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
-                                            <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 border-l border-gray-300 text-gray-600 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
+                                            <input type="number" step="any" placeholder="%" value={hurdle.percentage || ''} onChange={(e) => handleUpdateHurdle(draftRule.id, hurdle.id, 'percentage', e.target.value)} className="w-full pl-3 pr-9 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-800 dark:text-gray-200 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
+                                            <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 dark:bg-gray-800 border-l border-gray-300 text-gray-600 dark:text-gray-400 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
                                           </div>
                                         </div>
                                       )}
                                       {hurdle.type === 'an Equity Multiple of...' && (
                                         <div className="w-36">
-                                          <input type="number" step="any" placeholder="e.g. 2.0" value={hurdle.amount || ''} onChange={(e) => handleUpdateHurdle(draftRule.id, hurdle.id, 'amount', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
+                                          <input type="number" step="any" placeholder="e.g. 2.0" value={hurdle.amount || ''} onChange={(e) => handleUpdateHurdle(draftRule.id, hurdle.id, 'amount', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-800 dark:text-gray-200 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
                                         </div>
                                       )}
                                       {/* Gross Up Cashflow */}
@@ -2161,19 +2161,19 @@ export default function OldFundDetailPage() {
                                       <div className="sm:pl-8 flex flex-wrap gap-6">
                                         {/* ofClasses */}
                                         <div className="w-44">
-                                          <label className="block text-xs font-semibold text-gray-600 mb-1">of class(es)</label>
+                                          <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">of class(es)</label>
                                           <div className="relative group/ofcls">
-                                            <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                            <div className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex items-center justify-between select-none">
                                               <span className="truncate uppercase font-semibold text-xs">
                                                 {hurdle.ofClasses && hurdle.ofClasses.length > 0 ? hurdle.ofClasses.join(', ') : 'Select Class...'}
                                               </span>
                                               <span className="text-gray-400 text-xs">▼</span>
                                             </div>
-                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/ofcls:block space-y-1">
+                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-2 z-20 hidden group-hover/ofcls:block space-y-1">
                                               {['gp', 'gp fund'].map((cls) => {
                                                 const isSelected = (hurdle.ofClasses || []).includes(cls);
                                                 return (
-                                                  <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectHurdleClass(draftRule.id, hurdle.id, 'ofClasses', cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase">
+                                                  <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectHurdleClass(draftRule.id, hurdle.id, 'ofClasses', cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 uppercase">
                                                     <input type="checkbox" checked={isSelected} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]" />
                                                     <span>{cls}</span>
                                                   </label>
@@ -2184,14 +2184,14 @@ export default function OldFundDetailPage() {
                                         </div>
                                         {/* asSubTypes */}
                                         <div>
-                                          <label className="block text-xs font-semibold text-gray-600 mb-1">as sub-type(s)</label>
+                                          <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">as sub-type(s)</label>
                                           <div className="flex flex-wrap gap-3">
                                             {['Preferred Return', 'Return of Capital', 'Promote', 'Fees', 'Excess Cash'].map((sub) => {
                                               const checked = (hurdle.asSubTypes || []).includes(sub);
                                               return (
                                                 <label key={sub} className="flex items-center gap-1.5 cursor-pointer" onClick={() => handleToggleHurdleSubType(draftRule.id, hurdle.id, sub)}>
                                                   <input type="checkbox" checked={checked} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E] rounded" />
-                                                  <span className="text-xs text-gray-700">{sub}</span>
+                                                  <span className="text-xs text-gray-700 dark:text-gray-300">{sub}</span>
                                                 </label>
                                               );
                                             })}
@@ -2202,14 +2202,14 @@ export default function OldFundDetailPage() {
                                         <br />
                                         <label className="flex items-center gap-2 cursor-pointer">
                                           <input type="checkbox" checked={hurdle.grossUpCashflow || false} onChange={(e) => handleUpdateHurdle(draftRule.id, hurdle.id, 'grossUpCashflow', e.target.checked)} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E] rounded" />
-                                          <span className="text-sm text-gray-700">Gross Up</span>
+                                          <span className="text-sm text-gray-700 dark:text-gray-300">Gross Up</span>
                                         </label>
                                       </div>
                                     )}
                                   </div>
                                 ))}
                               </div>
-                              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                              <div className="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-3">
                                 <Button type="button" variant="outline" onClick={() => setDraftRule(null)} className="px-5 py-2 text-sm font-semibold rounded-xl">Cancel</Button>
                                 <Button type="button" onClick={handleSaveAndAddRule} className="px-6 py-2.5 bg-gradient-to-r from-[#1F3B6E] to-[#3A568C] hover:from-[#1F3B6E]/90 hover:to-[#3A568C]/90 text-white font-bold text-sm rounded-xl shadow-md flex items-center gap-2">
                                   <Check className="h-4 w-4" /> Add Rule to Waterfall
@@ -2229,16 +2229,16 @@ export default function OldFundDetailPage() {
                         {selectedWaterfall.rules.map((rule: any, idx: number) => (
                           <div
                             key={rule.id}
-                            className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden transition-all"
+                            className="bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-xs overflow-hidden transition-all"
                           >
-                            <div className="p-4 bg-gray-50/70 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="p-4 bg-gray-50 dark:bg-gray-800/70 border-b border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                               <div className="flex items-center gap-3">
-                                <span className="font-bold text-gray-700 text-sm">{idx + 1}.</span>
-                                <div className="px-4 py-1.5 bg-white border border-gray-300 font-semibold text-gray-800 text-sm rounded shadow-2xs">
+                                <span className="font-bold text-gray-700 dark:text-gray-300 text-sm">{idx + 1}.</span>
+                                <div className="px-4 py-1.5 bg-white dark:bg-[#1C1C1C] border border-gray-300 font-semibold text-gray-800 dark:text-gray-200 text-sm rounded shadow-2xs">
                                   {rule.name || `Rule ${idx + 1}`}
                                 </div>
                                 {rule.section && (
-                                  <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-mono font-semibold">
+                                  <span className="px-2 py-0.5 bg-gray-100 text-gray-600 dark:text-gray-400 rounded text-xs font-mono font-semibold">
                                     Section {rule.section}
                                   </span>
                                 )}
@@ -2260,9 +2260,9 @@ export default function OldFundDetailPage() {
                             <div className="p-6">
                               {rule.template === 'Splits Template' ? (
                                 <div className="space-y-6">
-                                  <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
-                                    <span className="text-sm font-bold text-gray-800">Split distribution as follows:</span>
-                                    <span className="text-xs text-gray-500 font-medium">for split template</span>
+                                  <div className="flex items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-3">
+                                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Split distribution as follows:</span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">for split template</span>
                                   </div>
 
                                   <div className="space-y-8">
@@ -2270,9 +2270,9 @@ export default function OldFundDetailPage() {
                                       { id: '1', percentage: '', classes: [], method: '', subType: '' },
                                       { id: '2', percentage: '', classes: [], method: '', subType: '' }
                                     ]).map((split: any, splitIdx: number) => (
-                                      <div key={split.id || splitIdx} className="space-y-4 relative pb-6 border-b border-gray-100 last:border-none last:pb-0">
+                                      <div key={split.id || splitIdx} className="space-y-4 relative pb-6 border-b border-gray-100 dark:border-gray-800 last:border-none last:pb-0">
                                         <div className="flex flex-wrap items-center gap-3">
-                                          <span className="font-bold text-gray-700 text-sm w-5">{splitIdx + 1}.</span>
+                                          <span className="font-bold text-gray-700 dark:text-gray-300 text-sm w-5">{splitIdx + 1}.</span>
 
                                           <div className="w-48">
                                             <div className="relative">
@@ -2282,17 +2282,17 @@ export default function OldFundDetailPage() {
                                                 placeholder=""
                                                 value={split.percentage || ''}
                                                 onChange={(e) => handleUpdateSplit(rule.id, split.id, 'percentage', e.target.value)}
-                                                className="w-full pl-3 pr-9 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                                className="w-full pl-3 pr-9 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-800 dark:text-gray-200 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
                                               />
-                                              <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 border-l border-gray-300 text-gray-600 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
+                                              <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 dark:bg-gray-800 border-l border-gray-300 text-gray-600 dark:text-gray-400 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
                                             </div>
                                           </div>
 
-                                          <span className="text-sm text-gray-800 font-medium px-1">to class(es)</span>
+                                          <span className="text-sm text-gray-800 dark:text-gray-200 font-medium px-1">to class(es)</span>
 
                                           <div className="w-64">
                                             <div className="relative group/cls">
-                                              <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                              <div className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex items-center justify-between select-none">
                                                 <span className="truncate uppercase font-semibold">
                                                   {split.classes && split.classes.length > 0
                                                     ? split.classes.join(', ')
@@ -2300,7 +2300,7 @@ export default function OldFundDetailPage() {
                                                 </span>
                                                 <span className="text-gray-400 text-xs">▼</span>
                                               </div>
-                                              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/cls:block space-y-1">
+                                              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-2 z-20 hidden group-hover/cls:block space-y-1">
                                                 {['gp', 'gp fund'].map((cls) => {
                                                   const isSelected = (split.classes || []).includes(cls);
                                                   return (
@@ -2310,7 +2310,7 @@ export default function OldFundDetailPage() {
                                                         e.preventDefault();
                                                         handleSelectSplitClass(rule.id, split.id, cls);
                                                       }}
-                                                      className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase"
+                                                      className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 uppercase"
                                                     >
                                                       <input
                                                         type="radio"
@@ -2327,7 +2327,7 @@ export default function OldFundDetailPage() {
                                             </div>
                                           </div>
 
-                                          <span className="text-sm text-gray-800 font-medium px-1">using</span>
+                                          <span className="text-sm text-gray-800 dark:text-gray-200 font-medium px-1">using</span>
                                         </div>
 
                                         <div className="flex flex-wrap items-center gap-3 sm:pl-8">
@@ -2335,33 +2335,33 @@ export default function OldFundDetailPage() {
                                             <select
                                               value={split.method || ''}
                                               onChange={(e) => handleUpdateSplit(rule.id, split.id, 'method', e.target.value)}
-                                              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                              className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
                                             >
-                                              <option value="">Select Method...</option>
-                                              <option value="Prorata by Ownership">Prorata by Ownership</option>
-                                              <option value="Prorata by Unpaid Preferred Return">Prorata by Unpaid Preferred Return</option>
-                                              <option value="Equal distributions">Equal distributions</option>
+                                              <option value="" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Select Method...</option>
+                                              <option value="Prorata by Ownership" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Prorata by Ownership</option>
+                                              <option value="Prorata by Unpaid Preferred Return" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Prorata by Unpaid Preferred Return</option>
+                                              <option value="Equal distributions" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Equal distributions</option>
                                             </select>
                                           </div>
 
-                                          <span className="text-gray-900 font-black text-lg px-1">•</span>
+                                          <span className="text-gray-900 dark:text-gray-100 font-black text-lg px-1">•</span>
 
                                           <div className="w-64">
                                             <div className="space-y-1">
-                                              <label className="block text-xs font-semibold text-gray-700">
+                                              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                                                 Distribution Sub-type *
                                               </label>
                                               <select
                                                 value={split.subType || ''}
                                                 onChange={(e) => handleUpdateSplit(rule.id, split.id, 'subType', e.target.value)}
-                                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                                className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
                                               >
-                                                <option value="">Select ...</option>
-                                                <option value="Preferred Return">Preferred Return</option>
-                                                <option value="Return of Capital">Return of Capital</option>
-                                                <option value="Promote">Promote</option>
-                                                <option value="Fees">Fees</option>
-                                                <option value="Excess Cash">Excess Cash</option>
+                                                <option value="" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Select ...</option>
+                                                <option value="Preferred Return" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Preferred Return</option>
+                                                <option value="Return of Capital" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Return of Capital</option>
+                                                <option value="Promote" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Promote</option>
+                                                <option value="Fees" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Fees</option>
+                                                <option value="Excess Cash" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Excess Cash</option>
                                               </select>
                                             </div>
                                           </div>
@@ -2370,7 +2370,7 @@ export default function OldFundDetailPage() {
                                     ))}
                                   </div>
 
-                                  <div className="pt-4 border-t border-gray-100 flex items-center justify-end">
+                                  <div className="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end">
                                     <Button
                                       type="button"
                                       onClick={() => handleSaveRuleChanges(rule)}
@@ -2383,17 +2383,17 @@ export default function OldFundDetailPage() {
                               ) : rule.template === 'Splits with Hurdles Template' ? (
                                 <div className="space-y-6">
                                   {/* ── SPLITS SECTION ── */}
-                                  <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
-                                    <span className="text-sm font-bold text-gray-800">Split <span className="text-[#1F3B6E]">distribution</span> as follows:</span>
+                                  <div className="flex items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-3">
+                                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Split <span className="text-[#1F3B6E]">distribution</span> as follows:</span>
                                   </div>
                                   <div className="space-y-8">
                                     {(rule.splits && rule.splits.length > 0 ? rule.splits : [
                                       { id: '1', percentage: '', classes: [], method: '', subType: '' },
                                       { id: '2', percentage: '', classes: [], method: '', subType: '' }
                                     ]).map((split: any, splitIdx: number) => (
-                                      <div key={split.id || splitIdx} className="space-y-4 relative pb-6 border-b border-gray-100 last:border-none last:pb-0">
+                                      <div key={split.id || splitIdx} className="space-y-4 relative pb-6 border-b border-gray-100 dark:border-gray-800 last:border-none last:pb-0">
                                         <div className="flex flex-wrap items-center gap-3">
-                                          <span className="font-bold text-gray-700 text-sm w-5">{splitIdx + 1}.</span>
+                                          <span className="font-bold text-gray-700 dark:text-gray-300 text-sm w-5">{splitIdx + 1}.</span>
 
                                           <div className="w-48">
                                             <div className="relative">
@@ -2403,23 +2403,23 @@ export default function OldFundDetailPage() {
                                                 placeholder=""
                                                 value={split.percentage || ''}
                                                 onChange={(e) => handleUpdateSplit(rule.id, split.id, 'percentage', e.target.value)}
-                                                className="w-full pl-3 pr-9 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                                className="w-full pl-3 pr-9 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-800 dark:text-gray-200 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
                                               />
-                                              <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 border-l border-gray-300 text-gray-600 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
+                                              <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 dark:bg-gray-800 border-l border-gray-300 text-gray-600 dark:text-gray-400 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
                                             </div>
                                           </div>
 
-                                          <span className="text-sm text-gray-800 font-medium px-1">to class(es)</span>
+                                          <span className="text-sm text-gray-800 dark:text-gray-200 font-medium px-1">to class(es)</span>
 
                                           <div className="w-64">
                                             <div className="relative group/cls2">
-                                              <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                              <div className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex items-center justify-between select-none">
                                                 <span className="truncate uppercase font-semibold">
                                                   {split.classes && split.classes.length > 0 ? split.classes.join(', ') : 'Select Class...'}
                                                 </span>
                                                 <span className="text-gray-400 text-xs">▼</span>
                                               </div>
-                                              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/cls2:block space-y-1">
+                                              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-2 z-20 hidden group-hover/cls2:block space-y-1">
                                                 {['gp', 'gp fund'].map((cls) => {
                                                   const isSelected = (split.classes || []).includes(cls);
                                                   return (
@@ -2429,7 +2429,7 @@ export default function OldFundDetailPage() {
                                                         e.preventDefault();
                                                         handleSelectSplitClass(rule.id, split.id, cls);
                                                       }}
-                                                      className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase"
+                                                      className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 uppercase"
                                                     >
                                                       <input
                                                         type="radio"
@@ -2446,34 +2446,34 @@ export default function OldFundDetailPage() {
                                             </div>
                                           </div>
 
-                                          <span className="text-sm text-gray-800 font-medium px-1">using</span>
+                                          <span className="text-sm text-gray-800 dark:text-gray-200 font-medium px-1">using</span>
 
                                           <div className="w-56">
                                             <select
                                               value={split.method || ''}
                                               onChange={(e) => handleUpdateSplit(rule.id, split.id, 'method', e.target.value)}
-                                              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-750 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                              className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-750 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
                                             >
-                                              <option value="">Select Method...</option>
-                                              <option value="Prorata by Ownership">Prorata by Ownership</option>
-                                              <option value="Prorata by Unpaid Preferred Return">Prorata by Unpaid Preferred Return</option>
-                                              <option value="Prorata by Unpaid Capital">Prorata by Unpaid Capital</option>
+                                              <option value="" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Select Method...</option>
+                                              <option value="Prorata by Ownership" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Prorata by Ownership</option>
+                                              <option value="Prorata by Unpaid Preferred Return" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Prorata by Unpaid Preferred Return</option>
+                                              <option value="Prorata by Unpaid Capital" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Prorata by Unpaid Capital</option>
                                             </select>
                                           </div>
 
                                           <div className="space-y-1">
-                                            <label className="block text-xs font-semibold text-gray-700">Distribution Sub-type *</label>
+                                            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">Distribution Sub-type *</label>
                                             <select
                                               value={split.subType || ''}
                                               onChange={(e) => handleUpdateSplit(rule.id, split.id, 'subType', e.target.value)}
-                                              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
+                                              className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]"
                                             >
-                                              <option value="">Select ...</option>
-                                              <option value="Preferred Return">Preferred Return</option>
-                                              <option value="Return of Capital">Return of Capital</option>
-                                              <option value="Promote">Promote</option>
-                                              <option value="Fees">Fees</option>
-                                              <option value="Excess Cash">Excess Cash</option>
+                                              <option value="" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Select ...</option>
+                                              <option value="Preferred Return" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Preferred Return</option>
+                                              <option value="Return of Capital" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Return of Capital</option>
+                                              <option value="Promote" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Promote</option>
+                                              <option value="Fees" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Fees</option>
+                                              <option value="Excess Cash" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Excess Cash</option>
                                             </select>
                                           </div>
                                         </div>
@@ -2482,28 +2482,28 @@ export default function OldFundDetailPage() {
                                   </div>
 
                                   {/* ── HURDLES SECTION ── */}
-                                  <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3 pt-2">
-                                    <span className="text-sm font-bold text-gray-800">Until <span className="text-[#1F3B6E]">the following</span> happens:</span>
+                                  <div className="flex items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-3 pt-2">
+                                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Until <span className="text-[#1F3B6E]">the following</span> happens:</span>
                                   </div>
                                   <div className="space-y-8">
                                     {(rule.hurdles || []).map((hurdle: any, hurdleIdx: number) => (
-                                      <div key={hurdle.id || hurdleIdx} className="space-y-3 relative pb-6 border-b border-gray-100 last:border-none last:pb-0">
+                                      <div key={hurdle.id || hurdleIdx} className="space-y-3 relative pb-6 border-b border-gray-100 dark:border-gray-800 last:border-none last:pb-0">
                                         <div className="flex flex-wrap items-center gap-3">
-                                          <span className="font-bold text-gray-700 text-sm w-5">{hurdleIdx + 1}.</span>
+                                          <span className="font-bold text-gray-700 dark:text-gray-300 text-sm w-5">{hurdleIdx + 1}.</span>
                                           {/* Receiving Class */}
                                           <div className="w-44">
                                             <div className="relative group/hcls2">
-                                              <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                              <div className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex items-center justify-between select-none">
                                                 <span className="truncate uppercase font-semibold text-xs">
                                                   {hurdle.classes && hurdle.classes.length > 0 ? hurdle.classes.join(', ') : 'Select Classes...'}
                                                 </span>
                                                 <span className="text-gray-400 text-xs">▼</span>
                                               </div>
-                                              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/hcls2:block space-y-1">
+                                              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-2 z-20 hidden group-hover/hcls2:block space-y-1">
                                                 {['gp', 'gp fund'].map((cls) => {
                                                   const isSelected = (hurdle.classes || []).includes(cls);
                                                   return (
-                                                    <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectHurdleClass(rule.id, hurdle.id, 'classes', cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase">
+                                                    <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectHurdleClass(rule.id, hurdle.id, 'classes', cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 uppercase">
                                                       <input type="radio" name={`hurdle_class_${rule.id}_${hurdle.id}`} checked={isSelected} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]" />
                                                       <span>{cls}</span>
                                                     </label>
@@ -2512,32 +2512,32 @@ export default function OldFundDetailPage() {
                                               </div>
                                             </div>
                                           </div>
-                                          <span className="text-sm text-gray-700 font-medium">receives</span>
+                                          <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">receives</span>
                                           {/* Hurdle Type */}
                                           <div className="w-56">
-                                            <select value={hurdle.type || ''} onChange={(e) => handleUpdateHurdle(rule.id, hurdle.id, 'type', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]">
-                                              <option value="">Select receives type...</option>
-                                              <option value="an IRR of...">an IRR of...</option>
-                                              <option value="Return of its Capital">a Return of its Capital</option>
-                                              <option value="a Preferred Return of...">a Preferred Return of...</option>
-                                              <option value="its Preferred Return">its Preferred Return</option>
-                                              <option value="an Equity Multiple of...">an Equity Multiple of...</option>
-                                              <option value="a percentage equal to">a percentage equal to</option>
+                                            <select value={hurdle.type || ''} onChange={(e) => handleUpdateHurdle(rule.id, hurdle.id, 'type', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]">
+                                              <option value="" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Select receives type...</option>
+                                              <option value="an IRR of..." className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">an IRR of...</option>
+                                              <option value="Return of its Capital" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">a Return of its Capital</option>
+                                              <option value="a Preferred Return of..." className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">a Preferred Return of...</option>
+                                              <option value="its Preferred Return" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">its Preferred Return</option>
+                                              <option value="an Equity Multiple of..." className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">an Equity Multiple of...</option>
+                                              <option value="a percentage equal to" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">a percentage equal to</option>
                                             </select>
                                           </div>
                                           {/* IRR / Preferred Return / percentage → % field */}
                                           {['an IRR of...', 'a Preferred Return of...', 'a percentage equal to'].includes(hurdle.type) && (
                                             <div className="w-36">
                                               <div className="relative">
-                                                <input type="number" step="any" placeholder="%" value={hurdle.percentage || ''} onChange={(e) => handleUpdateHurdle(rule.id, hurdle.id, 'percentage', e.target.value)} className="w-full pl-3 pr-9 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
-                                                <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 border-l border-gray-300 text-gray-600 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
+                                                <input type="number" step="any" placeholder="%" value={hurdle.percentage || ''} onChange={(e) => handleUpdateHurdle(rule.id, hurdle.id, 'percentage', e.target.value)} className="w-full pl-3 pr-9 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-800 dark:text-gray-200 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
+                                                <span className="absolute right-0 top-0 bottom-0 px-2.5 bg-gray-50 dark:bg-gray-800 border-l border-gray-300 text-gray-600 dark:text-gray-400 text-sm font-semibold flex items-center justify-center rounded-r-md">%</span>
                                               </div>
                                             </div>
                                           )}
                                           {/* Equity Multiple */}
                                           {hurdle.type === 'an Equity Multiple of...' && (
                                             <div className="w-36">
-                                              <input type="number" step="any" placeholder="e.g. 2.0" value={hurdle.amount || ''} onChange={(e) => handleUpdateHurdle(rule.id, hurdle.id, 'amount', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
+                                              <input type="number" step="any" placeholder="e.g. 2.0" value={hurdle.amount || ''} onChange={(e) => handleUpdateHurdle(rule.id, hurdle.id, 'amount', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-800 dark:text-gray-200 focus:outline-hidden focus:ring-1 focus:ring-[#1F3B6E]" />
                                             </div>
                                           )}
                                           {/* Gross Up */}
@@ -2546,19 +2546,19 @@ export default function OldFundDetailPage() {
                                         {hurdle.type === 'a percentage equal to' && (
                                           <div className="sm:pl-8 flex flex-wrap gap-6">
                                             <div className="w-44">
-                                              <label className="block text-xs font-semibold text-gray-600 mb-1">of class(es)</label>
+                                              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">of class(es)</label>
                                               <div className="relative group/ofcls2">
-                                                <div className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 cursor-pointer flex items-center justify-between select-none">
+                                                <div className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex items-center justify-between select-none">
                                                   <span className="truncate uppercase font-semibold text-xs">
                                                     {hurdle.ofClasses && hurdle.ofClasses.length > 0 ? hurdle.ofClasses.join(', ') : 'Select Class...'}
                                                   </span>
                                                   <span className="text-gray-400 text-xs">▼</span>
                                                 </div>
-                                                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-20 hidden group-hover/ofcls2:block space-y-1">
+                                                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-2 z-20 hidden group-hover/ofcls2:block space-y-1">
                                                   {['gp', 'gp fund'].map((cls) => {
                                                     const isSelected = (hurdle.ofClasses || []).includes(cls);
                                                     return (
-                                                      <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectHurdleClass(rule.id, hurdle.id, 'ofClasses', cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm font-medium text-gray-700 uppercase">
+                                                      <label key={cls} onClick={(e) => { e.preventDefault(); handleSelectHurdleClass(rule.id, hurdle.id, 'ofClasses', cls); }} className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 rounded cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 uppercase">
                                                         <input type="checkbox" checked={isSelected} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E]" />
                                                         <span>{cls}</span>
                                                       </label>
@@ -2568,14 +2568,14 @@ export default function OldFundDetailPage() {
                                               </div>
                                             </div>
                                             <div>
-                                              <label className="block text-xs font-semibold text-gray-600 mb-1">as sub-type(s)</label>
+                                              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">as sub-type(s)</label>
                                               <div className="flex flex-wrap gap-3">
                                                 {['Preferred Return', 'Return of Capital', 'Promote', 'Fees', 'Excess Cash'].map((sub) => {
                                                   const checked = (hurdle.asSubTypes || []).includes(sub);
                                                   return (
                                                     <label key={sub} className="flex items-center gap-1.5 cursor-pointer" onClick={() => handleToggleHurdleSubType(rule.id, hurdle.id, sub)}>
                                                       <input type="checkbox" checked={checked} onChange={() => { }} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E] rounded" />
-                                                      <span className="text-xs text-gray-700">{sub}</span>
+                                                      <span className="text-xs text-gray-700 dark:text-gray-300">{sub}</span>
                                                     </label>
                                                   );
                                                 })}
@@ -2586,14 +2586,14 @@ export default function OldFundDetailPage() {
                                             <br />
                                             <label className="flex items-center gap-2 cursor-pointer">
                                               <input type="checkbox" checked={hurdle.grossUpCashflow || false} onChange={(e) => handleUpdateHurdle(rule.id, hurdle.id, 'grossUpCashflow', e.target.checked)} className="border-gray-300 text-[#1F3B6E] focus:ring-[#1F3B6E] rounded" />
-                                              <span className="text-sm text-gray-700">Gross Up</span>
+                                              <span className="text-sm text-gray-700 dark:text-gray-300">Gross Up</span>
                                             </label>
                                           </div>
                                         )}
                                       </div>
                                     ))}
                                   </div>
-                                  <div className="pt-4 border-t border-gray-100 flex items-center justify-end">
+                                  <div className="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end">
                                     <Button type="button" onClick={() => handleSaveRuleChanges(rule)} className="px-5 py-2 bg-[#1F3B6E] hover:bg-[#1F3B6E]/90 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5">
                                       <Check className="h-3.5 w-3.5" /> Save Changes
                                     </Button>
@@ -2623,25 +2623,25 @@ export default function OldFundDetailPage() {
 
 
             {/* Key Metrics Grid */}
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
-              <h3 className="text-lg font-bold text-gray-900 font-goudy border-b border-gray-50 pb-3">Fund Financial Summary</h3>
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl p-8 border border-gray-100 dark:border-gray-800 shadow-sm space-y-6">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-goudy border-b border-gray-50 dark:border-gray-800 pb-3">Fund Financial Summary</h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
                 {/* Metric 1 */}
-                <div className="flex items-start gap-3.5 p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
-                  <div className="p-2.5 bg-white rounded-xl text-gray-500 shadow-sm">
+                <div className="flex items-start gap-3.5 p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-800/50">
+                  <div className="p-2.5 bg-white dark:bg-[#1C1C1C] rounded-xl text-gray-500 dark:text-gray-400 shadow-sm">
                     <DollarSign className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Total Capital</p>
-                    <p className="text-lg font-bold text-gray-900 mt-0.5">{fund.totalCapital}</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-0.5">{fund.totalCapital}</p>
                   </div>
                 </div>
 
                 {/* Metric 2 */}
                 <div className="flex items-start gap-3.5 p-4 bg-[#1F3B6E]/5 rounded-2xl border border-[#1F3B6E]/10">
-                  <div className="p-2.5 bg-white rounded-xl text-[#1F3B6E] shadow-sm">
+                  <div className="p-2.5 bg-white dark:bg-[#1C1C1C] rounded-xl text-[#1F3B6E] shadow-sm">
                     <DollarSign className="h-5 w-5" />
                   </div>
                   <div>
@@ -2651,24 +2651,24 @@ export default function OldFundDetailPage() {
                 </div>
 
                 {/* Metric 3 */}
-                <div className="flex items-start gap-3.5 p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
-                  <div className="p-2.5 bg-white rounded-xl text-gray-500 shadow-sm">
+                <div className="flex items-start gap-3.5 p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-800/50">
+                  <div className="p-2.5 bg-white dark:bg-[#1C1C1C] rounded-xl text-gray-500 dark:text-gray-400 shadow-sm">
                     <Users className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Total Investors</p>
-                    <p className="text-lg font-bold text-gray-900 mt-0.5">{fund.totalInvestors}</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-0.5">{fund.totalInvestors}</p>
                   </div>
                 </div>
 
                 {/* Metric 4 */}
-                <div className="flex items-start gap-3.5 p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
-                  <div className="p-2.5 bg-white rounded-xl text-gray-500 shadow-sm">
+                <div className="flex items-start gap-3.5 p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-800/50">
+                  <div className="p-2.5 bg-white dark:bg-[#1C1C1C] rounded-xl text-gray-500 dark:text-gray-400 shadow-sm">
                     <Briefcase className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Project ID & Type</p>
-                    <p className="text-lg font-bold text-gray-900 mt-0.5">
+                    <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                       ID: {fund.projectId} &bull; <span className="uppercase text-sm">{fund.projectType}</span>
                     </p>
                   </div>
@@ -2683,15 +2683,15 @@ export default function OldFundDetailPage() {
           <div className="space-y-6">
 
             {/* Timeline Info Card */}
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
-              <h3 className="text-lg font-bold text-gray-900 font-goudy border-b border-gray-50 pb-3">Lifecycle Timeline</h3>
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl p-8 border border-gray-100 dark:border-gray-800 shadow-sm space-y-6">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-goudy border-b border-gray-50 dark:border-gray-800 pb-3">Lifecycle Timeline</h3>
 
               <div className="space-y-5">
                 <div className="flex items-start gap-3">
                   <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
                   <div>
                     <p className="text-[11px] text-gray-400 font-semibold uppercase">Closing Date</p>
-                    <p className="text-sm font-bold text-gray-900 mt-0.5">{formatDate(fund.closingDate)}</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">{formatDate(fund.closingDate)}</p>
                   </div>
                 </div>
 
@@ -2699,17 +2699,17 @@ export default function OldFundDetailPage() {
                   <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
                   <div>
                     <p className="text-[11px] text-gray-400 font-semibold uppercase">Exit Date</p>
-                    <p className="text-sm font-bold text-gray-900 mt-0.5">
+                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                       {fund.exitDate ? formatDate(fund.exitDate) : 'N/A'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 pt-3 border-t border-gray-100">
+                <div className="flex items-start gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                   <ShieldCheck className="h-5 w-5 text-[#059669] mt-0.5" />
                   <div>
                     <p className="text-[11px] text-gray-400 font-semibold uppercase">Status Verification</p>
-                    <p className="text-xs text-gray-600 mt-0.5 font-medium leading-relaxed">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 font-medium leading-relaxed">
                       All accounts associated with this fund have been finalized, audited, and closed. No further distributions or capital calls will be initiated.
                     </p>
                   </div>
@@ -2718,12 +2718,12 @@ export default function OldFundDetailPage() {
             </div>
 
             {/* Platform Status Card */}
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-4">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl p-8 border border-gray-100 dark:border-gray-800 shadow-sm space-y-4">
               <div className="flex items-center gap-2">
                 <Info className="h-5 w-5 text-[#1F3B6E]" />
-                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Database Status</h4>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Database Status</h4>
               </div>
-              <p className="text-xs text-gray-600 font-medium leading-relaxed">
+              <p className="text-xs text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
                 This old fund is marked as <strong className="text-[#1F3B6E]">{fund.published === 'TRUE' ? 'Published' : 'Unpublished'}</strong> in the database system for administrative tracking, but is restricted from active subscription operations.
               </p>
             </div>
@@ -2743,16 +2743,16 @@ export default function OldFundDetailPage() {
           />
 
           {/* Modal Content */}
-          <div className="relative bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-gray-100 flex flex-col overflow-hidden max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-white dark:bg-[#1C1C1C] rounded-3xl max-w-2xl w-full shadow-2xl border border-gray-100 dark:border-gray-800 flex flex-col overflow-hidden max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-gray-900 font-goudy">Add Distribution Batch</h3>
-                <p className="text-xs text-gray-500 mt-0.5">{fund.projectName}</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-goudy">Add Distribution Batch</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{fund.projectName}</p>
               </div>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600"
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-400 hover:text-gray-600 dark:text-gray-400"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -2762,25 +2762,25 @@ export default function OldFundDetailPage() {
             <form onSubmit={handleAddSubmit} className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-6">
               {/* Distribution Type */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Distribution Type <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={distributionType}
                   onChange={(e) => setDistributionType(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                  className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   required
                 >
-                  <option value="Available Cash">Available Cash</option>
-                  <option value="Return of Capital">Return of Capital</option>
-                  <option value="Preferred Return">Preferred Return</option>
+                  <option value="Available Cash" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Available Cash</option>
+                  <option value="Return of Capital" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Return of Capital</option>
+                  <option value="Preferred Return" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Preferred Return</option>
                 </select>
               </div>
 
               {/* Notes Fields */}
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Distribution Internal Notes
                   </label>
                   <input
@@ -2788,12 +2788,12 @@ export default function OldFundDetailPage() {
                     value={batchDescription}
                     onChange={(e) => setBatchDescription(e.target.value)}
                     placeholder="Internal reference notes"
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                    className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Investor Dashboard Description
                   </label>
                   <input
@@ -2801,7 +2801,7 @@ export default function OldFundDetailPage() {
                     value={dashboardDescription}
                     onChange={(e) => setDashboardDescription(e.target.value)}
                     placeholder="Description shown to investors"
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                    className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   />
                 </div>
               </div>
@@ -2809,27 +2809,27 @@ export default function OldFundDetailPage() {
               {/* Dates Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Distribution Start Date <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={periodStartDate}
                     onChange={(e) => setPeriodStartDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                    className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                     required
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Distribution End Date <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={batchEndDate}
                     onChange={(e) => setBatchEndDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                    className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                     required
                   />
                 </div>
@@ -2837,14 +2837,14 @@ export default function OldFundDetailPage() {
 
               {/* Send Date */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Distribution Send Date <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
                   value={batchPayDate}
                   onChange={(e) => setBatchPayDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                  className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   required
                 />
               </div>
@@ -2852,17 +2852,17 @@ export default function OldFundDetailPage() {
               {/* Amount Row with Unpaid Pref. button */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div className="md:col-span-2 space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Total Distribution Amount <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-semibold">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm font-semibold">$</span>
                     <input
                       type="number"
                       step="any"
                       value={totalAmount}
                       onChange={(e) => setTotalAmount(e.target.value)}
-                      className="w-full pl-7 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                      className="w-full pl-7 pr-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm font-semibold focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                       required
                     />
                   </div>
@@ -2872,15 +2872,15 @@ export default function OldFundDetailPage() {
                   <button
                     type="button"
                     disabled
-                    className="w-full px-4 py-2 border border-gray-200 bg-gray-50 text-gray-400 text-xs font-bold rounded-xl h-[38px] flex items-center justify-center gap-1 cursor-not-allowed pointer-events-none"
+                    className="w-full px-4 py-2 border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 text-gray-400 text-xs font-bold rounded-xl h-[38px] flex items-center justify-center gap-1 cursor-not-allowed pointer-events-none"
                   >
                     <DollarSign className="h-3.5 w-3.5" />
                     Unpaid Pref.
                   </button>
 
                   {/* Tooltip Balloon */}
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-64 p-3 bg-white border border-gray-200 rounded-xl shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 z-50 text-left">
-                    <p className="text-xs text-gray-600 font-medium leading-relaxed">
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-64 p-3 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 z-50 text-left">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
                       There is no Preferred Return rule configured for this ruleset
                     </p>
                     {/* Down arrow indicator */}
@@ -2892,28 +2892,28 @@ export default function OldFundDetailPage() {
 
               {/* Bank Account dropdown */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Bank Account <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={sendMethod}
                   onChange={(e) => setSendMethod(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                  className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   required
                 >
-                  <option value="Other">Use other payment method</option>
-                  <option value="Check">Check</option>
-                  <option value="ACH">ACH</option>
-                  <option value="Wire">Wire</option>
+                  <option value="Other" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Use other payment method</option>
+                  <option value="Check" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Check</option>
+                  <option value="ACH" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">ACH</option>
+                  <option value="Wire" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Wire</option>
                 </select>
               </div>
 
               {/* Modal Footer Buttons */}
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-5 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-semibold text-sm transition-all"
+                  className="px-5 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold text-sm transition-all"
                 >
                   Cancel
                 </button>
@@ -2947,16 +2947,16 @@ export default function OldFundDetailPage() {
           />
 
           {/* Modal Content */}
-          <div className="relative bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-gray-100 flex flex-col overflow-hidden max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative bg-white dark:bg-[#1C1C1C] rounded-3xl max-w-2xl w-full shadow-2xl border border-gray-100 dark:border-gray-800 flex flex-col overflow-hidden max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-gray-900 font-goudy">Edit Distribution Batch</h3>
-                <p className="text-xs text-gray-500 mt-0.5">{fund.projectName}</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-goudy">Edit Distribution Batch</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{fund.projectName}</p>
               </div>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600"
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-400 hover:text-gray-600 dark:text-gray-400"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -2966,25 +2966,25 @@ export default function OldFundDetailPage() {
             <form onSubmit={handleEditSubmit} className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-6">
               {/* Distribution Type */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Distribution Type <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={editDistributionType}
                   onChange={(e) => setEditDistributionType(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                  className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   required
                 >
-                  <option value="Available Cash">Available Cash</option>
-                  <option value="Return of Capital">Return of Capital</option>
-                  <option value="Preferred Return">Preferred Return</option>
+                  <option value="Available Cash" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Available Cash</option>
+                  <option value="Return of Capital" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Return of Capital</option>
+                  <option value="Preferred Return" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Preferred Return</option>
                 </select>
               </div>
 
               {/* Notes Fields */}
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Distribution Internal Notes
                   </label>
                   <input
@@ -2992,12 +2992,12 @@ export default function OldFundDetailPage() {
                     value={editBatchDescription}
                     onChange={(e) => setEditBatchDescription(e.target.value)}
                     placeholder="Internal reference notes"
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                    className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Investor Dashboard Description
                   </label>
                   <input
@@ -3005,7 +3005,7 @@ export default function OldFundDetailPage() {
                     value={editDashboardDescription}
                     onChange={(e) => setEditDashboardDescription(e.target.value)}
                     placeholder="Description shown to investors"
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                    className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   />
                 </div>
               </div>
@@ -3013,40 +3013,40 @@ export default function OldFundDetailPage() {
               {/* Dates grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Period Start Date <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={editPeriodStartDate}
                     onChange={(e) => setEditPeriodStartDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                    className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                     required
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Period End Date <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={editBatchEndDate}
                     onChange={(e) => setEditBatchEndDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                    className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                     required
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Pay Date <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={editBatchPayDate}
                     onChange={(e) => setEditBatchPayDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                    className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                     required
                   />
                 </div>
@@ -3055,7 +3055,7 @@ export default function OldFundDetailPage() {
               {/* Total Distribution Amount */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Total Distribution Amount ($) <span className="text-red-500">*</span>
                   </label>
                 </div>
@@ -3066,35 +3066,35 @@ export default function OldFundDetailPage() {
                   value={editTotalAmount}
                   onChange={(e) => setEditTotalAmount(e.target.value)}
                   placeholder="0.00"
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                  className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   required
                 />
               </div>
 
               {/* Send Method */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Payment Send Method <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={editSendMethod}
                   onChange={(e) => setEditSendMethod(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                  className="w-full px-3 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   required
                 >
-                  <option value="Other">Use other payment method</option>
-                  <option value="Check">Check</option>
-                  <option value="ACH">ACH</option>
-                  <option value="Wire">Wire</option>
+                  <option value="Other" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Use other payment method</option>
+                  <option value="Check" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Check</option>
+                  <option value="ACH" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">ACH</option>
+                  <option value="Wire" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Wire</option>
                 </select>
               </div>
 
               {/* Modal Footer Buttons */}
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-5 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-semibold text-sm transition-all"
+                  className="px-5 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold text-sm transition-all"
                 >
                   Cancel
                 </button>
@@ -3127,13 +3127,13 @@ export default function OldFundDetailPage() {
           <div className="relative bg-[#FFFDF5] rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-amber-200/50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <button
               onClick={() => setIsDeleteModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 hover:bg-amber-100/50 rounded-full transition-colors text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 p-1.5 hover:bg-amber-100/50 rounded-full transition-colors text-gray-400 hover:text-gray-600 dark:text-gray-400"
             >
               <X className="h-5 w-5" />
             </button>
 
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-gray-900 leading-snug">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 leading-snug">
                 Are you sure you want to delete this distribution batch?
               </h3>
 
@@ -3154,7 +3154,7 @@ export default function OldFundDetailPage() {
                 }
 
                 return (
-                  <p className="text-sm text-gray-700 leading-relaxed font-medium">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
                     You are permanently deleting the{' '}
                     <span className="font-bold">{targetBatchInfo?.distributionType || 'Available Cash'}</span>{' '}
                     distributions from{' '}
@@ -3197,19 +3197,19 @@ export default function OldFundDetailPage() {
       {showAddWaterfallModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity" onClick={() => setShowAddWaterfallModal(false)} />
-          <div className="relative bg-white rounded-3xl max-w-md w-full shadow-2xl border border-gray-100 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+          <div className="relative bg-white dark:bg-[#1C1C1C] rounded-3xl max-w-md w-full shadow-2xl border border-gray-100 dark:border-gray-800 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-gray-900 font-goudy">Add Waterfall</h3>
-                <p className="text-xs text-gray-500 mt-0.5">{fund?.projectName || 'Fund Waterfall'}</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 font-goudy">Add Waterfall</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{fund?.projectName || 'Fund Waterfall'}</p>
               </div>
-              <button onClick={() => setShowAddWaterfallModal(false)} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowAddWaterfallModal(false)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-400 hover:text-gray-600 dark:text-gray-400">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="p-6 space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Waterfall Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -3217,16 +3217,16 @@ export default function OldFundDetailPage() {
                   placeholder="e.g. Primary Fund Waterfall"
                   value={waterfallName}
                   onChange={(e) => setWaterfallName(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                  className="w-full px-3 py-2.5 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   autoFocus
                 />
               </div>
             </div>
-            <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end gap-3">
+            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setShowAddWaterfallModal(false)}
-                className="px-5 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-semibold text-sm transition-all"
+                className="px-5 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold text-sm transition-all"
               >
                 Cancel
               </button>
@@ -3246,15 +3246,15 @@ export default function OldFundDetailPage() {
       {showAddRuleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity" onClick={() => setShowAddRuleModal(false)} />
-          <div className="relative bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-gray-100 flex flex-col overflow-hidden max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+          <div className="relative bg-white dark:bg-[#1C1C1C] rounded-3xl max-w-xl w-full shadow-2xl border border-gray-100 dark:border-gray-800 flex flex-col overflow-hidden max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-bold text-gray-900 font-goudy">Add Rule</h3>
-                <p className="text-xs text-gray-500 font-medium mt-0.5">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 font-goudy">Add Rule</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
                   {selectedWaterfall?.name || 'Waterfall'}: Rule {(selectedWaterfall?.rules?.length || 0) + 1}
                 </p>
               </div>
-              <button onClick={() => setShowAddRuleModal(false)} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowAddRuleModal(false)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-400 hover:text-gray-600 dark:text-gray-400">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -3262,7 +3262,7 @@ export default function OldFundDetailPage() {
             <div className="p-6 overflow-y-auto space-y-6">
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Rule Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -3270,12 +3270,12 @@ export default function OldFundDetailPage() {
                     placeholder="e.g. Pro-Rata Distribution"
                     value={ruleName}
                     onChange={(e) => setRuleName(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                    className="w-full px-3 py-2.5 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Operating Agreement Section Number
                   </label>
                   <input
@@ -3283,14 +3283,14 @@ export default function OldFundDetailPage() {
                     placeholder="e.g. Section 4.2(a)"
                     value={ruleSection}
                     onChange={(e) => setRuleSection(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                    className="w-full px-3 py-2.5 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
                   />
                 </div>
               </div>
 
-              <div className="border-t border-gray-100 pt-4">
-                <h4 className="text-base font-bold text-gray-900">Choose a template for your rule</h4>
-                <p className="text-xs text-gray-500 mt-1 mb-4">
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+                <h4 className="text-base font-bold text-gray-900 dark:text-gray-100">Choose a template for your rule</h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-4">
                   Select an example template as a base for your rule.
                 </p>
 
@@ -3304,19 +3304,19 @@ export default function OldFundDetailPage() {
                     onClick={() => setSelectedRuleTemplate('Splits Template')}
                     className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-4 ${selectedRuleTemplate === 'Splits Template'
                       ? 'border-[#1F3B6E] bg-[#1F3B6E]/5 shadow-xs'
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                      : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 bg-white dark:bg-[#1C1C1C]'
                       }`}
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-gray-900">Splits Template</span>
+                        <span className="font-bold text-sm text-gray-900 dark:text-gray-100">Splits Template</span>
                         {selectedRuleTemplate === 'Splits Template' && (
                           <span className="w-4 h-4 rounded-full bg-[#1F3B6E] text-white flex items-center justify-center text-[10px]">
                             ✓
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         Distribute capital pro-rata across selected share classes according to fixed percentage splits.
                       </p>
                     </div>
@@ -3328,19 +3328,19 @@ export default function OldFundDetailPage() {
                     onClick={() => setSelectedRuleTemplate('Splits with Hurdles Template')}
                     className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-4 ${selectedRuleTemplate === 'Splits with Hurdles Template'
                       ? 'border-[#1F3B6E] bg-[#1F3B6E]/5 shadow-xs'
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                      : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 bg-white dark:bg-[#1C1C1C]'
                       }`}
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-gray-900">Splits with Hurdles Template</span>
+                        <span className="font-bold text-sm text-gray-900 dark:text-gray-100">Splits with Hurdles Template</span>
                         {selectedRuleTemplate === 'Splits with Hurdles Template' && (
                           <span className="w-4 h-4 rounded-full bg-[#1F3B6E] text-white flex items-center justify-center text-[10px]">
                             ✓
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         Distribute capital up to specific IRR or return hurdles before splitting between GP and LPs.
                       </p>
                     </div>
@@ -3350,11 +3350,11 @@ export default function OldFundDetailPage() {
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end gap-3">
+            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setShowAddRuleModal(false)}
-                className="px-5 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-semibold text-sm transition-all"
+                className="px-5 py-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold text-sm transition-all"
               >
                 Cancel
               </button>

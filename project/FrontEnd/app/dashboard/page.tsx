@@ -52,7 +52,7 @@ const recentInvestors = [
     accountType: 'IRA',
     kycStatus: 'Pending',
     fundingStatus: 'Not Funded',
-    kycColor: 'bg-[#FFF9EE] text-[#4B4B4B]',
+    kycColor: 'bg-[#FFF9EE] text-[#4B4B4B] dark:text-gray-300',
   },
   {
     id: 3,
@@ -68,7 +68,7 @@ const recentInvestors = [
     accountType: 'Corporate',
     kycStatus: 'Rejected',
     fundingStatus: 'Not Funded',
-    kycColor: 'bg-[#FEF2F2] text-[#4B4B4B]',
+    kycColor: 'bg-[#FEF2F2] text-[#4B4B4B] dark:text-gray-300',
   },
   {
     id: 5,
@@ -529,7 +529,7 @@ export default function DashboardPage() {
 
   const roleStats = {
     admin: [
-      { name: 'Total Investors', value: adminStats.totalInvestors.toString(), icon: Users, color: 'text-gray-600' },
+      { name: 'Total Investors', value: adminStats.totalInvestors.toString(), icon: Users, color: 'text-gray-600 dark:text-gray-400' },
       { name: 'Pending KYC', value: adminStats.pendingKyc.toString(), icon: TrendingUp, color: 'text-amber-500' },
       { name: 'Pending Fundings', value: adminStats.pendingFundings.toString(), icon: Wallet, color: 'text-yellow-600' },
       { name: 'Total Units', value: adminStats.totalUnits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }), icon: Layers, color: 'text-blue-600' },
@@ -543,7 +543,7 @@ export default function DashboardPage() {
       { name: 'Pending Redemption', value: allRedemptions.filter(r => r.status !== 'Processed').length.toString(), icon: TrendingUp, color: 'text-red-500' },
     ],
     accountant: [
-      { name: 'Assigned Investors', value: assignedInvestors.length.toString(), icon: Users, color: 'text-gray-600' },
+      { name: 'Assigned Investors', value: assignedInvestors.length.toString(), icon: Users, color: 'text-gray-600 dark:text-gray-400' },
       { name: 'Pending Reconciliation', value: dynamicReconciliationAlerts.length.toString(), icon: Layers, color: 'text-amber-600' },
       { name: 'Unread Messages', value: dynamicConversations.reduce((sum, m) => sum + (m.unread_count || 0), 0).toString(), icon: CircleDollarSign, color: 'text-emerald-600' },
       { name: 'Notifications', value: dynamicNotifications.filter(n => !n.is_read).length.toString(), icon: TrendingUp, color: 'text-blue-500' },
@@ -556,7 +556,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-orange-500 border-t-transparent mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading dashboard...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -566,13 +566,13 @@ export default function DashboardPage() {
   if (dashboardRole === 'investor') {
     return (
       <DashboardLayout>
-        <div className="space-y-4 font-helvetica text-[#1F1F1F]">
+        <div className="space-y-4 font-helvetica text-[#1F1F1F] dark:text-gray-100">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex flex-col gap-1">
-              <p className="font-goudy text-xl sm:text-2xl font-bold text-[#1F1F1F]">
+              <p className="font-goudy text-xl sm:text-2xl font-bold text-[#1F1F1F] dark:text-gray-100">
                 {user?.investorType === 'entity' ? 'Welcome' : `Welcome, ${welcomeName}`}
               </p>
-              <h1 className="font-goudy text-xl sm:text-2xl font-light text-gray-700">Dashboard</h1>
+              <h1 className="font-goudy text-xl sm:text-2xl font-light text-gray-700 dark:text-gray-300">Dashboard</h1>
               <p className="text-sm text-[#8E8E93]">
                 Here&apos;s your latest investment overview and updates from Ovalia Capital.
               </p>
@@ -584,7 +584,7 @@ export default function DashboardPage() {
                   <div className="h-2.5 w-2.5 rounded-full bg-[#2BB673]"></div>
                   <div>
                     <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Responsible Entity</p>
-                    <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.parentName || 'Parent Account'}</p>
+                    <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.parentName || 'Parent Account'}</p>
                   </div>
                 </div>
               )}
@@ -593,7 +593,7 @@ export default function DashboardPage() {
                 <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
                 <div>
                   <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
-                  <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedAccountantName || 'Not Assigned'}</p>
+                  <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedAccountantName || 'Not Assigned'}</p>
                 </div>
               </div>
 
@@ -601,7 +601,7 @@ export default function DashboardPage() {
                 <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
                 <div>
                   <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-                  <p className="text-[13px] font-bold text-[#1F1F1F]">{user?.assignedIrName || 'Unassigned'}</p>
+                  <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
                 </div>
               </div>
             </div>
@@ -620,7 +620,7 @@ export default function DashboardPage() {
                     Your identity has been verified successfully. You can continue investing without restrictions.
                   </p>
                 </div>
-                <div className="inline-flex items-center justify-center rounded-full bg-white px-6 py-2 font-helvetica text-lg font-medium text-[#2FA66A]">
+                <div className="inline-flex items-center justify-center rounded-full bg-white dark:bg-[#1C1C1C] px-6 py-2 font-helvetica text-lg font-medium text-[#2FA66A]">
                   Verified
                 </div>
               </div>
@@ -658,12 +658,12 @@ export default function DashboardPage() {
                 ].map((card) => (
                   <div
                     key={card.label}
-                    className="rounded-2xl bg-white px-4 py-3 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
+                    className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-4 py-3 shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md transition-all duration-200"
                   >
                     <p className="text-[10px] font-bold uppercase tracking-widest text-[#A0A0A0]">
                       {card.label}
                     </p>
-                    <p className="mt-1.5 text-xl font-bold text-gray-900 font-goudy">
+                    <p className="mt-1.5 text-xl font-bold text-gray-900 dark:text-gray-100 font-goudy">
                       {card.value}
                     </p>
                     {card.helper && (
@@ -698,12 +698,12 @@ export default function DashboardPage() {
                   ].map((card) => (
                     <div
                       key={card.label}
-                      className="rounded-2xl bg-white px-4 py-3 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
+                      className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-4 py-3 shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md transition-all duration-200"
                     >
                       <p className="text-[10px] font-bold uppercase tracking-widest text-[#A0A0A0]">
                         {card.label}
                       </p>
-                      <p className="mt-1.5 text-xl font-bold text-gray-900 font-goudy">
+                      <p className="mt-1.5 text-xl font-bold text-gray-900 dark:text-gray-100 font-goudy">
                         {card.value}
                       </p>
                       {card.helper && (
@@ -721,7 +721,7 @@ export default function DashboardPage() {
           {/* Main content grid */}
           <div className="grid gap-6 xl:grid-cols-[minmax(0,2.5fr)_minmax(0,1.1fr)]">
             {/* Performance Overview */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="font-goudy text-base">Performance Overview</h2>
@@ -731,7 +731,7 @@ export default function DashboardPage() {
                   <p className="text-[11px] text-[#C0C0C0]">Current Value</p>
                 </div>
                 <Select value={timeRange} onValueChange={setTimeRange}>
-                  <SelectTrigger className="w-[120px] rounded-full border-gray-200 h-8 text-xs">
+                  <SelectTrigger className="w-[120px] rounded-full border-gray-200 dark:border-gray-800 h-8 text-xs">
                     <SelectValue placeholder="Time Range" />
                   </SelectTrigger>
                   <SelectContent>
@@ -772,7 +772,7 @@ export default function DashboardPage() {
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             return (
-                              <div className="bg-white p-2 border border-gray-100 shadow-sm rounded-lg text-[10px]">
+                              <div className="bg-white dark:bg-[#1C1C1C] p-2 border border-gray-100 dark:border-gray-800 shadow-sm rounded-lg text-[10px]">
                                 <p className="font-medium">{new Date(payload[0].payload.date).toLocaleDateString()}</p>
                                 <p className="text-[#F3C046] font-semibold">Value: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payload[0].value as number)}</p>
                                 <p className="text-gray-400">Invested: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payload[0].payload.totalInvested)}</p>
@@ -801,7 +801,7 @@ export default function DashboardPage() {
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="space-y-3 text-sm text-[#4B4B4B]">
+                <div className="space-y-3 text-sm text-[#4B4B4B] dark:text-gray-300">
                   <div>
                     <p className="text-xs text-[#A0A0A0]">Total Return %</p>
                     <p className={`mt-1 text-sm font-semibold ${investorStats.ytdReturn >= 0 ? 'text-[#2BB673]' : 'text-red-500'}`}>
@@ -811,13 +811,13 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
                       <p className="text-[#A0A0A0]">Total Invested</p>
-                      <p className="mt-1 font-medium text-[#1F1F1F]">
+                      <p className="mt-1 font-medium text-[#1F1F1F] dark:text-gray-100">
                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.totalInvested)}
                       </p>
                     </div>
                     <div>
                       <p className="text-[#A0A0A0]">Current NAV</p>
-                      <p className="mt-1 font-medium text-[#1F1F1F]">
+                      <p className="mt-1 font-medium text-[#1F1F1F] dark:text-gray-100">
                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentNav)}
                       </p>
                     </div>
@@ -828,7 +828,7 @@ export default function DashboardPage() {
 
             {/* Quick Actions */}
             <div className="space-y-6">
-              <div className="rounded-2xl bg-white p-6 shadow-sm">
+              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-6 shadow-sm">
                 <h2 className="font-goudy text-base">Quick Actions</h2>
                 <p className="mt-2 text-xs text-[#8E8E93]">
                   Common actions to manage your investments and get support quickly.
@@ -858,18 +858,18 @@ export default function DashboardPage() {
           </div>
 
           {/* Funds Section */}
-          <div className="rounded-2xl bg-white p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setFundsOpen(!fundsOpen)}
-                  className="p-1 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
+                  className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
                 >
                   <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${fundsOpen ? '' : '-rotate-90'}`} />
                 </button>
                 <div>
-                  <h2 className="font-goudy text-lg font-bold text-gray-900">Funds</h2>
+                  <h2 className="font-goudy text-lg font-bold text-gray-900 dark:text-gray-100">Funds</h2>
                   <p className="text-xs text-[#8E8E93] mt-0.5">Your platform and legacy investments</p>
                 </div>
               </div>
@@ -895,13 +895,13 @@ export default function DashboardPage() {
                     {combinedFundsList.map((fund: any, idx: number) => (
                       <div
                         key={fund.id || idx}
-                        className="grid grid-cols-[2fr_1.2fr_1fr] items-center gap-4 py-3.5 px-3 -mx-3 rounded-xl hover:bg-gray-50/40 transition-colors duration-150"
+                        className="grid grid-cols-[2fr_1.2fr_1fr] items-center gap-4 py-3.5 px-3 -mx-3 rounded-xl hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/40 transition-colors duration-150"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-[#FFF3D6] text-[#E29F3A] border border-[#FCD34D]/50 flex items-center justify-center font-bold text-sm shrink-0">
                             {fund.initialLetter}
                           </div>
-                          <p className="font-bold text-gray-900 text-sm leading-snug">
+                          <p className="font-bold text-gray-900 dark:text-gray-100 text-sm leading-snug">
                             {fund.name}
                           </p>
                         </div>
@@ -912,7 +912,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="text-right">
                           <span className="text-[10px] font-medium uppercase tracking-wide text-[#A0A0A0] block">Total Invested</span>
-                          <p className="text-sm font-bold text-[#1F1F1F] mt-0.5">
+                          <p className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100 mt-0.5">
                             {fund.totalInvestedFormatted}
                           </p>
                         </div>
@@ -920,8 +920,8 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="py-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
-                    <p className="text-sm font-medium text-gray-500">No investments found</p>
+                  <div className="py-8 text-center bg-gray-50/50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No investments found</p>
                   </div>
                 )}
               </div>
@@ -931,7 +931,7 @@ export default function DashboardPage() {
           {/* Bottom row */}
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {/* Pending Actions */}
-            <div className="rounded-2xl bg-white p-5 shadow-sm">
+            <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-5 shadow-sm">
               <button
                 type="button"
                 className="flex w-full items-center justify-between cursor-pointer"
@@ -954,17 +954,17 @@ export default function DashboardPage() {
                 />
               </button>
               {investorExpanded.pending && (
-                <div className="mt-4 space-y-4 text-xs text-[#4B4B4B]">
+                <div className="mt-4 space-y-4 text-xs text-[#4B4B4B] dark:text-gray-300">
                   {filteredPendingActions.map((item) => {
                     const href = item.title === 'KYC Verification' ? '/dashboard/kyc-verification' : '/dashboard/invest';
                     return (
                       <Link
                         href={href}
                         key={item.id}
-                        className="flex items-center justify-between gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-[#F9FAFB] p-1 rounded-md transition-colors w-full"
+                        className="flex items-center justify-between gap-3 border-b border-gray-50 dark:border-gray-800 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-[#F9FAFB] p-1 rounded-md transition-colors w-full"
                       >
                         <div>
-                          <p className="text-[13px] font-medium text-[#1F1F1F]">{item.title}</p>
+                          <p className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{item.title}</p>
                           <p className="mt-1 text-[11px] text-[#8E8E93]">{item.description}</p>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -979,7 +979,7 @@ export default function DashboardPage() {
                                   Retry
                                 </span>
                               ) : (
-                                <span className="text-[12px] font-bold bg-[#F2C63D] hover:bg-[#EAC835] text-[#1F1F1F] px-3.5 py-1.5 rounded-full transition-all shadow-sm">
+                                <span className="text-[12px] font-bold bg-[#F2C63D] hover:bg-[#EAC835] text-[#1F1F1F] dark:text-gray-100 px-3.5 py-1.5 rounded-full transition-all shadow-sm">
                                   Verify Now
                                 </span>
                               )}
@@ -995,7 +995,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Unread Messages */}
-            <div className="rounded-2xl bg-white p-5 shadow-sm">
+            <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-5 shadow-sm">
               <button
                 type="button"
                 className="flex w-full items-center justify-between cursor-pointer"
@@ -1018,7 +1018,7 @@ export default function DashboardPage() {
                 />
               </button>
               {investorExpanded.messages && (
-                <div className="mt-4 space-y-4 text-xs text-[#4B4B4B]">
+                <div className="mt-4 space-y-4 text-xs text-[#4B4B4B] dark:text-gray-300">
                   {dynamicConversations
                     .filter(c => (c.unread_count || 0) > 0)
                     .map((conv) => {
@@ -1037,12 +1037,12 @@ export default function DashboardPage() {
                         <Link
                           href="/dashboard/messages"
                           key={conv.id}
-                          className="flex items-start justify-between gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-[#F9FAFB] transition-colors"
+                          className="flex items-start justify-between gap-3 border-b border-gray-50 dark:border-gray-800 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-[#F9FAFB] transition-colors"
                         >
                           <div className="flex flex-1 items-start gap-3">
                             <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[#2BB673]" />
                             <div>
-                              <p className="text-[13px] font-medium text-[#1F1F1F]">{name}</p>
+                              <p className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{name}</p>
                               <p className="mt-1 text-[11px] text-[#8E8E93]">{conv.last_message || 'No messages'}</p>
                             </div>
                           </div>
@@ -1058,7 +1058,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Your accounts */}
-            <div className="rounded-2xl bg-white p-5 shadow-sm">
+            <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-5 shadow-sm">
               <button
                 type="button"
                 className="flex w-full items-center justify-between cursor-pointer"
@@ -1081,7 +1081,7 @@ export default function DashboardPage() {
                 />
               </button>
               {investorExpanded.accounts && (
-                <div className="mt-4 space-y-3 text-xs text-[#4B4B4B]">
+                <div className="mt-4 space-y-3 text-xs text-[#4B4B4B] dark:text-gray-300">
                   {investorAccountList.map((acc) => (
                     <div
                       key={acc.id}
@@ -1089,7 +1089,7 @@ export default function DashboardPage() {
                     >
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-[13px] font-medium text-[#1F1F1F]">{acc.name}</p>
+                          <p className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{acc.name}</p>
                           {acc.status?.toLowerCase() === 'suspended' && (
                             <span className="bg-red-50 text-red-500 text-[10px] font-bold px-1.5 py-0.5 rounded border border-red-100 uppercase">Suspended</span>
                           )}
@@ -1111,10 +1111,10 @@ export default function DashboardPage() {
     <DashboardLayout>
       <div className="space-y-6 font-sans">
         <div>
-          <p className="font-goudy text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-1">
+          <p className="font-goudy text-xl sm:text-3xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-1">
             {user?.investorType === 'entity' ? 'Welcome' : `Welcome, ${welcomeName}`}
           </p>
-          <h1 className="font-goudy text-xl sm:text-2xl font-light text-gray-700">Dashboard</h1>
+          <h1 className="font-goudy text-xl sm:text-2xl font-light text-gray-700 dark:text-gray-300">Dashboard</h1>
           {dashboardRole === 'accountant' && (
             <p className="font-helvetica text-sm sm:text-md mt-2">Here’s a summary of your assigned investors and pending actions.</p>
           )}
@@ -1125,16 +1125,16 @@ export default function DashboardPage() {
           {roleStats[dashboardRole].map((item: any) => (
             <div
               key={item.name}
-              className="bg-white overflow-hidden shadow-sm rounded-xl p-6 flex flex-col justify-between h-36 border-t-4 border-transparent hover:border-current transition-all duration-200"
+              className="bg-white dark:bg-[#1C1C1C] overflow-hidden shadow-sm rounded-xl p-6 flex flex-col justify-between h-36 border-t-4 border-transparent hover:border-current transition-all duration-200"
               style={{ borderColor: item.color?.replace('text-', '') }}
             >
               <div className="flex items-center justify-between">
-                <dt className="text-sm sm:text-md font-helvetica font-medium text-gray-500 uppercase tracking-wider">
+                <dt className="text-sm sm:text-md font-helvetica font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   {item.name}
                 </dt>
                 {item.icon && <item.icon className={`h-5 w-5 ${item.color}`} />}
               </div>
-              <dd className="text-xl sm:text-3xl font-bold text-[#1F1F1F] font-helvetica mt-2">
+              <dd className="text-xl sm:text-3xl font-bold text-[#1F1F1F] dark:text-gray-100 font-helvetica mt-2">
                 {item.value}
               </dd>
             </div>
@@ -1144,30 +1144,30 @@ export default function DashboardPage() {
         {dashboardRole === 'admin' && (
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             {/* Recent Investors Table */}
-            <div className="xl:col-span-2 bg-white shadow-sm rounded-xl p-6">
+            <div className="xl:col-span-2 bg-white dark:bg-[#1C1C1C] shadow-sm rounded-xl p-6">
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-[#1F1F1F] ">
+                <h3 className="text-lg font-bold text-[#1F1F1F] dark:text-gray-100 ">
                   Recent Investors
                 </h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full">
                   <thead>
-                    <tr className="border-b border-gray-100 text-[13px]">
-                      <th className="px-4 py-3 text-left font-semibold text-gray-500 whitespace-nowrap capitalize tracking-normal font-helvetica">Investor Name</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-500 whitespace-nowrap capitalize tracking-normal font-helvetica">Account Type</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-500 whitespace-nowrap capitalize tracking-normal font-helvetica">KYC Status</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-500 whitespace-nowrap capitalize tracking-normal font-helvetica">Funding Status</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-500 whitespace-nowrap capitalize tracking-normal font-helvetica">Action</th>
+                    <tr className="border-b border-gray-100 dark:border-gray-800 text-[13px]">
+                      <th className="px-4 py-3 text-left font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap capitalize tracking-normal font-helvetica">Investor Name</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap capitalize tracking-normal font-helvetica">Account Type</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap capitalize tracking-normal font-helvetica">KYC Status</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap capitalize tracking-normal font-helvetica">Funding Status</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap capitalize tracking-normal font-helvetica">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                     {adminStats.recentInvestors.length > 0 ? adminStats.recentInvestors.map((person, index) => {
                       const getKycDisplay = (status: string) => {
                         const s = status?.toLowerCase();
-                        if (s === 'verified' || s === 'approved') return { label: 'Approved', color: 'bg-[#F2FAF6] text-[#2A4474]' };
-                        if (s === 'pending') return { label: 'Pending', color: 'bg-[#FFF9EE] text-[#4B4B4B]' };
-                        return { label: 'Unverified', color: 'bg-[#FEF2F2] text-[#4B4B4B]' };
+                        if (s === 'verified' || s === 'approved') return { label: 'Approved', color: 'bg-[#F2FAF6] dark:bg-emerald-900/30 text-[#2A4474] dark:text-emerald-400' };
+                        if (s === 'pending') return { label: 'Pending', color: 'bg-[#FFF9EE] dark:bg-amber-900/30 text-[#4B4B4B] dark:text-amber-400' };
+                        return { label: 'Unverified', color: 'bg-[#FEF2F2] dark:bg-red-900/30 text-[#4B4B4B] dark:text-red-400' };
                       };
 
                       const getFundingDisplay = (status: string) => {
@@ -1180,19 +1180,19 @@ export default function DashboardPage() {
                       const kyc = getKycDisplay(person.kycStatus);
 
                       return (
-                        <tr key={`${person.id}-${index}`} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{person.investorName || 'N/A'}</td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{person.accountType}</td>
+                        <tr key={`${person.id}-${index}`} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{person.investorName || 'N/A'}</td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{person.accountType}</td>
                           <td className="px-4 py-4 whitespace-nowrap">
                             <span className={`px-3 py-1 inline-flex text-xs font-medium rounded-full ${kyc.color}`}>
                               {kyc.label}
                             </span>
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{getFundingDisplay(person.fundingStatus)}</td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{getFundingDisplay(person.fundingStatus)}</td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-400">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <button className="p-1 rounded-full hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                                <button className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:text-gray-400 transition-colors">
                                   <MoreVertical className="h-4 w-4" />
                                 </button>
                               </DropdownMenuTrigger>
@@ -1209,7 +1209,7 @@ export default function DashboardPage() {
                       );
                     }) : (
                       <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500">
+                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                           No recent investment activity found.
                         </td>
                       </tr>
@@ -1220,9 +1220,9 @@ export default function DashboardPage() {
             </div>
 
             {/* KYC Review Queue */}
-            <div className="bg-white shadow-sm rounded-xl pt-6 pl-4 pb-6 pr-3 flex flex-col">
+            <div className="bg-white dark:bg-[#1C1C1C] shadow-sm rounded-xl pt-6 pl-4 pb-6 pr-3 flex flex-col">
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-[#1F1F1F] ">
+                <h3 className="text-lg font-bold text-[#1F1F1F] dark:text-gray-100 ">
                   KYC Review Queue ({dynamicKycQueue.length})
                 </h3>
               </div>
@@ -1231,36 +1231,36 @@ export default function DashboardPage() {
                   const initials = item.investorName ? item.investorName.split(' ').map((n: any) => n[0]).join('').toUpperCase().slice(0, 2) : '??';
                   return (
                     <div key={item.id} className="group transition-all">
-                      <div className="flex items-start justify-between py-4 group-hover:bg-gray-50/50 rounded-xl px-2 transition-colors">
+                      <div className="flex items-start justify-between py-4 group-hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 rounded-xl px-2 transition-colors">
                         <div className="flex items-start gap-4 min-w-0">
                           {/* Avatar Circle */}
-                          <div className="h-10 w-10 rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#4B4B4B] text-[13px] font-bold shrink-0 border border-gray-100">
+                          <div className="h-10 w-10 rounded-full bg-[#F3F4F6] dark:bg-gray-800 flex items-center justify-center text-[#4B4B4B] dark:text-gray-300 text-[13px] font-bold shrink-0 border border-gray-100 dark:border-gray-800">
                             {initials}
                           </div>
 
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                              <h4 className="text-[15px] font-bold text-[#1F1F1F] truncate leading-tight">{item.investorName || 'N/A'}</h4>
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold capitalize tracking-wider ${item.kycStatus === 'pending' ? 'bg-[#FFF9EE] text-[#BFA778]' : 'bg-[#FEF2F2] text-[#B91C1C]'
+                              <h4 className="text-[15px] font-bold text-[#1F1F1F] dark:text-gray-100 truncate leading-tight">{item.investorName || 'N/A'}</h4>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold capitalize tracking-wider ${item.kycStatus === 'pending' ? 'bg-[#FFF9EE] dark:bg-amber-900/30 text-[#BFA778] dark:text-amber-400' : 'bg-[#FEF2F2] dark:bg-red-900/30 text-[#B91C1C] dark:text-red-400'
                                 }`}>
                                 {item.kycStatus}
                               </span>
                             </div>
-                            <p className="text-[12px] text-gray-500 truncate mt-0.5">{item.email}</p>
+                            <p className="text-[12px] text-gray-500 dark:text-gray-400 truncate mt-0.5">{item.email}</p>
                           </div>
                         </div>
 
                         <div className="flex flex-col items-end gap-2 shrink-0">
                           <button
                             onClick={() => router.push(`/dashboard/kyc-console?highlight=${item.id}`)}
-                            className="px-3 py-1 rounded-full bg-[#FAFAFA] border border-gray-200 text-[#4B4B4B] text-[12px] font-bold hover:bg-[#F3F4F6] hover:border-gray-300 transition-all shadow-sm"
+                            className="px-3 py-1 rounded-full bg-[#FAFAFA] dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-[#4B4B4B] dark:text-gray-300 text-[12px] font-bold hover:bg-[#F3F4F6] dark:hover:bg-gray-700 hover:border-gray-300 transition-all shadow-sm"
                           >
                             Continue KYC
                           </button>
                         </div>
                       </div>
                       {index < dynamicKycQueue.length - 1 && (
-                        <div className="mx-2 h-[1px] bg-gray-50" />
+                        <div className="mx-2 h-[1px] bg-gray-50 dark:bg-gray-800" />
                       )}
                     </div>
                   );
@@ -1279,7 +1279,7 @@ export default function DashboardPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {/* Assigned Investors */}
-              <div className="rounded-2xl bg-white shadow-sm border border-[#F3F4F6]">
+              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-sm border border-[#F3F4F6]">
                 <button
                   type="button"
                   onClick={() => setAssignedOpen((s) => !s)}
@@ -1305,7 +1305,7 @@ export default function DashboardPage() {
                             <img
                               src={inv.profile_image_url}
                               alt="avatar"
-                              className="h-10 w-10 rounded-full object-cover border border-gray-100"
+                              className="h-10 w-10 rounded-full object-cover border border-gray-100 dark:border-gray-800"
                             />
                           ) : (
                             <div className="h-10 w-10 rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[13px] font-semibold font-helvetica border border-[#E5E7EB]">
@@ -1327,7 +1327,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Unread Messages */}
-              <div className="rounded-2xl bg-white shadow-sm border border-[#F3F4F6]">
+              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-sm border border-[#F3F4F6]">
                 <button
                   type="button"
                   onClick={() => setMessagesOpen((s) => !s)}
@@ -1387,7 +1387,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Notifications */}
-              <div className="rounded-2xl bg-white shadow-sm border border-[#F3F4F6]">
+              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-sm border border-[#F3F4F6]">
                 <button
                   type="button"
                   onClick={() => setNotificationsOpen((s) => !s)}
@@ -1407,9 +1407,9 @@ export default function DashboardPage() {
                 <div id="notifications-panel" aria-hidden={!notificationsOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${notificationsOpen ? 'border-t border-[#EEEEEE] max-h-96' : 'max-h-0'}`}>
                   <div className="pt-0 overflow-y-auto max-h-[300px]">
                     {dynamicNotifications.map((n) => (
-                      <div key={n.id} className={`text-sm text-[#4B4B4B] border-b border-[#EEEEEE] py-4 last:border-0 hover:bg-[#F9FAFB] transition-colors px-2 rounded-lg ${!n.is_read ? 'bg-indigo-50/30' : ''}`}>
+                      <div key={n.id} className={`text-sm text-[#4B4B4B] dark:text-gray-300 border-b border-[#EEEEEE] py-4 last:border-0 hover:bg-[#F9FAFB] transition-colors px-2 rounded-lg ${!n.is_read ? 'bg-indigo-50/30' : ''}`}>
                         <div className="flex justify-between items-start">
-                          <p className="font-medium text-[#1F1F1F] flex-1">{n.title}</p>
+                          <p className="font-medium text-[#1F1F1F] dark:text-gray-100 flex-1">{n.title}</p>
                           <span className="text-[10px] text-[#A2A5AA] shrink-0 ml-2">
                             {formatDistanceToNow(new Date(n.created_at), { addSuffix: true }).replace('about ', '')}
                           </span>
@@ -1429,13 +1429,13 @@ export default function DashboardPage() {
 
         {/* {dashboardRole === 'accountant' && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="bg-white shadow-sm rounded-xl p-6">
-            <h3 className="text-lg font-bold text-[#1F1F1F] mb-2">Accounting Access</h3>
-            <p className="text-sm text-gray-600">You can view reconciliation, NAV, funding, and redemption operations only.</p>
+          <div className="bg-white dark:bg-[#1C1C1C] shadow-sm rounded-xl p-6">
+            <h3 className="text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-2">Accounting Access</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">You can view reconciliation, NAV, funding, and redemption operations only.</p>
           </div>
-          <div className="bg-white shadow-sm rounded-xl p-6">
-            <h3 className="text-lg font-bold text-[#1F1F1F] mb-2">Restricted Data</h3>
-            <p className="text-sm text-gray-600">Investor management and admin-only operational sections are hidden for this role.</p>
+          <div className="bg-white dark:bg-[#1C1C1C] shadow-sm rounded-xl p-6">
+            <h3 className="text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-2">Restricted Data</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Investor management and admin-only operational sections are hidden for this role.</p>
           </div>
         </div>
       )} */}
@@ -1444,24 +1444,24 @@ export default function DashboardPage() {
         {dashboardRole === 'admin' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Funding Requests */}
-            <div className="bg-white shadow-sm rounded-xl overflow-hidden">
+            <div className="bg-white dark:bg-[#1C1C1C] shadow-sm rounded-xl overflow-hidden">
               <div
                 className="p-6 flex items-center justify-between cursor-pointer"
                 onClick={() => setAdminExpanded(prev => ({ ...prev, funding: !prev.funding }))}
               >
                 <div className="flex items-center space-x-4">
                   <span className="text-lg font-bold text-[#FCD34D]">{dynamicFundingRequests.length}</span>
-                  <span className="text-sm font-medium text-gray-700">Funding Requests</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Funding Requests</span>
                 </div>
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.funding ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.funding && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 dark:border-gray-800 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicFundingRequests.length > 0 ? dynamicFundingRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{request.investor_name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{request.investor_name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.investment_amount)} - {request.account_type}
                         </p>
                       </div>
@@ -1473,31 +1473,31 @@ export default function DashboardPage() {
                       </Link>
                     </div>
                   )) : (
-                    <p className="text-sm text-gray-500 py-2">No pending funding requests.</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 py-2">No pending funding requests.</p>
                   )}
                 </div>
               )}
             </div>
 
             {/* Redemption Requests */}
-            <div className="bg-white shadow-sm rounded-xl overflow-hidden">
+            <div className="bg-white dark:bg-[#1C1C1C] shadow-sm rounded-xl overflow-hidden">
               <div
                 className="p-6 flex items-center justify-between cursor-pointer"
                 onClick={() => setAdminExpanded(prev => ({ ...prev, redemption: !prev.redemption }))}
               >
                 <div className="flex items-center space-x-4">
                   <span className="text-lg font-bold text-blue-500">{dynamicRedemptionRequests.length}</span>
-                  <span className="text-sm font-medium text-gray-700">Redemption Requests</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Redemption Requests</span>
                 </div>
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.redemption ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.redemption && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 dark:border-gray-800 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicRedemptionRequests.length > 0 ? dynamicRedemptionRequests.map((request) => (
                     <div key={request.id} className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{request.investor_name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{request.investor_name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {request.units ? `${parseFloat(request.units).toFixed(2)} Units` : ''}
                           {request.amount ? ` (~${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.amount)})` : ''}
                         </p>
@@ -1510,30 +1510,30 @@ export default function DashboardPage() {
                       </Link>
                     </div>
                   )) : (
-                    <p className="text-sm text-gray-500 py-2">No pending redemption requests.</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 py-2">No pending redemption requests.</p>
                   )}
                 </div>
               )}
             </div>
             {/* Reconciliation Alerts */}
-            <div className="bg-white shadow-sm rounded-xl overflow-hidden">
+            <div className="bg-white dark:bg-[#1C1C1C] shadow-sm rounded-xl overflow-hidden">
               <div
                 className="p-6 flex items-center justify-between cursor-pointer"
                 onClick={() => setAdminExpanded(prev => ({ ...prev, reconciliation: !prev.reconciliation }))}
               >
                 <div className="flex items-center space-x-4">
                   <span className="text-lg font-bold text-red-500">{dynamicReconciliationAlerts.length}</span>
-                  <span className="text-sm font-medium text-gray-700">Reconciliation Alerts</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Reconciliation Alerts</span>
                 </div>
                 <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${adminExpanded.reconciliation ? 'rotate-180' : ''}`} />
               </div>
               {adminExpanded.reconciliation && (
-                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                <div className="px-6 pb-6 space-y-4 border-t border-gray-100 dark:border-gray-800 pt-4 max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                   {dynamicReconciliationAlerts.length > 0 ? dynamicReconciliationAlerts.map((request, idx) => (
                     <div key={request.id ? `${request.id}-${idx}` : idx} className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{request.investor_name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{request.investor_name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {request.type === 'Funding' ? (
                             `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(request.investment_amount)} - ${request.account_type}`
                           ) : (
@@ -1550,8 +1550,8 @@ export default function DashboardPage() {
                     </div>
                   )) : (
                     <div className="text-center pt-6">
-                      <p className="text-base font-semibold text-gray-900 mb-1">Nothing pending</p>
-                      <p className="text-sm text-gray-500">All are currently up to date</p>
+                      <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">Nothing pending</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">All are currently up to date</p>
                     </div>
                   )}
                 </div>

@@ -211,7 +211,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
       case 'Units Issued':
         return 'text-green-600 bg-green-50';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800';
     }
   };
 
@@ -220,7 +220,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <Loader2 className="h-12 w-12 animate-spin text-[#FCD34D] mb-4" />
-          <p className="text-gray-500 font-medium">Loading request details...</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">Loading request details...</p>
         </div>
       </DashboardLayout>
     );
@@ -232,7 +232,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
         <div className="p-6">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 mb-6"
           >
             <ChevronLeft className="h-5 w-5" />
             <span className="font-medium">Back</span>
@@ -259,7 +259,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
         <div className="mb-6">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors group"
+            className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 mb-6 transition-colors group"
           >
             <ChevronLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
             <span className="font-bold text-sm uppercase tracking-widest">Funding Request Details</span>
@@ -268,12 +268,12 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div>
               <div className="sm:flex items-center gap-3 mb-1 space-y-2 sm:space-y-0">
-                <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] font-goudy tracking-tight">{requestData.requestId}</h1>
+                <h1 className="text-2xl sm:text-4xl font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy tracking-tight">{requestData.requestId}</h1>
                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${getStatusColor(requestData.status)}`}>
                   {requestData.status}
                 </span>
               </div>
-              <p className="text-gray-500 font-medium">Submitted Date: <span className="text-gray-900">{requestData.submittedDate}</span></p>
+              <p className="text-gray-500 dark:text-gray-400 font-medium">Submitted Date: <span className="text-gray-900 dark:text-gray-100">{requestData.submittedDate}</span></p>
             </div>
             <div className="flex flex-wrap gap-3">
               {requestData.status === 'Rejected' ? (
@@ -323,20 +323,20 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Request Details */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50">
-              <h2 className="text-xl font-bold text-gray-900 font-goudy uppercase tracking-widest">Request Information</h2>
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 md:p-8">
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50 dark:border-gray-800">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 font-goudy uppercase tracking-widest">Request Information</h2>
             </div>
 
             <div className="space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Investor</p>
-                  <p className="font-bold text-gray-900">{requestData.investor}</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">{requestData.investor}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Account Type</p>
-                  <p className="font-bold text-gray-900">{requestData.accountType}</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">{requestData.accountType}</p>
                 </div>
 
                 <div>
@@ -345,12 +345,12 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Email Address</p>
-                  <p className="font-bold text-gray-900 break-all">{requestData.email}</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100 break-all">{requestData.email}</p>
                 </div>
 
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Payment Method</p>
-                  <p className="font-bold text-gray-900">{requestData.paymentMethod}</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">{requestData.paymentMethod}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Total Amount</p>
@@ -359,30 +359,30 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
 
                 <div className="sm:col-span-2">
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Bank Name</p>
-                  <p className="font-bold text-gray-900">{requestData.bankName}</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">{requestData.bankName}</p>
                 </div>
 
                  {/* Signed Documents Section */}
                 {requestData.documentSigned && (matchedOA || matchedSA) ? (
-                  <div className="sm:col-span-2 pt-6 border-t border-gray-100">
+                  <div className="sm:col-span-2 pt-6 border-t border-gray-100 dark:border-gray-800">
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Signed Documents</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Signed OA Card */}
                       {matchedOA && (
-                        <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-[#FCD34D] hover:bg-amber-50/10 transition-all duration-200 group">
+                        <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 hover:border-[#FCD34D] hover:bg-amber-50/10 transition-all duration-200 group">
                           <div className="flex items-center gap-3">
                             <div className="p-2.5 rounded-lg bg-amber-50 text-[#92400E] group-hover:scale-110 transition-transform">
                               <FileText className="h-5 w-5" />
                             </div>
                             <div>
-                              <p className="text-xs font-bold text-gray-900 leading-none mb-1">Signed OA</p>
+                              <p className="text-xs font-bold text-gray-900 dark:text-gray-100 leading-none mb-1">Signed OA</p>
                               <p className="text-[10px] font-medium text-gray-400">Operating Agreement</p>
                             </div>
                           </div>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleViewDoc(matchedOA)}
-                              className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                              className="p-1.5 text-gray-400 hover:text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                               title="View Document"
                             >
                               <Eye className="h-4 w-4" />
@@ -400,20 +400,20 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
 
                       {/* Signed SA Card */}
                       {matchedSA && (
-                        <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-[#FCD34D] hover:bg-amber-50/10 transition-all duration-200 group">
+                        <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 hover:border-[#FCD34D] hover:bg-amber-50/10 transition-all duration-200 group">
                           <div className="flex items-center gap-3">
                             <div className="p-2.5 rounded-lg bg-amber-50 text-[#92400E] group-hover:scale-110 transition-transform">
                               <FileText className="h-5 w-5" />
                             </div>
                             <div>
-                              <p className="text-xs font-bold text-gray-900 leading-none mb-1">Signed SA</p>
+                              <p className="text-xs font-bold text-gray-900 dark:text-gray-100 leading-none mb-1">Signed SA</p>
                               <p className="text-[10px] font-medium text-gray-400">Subscription Agreement</p>
                             </div>
                           </div>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleViewDoc(matchedSA)}
-                              className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                              className="p-1.5 text-gray-400 hover:text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                               title="View Document"
                             >
                               <Eye className="h-4 w-4" />
@@ -431,10 +431,10 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                     </div>
                   </div>
                 ) : (
-                  <div className="sm:col-span-2 pt-6 border-t border-gray-100">
+                  <div className="sm:col-span-2 pt-6 border-t border-gray-100 dark:border-gray-800">
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Signed Documents</p>
-                    <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 text-center">
-                      <p className="text-xs text-gray-500 font-medium">No signed documents available for this request.</p>
+                    <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 text-center">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">No signed documents available for this request.</p>
                     </div>
                   </div>
                 )}
@@ -443,8 +443,8 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
           </div>
 
           {/* Custodian Wire Instructions */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-8 pb-4 border-b border-gray-50 font-goudy uppercase tracking-widest">Custodian Wire Instructions</h2>
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 md:p-8">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-8 pb-4 border-b border-gray-50 dark:border-gray-800 font-goudy uppercase tracking-widest">Custodian Wire Instructions</h2>
 
             <div className="mb-8 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
               <p className="text-sm text-blue-800 font-medium leading-relaxed">
@@ -456,28 +456,28 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Bank Name</p>
-                  <p className="font-bold text-gray-900">{wireInstructions.bankName}</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">{wireInstructions.bankName}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Account Number</p>
-                  <p className="font-bold text-gray-900">{wireInstructions.accountNumber}</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">{wireInstructions.accountNumber}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Routing Number (ABA)</p>
-                  <p className="font-bold text-gray-900">{wireInstructions.routingNumber}</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">{wireInstructions.routingNumber}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Beneficiary Name</p>
-                  <p className="font-bold text-gray-900">{wireInstructions.beneficiaryName}</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">{wireInstructions.beneficiaryName}</p>
                 </div>
               </div>
 
               <div>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Bank Address</p>
-                <p className="font-bold text-gray-900 leading-relaxed">{wireInstructions.bankAddress}</p>
+                <p className="font-bold text-gray-900 dark:text-gray-100 leading-relaxed">{wireInstructions.bankAddress}</p>
               </div>
             </div>
           </div>
@@ -487,23 +487,23 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
       {/* Approve Modal */}
       {showApproveModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-xl max-w-md w-full p-6 relative">
             <button
               onClick={() => setShowApproveModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-400"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-4 font-goudy">Wire Instructions Sent</h2>
-            <p className="text-gray-600 text-sm mb-6 font-helvetica">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-goudy">Wire Instructions Sent</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 font-helvetica">
               Are you sure you want to mark these wire instructions as sent and move this request to awaiting funding?
             </p>
 
             <div className="flex gap-3 justify-end">
               <Button
                 onClick={() => setShowApproveModal(false)}
-                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium shadow-none"
+                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:text-gray-300 rounded-lg font-medium shadow-none"
               >
                 No
               </Button>
@@ -519,7 +519,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                     console.error('Failed to approve:', err);
                   }
                 }}
-                className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 rounded-lg font-medium shadow-none"
+                className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-100 rounded-lg font-medium shadow-none"
               >
                 Yes
               </Button>
@@ -531,19 +531,19 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
       {/* Reject Modal */}
       {showRejectModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-xl max-w-md w-full p-6 relative">
             <button
               onClick={() => {
                 setShowRejectModal(false);
                 setRejectError('');
               }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-400"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Reject Funding Request</h2>
-            <p className="text-gray-600 text-sm mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Reject Funding Request</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               Please provide a reason for rejecting this funding request.
             </p>
 
@@ -556,7 +556,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                     if (rejectError) setRejectError('');
                   }}
                   className={`w-full appearance-none px-4 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] ${rejectError && !selectedRejectReason ? 'border-red-500' : 'border-gray-300'
-                    } bg-white cursor-pointer text-gray-700`}
+                    } bg-white dark:bg-[#1C1C1C] cursor-pointer text-gray-700 dark:text-gray-300`}
                 >
                   <option value="0">
                     Select reason
@@ -609,7 +609,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                   setShowRejectModal(false);
                   setRejectError('');
                 }}
-                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium shadow-none"
+                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:text-gray-300 rounded-lg font-medium shadow-none"
               >
                 No
               </Button>
@@ -631,7 +631,7 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
                     console.error('Failed to reject:', err);
                   }
                 }}
-                className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 rounded-lg font-medium shadow-none"
+                className="px-6 py-2 bg-[#FCD34D] hover:bg-[#fbbf24] text-gray-900 dark:text-gray-100 rounded-lg font-medium shadow-none"
               >
                 Yes
               </Button>
@@ -643,23 +643,23 @@ export default function FundingRequestDetailsPage({ params }: PageProps) {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-xl max-w-md w-full p-6 relative">
             <button
               onClick={() => setShowDeleteModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-400"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-4 font-goudy">Delete Investment Record</h2>
-            <p className="text-gray-600 text-sm mb-6 font-helvetica">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-goudy">Delete Investment Record</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 font-helvetica">
               Are you sure you want to delete this investment record? This action is permanent and cannot be undone.
             </p>
 
             <div className="flex gap-3 justify-end">
               <Button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium shadow-none"
+                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:text-gray-300 rounded-lg font-medium shadow-none"
               >
                 Cancel
               </Button>

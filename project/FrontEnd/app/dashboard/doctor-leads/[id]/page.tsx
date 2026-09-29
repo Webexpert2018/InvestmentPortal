@@ -409,7 +409,7 @@ export default function DoctorProfilePage() {
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-[#FFC63F]" />
-          <p className="text-[14px] font-bold text-gray-600">Loading Physician Dossier &amp; Saved Copy...</p>
+          <p className="text-[14px] font-bold text-gray-600 dark:text-gray-400">Loading Physician Dossier &amp; Saved Copy...</p>
         </div>
       </DashboardLayout>
     );
@@ -419,11 +419,11 @@ export default function DoctorProfilePage() {
     return (
       <DashboardLayout>
         <div className="p-8 text-center max-w-md mx-auto">
-          <h2 className="text-[20px] font-bold text-[#1F1F1F]">Physician Profile Not Found</h2>
-          <p className="text-[14px] text-gray-500 mt-2 mb-6">The requested doctor lead profile could not be retrieved from database records.</p>
+          <h2 className="text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">Physician Profile Not Found</h2>
+          <p className="text-[14px] text-gray-500 dark:text-gray-400 mt-2 mb-6">The requested doctor lead profile could not be retrieved from database records.</p>
           <Link
             href="/dashboard/doctor-leads"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FFC63F] font-bold text-[13px] text-[#1F1F1F]"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FFC63F] font-bold text-[13px] text-[#1F1F1F] dark:text-gray-100"
           >
             <ArrowLeft className="w-4 h-4" /> Return to Doctor Leads
           </Link>
@@ -434,12 +434,12 @@ export default function DoctorProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="w-full font-helvetica text-[#1F1F1F] space-y-6 pb-12">
+      <div className="w-full font-helvetica text-[#1F1F1F] dark:text-gray-100 space-y-6 pb-12">
         {/* Navigation Top Bar */}
         <div className="flex items-center justify-between">
           <Link
             href="/dashboard/doctor-leads"
-            className="inline-flex items-center gap-2 text-[13px] font-bold text-gray-600 hover:text-[#1F1F1F] transition-colors bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm"
+            className="inline-flex items-center gap-2 text-[13px] font-bold text-gray-600 dark:text-gray-400 hover:text-[#1F1F1F] dark:text-gray-100 transition-colors bg-white dark:bg-[#1C1C1C] px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm"
           >
             <ArrowLeft className="w-4 h-4 text-[#D9A11E]" />
             <span>Back to Physician Leads Queue</span>
@@ -452,14 +452,14 @@ export default function DoctorProfilePage() {
 
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             <div className="flex items-start sm:items-center gap-5">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#FFC63F] to-[#E0AC27] text-[#1F1F1F] flex items-center justify-center font-extrabold text-[28px] shadow-lg shrink-0 border-2 border-white/20">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#FFC63F] to-[#E0AC27] text-[#1F1F1F] dark:text-gray-100 flex items-center justify-center font-extrabold text-[28px] shadow-lg shrink-0 border-2 border-white/20">
                 {doctor.fullName.replace('Dr. ', '').charAt(0)}
               </div>
 
               <div>
                 <div className="flex items-center gap-3 flex-wrap">
                   <h1 className="font-goudy text-[28px] sm:text-[32px] font-bold text-white">{doctor.fullName}</h1>
-                  <span className="text-[11px] font-extrabold uppercase px-3 py-1 rounded-full bg-[#FFC63F] text-[#1F1F1F] shadow-sm">
+                  <span className="text-[11px] font-extrabold uppercase px-3 py-1 rounded-full bg-[#FFC63F] text-[#1F1F1F] dark:text-gray-100 shadow-sm">
                     {doctor.specialty}
                   </span>
                 </div>
@@ -508,8 +508,8 @@ export default function DoctorProfilePage() {
           {/* Left Column: Metadata & Investor Profile & Notes */}
           <div className="space-y-6 lg:col-span-1">
             {/* Physician Metadata Card */}
-            <div className="bg-white rounded-[20px] p-6 shadow-sm border border-[#F2F2F2] space-y-5">
-              <h3 className="text-[16px] font-bold text-[#1F1F1F] pb-3 border-b border-gray-100 flex items-center gap-2">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[20px] p-6 shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A] space-y-5">
+              <h3 className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100 pb-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
                 <UserCheck className="w-5 h-5 text-[#D9A11E]" />
                 <span>Physician Contact &amp; Practice</span>
               </h3>
@@ -517,12 +517,12 @@ export default function DoctorProfilePage() {
               <div className="space-y-4 text-[13px]">
                 <div>
                   <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Full Name</label>
-                  <div className="font-bold text-[#1F1F1F] text-[15px]">{doctor.fullName}</div>
+                  <div className="font-bold text-[#1F1F1F] dark:text-gray-100 text-[15px]">{doctor.fullName}</div>
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Medical Specialty</label>
-                  <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5">
+                  <div className="font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-1.5">
                     <Stethoscope className="w-4 h-4 text-[#D9A11E]" />
                     {doctor.specialty}
                   </div>
@@ -530,24 +530,24 @@ export default function DoctorProfilePage() {
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Practice / Clinic Name</label>
-                  <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5">
-                    <Building2 className="w-4 h-4 text-gray-500" />
+                  <div className="font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     {doctor.organization}
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">City &amp; Location</label>
-                  <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-gray-500" />
+                  <div className="font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     {doctor.location}
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-gray-100 space-y-3">
+                <div className="pt-2 border-t border-gray-100 dark:border-gray-800 space-y-3">
                   <div>
                     <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Work Email</label>
-                    <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5 truncate">
+                    <div className="font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-1.5 truncate">
                       <Mail className="w-4 h-4 text-[#D9A11E]" />
                       <span className="truncate">{doctor.email && doctor.email !== 'No Email' && doctor.email !== 'Email in DB' ? doctor.email : 'null'}</span>
                     </div>
@@ -555,7 +555,7 @@ export default function DoctorProfilePage() {
 
                   <div>
                     <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Personal Email</label>
-                    <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5 truncate">
+                    <div className="font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-1.5 truncate">
                       <Mail className="w-4 h-4 text-[#D9A11E]" />
                       <span className="truncate">{doctor.personalEmails && doctor.personalEmails.length > 0 ? doctor.personalEmails[0] : 'null'}</span>
                     </div>
@@ -563,36 +563,36 @@ export default function DoctorProfilePage() {
 
                   <div>
                     <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Work Phone</label>
-                    <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5">
-                      <Phone className="w-4 h-4 text-gray-500" />
+                    <div className="font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-1.5">
+                      <Phone className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                       <span>{doctor.workPhone && doctor.workPhone !== 'N/A' ? doctor.workPhone : 'null'}</span>
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-[11px] font-bold uppercase text-gray-400 mb-0.5">Personal Phone</label>
-                    <div className="font-bold text-[#1F1F1F] flex items-center gap-1.5">
-                      <Phone className="w-4 h-4 text-gray-500" />
+                    <div className="font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-1.5">
+                      <Phone className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                       <span>{doctor.phone && doctor.phone !== 'N/A' ? doctor.phone : 'null'}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[12px]">
-                  <span className="text-gray-500">Physician ID</span>
-                  <span className="font-mono text-gray-700 bg-gray-100 px-2 py-0.5 rounded text-[11px]">{doctor.id}</span>
+                <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-[12px]">
+                  <span className="text-gray-500 dark:text-gray-400">Physician ID</span>
+                  <span className="font-mono text-gray-700 dark:text-gray-300 bg-gray-100 px-2 py-0.5 rounded text-[11px]">{doctor.id}</span>
                 </div>
               </div>
             </div>
 
             {/* Doctor Lead Notes Card (Saved in Database) */}
-            <div className="bg-white rounded-[20px] p-6 shadow-sm border border-[#F2F2F2] space-y-4">
-              <h3 className="text-[16px] font-bold text-[#1F1F1F] pb-3 border-b border-gray-100 flex items-center justify-between">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[20px] p-6 shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A] space-y-4">
+              <h3 className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100 pb-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-[#D9A11E]" />
                   <span>Physician Notes</span>
                 </div>
-                <span className="text-[11px] font-bold bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full border border-gray-200">
+                <span className="text-[11px] font-bold bg-gray-100 text-gray-700 dark:text-gray-300 px-2.5 py-0.5 rounded-full border border-gray-200 dark:border-gray-800">
                   {notes.length}
                 </span>
               </h3>
@@ -604,13 +604,13 @@ export default function DoctorProfilePage() {
                   placeholder="Add a note for this doctor (e.g. Call notes, objections, investment budget, callback time)..."
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
-                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-[13px] text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#FFC63F] transition-all resize-none"
+                  className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl text-[13px] text-[#1F1F1F] dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-[#FFC63F] transition-all resize-none"
                 />
                 <div className="flex justify-end">
                   <button
                     onClick={handleAddNote}
                     disabled={!newNote.trim() || isSavingNote}
-                    className="px-4 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] text-[12px] font-bold rounded-full shadow-xs flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 text-[12px] font-bold rounded-full shadow-xs flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
                   >
                     {isSavingNote ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
                     <span>Save Note</span>
@@ -626,14 +626,14 @@ export default function DoctorProfilePage() {
                     <span>Loading notes from database...</span>
                   </div>
                 ) : notes.length === 0 ? (
-                  <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <p className="text-[12px] text-gray-500">No notes saved for this doctor yet.</p>
+                  <div className="text-center py-6 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
+                    <p className="text-[12px] text-gray-500 dark:text-gray-400">No notes saved for this doctor yet.</p>
                   </div>
                 ) : (
                   notes.map((n) => (
                     <div key={n.id} className="p-3.5 bg-[#FFF9EE] border border-[#FFE7A8] rounded-xl space-y-1.5 relative group transition-all">
-                      <div className="flex items-center justify-between text-[11px] text-gray-500 font-medium">
-                        <span className="font-bold text-[#1F1F1F]">{n.author_name || 'Staff'}</span>
+                      <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 font-medium">
+                        <span className="font-bold text-[#1F1F1F] dark:text-gray-100">{n.author_name || 'Staff'}</span>
                         <div className="flex items-center gap-2">
                           <span>{new Date(n.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
                           <button
@@ -645,7 +645,7 @@ export default function DoctorProfilePage() {
                           </button>
                         </div>
                       </div>
-                      <p className="text-[13px] text-[#1F1F1F] whitespace-pre-wrap leading-relaxed">
+                      <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 whitespace-pre-wrap leading-relaxed">
                         {n.note}
                       </p>
                     </div>
@@ -657,11 +657,11 @@ export default function DoctorProfilePage() {
 
           {/* Right Column: 5-Day Gemini AI Campaign Drip View */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-[20px] p-6 shadow-sm border border-[#F2F2F2] space-y-5">
-              <div className="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-gray-100">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[20px] p-6 shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A] space-y-5">
+              <div className="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-[#D9A11E]" />
-                  <h3 className="text-[18px] font-bold text-[#1F1F1F]">Saved 5-Day Email Campaign Sequence</h3>
+                  <h3 className="text-[18px] font-bold text-[#1F1F1F] dark:text-gray-100">Saved 5-Day Email Campaign Sequence</h3>
                 </div>
                 {sequenceData?.sequence?.some((s: any) => s.status === 'draft') && (
                   <button
@@ -676,7 +676,7 @@ export default function DoctorProfilePage() {
               </div>
 
               {/* Day Tabs Bar */}
-              <div className="flex items-center gap-2 border-b border-gray-200 pb-3 overflow-x-auto">
+              <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-3 overflow-x-auto">
                 {[1, 2, 3, 4, 5].map((dayNum) => {
                   const item = sequenceData?.sequence?.find((s: any) => s && s.day === dayNum);
                   return (
@@ -684,8 +684,8 @@ export default function DoctorProfilePage() {
                       key={dayNum}
                       onClick={() => setActiveDay(dayNum)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold transition-all shrink-0 ${activeDay === dayNum
-                        ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm border border-[#E0AC27]'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-[#FFC63F] text-[#1F1F1F] dark:text-gray-100 shadow-sm border border-[#E0AC27]'
+                        : 'bg-gray-100 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
                         }`}
                     >
                       <span>Day {dayNum}</span>
@@ -704,7 +704,7 @@ export default function DoctorProfilePage() {
                   return (
                     <div className="space-y-4">
                       {/* Drip Schedule & Status Banner */}
-                      <div className="flex items-center justify-between bg-[#FFF9EE] border border-[#FFE7A8] rounded-xl px-4 py-2.5 text-[13px] font-bold text-[#1F1F1F]">
+                      <div className="flex items-center justify-between bg-[#FFF9EE] border border-[#FFE7A8] rounded-xl px-4 py-2.5 text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-[#D9A11E]" />
                           <span>Drip Schedule: <strong>{activeEmail.scheduledDate || 'Next Day @ 9:00 AM EST'}</strong></span>
@@ -721,10 +721,10 @@ export default function DoctorProfilePage() {
                       </div>
 
                       {/* Subject Line Display */}
-                      <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
                         <div className="flex-1 pr-4">
                           <div className="flex items-center justify-between mb-1">
-                            <label className="block text-[11px] font-bold uppercase text-gray-500">Subject Line (Day {activeDay})</label>
+                            <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400">Subject Line (Day {activeDay})</label>
                             {activeEmail.status !== 'sent' && (
                               <button
                                 onClick={() => setIsAthenaModalOpen(true)}
@@ -735,14 +735,14 @@ export default function DoctorProfilePage() {
                               </button>
                             )}
                           </div>
-                          <div className="text-[15px] font-bold text-[#1F1F1F]">{activeEmail.subject}</div>
+                          <div className="text-[15px] font-bold text-[#1F1F1F] dark:text-gray-100">{activeEmail.subject}</div>
                         </div>
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(activeEmail.subject);
                             toast.success('Subject line copied!');
                           }}
-                          className="text-[12px] font-bold px-3 py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 transition-all shadow-sm shrink-0"
+                          className="text-[12px] font-bold px-3 py-1.5 bg-white dark:bg-[#1C1C1C] border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all shadow-sm shrink-0"
                         >
                           Copy Subject
                         </button>
@@ -751,7 +751,7 @@ export default function DoctorProfilePage() {
                       {/* Email Body Copy */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="block text-[11px] font-bold uppercase text-gray-500">Email Body Copy (Day {activeDay})</label>
+                          <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400">Email Body Copy (Day {activeDay})</label>
                           <button
                             onClick={() => {
                               const temp = document.createElement('div');
@@ -766,21 +766,21 @@ export default function DoctorProfilePage() {
                         </div>
 
                         <div
-                          className="bg-white border border-gray-200 rounded-2xl p-6 shadow-inner text-[14px] leading-relaxed font-sans text-gray-800 space-y-3 min-h-[520px] max-h-[650px] overflow-y-auto custom-scrollbar [&_a]:pointer-events-none [&_a]:cursor-default"
+                          className="bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-inner text-[14px] leading-relaxed font-sans text-gray-800 dark:text-gray-200 space-y-3 min-h-[520px] max-h-[650px] overflow-y-auto custom-scrollbar [&_a]:pointer-events-none [&_a]:cursor-default"
                           dangerouslySetInnerHTML={{ __html: activeEmail.body }}
                         />
                       </div>
 
                       {/* Bottom Dispatch Action Row */}
-                      <div className="pt-4 flex items-center justify-between border-t border-gray-100">
-                        <span className="text-[12px] text-gray-500">
+                      <div className="pt-4 flex items-center justify-between border-t border-gray-100 dark:border-gray-800">
+                        <span className="text-[12px] text-gray-500 dark:text-gray-400">
                           Target: <strong>{doctor.fullName}</strong> ({doctor.email})
                         </span>
 
                         <button
                           onClick={() => handleSendTestEmail(activeEmail.body)}
                           disabled={isSending}
-                          className="flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-[13px] bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] transition-all shadow-sm disabled:opacity-50"
+                          className="flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-[13px] bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 transition-all shadow-sm disabled:opacity-50"
                         >
                           {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                           <span>Send Day {activeDay} Email to {doctor.fullName.split(' ')[1] || 'Doctor'}</span>
@@ -799,30 +799,30 @@ export default function DoctorProfilePage() {
                   </div>
                   {!doctor.personalEmails || doctor.personalEmails.length === 0 ? (
                     <>
-                      <h4 className="font-bold text-[16px] text-[#1F1F1F]">No Personal Email Found</h4>
-                      <p className="text-[13px] text-gray-600 max-w-md mx-auto">
+                      <h4 className="font-bold text-[16px] text-[#1F1F1F] dark:text-gray-100">No Personal Email Found</h4>
+                      <p className="text-[13px] text-gray-600 dark:text-gray-400 max-w-md mx-auto">
                         AI sequence cannot be generated because this physician does not have a personal email address.
                       </p>
                     </>
                   ) : (
                     <>
-                      <h4 className="font-bold text-[16px] text-[#1F1F1F]">No Saved Campaign Copy Yet</h4>
-                      <p className="text-[13px] text-gray-600 max-w-md mx-auto">
+                      <h4 className="font-bold text-[16px] text-[#1F1F1F] dark:text-gray-100">No Saved Campaign Copy Yet</h4>
+                      <p className="text-[13px] text-gray-600 dark:text-gray-400 max-w-md mx-auto">
                         The 5-day email campaign sequence for <strong>{doctor.fullName}</strong> has not been generated yet. You can generate it right now using the button below.
                       </p>
                       <button
                         onClick={handleGenerateSequence}
                         disabled={isGenerating}
-                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] font-bold text-[13px] transition-all shadow-sm mt-2 cursor-pointer disabled:opacity-50"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 font-bold text-[13px] transition-all shadow-sm mt-2 cursor-pointer disabled:opacity-50"
                       >
                         {isGenerating ? (
                           <>
-                            <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
+                            <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F] dark:text-gray-100" />
                             <span>Generating Sequence...</span>
                           </>
                         ) : (
                           <>
-                            <Sparkles className="w-4 h-4 text-[#1F1F1F]" />
+                            <Sparkles className="w-4 h-4 text-[#1F1F1F] dark:text-gray-100" />
                             <span>Generate 5-Day Email Campaign</span>
                           </>
                         )}
@@ -858,7 +858,7 @@ export default function DoctorProfilePage() {
           <DialogFooter>
             <button
               onClick={() => setIsAthenaModalOpen(false)}
-              className="px-4 py-2 text-sm font-bold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+              className="px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-400 bg-gray-100 rounded-lg hover:bg-gray-200"
               disabled={isModifying}
             >
               Cancel

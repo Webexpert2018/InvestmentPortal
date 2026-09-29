@@ -218,11 +218,11 @@ export default function ReconciliationPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Matched':
-        return 'text-green-600 bg-green-50';
+        return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-transparent dark:border-green-800/50';
       case 'Mismatch':
-        return 'text-red-600 bg-red-50';
+        return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-transparent dark:border-red-800/50';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800';
     }
   };
 
@@ -258,20 +258,20 @@ export default function ReconciliationPage() {
     <DashboardLayout>
       <div className="p-0">
         <div className="mb-8">
-          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-2">Reconciliation</h1>
-          <p className="text-gray-600">Compare custodian events with internal ledger records and resolve mismatches.</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-2">Reconciliation</h1>
+          <p className="text-gray-600 dark:text-gray-400">Compare custodian events with internal ledger records and resolve mismatches.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           {stats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-              <p className="text-gray-600 text-sm mb-2">{stat.label}</p>
-              <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+            <div key={index} className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-6 border border-gray-100 dark:border-gray-800">
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{stat.label}</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{stat.value}</p>
             </div>
           ))}
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-100">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-6 mb-6 border border-gray-100 dark:border-gray-800">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -280,7 +280,7 @@ export default function ReconciliationPage() {
                 placeholder="Search by ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-transparent text-[#111827] dark:text-white"
               />
             </div>
 
@@ -288,11 +288,11 @@ export default function ReconciliationPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="appearance-none w-full md:w-auto px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white cursor-pointer"
+                className="appearance-none w-full md:w-auto px-4 py-2 pr-10 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white dark:bg-[#1C1C1C] cursor-pointer text-[#111827] dark:text-white"
               >
-                <option value="all">All Status</option>
-                <option value="matched">Matched</option>
-                <option value="mismatch">Mismatch</option>
+                <option value="all" className="bg-white dark:bg-gray-800">All Status</option>
+                <option value="matched" className="bg-white dark:bg-gray-800">Matched</option>
+                <option value="mismatch" className="bg-white dark:bg-gray-800">Mismatch</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
             </div>
@@ -301,66 +301,66 @@ export default function ReconciliationPage() {
               <select
                 value={eventTypeFilter}
                 onChange={(e) => setEventTypeFilter(e.target.value)}
-                className="appearance-none w-full md:w-auto px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white cursor-pointer"
+                className="appearance-none w-full md:w-auto px-4 py-2 pr-10 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white dark:bg-[#1C1C1C] cursor-pointer text-[#111827] dark:text-white"
               >
-                <option value="all">All Types</option>
-                <option value="funding">Funding</option>
-                <option value="redemption">Redemption</option>
-                <option value="transfer">Transfer</option>
+                <option value="all" className="bg-white dark:bg-gray-800">All Types</option>
+                <option value="funding" className="bg-white dark:bg-gray-800">Funding</option>
+                <option value="redemption" className="bg-white dark:bg-gray-800">Redemption</option>
+                <option value="transfer" className="bg-white dark:bg-gray-800">Transfer</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">ID</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Type</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Investor</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">Account</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">Amount</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">Internal</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">Difference</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 whitespace-nowrap">Status</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 whitespace-nowrap">Completed</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 whitespace-nowrap">Action</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">ID</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Type</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Investor</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Account</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Amount</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Internal</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Difference</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Status</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Completed</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                       <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="h-8 w-8 animate-spin text-[#1F3B6E]" />
+                        <Loader2 className="h-8 w-8 animate-spin text-[#1F3B6E] dark:text-blue-400" />
                         <p>Loading records...</p>
                       </div>
                     </td>
                   </tr>
                 ) : currentRecords.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                       No matching records found.
                     </td>
                   </tr>
                 ) : (
                   currentRecords.map((record) => (
-                    <tr key={record.id} className="hover:bg-gray-50 transition-colors group">
+                    <tr key={record.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors group">
                       <td className="px-6 py-4">
                         <Link
                           href={`/dashboard/${record.type === 'Funding' ? 'funding-requests' : record.type === 'Redemption' ? 'redemption-requests' : 'funds/transfers'}/${record.id}`}
-                          className="font-medium text-[#1F3B6E] hover:underline whitespace-nowrap"
+                          className="font-medium text-[#1F3B6E] dark:text-blue-400 hover:underline whitespace-nowrap"
                         >
                           {record.recordId}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 text-gray-900 whitespace-nowrap">{record.type}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium whitespace-nowrap">{record.investorName}</td>
-                      <td className="px-6 py-4 text-gray-600 text-sm whitespace-nowrap">{record.accountType}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium text-right whitespace-nowrap">{formatCurrency(record.custodian)}</td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 whitespace-nowrap">{record.type}</td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{record.investorName}</td>
+                      <td className="px-6 py-4 text-gray-600 dark:text-gray-400 text-sm whitespace-nowrap">{record.accountType}</td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-medium text-right whitespace-nowrap">{formatCurrency(record.custodian)}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                            <input
@@ -387,7 +387,7 @@ export default function ReconciliationPage() {
                                 e.target.value = record.internal === 0 ? '' : record.internal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                               }
                             }}
-                            className="w-40 px-3 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#1F3B6E] font-medium text-right transition-all bg-white text-gray-900 focus:border-[#1F3B6E]"
+                            className="w-40 px-3 py-1 border border-gray-200 dark:border-gray-800 rounded focus:outline-none focus:ring-1 focus:ring-[#1F3B6E] font-medium text-right transition-all bg-white dark:bg-[#1C1C1C] text-gray-900 dark:text-gray-100 focus:border-[#1F3B6E]"
                           />
                           {savingId === record.id ? (
                             <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
@@ -396,7 +396,7 @@ export default function ReconciliationPage() {
                           ) : null}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-gray-900 font-medium text-right whitespace-nowrap">{formatCurrency(record.difference)}</td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-medium text-right whitespace-nowrap">{formatCurrency(record.difference)}</td>
                       <td className="px-6 py-4 text-center">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${getStatusColor(record.status)}`}>
                           {record.status}
@@ -430,8 +430,8 @@ export default function ReconciliationPage() {
                             className={cn(
                               "px-4 py-1.5 text-[11px] font-bold rounded-full uppercase tracking-wider transition-all shadow-sm",
                               record.status === 'Matched'
-                                ? "bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#fbbf24] active:scale-95"
-                                : "bg-[#FCD34D] text-[#1F1F1F] opacity-50 cursor-not-allowed grayscale"
+                                ? "bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#fbbf24] active:scale-95"
+                                : "bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 opacity-50 cursor-not-allowed grayscale"
                             )}
                           >
                             Mark as Complete
@@ -446,11 +446,11 @@ export default function ReconciliationPage() {
           </div>
 
           {!loading && filteredRecords.length > 0 && (
-            <div className="flex items-center justify-center gap-4 px-6 py-6 border-t border-gray-100 font-helvetica">
+            <div className="flex items-center justify-center gap-4 px-6 py-6 border-t border-gray-100 dark:border-gray-800 font-helvetica">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
               >
                 Previous
               </button>
@@ -463,7 +463,7 @@ export default function ReconciliationPage() {
                       {i > 0 && arr[i - 1] !== page - 1 && <span className="px-2 text-gray-400">...</span>}
                       <button
                         onClick={() => setCurrentPage(page)}
-                        className={`w-8 h-8 rounded font-medium transition-colors ${currentPage === page ? 'bg-[#1F3B6E] text-white' : 'text-gray-600 hover:bg-gray-100'
+                        className={`w-8 h-8 rounded font-medium transition-colors ${currentPage === page ? 'bg-[#1F3B6E] text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                           }`}
                       >
                         {page}
@@ -475,7 +475,7 @@ export default function ReconciliationPage() {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
               >
                 Next
               </button>

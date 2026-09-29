@@ -93,13 +93,13 @@ export default function KYCConsolePage() {
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'pending':
-        return 'text-orange-600 bg-orange-50';
+        return 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 border border-transparent dark:border-orange-800/50';
       case 'rejected':
-        return 'text-red-600 bg-red-50';
+        return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-transparent dark:border-red-800/50';
       case 'approved':
-        return 'text-green-600 bg-green-50';
+        return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-transparent dark:border-green-800/50';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-600 dark:text-gray-400 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 border border-transparent dark:border-gray-700/50 dark:bg-gray-800';
     }
   };
 
@@ -121,12 +121,12 @@ export default function KYCConsolePage() {
       <div className="p-0">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] mb-2">KYC Console</h1>
-          <p className="text-gray-600">Review and monitor identity verification statuses across all investors.</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-2">KYC Console</h1>
+          <p className="text-gray-600 dark:text-gray-400">Review and monitor identity verification statuses across all investors.</p>
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <div className="flex-1 relative">
@@ -136,7 +136,7 @@ export default function KYCConsolePage() {
                 placeholder="Find something here..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 bg-transparent text-[#111827] dark:text-white border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent"
               />
             </div>
 
@@ -145,13 +145,13 @@ export default function KYCConsolePage() {
               <select
                 value={kycFilter}
                 onChange={(e) => setKycFilter(e.target.value)}
-                className="appearance-none w-full md:w-auto px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white cursor-pointer"
+                className="appearance-none w-full md:w-auto px-4 py-2 pr-10 text-[#111827] dark:text-white border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E] focus:border-transparent bg-white dark:bg-[#1C1C1C] cursor-pointer"
               >
-                <option value="all">KYC Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-                <option value="unverified">Unverified</option>
+                <option value="all" className="bg-white dark:bg-gray-800">KYC Status</option>
+                <option value="pending" className="bg-white dark:bg-gray-800">Pending</option>
+                <option value="approved" className="bg-white dark:bg-gray-800">Approved</option>
+                <option value="rejected" className="bg-white dark:bg-gray-800">Rejected</option>
+                <option value="unverified" className="bg-white dark:bg-gray-800">Unverified</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
             </div>
@@ -159,34 +159,34 @@ export default function KYCConsolePage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Investor Name</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize0">Email</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">KYC Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Date</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] capitalize">Action</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize">Investor Name</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize0">Email</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize">KYC Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize">Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 capitalize">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i} className="animate-pulse">
-                      <td colSpan={5} className="px-6 py-4 h-16 bg-gray-50/50"></td>
+                      <td colSpan={5} className="px-6 py-4 h-16 bg-gray-50/50 dark:bg-gray-800/50"></td>
                     </tr>
                   ))
                 ) : currentRecords.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-10 text-center text-gray-500">No investors found.</td>
+                    <td colSpan={5} className="px-6 py-10 text-center text-gray-500 dark:text-gray-400">No investors found.</td>
                   </tr>
                 ) : (
                   currentRecords.map((record, index) => (
                     <tr 
                       key={record.id} 
-                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                       onClick={() => router.push(`/dashboard/kyc-verification/${record.id}`)}
                     >
                       <td className="px-6 py-4">
@@ -210,23 +210,23 @@ export default function KYCConsolePage() {
                               />
                             )}
                           </div>
-                          <span className="font-bold text-gray-900 whitespace-nowrap">{record.firstName} {record.lastName}</span>
+                          <span className="font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">{record.firstName} {record.lastName}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-gray-600">{record.email}</td>
+                      <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{record.email}</td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium capitalize ${getStatusColor(record.kycStatus)}`}>
                           {record.kycStatus || 'Pending'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-gray-600">{new Date(record.createdAt).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{new Date(record.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                         <div className="relative">
                           <button
                             onClick={() => setActiveDropdown(activeDropdown === record.id ? null : record.id)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                           >
-                            <MoreVertical className="h-5 w-5 text-gray-600" />
+                            <MoreVertical className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                           </button>
 
                           {activeDropdown === record.id && (
@@ -235,11 +235,11 @@ export default function KYCConsolePage() {
                                 className="fixed inset-0 z-10"
                                 onClick={() => setActiveDropdown(null)}
                               />
-                              <div className={`absolute right-0 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20 ${
+                              <div className={`absolute right-0 w-56 bg-white dark:bg-[#1C1C1C] rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 py-2 z-20 ${
                                 index === currentRecords.length - 1 ? 'bottom-full mb-2' : 'top-full mt-2'
                               }`}>
                                 <Link href={`/dashboard/kyc-verification/${record.id}`}>
-                                  <button className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors">
+                                  <button className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
                                     View Profile
                                   </button>
                                 </Link>
@@ -281,11 +281,11 @@ export default function KYCConsolePage() {
 
           {/* Pagination */}
           {!loading && filteredInvestors.length > itemsPerPage && (
-            <div className="flex items-center justify-center px-6 py-4 border-t border-gray-200 font-helvetica">
+            <div className="flex items-center justify-center px-6 py-4 border-t border-gray-200 dark:border-gray-800 font-helvetica">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
               >
                 Previous
               </button>
@@ -297,7 +297,7 @@ export default function KYCConsolePage() {
                     onClick={() => setCurrentPage(page)}
                     className={`w-8 h-8 rounded font-medium transition-colors ${currentPage === page
                       ? 'bg-[#1F3B6E] text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
                   >
                     {page}
@@ -308,7 +308,7 @@ export default function KYCConsolePage() {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
               >
                 Next
               </button>
@@ -320,35 +320,35 @@ export default function KYCConsolePage() {
       {/* Assign Investor Relation Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-3xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-8 space-y-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-[#1F1F1F]">Assign Investor Relation</h2>
-                  <p className="text-sm text-gray-500 mt-2">
+                  <h2 className="text-2xl font-bold text-[#1F1F1F] dark:text-gray-100">Assign Investor Relation</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                     Select a Investor Relation to manage this investor's KYC verification.
                   </p>
                 </div>
                 <button
                   onClick={() => setShowAssignModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                 >
                   <X className="h-6 w-6 text-gray-400" />
                 </button>
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-bold text-gray-700 ml-1">Investor Relation</label>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">Investor Relation</label>
                 <div className="relative">
                   <select
                     value={selectedAssociate}
                     onChange={(e) => setSelectedAssociate(e.target.value)}
                     disabled={irLoading}
-                    className="w-full px-6 py-4 bg-[#F9FAFB] border border-transparent rounded-2xl text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:bg-white transition-all font-bold cursor-pointer disabled:opacity-50"
+                    className="w-full px-6 py-4 bg-[#F9FAFB] border border-transparent rounded-2xl text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#FCD34D] focus:bg-white dark:bg-[#1C1C1C] transition-all font-bold cursor-pointer disabled:opacity-50"
                   >
-                    <option value="">{irLoading ? 'Loading associates...' : 'Select Associate'}</option>
+                    <option value="" className="bg-white dark:bg-gray-800">{irLoading ? 'Loading associates...' : 'Select Associate'}</option>
                     {irStaffList.map((staff: any) => (
-                      <option key={staff.id} value={staff.id}>{staff.full_name} ({staff.email})</option>
+                      <option key={staff.id} value={staff.id} className="bg-white dark:bg-gray-800">{staff.full_name} ({staff.email})</option>
                     ))}
                   </select>
                   <ChevronDown className="absolute right-5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
@@ -358,7 +358,7 @@ export default function KYCConsolePage() {
               <div className="flex gap-4 pt-4">
                 <button
                   onClick={() => setShowAssignModal(false)}
-                  className="flex-1 py-4 text-sm font-bold text-[#6B7280] bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all"
+                  className="flex-1 py-4 text-sm font-bold text-[#6B7280] bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-2xl transition-all"
                 >
                   Cancel
                 </button>

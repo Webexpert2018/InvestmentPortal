@@ -188,18 +188,18 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 mt-30 md:mt-0">
-      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white shadow-2xl">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white dark:bg-[#1C1C1C] shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-3 md:px-8 py-5">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white dark:bg-[#1C1C1C] px-3 md:px-8 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-900/30">
               <Plus className="h-5 w-5 text-[#D1A94C]" />
             </div>
-            <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] font-goudy">Admin: Add IRA for Investor</h2>
+            <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy">Admin: Add IRA for Investor</h2>
           </div>
           <button
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAFAFA] text-[#9CA3AF] hover:bg-[#F3F4F6] transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAFAFA] dark:bg-gray-800/50 text-[#9CA3AF] hover:bg-[#F3F4F6] dark:bg-gray-800 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -208,17 +208,17 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
         {fetchingUser ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-[#D1A94C] mb-4" />
-            <p className="text-[14px] text-[#6B7280] font-helvetica">Loading investor profile...</p>
+            <p className="text-[14px] text-[#6B7280] dark:text-gray-400 font-helvetica">Loading investor profile...</p>
           </div>
         ) : (
           <div className="p-8">
             <div className="flex flex-col gap-8">
 
               {/* SECTION: Investor Profile (Read-Only) */}
-              <div className="rounded-[16px] border border-[#F0F0F0] bg-[#FAFAFA] p-4 md:p-6">
+              <div className="rounded-[16px] border border-[#F0F0F0] dark:border-gray-700 bg-[#FAFAFA] dark:bg-gray-800/50 p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <User className="h-4 w-4 text-[#D1A94C]" />
-                  <h3 className="text-[15px] font-bold text-[#1F1F1F] font-goudy">Investor Profile (Non-Editable)</h3>
+                  <h3 className="text-[15px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy">Investor Profile (Non-Editable)</h3>
                 </div>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   <ReadOnlyField label="First Name" value={investor.firstName} />
@@ -232,7 +232,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                 <div className="mt-6 border-t border-[#ECEDED] pt-6">
                   <div className="flex items-center gap-2 mb-4">
                     <MapPin className="h-4 w-4 text-[#D1A94C]" />
-                    <h4 className="text-[14px] font-bold text-[#1F1F1F] font-goudy">Physical Address</h4>
+                    <h4 className="text-[14px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy">Physical Address</h4>
                   </div>
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <ReadOnlyField label="Street" value={investor.addressLine1} />
@@ -248,12 +248,12 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <FileText className="h-4 w-4 text-[#D1A94C]" />
-                  <h3 className="text-[16px] font-bold text-[#1F1F1F] font-goudy border-b pb-1">IRA Account Details (Editable)</h3>
+                  <h3 className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy border-b pb-1">IRA Account Details (Editable)</h3>
                 </div>
 
                 <div className="grid gap-5 md:grid-cols-2">
                   <div>
-                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Account Type (Required)</label>
+                    <label className="block text-[12px] font-medium text-[#6B7280] dark:text-gray-400 mb-1 font-helvetica">Account Type (Required)</label>
                     <Combobox
                       options={accountTypes.map(t => ({ label: t.name, value: t.name }))}
                       value={iraForm.accountType}
@@ -263,18 +263,18 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                     {errors.accountType && <p className="mt-1 text-[11px] text-red-500">{errors.accountType}</p>}
                   </div>
                   <div>
-                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Beneficiary</label>
+                    <label className="block text-[12px] font-medium text-[#6B7280] dark:text-gray-400 mb-1 font-helvetica">Beneficiary</label>
                     <input
                       type="text"
                       placeholder="Enter primary beneficiary"
                       value={iraForm.beneficiary}
                       onChange={e => setIraForm({ ...iraForm, beneficiary: e.target.value })}
-                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm"
+                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm"
                     />
                     {errors.beneficiary && <p className="mt-1 text-[11px] text-red-500">{errors.beneficiary}</p>}
                   </div>
                   <div>
-                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Social Security Number (Required)</label>
+                    <label className="block text-[12px] font-medium text-[#6B7280] dark:text-gray-400 mb-1 font-helvetica">Social Security Number (Required)</label>
                     <input
                       type="text"
                       placeholder="XXX-XX-XXXX"
@@ -301,7 +301,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                           });
                         }
                       }}
-                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm"
+                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm"
                     />
                     {errors.ssn && <p className="mt-1 text-[11px] text-red-500">{errors.ssn}</p>}
                   </div>
@@ -309,7 +309,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
 
                 <div className="grid gap-5 md:grid-cols-2 mt-4">
                   <div>
-                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Middle Name</label>
+                    <label className="block text-[12px] font-medium text-[#6B7280] dark:text-gray-400 mb-1 font-helvetica">Middle Name</label>
                     <input
                       type="text"
                       placeholder="Optional"
@@ -319,7 +319,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                     />
                   </div>
                   <div>
-                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Suffix</label>
+                    <label className="block text-[12px] font-medium text-[#6B7280] dark:text-gray-400 mb-1 font-helvetica">Suffix</label>
                     <input
                       type="text"
                       placeholder="e.g. Jr, Sr"
@@ -332,7 +332,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
 
                 {/* Marital Status */}
                 <div className="mt-6">
-                  <label className="block text-[12px] font-medium text-[#6B7280] mb-3 font-helvetica">Marital Status</label>
+                  <label className="block text-[12px] font-medium text-[#6B7280] dark:text-gray-400 mb-3 font-helvetica">Marital Status</label>
                   <div className="flex gap-5">
                     <RadioOption
                       label="Single"
@@ -351,7 +351,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
               {/* Mailing Address Toggle */}
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-4">
-                  <p className="text-[14px] font-medium text-[#1F1F1F] font-helvetica">Mailing address same as physical address?</p>
+                  <p className="text-[14px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica">Mailing address same as physical address?</p>
                   <div className="flex gap-3">
                     <RadioOption label="Yes" selected={iraForm.mailingAddressSame === true} onClick={() => setIraForm({ ...iraForm, mailingAddressSame: true })} />
                     <RadioOption label="No" selected={iraForm.mailingAddressSame === false} onClick={() => setIraForm({ ...iraForm, mailingAddressSame: false })} />
@@ -359,14 +359,14 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                 </div>
 
                 {!iraForm.mailingAddressSame && (
-                  <div className="mt-4 grid gap-4 p-5 rounded-[12px] border border-[#E5E7EB] bg-[#FAFAFA]">
+                  <div className="mt-4 grid gap-4 p-5 rounded-[12px] border border-[#E5E7EB] bg-[#FAFAFA] dark:bg-gray-800/50">
                     <div className="grid gap-4 md:grid-cols-2">
                       <InputField label="Mailing Address 1" value={iraForm.mailingAddress1} onChange={v => setIraForm({ ...iraForm, mailingAddress1: v })} />
                       <InputField label="Mailing Address 2" value={iraForm.mailingAddress2} onChange={v => setIraForm({ ...iraForm, mailingAddress2: v })} />
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
-                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Country</label>
+                        <label className="block text-[12px] font-medium text-[#6B7280] dark:text-gray-400 mb-1 font-helvetica">Country</label>
                         <Combobox
                           options={(() => {
                             const all = Country.getAllCountries().map(c => ({ label: c.name, value: c.isoCode }));
@@ -381,7 +381,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                         />
                       </div>
                       <div>
-                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">State / Province</label>
+                        <label className="block text-[12px] font-medium text-[#6B7280] dark:text-gray-400 mb-1 font-helvetica">State / Province</label>
                         <Combobox
                           options={State.getStatesOfCountry(iraForm.mailingCountry).map(s => ({ label: s.name, value: s.isoCode }))}
                           value={iraForm.mailingState}
@@ -393,7 +393,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
-                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">City</label>
+                        <label className="block text-[12px] font-medium text-[#6B7280] dark:text-gray-400 mb-1 font-helvetica">City</label>
                         <Combobox
                           options={City.getCitiesOfState(iraForm.mailingCountry, iraForm.mailingState).map(c => ({ label: c.name, value: c.name }))}
                           value={iraForm.mailingCity}
@@ -412,7 +412,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
               <div className="flex items-center justify-end gap-3 pt-6 border-t mt-4">
                 <button
                   onClick={onClose}
-                  className="px-6 py-2.5 rounded-full text-[14px] font-medium text-[#6B7280] bg-[#F3F4F6] hover:bg-[#E5E7EB] transition-colors"
+                  className="px-6 py-2.5 rounded-full text-[14px] font-medium text-[#6B7280] dark:text-gray-400 bg-[#F3F4F6] dark:bg-gray-800 hover:bg-[#E5E7EB] dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>
@@ -438,7 +438,7 @@ function ReadOnlyField({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-[11px] font-medium text-[#9CA3AF] mb-1 uppercase tracking-wider font-helvetica">{label}</p>
-      <p className="text-[14px] text-[#1F1F1F] font-semibold font-helvetica">{value || '-'}</p>
+      <p className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-semibold font-helvetica">{value || '-'}</p>
     </div>
   );
 }
@@ -446,13 +446,13 @@ function ReadOnlyField({ label, value }: { label: string; value: string }) {
 function InputField({ label, value, onChange, placeholder = "" }: { label: string, value: string, onChange: (v: string) => void, placeholder?: string }) {
   return (
     <div>
-      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">{label}</label>
+      <label className="block text-[12px] font-medium text-[#6B7280] dark:text-gray-400 mb-1 font-helvetica">{label}</label>
       <input
         type="text"
         placeholder={placeholder}
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all shadow-sm"
+        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm"
       />
     </div>
   )
@@ -461,10 +461,10 @@ function InputField({ label, value, onChange, placeholder = "" }: { label: strin
 function RadioOption({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
   return (
     <div className="flex items-center gap-2 cursor-pointer group" onClick={onClick}>
-      <div className={`h-4 w-4 rounded-full border flex items-center justify-center transition-all ${selected ? 'border-[#D1A94C]' : 'border-[#E5E7EB] bg-white'}`}>
+      <div className={`h-4 w-4 rounded-full border flex items-center justify-center transition-all ${selected ? 'border-[#D1A94C]' : 'border-[#E5E7EB] bg-white dark:bg-[#1C1C1C]'}`}>
         {selected && <div className="h-2 w-2 rounded-full bg-[#D1A94C]" />}
       </div>
-      <span className={`text-[14px] font-medium font-helvetica transition-colors ${selected ? 'text-[#1F1F1F]' : 'text-[#6B7280] group-hover:text-[#D1A94C]'}`}>{label}</span>
+      <span className={`text-[14px] font-medium font-helvetica transition-colors ${selected ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#6B7280] dark:text-gray-400 group-hover:text-[#D1A94C]'}`}>{label}</span>
     </div>
   );
 }

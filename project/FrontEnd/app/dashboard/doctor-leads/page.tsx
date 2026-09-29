@@ -466,17 +466,17 @@ export default function DoctorLeadsPage() {
 
   return (
     <DashboardLayout>
-      <div className="w-full font-helvetica text-[#1F1F1F]">
+      <div className="w-full font-helvetica text-[#1F1F1F] dark:text-gray-100">
         {/* Top Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="w-2 h-2 rounded-full bg-[#FFC63F] animate-pulse"></span>
-              <span className="text-[12px] font-bold uppercase tracking-wider text-[#D9A11E] bg-[#FFF9EE] px-2.5 py-0.5 rounded-full border border-[#FFE7A8]">
+              <span className="text-[12px] font-bold uppercase tracking-wider text-[#D9A11E] dark:text-amber-400 bg-[#FFF9EE] dark:bg-amber-900/30 px-2.5 py-0.5 rounded-full border border-[#FFE7A8] dark:border-amber-800/50">
                 Step 1: Lead Engine &amp; Outreach
               </span>
             </div>
-            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">
+            <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F] dark:text-gray-100">
               Doctor Lead Generator &amp; AI Campaigns
             </h1>
             <p className="text-[#8E8E93] text-[14px] mt-1 max-w-2xl">
@@ -486,55 +486,55 @@ export default function DoctorLeadsPage() {
         </div>
 
         {/* Top Configuration Grid / Filters */}
-        <div className="w-full bg-white rounded-[20px] p-6 shadow-sm border border-[#F2F2F2] mb-5">
-          <div className="flex items-center justify-between pb-4 mb-5 border-b border-[#F2F2F2]">
+        <div className="w-full bg-white dark:bg-[#1C1C1C] rounded-[20px] p-6 shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A] mb-5">
+          <div className="flex items-center justify-between pb-4 mb-5 border-b border-[#F2F2F2] dark:border-[#2A2A2A]">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                 <Search className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-goudy text-[19px] font-bold text-[#1F1F1F]">Target Lead Criteria</h3>
+                <h3 className="font-goudy text-[19px] font-bold text-[#1F1F1F] dark:text-gray-100">Target Lead Criteria</h3>
                 <p className="text-[12px] text-[#8E8E93]">Configure physician discovery parameters for daily ingestion</p>
               </div>
             </div>
-            <span className="text-[11px] font-semibold bg-gray-100 text-[#4B4B4B] px-3 py-1 rounded-full">
+            <span className="text-[11px] font-semibold bg-gray-100 dark:bg-gray-800 text-[#4B4B4B] dark:text-gray-300 px-3 py-1 rounded-full">
               API Status: Ready to Connect
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
             <div>
-              <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Medical Specialties</label>
+              <label className="block text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 mb-1.5">Medical Specialties</label>
               <input
                 type="text"
                 value={specialty}
                 onChange={(e) => setSpecialty(e.target.value)}
                 placeholder="e.g. Orthopedics, Cardiology, DMD"
-                className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all"
+                className="w-full bg-[#F8F9FA] dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F] transition-all"
               />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Target Location</label>
+              <label className="block text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 mb-1.5">Target Location</label>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="e.g. United States, Texas, California"
-                className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all"
+                className="w-full bg-[#F8F9FA] dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F] transition-all"
               />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Seniority &amp; Title Keywords</label>
+              <label className="block text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 mb-1.5">Seniority &amp; Title Keywords</label>
               <input
                 type="text"
                 value={seniority}
                 onChange={(e) => setSeniority(e.target.value)}
                 placeholder="e.g. MD, DDS, Practice Owner, Partner"
-                className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all"
+                className="w-full bg-[#F8F9FA] dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F] transition-all"
               />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-[#4B4B4B] mb-1.5">Daily Throttled Batch Limit (per_page)</label>
+              <label className="block text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 mb-1.5">Daily Throttled Batch Limit (per_page)</label>
               <input
                 type="number"
                 min="1"
@@ -542,12 +542,12 @@ export default function DoctorLeadsPage() {
                 value={batchSize}
                 onChange={(e) => setBatchSize(e.target.value)}
                 placeholder="e.g. 50"
-                className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F] transition-all"
+                className="w-full bg-[#F8F9FA] dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[14px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F] transition-all"
               />
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-[#F2F2F2] gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-[#F2F2F2] dark:border-[#2A2A2A] gap-3">
             <span className="text-[12px] text-[#8E8E93] flex items-center gap-1.5">
               <Shield className="w-4 h-4 text-green-600 shrink-0" />
               Automatic deduplication against existing investor records enabled
@@ -568,18 +568,18 @@ export default function DoctorLeadsPage() {
         </div>
 
         {/* Prospects Queue Table */}
-        <div className="bg-white rounded-[20px] shadow-sm border border-[#F2F2F2] overflow-hidden">
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-[20px] shadow-sm border border-[#F2F2F2] dark:border-[#2A2A2A] overflow-hidden">
           {/* Header Row */}
           <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F]">Today&apos;s Outreach Batch Queue</h3>
+              <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">Today&apos;s Outreach Batch Queue</h3>
               <p className="text-[13px] text-[#8E8E93]">Switch tabs below to view stored database records or fresh ingested prospects.</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5">
               <button
                 onClick={handleOpenAddModal}
-                className="text-[12px] font-bold px-4 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                className="text-[12px] font-bold px-4 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <UserPlus className="w-3.5 h-3.5" />
                 <span>+ Add Doctor Lead</span>
@@ -589,9 +589,9 @@ export default function DoctorLeadsPage() {
                 <button
                   onClick={handleBulkEnrichAndSave}
                   disabled={isEnriching || selectedIds.length === 0}
-                  className="text-[12px] font-bold px-4 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#D9A11E] text-[#1F1F1F] shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  className="text-[12px] font-bold px-4 py-2.5 rounded-full bg-[#FFC63F] hover:bg-[#D9A11E] text-[#1F1F1F] dark:text-gray-100 shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
                 >
-                  {isEnriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-[#1F1F1F]" />}
+                  {isEnriching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-[#1F1F1F] dark:text-gray-100" />}
                   <span>Enrich Contact Info &amp; Save ({selectedIds.length})</span>
                 </button>
               ) : (
@@ -599,7 +599,7 @@ export default function DoctorLeadsPage() {
                   <button
                     onClick={handleConfigureAllSelected}
                     disabled={isConfiguringSelected || selectedIds.length === 0}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#FFC63F] hover:bg-[#F2B932] text-[#1F1F1F] text-[12px] font-bold rounded-lg shadow-sm transition-colors border border-[#E0AC27]"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#FFC63F] hover:bg-[#F2B932] text-[#1F1F1F] dark:text-gray-100 text-[12px] font-bold rounded-lg shadow-sm transition-colors border border-[#E0AC27]"
                   >
                     {isConfiguringSelected ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                     <span>⚡ Generate Sequences ({selectedIds.length})</span>
@@ -607,9 +607,9 @@ export default function DoctorLeadsPage() {
 
                   <button
                     onClick={() => handleLoadSavedFromDb()}
-                    className="text-[12px] font-bold px-4 py-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                    className="text-[12px] font-bold px-4 py-2.5 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                   >
-                    <RefreshCw className="w-3.5 h-3.5 text-gray-600" />
+                    <RefreshCw className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                     <span>Refresh DB Leads</span>
                   </button>
                 </>
@@ -618,18 +618,18 @@ export default function DoctorLeadsPage() {
           </div>
 
           {/* Sub-Header Tabs Bar (Moved Down Below Title) */}
-          <div className="px-6 pb-4 pt-1 border-b border-[#F2F2F2] bg-[#FCFCFC] flex items-center justify-between">
-            <div className="inline-flex p-1 bg-gray-200/70 rounded-xl border border-gray-300/50 shadow-inner">
+          <div className="px-6 pb-4 pt-1 border-b border-[#F2F2F2] dark:border-[#2A2A2A] dark:border-gray-800 bg-[#FCFCFC] dark:bg-[#121212] flex items-center justify-between">
+            <div className="inline-flex p-1 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl border border-gray-300/50 dark:border-gray-700 shadow-inner">
               <button
                 onClick={() => setActiveTab('saved')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold transition-all ${activeTab === 'saved'
-                  ? 'bg-white text-[#1F1F1F] shadow-sm border border-gray-200'
-                  : 'text-gray-600 hover:text-[#1F1F1F]'
+                  ? 'bg-white dark:bg-[#1C1C1C] text-[#1F1F1F] dark:text-gray-100 shadow-sm border border-gray-200 dark:border-gray-800'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-[#1F1F1F] dark:text-gray-100'
                   }`}
               >
                 <CheckCircle2 className="w-4 h-4 text-green-600" />
                 <span>Saved in Database</span>
-                <span className="px-2 py-0.5 text-[11px] rounded-full bg-green-100 text-green-800 font-extrabold border border-green-200">
+                <span className="px-2 py-0.5 text-[11px] rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 font-extrabold border border-green-200 dark:border-green-800/50">
                   {prospects.filter(p => p.isAlreadyEnriched).length}
                 </span>
               </button>
@@ -637,27 +637,27 @@ export default function DoctorLeadsPage() {
               <button
                 onClick={() => setActiveTab('apollo')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold transition-all ${activeTab === 'apollo'
-                  ? 'bg-white text-[#1F1F1F] shadow-sm border border-gray-200'
-                  : 'text-gray-600 hover:text-[#1F1F1F]'
+                  ? 'bg-white dark:bg-[#1C1C1C] text-[#1F1F1F] dark:text-gray-100 shadow-sm border border-gray-200 dark:border-gray-800'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-[#1F1F1F] dark:text-gray-100'
                   }`}
               >
                 <Sparkles className="w-4 h-4 text-[#D9A11E]" />
                 <span>Fresh Leads</span>
-                <span className="px-2 py-0.5 text-[11px] rounded-full bg-amber-100 text-amber-800 font-extrabold border border-amber-200">
+                <span className="px-2 py-0.5 text-[11px] rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 font-extrabold border border-amber-200 dark:border-amber-800/50">
                   {prospects.filter(p => !p.isAlreadyEnriched).length}
                 </span>
               </button>
             </div>
 
             <div className="text-[12px] text-[#8E8E93] font-medium">
-              Showing <span className="font-bold text-[#1F1F1F]">{displayedProspects.length}</span> prospect(s)
+              Showing <span className="font-bold text-[#1F1F1F] dark:text-gray-100">{displayedProspects.length}</span> prospect(s)
             </div>
           </div>
 
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#F2F2F2] bg-[#FCFCFC]">
+                <tr className="border-b border-[#F2F2F2] dark:border-[#2A2A2A] dark:border-gray-800 bg-[#FCFCFC] dark:bg-[#121212]">
                   <th className="px-6 py-4 text-[12px] font-bold text-[#8E8E93] uppercase tracking-wider w-12">
                     <input
                       type="checkbox"
@@ -690,7 +690,7 @@ export default function DoctorLeadsPage() {
                         <div className="w-12 h-12 rounded-full bg-[#FFD66B]/20 flex items-center justify-center text-[#D9A11E] mb-1">
                           <Stethoscope className="w-6 h-6" />
                         </div>
-                        <p className="text-[16px] font-bold text-[#1F1F1F]">
+                        <p className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100">
                           {activeTab === 'saved' ? 'No Saved Database Leads Found' : 'No Unenriched Apollo Leads Ingested Yet'}
                         </p>
                         <p className="text-[13px] text-[#8E8E93] leading-relaxed">
@@ -703,7 +703,7 @@ export default function DoctorLeadsPage() {
                   </tr>
                 ) : (
                   displayedProspects.map((doc) => (
-                    <tr key={doc.id} className={`hover:bg-gray-50/60 transition-colors ${doc.isAlreadyEnriched ? 'bg-gray-50/30' : ''}`}>
+                    <tr key={doc.id} className={`hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/60 transition-colors ${doc.isAlreadyEnriched ? 'bg-gray-50 dark:bg-gray-800/30' : ''}`}>
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         <input
                           type="checkbox"
@@ -721,21 +721,21 @@ export default function DoctorLeadsPage() {
                       </td>
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-[#FFF9EE] text-[#D9A11E] flex items-center justify-center font-bold text-[13px] border border-[#FFE7A8]">
+                          <div className="w-9 h-9 rounded-full bg-[#FFF9EE] dark:bg-amber-900/30 text-[#D9A11E] dark:text-amber-400 border border-[#FFE7A8] dark:border-amber-800/50 flex items-center justify-center font-bold text-[13px]">
                             {doc.fullName.replace('Dr. ', '').charAt(0)}
                           </div>
                           <div>
                             {activeTab === 'saved' ? (
                               <Link
                                 href={`/dashboard/doctor-leads/${doc.id}`}
-                                className="text-[14px] font-bold text-[#1F1F1F] hover:text-[#D9A11E] hover:underline transition-colors block"
+                                className="text-[14px] font-bold text-[#1F1F1F] dark:text-gray-100 hover:text-[#D9A11E] hover:underline transition-colors block"
                                 title="Click to view full physician profile dossier & AI campaign"
                               >
                                 {doc.fullName}
                               </Link>
                             ) : (
                               <span
-                                className="text-[14px] font-bold text-[#1F1F1F] block cursor-default"
+                                className="text-[14px] font-bold text-[#1F1F1F] dark:text-gray-100 block cursor-default"
                                 title="Enrich & Save lead to Database to view full profile"
                               >
                                 {doc.fullName}
@@ -746,7 +746,7 @@ export default function DoctorLeadsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4.5 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[#1F1F1F]">
+                        <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100">
                           <Stethoscope className="w-3.5 h-3.5 text-[#D9A11E] shrink-0" />
                           <span>{doc.specialty}</span>
                         </div>
@@ -755,62 +755,62 @@ export default function DoctorLeadsPage() {
                           <span>{doc.organization}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4.5 text-[13px] text-[#4B4B4B] whitespace-nowrap">
+                      <td className="px-6 py-4.5 text-[13px] text-[#4B4B4B] dark:text-gray-300 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                           <span>{doc.location}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4.5 whitespace-nowrap text-[13px] text-[#1F1F1F]">
+                      <td className="px-6 py-4.5 whitespace-nowrap text-[13px] text-[#1F1F1F] dark:text-gray-100">
                         <div>
-                          <span className="font-semibold text-gray-500 mr-1">Work:</span>
+                          <span className="font-semibold text-gray-500 dark:text-gray-400 mr-1">Work:</span>
                           <span className="font-medium">{doc.email && doc.email !== 'No Email' && doc.email !== 'Email in DB' ? doc.email : 'null'}</span>
                         </div>
                         <div className="mt-1">
-                          <span className="font-semibold text-gray-500 mr-1">Pers:</span>
+                          <span className="font-semibold text-gray-500 dark:text-gray-400 mr-1">Pers:</span>
                           <span className="font-medium">{doc.personalEmails && doc.personalEmails.length > 0 ? doc.personalEmails[0] : 'null'}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4.5 whitespace-nowrap text-[13px] text-[#1F1F1F]">
+                      <td className="px-6 py-4.5 whitespace-nowrap text-[13px] text-[#1F1F1F] dark:text-gray-100">
                         <div>
-                          <span className="font-semibold text-gray-500 mr-1">Work:</span>
+                          <span className="font-semibold text-gray-500 dark:text-gray-400 mr-1">Work:</span>
                           <span className="font-medium">{doc.workPhone && doc.workPhone !== 'N/A' ? doc.workPhone : 'null'}</span>
                         </div>
                         <div className="mt-1">
-                          <span className="font-semibold text-gray-500 mr-1">Pers:</span>
+                          <span className="font-semibold text-gray-500 dark:text-gray-400 mr-1">Pers:</span>
                           <span className="font-medium">{doc.phone && doc.phone !== 'N/A' ? doc.phone : 'null'}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4.5 whitespace-nowrap">
                         {doc.status === 'interested' || doc.stage === 'interested' ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-green-50 text-green-700 border border-green-200 shadow-sm">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800/50 shadow-sm">
                             <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
                             🔥 Interested
                           </span>
                         ) : doc.status === 'not_interested' || doc.stage === 'not_interested' ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-red-50 text-red-700 border border-red-200">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800/50">
                             <Clock className="w-3.5 h-3.5 text-red-500" />
                             Declined (Not Interested)
                           </span>
                         ) : doc.status === 'needs_call' || doc.stage === 'needs_call' ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-xs">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 shadow-xs">
                             <PhoneCall className="w-3.5 h-3.5 text-amber-600" />
                             Needs Call
                           </span>
                         ) : doc.status === 'sent' || doc.stage === 'sent' ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#EFF6FF] dark:bg-blue-900/30 text-[#1D4ED8] dark:text-blue-400 border border-[#BFDBFE] dark:border-blue-800/50">
                             <CheckCircle2 className="w-3.5 h-3.5 text-[#2563EB]" />
                             Sent (At least once)
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-gray-100 text-gray-600 border border-gray-200">
-                            <Clock className="w-3.5 h-3.5 text-gray-500" />
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                            <Clock className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                             Not Sent Yet
                           </span>
                         )}
                       </td>
                       <td className="px-6 py-4.5 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 text-[13px] text-[#4B4B4B] font-medium">
+                        <div className="flex items-center gap-1.5 text-[13px] text-[#4B4B4B] dark:text-gray-300 font-medium">
                           <Calendar className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                           <span>{formatAddedDate(doc.createdAt || doc.created_at)}</span>
                         </div>
@@ -826,20 +826,20 @@ export default function DoctorLeadsPage() {
         {/* Add Doctor Lead Modal */}
         {isAddModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-gray-200 space-y-5 animate-in fade-in zoom-in-95 duration-200">
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] max-w-lg w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-[#FFF9EE] text-[#D9A11E] border border-[#FFE7A8] flex items-center justify-center font-bold">
+                  <div className="w-9 h-9 rounded-xl bg-[#FFF9EE] dark:bg-amber-900/30 text-[#D9A11E] dark:text-amber-400 border border-[#FFE7A8] dark:border-amber-800/50 flex items-center justify-center font-bold">
                     <UserPlus className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F]">Add New Physician Lead</h3>
-                    <p className="text-[12px] text-gray-500">Save lead to PostgreSQL database</p>
+                    <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">Add New Physician Lead</h3>
+                    <p className="text-[12px] text-gray-500 dark:text-gray-400">Save lead to PostgreSQL database</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setIsAddModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-[#1F1F1F] transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#1F1F1F] dark:text-gray-100 transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -847,43 +847,43 @@ export default function DoctorLeadsPage() {
 
               <form onSubmit={handleCreateDoctor} className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Full Name *</label>
+                  <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Full Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Dr. Marcus Vance, MD"
                     value={newFullName}
                     onChange={(e) => setNewFullName(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Email Address *</label>
+                  <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Email Address *</label>
                   <input
                     type="email"
                     required
                     placeholder="e.g. marcus.vance@clinic.org"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Medical Specialty</label>
+                    <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Medical Specialty</label>
                     <input
                       type="text"
                       placeholder="e.g. Dermatology"
                       value={newSpecialty}
                       onChange={(e) => setNewSpecialty(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Phone Number</label>
+                    <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Phone Number</label>
                     <input
                       type="tel"
                       placeholder="e.g. +1 (305) 555-0103"
@@ -892,30 +892,30 @@ export default function DoctorLeadsPage() {
                         const filtered = e.target.value.replace(/[^0-9+\-\(\)\s\.]/g, '');
                         setNewPhone(filtered);
                       }}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Practice / Clinic Name</label>
+                  <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Practice / Clinic Name</label>
                   <input
                     type="text"
                     placeholder="e.g. Vance Dermatology Group"
                     value={newOrganization}
                     onChange={(e) => setNewOrganization(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold uppercase text-gray-500 mb-1">Practice Location</label>
+                  <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Practice Location</label>
                   <input
                     type="text"
                     placeholder="e.g. Miami, FL"
                     value={newLocation}
                     onChange={(e) => setNewLocation(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] focus:outline-none focus:border-[#FFC63F]"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-[13px] text-[#1F1F1F] dark:text-gray-100 focus:outline-none focus:border-[#FFC63F]"
                   />
                 </div>
 
@@ -924,11 +924,11 @@ export default function DoctorLeadsPage() {
                   <span>The new physician lead will be saved directly to PostgreSQL and displayed in your <strong>Saved in Database</strong> tab.</span>
                 </div> */}
 
-                <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-gray-100 flex-wrap">
+                <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-gray-100 dark:border-gray-800 flex-wrap">
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="px-4 py-2.5 rounded-full text-[13px] font-bold text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+                    className="px-4 py-2.5 rounded-full text-[13px] font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all cursor-pointer"
                   >
                     {savedProspectId ? 'Done / Close' : 'Cancel'}
                   </button>
@@ -938,7 +938,7 @@ export default function DoctorLeadsPage() {
                     disabled={isSavingDoctor || Boolean(savedProspectId)}
                     className={`px-5 py-2.5 rounded-full text-[13px] font-bold shadow-sm flex items-center gap-2 transition-all cursor-pointer ${savedProspectId
                       ? 'bg-green-100 text-green-800 border border-green-300 opacity-90'
-                      : 'bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F]'
+                      : 'bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100'
                       }`}
                   >
                     {isSavingDoctor ? (
@@ -957,7 +957,7 @@ export default function DoctorLeadsPage() {
                     onClick={handleSendActiveWebinarLink}
                     className={`px-5 py-2.5 rounded-full text-[13px] font-bold shadow-sm flex items-center gap-2 transition-all ${savedProspectId
                       ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow-amber-200'
-                      : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60'
+                      : 'bg-gray-100 text-gray-400 border border-gray-200 dark:border-gray-800 cursor-not-allowed opacity-60'
                       }`}
                     title={
                       savedProspectId

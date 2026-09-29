@@ -111,7 +111,7 @@ export default function AddStaffPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-[1000px] font-helvetica text-[#1F1F1F]">
+      <div className="mx-auto max-w-[1000px] font-helvetica text-[#1F1F1F] dark:text-gray-100">
         <div className="mb-6 flex items-center gap-3">
           <Link href="/dashboard/staff" className="flex items-center gap-2 text-[#333333] hover:opacity-70 transition-opacity">
             <ChevronLeft className="h-6 w-6" />
@@ -119,10 +119,10 @@ export default function AddStaffPage() {
           </Link>
         </div>
 
-        <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F]">Add Staff</h1>
+        <h1 className="font-goudy text-[28px] md:text-[34px] leading-tight text-[#1F1F1F] dark:text-gray-100">Add Staff</h1>
         <p className="text-[#8E8E93] text-[14px] mt-1 mb-10">Add a new staff member and assign appropriate permissions</p>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-[12px] p-8 shadow-sm ring-1 ring-black/5">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-[#1C1C1C] rounded-[12px] p-8 shadow-sm ring-1 ring-black/5">
           <div className="mb-10 flex flex-col items-center">
             <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
               <div className="w-24 h-24 rounded-full bg-[#f8f9fa] border-2 border-dashed border-[#DAE0E6] flex items-center justify-center overflow-hidden transition-all group-hover:border-[#FFD66B]">
@@ -132,7 +132,7 @@ export default function AddStaffPage() {
                   <Camera className="h-8 w-8 text-[#8E8E93]" />
                 )}
               </div>
-              <div className="absolute -bottom-1 -right-1 bg-white p-2 rounded-full shadow-md border border-[#F2F2F2]">
+              <div className="absolute -bottom-1 -right-1 bg-white dark:bg-[#1C1C1C] p-2 rounded-full shadow-md border border-[#F2F2F2] dark:border-[#2A2A2A]">
                 <PlusCircle className="h-4 w-4 text-[#FFD66B]" />
               </div>
               <input
@@ -143,12 +143,12 @@ export default function AddStaffPage() {
                 className="hidden"
               />
             </div>
-            <p className="mt-4 text-[13px] font-medium text-[#1F1F1F]">Staff Image <span className="text-[#8E8E93] font-normal">(Optional)</span></p>
+            <p className="mt-4 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">Staff Image <span className="text-[#8E8E93] font-normal">(Optional)</span></p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
             <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#1F1F1F]">
+              <label className="text-[14px] font-medium text-[#1F1F1F] dark:text-gray-100">
                 Select Staff Role <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -175,7 +175,7 @@ export default function AddStaffPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#1F1F1F]">
+              <label className="text-[14px] font-medium text-[#1F1F1F] dark:text-gray-100">
                 Full Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -194,7 +194,7 @@ export default function AddStaffPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#1F1F1F]">
+              <label className="text-[14px] font-medium text-[#1F1F1F] dark:text-gray-100">
                 Email <span className="text-red-500">*</span>
               </label>
               <input
@@ -213,7 +213,7 @@ export default function AddStaffPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#1F1F1F]">
+              <label className="text-[14px] font-medium text-[#1F1F1F] dark:text-gray-100">
                 Phone Number <span className="text-red-500">*</span>
               </label>
               <div className="flex gap-3">
@@ -246,7 +246,7 @@ export default function AddStaffPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#1F1F1F]">
+              <label className="text-[14px] font-medium text-[#1F1F1F] dark:text-gray-100">
                 Password <span className="text-red-500">*</span>
               </label>
               <input
@@ -268,14 +268,14 @@ export default function AddStaffPage() {
           <div className="mt-12 flex items-center justify-between">
             <Link
               href="/dashboard/staff"
-              className="px-8 py-3 rounded-full bg-[#FCF5E8] text-[#1F1F1F] font-semibold hover:bg-[#F5ECD7] transition-colors"
+              className="px-8 py-3 rounded-full bg-[#FCF5E8] text-[#1F1F1F] dark:text-gray-100 font-semibold hover:bg-[#F5ECD7] transition-colors"
             >
               Cancel
             </Link>
             <button
               disabled={loading}
               type="submit"
-              className="px-10 py-3 rounded-full bg-[#FFD66B] text-[#1F1F1F] font-semibold hover:bg-[#FFC840] transition-all transform active:scale-95 disabled:opacity-50 min-w-[140px] flex items-center justify-center font-bold"
+              className="px-10 py-3 rounded-full bg-[#FFD66B] text-[#1F1F1F] dark:text-gray-100 font-semibold hover:bg-[#FFC840] transition-all transform active:scale-95 disabled:opacity-50 min-w-[140px] flex items-center justify-center font-bold"
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save'}
             </button>

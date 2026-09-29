@@ -213,33 +213,33 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: (value: boo
       className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${enabled ? 'bg-[#12B87A]' : 'bg-[#D8D9DE]'}`}
     >
       <span
-        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition ${enabled ? 'translate-x-[18px]' : 'translate-x-[2px]'}`}
+        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white dark:bg-[#1C1C1C] transition ${enabled ? 'translate-x-[18px]' : 'translate-x-[2px]'}`}
       />
     </button>
   );
 }
 
 function SectionCard({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-[6px] border border-[#ECEDEF] bg-white">{children}</div>;
+  return <div className="rounded-[6px] border border-[#ECEDEF] bg-white dark:bg-[#1C1C1C]">{children}</div>;
 }
 
 function SectionHeader({ title }: { title: string }) {
   return (
     <div className="border-b border-[#ECEDEF] px-4 py-3">
-      <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F]">{title}</h3>
+      <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] dark:text-gray-100">{title}</h3>
     </div>
   );
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className="mb-1 block text-[11px] text-[#4B4B4B]">{children}</label>;
+  return <label className="mb-1 block text-[11px] text-[#4B4B4B] dark:text-gray-300">{children}</label>;
 }
 
 function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`h-[36px] w-full rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] disabled:bg-[#F9FAFB] disabled:cursor-not-allowed disabled:text-[#A2A5AA] ${props.className ?? ''}`}
+      className={`h-[36px] w-full rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] disabled:bg-[#F9FAFB] disabled:cursor-not-allowed disabled:text-[#A2A5AA] ${props.className ?? ''}`}
     />
   );
 }
@@ -251,12 +251,12 @@ function PasswordInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
       <input
         {...props}
         type={showPassword ? 'text' : 'password'}
-        className={`h-[36px] w-full rounded-[6px] border border-[#E5E5EA] pl-3 pr-10 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] ${props.className ?? ''}`}
+        className={`h-[36px] w-full rounded-[6px] border border-[#E5E5EA] pl-3 pr-10 text-[12px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] ${props.className ?? ''}`}
       />
       <button
         type="button"
         onClick={() => setShowPassword(!showPassword)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A2A5AA] hover:text-[#4B4B4B]"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A2A5AA] hover:text-[#4B4B4B] dark:text-gray-300"
       >
         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
       </button>
@@ -930,13 +930,13 @@ export function InvestorSettingsScreen() {
                   </div>
                 )}
                 {saving && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/70">
+                  <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-[#1C1C1C]/70">
                     <Loader2 className="h-5 w-5 animate-spin text-[#274583]" />
                   </div>
                 )}
               </button>
               <div>
-                <p className="text-[12px] font-medium text-[#1F1F1F]">
+                <p className="text-[12px] font-medium text-[#1F1F1F] dark:text-gray-100">
                   {profile.profileImageUrl ? 'Change Profile Picture' : 'Upload Profile Picture'}
                 </p>
                 <p className="text-[11px] text-[#A2A5AA]">
@@ -1011,7 +1011,7 @@ export function InvestorSettingsScreen() {
                         }));
                         setProfileErrors((prev) => ({ ...prev, phoneNumber: undefined }));
                       }}
-                      className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none"
+                      className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] dark:text-gray-300 outline-none"
                     >
                       {COUNTRY_CODES.map(code => (
                         <option key={code} value={code}>{code}</option>
@@ -1041,7 +1041,7 @@ export function InvestorSettingsScreen() {
                   <input
                     type="date"
                     ref={dobInputRef}
-                    className={`h-[36px] w-full rounded-[6px] border px-3 text-[12px] text-[#1F1F1F] outline-none focus:border-[#274583] [&::-webkit-calendar-picker-indicator]:hidden ${profileErrors.dob ? 'border-[#E05252]' : 'border-[#E5E5EA]'
+                    className={`h-[36px] w-full rounded-[6px] border px-3 text-[12px] text-[#1F1F1F] dark:text-gray-100 outline-none focus:border-[#274583] [&::-webkit-calendar-picker-indicator]:hidden ${profileErrors.dob ? 'border-[#E05252]' : 'border-[#E5E5EA]'
                       }`}
                     value={profile.dob}
                     onChange={(event) => {
@@ -1053,7 +1053,7 @@ export function InvestorSettingsScreen() {
                   <button
                     type="button"
                     onClick={() => dobInputRef.current?.showPicker()}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A2A5AA] hover:text-[#4B4B4B]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A2A5AA] hover:text-[#4B4B4B] dark:text-gray-300"
                   >
                     <CalendarDays className="h-4 w-4" />
                   </button>
@@ -1150,7 +1150,7 @@ export function InvestorSettingsScreen() {
 
 
             <div className="mt-4 max-w-[360px]">
-              <p className="text-[12px] font-medium text-[#4B4B4B]">TAX Information</p>
+              <p className="text-[12px] font-medium text-[#4B4B4B] dark:text-gray-300">TAX Information</p>
               <p className="mt-1 text-[10px] text-[#A2A5AA]">Social Security Number / Tax ID</p>
               <TextInput
                 className={`mt-1 ${profileErrors.ssn ? '!border-[#E05252]' : ''}`}
@@ -1245,7 +1245,7 @@ export function InvestorSettingsScreen() {
                     setSaving(false);
                   }
                 }}
-                className="h-[32px] min-w-[90px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] disabled:opacity-50"
+                className="h-[32px] min-w-[90px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] dark:text-gray-100 disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>
@@ -1347,7 +1347,7 @@ export function InvestorSettingsScreen() {
                   setSaving(false);
                 }
               }}
-              className="h-[32px] min-w-[120px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] disabled:opacity-50"
+              className="h-[32px] min-w-[120px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] dark:text-gray-100 disabled:opacity-50"
             >
               {saving ? 'Updating...' : 'Update Password'}
             </button>
@@ -1360,14 +1360,14 @@ export function InvestorSettingsScreen() {
         <div className="divide-y divide-[#ECEDEF] p-4">
           <div className="flex items-start justify-between py-3">
             <div>
-              <p className="text-[12px] text-[#1F1F1F]">Authenticator App</p>
+              <p className="text-[12px] text-[#1F1F1F] dark:text-gray-100">Authenticator App</p>
               <p className="mt-1 text-[10px] text-[#A2A5AA]">Time-based one-time password (OTP)</p>
             </div>
             <Toggle enabled={false} onChange={() => undefined} />
           </div>
           <div className="flex items-start justify-between py-3">
             <div>
-              <p className="text-[12px] text-[#1F1F1F]">SMS Backup Codes</p>
+              <p className="text-[12px] text-[#1F1F1F] dark:text-gray-100">SMS Backup Codes</p>
               <p className="mt-1 text-[10px] text-[#A2A5AA]">Receive codes via text message as a backup.</p>
             </div>
             <Toggle enabled={false} onChange={() => undefined} />
@@ -1395,7 +1395,7 @@ export function InvestorSettingsScreen() {
               sessions.map((session) => (
                 <div key={session.id} className="flex items-center justify-between py-3">
                   <div>
-                    <p className="text-[12px] font-medium text-[#1F1F1F]">{session.name}</p>
+                    <p className="text-[12px] font-medium text-[#1F1F1F] dark:text-gray-100">{session.name}</p>
                     <p className={`mt-1 text-[10px] ${session.activeNow ? 'text-[#16A66A]' : 'text-[#A2A5AA]'}`}>
                       {session.subtitle}
                     </p>
@@ -1418,7 +1418,7 @@ export function InvestorSettingsScreen() {
                       setSessionToRevoke(session);
                       setIsConfirmRevokeOpen(true);
                     }}
-                    className="flex h-[28px] items-center justify-center gap-2 rounded-full bg-[#FBCB4B] px-4 text-[11px] font-semibold text-[#1F1F1F] hover:bg-[#F9BF2A] transition-colors disabled:opacity-50"
+                    className="flex h-[28px] items-center justify-center gap-2 rounded-full bg-[#FBCB4B] px-4 text-[11px] font-semibold text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9BF2A] transition-colors disabled:opacity-50"
                   >
                     {revokingSessionId === session.id && <Loader2 className="h-3 w-3 animate-spin" />}
                     Log Out
@@ -1432,21 +1432,21 @@ export function InvestorSettingsScreen() {
 
       {/* Confirmation Dialog for Revoking Session */}
       <AlertDialog open={isConfirmRevokeOpen} onOpenChange={setIsConfirmRevokeOpen}>
-        <AlertDialogContent className="max-w-[400px] rounded-[20px] border-none bg-white p-6 shadow-2xl">
+        <AlertDialogContent className="max-w-[400px] rounded-[20px] border-none bg-white dark:bg-[#1C1C1C] p-6 shadow-2xl">
           <AlertDialogHeader>
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
               <LogOut className="h-6 w-6 text-red-500" />
             </div>
-            <AlertDialogTitle className="text-center text-[18px] font-semibold text-[#1F1F1F]">
+            <AlertDialogTitle className="text-center text-[18px] font-semibold text-[#1F1F1F] dark:text-gray-100">
               Terminate Session?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-[14px] text-[#6B7280]">
-              Are you sure you want to log out from <span className="font-medium text-[#1F1F1F]">{sessionToRevoke?.name}</span>?
+              Are you sure you want to log out from <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{sessionToRevoke?.name}</span>?
               This will immediately end the session on that device.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-6 flex gap-3 sm:justify-center">
-            <AlertDialogCancel className="h-[44px] flex-1 rounded-full border border-[#E5E7EB] bg-white text-[14px] font-medium text-[#6B7280] hover:bg-[#F9FAFB] transition-colors">
+            <AlertDialogCancel className="h-[44px] flex-1 rounded-full border border-[#E5E7EB] bg-white dark:bg-[#1C1C1C] text-[14px] font-medium text-[#6B7280] hover:bg-[#F9FAFB] transition-colors">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -1570,7 +1570,7 @@ export function InvestorSettingsScreen() {
                 {notificationTypes.map((type) => (
                   <tr key={type.key}>
                     <td className="py-4 pr-4">
-                      <p className="text-[12px] font-medium text-[#1F1F1F]">{type.title}</p>
+                      <p className="text-[12px] font-medium text-[#1F1F1F] dark:text-gray-100">{type.title}</p>
                       <p className="mt-0.5 text-[10px] text-[#A2A5AA]">{type.description}</p>
                     </td>
                     <td className="py-4 text-center">
@@ -1617,7 +1617,7 @@ export function InvestorSettingsScreen() {
             type="button"
             onClick={handleSaveNotifications}
             disabled={savingNotif}
-            className="h-[32px] min-w-[90px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] disabled:opacity-50"
+            className="h-[32px] min-w-[90px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] dark:text-gray-100 disabled:opacity-50"
           >
             {savingNotif ? 'Saving...' : 'Save'}
           </button>
@@ -1633,14 +1633,14 @@ export function InvestorSettingsScreen() {
   //       <button
   //         type="button"
   //         onClick={() => setActiveTab('add-account')}
-  //         className="h-[32px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F]"
+  //         className="h-[32px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] dark:text-gray-100"
   //       >
   //         Add Account
   //       </button>
   //     </div>
 
   //     <div className="overflow-x-auto p-3">
-  //       <table className="w-full min-w-[680px] text-left text-[11px] text-[#4B4B4B]">
+  //       <table className="w-full min-w-[680px] text-left text-[11px] text-[#4B4B4B] dark:text-gray-300">
   //         <thead>
   //           <tr className="border-b border-[#ECEDEF] text-[10px] text-[#7B8088]">
   //             <th className="py-2 pr-3">Account</th>
@@ -1669,14 +1669,14 @@ export function InvestorSettingsScreen() {
       return (
         <SectionCard>
           <div className="flex items-center justify-between border-b border-[#ECEDEF] p-4">
-            <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F]">Add Sub Account</h3>
+            <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] dark:text-gray-100">Add Sub Account</h3>
             <button
               type="button"
               onClick={() => {
                 setSubAccountMode('list');
                 setSubFormErrors({});
               }}
-              className="h-[32px] rounded-full bg-[#ECEDEF] px-5 text-[12px] text-[#4B4B4B] hover:bg-[#D8D9DE]"
+              className="h-[32px] rounded-full bg-[#ECEDEF] px-5 text-[12px] text-[#4B4B4B] dark:text-gray-300 hover:bg-[#D8D9DE]"
             >
               Back to List
             </button>
@@ -1784,7 +1784,7 @@ export function InvestorSettingsScreen() {
                     setSubAccountType(e.target.value as 'minor' | 'entity');
                     setSubFormErrors({});
                   }}
-                  className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none focus:border-[#274583]"
+                  className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] dark:text-gray-300 outline-none focus:border-[#274583]"
                 >
                   <option value="minor">Minor</option>
                   <option value="entity">Entity</option>
@@ -1857,7 +1857,7 @@ export function InvestorSettingsScreen() {
                       <select
                         value={subForm.entityType}
                         onChange={(e) => setSubForm(prev => ({ ...prev, entityType: e.target.value }))}
-                        className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none focus:border-[#274583]"
+                        className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] dark:text-gray-300 outline-none focus:border-[#274583]"
                       >
                         <option value="LLC">LLC</option>
                         <option value="Corporation">Corporation</option>
@@ -1915,7 +1915,7 @@ export function InvestorSettingsScreen() {
                         }));
                         setSubFormErrors((prev) => ({ ...prev, phone: '' }));
                       }}
-                      className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none"
+                      className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] dark:text-gray-300 outline-none"
                     >
                       {COUNTRY_CODES.map(code => (
                         <option key={code} value={code}>{code}</option>
@@ -1970,7 +1970,7 @@ export function InvestorSettingsScreen() {
             </div>
 
             <div className="border-t border-[#ECEDEF] pt-4 mt-4">
-              <h4 className="text-[13px] font-semibold text-[#1F1F1F] mb-3">Full Address</h4>
+              <h4 className="text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-3">Full Address</h4>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <FieldLabel>Street Address Line 1</FieldLabel>
@@ -2060,7 +2060,7 @@ export function InvestorSettingsScreen() {
                   setSubAccountMode('list');
                   setSubFormErrors({});
                 }}
-                className="h-[36px] rounded-full border border-[#E5E5EA] px-6 text-[12px] font-medium text-[#4B4B4B] hover:bg-[#F9FAFB]"
+                className="h-[36px] rounded-full border border-[#E5E5EA] px-6 text-[12px] font-medium text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F9FAFB]"
               >
                 Cancel
               </button>
@@ -2081,7 +2081,7 @@ export function InvestorSettingsScreen() {
     return (
       <SectionCard>
         <div className="flex items-center justify-between border-b border-[#ECEDEF] p-4">
-          <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F]">My Sub Accounts</h3>
+          <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] dark:text-gray-100">My Sub Accounts</h3>
           <button
             type="button"
             onClick={() => {
@@ -2098,7 +2098,7 @@ export function InvestorSettingsScreen() {
                 country: profile.country || 'US'
               }));
             }}
-            className="h-[32px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] hover:bg-[#FAD980]"
+            className="h-[32px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FAD980]"
           >
             Add Sub Account
           </button>
@@ -2108,16 +2108,16 @@ export function InvestorSettingsScreen() {
           {subaccountsLoading ? (
             <div className="flex items-center justify-center py-10">
               <Loader2 className="h-6 w-6 animate-spin text-[#274583]" />
-              <span className="ml-2 text-[12px] text-[#4B4B4B]">Loading sub-accounts...</span>
+              <span className="ml-2 text-[12px] text-[#4B4B4B] dark:text-gray-300">Loading sub-accounts...</span>
             </div>
           ) : subaccounts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <p className="text-[14px] text-[#4B4B4B]">No sub-accounts added yet.</p>
+              <p className="text-[14px] text-[#4B4B4B] dark:text-gray-300">No sub-accounts added yet.</p>
               <p className="mt-1 text-[12px] text-[#A2A5AA]">Add your minor or entity sub-accounts to manage investments on their behalf.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-[12px] text-[#4B4B4B] table-fixed">
+              <table className="w-full text-left text-[12px] text-[#4B4B4B] dark:text-gray-300 table-fixed">
                 <thead>
                   <tr className="border-b border-[#ECEDEF] text-[11px] text-[#7B8088]">
                     <th className="py-2 pr-3 w-[30%]">Name</th>
@@ -2133,7 +2133,7 @@ export function InvestorSettingsScreen() {
                       key={sub.id || i}
                       className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] transition-colors"
                     >
-                      <td className="py-3 pr-3 font-medium text-[#1F1F1F] truncate max-w-[200px]" title={sub.fullName || sub.entityName || '-'}>{sub.fullName || sub.entityName || '-'}</td>
+                      <td className="py-3 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100 truncate max-w-[200px]" title={sub.fullName || sub.entityName || '-'}>{sub.fullName || sub.entityName || '-'}</td>
                       <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>
                       <td className="py-3 pr-3 capitalize">{sub.investorType}</td>
                       <td className="py-3 pr-3">{formatTaxIdDisplay(sub.taxId, sub.investorType)}</td>
@@ -2157,19 +2157,19 @@ export function InvestorSettingsScreen() {
 
           {/* New IMS Subaccounts Section */}
           <div className="mt-8 border-t border-[#ECEDEF] pt-6">
-            <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] mb-4">IMS Sub Accounts</h3>
+            <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] dark:text-gray-100 mb-4">IMS Sub Accounts</h3>
             {imsSubaccountsLoading ? (
               <div className="flex items-center justify-center py-6">
                 <Loader2 className="h-6 w-6 animate-spin text-[#274583]" />
-                <span className="ml-2 text-[12px] text-[#4B4B4B]">Loading IMS sub-accounts...</span>
+                <span className="ml-2 text-[12px] text-[#4B4B4B] dark:text-gray-300">Loading IMS sub-accounts...</span>
               </div>
             ) : imsSubaccounts.filter(sub => sub.investorType?.toLowerCase() !== 'individual').length === 0 ? (
               <div className="flex flex-col items-center justify-center py-6 text-center">
-                <p className="text-[14px] text-[#4B4B4B]">No IMS sub-accounts found.</p>
+                <p className="text-[14px] text-[#4B4B4B] dark:text-gray-300">No IMS sub-accounts found.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-[12px] text-[#4B4B4B] table-fixed">
+                <table className="w-full text-left text-[12px] text-[#4B4B4B] dark:text-gray-300 table-fixed">
                   <thead>
                     <tr className="border-b border-[#ECEDEF] text-[11px] text-[#7B8088]">
                       <th className="py-2 pr-3 w-[30%]">Name</th>
@@ -2185,7 +2185,7 @@ export function InvestorSettingsScreen() {
                         key={sub.id || i}
                         className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] transition-colors"
                       >
-                        <td className="py-3 pr-3 font-medium text-[#1F1F1F] truncate max-w-[200px]" title={sub.fullName || '-'}>{sub.fullName || '-'}</td>
+                        <td className="py-3 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100 truncate max-w-[200px]" title={sub.fullName || '-'}>{sub.fullName || '-'}</td>
                         <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>
                         <td className="py-3 pr-3 capitalize">{sub.investorType}</td>
                         <td className="py-3 pr-3">{formatTaxIdDisplay(sub.taxId, sub.investorType)}</td>
@@ -2207,19 +2207,19 @@ export function InvestorSettingsScreen() {
 
           {/* New Individual Accounts Section */}
           <div className="mt-8 border-t border-[#ECEDEF] pt-6">
-            <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] mb-4">IMS Individual Accounts</h3>
+            <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] dark:text-gray-100 mb-4">IMS Individual Accounts</h3>
             {imsSubaccountsLoading ? (
               <div className="flex items-center justify-center py-6">
                 <Loader2 className="h-6 w-6 animate-spin text-[#274583]" />
-                <span className="ml-2 text-[12px] text-[#4B4B4B]">Loading individual accounts...</span>
+                <span className="ml-2 text-[12px] text-[#4B4B4B] dark:text-gray-300">Loading individual accounts...</span>
               </div>
             ) : imsSubaccounts.filter(sub => sub.investorType?.toLowerCase() === 'individual').length === 0 ? (
               <div className="flex flex-col items-center justify-center py-6 text-center">
-                <p className="text-[14px] text-[#4B4B4B]">No individual accounts found.</p>
+                <p className="text-[14px] text-[#4B4B4B] dark:text-gray-300">No individual accounts found.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-[12px] text-[#4B4B4B] table-fixed">
+                <table className="w-full text-left text-[12px] text-[#4B4B4B] dark:text-gray-300 table-fixed">
                   <thead>
                     <tr className="border-b border-[#ECEDEF] text-[11px] text-[#7B8088]">
                       <th className="py-2 pr-3 w-[30%]">Name</th>
@@ -2235,7 +2235,7 @@ export function InvestorSettingsScreen() {
                         key={sub.id || i}
                         className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] transition-colors"
                       >
-                        <td className="py-3 pr-3 font-medium text-[#1F1F1F] truncate max-w-[200px]" title={sub.fullName || '-'}>{sub.fullName || '-'}</td>
+                        <td className="py-3 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100 truncate max-w-[200px]" title={sub.fullName || '-'}>{sub.fullName || '-'}</td>
                         <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>
                         <td className="py-3 pr-3 capitalize">{sub.investorType}</td>
                         <td className="py-3 pr-3">{formatTaxIdDisplay(sub.taxId, sub.investorType)}</td>
@@ -2262,11 +2262,11 @@ export function InvestorSettingsScreen() {
   const renderBankAccountsTab = () => (
     <SectionCard>
       <div className="flex items-center justify-between border-b border-[#ECEDEF] p-3">
-        <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F]">My Bank Accounts</h3>
+        <h3 className="font-goudy text-[16px] leading-5 text-[#1F1F1F] dark:text-gray-100">My Bank Accounts</h3>
         <button
           type="button"
           onClick={() => setActiveTab('add-bank-account')}
-          className="h-[32px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F]"
+          className="h-[32px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] dark:text-gray-100"
         >
           Add Bank Account
         </button>
@@ -2290,16 +2290,16 @@ export function InvestorSettingsScreen() {
         {bankAccountsLoading ? (
           <div className="flex items-center justify-center py-10">
             <Loader2 className="h-6 w-6 animate-spin text-[#274583]" />
-            <span className="ml-2 text-[12px] text-[#4B4B4B]">Loading bank accounts...</span>
+            <span className="ml-2 text-[12px] text-[#4B4B4B] dark:text-gray-300">Loading bank accounts...</span>
           </div>
         ) : bankAccounts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center">
-            <p className="text-[14px] text-[#4B4B4B]">No bank accounts added yet.</p>
+            <p className="text-[14px] text-[#4B4B4B] dark:text-gray-300">No bank accounts added yet.</p>
             <p className="mt-1 text-[12px] text-[#A2A5AA]">Add your bank details for easier withdrawals and reinvestments.</p>
           </div>
         ) : (
           <div className="min-h-[200px]">
-            <table className="w-full min-w-[680px] text-left text-[11px] text-[#4B4B4B]">
+            <table className="w-full min-w-[680px] text-left text-[11px] text-[#4B4B4B] dark:text-gray-300">
               <thead>
                 <tr className="border-b border-[#ECEDEF] text-[10px] text-[#7B8088]">
                   <th className="py-2 pr-3">Bank Name</th>
@@ -2330,7 +2330,7 @@ export function InvestorSettingsScreen() {
                       setActiveTab('add-bank-account');
                     }}
                   >
-                    <td className="py-2 pr-3 font-medium text-[#1F1F1F]">{item.bank_name}</td>
+                    <td className="py-2 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100">{item.bank_name}</td>
                     <td className="py-2 pr-3">{item.beneficiary_name}</td>
                     <td className="py-2 pr-3">****{item.account_number?.slice(-4) || 'N/A'}</td>
                     <td className="py-2 pr-3">{item.routing_number}</td>
@@ -2356,7 +2356,7 @@ export function InvestorSettingsScreen() {
       <button
         type="button"
         onClick={() => setActiveTab('bank-accounts')}
-        className="mb-3 inline-flex items-center gap-1 text-[14px] text-[#1F1F1F]"
+        className="mb-3 inline-flex items-center gap-1 text-[14px] text-[#1F1F1F] dark:text-gray-100"
       >
         <ChevronLeft className="h-4 w-4 text-[#8E8E93]" />
         Back to Bank Accounts
@@ -2433,7 +2433,7 @@ export function InvestorSettingsScreen() {
                   setBankAdd(prev => ({ ...prev, bank_address: e.target.value }));
                   if (bankAddErrors.bank_address) setBankAddErrors(prev => { const n = { ...prev }; delete n.bank_address; return n; });
                 }}
-                className={`w-full rounded-[6px] border p-3 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] min-h-[80px] ${bankAddErrors.bank_address ? 'border-[#E05252]' : 'border-[#E5E5EA]'}`}
+                className={`w-full rounded-[6px] border p-3 text-[12px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] min-h-[80px] ${bankAddErrors.bank_address ? 'border-[#E05252]' : 'border-[#E5E5EA]'}`}
               />
               {bankAddErrors.bank_address && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.bank_address}</p>}
             </div>
@@ -2447,7 +2447,7 @@ export function InvestorSettingsScreen() {
                   setBankAdd(prev => ({ ...prev, bank_description: e.target.value }));
                   if (bankAddErrors.bank_description) setBankAddErrors(prev => { const n = { ...prev }; delete n.bank_description; return n; });
                 }}
-                className={`w-full rounded-[6px] border p-3 text-[12px] text-[#1F1F1F] outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] min-h-[80px] ${bankAddErrors.bank_description ? 'border-[#E05252]' : 'border-[#E5E5EA]'}`}
+                className={`w-full rounded-[6px] border p-3 text-[12px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#B1B3B8] focus:border-[#274583] min-h-[80px] ${bankAddErrors.bank_description ? 'border-[#E05252]' : 'border-[#E5E5EA]'}`}
               />
               {bankAddErrors.bank_description && <p className="mt-1 text-[10px] text-[#E05252]">{bankAddErrors.bank_description}</p>}
             </div>
@@ -2482,7 +2482,7 @@ export function InvestorSettingsScreen() {
                   setCurrentBankId(null);
                   setActiveTab('bank-accounts');
                 }}
-                className="h-[32px] min-w-[90px] rounded-full bg-[#F4F5F7] px-5 text-[12px] text-[#6A6A6A] hover:bg-[#E5E7EB] transition-colors"
+                className="h-[32px] min-w-[90px] rounded-full bg-[#F4F5F7] px-5 text-[12px] text-[#6A6A6A] hover:bg-[#E5E7EB] dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
@@ -2558,7 +2558,7 @@ export function InvestorSettingsScreen() {
                     setSaving(false);
                   }
                 }}
-                className="h-[32px] min-w-[120px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] disabled:opacity-50"
+                className="h-[32px] min-w-[120px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] dark:text-gray-100 disabled:opacity-50"
               >
                 {saving ? (bankAccountMode === 'add' ? 'Adding...' : 'Updating...') : (bankAccountMode === 'add' ? 'Add Account' : 'Update Account')}
               </button>
@@ -2574,7 +2574,7 @@ export function InvestorSettingsScreen() {
       <button
         type="button"
         onClick={() => setActiveTab('accounts')}
-        className="mb-3 inline-flex items-center gap-1 text-[14px] text-[#1F1F1F]"
+        className="mb-3 inline-flex items-center gap-1 text-[14px] text-[#1F1F1F] dark:text-gray-100"
       >
         <ChevronLeft className="h-4 w-4 text-[#8E8E93]" />
         Add Account
@@ -2593,7 +2593,7 @@ export function InvestorSettingsScreen() {
                     setAddAccount((prev) => ({ ...prev, newAccountType: event.target.value }));
                     setAddAccountErrors((prev) => ({ ...prev, newAccountType: undefined }));
                   }}
-                  className={`h-[36px] w-full appearance-none rounded-[6px] border px-3 text-[12px] text-[#4B4B4B] outline-none ${addAccountErrors.newAccountType ? 'border-[#E05252]' : 'border-[#E5E5EA]'
+                  className={`h-[36px] w-full appearance-none rounded-[6px] border px-3 text-[12px] text-[#4B4B4B] dark:text-gray-300 outline-none ${addAccountErrors.newAccountType ? 'border-[#E05252]' : 'border-[#E5E5EA]'
                     }`}
                 >
                   <option value="">Select funding method</option>
@@ -2612,7 +2612,7 @@ export function InvestorSettingsScreen() {
                 <select
                   value={addAccount.paymentSource}
                   onChange={(event) => setAddAccount((prev) => ({ ...prev, paymentSource: event.target.value }))}
-                  className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none"
+                  className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] dark:text-gray-300 outline-none"
                 >
                   <option>Wire</option>
                   <option>ACH</option>
@@ -2632,7 +2632,7 @@ export function InvestorSettingsScreen() {
                 <select
                   value={addAccount.idType}
                   onChange={(event) => setAddAccount((prev) => ({ ...prev, idType: event.target.value }))}
-                  className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] outline-none"
+                  className="h-[36px] w-full appearance-none rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] text-[#4B4B4B] dark:text-gray-300 outline-none"
                 >
                   <option>Passport</option>
                   <option>Driver License</option>
@@ -2679,27 +2679,27 @@ export function InvestorSettingsScreen() {
           <div className="grid gap-x-6 gap-y-2 p-4 sm:grid-cols-2 text-[12px]">
             <div>
               <p className="text-[10px] text-[#A2A5AA]">Name</p>
-              <p className="mt-1 text-[#1F1F1F]">{personalInfo.name}</p>
+              <p className="mt-1 text-[#1F1F1F] dark:text-gray-100">{personalInfo.name}</p>
             </div>
             <div>
               <p className="text-[10px] text-[#A2A5AA]">Date of Birth</p>
-              <p className="mt-1 text-[#1F1F1F]">{personalInfo.dateOfBirth}</p>
+              <p className="mt-1 text-[#1F1F1F] dark:text-gray-100">{personalInfo.dateOfBirth}</p>
             </div>
             <div>
               <p className="text-[10px] text-[#A2A5AA]">Social Security Number</p>
-              <p className="mt-1 text-[#1F1F1F]">{personalInfo.ssn}</p>
+              <p className="mt-1 text-[#1F1F1F] dark:text-gray-100">{personalInfo.ssn}</p>
             </div>
             <div>
               <p className="text-[10px] text-[#A2A5AA]">Marital Status</p>
-              <p className="mt-1 text-[#1F1F1F]">{personalInfo.maritalStatus}</p>
+              <p className="mt-1 text-[#1F1F1F] dark:text-gray-100">{personalInfo.maritalStatus}</p>
             </div>
             <div>
               <p className="text-[10px] text-[#A2A5AA]">Physical Address</p>
-              <p className="mt-1 text-[#1F1F1F]">{personalInfo.physicalAddress}</p>
+              <p className="mt-1 text-[#1F1F1F] dark:text-gray-100">{personalInfo.physicalAddress}</p>
             </div>
             <div>
               <p className="text-[10px] text-[#A2A5AA]">Mailing Address</p>
-              <p className="mt-1 text-[#1F1F1F]">{personalInfo.mailingAddress}</p>
+              <p className="mt-1 text-[#1F1F1F] dark:text-gray-100">{personalInfo.mailingAddress}</p>
             </div>
           </div>
         </SectionCard>
@@ -2753,7 +2753,7 @@ export function InvestorSettingsScreen() {
               setAddAccountErrors({});
               setActiveTab('accounts');
             }}
-            className="h-[32px] min-w-[90px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] disabled:opacity-50"
+            className="h-[32px] min-w-[90px] rounded-full bg-[#FBCB4B] px-5 text-[12px] text-[#1F1F1F] dark:text-gray-100 disabled:opacity-50"
           >
             Submit
           </button>
@@ -2763,10 +2763,10 @@ export function InvestorSettingsScreen() {
   );
 
   return (
-    <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F]">
+    <div className="mx-auto max-w-8xl font-helvetica text-[#1F1F1F] dark:text-gray-100">
       <div>
-        <h1 className="font-goudy text-lg md:text-2xl text-[#1F1F1F]">Settings</h1>
-        <p className="font-helvetica text-[#4B4B4B] text-sm sm:text-md mt-2">Manage your account preferences and security.</p>
+        <h1 className="font-goudy text-lg md:text-2xl text-[#1F1F1F] dark:text-gray-100">Settings</h1>
+        <p className="font-helvetica text-[#4B4B4B] dark:text-gray-300 text-sm sm:text-md mt-2">Manage your account preferences and security.</p>
       </div>
 
       {activeTab !== 'add-account' && (
@@ -2813,9 +2813,9 @@ export function InvestorSettingsScreen() {
 
       {deleteBankId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-[400px] rounded-[10px] bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-[16px] font-bold text-[#1F1F1F]">Remove Bank Account</h3>
-            <p className="mb-6 text-[14px] text-[#4B4B4B]">
+          <div className="w-full max-w-[400px] rounded-[10px] bg-white dark:bg-[#1C1C1C] p-6 shadow-xl">
+            <h3 className="mb-2 text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100">Remove Bank Account</h3>
+            <p className="mb-6 text-[14px] text-[#4B4B4B] dark:text-gray-300">
               Are you sure you want to remove this bank account? This action cannot be undone.
             </p>
             <div className="flex items-center justify-end gap-3">
@@ -2823,7 +2823,7 @@ export function InvestorSettingsScreen() {
                 type="button"
                 disabled={isDeletingBank}
                 onClick={() => setDeleteBankId(null)}
-                className="h-[36px] rounded-full bg-[#FFF3D6] px-5 text-[12px] font-medium text-[#4B4B4B] hover:bg-[#FCEBAE]"
+                className="h-[36px] rounded-full bg-[#FFF3D6] px-5 text-[12px] font-medium text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FCEBAE]"
               >
                 Cancel
               </button>
@@ -2856,18 +2856,18 @@ export function InvestorSettingsScreen() {
 
       {selectedSubaccount && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="relative w-full max-w-[650px] rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="relative w-full max-w-[650px] rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-2xl animate-in fade-in zoom-in duration-200">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[#ECEDEF] px-6 py-4">
               <div>
-                <h3 className="text-[16px] font-bold text-[#1F1F1F]">Sub Account Details</h3>
+                <h3 className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100">Sub Account Details</h3>
                 <p className="text-[11px] text-[#8E8E93] mt-0.5 capitalize">
                   {selectedSubaccount.investorType} Account
                 </p>
               </div>
               <button
                 onClick={() => setSelectedSubaccount(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100 transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-800 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -2877,7 +2877,7 @@ export function InvestorSettingsScreen() {
             <div className="p-6 max-h-[70vh] overflow-y-auto">
               <div className="grid gap-6">
                 <div>
-                  <h4 className="text-[13px] font-semibold text-[#1F1F1F] mb-3 pb-1 border-b border-[#ECEDEF]">
+                  <h4 className="text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-3 pb-1 border-b border-[#ECEDEF]">
                     Basic Information
                   </h4>
                   <div className="grid grid-cols-2 gap-4">
@@ -2885,38 +2885,38 @@ export function InvestorSettingsScreen() {
                       <>
                         <div className="border-b border-[#F2F3F5] pb-2">
                           <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Full Name</p>
-                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.fullName || '-'}</p>
+                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.fullName || '-'}</p>
                         </div>
                         <div className="border-b border-[#F2F3F5] pb-2">
                           <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Date of Birth</p>
-                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{formatDate(selectedSubaccount.dob)}</p>
+                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{formatDate(selectedSubaccount.dob)}</p>
                         </div>
                       </>
                     ) : (
                       <>
                         <div className="border-b border-[#F2F3F5] pb-2">
                           <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Legal Entity Name</p>
-                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.entityName || '-'}</p>
+                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.entityName || '-'}</p>
                         </div>
                         <div className="border-b border-[#F2F3F5] pb-2">
                           <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Entity Type</p>
-                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.entityType || '-'}</p>
+                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.entityType || '-'}</p>
                         </div>
                       </>
                     )}
                     <div className="border-b border-[#F2F3F5] pb-2">
                       <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Email Address</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.email || '-'}</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.email || '-'}</p>
                     </div>
                     <div className="border-b border-[#F2F3F5] pb-2">
                       <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Phone Number</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.phone || '-'}</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.phone || '-'}</p>
                     </div>
                     <div className="border-b border-[#F2F3F5] pb-2 col-span-2">
                       <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">
                         Tax ID ({selectedSubaccount.investorType === 'minor' ? 'SSN' : 'EIN'})
                       </p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">
                         {formatTaxIdDisplay(selectedSubaccount.taxId, selectedSubaccount.investorType)}
                       </p>
                     </div>
@@ -2924,33 +2924,33 @@ export function InvestorSettingsScreen() {
                 </div>
 
                 <div>
-                  <h4 className="text-[13px] font-semibold text-[#1F1F1F] mb-3 pb-1 border-b border-[#ECEDEF]">
+                  <h4 className="text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-3 pb-1 border-b border-[#ECEDEF]">
                     Address Details
                   </h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="border-b border-[#F2F3F5] pb-2">
                       <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Street Address 1</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.addressLine1 || '-'}</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.addressLine1 || '-'}</p>
                     </div>
                     <div className="border-b border-[#F2F3F5] pb-2">
                       <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Street Address 2</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.addressLine2 || '-'}</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.addressLine2 || '-'}</p>
                     </div>
                     <div className="border-b border-[#F2F3F5] pb-2">
                       <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">City</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.city || '-'}</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.city || '-'}</p>
                     </div>
                     <div className="border-b border-[#F2F3F5] pb-2">
                       <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">State / Province</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.state || '-'}</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.state || '-'}</p>
                     </div>
                     <div className="border-b border-[#F2F3F5] pb-2">
                       <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">ZIP / Postal Code</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.zipCode || '-'}</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.zipCode || '-'}</p>
                     </div>
                     <div className="border-b border-[#F2F3F5] pb-2">
                       <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Country</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F]">{selectedSubaccount.country || '-'}</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.country || '-'}</p>
                     </div>
                   </div>
                 </div>
@@ -2962,14 +2962,14 @@ export function InvestorSettingsScreen() {
               {selectedSubaccount.investorType === 'minor' && (
                 <button
                   onClick={() => handleOpenAddIraModal(selectedSubaccount)}
-                  className="h-[36px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 text-[12px] font-semibold text-[#1F1F1F] shadow-sm hover:opacity-90 transition-opacity"
+                  className="h-[36px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 text-[12px] font-semibold text-[#1F1F1F] dark:text-gray-100 shadow-sm hover:opacity-90 transition-opacity"
                 >
                   Create IRA
                 </button>
               )}
               <button
                 onClick={() => setSelectedSubaccount(null)}
-                className="h-[36px] rounded-full bg-[#FFF3D6] px-6 text-[12px] font-semibold text-[#4B4B4B] hover:bg-[#FCEBAE] transition-colors"
+                className="h-[36px] rounded-full bg-[#FFF3D6] px-6 text-[12px] font-semibold text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FCEBAE] transition-colors"
               >
                 Close
               </button>
@@ -2981,17 +2981,17 @@ export function InvestorSettingsScreen() {
       {/* ─── ADD IRA MODAL ─── */}
       {showAddIraModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-8 py-5">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white dark:bg-[#1C1C1C] shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white dark:bg-[#1C1C1C] px-8 py-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-900/30">
                   <Plus className="h-5 w-5 text-[#D1A94C]" />
                 </div>
-                <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] font-goudy">Open New IRA Account for Minor</h2>
+                <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy">Open New IRA Account for Minor</h2>
               </div>
               <button
                 onClick={() => setShowAddIraModal(false)}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAFAFA] text-[#9CA3AF] hover:bg-[#F3F4F6] transition-colors"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAFAFA] dark:bg-gray-800/50 text-[#9CA3AF] hover:bg-[#F3F4F6] dark:bg-gray-800 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -3001,7 +3001,7 @@ export function InvestorSettingsScreen() {
               <div className="flex flex-col gap-8">
                 {/* Account Details */}
                 <div>
-                  <h3 className="text-[14px] font-semibold text-[#1F1F1F] mb-4 font-goudy border-b pb-1">Account Details</h3>
+                  <h3 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-4 font-goudy border-b pb-1">Account Details</h3>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Account Type</label>
@@ -3018,7 +3018,7 @@ export function InvestorSettingsScreen() {
 
                 {/* Personal Profile */}
                 <div>
-                  <h3 className="text-[14px] font-semibold text-[#1F1F1F] mb-4 font-goudy border-b pb-1">Personal Profile</h3>
+                  <h3 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-4 font-goudy border-b pb-1">Personal Profile</h3>
                   <div className="grid gap-4 md:grid-cols-2 mb-4">
                     <div>
                       <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">First Name (from subaccount)</label>
@@ -3026,7 +3026,7 @@ export function InvestorSettingsScreen() {
                         type="text"
                         value={selectedSubaccount?.fullName?.trim().split(/\s+/)[0] || ''}
                         disabled
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F3F4F6] text-[#9CA3AF]"
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F3F4F6] dark:bg-gray-800 text-[#9CA3AF]"
                       />
                     </div>
                     <div>
@@ -3035,7 +3035,7 @@ export function InvestorSettingsScreen() {
                         type="text"
                         value={selectedSubaccount?.fullName?.trim().split(/\s+/).slice(1).join(' ') || ''}
                         disabled
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F3F4F6] text-[#9CA3AF]"
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F3F4F6] dark:bg-gray-800 text-[#9CA3AF]"
                       />
                     </div>
                   </div>
@@ -3048,7 +3048,7 @@ export function InvestorSettingsScreen() {
                         placeholder="Enter middle name"
                         value={iraForm.middleName}
                         onChange={e => setIraForm({ ...iraForm, middleName: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
                       />
                     </div>
                     <div>
@@ -3058,7 +3058,7 @@ export function InvestorSettingsScreen() {
                         placeholder="e.g. Jr, Sr"
                         value={iraForm.suffix}
                         onChange={e => setIraForm({ ...iraForm, suffix: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
                       />
                     </div>
                   </div>
@@ -3070,7 +3070,7 @@ export function InvestorSettingsScreen() {
                         value={iraForm.maritalStatus}
                         disabled={selectedSubaccount?.investorType === 'minor'}
                         onChange={e => setIraForm({ ...iraForm, maritalStatus: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all disabled:bg-gray-100 disabled:text-gray-500"
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all disabled:bg-gray-100 disabled:text-gray-500 dark:text-gray-400"
                       >
                         <option value="single">Single</option>
                         <option value="married">Married</option>
@@ -3098,7 +3098,7 @@ export function InvestorSettingsScreen() {
                           }
                           setIraForm({ ...iraForm, ssn: formatted });
                         }}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white transition-all"
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
                       />
                       {iraErrors.ssn && <p className="mt-1 text-[11px] text-red-500">{iraErrors.ssn}</p>}
                     </div>
@@ -3108,7 +3108,7 @@ export function InvestorSettingsScreen() {
                 {/* Mailing Address */}
                 <div>
                   <div className="flex items-center justify-between mb-4 border-b pb-1">
-                    <h3 className="text-[14px] font-semibold text-[#1F1F1F] font-goudy">Mailing Address</h3>
+                    <h3 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Mailing Address</h3>
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -3117,7 +3117,7 @@ export function InvestorSettingsScreen() {
                         onChange={e => setIraForm({ ...iraForm, mailingAddressSame: e.target.checked })}
                         className="rounded border-[#E5E7EB] text-[#D1A94C] focus:ring-[#D1A94C]"
                       />
-                      <label htmlFor="mailingAddressSame" className="text-[12px] font-medium text-[#4B4B4B] font-helvetica">
+                      <label htmlFor="mailingAddressSame" className="text-[12px] font-medium text-[#4B4B4B] dark:text-gray-300 font-helvetica">
                         Same as physical address
                       </label>
                     </div>
@@ -3132,7 +3132,7 @@ export function InvestorSettingsScreen() {
                           placeholder="Street Address Line 1"
                           value={iraForm.mailingAddress1}
                           onChange={e => setIraForm({ ...iraForm, mailingAddress1: e.target.value })}
-                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
+                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
                         />
                         {iraErrors.mailingAddress1 && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingAddress1}</p>}
                       </div>
@@ -3144,7 +3144,7 @@ export function InvestorSettingsScreen() {
                           placeholder="Apartment, suite, unit, etc. (optional)"
                           value={iraForm.mailingAddress2}
                           onChange={e => setIraForm({ ...iraForm, mailingAddress2: e.target.value })}
-                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
+                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
                         />
                       </div>
 
@@ -3178,7 +3178,7 @@ export function InvestorSettingsScreen() {
                           placeholder="City"
                           value={iraForm.mailingCity}
                           onChange={e => setIraForm({ ...iraForm, mailingCity: e.target.value })}
-                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
+                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
                         />
                         {iraErrors.mailingCity && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingCity}</p>}
                       </div>
@@ -3190,7 +3190,7 @@ export function InvestorSettingsScreen() {
                           placeholder="ZIP Code"
                           value={iraForm.mailingZipCode}
                           onChange={e => setIraForm({ ...iraForm, mailingZipCode: e.target.value })}
-                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white"
+                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
                         />
                         {iraErrors.mailingZipCode && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingZipCode}</p>}
                       </div>
@@ -3203,14 +3203,14 @@ export function InvestorSettingsScreen() {
               <div className="flex justify-end gap-3 mt-8 border-t pt-5">
                 <button
                   onClick={() => setShowAddIraModal(false)}
-                  className="px-6 h-[40px] rounded-full border border-gray-300 text-[13px] font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-6 h-[40px] rounded-full border border-gray-300 text-[13px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveIRA}
                   disabled={iraLoading}
-                  className="px-6 h-[40px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] text-[13px] font-semibold text-[#1F1F1F] shadow-md hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2"
+                  className="px-6 h-[40px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 shadow-md hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2"
                 >
                   {iraLoading && <Loader2 className="h-4 w-4 animate-spin" />}
                   Create IRA
@@ -3223,20 +3223,20 @@ export function InvestorSettingsScreen() {
 
       {selectedImsSubaccount && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-[10px] w-full max-w-md shadow-lg overflow-hidden">
+          <div className="bg-white dark:bg-[#1C1C1C] rounded-[10px] w-full max-w-md shadow-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-[#ECEDEF] flex justify-between items-center">
-              <h3 className="font-goudy text-[20px] text-[#1F1F1F]">IMS Sub Account Details</h3>
+              <h3 className="font-goudy text-[20px] text-[#1F1F1F] dark:text-gray-100">IMS Sub Account Details</h3>
               <button
                 onClick={() => setSelectedImsSubaccount(null)}
-                className="text-[#A2A5AA] hover:text-[#1F1F1F]"
+                className="text-[#A2A5AA] hover:text-[#1F1F1F] dark:text-gray-100"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 text-[13px] text-[#4B4B4B] space-y-4">
+            <div className="p-6 text-[13px] text-[#4B4B4B] dark:text-gray-300 space-y-4">
               <div>
                 <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Name</span>
-                <span className="font-medium text-[#1F1F1F]">{selectedImsSubaccount.fullName || '-'}</span>
+                <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{selectedImsSubaccount.fullName || '-'}</span>
               </div>
               <div>
                 <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Email</span>

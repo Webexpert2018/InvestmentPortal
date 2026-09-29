@@ -218,7 +218,7 @@ export default function RedemptionAmountPage() {
           <button
             type="button"
             onClick={() => router.push('/dashboard/redeem')}
-            className="rounded-full bg-[#FFF3D6] px-6 py-2 text-sm font-medium text-[#4B4B4B] hover:bg-[#FFE7AF]"
+            className="rounded-full bg-[#FFF3D6] px-6 py-2 text-sm font-medium text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FFE7AF]"
           >
             Cancel
           </button>
@@ -227,7 +227,7 @@ export default function RedemptionAmountPage() {
           <button
             type="button"
             onClick={handleBack}
-            className="rounded-full bg-[#FFF3D6] px-6 py-2 text-sm font-medium text-[#4B4B4B] hover:bg-[#FFE7AF]"
+            className="rounded-full bg-[#FFF3D6] px-6 py-2 text-sm font-medium text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FFE7AF]"
           >
             Back
           </button>
@@ -236,7 +236,7 @@ export default function RedemptionAmountPage() {
           type="button"
           onClick={handleContinue}
           disabled={submitting || (step === 'amount' && (numericAmount <= 0 || !selectedHoldingId || isOverLimit || !selectedBankId || !isSelectedHoldingEligible))}
-          className="rounded-full bg-[#FBCB4B] px-8 py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60 flex items-center gap-2"
+          className="rounded-full bg-[#FBCB4B] px-8 py-2 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60 flex items-center gap-2"
         >
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
           {primaryLabel}
@@ -248,14 +248,14 @@ export default function RedemptionAmountPage() {
   const renderAmountStep = () => (
     <>
       <div className="mb-6">
-        <h1 className="font-goudy text-base sm:text-xl leading-[28px] text-[#1F1F1F]">Redemption Amount</h1>
+        <h1 className="font-goudy text-base sm:text-xl leading-[28px] text-[#1F1F1F] dark:text-gray-100">Redemption Amount</h1>
         <p className="mt-1 text-[11px] text-[#8E8E93]">
           Please select a fund and enter the amount you wish to redeem.
         </p>
       </div>
 
       <div className="grid gap-8 xl:grid-cols-[1fr_380px]">
-        <div className="rounded-2xl bg-white px-6 py-6 shadow-sm">
+        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-6 py-6 shadow-sm">
           {/* Select Fund */}
           <div className="mb-6">
             <label className="block text-[11px] font-medium text-[#8E8E93] mb-2 uppercase tracking-wider">Select Fund Holding</label>
@@ -263,7 +263,7 @@ export default function RedemptionAmountPage() {
               <select
                 value={selectedHoldingId}
                 onChange={(e) => setSelectedHoldingId(e.target.value)}
-                className="w-full appearance-none rounded border border-[#E5E5EA] px-4 py-3 text-sm text-[#1F1F1F] outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] bg-white transition-all hover:border-[#274583]/50"
+                className="w-full appearance-none rounded border border-[#E5E5EA] px-4 py-3 text-sm text-[#1F1F1F] dark:text-gray-100 outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] bg-white dark:bg-[#1C1C1C] transition-all hover:border-[#274583]/50"
               >
                 {holdings.length > 0 ? (
                   holdings.map((h) => (
@@ -294,7 +294,7 @@ export default function RedemptionAmountPage() {
                 type="text"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full rounded border border-[#E5E5EA] pl-8 pr-4 py-3 text-sm font-semibold text-[#1F1F1F] outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] transition-all"
+                className="w-full rounded border border-[#E5E5EA] pl-8 pr-4 py-3 text-sm font-semibold text-[#1F1F1F] dark:text-gray-100 outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] transition-all"
               />
             </div>
             {selectedHolding && (
@@ -318,12 +318,12 @@ export default function RedemptionAmountPage() {
               onChange={(e) => setReason(e.target.value)}
               rows={3}
               placeholder="Tell us why you are redeeming..."
-              className="w-full resize-none rounded border border-[#E5E5EA] px-4 py-3 text-sm text-[#1F1F1F] outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] transition-all"
+              className="w-full resize-none rounded border border-[#E5E5EA] px-4 py-3 text-sm text-[#1F1F1F] dark:text-gray-100 outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] transition-all"
             />
           </div>
 
-          <div className="mt-8 pt-8 border-t border-gray-50">
-            <p className="text-sm font-bold text-[#1F1F1F] mb-4">Select Destination Bank</p>
+          <div className="mt-8 pt-8 border-t border-gray-50 dark:border-gray-800">
+            <p className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100 mb-4">Select Destination Bank</p>
             <div className="grid gap-4 md:grid-cols-2 text-xs">
               {userBankAccounts.map((bank) => {
                 const selected = bank.id === selectedBankId;
@@ -334,12 +334,12 @@ export default function RedemptionAmountPage() {
                     onClick={() => setSelectedBankId(bank.id)}
                     className={`flex w-full items-center justify-between rounded-xl border px-5 py-4 text-left transition-all ${selected
                       ? 'border-2 border-[#274583] bg-[#274583]/[0.02] shadow-sm'
-                      : 'border-[#E5E5EA] bg-white hover:border-[#274583]/30'
+                      : 'border-[#E5E5EA] bg-white dark:bg-[#1C1C1C] hover:border-[#274583]/30'
                       }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`h-2 w-2 rounded-full ${selected ? 'bg-[#274583]' : 'bg-gray-300'}`} />
-                      <span className={`font-medium ${selected ? 'text-[#274583]' : 'text-[#4B4B4B]'}`}>
+                      <span className={`font-medium ${selected ? 'text-[#274583]' : 'text-[#4B4B4B] dark:text-gray-300'}`}>
                         {bank.bank_name} - ****{bank.account_number.slice(-4)}
                       </span>
                     </div>
@@ -366,28 +366,28 @@ export default function RedemptionAmountPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white px-6 py-6 shadow-sm text-sm text-[#4B4B4B] h-fit sticky top-6">
-          <h2 className="font-goudy text-[16px] text-[#1F1F1F] mb-4">Transaction Preview</h2>
+        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-6 py-6 shadow-sm text-sm text-[#4B4B4B] dark:text-gray-300 h-fit sticky top-6">
+          <h2 className="font-goudy text-[16px] text-[#1F1F1F] dark:text-gray-100 mb-4">Transaction Preview</h2>
           <div className="space-y-4 border-t border-[#F1F1F1] pt-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <span className="text-[#8E8E93] whitespace-nowrap">Units to be redeemed</span>
-              <span className="font-bold text-[#1F1F1F]">{unitsToRedeem.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</span>
+              <span className="font-bold text-[#1F1F1F] dark:text-gray-100">{unitsToRedeem.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <span className="text-[#8E8E93] whitespace-nowrap">Current NAV</span>
-              <span className="font-bold text-[#1F1F1F]">{formatCurrency(currentNav)}</span>
+              <span className="font-bold text-[#1F1F1F] dark:text-gray-100">{formatCurrency(currentNav)}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1">
               <span className="text-[#8E8E93] whitespace-nowrap">Estimated payout date</span>
-              <span className="font-bold text-[#1F1F1F] text-right">{estimatedPayoutDate}</span>
+              <span className="font-bold text-[#1F1F1F] dark:text-gray-100 text-right">{estimatedPayoutDate}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <span className="text-[#8E8E93] whitespace-nowrap">Service Fee</span>
-              <span className="font-bold text-[#1F1F1F]">$0.00</span>
+              <span className="font-bold text-[#1F1F1F] dark:text-gray-100">$0.00</span>
             </div>
             <div className="mt-4 border-t border-dashed border-[#E5E5EA] pt-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <span className="font-bold text-[#1F1F1F]">Total Payout</span>
+                <span className="font-bold text-[#1F1F1F] dark:text-gray-100">Total Payout</span>
                 <span className="text-xl font-bold text-[#274583]">
                   {formatCurrency(totalPayout)}
                 </span>
@@ -404,20 +404,20 @@ export default function RedemptionAmountPage() {
   const renderConfirmStep = () => (
     <>
       <div className="mb-6">
-        <h1 className="font-goudy text-base sm:text-xl leading-[28px] text-[#1F1F1F]">Confirm Redemption</h1>
+        <h1 className="font-goudy text-base sm:text-xl leading-[28px] text-[#1F1F1F] dark:text-gray-100">Confirm Redemption</h1>
         <p className="mt-1 text-[11px] text-[#8E8E93]">
           Please review your request carefully. This action cannot be undone.
         </p>
       </div>
 
-      <div className="rounded-2xl bg-white px-8 py-8 shadow-sm text-sm text-[#4B4B4B] max-w-3xl">
-        <h2 className="font-goudy text-[18px] text-[#1F1F1F] mb-6">Redemption Summary</h2>
+      <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm text-sm text-[#4B4B4B] dark:text-gray-300 max-w-3xl">
+        <h2 className="font-goudy text-[18px] text-[#1F1F1F] dark:text-gray-100 mb-6">Redemption Summary</h2>
 
         <div className="grid gap-8 md:grid-cols-2">
           <div className="space-y-6">
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase tracking-wider mb-1">Fund Holding</p>
-              <p className="text-base font-bold text-[#1F1F1F]">{selectedHolding?.fund_name}</p>
+              <p className="text-base font-bold text-[#1F1F1F] dark:text-gray-100">{selectedHolding?.fund_name}</p>
             </div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase tracking-wider mb-1">Requested Amount</p>
@@ -425,25 +425,25 @@ export default function RedemptionAmountPage() {
             </div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase tracking-wider mb-1">Units Deduction</p>
-              <p className="text-base font-bold text-[#1F1F1F]">{unitsToRedeem.toFixed(4)} Units</p>
+              <p className="text-base font-bold text-[#1F1F1F] dark:text-gray-100">{unitsToRedeem.toFixed(4)} Units</p>
             </div>
           </div>
 
           <div className="space-y-6">
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase tracking-wider mb-1">Destination Bank</p>
-              <p className="text-base font-bold text-[#1F1F1F]">
+              <p className="text-base font-bold text-[#1F1F1F] dark:text-gray-100">
                 {userBankAccounts.find(b => b.id === selectedBankId)?.bank_name} (****{userBankAccounts.find(b => b.id === selectedBankId)?.account_number.slice(-4)})
               </p>
             </div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase tracking-wider mb-1">Current NAV</p>
-              <p className="text-base font-bold text-[#1F1F1F]">{formatCurrency(currentNav)}</p>
+              <p className="text-base font-bold text-[#1F1F1F] dark:text-gray-100">{formatCurrency(currentNav)}</p>
             </div>
             {reason && (
               <div>
                 <p className="text-[10px] text-[#8E8E93] uppercase tracking-wider mb-1">Reason</p>
-                <p className="text-sm italic text-[#4B4B4B]">{reason}</p>
+                <p className="text-sm italic text-[#4B4B4B] dark:text-gray-300">{reason}</p>
               </div>
             )}
           </div>
@@ -462,12 +462,12 @@ export default function RedemptionAmountPage() {
 
   const renderSubmittedModal = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="relative w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md rounded-2xl bg-white dark:bg-[#1C1C1C] p-8 text-center shadow-2xl animate-in zoom-in-95 duration-200">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-500">
           <CheckCircle2 className="h-10 w-10" />
         </div>
 
-        <h2 className="font-goudy text-2xl text-[#1F1F1F] mb-2 font-bold">Request Submitted!</h2>
+        <h2 className="font-goudy text-2xl text-[#1F1F1F] dark:text-gray-100 mb-2 font-bold">Request Submitted!</h2>
         <p className="mb-8 text-sm leading-relaxed text-[#8E8E93]">
           Your redemption request for <strong>{formatCurrency(numericAmount)}</strong> from <strong>{selectedHolding?.fund_name}</strong> has been received and is being processed.
         </p>
@@ -483,7 +483,7 @@ export default function RedemptionAmountPage() {
           <button
             type="button"
             onClick={() => router.push('/dashboard')}
-            className="w-full rounded-full bg-gray-50 py-3 text-sm font-bold text-[#4B4B4B] hover:bg-gray-100 transition-all font-helvetica"
+            className="w-full rounded-full bg-gray-50 dark:bg-gray-800 py-3 text-sm font-bold text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all font-helvetica"
           >
             Return to Dashboard
           </button>
@@ -501,16 +501,16 @@ export default function RedemptionAmountPage() {
 
       {showAddBankModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#1C1C1C] p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-goudy text-xl text-[#1F1F1F]">Add Bank Account</h2>
+              <h2 className="font-goudy text-xl text-[#1F1F1F] dark:text-gray-100">Add Bank Account</h2>
               <button
                 onClick={() => {
                   setShowAddBankModal(false);
                   setNewBank(defaultBankAdd);
                   setNewBankErrors({});
                 }}
-                className="text-[#8E8E93] hover:text-[#1F1F1F]"
+                className="text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-100"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -591,7 +591,7 @@ export default function RedemptionAmountPage() {
                 <button
                   type="button"
                   disabled={addingBank}
-                  className="rounded-full bg-[#FBCB4B] px-8 py-2 text-sm font-medium text-[#1F1F1F] hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60 flex items-center gap-2"
+                  className="rounded-full bg-[#FBCB4B] px-8 py-2 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60 flex items-center gap-2"
                   onClick={async () => {
                     const errors: Record<string, string> = {};
 
