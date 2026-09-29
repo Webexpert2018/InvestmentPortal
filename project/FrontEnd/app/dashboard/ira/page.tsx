@@ -34,7 +34,7 @@ function MaskedField({ label, value }: { label: string; value: string }) {
 function StatusBadge({ verified, label }: { verified: boolean; label: string }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium font-helvetica ${verified ? 'bg-[#ECFDF5] text-[#16A66A]' : 'bg-[#FEF3C7] text-[#D97706]'
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium font-helvetica ${verified ? 'bg-[#ECFDF5] dark:bg-emerald-950/40 text-[#16A66A] dark:text-emerald-400 border border-transparent dark:border-emerald-900/50' : 'bg-[#FEF3C7] dark:bg-amber-950/40 text-[#D97706] dark:text-amber-400 border border-transparent dark:border-amber-900/50'
         }`}
     >
       {verified && <Check className="h-3 w-3" />}
@@ -461,11 +461,11 @@ export default function IRAPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
                 <thead>
-                  <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] w-[25%]">Account Type</th>
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] w-[25%]">Beneficiary</th>
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] text-right w-[25%]">Account Balance</th>
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] text-center w-[25%]">Action</th>
+                  <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 w-[25%]">Account Type</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 w-[25%]">Beneficiary</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 text-right w-[25%]">Account Balance</th>
+                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 text-center w-[25%]">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F0F0F0]">
@@ -501,11 +501,11 @@ export default function IRAPage() {
                           setSelectedAccountIdx(idx);
                           setView('detail');
                         }}
-                        className="hover:bg-[#FAFAFA] cursor-pointer transition-colors group"
+                        className="hover:bg-[#FAFAFA] dark:hover:bg-gray-800/60 cursor-pointer transition-colors group"
                       >
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1] group-hover:bg-[#FFC63F] group-hover:text-white transition-colors">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-950/40 group-hover:bg-[#FFC63F] group-hover:text-white transition-colors">
                               <FileText className="h-5 w-5 text-[#D1A94C] group-hover:text-white" />
                             </div>
                             <div>
@@ -526,7 +526,7 @@ export default function IRAPage() {
                           </p>
                         </td>
                         <td className="px-6 py-5 text-center">
-                          <button className="h-8 px-4 rounded-full border border-[#E5E7EB] text-[12px] font-bold text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F5F5F5] transition-colors">
+                          <button className="h-8 px-4 rounded-full border border-[#E5E7EB] dark:border-gray-700 text-[12px] font-bold text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F5F5F5] dark:hover:bg-gray-700 transition-colors">
                             View Details
                           </button>
                         </td>
@@ -563,17 +563,17 @@ export default function IRAPage() {
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
                   <thead>
-                    <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
-                      <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] w-[50%]">Legal Name</th>
-                      <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] w-[25%]">Profile Type</th>
-                      <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-[#2A2A2A] text-right w-[25%]">Investment Value</th>
+                    <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
+                      <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 w-[50%]">Legal Name</th>
+                      <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 w-[25%]">Profile Type</th>
+                      <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 text-right w-[25%]">Investment Value</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#F0F0F0]">
+                  <tbody className="divide-y divide-[#F0F0F0] dark:divide-gray-800">
                     {oldIraAccounts.map((acc, index) => (
                       <tr
                         key={index}
-                        className="hover:bg-[#FAFAFA] transition-colors"
+                        className="hover:bg-[#FAFAFA] dark:hover:bg-gray-800/60 transition-colors"
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
@@ -664,10 +664,10 @@ export default function IRAPage() {
                 <div>
                   <p className="text-[12px] font-medium text-[#6B7280] mb-[6px] font-helvetica">Phone Number</p>
                   <div className="flex gap-2">
-                    <div className="h-[42px] w-[120px] shrink-0 flex items-center rounded-[8px] border border-[#E5E7EB] bg-[#FAFAFA] px-3">
-                      <span className="text-[13px] text-[#374151] font-helvetica">{d.phoneCountryCode}</span>
+                    <div className="h-[42px] w-[120px] shrink-0 flex items-center rounded-[8px] border border-[#E5E7EB] dark:border-gray-700 bg-[#FAFAFA] dark:bg-gray-800 px-3">
+                      <span className="text-[13px] text-[#374151] dark:text-gray-200 font-helvetica">{d.phoneCountryCode}</span>
                     </div>
-                    <div className="h-[42px] w-[240px] flex items-center rounded-[8px] border border-[#E5E7EB] bg-[#FAFAFA] px-4">
+                    <div className="h-[42px] w-[240px] flex items-center rounded-[8px] border border-[#E5E7EB] dark:border-gray-700 bg-[#FAFAFA] dark:bg-gray-800 px-4">
                       <span className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{d.phoneNumber}</span>
                     </div>
                   </div>
@@ -709,10 +709,10 @@ export default function IRAPage() {
                     <div className="flex items-center gap-3">
                       <p className="text-[12px] font-medium text-[#6B7280] font-helvetica">Mailing same as Physical:</p>
                       <div className="flex gap-2">
-                        <span className={`px-3 py-0.5 rounded-full text-[12px] font-medium ${d.mailingAddressSame === 'Yes' ? 'bg-[#ECFDF5] text-[#16A66A]' : 'bg-[#F3F4F6] text-[#6B7280]'}`}>
+                        <span className={`px-3 py-0.5 rounded-full text-[12px] font-medium ${d.mailingAddressSame === 'Yes' ? 'bg-[#ECFDF5] dark:bg-emerald-950/40 text-[#16A66A] dark:text-emerald-400' : 'bg-[#F3F4F6] dark:bg-gray-800 text-[#6B7280] dark:text-gray-400'}`}>
                           Yes
                         </span>
-                        <span className={`px-3 py-0.5 rounded-full text-[12px] font-medium ${d.mailingAddressSame === 'No' ? 'bg-[#FEF2F2] text-[#EF4444]' : 'bg-[#F3F4F6] text-[#6B7280]'}`}>
+                        <span className={`px-3 py-0.5 rounded-full text-[12px] font-medium ${d.mailingAddressSame === 'No' ? 'bg-[#FEF2F2] dark:bg-red-950/40 text-[#EF4444] dark:text-red-400' : 'bg-[#F3F4F6] dark:bg-gray-800 text-[#6B7280] dark:text-gray-400'}`}>
                           No
                         </span>
                       </div>
@@ -908,7 +908,7 @@ export default function IRAPage() {
                         type="text"
                         value={user?.firstName || ''}
                         disabled
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F3F4F6] text-[#9CA3AF]"
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] dark:border-gray-700 px-4 text-[13px] font-helvetica bg-[#F3F4F6] dark:bg-gray-800 text-[#9CA3AF] dark:text-gray-400"
                       />
                     </div>
                     <div>
@@ -917,7 +917,7 @@ export default function IRAPage() {
                         type="text"
                         value={user?.lastName || ''}
                         disabled
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F3F4F6] text-[#9CA3AF]"
+                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] dark:border-gray-700 px-4 text-[13px] font-helvetica bg-[#F3F4F6] dark:bg-gray-800 text-[#9CA3AF] dark:text-gray-400"
                       />
                     </div>
                   </div>
@@ -1025,30 +1025,30 @@ export default function IRAPage() {
                   <h3 className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100 mb-1 font-goudy">Address Details</h3>
                   <p className="text-[12px] italic text-[#8E8E93] mb-4 font-helvetica">Physical Address (from your profile)</p>
 
-                  <div className="rounded-[12px] border border-[#F0F0F0] dark:border-[#2A2A2A] bg-[#FAFAFA] p-5">
+                  <div className="rounded-[12px] border border-[#F0F0F0] dark:border-gray-700 bg-[#FAFAFA] dark:bg-gray-800/60 p-5">
                     <div className="grid grid-cols-2 gap-y-4 gap-x-8">
                       <div>
-                        <p className="text-[11px] font-medium text-[#9CA3AF] mb-0.5 uppercase tracking-wider font-helvetica">Street Address 1</p>
+                        <p className="text-[11px] font-medium text-[#9CA3AF] dark:text-gray-400 mb-0.5 uppercase tracking-wider font-helvetica">Street Address 1</p>
                         <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{user?.addressLine1 || '-'}</p>
                       </div>
                       <div>
-                        <p className="text-[11px] font-medium text-[#9CA3AF] mb-0.5 uppercase tracking-wider font-helvetica">Street Address 2</p>
+                        <p className="text-[11px] font-medium text-[#9CA3AF] dark:text-gray-400 mb-0.5 uppercase tracking-wider font-helvetica">Street Address 2</p>
                         <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{user?.addressLine2 || '-'}</p>
                       </div>
                       <div>
-                        <p className="text-[11px] font-medium text-[#9CA3AF] mb-0.5 uppercase tracking-wider font-helvetica">City</p>
+                        <p className="text-[11px] font-medium text-[#9CA3AF] dark:text-gray-400 mb-0.5 uppercase tracking-wider font-helvetica">City</p>
                         <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{user?.city || '-'}</p>
                       </div>
                       <div>
-                        <p className="text-[11px] font-medium text-[#9CA3AF] mb-0.5 uppercase tracking-wider font-helvetica">State</p>
+                        <p className="text-[11px] font-medium text-[#9CA3AF] dark:text-gray-400 mb-0.5 uppercase tracking-wider font-helvetica">State</p>
                         <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{user?.state || '-'}</p>
                       </div>
                       <div>
-                        <p className="text-[11px] font-medium text-[#9CA3AF] mb-0.5 uppercase tracking-wider font-helvetica">Zip Code</p>
+                        <p className="text-[11px] font-medium text-[#9CA3AF] dark:text-gray-400 mb-0.5 uppercase tracking-wider font-helvetica">Zip Code</p>
                         <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{user?.zipCode || '-'}</p>
                       </div>
                       <div>
-                        <p className="text-[11px] font-medium text-[#9CA3AF] mb-0.5 uppercase tracking-wider font-helvetica">Country</p>
+                        <p className="text-[11px] font-medium text-[#9CA3AF] dark:text-gray-400 mb-0.5 uppercase tracking-wider font-helvetica">Country</p>
                         <p className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{user?.country || '-'}</p>
                       </div>
                     </div>
@@ -1158,10 +1158,10 @@ export default function IRAPage() {
                 </div>
 
 
-                <div className="flex justify-end gap-3 pt-6 border-t font-helvetica">
+                <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 dark:border-gray-800 font-helvetica">
                   <button
                     onClick={() => setShowAddModal(false)}
-                    className="px-8 py-2.5 rounded-full border border-[#E5E7EB] text-sm font-semibold text-[#6B7280] hover:bg-[#FAFAFA] transition-colors"
+                    className="px-8 py-2.5 rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 border border-transparent text-[#4B4B4B] dark:text-amber-300 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors font-semibold text-sm"
                   >
                     Cancel
                   </button>

@@ -212,7 +212,7 @@ export default function AdminAssignedInvestorsPage() {
                 value={query}
                 onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }}
                 placeholder="Find something here..."
-                className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#A2A5AA] font-helvetica border border-transparent focus:border-[#FFC63F] transition-all"
+                className="h-[40px] w-full rounded-full bg-[#F5F5F5] dark:bg-gray-800 pl-11 pr-4 text-[14px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#A2A5AA] dark:placeholder:text-gray-500 font-helvetica border border-transparent focus:border-[#FFC63F] transition-all"
               />
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
@@ -220,13 +220,13 @@ export default function AdminAssignedInvestorsPage() {
                 <select
                   value={kycFilter}
                   onChange={(e) => { setKycFilter(e.target.value); setCurrentPage(1); }}
-                  className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[140px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[14px] appearance-none outline-none font-helvetica text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+                  className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[140px] items-center justify-between rounded-[24px] bg-[#F5F5F5] dark:bg-gray-800 px-6 text-[14px] appearance-none outline-none font-helvetica text-[#8E8E93] dark:text-gray-300 hover:bg-[#EFEFEF] dark:hover:bg-gray-700 transition-colors cursor-pointer"
                 >
-                  <option value="All">KYC Status</option>
-                  <option>Approved</option>
-                  <option>Pending</option>
-                  <option>Rejected</option>
-                  <option>Unverified</option>
+                  <option value="All" className="dark:bg-[#1C1C1C]">KYC Status</option>
+                  <option className="dark:bg-[#1C1C1C]">Approved</option>
+                  <option className="dark:bg-[#1C1C1C]">Pending</option>
+                  <option className="dark:bg-[#1C1C1C]">Rejected</option>
+                  <option className="dark:bg-[#1C1C1C]">Unverified</option>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9CA3AF]" />
               </div>
@@ -234,17 +234,17 @@ export default function AdminAssignedInvestorsPage() {
                 <select
                   value={typeFilter}
                   onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
-                  className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[140px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[14px] appearance-none outline-none font-helvetica text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+                  className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[140px] items-center justify-between rounded-[24px] bg-[#F5F5F5] dark:bg-gray-800 px-5 text-[14px] appearance-none outline-none font-helvetica text-[#8E8E93] dark:text-gray-300 hover:bg-[#EFEFEF] dark:hover:bg-gray-700 transition-colors cursor-pointer"
                 >
-                  <option value="All">Account Type</option>
-                  <option value="Personal">Personal</option>
-                  <option value="Entity">Entity</option>
-                  <option value="Minor">Minor</option>
-                  <option value="SEP">SEP</option>
-                  <option value="Roth SEP">Roth SEP</option>
-                  <option value="DB Plan">DB Plan</option>
-                  <option value="Roth IRA">Roth IRA</option>
-                  <option value="Traditional IRA">Traditional IRA</option>
+                  <option value="All" className="dark:bg-[#1C1C1C]">Account Type</option>
+                  <option value="Personal" className="dark:bg-[#1C1C1C]">Personal</option>
+                  <option value="Entity" className="dark:bg-[#1C1C1C]">Entity</option>
+                  <option value="Minor" className="dark:bg-[#1C1C1C]">Minor</option>
+                  <option value="SEP" className="dark:bg-[#1C1C1C]">SEP</option>
+                  <option value="Roth SEP" className="dark:bg-[#1C1C1C]">Roth SEP</option>
+                  <option value="DB Plan" className="dark:bg-[#1C1C1C]">DB Plan</option>
+                  <option value="Roth IRA" className="dark:bg-[#1C1C1C]">Roth IRA</option>
+                  <option value="Traditional IRA" className="dark:bg-[#1C1C1C]">Traditional IRA</option>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9CA3AF]" />
               </div>
@@ -255,7 +255,7 @@ export default function AdminAssignedInvestorsPage() {
             <div className="min-w-[800px] sm:min-w-full inline-block align-middle px-4 sm:px-0">
               <table className="w-full text-left border-separate border-spacing-0">
                 <thead>
-                  <tr className="border-b border-[#ECEDEF]">
+                  <tr className="border-b border-[#ECEDEF] dark:border-gray-800">
                     {[
                       { label: "Investor Name", minWidth: "180px", sortKey: "name" },
                       { label: "Email", minWidth: "180px", sortKey: "email" },
@@ -269,12 +269,12 @@ export default function AdminAssignedInvestorsPage() {
                         key={h.label}
                         style={{ minWidth: h.minWidth }}
                         onClick={() => h.sortKey && requestSort(h.sortKey as keyof Investor)}
-                        className={`px-3 py-3 text-[12px] sm:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap border-b border-[#ECEDEF] ${h.align || ""} ${h.sortKey ? "cursor-pointer hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800" : ""}`}
+                        className={`px-3 py-3 text-[12px] sm:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap border-b border-[#ECEDEF] dark:border-gray-800 ${h.align || ""} ${h.sortKey ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" : ""}`}
                       >
                         <span className={`inline-flex items-center gap-1 ${h.align === "text-right" ? "justify-end w-full" : ""}`}>
                           {h.label}
                           {h.sortKey && (
-                            <ArrowUpDown className={`h-3 w-3 transition-colors ${sortConfig?.key === h.sortKey ? "text-[#1F3B6E]" : "text-[#C4C4C4]"}`} />
+                            <ArrowUpDown className={`h-3 w-3 transition-colors ${sortConfig?.key === h.sortKey ? "text-[#1F3B6E] dark:text-amber-400" : "text-[#C4C4C4] dark:text-gray-600"}`} />
                           )}
                         </span>
                       </th>
@@ -284,13 +284,13 @@ export default function AdminAssignedInvestorsPage() {
                 <tbody>
                   <tr className="bg-white dark:bg-[#1C1C1C]">
                     <td colSpan={7} className="px-3 py-6">
-                      <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Active Investors</h2>
+                      <h2 className="text-[16px] font-bold text-[#2E2E2E] dark:text-gray-100 font-goudy">Active Investors</h2>
                     </td>
                   </tr>
                   {loading ? (
                     Array.from({ length: 2 }).map((_, i) => (
                       <tr key={`l-act-${i}`} className="animate-pulse">
-                        <td colSpan={7} className="px-3 py-4 border-b border-[#F5F5F5]"><div className="h-4 bg-gray-100 rounded w-full"></div></td>
+                        <td colSpan={7} className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800"><div className="h-4 bg-gray-100 dark:bg-gray-800 rounded w-full"></div></td>
                       </tr>
                     ))
                   ) : active.length > 0 ? (
@@ -302,39 +302,39 @@ export default function AdminAssignedInvestorsPage() {
                             router.push(`/dashboard/investor/${inv.id}`);
                           }
                         }}
-                        className="group hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                        className="group hover:bg-[#FAFAFA] dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
                       >
-                        <td className="px-3 py-4 border-b border-[#F5F5F5]">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
                           <div className="flex items-center gap-3">
                             {inv.avatar ? (
                               <img src={inv.avatar} alt={inv.name} className="w-[34px] h-[34px] rounded-full object-cover" />
                             ) : (
-                              <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[12px] font-semibold font-helvetica border border-[#E5E7EB]">
+                              <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] dark:bg-gray-700 flex items-center justify-center text-[#6B7280] dark:text-gray-300 text-[12px] font-semibold font-helvetica border border-[#E5E7EB] dark:border-gray-600">
                                 {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                               </div>
                             )}
                             <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{inv.name}</span>
                           </div>
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate">{inv.email}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap capitalize">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica truncate">{inv.email}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap capitalize">
                           {inv.investorType || 'Personal'}
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5]">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
                           <span className={`text-[13px] font-semibold font-helvetica whitespace-nowrap ${kycColor(inv.kyc)}`}>
                             {inv.kyc}
                           </span>
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.missingDocs}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.date}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-right">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap">{inv.missingDocs}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap">{inv.date}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Link href={`/dashboard/messages?userId=${inv.id}`} className="relative p-1.5 text-[#9CA3AF] hover:text-[#6B7280] transition-colors inline-block" title="Message">
+                            <Link href={`/dashboard/messages?userId=${inv.id}`} className="relative p-1.5 text-[#9CA3AF] dark:text-gray-400 hover:text-[#6B7280] dark:hover:text-gray-200 transition-colors inline-block" title="Message">
                               <MessageSquare className="h-[18px] w-[18px]" />
-                              {inv.hasNewMessage && <span className="absolute -top-0.5 -right-0.5 h-[8px] w-[8px] rounded-full bg-[#16A66A] border border-white" />}
+                              {inv.hasNewMessage && <span className="absolute -top-0.5 -right-0.5 h-[8px] w-[8px] rounded-full bg-[#16A66A] border border-white dark:border-[#1C1C1C]" />}
                             </Link>
                             <Link href={`/dashboard/investor/${inv.id}`} onClick={(e) => e.stopPropagation()}>
-                              <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                              <button className="px-4 py-2 bg-[#F9FAFB] dark:bg-gray-800 border border-[#E5E7EB] dark:border-gray-700 text-[#4B5563] dark:text-gray-200 text-xs font-bold rounded-full hover:bg-[#F3F4F6] dark:hover:bg-gray-700 hover:border-[#D1D5DB] dark:hover:border-gray-600 transition-all whitespace-nowrap shadow-sm">
                                 View Profile
                               </button>
                             </Link>
@@ -343,18 +343,18 @@ export default function AdminAssignedInvestorsPage() {
                       </tr>
                     ))
                   ) : !loading && (
-                    <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm border-b border-[#F5F5F5]">No active personal investors found.</td></tr>
+                    <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm border-b border-[#F5F5F5] dark:border-gray-800">No active personal investors found.</td></tr>
                   )}
 
                   <tr className="bg-white dark:bg-[#1C1C1C]">
                     <td colSpan={7} className="px-3 py-8 pt-10">
-                      <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Active IRA Accounts</h2>
+                      <h2 className="text-[16px] font-bold text-[#2E2E2E] dark:text-gray-100 font-goudy">Active IRA Accounts</h2>
                     </td>
                   </tr>
                   {loading ? (
                     Array.from({ length: 1 }).map((_, i) => (
                       <tr key={`l-ira-${i}`} className="animate-pulse">
-                        <td colSpan={7} className="px-3 py-4 border-b border-[#F5F5F5]"><div className="h-4 bg-gray-100 rounded w-full"></div></td>
+                        <td colSpan={7} className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800"><div className="h-4 bg-gray-100 dark:bg-gray-800 rounded w-full"></div></td>
                       </tr>
                     ))
                   ) : ira.length > 0 ? (
@@ -366,37 +366,37 @@ export default function AdminAssignedInvestorsPage() {
                             router.push(`/dashboard/investor/${inv.id}`);
                           }
                         }}
-                        className="group hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                        className="group hover:bg-[#FAFAFA] dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
                       >
-                        <td className="px-3 py-4 border-b border-[#F5F5F5]">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
                           <div className="flex items-center gap-3">
                             {inv.avatar ? (
                               <img src={inv.avatar} alt={inv.name} className="w-[34px] h-[34px] rounded-full object-cover" />
                             ) : (
-                              <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[12px] font-semibold font-helvetica border border-[#E5E7EB]">
+                              <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] dark:bg-gray-700 flex items-center justify-center text-[#6B7280] dark:text-gray-300 text-[12px] font-semibold font-helvetica border border-[#E5E7EB] dark:border-gray-600">
                                 {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                               </div>
                             )}
                             <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{inv.name}</span>
                           </div>
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate">{inv.email}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.accountType}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5]">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica truncate">{inv.email}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap">{inv.accountType}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
                           <span className={`text-[13px] font-semibold font-helvetica whitespace-nowrap ${kycColor(inv.kyc)}`}>
                             {inv.kyc}
                           </span>
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.missingDocs}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{inv.date}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-right">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap">{inv.missingDocs}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap">{inv.date}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Link href={`/dashboard/messages?userId=${inv.id}`} className="relative p-1.5 text-[#9CA3AF] hover:text-[#6B7280] transition-colors inline-block" title="Message">
+                            <Link href={`/dashboard/messages?userId=${inv.id}`} className="relative p-1.5 text-[#9CA3AF] dark:text-gray-400 hover:text-[#6B7280] dark:hover:text-gray-200 transition-colors inline-block" title="Message">
                               <MessageSquare className="h-[18px] w-[18px]" />
-                              {inv.hasNewMessage && <span className="absolute -top-0.5 -right-0.5 h-[8px] w-[8px] rounded-full bg-[#16A66A] border border-white" />}
+                              {inv.hasNewMessage && <span className="absolute -top-0.5 -right-0.5 h-[8px] w-[8px] rounded-full bg-[#16A66A] border border-white dark:border-[#1C1C1C]" />}
                             </Link>
                             <Link href={`/dashboard/investor/${inv.id}`} onClick={(e) => e.stopPropagation()}>
-                              <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                              <button className="px-4 py-2 bg-[#F9FAFB] dark:bg-gray-800 border border-[#E5E7EB] dark:border-gray-700 text-[#4B5563] dark:text-gray-200 text-xs font-bold rounded-full hover:bg-[#F3F4F6] dark:hover:bg-gray-700 hover:border-[#D1D5DB] dark:hover:border-gray-600 transition-all whitespace-nowrap shadow-sm">
                                 View Profile
                               </button>
                             </Link>
@@ -405,12 +405,12 @@ export default function AdminAssignedInvestorsPage() {
                       </tr>
                     ))
                   ) : !loading && (
-                    <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm border-b border-[#F5F5F5]">No active IRA investors found.</td></tr>
+                    <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm border-b border-[#F5F5F5] dark:border-gray-800">No active IRA investors found.</td></tr>
                   )}
 
                   <tr className="bg-white dark:bg-[#1C1C1C]">
                     <td colSpan={7} className="px-3 py-8 pt-10">
-                      <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Pending Investors</h2>
+                      <h2 className="text-[16px] font-bold text-[#2E2E2E] dark:text-gray-100 font-goudy">Pending Investors</h2>
                     </td>
                   </tr>
                   {!loading && pending.length > 0 ? (
@@ -422,38 +422,38 @@ export default function AdminAssignedInvestorsPage() {
                             router.push(`/dashboard/investor/${inv.id}`);
                           }
                         }}
-                        className="group hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                        className="group hover:bg-[#FAFAFA] dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
                       >
-                        <td className="px-3 py-4 border-b border-[#F5F5F5]">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
                           <div className="flex items-center gap-3 opacity-60">
                             {inv.avatar ? (
                               <img src={inv.avatar} alt={inv.name} className="w-[34px] h-[34px] rounded-full object-cover" />
                             ) : (
-                              <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[12px] font-semibold font-helvetica border border-[#E5E7EB]">
+                              <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] dark:bg-gray-700 flex items-center justify-center text-[#6B7280] dark:text-gray-300 text-[12px] font-semibold font-helvetica border border-[#E5E7EB] dark:border-gray-600">
                                 {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                               </div>
                             )}
                             <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{inv.name}</span>
                           </div>
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate opacity-60">{inv.email}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-60 capitalize">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica truncate opacity-60">{inv.email}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap opacity-60 capitalize">
                           {inv.investorType || 'Personal'}
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] opacity-60">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 opacity-60">
                           <span className={`text-[13px] font-semibold font-helvetica whitespace-nowrap ${kycColor(inv.kyc)}`}>
                             {inv.kyc}
                           </span>
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-60">{inv.missingDocs}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-60">{inv.date}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-right">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap opacity-60">{inv.missingDocs}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap opacity-60">{inv.date}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Setup in progress">
+                            <div className="p-1.5 text-gray-200 dark:text-gray-600 cursor-not-allowed inline-block" title="Setup in progress">
                               <MessageSquare className="h-[18px] w-[18px]" />
                             </div>
                             <Link href={`/dashboard/investor/${inv.id}`} onClick={(e) => e.stopPropagation()}>
-                              <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                              <button className="px-4 py-2 bg-[#F9FAFB] dark:bg-gray-800 border border-[#E5E7EB] dark:border-gray-700 text-[#4B5563] dark:text-gray-200 text-xs font-bold rounded-full hover:bg-[#F3F4F6] dark:hover:bg-gray-700 hover:border-[#D1D5DB] dark:hover:border-gray-600 transition-all whitespace-nowrap shadow-sm">
                                 View Profile
                               </button>
                             </Link>
@@ -462,12 +462,12 @@ export default function AdminAssignedInvestorsPage() {
                       </tr>
                     ))
                   ) : !loading && (
-                    <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm border-b border-[#F5F5F5]">No pending investors found.</td></tr>
+                    <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400 text-sm border-b border-[#F5F5F5] dark:border-gray-800">No pending investors found.</td></tr>
                   )}
 
                   <tr className="bg-white dark:bg-[#1C1C1C]">
                     <td colSpan={7} className="px-3 py-8 pt-10">
-                      <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Suspended Login Accounts</h2>
+                      <h2 className="text-[16px] font-bold text-[#2E2E2E] dark:text-gray-100 font-goudy">Suspended Login Accounts</h2>
                     </td>
                   </tr>
                   {!loading && suspendedLogin.length > 0 ? (
@@ -479,38 +479,38 @@ export default function AdminAssignedInvestorsPage() {
                             router.push(`/dashboard/investor/${inv.id}`);
                           }
                         }}
-                        className="group hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                        className="group hover:bg-[#FAFAFA] dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
                       >
-                        <td className="px-3 py-4 border-b border-[#F5F5F5]">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
                           <div className="flex items-center gap-3 opacity-50">
                             {inv.avatar ? (
                               <img src={inv.avatar} alt={inv.name} className="w-[34px] h-[34px] rounded-full object-cover" />
                             ) : (
-                              <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[12px] font-semibold font-helvetica border border-[#E5E7EB]">
+                              <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] dark:bg-gray-700 flex items-center justify-center text-[#6B7280] dark:text-gray-300 text-[12px] font-semibold font-helvetica border border-[#E5E7EB] dark:border-gray-600">
                                 {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                               </div>
                             )}
                             <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{inv.name}</span>
                           </div>
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate opacity-50">{inv.email}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50 capitalize">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica truncate opacity-50">{inv.email}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap opacity-50 capitalize">
                           {inv.investorType || 'Personal'}
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] opacity-50">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 opacity-50">
                           <span className={`text-[13px] font-semibold font-helvetica whitespace-nowrap text-red-500`}>
                             Suspended
                           </span>
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">-</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">{inv.date}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-right">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap opacity-50">-</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap opacity-50">{inv.date}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Account suspended">
+                            <div className="p-1.5 text-gray-200 dark:text-gray-600 cursor-not-allowed inline-block" title="Account suspended">
                               <MessageSquare className="h-[18px] w-[18px]" />
                             </div>
                             <Link href={`/dashboard/investor/${inv.id}`} onClick={(e) => e.stopPropagation()}>
-                              <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                              <button className="px-4 py-2 bg-[#F9FAFB] dark:bg-gray-800 border border-[#E5E7EB] dark:border-gray-700 text-[#4B5563] dark:text-gray-200 text-xs font-bold rounded-full hover:bg-[#F3F4F6] dark:hover:bg-gray-700 hover:border-[#D1D5DB] dark:hover:border-gray-600 transition-all whitespace-nowrap shadow-sm">
                                 View Profile
                               </button>
                             </Link>
@@ -524,7 +524,7 @@ export default function AdminAssignedInvestorsPage() {
 
                   <tr className="bg-white dark:bg-[#1C1C1C]">
                     <td colSpan={7} className="px-3 py-8 pt-10">
-                      <h2 className="text-[16px] font-bold text-[#2E2E2E] font-goudy">Suspended IRA Accounts</h2>
+                      <h2 className="text-[16px] font-bold text-[#2E2E2E] dark:text-gray-100 font-goudy">Suspended IRA Accounts</h2>
                     </td>
                   </tr>
                   {!loading && suspendedIra.length > 0 ? (
@@ -536,36 +536,36 @@ export default function AdminAssignedInvestorsPage() {
                             router.push(`/dashboard/investor/${inv.id}`);
                           }
                         }}
-                        className="group hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                        className="group hover:bg-[#FAFAFA] dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
                       >
-                        <td className="px-3 py-4 border-b border-[#F5F5F5]">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
                           <div className="flex items-center gap-3 opacity-50">
                             {inv.avatar ? (
                               <img src={inv.avatar} alt={inv.name} className="w-[34px] h-[34px] rounded-full object-cover" />
                             ) : (
-                              <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[12px] font-semibold font-helvetica border border-[#E5E7EB]">
+                              <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] dark:bg-gray-700 flex items-center justify-center text-[#6B7280] dark:text-gray-300 text-[12px] font-semibold font-helvetica border border-[#E5E7EB] dark:border-gray-600">
                                 {inv.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                               </div>
                             )}
                             <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{inv.name}</span>
                           </div>
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate opacity-50">{inv.email}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">{inv.accountType}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] opacity-50">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica truncate opacity-50">{inv.email}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap opacity-50">{inv.accountType}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 opacity-50">
                           <span className={`text-[13px] font-semibold font-helvetica whitespace-nowrap text-red-500`}>
                             Suspended
                           </span>
                         </td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">-</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap opacity-50">{inv.date}</td>
-                        <td className="px-3 py-4 border-b border-[#F5F5F5] text-right">
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap opacity-50">-</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#6B7280] dark:text-gray-300 font-helvetica whitespace-nowrap opacity-50">{inv.date}</td>
+                        <td className="px-3 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <div className="p-1.5 text-gray-200 cursor-not-allowed inline-block" title="Account suspended">
+                            <div className="p-1.5 text-gray-200 dark:text-gray-600 cursor-not-allowed inline-block" title="Account suspended">
                               <MessageSquare className="h-[18px] w-[18px]" />
                             </div>
                             <Link href={`/dashboard/investor/${inv.id}`} onClick={(e) => e.stopPropagation()}>
-                              <button className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] text-[#4B5563] text-xs font-bold rounded-full hover:bg-[#F3F4F6] hover:border-[#D1D5DB] transition-all whitespace-nowrap shadow-sm">
+                              <button className="px-4 py-2 bg-[#F9FAFB] dark:bg-gray-800 border border-[#E5E7EB] dark:border-gray-700 text-[#4B5563] dark:text-gray-200 text-xs font-bold rounded-full hover:bg-[#F3F4F6] dark:hover:bg-gray-700 hover:border-[#D1D5DB] dark:hover:border-gray-600 transition-all whitespace-nowrap shadow-sm">
                                 View Profile
                               </button>
                             </Link>

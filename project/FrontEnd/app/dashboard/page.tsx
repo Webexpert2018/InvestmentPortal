@@ -298,8 +298,8 @@ export default function DashboardPage() {
         name: fund.fundName,
         type: 'Active Fund',
         totalInvestedFormatted: fund.totalInvestedFormatted,
-        badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
-        typeLabelColor: 'text-emerald-600',
+        badgeColor: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-900/50',
+        typeLabelColor: 'text-emerald-600 dark:text-emerald-400',
         initialLetter: fund.fundName ? fund.fundName[0].toUpperCase() : 'A'
       });
     });
@@ -311,8 +311,8 @@ export default function DashboardPage() {
         name: fund.projectName,
         type: 'Real Estate Fund',
         totalInvestedFormatted: fund.totalInvestedFormatted,
-        badgeColor: 'bg-amber-50 text-amber-700 border-amber-200/60',
-        typeLabelColor: 'text-amber-600',
+        badgeColor: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200/60 dark:border-amber-900/50',
+        typeLabelColor: 'text-amber-600 dark:text-amber-400',
         initialLetter: fund.projectName ? fund.projectName[0].toUpperCase() : 'L'
       });
     });
@@ -580,7 +580,7 @@ export default function DashboardPage() {
 
             <div className="flex items-center gap-4">
               {user?.parentId && (
-                <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+                <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
                   <div className="h-2.5 w-2.5 rounded-full bg-[#2BB673]"></div>
                   <div>
                     <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Responsible Entity</p>
@@ -589,7 +589,7 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+              <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
                 <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
                 <div>
                   <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
@@ -597,7 +597,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+              <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
                 <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
                 <div>
                   <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
@@ -745,7 +745,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-                <div className="h-32 w-full rounded-2xl bg-[#FFF9EE] p-2">
+                <div className="h-32 w-full rounded-2xl bg-[#FFF9EE] dark:bg-[#262626] p-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={performanceData}>
                       <defs>
@@ -836,19 +836,19 @@ export default function DashboardPage() {
                 <div className="mt-5 space-y-3">
                   <Link
                     href="/dashboard/invest"
-                    className="block w-full rounded-full bg-[#FFF3D6] py-3 text-center text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF]"
+                    className="block w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-3 text-center text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
                   >
                     Invest
                   </Link>
                   <Link
                     href="/dashboard/messages"
-                    className="block w-full rounded-full bg-[#FFF3D6] py-3 text-center text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF]"
+                    className="block w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-3 text-center text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
                   >
                     Messages
                   </Link>
                   <Link
                     href="/dashboard/schedule-meeting"
-                    className="block w-full rounded-full bg-[#FFF3D6] py-3 text-center text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF]"
+                    className="block w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-3 text-center text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
                   >
                     Schedule Meeting
                   </Link>
@@ -874,7 +874,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200/60 text-xs font-bold">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 dark:bg-amber-950/40 text-orange-700 dark:text-amber-400 border border-orange-200/60 dark:border-amber-900/50 text-xs font-bold">
                   {combinedFundsList.length} {combinedFundsList.length === 1 ? 'Fund' : 'Funds'}
                 </span>
                 <button
@@ -891,14 +891,14 @@ export default function DashboardPage() {
             {fundsOpen && (
               <div className="pt-2">
                 {combinedFundsList.length > 0 ? (
-                  <div className="divide-y divide-gray-100">
+                  <div className="divide-y divide-gray-100 dark:divide-gray-800">
                     {combinedFundsList.map((fund: any, idx: number) => (
                       <div
                         key={fund.id || idx}
-                        className="grid grid-cols-[2fr_1.2fr_1fr] items-center gap-4 py-3.5 px-3 -mx-3 rounded-xl hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/40 transition-colors duration-150"
+                        className="grid grid-cols-[2fr_1.2fr_1fr] items-center gap-4 py-3.5 px-3 -mx-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors duration-150"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#FFF3D6] text-[#E29F3A] border border-[#FCD34D]/50 flex items-center justify-center font-bold text-sm shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-[#FFF3D6] dark:bg-amber-950/50 text-[#E29F3A] dark:text-amber-400 border border-[#FCD34D]/50 dark:border-amber-700/50 flex items-center justify-center font-bold text-sm shrink-0">
                             {fund.initialLetter}
                           </div>
                           <p className="font-bold text-gray-900 dark:text-gray-100 text-sm leading-snug">
@@ -943,7 +943,7 @@ export default function DashboardPage() {
                 }
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF3D6] text-sm font-semibold text-[#E29F3A]">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF3D6] dark:bg-amber-950/50 text-sm font-semibold text-[#E29F3A] dark:text-amber-400">
                     {filteredPendingActions.length}
                   </span>
                   <p className="font-goudy text-sm">Pending Actions</p>
@@ -961,7 +961,7 @@ export default function DashboardPage() {
                       <Link
                         href={href}
                         key={item.id}
-                        className="flex items-center justify-between gap-3 border-b border-gray-50 dark:border-gray-800 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-[#F9FAFB] p-1 rounded-md transition-colors w-full"
+                        className="flex items-center justify-between gap-3 border-b border-gray-50 dark:border-gray-800 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-[#F9FAFB] dark:hover:bg-gray-800/50 p-1 rounded-md transition-colors w-full"
                       >
                         <div>
                           <p className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{item.title}</p>
@@ -971,11 +971,11 @@ export default function DashboardPage() {
                           {item.title === 'KYC Verification' && (
                             <>
                               {item.status === 'pending' ? (
-                                <span className="text-[12px] font-bold bg-[#FFF4E0] text-[#E59D22] px-3.5 py-1.5 rounded-full border border-[#FFE8C2] shadow-xs">
+                                <span className="text-[12px] font-bold bg-[#FFF4E0] dark:bg-amber-950/40 text-[#E59D22] dark:text-amber-400 px-3.5 py-1.5 rounded-full border border-[#FFE8C2] dark:border-amber-900/50 shadow-xs">
                                   Pending
                                 </span>
                               ) : item.status === 'rejected' ? (
-                                <span className="text-[12px] font-bold bg-[#FFF1F1] text-[#FF4C4C] px-3.5 py-1.5 rounded-full border border-[#FFE3E3] shadow-xs">
+                                <span className="text-[12px] font-bold bg-[#FFF1F1] dark:bg-red-950/40 text-[#FF4C4C] dark:text-red-400 px-3.5 py-1.5 rounded-full border border-[#FFE3E3] dark:border-red-900/50 shadow-xs">
                                   Retry
                                 </span>
                               ) : (
@@ -1007,7 +1007,7 @@ export default function DashboardPage() {
                 }
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#E4F6F4] text-sm font-semibold text-[#2BB673]">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#E4F6F4] dark:bg-emerald-950/50 text-sm font-semibold text-[#2BB673] dark:text-emerald-400">
                     {dynamicConversations.filter(c => (c.unread_count || 0) > 0).length}
                   </span>
                   <p className="font-goudy text-sm">Unread Messages</p>
@@ -1037,7 +1037,7 @@ export default function DashboardPage() {
                         <Link
                           href="/dashboard/messages"
                           key={conv.id}
-                          className="flex items-start justify-between gap-3 border-b border-gray-50 dark:border-gray-800 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-[#F9FAFB] transition-colors"
+                          className="flex items-start justify-between gap-3 border-b border-gray-50 dark:border-gray-800 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-[#F9FAFB] dark:hover:bg-gray-800/50 transition-colors"
                         >
                           <div className="flex flex-1 items-start gap-3">
                             <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[#2BB673]" />
@@ -1070,7 +1070,7 @@ export default function DashboardPage() {
                 }
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF3D6] text-sm font-semibold text-[#E29F3A]">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF3D6] dark:bg-amber-950/50 text-sm font-semibold text-[#E29F3A] dark:text-amber-400">
                     {investorAccountList.length}
                   </span>
                   <p className="font-goudy text-sm">Your IRA Accounts</p>
@@ -1085,13 +1085,13 @@ export default function DashboardPage() {
                   {investorAccountList.map((acc) => (
                     <div
                       key={acc.id}
-                      className="flex items-center justify-between rounded-xl bg-[#F7F8FA] px-4 py-3"
+                      className="flex items-center justify-between rounded-xl bg-[#F7F8FA] dark:bg-gray-800/60 px-4 py-3"
                     >
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{acc.name}</p>
                           {acc.status?.toLowerCase() === 'suspended' && (
-                            <span className="bg-red-50 text-red-500 text-[10px] font-bold px-1.5 py-0.5 rounded border border-red-100 uppercase">Suspended</span>
+                            <span className="bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-red-100 dark:border-red-900/50 uppercase">Suspended</span>
                           )}
                         </div>
                         <p className="mt-1 text-[11px] text-[#8E8E93]">{acc.subtitle}</p>
@@ -1279,7 +1279,7 @@ export default function DashboardPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {/* Assigned Investors */}
-              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-sm border border-[#F3F4F6]">
+              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-sm border border-[#F3F4F6] dark:border-[#2A2A2A]">
                 <button
                   type="button"
                   onClick={() => setAssignedOpen((s) => !s)}
@@ -1288,18 +1288,18 @@ export default function DashboardPage() {
                   aria-controls="assigned-panel"
                 >
                   <div className="flex items-center gap-4">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF9EE] text-lg font-goudy leading-none text-[#E7A324]">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF9EE] dark:bg-amber-950/50 text-lg font-goudy leading-none text-[#E7A324] dark:text-amber-400">
                       {assignedInvestors.length}
                     </span>
-                    <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E]">Assigned Investors</h3>
+                    <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E] dark:text-gray-100">Assigned Investors</h3>
                   </div>
                   <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${assignedOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                <div id="assigned-panel" aria-hidden={!assignedOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${assignedOpen ? 'border-t border-[#EEEEEE] max-h-96' : 'max-h-0'}`}>
+                <div id="assigned-panel" aria-hidden={!assignedOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${assignedOpen ? 'border-t border-[#EEEEEE] dark:border-[#2A2A2A] max-h-96' : 'max-h-0'}`}>
                   <div className="pt-0 overflow-y-auto max-h-[300px]">
                     {assignedInvestors.map((inv, idx) => (
-                      <div key={inv.id} className="flex items-center gap-4 py-3 border-b border-[#EEEEEE] last:border-0">
+                      <div key={inv.id} className="flex items-center gap-4 py-3 border-b border-[#EEEEEE] dark:border-gray-800 last:border-0 hover:bg-[#F9FAFB] dark:hover:bg-gray-800/50 transition-colors px-2 rounded-lg">
                         <div className="relative shrink-0">
                           {inv.profile_image_url ? (
                             <img
@@ -1308,14 +1308,14 @@ export default function DashboardPage() {
                               className="h-10 w-10 rounded-full object-cover border border-gray-100 dark:border-gray-800"
                             />
                           ) : (
-                            <div className="h-10 w-10 rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[13px] font-semibold font-helvetica border border-[#E5E7EB]">
+                            <div className="h-10 w-10 rounded-full bg-[#F3F4F6] dark:bg-gray-700 flex items-center justify-center text-[#6B7280] dark:text-gray-300 text-[13px] font-semibold font-helvetica border border-[#E5E7EB] dark:border-gray-600">
                               {inv.full_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
                             </div>
                           )}
-                          <div className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white ${inv.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                          <div className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white dark:border-[#1C1C1C] ${inv.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[16px] font-goudy leading-none text-[#2E2E2E] truncate">{inv.full_name}</p>
+                          <p className="text-[16px] font-goudy leading-none text-[#2E2E2E] dark:text-gray-100 truncate">{inv.full_name}</p>
                         </div>
                       </div>
                     ))}
@@ -1327,7 +1327,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Unread Messages */}
-              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-sm border border-[#F3F4F6]">
+              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-sm border border-[#F3F4F6] dark:border-[#2A2A2A]">
                 <button
                   type="button"
                   onClick={() => setMessagesOpen((s) => !s)}
@@ -1336,15 +1336,15 @@ export default function DashboardPage() {
                   aria-controls="messages-panel"
                 >
                   <div className="flex items-center gap-4">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#E4F6F4] text-lg font-goudy leading-none text-[#2BB673]">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#E4F6F4] dark:bg-emerald-950/50 text-lg font-goudy leading-none text-[#2BB673] dark:text-emerald-400">
                       {dynamicConversations.reduce((sum, m) => sum + (m.unread_count || 0), 0)}
                     </span>
-                    <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E]">Unread Messages</h3>
+                    <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E] dark:text-gray-100">Unread Messages</h3>
                   </div>
                   <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${messagesOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                <div id="messages-panel" aria-hidden={!messagesOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${messagesOpen ? 'border-t border-[#EEEEEE] max-h-96' : 'max-h-0'}`}>
+                <div id="messages-panel" aria-hidden={!messagesOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${messagesOpen ? 'border-t border-[#EEEEEE] dark:border-[#2A2A2A] max-h-96' : 'max-h-0'}`}>
                   <div className="pt-0 overflow-y-auto max-h-[300px]">
                     {dynamicConversations.filter(c => (c.unread_count || 0) > 0).map((m, idx) => {
                       const otherParticipant = m.participants?.find((p: any) => p.id !== user?.id);
@@ -1355,26 +1355,26 @@ export default function DashboardPage() {
                         <Link
                           href="/dashboard/messages"
                           key={m.id}
-                          className="flex items-start justify-between gap-3 py-4 border-b border-[#EEEEEE] last:border-0 cursor-pointer hover:bg-[#F9FAFB] transition-colors"
+                          className="flex items-start justify-between gap-3 py-4 border-b border-[#EEEEEE] dark:border-gray-800 last:border-0 cursor-pointer hover:bg-[#F9FAFB] dark:hover:bg-gray-800/50 transition-colors px-2 rounded-lg"
                         >
                           <div className="flex items-center gap-4">
                             {avatar ? (
                               <img src={avatar} alt="avatar" className="h-10 w-10 rounded-full object-cover shrink-0" />
                             ) : (
-                              <div className="h-10 w-10 rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[13px] font-semibold font-helvetica border border-[#E5E7EB] shrink-0">
+                              <div className="h-10 w-10 rounded-full bg-[#F3F4F6] dark:bg-gray-700 flex items-center justify-center text-[#6B7280] dark:text-gray-300 text-[13px] font-semibold font-helvetica border border-[#E5E7EB] dark:border-gray-600 shrink-0">
                                 {name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
                               </div>
                             )}
                             <div className="min-w-0">
-                              <p className="text-[16px] font-goudy leading-none text-[#2E2E2E] truncate">{name}</p>
-                              <p className="mt-2 text-sm font-helvetica text-[#8E8E93] max-w-[200px] truncate">{m.last_message || 'New conversation'}</p>
+                              <p className="text-[16px] font-goudy leading-none text-[#2E2E2E] dark:text-gray-100 truncate">{name}</p>
+                              <p className="mt-2 text-sm font-helvetica text-[#8E8E93] dark:text-gray-400 max-w-[200px] truncate">{m.last_message || 'New conversation'}</p>
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-2 shrink-0">
-                            <span className="text-[11px] text-[#C0C0C0]">
+                            <span className="text-[11px] text-[#C0C0C0] dark:text-gray-500">
                               {m.updated_at ? formatDistanceToNow(new Date(m.updated_at), { addSuffix: true }).replace('about ', '') : 'Now'}
                             </span>
-                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ECFDF3] text-xs font-medium text-[#2BB673]">{m.unread_count}</span>
+                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ECFDF3] dark:bg-emerald-950/60 text-xs font-medium text-[#2BB673] dark:text-emerald-400">{m.unread_count}</span>
                           </div>
                         </Link>
                       );
@@ -1387,7 +1387,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Notifications */}
-              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-sm border border-[#F3F4F6]">
+              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-sm border border-[#F3F4F6] dark:border-[#2A2A2A]">
                 <button
                   type="button"
                   onClick={() => setNotificationsOpen((s) => !s)}
@@ -1396,25 +1396,25 @@ export default function DashboardPage() {
                   aria-controls="notifications-panel"
                 >
                   <div className="flex items-center gap-4">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#EEF2FF] text-lg font-goudy leading-none text-[#6366F1]">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#EEF2FF] dark:bg-indigo-950/50 text-lg font-goudy leading-none text-[#6366F1] dark:text-indigo-400">
                       {dynamicNotifications.filter(n => !n.is_read).length}
                     </span>
-                    <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E]">Notifications</h3>
+                    <h3 className="text-[20px] font-goudy leading-none text-[#2E2E2E] dark:text-gray-100">Notifications</h3>
                   </div>
                   <ChevronDown className={`h-5 w-5 text-gray-400 transform transition-transform ${notificationsOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                <div id="notifications-panel" aria-hidden={!notificationsOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${notificationsOpen ? 'border-t border-[#EEEEEE] max-h-96' : 'max-h-0'}`}>
+                <div id="notifications-panel" aria-hidden={!notificationsOpen} className={`p-6 pt-3 overflow-hidden transition-[max-height] duration-300 ${notificationsOpen ? 'border-t border-[#EEEEEE] dark:border-[#2A2A2A] max-h-96' : 'max-h-0'}`}>
                   <div className="pt-0 overflow-y-auto max-h-[300px]">
                     {dynamicNotifications.map((n) => (
-                      <div key={n.id} className={`text-sm text-[#4B4B4B] dark:text-gray-300 border-b border-[#EEEEEE] py-4 last:border-0 hover:bg-[#F9FAFB] transition-colors px-2 rounded-lg ${!n.is_read ? 'bg-indigo-50/30' : ''}`}>
+                      <div key={n.id} className={`text-sm text-[#4B4B4B] dark:text-gray-300 border-b border-[#EEEEEE] dark:border-gray-800 py-4 last:border-0 hover:bg-[#F9FAFB] dark:hover:bg-gray-800/50 transition-colors px-2 rounded-lg ${!n.is_read ? 'bg-indigo-50/30 dark:bg-indigo-950/30' : ''}`}>
                         <div className="flex justify-between items-start">
                           <p className="font-medium text-[#1F1F1F] dark:text-gray-100 flex-1">{n.title}</p>
-                          <span className="text-[10px] text-[#A2A5AA] shrink-0 ml-2">
+                          <span className="text-[10px] text-[#A2A5AA] dark:text-gray-500 shrink-0 ml-2">
                             {formatDistanceToNow(new Date(n.created_at), { addSuffix: true }).replace('about ', '')}
                           </span>
                         </div>
-                        <p className="mt-1 text-xs font-helvetica text-[#8E8E93] leading-relaxed">{n.description || n.message}</p>
+                        <p className="mt-1 text-xs font-helvetica text-[#8E8E93] dark:text-gray-400 leading-relaxed">{n.description || n.message}</p>
                       </div>
                     ))}
                     {dynamicNotifications.length === 0 && (

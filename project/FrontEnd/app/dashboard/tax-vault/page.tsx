@@ -198,22 +198,22 @@ export default function TaxVaultPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex bg-[#F5F5F5] p-1 rounded-full border border-gray-100 dark:border-gray-800">
+              <div className="flex bg-[#F5F5F5] dark:bg-gray-800 p-1 rounded-full border border-gray-100 dark:border-gray-700">
                 <button
                   onClick={() => setViewFilter('All')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'All' ? 'bg-[#FFF4CE] text-[#8E6300] shadow-sm ring-1 ring-[#FFE270]' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-100'}`}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'All' ? 'bg-[#FFF4CE] text-[#8E6300] dark:bg-amber-950/60 dark:text-amber-400 shadow-sm ring-1 ring-[#FFE270] dark:ring-amber-800/80' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-400 dark:hover:text-gray-200'}`}
                 >
                   All
                 </button>
                 <button
                   onClick={() => setViewFilter('Real Estate Tax')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'Real Estate Tax' ? 'bg-[#FFF4CE] text-[#8E6300] shadow-sm ring-1 ring-[#FFE270]' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-100'}`}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'Real Estate Tax' ? 'bg-[#FFF4CE] text-[#8E6300] dark:bg-amber-950/60 dark:text-amber-400 shadow-sm ring-1 ring-[#FFE270] dark:ring-amber-800/80' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-400 dark:hover:text-gray-200'}`}
                 >
                   Real Estate Tax
                 </button>
                 <button
                   onClick={() => setViewFilter('Real Estate Signed Docs')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'Real Estate Signed Docs' ? 'bg-[#FFF4CE] text-[#8E6300] shadow-sm ring-1 ring-[#FFE270]' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-100'}`}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'Real Estate Signed Docs' ? 'bg-[#FFF4CE] text-[#8E6300] dark:bg-amber-950/60 dark:text-amber-400 shadow-sm ring-1 ring-[#FFE270] dark:ring-amber-800/80' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-400 dark:hover:text-gray-200'}`}
                 >
                   Real Estate Signed Docs
                 </button>
@@ -221,10 +221,10 @@ export default function TaxVaultPage() {
 
               {user?.role !== 'accountant' && (
                 <div className="hidden lg:flex items-center gap-4 text-xs">
-                  <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+                  <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
                     <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedAccountantName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
                     <div>
-                      <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Accountant</p>
+                      <p className="text-[10px] text-[#8E8E93] dark:text-gray-400 uppercase font-bold tracking-wider">Accountant</p>
                       <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedAccountantName || 'Not Assigned'}</p>
                     </div>
                   </div>
@@ -233,7 +233,7 @@ export default function TaxVaultPage() {
 
               <Link
                 href="/dashboard/tax-vault/upload"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-6 py-3 rounded-full text-[13px] md:text-[15px] font-bold shadow-md transition-all hover:shadow-lg active:scale-95"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] text-gray-900 px-6 py-3 rounded-full text-[13px] md:text-[15px] font-bold shadow-md transition-all hover:shadow-lg active:scale-95"
               >
                 Upload Document
               </Link>
@@ -253,7 +253,7 @@ export default function TaxVaultPage() {
                       setSearchQuery(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#A2A5AA] font-helvetica border border-transparent focus:border-[#FFC63F] transition-all"
+                    className="h-[40px] w-full rounded-full bg-[#F5F5F5] dark:bg-gray-800 pl-11 pr-4 text-[14px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#A2A5AA] dark:placeholder:text-gray-500 font-helvetica border border-transparent focus:border-[#FFC63F] transition-all"
                   />
                 </div>
 
@@ -265,7 +265,7 @@ export default function TaxVaultPage() {
                         setIsTypeOpen(!isTypeOpen);
                         setIsYearOpen(false);
                       }}
-                      className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-6 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+                      className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[153px] items-center justify-between rounded-[24px] bg-[#F5F5F5] dark:bg-gray-800 px-6 text-[14px] text-[#8E8E93] dark:text-gray-300 hover:bg-[#EFEFEF] dark:hover:bg-gray-700 transition-colors"
                     >
                       {selectedType === 'All' ? 'Document Type' : selectedType}
                       <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${isTypeOpen ? 'rotate-180' : ''}`} />
@@ -273,7 +273,7 @@ export default function TaxVaultPage() {
                     {isTypeOpen && (
                       <>
                         <div className="fixed inset-0 z-10" onClick={() => setIsTypeOpen(false)} />
-                        <div className="absolute top-full left-0 mt-2 z-20 w-full sm:w-48 rounded-xl border border-[#EFEFEF] bg-white dark:bg-[#1C1C1C] py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
+                        <div className="absolute top-full left-0 mt-2 z-20 w-full sm:w-48 rounded-xl border border-[#EFEFEF] dark:border-gray-700 bg-white dark:bg-[#1C1C1C] py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
                           {documentTypes.map(type => (
                             <button
                               key={type}
@@ -282,7 +282,7 @@ export default function TaxVaultPage() {
                                 setIsTypeOpen(false);
                                 setCurrentPage(1);
                               }}
-                              className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedType === type ? 'bg-[#F5F5F5] text-[#274583] font-semibold' : 'text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F8F8F8]'}`}
+                              className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedType === type ? 'bg-[#F5F5F5] dark:bg-gray-800 text-[#274583] dark:text-amber-400 font-semibold' : 'text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F8F8F8] dark:hover:bg-gray-800'}`}
                             >
                               {type}
                             </button>
@@ -299,7 +299,7 @@ export default function TaxVaultPage() {
                         setIsYearOpen(!isYearOpen);
                         setIsTypeOpen(false);
                       }}
-                      className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] px-5 text-[14px] text-[#8E8E93] hover:bg-[#EFEFEF] transition-colors"
+                      className="w-full sm:w-auto inline-flex h-[40px] sm:min-w-[96px] items-center justify-between rounded-[24px] bg-[#F5F5F5] dark:bg-gray-800 px-5 text-[14px] text-[#8E8E93] dark:text-gray-300 hover:bg-[#EFEFEF] dark:hover:bg-gray-700 transition-colors"
                     >
                       {selectedYear === 'All' ? 'Year' : selectedYear}
                       <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${isYearOpen ? 'rotate-180' : ''}`} />
@@ -307,7 +307,7 @@ export default function TaxVaultPage() {
                     {isYearOpen && (
                       <>
                         <div className="fixed inset-0 z-10" onClick={() => setIsYearOpen(false)} />
-                        <div className="absolute top-full left-0 mt-2 z-20 w-full sm:w-32 rounded-xl border border-[#EFEFEF] bg-white dark:bg-[#1C1C1C] py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
+                        <div className="absolute top-full left-0 mt-2 z-20 w-full sm:w-32 rounded-xl border border-[#EFEFEF] dark:border-gray-700 bg-white dark:bg-[#1C1C1C] py-2 shadow-lg animate-in fade-in zoom-in-95 duration-100">
                           {taxYears.map(year => (
                             <button
                               key={year}
@@ -316,7 +316,7 @@ export default function TaxVaultPage() {
                                 setIsYearOpen(false);
                                 setCurrentPage(1);
                               }}
-                              className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedYear === year ? 'bg-[#F5F5F5] text-[#274583] font-semibold' : 'text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F8F8F8]'}`}
+                              className={`block w-full px-4 py-2 text-left text-sm transition-colors ${selectedYear === year ? 'bg-[#F5F5F5] dark:bg-gray-800 text-[#274583] dark:text-amber-400 font-semibold' : 'text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F8F8F8] dark:hover:bg-gray-800'}`}
                             >
                               {year}
                             </button>
@@ -341,13 +341,13 @@ export default function TaxVaultPage() {
                   ) : (
                     <table className="w-full border-separate border-spacing-0 text-[13px] md:text-[14px] text-[#4B4B4B] dark:text-gray-300">
                       <thead>
-                        <tr className="bg-[#FAFAFA] text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap">
-                          {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF]">Investor</th>}
-                          <th className="px-4 py-3 border-b border-[#ECEDEF]">File Name</th>
-                          <th className="px-4 py-3 border-b border-[#ECEDEF]">Document Type</th>
-                          <th className="px-4 py-3 border-b border-[#ECEDEF]">Tax Year</th>
-                          <th className="px-4 py-3 border-b border-[#ECEDEF]">Uploaded Date</th>
-                          <th className="px-4 py-3 text-right border-b border-[#ECEDEF]">Action</th>
+                        <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap">
+                          {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">Investor</th>}
+                          <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">File Name</th>
+                          <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">Document Type</th>
+                          <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">Tax Year</th>
+                          <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">Uploaded Date</th>
+                          <th className="px-4 py-3 text-right border-b border-[#ECEDEF] dark:border-gray-700">Action</th>
                         </tr>
                       </thead>
 
@@ -356,15 +356,15 @@ export default function TaxVaultPage() {
                           <tr
                             key={row.id}
                             onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
-                            className="border-b border-[#F1F1F1] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+                            className="border-b border-[#F1F1F1] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-colors"
                           >
                             {user?.role !== 'investor' && (
-                              <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                              <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
                                 <div className="flex items-center gap-3">
                                   {row.investorAvatar ? (
                                     <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
                                   ) : (
-                                    <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[11px] font-semibold font-helvetica border border-[#E5E7EB]">
+                                    <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] dark:bg-gray-700 flex items-center justify-center text-[#6B7280] dark:text-gray-300 text-[11px] font-semibold font-helvetica border border-[#E5E7EB] dark:border-gray-600">
                                       {row.investorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                                     </div>
                                   )}
@@ -372,14 +372,14 @@ export default function TaxVaultPage() {
                                 </div>
                               </td>
                             )}
-                            <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
-                            <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.documentType}</td>
-                            <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.taxYear}</td>
-                            <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica whitespace-nowrap">{row.uploadedDate}</td>
-                            <td className="relative px-4 py-4 border-b border-[#F5F5F5] text-right">
+                            <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#1F1F1F] dark:text-gray-100 font-medium font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
+                            <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#4B4B4B] dark:text-gray-300 font-helvetica whitespace-nowrap">{row.documentType}</td>
+                            <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#4B4B4B] dark:text-gray-300 font-helvetica whitespace-nowrap">{row.taxYear}</td>
+                            <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#4B4B4B] dark:text-gray-300 font-helvetica whitespace-nowrap">{row.uploadedDate}</td>
+                            <td className="relative px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-right">
                               <button
                                 type="button"
-                                className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"
+                                className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] dark:text-gray-400 hover:bg-[#F5F5F5] dark:hover:bg-gray-700 transition-colors"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setActiveMenuId((prev) => (prev === row.id ? null : row.id));
@@ -396,18 +396,18 @@ export default function TaxVaultPage() {
                                     className="fixed inset-0 z-10"
                                     onClick={() => setActiveMenuId(null)}
                                   />
-                                  <div className={`absolute right-6 z-20 w-[145px] rounded-[6px] border border-[#EFEFEF] bg-white dark:bg-[#1C1C1C] py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100 ${index === currentDocuments.length - 1 ? 'bottom-11' : 'top-11'
+                                  <div className={`absolute right-6 z-20 w-[145px] rounded-[6px] border border-[#EFEFEF] dark:border-gray-700 bg-white dark:bg-[#1C1C1C] py-1 text-left shadow-[0_10px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-100 ${index === currentDocuments.length - 1 ? 'bottom-11' : 'top-11'
                                     }`}>
                                     <Link
                                       href={`/dashboard/tax-vault/details/${row.id}`}
-                                      className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F8F8F8] transition-colors"
+                                      className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] dark:text-gray-200 hover:bg-[#F8F8F8] dark:hover:bg-gray-800 transition-colors"
                                       onClick={() => setActiveMenuId(null)}
                                     >
                                       View Document
                                     </Link>
                                     <button
                                       type="button"
-                                      className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F8F8F8] transition-colors"
+                                      className="block w-full px-3 py-2 text-[13px] text-[#4B4B4B] dark:text-gray-200 hover:bg-[#F8F8F8] dark:hover:bg-gray-800 transition-colors"
                                       onClick={() => handleDownload(row.id)}
                                     >
                                       Download
@@ -415,7 +415,7 @@ export default function TaxVaultPage() {
 
                                     <button
                                       type="button"
-                                      className="block w-full px-3 py-2 text-[13px] text-[#E05252] hover:bg-red-50 transition-colors"
+                                      className="block w-full px-3 py-2 text-[13px] text-[#E05252] dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                                       onClick={() => {
                                         setDocToDelete(row);
                                         setActiveMenuId(null);

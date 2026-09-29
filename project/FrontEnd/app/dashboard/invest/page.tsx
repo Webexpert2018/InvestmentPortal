@@ -636,7 +636,7 @@ export default function InvestPage() {
             <button
               type="button"
               onClick={goBack}
-              className="rounded-full bg-[#FFF3D6] px-10 py-3 text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FFE7AF] transition-all"
+              className="rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 px-10 py-3 text-sm font-semibold text-[#4B4B4B] dark:text-amber-300 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-all"
             >
               Back
             </button>
@@ -673,7 +673,7 @@ export default function InvestPage() {
         </div>
 
         <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+          <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
@@ -702,10 +702,10 @@ export default function InvestPage() {
               <div
                 key={fund.id}
                 onClick={() => setSelectedFundId(fund.id)}
-                className={`flex flex-col sm:flex-row md:flex-col xl:flex-row w-full items-start rounded-xl bg-[#F7F8FA] px-5 py-5 sm:px-6 sm:py-6 text-left transition hover:bg-[#F1F2F5] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white' : 'border border-transparent hover:border-gray-200 dark:border-gray-800'
+                className={`flex flex-col sm:flex-row md:flex-col xl:flex-row w-full items-start rounded-xl bg-[#F7F8FA] dark:bg-[#262626] px-5 py-5 sm:px-6 sm:py-6 text-left transition hover:bg-[#F1F2F5] dark:hover:bg-[#2D2D2D] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white dark:ring-offset-[#1C1C1C]' : 'border border-transparent dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
                   }`}
               >
-                <div className="mb-4 sm:mb-0 md:mb-5 xl:mb-0 sm:mr-6 md:mr-0 xl:mr-6 h-40 sm:h-28 md:h-48 xl:h-28 w-full sm:w-48 md:w-full xl:w-48 flex-shrink-0 bg-white dark:bg-[#1C1C1C] rounded-xl overflow-hidden border border-[#E5E5EA] flex items-center justify-center shadow-sm">
+                <div className="mb-4 sm:mb-0 md:mb-5 xl:mb-0 sm:mr-6 md:mr-0 xl:mr-6 h-40 sm:h-28 md:h-48 xl:h-28 w-full sm:w-48 md:w-full xl:w-48 flex-shrink-0 bg-white dark:bg-[#1C1C1C] rounded-xl overflow-hidden border border-[#E5E5EA] dark:border-gray-700 flex items-center justify-center shadow-sm">
                   <img
                     src={getFullImageUrl(fund.image)}
                     alt={fund.name}
@@ -742,7 +742,7 @@ export default function InvestPage() {
                   </div>
 
                   <div className="flex items-center gap-3 mt-1.5 mb-2">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${fund.status === 'Closed' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${fund.status === 'Closed' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-transparent dark:border-red-900/50' : 'bg-green-50 dark:bg-emerald-950/40 text-green-600 dark:text-emerald-400 border border-transparent dark:border-emerald-900/50'
                       }`}>
                       {fund.status || 'Active'}
                     </span>
@@ -780,14 +780,14 @@ export default function InvestPage() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Image and Start Date */}
                 <div className="space-y-4">
-                  <div className="w-full h-60 rounded-xl shadow-sm border border-[#E5E5EA] bg-white dark:bg-[#1C1C1C] flex items-center justify-center overflow-hidden">
+                  <div className="w-full h-60 rounded-xl shadow-sm border border-[#E5E5EA] dark:border-gray-700 bg-white dark:bg-[#1C1C1C] flex items-center justify-center overflow-hidden">
                     <img
                       src={getFullImageUrl(toggledFund.image)}
                       alt={toggledFund.name}
                       className="w-full h-full object-contain p-2"
                     />
                   </div>
-                  <div className="bg-[#F7F8FA] p-4 rounded-xl border border-[#E5E5EA]">
+                  <div className="bg-[#F7F8FA] dark:bg-[#262626] p-4 rounded-xl border border-[#E5E5EA] dark:border-gray-700">
                     <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Start Date</p>
                     <p className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">
                       {toggledFund.startDate ? new Date(toggledFund.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : 'N/A'}
@@ -799,7 +799,7 @@ export default function InvestPage() {
                 <div className="lg:col-span-2 space-y-6">
                   <div>
                     <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider mb-2">Description</p>
-                    <p className="text-sm text-[#4B4B4B] dark:text-gray-300 leading-relaxed whitespace-pre-line bg-[#F7F8FA] p-4 rounded-xl border border-[#E5E5EA]">
+                    <p className="text-sm text-[#4B4B4B] dark:text-gray-300 leading-relaxed whitespace-pre-line bg-[#F7F8FA] dark:bg-[#262626] p-4 rounded-xl border border-[#E5E5EA] dark:border-gray-700">
                       {toggledFund.description || 'Secure institutional-grade Bitcoin strategies.'}
                     </p>
                   </div>
@@ -807,7 +807,7 @@ export default function InvestPage() {
                   {/* Wire Instructions Details */}
                   <div>
                     <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider mb-3">Custodian Wire Instructions</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 bg-[#F7F8FA] p-5 rounded-xl border border-[#E5E5EA]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 bg-[#F7F8FA] dark:bg-[#262626] p-5 rounded-xl border border-[#E5E5EA] dark:border-gray-700">
                       <div>
                         <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Bank Name</p>
                         <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">{toggledFund.bankName || 'N/A'}</p>
@@ -1046,20 +1046,20 @@ export default function InvestPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         {/* Left Preview Section */}
-        <div className="rounded-[8px] bg-white dark:bg-[#1C1C1C] p-0 sm:p-4 shadow-sm border border-[#E5E5EA] w-full max-w-full overflow-hidden">
-          <div className="flex flex-col min-h-[750px] lg:min-h-[900px] rounded-[6px] border border-[#E9EBEE] bg-[#F8F9FB] overflow-hidden transition-all w-full max-w-full">
+        <div className="rounded-[8px] bg-white dark:bg-[#1C1C1C] p-0 sm:p-4 shadow-sm border border-[#E5E5EA] dark:border-gray-800 w-full max-w-full overflow-hidden">
+          <div className="flex flex-col min-h-[750px] lg:min-h-[900px] rounded-[6px] border border-[#E9EBEE] dark:border-gray-800 bg-[#F8F9FB] dark:bg-[#262626] overflow-hidden transition-all w-full max-w-full">
             {/* Toolbar */}
-            <div className="flex h-[44px] items-center justify-between border-b border-[#E2E5EA] bg-white dark:bg-[#1C1C1C] px-2 sm:px-4">
-              <div className="flex items-center gap-2 sm:gap-3 text-[12px] text-[#6B7280] min-w-0">
+            <div className="flex h-[44px] items-center justify-between border-b border-[#E2E5EA] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] px-2 sm:px-4">
+              <div className="flex items-center gap-2 sm:gap-3 text-[12px] text-[#6B7280] dark:text-gray-300 min-w-0">
                 <button
                   onClick={() => { setSelectedSubDoc(null); setSelectedPage(1); setStep('investmentAmount'); }}
-                  className="inline-flex items-center gap-0.5 sm:gap-1 text-[#5E6B7F] hover:text-[#1F1F1F] dark:text-gray-100 transition-colors flex-shrink-0"
+                  className="inline-flex items-center gap-0.5 sm:gap-1 text-[#5E6B7F] dark:text-gray-300 hover:text-[#1F1F1F] dark:hover:text-white transition-colors flex-shrink-0"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span className="hidden sm:inline">Back</span>
                 </button>
                 <div className="border-l border-gray-200 dark:border-gray-800 pl-2 sm:pl-3 min-w-0">
-                  <p className="font-medium text-[#374151] truncate max-w-[120px] sm:max-w-[200px]">
+                  <p className="font-medium text-[#374151] dark:text-gray-200 truncate max-w-[120px] sm:max-w-[200px]">
                     {selectedSubDoc?.name || 'Select a document'}
                   </p>
                   <p className="text-[10px] text-[#9CA3AF] hidden sm:block">
@@ -1068,26 +1068,26 @@ export default function InvestPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 sm:gap-3 text-[#6B7280] flex-shrink-0">
-                <button type="button" onClick={handleDownload} title="Download" className="hover:text-[#374151]"><Download className="h-3.5 w-3.5" /></button>
-                <button type="button" onClick={handlePrint} title="Print" className="hover:text-[#374151] hidden sm:block"><Printer className="h-3.5 w-3.5" /></button>
-                <button type="button" title="Search" className="hover:text-[#374151] hidden sm:block"><Search className="h-3.5 w-3.5" /></button>
+              <div className="flex items-center gap-2 sm:gap-3 text-[#6B7280] dark:text-gray-400 flex-shrink-0">
+                <button type="button" onClick={handleDownload} title="Download" className="hover:text-[#374151] dark:hover:text-white"><Download className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={handlePrint} title="Print" className="hover:text-[#374151] dark:hover:text-white hidden sm:block"><Printer className="h-3.5 w-3.5" /></button>
+                <button type="button" title="Search" className="hover:text-[#374151] dark:hover:text-white hidden sm:block"><Search className="h-3.5 w-3.5" /></button>
                 <span className="text-[11px] font-medium hidden xs:inline">{zoom}%</span>
-                <button type="button" onClick={() => setZoom((prev: number) => Math.max(50, prev - 10))} className="hover:text-[#374151]"><Minus className="h-3.5 w-3.5" /></button>
-                <button type="button" onClick={() => setZoom((prev: number) => Math.min(200, prev + 10))} className="hover:text-[#374151]"><Plus className="h-3.5 w-3.5" /></button>
-                <button type="button" className="hover:text-[#374151] hidden xs:block"><Maximize2 className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={() => setZoom((prev: number) => Math.max(50, prev - 10))} className="hover:text-[#374151] dark:hover:text-white"><Minus className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={() => setZoom((prev: number) => Math.min(200, prev + 10))} className="hover:text-[#374151] dark:hover:text-white"><Plus className="h-3.5 w-3.5" /></button>
+                <button type="button" className="hover:text-[#374151] dark:hover:text-white hidden xs:block"><Maximize2 className="h-3.5 w-3.5" /></button>
               </div>
             </div>
 
             <div className="flex flex-col md:grid md:grid-cols-[92px_1fr] flex-1 min-h-0 w-full max-w-full overflow-hidden">
               {/* Dynamic Thumbnail Sidebar */}
-              <aside className="w-full max-w-full border-b md:border-b-0 md:border-r border-[#E2E5EA] bg-white dark:bg-[#1C1C1C] p-2 pb-3 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto h-auto md:max-h-[820px] custom-scrollbar shrink-0">
+              <aside className="w-full max-w-full border-b md:border-b-0 md:border-r border-[#E2E5EA] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] p-2 pb-3 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto h-auto md:max-h-[820px] custom-scrollbar shrink-0">
                 {selectedSubDoc && Array.from({ length: selectedSubDoc.pages || 1 }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
                     type="button"
                     onClick={() => setSelectedPage(page)}
-                    className={`flex h-[68px] md:h-[80px] w-[75px] md:w-full flex-col items-center justify-center rounded-[4px] border text-[10px] transition-all shrink-0 ${page === selectedPage ? 'border-[#5EA0FF] bg-[#EEF4FF] text-[#4B5563]' : 'border-[#E4E7EC] bg-[#F4F6F9] text-[#6B7280] hover:border-gray-300'
+                    className={`flex h-[68px] md:h-[80px] w-[75px] md:w-full flex-col items-center justify-center rounded-[4px] border text-[10px] transition-all shrink-0 ${page === selectedPage ? 'border-[#5EA0FF] bg-[#EEF4FF] dark:bg-blue-950/40 text-[#4B5563] dark:text-blue-300' : 'border-[#E4E7EC] dark:border-gray-800 bg-[#F4F6F9] dark:bg-gray-800/50 text-[#6B7280] dark:text-gray-400 hover:border-gray-300'
                       }`}
                   >
                     <FileText className="h-4 w-4 mb-1" />
@@ -1097,7 +1097,7 @@ export default function InvestPage() {
               </aside>
 
               {/* Main Content Area */}
-              <div className="relative bg-[#ECEDEF] p-0 sm:p-10 flex flex-col items-center overflow-y-auto overflow-x-hidden max-h-[680px] lg:max-h-[820px] custom-scrollbar selection-none w-full min-w-0">
+              <div className="relative bg-[#ECEDEF] dark:bg-[#151515] p-0 sm:p-10 flex flex-col items-center overflow-y-auto overflow-x-hidden max-h-[680px] lg:max-h-[820px] custom-scrollbar selection-none w-full min-w-0">
                 <div
                   className="w-full bg-white dark:bg-[#1C1C1C] shadow-lg border border-[#D9DDE3] rounded-sm relative overflow-hidden transition-all shrink-0"
                   style={{
@@ -1136,7 +1136,7 @@ export default function InvestPage() {
 
         {/* Right Action Section */}
         <div className="flex flex-col gap-6">
-          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-8 shadow-sm border border-[#E5E5EA]">
+          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-8 shadow-sm border border-[#E5E5EA] dark:border-gray-800">
             <h2 className="font-goudy text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100">Your Document</h2>
             <p className="mt-4 text-xs text-[#8E8E93] leading-relaxed">
               Please review and sign the documents below, click &quot;Start Signing&quot; to begin.
@@ -1180,7 +1180,7 @@ export default function InvestPage() {
                 type="button"
                 onClick={goNext}
                 disabled={isSigning}
-                className="w-full rounded-full bg-[#FFF3D6] py-3.5 text-sm font-bold text-[#C28C3B] hover:bg-[#FFE7AF] shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/50 py-3.5 text-sm font-bold text-[#C28C3B] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSigning ? 'Connecting to DocuSign...' : 'Start Signing'}
               </button>
@@ -1197,7 +1197,7 @@ export default function InvestPage() {
               <button
                 type="button"
                 onClick={handleDownload}
-                className="w-full rounded-full bg-white dark:bg-[#1C1C1C] py-3.5 text-sm font-bold text-[#1F1F1F] dark:text-gray-100 ring-1 ring-[#E5E5EA] hover:bg-[#F9FAFB] shadow-sm transition-all"
+                className="w-full rounded-full bg-white dark:bg-[#1C1C1C] py-3.5 text-sm font-bold text-[#1F1F1F] dark:text-gray-100 ring-1 ring-[#E5E5EA] dark:ring-gray-700 hover:bg-[#F9FAFB] dark:hover:bg-gray-800 shadow-sm transition-all"
               >
                 Download Document (PDF)
               </button>
@@ -1239,7 +1239,7 @@ export default function InvestPage() {
         </div>
 
         <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+          <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
@@ -1250,10 +1250,10 @@ export default function InvestPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm border border-[#E5E5EA]">
+        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm border border-[#E5E5EA] dark:border-gray-800">
           <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-4">Investment Status</h2>
           <div className="relative">
-            <div className="absolute left-2 top-4 bottom-4 w-px bg-[#E5E5EA]" />
+            <div className="absolute left-2 top-4 bottom-4 w-px bg-[#E5E5EA] dark:bg-gray-700" />
             <div className="space-y-4">
               {[
                 {
@@ -1297,8 +1297,8 @@ export default function InvestPage() {
                 return (
                   <div key={item.title} className="flex items-start gap-4">
                     <div className={`relative z-10 mt-1 flex h-4 w-4 items-center justify-center rounded-full border ${isDone ? 'border-[#2BB673] bg-[#2BB673]' :
-                      isActive ? 'border-[#FBCB4B] bg-[#FFF3D6]' :
-                        'border-[#E5E5EA] bg-white dark:bg-[#1C1C1C]'
+                      isActive ? 'border-[#FBCB4B] bg-[#FFF3D6] dark:bg-amber-950/50' :
+                        'border-[#E5E5EA] dark:border-gray-700 bg-white dark:bg-[#1C1C1C]'
                       }`}>
                       {isDone && (
                         <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
@@ -1320,8 +1320,8 @@ export default function InvestPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#E5E5EA] bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm h-fit">
-          <div className="pb-3 border-b border-[#E5E5EA]">
+        <div className="rounded-2xl border border-[#E5E5EA] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm h-fit">
+          <div className="pb-3 border-b border-[#E5E5EA] dark:border-gray-800">
             <h2 className="font-goudy text-base text-[#1F1F1F] dark:text-gray-100">Quick Actions</h2>
           </div>
           <div className="pt-4 space-y-3">
@@ -1349,21 +1349,21 @@ export default function InvestPage() {
                   }
                 })();
               }}
-              className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FFE7AF] transition-all"
+              className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
             >
               View Document
             </button>
             <button
               type="button"
               onClick={() => router.push('/dashboard/messages')}
-              className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FFE7AF] transition-all"
+              className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
             >
               Message
             </button>
             <button
               type="button"
               onClick={() => router.push('/dashboard/document-vault')}
-              className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FFE7AF] transition-all"
+              className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
             >
               Document Vault
             </button>
@@ -1397,7 +1397,7 @@ export default function InvestPage() {
         </div>
 
         <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+          <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
             <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
             <div>
               <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
@@ -1477,8 +1477,8 @@ export default function InvestPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#E5E5EA] bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm">
-          <div className="pb-3 border-b border-[#E5E5EA]">
+        <div className="rounded-2xl border border-[#E5E5EA] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm">
+          <div className="pb-3 border-b border-[#E5E5EA] dark:border-gray-800">
             <h2 className="font-goudy text-base text-[#1F1F1F] dark:text-gray-100">Quick Actions</h2>
           </div>
           <div className="pt-4 space-y-3">
@@ -1506,21 +1506,21 @@ export default function InvestPage() {
                   }
                 })();
               }}
-              className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FFE7AF]"
+              className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
             >
               View Document
             </button>
             <button
               type="button"
               onClick={() => router.push('/dashboard/messages')}
-              className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FFE7AF]"
+              className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
             >
               Message
             </button>
             <button
               type="button"
               onClick={() => router.push('/dashboard/schedule-meeting')}
-              className="w-full rounded-full bg-[#FFF3D6] py-2 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FFE7AF]"
+              className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
             >
               Schedule Meeting
             </button>

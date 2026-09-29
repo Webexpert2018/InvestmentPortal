@@ -218,7 +218,7 @@ export default function RedemptionAmountPage() {
           <button
             type="button"
             onClick={() => router.push('/dashboard/redeem')}
-            className="rounded-full bg-[#FFF3D6] px-6 py-2 text-sm font-medium text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FFE7AF]"
+            className="rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 px-6 py-2 text-sm font-semibold text-[#4B4B4B] dark:text-amber-300 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
           >
             Cancel
           </button>
@@ -227,7 +227,7 @@ export default function RedemptionAmountPage() {
           <button
             type="button"
             onClick={handleBack}
-            className="rounded-full bg-[#FFF3D6] px-6 py-2 text-sm font-medium text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FFE7AF]"
+            className="rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 px-6 py-2 text-sm font-semibold text-[#4B4B4B] dark:text-amber-300 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
           >
             Back
           </button>

@@ -24,12 +24,12 @@ function statusClass(status: Status) {
     case 'Settled':
     case 'Processed':
     case 'Approved':
-      return 'bg-[#E8FBF1] text-[#1F7A4D] border border-[#B7EB8F]';
+      return 'bg-[#E8FBF1] dark:bg-emerald-950/40 text-[#1F7A4D] dark:text-emerald-400 border border-[#B7EB8F] dark:border-emerald-900/50';
     case 'Rejected':
     case 'Cancelled':
-      return 'bg-[#FEECEC] text-[#D14343] border border-[#FFA39E]';
+      return 'bg-[#FEECEC] dark:bg-red-950/40 text-[#D14343] dark:text-red-400 border border-[#FFA39E] dark:border-red-900/50';
     default:
-      return 'bg-[#FFF7E0] text-[#C27A21] border border-[#FFE58F]';
+      return 'bg-[#FFF7E0] dark:bg-amber-950/40 text-[#C27A21] dark:text-amber-400 border border-[#FFE58F] dark:border-amber-900/50';
   }
 }
 
@@ -455,7 +455,7 @@ export default function RedeemPage() {
         <div className="overflow-hidden rounded-2xl bg-white dark:bg-[#1C1C1C] shadow-sm border border-gray-100 dark:border-gray-800">
           <div className="overflow-x-auto bg-white dark:bg-[#1C1C1C] p-6 pb-20">
             <table className="min-w-full text-xs text-[#4B4B4B] dark:text-gray-300">
-              <thead className="bg-[#F8FAFC] text-[13px] capitalize tracking-normal text-[#8E8E93]">
+              <thead className="bg-[#F8FAFC] dark:bg-gray-800 text-[13px] capitalize tracking-normal text-[#8E8E93] dark:text-gray-400">
                 <tr className="border-b border-gray-100 dark:border-gray-800">
                   <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[120px]">Request ID</th>
                   <th className="px-6 py-4 text-left font-bold whitespace-nowrap min-w-[150px]">Fund</th>
@@ -467,7 +467,7 @@ export default function RedeemPage() {
                   <th className="px-6 py-4 text-right font-bold tracking-normal whitespace-nowrap min-w-[100px]">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F9F9F9] bg-white dark:bg-[#1C1C1C] text-[13px]">
+              <tbody className="divide-y divide-[#F9F9F9] dark:divide-gray-800 bg-white dark:bg-[#1C1C1C] text-[13px]">
                 {loading ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-20 text-center">
@@ -482,7 +482,7 @@ export default function RedeemPage() {
                     <tr
                       key={row.id}
                       onClick={() => router.push(`/dashboard/redemption/${row.id}`)}
-                      className="hover:bg-[#F9FAFB]/50 cursor-pointer transition-colors group"
+                      className="hover:bg-[#F9FAFB]/50 dark:hover:bg-gray-800/60 cursor-pointer transition-colors group"
                     >
                       <td className="px-6 py-4 align-middle font-bold text-[#1F1F1F] dark:text-gray-100 whitespace-nowrap">
                         RED-{row.id.substring(0, 6).toUpperCase()}
@@ -581,7 +581,7 @@ export default function RedeemPage() {
             </table>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#F1F1F1] px-8 py-6 text-[12px] bg-[#F8FAFC]/50">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#F1F1F1] dark:border-gray-800 px-8 py-6 text-[12px] bg-[#F8FAFC]/50 dark:bg-gray-800/30">
             <button
               type="button"
               className="flex items-center gap-1 font-bold text-gray-400 hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
@@ -639,7 +639,7 @@ export default function RedeemPage() {
 
             <AlertDialogFooter className="mt-10 flex items-center justify-center sm:justify-end gap-3 sm:space-x-0">
               <AlertDialogCancel
-                className="h-[46px] min-w-[130px] rounded-full bg-[#FFF5E9] border-none text-[#4B4B4B] dark:text-gray-300 text-[15px] font-semibold hover:bg-[#FFEBD4] transition-all"
+                className="h-[46px] min-w-[130px] rounded-full bg-[#FFF5E9] dark:bg-amber-950/40 border-none text-[#4B4B4B] dark:text-amber-300 text-[15px] font-semibold hover:bg-[#FFEBD4] dark:hover:bg-amber-900/60 transition-all"
               >
                 Go Back
               </AlertDialogCancel>

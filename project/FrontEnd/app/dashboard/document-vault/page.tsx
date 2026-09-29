@@ -143,22 +143,22 @@ export default function DocumentVaultPage() {
             </p>
           </div>
 
-          <div className="flex bg-[#F5F5F5] p-1 rounded-full border border-gray-100 dark:border-gray-800">
+          <div className="flex bg-[#F5F5F5] dark:bg-gray-800 p-1 rounded-full border border-gray-100 dark:border-gray-700">
                 <button
                   onClick={() => setViewFilter('All')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'All' ? 'bg-[#FFF4CE] text-[#8E6300] shadow-sm ring-1 ring-[#FFE270]' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-100'}`}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'All' ? 'bg-[#FFF4CE] text-[#8E6300] dark:bg-amber-950/60 dark:text-amber-400 shadow-sm ring-1 ring-[#FFE270] dark:ring-amber-800/80' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-400 dark:hover:text-gray-200'}`}
                 >
                   All
                 </button>
                 <button
                   onClick={() => setViewFilter('Real Estate Tax')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'Real Estate Tax' ? 'bg-[#FFF4CE] text-[#8E6300] shadow-sm ring-1 ring-[#FFE270]' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-100'}`}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'Real Estate Tax' ? 'bg-[#FFF4CE] text-[#8E6300] dark:bg-amber-950/60 dark:text-amber-400 shadow-sm ring-1 ring-[#FFE270] dark:ring-amber-800/80' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-400 dark:hover:text-gray-200'}`}
                 >
                   Real Estate Tax
                 </button>
                 <button
                   onClick={() => setViewFilter('Real Estate Signed Docs')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'Real Estate Signed Docs' ? 'bg-[#FFF4CE] text-[#8E6300] shadow-sm ring-1 ring-[#FFE270]' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-100'}`}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewFilter === 'Real Estate Signed Docs' ? 'bg-[#FFF4CE] text-[#8E6300] dark:bg-amber-950/60 dark:text-amber-400 shadow-sm ring-1 ring-[#FFE270] dark:ring-amber-800/80' : 'text-[#8E8E93] hover:text-[#1F1F1F] dark:text-gray-400 dark:hover:text-gray-200'}`}
                 >
                   Real Estate Signed Docs
                 </button>
@@ -178,7 +178,7 @@ export default function DocumentVaultPage() {
                 }}
                 type="text"
                 placeholder="Find something here..."
-                className="h-[40px] w-full rounded-full bg-[#F5F5F5] pl-11 pr-4 text-[14px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#A2A5AA]"
+                className="h-[40px] w-full rounded-full bg-[#F5F5F5] dark:bg-gray-800 pl-11 pr-4 text-[14px] text-[#1F1F1F] dark:text-gray-100 outline-none placeholder:text-[#A2A5AA] dark:placeholder:text-gray-500"
               />
             </label>
 
@@ -189,11 +189,11 @@ export default function DocumentVaultPage() {
                   setDocType(event.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-[40px] min-w-[145px] appearance-none rounded-full bg-[#F5F5F5] px-4 pr-9 text-[14px] text-[#8E8E93] outline-none"
+                className="h-[40px] min-w-[145px] appearance-none rounded-full bg-[#F5F5F5] dark:bg-gray-800 px-4 pr-9 text-[14px] text-[#8E8E93] dark:text-gray-300 outline-none cursor-pointer"
               >
-                <option value="all">Document Type</option>
+                <option value="all" className="dark:bg-[#1C1C1C] dark:text-gray-300">Document Type</option>
                 {categories.filter(c => c !== 'all').map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat} value={cat} className="dark:bg-[#1C1C1C] dark:text-gray-300">{cat}</option>
                 ))}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A2A5AA]" />
@@ -212,7 +212,7 @@ export default function DocumentVaultPage() {
                 <div className="min-h-[400px]">
                   <table className="min-w-[1100px] w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B] dark:text-gray-300">
                     <thead>
-                      <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
+                      <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300 border-b dark:border-gray-700">
                         <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
                         <th className="px-3 py-3">Category</th>
                         <th className="px-3 py-3">Uploaded Date</th>
@@ -224,11 +224,11 @@ export default function DocumentVaultPage() {
                         <tr
                           key={row.id}
                           onClick={() => router.push(`/dashboard/document-vault/${row.id}`)}
-                          className="border-b border-[#F1F1F1] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                          className="border-b border-[#F1F1F1] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-colors"
                         >
-                          <td className="px-3 py-4">{row.documentName}</td>
-                          <td className="px-3 py-4">{row.category}</td>
-                          <td className="px-3 py-4">{row.uploadedDate}</td>
+                          <td className="px-3 py-4 font-medium text-[#1F1F1F] dark:text-gray-100">{row.documentName}</td>
+                          <td className="px-3 py-4 text-[#4B4B4B] dark:text-gray-300">{row.category}</td>
+                          <td className="px-3 py-4 text-[#4B4B4B] dark:text-gray-300">{row.uploadedDate}</td>
                           <td className="relative px-3 py-4 text-center">
                             <button
                               type="button"

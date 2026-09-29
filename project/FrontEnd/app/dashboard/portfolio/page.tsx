@@ -265,7 +265,7 @@ export default function PortfolioPage() {
             <button
               type="button"
               onClick={() => setActiveTab('investments')}
-              className={`pb-3 font-medium relative ${activeTab === 'investments' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'}`}
+              className={`pb-3 font-medium relative ${activeTab === 'investments' ? 'text-[#1F3B6E] dark:text-amber-400' : 'text-[#8E8E93]'}`}
             >
               Investments
               {activeTab === 'investments' && (
@@ -275,7 +275,7 @@ export default function PortfolioPage() {
             <button
               type="button"
               onClick={() => setActiveTab('fundInfo')}
-              className={`pb-3 font-medium relative ${activeTab === 'fundInfo' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'}`}
+              className={`pb-3 font-medium relative ${activeTab === 'fundInfo' ? 'text-[#1F3B6E] dark:text-amber-400' : 'text-[#8E8E93]'}`}
             >
               Fund Info
               {activeTab === 'fundInfo' && (
@@ -285,7 +285,7 @@ export default function PortfolioPage() {
             <button
               type="button"
               onClick={() => setActiveTab('fundHoldings')}
-              className={`pb-3 font-medium relative ${activeTab === 'fundHoldings' ? 'text-[#1F3B6E]' : 'text-[#8E8E93]'}`}
+              className={`pb-3 font-medium relative ${activeTab === 'fundHoldings' ? 'text-[#1F3B6E] dark:text-amber-400' : 'text-[#8E8E93]'}`}
             >
               Fund Holdings
               {activeTab === 'fundHoldings' && (
@@ -371,10 +371,10 @@ export default function PortfolioPage() {
                 <Link
                   key={fund.id}
                   href={`/dashboard/funds/${fund.id}?from=portfolio`}
-                  className="group flex flex-col sm:flex-row items-center rounded-2xl bg-[#F7F8FA] p-5 sm:p-6 transition hover:bg-[#F1F2F5] hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] duration-300"
+                  className="group flex flex-col sm:flex-row items-center rounded-2xl bg-[#F7F8FA] dark:bg-[#262626] border border-transparent dark:border-gray-800 p-5 sm:p-6 transition hover:bg-[#F1F2F5] dark:hover:bg-[#2D2D2D] hover:shadow-[0_10px_30px_rgba(0,0,0,0.04)] duration-300"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center gap-6 w-full">
-                    <div className="flex-shrink-0 w-full sm:w-56 h-40 sm:h-32 bg-white dark:bg-[#1C1C1C] rounded-xl overflow-hidden border border-[#E5E5EA] flex items-center justify-center shadow-sm">
+                    <div className="flex-shrink-0 w-full sm:w-56 h-40 sm:h-32 bg-white dark:bg-[#1C1C1C] rounded-xl overflow-hidden border border-[#E5E5EA] dark:border-gray-700 flex items-center justify-center shadow-sm">
                       <img
                         src={getFullImageUrl(fund.image) || "/images/strive_funds.jpg"}
                         alt={fund.name}
@@ -382,8 +382,8 @@ export default function PortfolioPage() {
                       />
                     </div>
                     <div className="flex-grow py-2 sm:py-0">
-                      <h3 className="font-goudy text-xl sm:text-2xl text-[#1F3B6E] leading-tight">{fund.name}</h3>
-                      <div className="mt-3 flex items-center gap-2 text-sm font-medium text-[#8E8E93]">
+                      <h3 className="font-goudy text-xl sm:text-2xl text-[#1F3B6E] dark:text-gray-100 leading-tight">{fund.name}</h3>
+                      <div className="mt-3 flex items-center gap-2 text-sm font-medium text-[#8E8E93] dark:text-gray-400">
                         <span>View Fund Details</span>
                         <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -428,9 +428,9 @@ export default function PortfolioPage() {
                               <tr key={index} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">{holding.fund_name}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-medium">
-                                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${holding.account_type?.toLowerCase() === 'personal'
-                                    ? 'bg-green-100 text-green-700 border border-green-200'
-                                    : 'bg-purple-100 text-purple-700 border border-purple-200'
+                                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${holding.account_type?.toLowerCase() === 'personal'
+                                    ? 'bg-green-100 dark:bg-emerald-950/40 text-green-700 dark:text-emerald-400 border border-green-200 dark:border-emerald-900/50'
+                                    : 'bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-900/50'
                                     }`}>
                                     {holding.account_type}
                                   </span>
@@ -479,7 +479,7 @@ export default function PortfolioPage() {
                               <tr key={index} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">{holding.fund_name}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-medium">
-                                  <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50">
                                     {holding.account_type}
                                   </span>
                                 </td>
@@ -510,7 +510,7 @@ export default function PortfolioPage() {
             {/* Table */}
             <div className="rounded-2xl border border-[#F2F2F2] dark:border-[#2A2A2A] bg-white dark:bg-[#1C1C1C] px-6 pb-6 pt-6">
               <div className="mb-4">
-                <h2 className="text-lg font-bold text-[#1F3B6E] font-goudy">Active Investments</h2>
+                <h2 className="text-lg font-bold text-[#1F3B6E] dark:text-gray-100 font-goudy">Active Investments</h2>
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Your current positions and active investments on the platform.</p>
               </div>
               <div className="overflow-x-auto">
@@ -594,7 +594,7 @@ export default function PortfolioPage() {
                         return (
                           <tr
                             key={row.id}
-                            className="hover:bg-slate-50/80 cursor-pointer transition-colors duration-150"
+                            className="hover:bg-slate-50/80 dark:hover:bg-gray-800/60 cursor-pointer transition-colors duration-150"
                             onClick={() => router.push(`/dashboard/portfolio/${row.id}`)}
                           >
                             <td className="px-4 py-3 text-[#1F1F1F] dark:text-gray-100 font-medium">{row.fund_name}</td>
@@ -610,10 +610,10 @@ export default function PortfolioPage() {
                             </td>
                             <td className="px-4 py-3">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 'Rejected'
-                                ? 'bg-red-100 text-red-800'
+                                ? 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-400 border border-transparent dark:border-red-900/50'
                                 : row.is_reconciled
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-yellow-100 text-yellow-800'
+                                  ? 'bg-green-100 dark:bg-emerald-950/40 text-green-800 dark:text-emerald-400 border border-transparent dark:border-emerald-900/50'
+                                  : 'bg-yellow-100 dark:bg-amber-950/40 text-yellow-800 dark:text-amber-400 border border-transparent dark:border-amber-900/50'
                                 }`}>
                                 {row.status === 'Rejected' ? 'Rejected' : row.is_reconciled ? 'Completed' : row.status || 'Pending'}
                               </span>
@@ -639,7 +639,7 @@ export default function PortfolioPage() {
                                     }`}>
                                     <Link
                                       href={`/dashboard/portfolio/${row.id}`}
-                                      className="block px-3 py-2 text-left text-[12px] text-[#5F5F5F] hover:bg-[#F8F8F8]"
+                                      className="block px-3 py-2 text-left text-[12px] text-[#5F5F5F] dark:text-gray-300 hover:bg-[#F8F8F8] dark:hover:bg-gray-800"
                                     >
                                       View Fund Details
                                     </Link>
@@ -730,7 +730,7 @@ export default function PortfolioPage() {
                         return (
                           <tr
                             key={row.investmentOwnershipId}
-                            className="hover:bg-slate-50/80 cursor-pointer transition-colors duration-150"
+                            className="hover:bg-slate-50/80 dark:hover:bg-gray-800/60 cursor-pointer transition-colors duration-150"
                             onClick={() => {
                               setSelectedOldInvestment(row);
                               setShowOldInvestmentModal(true);
@@ -787,7 +787,7 @@ export default function PortfolioPage() {
                         }
 
                         return (
-                          <tr key={index} className="hover:bg-slate-50/80 transition-colors duration-150">
+                          <tr key={index} className="hover:bg-slate-50/80 dark:hover:bg-gray-800/60 transition-colors duration-150">
                             <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">
                               {new Date(transfer.created_at).toLocaleDateString()}
                             </td>
@@ -857,7 +857,7 @@ export default function PortfolioPage() {
                 {getInitials(selectedOldInvestment.projectName)}
               </div>
               <div>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-800">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
                   {selectedOldInvestment.investmentStatus}
                 </span>
                 <h2 className="text-xl font-bold font-goudy mt-1">{selectedOldInvestment.projectName}</h2>

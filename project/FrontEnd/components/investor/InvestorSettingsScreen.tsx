@@ -2301,7 +2301,7 @@ export function InvestorSettingsScreen() {
           <div className="min-h-[200px]">
             <table className="w-full min-w-[680px] text-left text-[11px] text-[#4B4B4B] dark:text-gray-300">
               <thead>
-                <tr className="border-b border-[#ECEDEF] text-[10px] text-[#7B8088]">
+                <tr className="border-b border-[#ECEDEF] dark:border-gray-700 text-[10px] text-[#7B8088] dark:text-gray-400">
                   <th className="py-2 pr-3">Bank Name</th>
                   <th className="py-2 pr-3">Beneficiary</th>
                   <th className="py-2 pr-3">Account Number</th>
@@ -2315,7 +2315,7 @@ export function InvestorSettingsScreen() {
                 {bankAccounts.map((item) => (
                   <tr
                     key={item.id}
-                    className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] transition-colors cursor-pointer"
+                    className="border-b border-[#F2F3F5] dark:border-gray-800 hover:bg-[#F9FAFB] dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
                     onClick={() => {
                       setBankAdd({
                         beneficiary_name: item.beneficiary_name,
@@ -2331,13 +2331,13 @@ export function InvestorSettingsScreen() {
                     }}
                   >
                     <td className="py-2 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100">{item.bank_name}</td>
-                    <td className="py-2 pr-3">{item.beneficiary_name}</td>
-                    <td className="py-2 pr-3">****{item.account_number?.slice(-4) || 'N/A'}</td>
-                    <td className="py-2 pr-3">{item.routing_number}</td>
-                    <td className="py-2 pr-3">{item.bank_address || 'N/A'}</td>
-                    <td className="py-2 pr-3 max-w-[150px] truncate" title={item.bank_description || 'No description'}>{item.bank_description || <span className="text-[#A2A5AA]">-</span>}</td>
+                    <td className="py-2 pr-3 text-[#4B4B4B] dark:text-gray-300">{item.beneficiary_name}</td>
+                    <td className="py-2 pr-3 text-[#4B4B4B] dark:text-gray-300">****{item.account_number?.slice(-4) || 'N/A'}</td>
+                    <td className="py-2 pr-3 text-[#4B4B4B] dark:text-gray-300">{item.routing_number}</td>
+                    <td className="py-2 pr-3 text-[#4B4B4B] dark:text-gray-300">{item.bank_address || 'N/A'}</td>
+                    <td className="py-2 pr-3 text-[#4B4B4B] dark:text-gray-300 max-w-[150px] truncate" title={item.bank_description || 'No description'}>{item.bank_description || <span className="text-[#A2A5AA] dark:text-gray-500">-</span>}</td>
                     <td className="py-2 pr-3">
-                      <span className={`rounded-full px-2 py-0.5 text-[9px] uppercase font-bold ${item.status === 'active' ? 'bg-[#E1F7E3] text-[#2D8A39]' : 'bg-[#FFF3D6] text-[#B7791F]'}`}>
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] uppercase font-bold ${item.status === 'active' ? 'bg-[#E1F7E3] text-[#2D8A39] dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-[#FFF3D6] text-[#B7791F] dark:bg-amber-950/60 dark:text-amber-400'}`}>
                         {item.status || 'Active'}
                       </span>
                     </td>
