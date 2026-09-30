@@ -152,7 +152,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
         </div>
 
         {/* Top Header Summary Profile Card */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50/40 via-white to-gray-50/40 rounded-2xl border border-amber-100/60 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50/40 via-white to-gray-50/40 dark:from-gray-800/50 dark:via-gray-800/40 dark:to-gray-800/50 rounded-2xl border border-amber-100/60 dark:border-gray-800 shadow-xs">
           {/* Left: Avatar & Name/Joined Date */}
           <div className="flex items-center gap-3 min-w-0">
             <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-amber-200/80 shadow-xs overflow-hidden bg-amber-100 shrink-0 flex items-center justify-center">
@@ -166,7 +166,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                   className="object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-[#1F1F1F] dark:text-gray-100 text-xl sm:text-2xl font-extrabold tracking-tight">
+                <div className="w-full h-full bg-[#FCD34D] flex items-center justify-center text-[#1F1F1F] text-xl sm:text-2xl font-extrabold tracking-tight">
                   {(investorData.firstName?.[0] || '') + (investorData.lastName?.[0] || '')}
                 </div>
               )}
@@ -198,7 +198,7 @@ export default function AdminKycVerificationPage({ params }: { params: { id: str
                   setIrLoading(false);
                 }
               }}
-              className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent"
+              className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
             >
               {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
             </button>

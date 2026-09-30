@@ -967,7 +967,7 @@ export default function DoctorCrmPage() {
                 </div>
                 <button
                   onClick={() => setIsAddModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#1F1F1F] dark:text-gray-100 transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#1F1F1F] dark:hover:text-gray-200 transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1048,8 +1048,8 @@ export default function DoctorCrmPage() {
                   />
                 </div>
 
-                <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-[12px] text-purple-900 flex items-start gap-2">
-                  <Mail className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                <div className="p-3 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800/50 rounded-xl text-[12px] text-purple-900 dark:text-purple-300 flex items-start gap-2">
+                  <Mail className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
                   <span>The new physician lead will be initialized in stage <strong>Pending Outreach</strong> and can be included in 5-day AI email drip campaigns.</span>
                 </div>
 
@@ -1064,7 +1064,7 @@ export default function DoctorCrmPage() {
                   <button
                     type="submit"
                     disabled={isSavingDoctor}
-                    className="px-6 py-2.5 rounded-full text-[13px] font-bold bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 shadow-sm flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+                    className="px-6 py-2.5 rounded-full text-[13px] font-bold bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] shadow-sm flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
                   >
                     {isSavingDoctor ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                     <span>Save &amp; Add to Pipeline</span>
@@ -1258,7 +1258,7 @@ export default function DoctorCrmPage() {
                     setParsedLeads([]);
                     setUploadedFileName('');
                   }}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#1F1F1F] dark:text-gray-100 transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#1F1F1F] dark:hover:text-gray-200 transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1266,10 +1266,10 @@ export default function DoctorCrmPage() {
 
               <div className="overflow-y-auto custom-scrollbar flex-1 space-y-4 pr-1">
                 {/* Model Column Specification Box */}
-                <div className="bg-blue-50/70 border border-blue-200 rounded-2xl p-4 space-y-2">
+                <div className="bg-blue-50/70 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-2xl p-4 space-y-2">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 text-blue-900 font-bold text-[13px]">
-                      <Target className="w-4 h-4 text-blue-600 shrink-0" />
+                    <div className="flex items-center gap-2 text-blue-900 dark:text-blue-300 font-bold text-[13px]">
+                      <Target className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                       <span>Expected Excel File Structure (First Row / Column Headers)</span>
                     </div>
                     <button
@@ -1280,23 +1280,23 @@ export default function DoctorCrmPage() {
                       <span>Download Sample Template</span>
                     </button>
                   </div>
-                  <p className="text-[12px] text-blue-700">
+                  <p className="text-[12px] text-blue-700 dark:text-blue-300">
                     Your Excel file can use separate individual field headers (matching the lead form) or combined table columns:
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 pt-1">
-                    <div className="bg-white dark:bg-[#1C1C1C] p-2.5 rounded-xl border border-blue-100 text-[12px]">
+                    <div className="bg-white dark:bg-[#1C1C1C] p-2.5 rounded-xl border border-blue-100 dark:border-blue-800/40 text-[12px]">
                       <span className="font-bold text-gray-900 dark:text-gray-100 block">Full Name &amp; Email</span>
                       <span className="text-gray-500 dark:text-gray-400 text-[11px]">Full Name | Email Address</span>
                     </div>
-                    <div className="bg-white dark:bg-[#1C1C1C] p-2.5 rounded-xl border border-blue-100 text-[12px]">
+                    <div className="bg-white dark:bg-[#1C1C1C] p-2.5 rounded-xl border border-blue-100 dark:border-blue-800/40 text-[12px]">
                       <span className="font-bold text-gray-900 dark:text-gray-100 block">Specialty &amp; Phone</span>
                       <span className="text-gray-500 dark:text-gray-400 text-[11px]">Medical Specialty | Phone Number</span>
                     </div>
-                    <div className="bg-white dark:bg-[#1C1C1C] p-2.5 rounded-xl border border-blue-100 text-[12px]">
+                    <div className="bg-white dark:bg-[#1C1C1C] p-2.5 rounded-xl border border-blue-100 dark:border-blue-800/40 text-[12px]">
                       <span className="font-bold text-gray-900 dark:text-gray-100 block">Practice &amp; Location</span>
                       <span className="text-gray-500 dark:text-gray-400 text-[11px]">Practice / Clinic Name | Location</span>
                     </div>
-                    <div className="bg-white dark:bg-[#1C1C1C] p-2.5 rounded-xl border border-blue-100 text-[12px]">
+                    <div className="bg-white dark:bg-[#1C1C1C] p-2.5 rounded-xl border border-blue-100 dark:border-blue-800/40 text-[12px]">
                       <span className="font-bold text-gray-900 dark:text-gray-100 block">Stage</span>
                       <span className="text-gray-500 dark:text-gray-400 text-[11px]">pending_outreach | interested | needs_call </span>
                     </div>
@@ -1408,7 +1408,7 @@ export default function DoctorCrmPage() {
                     setParsedLeads([]);
                     setUploadedFileName('');
                   }}
-                  className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 dark:text-gray-400 bg-gray-100 hover:bg-gray-200 transition-all cursor-pointer"
+                  className="px-5 py-2.5 rounded-full text-[13px] font-bold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1417,11 +1417,11 @@ export default function DoctorCrmPage() {
                   type="button"
                   onClick={handleBulkUploadSubmit}
                   disabled={parsedLeads.length === 0 || isUploadingBulk}
-                  className="px-6 py-2.5 rounded-full text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100 bg-[#FFC63F] hover:bg-[#F1B92E] shadow-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+                  className="px-6 py-2.5 rounded-full text-[13px] font-bold text-[#1F1F1F] bg-[#FFC63F] hover:bg-[#F1B92E] shadow-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   {isUploadingBulk ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F] dark:text-gray-100" />
+                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
                       <span>Saving to Database...</span>
                     </>
                   ) : (

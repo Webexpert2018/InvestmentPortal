@@ -288,8 +288,8 @@ export default function UploadTaxDocumentPage() {
                 onDrop={handleDrop}
                 disabled={isUploading}
                 className={`flex h-[103px] w-full flex-col items-center justify-center rounded-[8px] border border-dashed ${selectedFileName ? 'text-[#1F1F1F] dark:text-gray-100 font-bold' : 'text-[#A2A5AA]'
-                  } ${isDragging ? 'border-[#FBCB4B] bg-yellow-50' : errors.file ? 'border-[#E05252]' : 'border-[#E5E5EA]'
-                  } ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#FAFBFC]'}`}
+                  } ${isDragging ? 'border-[#FBCB4B] bg-yellow-50 dark:bg-amber-900/20' : errors.file ? 'border-[#E05252]' : 'border-[#E5E5EA] dark:border-gray-700'
+                  } ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#FAFBFC] dark:hover:bg-gray-800/50 transition-colors'}`}
               >
                 <Plus className={`h-6 w-6 ${selectedFileName ? 'text-[#2BB673]' : 'text-[#A2A5AA]'}`} />
                 <p className="mt-2 text-[14px]">
@@ -310,7 +310,7 @@ export default function UploadTaxDocumentPage() {
                 type="button"
                 onClick={handleCancel}
                 disabled={isUploading}
-                className="h-[42px] min-w-[112px] rounded-full bg-[#FFF3D6] px-6 text-[16px] text-[#4B4B4B] dark:text-gray-300 disabled:opacity-50"
+                className="h-[42px] min-w-[112px] rounded-full bg-[#FFF3D6] dark:bg-gray-800 px-6 text-[16px] text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FCEBBE] dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
               >
                 Cancel
               </button>

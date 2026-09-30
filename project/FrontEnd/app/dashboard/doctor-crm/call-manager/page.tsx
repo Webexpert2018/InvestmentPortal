@@ -956,10 +956,10 @@ export default function CallManagerPage() {
               </div>
 
               {/* Specification Card */}
-              <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 mb-4 text-[12px] space-y-2">
+              <div className="bg-amber-50/70 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-2xl p-4 mb-4 text-[12px] space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-amber-900 flex items-center gap-1.5">
-                    <FileText className="w-4 h-4 text-amber-700" />
+                  <span className="font-bold text-amber-900 dark:text-amber-400 flex items-center gap-1.5">
+                    <FileText className="w-4 h-4 text-amber-700 dark:text-amber-500" />
                     Expected Excel Header Columns:
                   </span>
                   <button
@@ -971,15 +971,15 @@ export default function CallManagerPage() {
                     <span>Download Sample Excel Template</span>
                   </button>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[11px] text-amber-900 pt-1">
-                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Full Name</div>
-                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Email Address</div>
-                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Medical Specialty</div>
-                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Phone Number</div>
-                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Practice / Clinic</div>
-                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Practice Location</div>
-                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 font-semibold">• Stage (needs_call)</div>
-                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 text-amber-800 font-semibold">• Combined Columns</div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[11px] text-amber-900 dark:text-amber-400 pt-1">
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 dark:border-amber-800/50 font-semibold">• Full Name</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 dark:border-amber-800/50 font-semibold">• Email Address</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 dark:border-amber-800/50 font-semibold">• Medical Specialty</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 dark:border-amber-800/50 font-semibold">• Phone Number</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 dark:border-amber-800/50 font-semibold">• Practice / Clinic</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 dark:border-amber-800/50 font-semibold">• Practice Location</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 dark:border-amber-800/50 font-semibold">• Stage (needs_call)</div>
+                  <div className="bg-white dark:bg-[#1C1C1C]/80 px-2 py-1 rounded border border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-500 font-semibold">• Combined Columns</div>
                 </div>
               </div>
 
@@ -1084,7 +1084,7 @@ export default function CallManagerPage() {
                     setParsedLeads([]);
                     setUploadedFileName('');
                   }}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:text-gray-300 text-[13px] font-bold rounded-full transition-all"
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-[13px] font-bold rounded-full transition-all"
                 >
                   Cancel
                 </button>
@@ -1092,11 +1092,11 @@ export default function CallManagerPage() {
                   type="button"
                   onClick={handleBulkUploadSubmit}
                   disabled={isUploadingBulk || parsedLeads.length === 0}
-                  className="px-6 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 text-[13px] font-bold rounded-full transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
+                  className="px-6 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] text-[13px] font-bold rounded-full transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
                 >
                   {isUploadingBulk ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F] dark:text-gray-100" />
+                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
                       <span>Saving {parsedLeads.length} Leads to DB...</span>
                     </>
                   ) : (
@@ -1222,7 +1222,7 @@ export default function CallManagerPage() {
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800 mt-4">
                 <button
                   onClick={() => setSelectedDoctorForAction(null)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:text-gray-300 text-[13px] font-bold rounded-full transition-all"
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-[13px] font-bold rounded-full transition-all"
                 >
                   Cancel
                 </button>
@@ -1237,16 +1237,16 @@ export default function CallManagerPage() {
                     handleUpdateCallAction(selectedDoctorForAction.id, finalText);
                   }}
                   disabled={savingActionId === selectedDoctorForAction.id}
-                  className="px-5 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 text-[13px] font-bold rounded-full transition-all shadow-sm flex items-center gap-2"
+                  className="px-5 py-2 bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] text-[13px] font-bold rounded-full transition-all shadow-sm flex items-center gap-2"
                 >
                   {savingActionId === selectedDoctorForAction.id ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F] dark:text-gray-100" />
+                      <Loader2 className="w-4 h-4 animate-spin text-[#1F1F1F]" />
                       <span>Saving...</span>
                     </>
                   ) : (
                     <>
-                      <Save className="w-4 h-4 text-[#1F1F1F] dark:text-gray-100" />
+                      <Save className="w-4 h-4 text-[#1F1F1F]" />
                       <span>Save Action</span>
                     </>
                   )}

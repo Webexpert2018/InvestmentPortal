@@ -487,7 +487,7 @@ export default function TaxVaultPage() {
                 <h2 className="font-goudy font-bold text-lg md:text-xl text-[#1F1F1F] dark:text-gray-100">Real Estate Tax Documents</h2>
                 <p className="text-xs text-[#8E8E93] mt-0.5">Historical tax documents and K-1s imported from the legacy portal</p>
               </div>
-              <span className="text-xs bg-amber-50 text-amber-700 font-bold px-3 py-1.5 rounded-full border border-amber-200 shrink-0">
+              <span className="text-xs bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-bold px-3 py-1.5 rounded-full border border-amber-200 dark:border-amber-800/40 shrink-0">
                 {legacyDocuments.filter(d => d.documentType === 'Tax Documents' || d.documentType === 'Tax Document').length} File(s)
               </span>
             </div>
@@ -496,10 +496,10 @@ export default function TaxVaultPage() {
               <div className="min-w-[900px] sm:min-w-full inline-block align-middle px-4 sm:px-0">
                 <table className="w-full border-separate border-spacing-0 text-[13px] md:text-[14px] text-[#4B4B4B] dark:text-gray-300">
                   <thead>
-                    <tr className="bg-[#FAFAFA] text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap">
-                      {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF]">Investor</th>}
-                      <th className="px-4 py-3 border-b border-[#ECEDEF]">File Name</th>
-                      <th className="px-4 py-3 text-right border-b border-[#ECEDEF]">Action</th>
+                    <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] dark:text-gray-300 whitespace-nowrap">
+                      {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">Investor</th>}
+                      <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">File Name</th>
+                      <th className="px-4 py-3 text-right border-b border-[#ECEDEF] dark:border-gray-700">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -507,10 +507,10 @@ export default function TaxVaultPage() {
                       <tr
                         key={row.id}
                         onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
-                        className="border-b border-[#F1F1F1] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+                        className="border-b border-[#F1F1F1] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-colors"
                       >
                         {user?.role !== 'investor' && (
-                          <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                          <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
                             <div className="flex items-center gap-3">
                               {row.investorAvatar ? (
                                 <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
@@ -523,8 +523,8 @@ export default function TaxVaultPage() {
                             </div>
                           </td>
                         )}
-                        <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
-                        <td className="relative px-4 py-4 border-b border-[#F5F5F5] text-right">
+                        <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#1F1F1F] dark:text-gray-100 font-medium font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
+                        <td className="relative px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-right">
                           <button
                             type="button"
                             className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"
@@ -581,7 +581,7 @@ export default function TaxVaultPage() {
                 <h2 className="font-goudy font-bold text-lg md:text-xl text-[#1F1F1F] dark:text-gray-100">Real Estate Signed Documents</h2>
                 <p className="text-xs text-[#8E8E93] mt-0.5">Signed agreements and contracts imported from the legacy portal</p>
               </div>
-              <span className="text-xs bg-blue-50 text-blue-700 font-bold px-3 py-1.5 rounded-full border border-blue-200 shrink-0">
+              <span className="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold px-3 py-1.5 rounded-full border border-blue-200 dark:border-blue-800/40 shrink-0">
                 {legacyDocuments.filter(d => d.documentType === 'Signed Documents' || d.documentType === 'Signed Document').length} File(s)
               </span>
             </div>
@@ -590,10 +590,10 @@ export default function TaxVaultPage() {
               <div className="min-w-[900px] sm:min-w-full inline-block align-middle px-4 sm:px-0">
                 <table className="w-full border-separate border-spacing-0 text-[13px] md:text-[14px] text-[#4B4B4B] dark:text-gray-300">
                   <thead>
-                    <tr className="bg-[#FAFAFA] text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] whitespace-nowrap">
-                      {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF]">Investor</th>}
-                      <th className="px-4 py-3 border-b border-[#ECEDEF]">File Name</th>
-                      <th className="px-4 py-3 text-right border-b border-[#ECEDEF]">Action</th>
+                    <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] dark:text-gray-300 whitespace-nowrap">
+                      {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">Investor</th>}
+                      <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">File Name</th>
+                      <th className="px-4 py-3 text-right border-b border-[#ECEDEF] dark:border-gray-700">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -601,10 +601,10 @@ export default function TaxVaultPage() {
                       <tr
                         key={row.id}
                         onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
-                        className="border-b border-[#F1F1F1] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+                        className="border-b border-[#F1F1F1] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-colors"
                       >
                         {user?.role !== 'investor' && (
-                          <td className="px-4 py-4 border-b border-[#F5F5F5]">
+                          <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
                             <div className="flex items-center gap-3">
                               {row.investorAvatar ? (
                                 <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
@@ -617,8 +617,8 @@ export default function TaxVaultPage() {
                             </div>
                           </td>
                         )}
-                        <td className="px-4 py-4 border-b border-[#F5F5F5] text-[13px] text-[#6B7280] font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
-                        <td className="relative px-4 py-4 border-b border-[#F5F5F5] text-right">
+                        <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#1F1F1F] dark:text-gray-100 font-medium font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
+                        <td className="relative px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-right">
                           <button
                             type="button"
                             className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8E8E93] hover:bg-[#F5F5F5] transition-colors"

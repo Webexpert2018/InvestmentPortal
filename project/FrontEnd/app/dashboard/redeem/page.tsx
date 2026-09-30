@@ -391,7 +391,7 @@ export default function RedeemPage() {
                     onClick={() => setSelectedFundId(prev => prev === holding.fundId ? null : holding.fundId)}
                     className={`cursor-pointer rounded-2xl bg-white dark:bg-[#1C1C1C] p-6 sm:p-7 border transition-all duration-200 hover:shadow-md flex flex-col justify-between ${
                       isSelected
-                        ? 'border-[#FBCB4B] shadow-sm bg-[#FFFDF6]'
+                        ? 'border-[#FBCB4B] dark:border-amber-500 shadow-sm bg-[#FFFDF6] dark:bg-amber-900/10'
                         : 'border-gray-100 dark:border-gray-800 shadow-xs'
                     }`}
                   >
@@ -417,11 +417,11 @@ export default function RedeemPage() {
                           </div>
                         </div>
                         {holding.eligibleUnits > 0 ? (
-                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full shrink-0 mt-0.5">
+                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800/40 px-2 py-0.5 rounded-full shrink-0 mt-0.5">
                             Eligible
                           </span>
                         ) : (
-                          <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full shrink-0 mt-0.5">
+                          <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/40 px-2 py-0.5 rounded-full shrink-0 mt-0.5">
                             Pending Period
                           </span>
                         )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Send, Loader2 } from 'lucide-react';
+import { X, Send, Loader2, Mail } from 'lucide-react';
 
 interface SendEmailModalProps {
   isOpen: boolean;
@@ -37,9 +37,12 @@ export function SendEmailModal({ isOpen, onClose, onSend, selectedCount }: SendE
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] shadow-2xl w-full max-w-[600px] overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="p-6 border-b border-[#F2F2F2] flex items-center justify-between bg-[#fcfcfc]">
+        <div className="p-6 border-b border-[#F2F2F2] dark:border-gray-800 flex items-center justify-between bg-[#fcfcfc] dark:bg-transparent">
           <div>
-            <h3 className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">Send Email</h3>
+            <div className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-[#FFD66B]" />
+              <h3 className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">Send Email</h3>
+            </div>
             <p className="text-[#8E8E93] text-[13px]">To {selectedCount} selected investor{selectedCount > 1 ? 's' : ''}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors text-[#8E8E93]">
@@ -54,7 +57,7 @@ export function SendEmailModal({ isOpen, onClose, onSend, selectedCount }: SendE
               type="text"
               required
               placeholder="Enter email subject"
-              className="w-full bg-[#f8f9fa] border-none rounded-xl py-3 px-4 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none transition-all"
+              className="w-full bg-[#f8f9fa] dark:bg-gray-800 border-none rounded-xl py-3 px-4 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none transition-all dark:text-gray-100"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
             />
@@ -66,7 +69,7 @@ export function SendEmailModal({ isOpen, onClose, onSend, selectedCount }: SendE
               required
               rows={8}
               placeholder="Write your message here..."
-              className="w-full bg-[#f8f9fa] border-none rounded-xl py-3 px-4 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none transition-all resize-none"
+              className="w-full bg-[#f8f9fa] dark:bg-gray-800 border-none rounded-xl py-3 px-4 text-[14px] focus:ring-1 focus:ring-[#FFD66B] outline-none transition-all resize-none dark:text-gray-100"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
@@ -83,7 +86,7 @@ export function SendEmailModal({ isOpen, onClose, onSend, selectedCount }: SendE
             <button
               type="submit"
               disabled={isSending || !subject || !message}
-              className="bg-[#FFD66B] hover:bg-[#FFC840] disabled:opacity-50 disabled:cursor-not-allowed text-[#1F1F1F] dark:text-gray-100 px-8 py-2.5 rounded-full font-semibold transition-all flex items-center gap-2 shadow-sm"
+              className="bg-[#FFD66B] hover:bg-[#FFC840] disabled:opacity-50 disabled:cursor-not-allowed text-[#1F1F1F] px-8 py-2.5 rounded-full font-semibold transition-all flex items-center gap-2 shadow-sm"
             >
               {isSending ? (
                 <>

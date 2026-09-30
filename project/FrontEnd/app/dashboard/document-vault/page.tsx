@@ -329,7 +329,7 @@ export default function DocumentVaultPage() {
                 <h2 className="font-goudy font-bold text-lg md:text-xl text-[#1F1F1F] dark:text-gray-100">Real Estate Tax Documents</h2>
                 <p className="text-xs text-[#8E8E93] mt-0.5">Historical tax documents and K-1s imported from the previous investor portal</p>
               </div>
-              <span className="text-xs bg-amber-50 text-amber-700 font-bold px-3 py-1 rounded-full border border-amber-200">
+              <span className="text-xs bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-bold px-3 py-1 rounded-full border border-amber-200 dark:border-amber-800/40">
                 {legacyDocs.filter(d => d.category === 'Tax Documents' || d.category === 'Tax Document').length} File(s)
               </span>
             </div>
@@ -337,7 +337,7 @@ export default function DocumentVaultPage() {
             <div className="overflow-x-auto pb-4 custom-scrollbar">
               <table className="w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B] dark:text-gray-300">
                 <thead>
-                  <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
+                  <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300 border-b dark:border-gray-700">
                     <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
                     <th className="rounded-r-[6px] px-3 py-3 text-center w-[80px]">Action</th>
                   </tr>
@@ -347,9 +347,9 @@ export default function DocumentVaultPage() {
                     <tr
                       key={row.id}
                       onClick={() => router.push(`/dashboard/document-vault/${row.id}`)}
-                      className="border-b border-[#F1F1F1] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                      className="border-b border-[#F1F1F1] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-colors"
                     >
-                      <td className="px-3 py-4">{row.documentName}</td>
+                      <td className="px-3 py-4 font-medium text-[#1F1F1F] dark:text-gray-100">{row.documentName}</td>
                       <td className="relative px-3 py-4 text-center">
                         <button
                           type="button"
@@ -408,7 +408,7 @@ export default function DocumentVaultPage() {
                 <h2 className="font-goudy font-bold text-lg md:text-xl text-[#1F1F1F] dark:text-gray-100">Real Estate Signed Documents</h2>
                 <p className="text-xs text-[#8E8E93] mt-0.5">Signed agreements and contracts imported from the previous investor portal</p>
               </div>
-              <span className="text-xs bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-full border border-blue-200">
+              <span className="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold px-3 py-1 rounded-full border border-blue-200 dark:border-blue-800/40">
                 {legacyDocs.filter(d => d.category === 'Signed Documents' || d.category === 'Signed Document').length} File(s)
               </span>
             </div>
@@ -416,7 +416,7 @@ export default function DocumentVaultPage() {
             <div className="overflow-x-auto pb-4 custom-scrollbar">
               <table className="w-full border-separate border-spacing-0 text-[14px] text-[#4B4B4B] dark:text-gray-300">
                 <thead>
-                  <tr className="bg-[#FAFAFA] text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
+                  <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300 border-b dark:border-gray-700">
                     <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
                     <th className="rounded-r-[6px] px-3 py-3 text-center w-[80px]">Action</th>
                   </tr>
@@ -426,9 +426,9 @@ export default function DocumentVaultPage() {
                     <tr
                       key={row.id}
                       onClick={() => router.push(`/dashboard/document-vault/${row.id}`)}
-                      className="border-b border-[#F1F1F1] hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                      className="border-b border-[#F1F1F1] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-colors"
                     >
-                      <td className="px-3 py-4">{row.documentName}</td>
+                      <td className="px-3 py-4 font-medium text-[#1F1F1F] dark:text-gray-100">{row.documentName}</td>
                       <td className="relative px-3 py-4 text-center">
                         <button
                           type="button"

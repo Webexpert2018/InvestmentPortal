@@ -970,7 +970,7 @@ export default function WebinarsPage() {
 
                     {/* Description */}
                     <div>
-                      <p className="text-[14px] text-[#4B5563] mt-1.5 leading-relaxed">
+                      <p className="text-[14px] text-[#4B5563] dark:text-gray-300 mt-1.5 leading-relaxed">
                         {webinar.description && webinar.description.length > 600
                           ? `${webinar.description.substring(0, 600)}.....`
                           : webinar.description}
@@ -978,7 +978,7 @@ export default function WebinarsPage() {
                     </div>
 
                     {/* Actions Bar */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-[#F4F4F4]">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-[#F4F4F4] dark:border-gray-800">
                       {/* Meeting Link Trigger */}
                       <div className="flex items-center gap-2 max-w-full overflow-hidden">
                         {/* Accordion Expand Button */}
@@ -1724,10 +1724,10 @@ export default function WebinarsPage() {
               </div>
 
               {/* Webinar Summary & Currently Scheduled Banner */}
-              <div className="bg-[#FAFBFD] border border-[#EAEAEA] dark:border-[#2A2A2A] rounded-xl p-3.5 space-y-2 text-[13px]">
+              <div className="bg-[#FAFBFD] dark:bg-gray-800/50 border border-[#EAEAEA] dark:border-[#2A2A2A] rounded-xl p-3.5 space-y-2 text-[13px]">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-bold text-[#1F1F1F] dark:text-gray-100">{reminderWebinar.title}</span>
-                  <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200 dark:border-gray-800">
+                  <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2.5 py-0.5 rounded-full border border-gray-200 dark:border-gray-800">
                     {reminderWebinar.formattedDate || reminderWebinar.date}
                   </span>
                 </div>

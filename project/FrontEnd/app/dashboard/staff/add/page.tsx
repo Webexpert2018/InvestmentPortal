@@ -268,14 +268,14 @@ export default function AddStaffPage() {
           <div className="mt-12 flex items-center justify-between">
             <Link
               href="/dashboard/staff"
-              className="px-8 py-3 rounded-full bg-[#FCF5E8] text-[#1F1F1F] dark:text-gray-100 font-semibold hover:bg-[#F5ECD7] transition-colors"
+              className="px-8 py-3 rounded-full bg-[#FCF5E8] dark:bg-gray-800 text-[#1F1F1F] dark:text-gray-100 font-semibold hover:bg-[#F5ECD7] dark:hover:bg-gray-700 transition-colors"
             >
               Cancel
             </Link>
             <button
               disabled={loading}
               type="submit"
-              className="px-10 py-3 rounded-full bg-[#FFD66B] text-[#1F1F1F] dark:text-gray-100 font-semibold hover:bg-[#FFC840] transition-all transform active:scale-95 disabled:opacity-50 min-w-[140px] flex items-center justify-center font-bold"
+              className="px-10 py-3 rounded-full bg-[#FFD66B] text-[#1F1F1F] font-semibold hover:bg-[#FFC840] transition-all transform active:scale-95 disabled:opacity-50 min-w-[140px] flex items-center justify-center font-bold"
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save'}
             </button>

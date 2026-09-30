@@ -839,7 +839,7 @@ export default function DoctorLeadsPage() {
                 </div>
                 <button
                   onClick={() => setIsAddModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#1F1F1F] dark:text-gray-100 transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#1F1F1F] dark:hover:text-gray-200 transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>

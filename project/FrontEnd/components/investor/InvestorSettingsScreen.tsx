@@ -1676,7 +1676,7 @@ export function InvestorSettingsScreen() {
                 setSubAccountMode('list');
                 setSubFormErrors({});
               }}
-              className="h-[32px] rounded-full bg-[#ECEDEF] px-5 text-[12px] text-[#4B4B4B] dark:text-gray-300 hover:bg-[#D8D9DE]"
+              className="h-[32px] rounded-full bg-[#ECEDEF] dark:bg-gray-800 px-5 text-[12px] text-[#4B4B4B] dark:text-gray-300 hover:bg-[#D8D9DE] dark:hover:bg-gray-700"
             >
               Back to List
             </button>
@@ -2060,7 +2060,7 @@ export function InvestorSettingsScreen() {
                   setSubAccountMode('list');
                   setSubFormErrors({});
                 }}
-                className="h-[36px] rounded-full border border-[#E5E5EA] px-6 text-[12px] font-medium text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F9FAFB]"
+                className="h-[36px] rounded-full border border-[#E5E5EA] dark:border-gray-700 px-6 text-[12px] font-medium text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F9FAFB] dark:hover:bg-gray-800 transition-colors"
               >
                 Cancel
               </button>
@@ -2131,7 +2131,7 @@ export function InvestorSettingsScreen() {
                   {subaccounts.map((sub, i) => (
                     <tr
                       key={sub.id || i}
-                      className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] transition-colors"
+                      className="border-b border-[#F2F3F5] dark:border-gray-800 hover:bg-[#F9FAFB] dark:hover:bg-gray-800/60 transition-colors"
                     >
                       <td className="py-3 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100 truncate max-w-[200px]" title={sub.fullName || sub.entityName || '-'}>{sub.fullName || sub.entityName || '-'}</td>
                       <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>
@@ -2183,7 +2183,7 @@ export function InvestorSettingsScreen() {
                     {imsSubaccounts.filter(sub => sub.investorType?.toLowerCase() !== 'individual').map((sub, i) => (
                       <tr
                         key={sub.id || i}
-                        className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] transition-colors"
+                        className="border-b border-[#F2F3F5] dark:border-gray-800 hover:bg-[#F9FAFB] dark:hover:bg-gray-800/60 transition-colors"
                       >
                         <td className="py-3 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100 truncate max-w-[200px]" title={sub.fullName || '-'}>{sub.fullName || '-'}</td>
                         <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>
@@ -2233,7 +2233,7 @@ export function InvestorSettingsScreen() {
                     {imsSubaccounts.filter(sub => sub.investorType?.toLowerCase() === 'individual').map((sub, i) => (
                       <tr
                         key={sub.id || i}
-                        className="border-b border-[#F2F3F5] hover:bg-[#F9FAFB] transition-colors"
+                        className="border-b border-[#F2F3F5] dark:border-gray-800 hover:bg-[#F9FAFB] dark:hover:bg-gray-800/60 transition-colors"
                       >
                         <td className="py-3 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100 truncate max-w-[200px]" title={sub.fullName || '-'}>{sub.fullName || '-'}</td>
                         <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>

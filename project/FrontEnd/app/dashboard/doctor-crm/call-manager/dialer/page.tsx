@@ -415,22 +415,22 @@ export default function RingCentralDialer() {
           </div>
 
           {/* Instructions Card */}
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-amber-900/30 rounded-[24px] shadow-sm border border-amber-200 dark:border-amber-800/50 p-8 flex flex-col justify-center w-full lg:w-2/5">
-            <h3 className="text-xl font-extrabold text-amber-900 dark:text-amber-300 mb-6 flex items-center gap-3">
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:bg-[#1C1C1C] dark:from-[#1C1C1C] dark:to-[#1C1C1C] rounded-[24px] shadow-sm border border-amber-200 dark:border-gray-800 p-8 flex flex-col justify-center w-full lg:w-2/5">
+            <h3 className="text-xl font-extrabold text-amber-900 dark:text-gray-100 mb-6 flex items-center gap-3">
               <Info className="w-6 h-6 text-amber-600 dark:text-amber-400" />
               Transcription Rules
             </h3>
-            <ul className="space-y-6 text-amber-900 dark:text-amber-200 text-[15px] leading-relaxed font-medium">
-              <li className="flex items-start gap-4 bg-white dark:bg-[#1C1C1C] p-4 rounded-xl border border-amber-100 dark:border-amber-800/40 shadow-sm">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-100 flex items-center justify-center font-bold text-sm">1</span>
+            <ul className="space-y-6 text-amber-900 dark:text-gray-300 text-[15px] leading-relaxed font-medium">
+              <li className="flex items-start gap-4 bg-white dark:bg-[#2A2A2A] p-4 rounded-xl border border-amber-100 dark:border-gray-700 shadow-sm">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-[#FFC63F] text-amber-800 dark:text-[#1F1F1F] flex items-center justify-center font-bold text-sm">1</span>
                 <span>In order to get the transcription, you <strong className="text-red-600 dark:text-red-400">MUST</strong> start recording the call during the conversation. Use the red record button once connected.</span>
               </li>
-              <li className="flex items-start gap-4 bg-white dark:bg-[#1C1C1C] p-4 rounded-xl border border-amber-100 dark:border-amber-800/40 shadow-sm">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-100 flex items-center justify-center font-bold text-sm">2</span>
+              <li className="flex items-start gap-4 bg-white dark:bg-[#2A2A2A] p-4 rounded-xl border border-amber-100 dark:border-gray-700 shadow-sm">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-[#FFC63F] text-amber-800 dark:text-[#1F1F1F] flex items-center justify-center font-bold text-sm">2</span>
                 <span>Once the call finishes, RingCentral will take a little time (usually 1-2 minutes) for the recording to get fetched and processed on their end. Please wait a moment and then refresh the page to see the new call log appear below.</span>
               </li>
-              <li className="flex items-start gap-4 bg-white dark:bg-[#1C1C1C] p-4 rounded-xl border border-amber-100 dark:border-amber-800/40 shadow-sm">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-100 flex items-center justify-center font-bold text-sm">3</span>
+              <li className="flex items-start gap-4 bg-white dark:bg-[#2A2A2A] p-4 rounded-xl border border-amber-100 dark:border-gray-700 shadow-sm">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-[#FFC63F] text-amber-800 dark:text-[#1F1F1F] flex items-center justify-center font-bold text-sm">3</span>
                 <span>After waiting a minute, you <strong className="text-red-600 dark:text-red-400">MUST</strong> click the "View Transcript" button on the call log below. This forces the system to pull the recording, generate the transcript, and permanently save it into our database.</span>
               </li>
             </ul>

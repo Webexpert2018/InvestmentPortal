@@ -541,8 +541,8 @@ export default function IRAPage() {
           {/* Legacy Self-Directed IRA Accounts Section */}
           <div className="mt-8 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm overflow-hidden py-6">
             <div className="flex items-center gap-2 mb-6 px-6">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1]">
-                <Sparkles className="h-4 w-4 text-[#D1A94C]" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-900/30">
+                <Sparkles className="h-4 w-4 text-[#D1A94C] dark:text-amber-400" />
               </div>
               <div>
                 <h2 className="font-goudy text-[18px] md:text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">Legacy Self-Directed IRA Accounts</h2>
@@ -577,8 +577,8 @@ export default function IRAPage() {
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1]">
-                              <FileText className="h-4 w-4 text-[#D1A94C]" />
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-900/30">
+                              <FileText className="h-4 w-4 text-[#D1A94C] dark:text-amber-400" />
                             </div>
                             <p className="font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy text-[15px] truncate" title={acc.legal_name}>
                               {acc.legal_name}
@@ -586,7 +586,7 @@ export default function IRAPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="text-[12px] font-semibold text-[#D1A94C] bg-[#FFF8E1] px-2.5 py-1 rounded-full uppercase tracking-wider">
+                          <span className="text-[12px] font-semibold text-[#D1A94C] dark:text-amber-400 bg-[#FFF8E1] dark:bg-amber-900/30 px-2.5 py-1 rounded-full uppercase tracking-wider">
                             {acc.profile_type || 'Self Directed IRA'}
                           </span>
                         </td>

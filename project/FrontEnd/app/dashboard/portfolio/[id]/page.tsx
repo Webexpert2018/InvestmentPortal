@@ -266,7 +266,7 @@ export default function PortfolioFundDetailsPage() {
                         setRange('3m');
                         setRangeOpen(false);
                       }}
-                      className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800"
+                      className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                       Last 3 months
                     </button>
@@ -276,7 +276,7 @@ export default function PortfolioFundDetailsPage() {
                         setRange('6m');
                         setRangeOpen(false);
                       }}
-                      className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800"
+                      className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                       Last 6 months
                     </button>
@@ -286,7 +286,7 @@ export default function PortfolioFundDetailsPage() {
                         setRange('1y');
                         setRangeOpen(false);
                       }}
-                      className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800"
+                      className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                       Last year
                     </button>
@@ -310,7 +310,7 @@ export default function PortfolioFundDetailsPage() {
                     <stop offset="100%" stopColor="#FEF3C7" stopOpacity="0.05" />
                   </linearGradient>
                 </defs>
-                <rect x="0" y="0" width="800" height="256" fill="#FFFFFF" />
+                <rect x="0" y="0" width="800" height="256" fill="transparent" />
                 <path
                   d={areaPath}
                   fill="url(#portfolioChartGradient)"
@@ -367,13 +367,13 @@ export default function PortfolioFundDetailsPage() {
             <div className="mt-6 space-y-3">
               <button
                 onClick={() => router.push('/dashboard/messages')}
-                className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF] transition-all shadow-sm"
+                className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-900/20 py-2.5 text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF] dark:hover:bg-amber-900/40 transition-all shadow-sm"
               >
                 Message
               </button>
               <button
                 onClick={() => router.push('/dashboard/schedule-meeting')}
-                className="w-full rounded-full bg-[#FFF3D6] py-2.5 text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF] transition-all shadow-sm"
+                className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-900/20 py-2.5 text-sm font-semibold text-[#E29F3A] hover:bg-[#FFE7AF] dark:hover:bg-amber-900/40 transition-all shadow-sm"
               >
                 Schedule Meeting
               </button>
@@ -497,7 +497,7 @@ export default function PortfolioFundDetailsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                   {sortedTransactions.map((tx: any) => (
-                    <tr key={tx.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800">
+                    <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors">
                       <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">{tx.date}</td>
                       <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">{tx.type}</td>
                       <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">{formatCurrency(tx.amount)}</td>
@@ -529,7 +529,7 @@ export default function PortfolioFundDetailsPage() {
                 <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                   {documents.length > 0 ? (
                     documents.map((doc) => (
-                      <tr key={doc.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800">
+                      <tr key={doc.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors">
                         <td className="px-4 py-3 text-[#1F1F1F] dark:text-gray-100 font-medium">{doc.file_name}</td>
                         <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">
                           {new Date(doc.uploaded_at || doc.created_at).toLocaleDateString('en-US', {
@@ -553,13 +553,13 @@ export default function PortfolioFundDetailsPage() {
                               <div className="absolute right-0 z-10 mt-2 w-40 rounded-xl bg-white dark:bg-[#1C1C1C] py-2 text-xs shadow-lg ring-1 ring-black/5">
                                 <button
                                   onClick={() => handleViewDocument(doc.id)}
-                                  className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800"
+                                  className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                 >
                                   View Document
                                 </button>
                                 <button
                                   onClick={() => handleDownloadDocument(doc.id)}
-                                  className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800"
+                                  className="block w-full px-4 py-2 text-left text-[#4B4B4B] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                 >
                                   Download
                                 </button>

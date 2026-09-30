@@ -580,7 +580,7 @@ export default function DoctorProfilePage() {
 
                 <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-[12px]">
                   <span className="text-gray-500 dark:text-gray-400">Physician ID</span>
-                  <span className="font-mono text-gray-700 dark:text-gray-300 bg-gray-100 px-2 py-0.5 rounded text-[11px]">{doctor.id}</span>
+                  <span className="font-mono text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-[11px]">{doctor.id}</span>
                 </div>
               </div>
             </div>
@@ -592,7 +592,7 @@ export default function DoctorProfilePage() {
                   <FileText className="w-5 h-5 text-[#D9A11E]" />
                   <span>Physician Notes</span>
                 </div>
-                <span className="text-[11px] font-bold bg-gray-100 text-gray-700 dark:text-gray-300 px-2.5 py-0.5 rounded-full border border-gray-200 dark:border-gray-800">
+                <span className="text-[11px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2.5 py-0.5 rounded-full border border-gray-200 dark:border-gray-800">
                   {notes.length}
                 </span>
               </h3>
@@ -684,8 +684,8 @@ export default function DoctorProfilePage() {
                       key={dayNum}
                       onClick={() => setActiveDay(dayNum)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold transition-all shrink-0 ${activeDay === dayNum
-                        ? 'bg-[#FFC63F] text-[#1F1F1F] dark:text-gray-100 shadow-sm border border-[#E0AC27]'
-                        : 'bg-gray-100 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
+                        ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm border border-[#E0AC27]'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                         }`}
                     >
                       <span>Day {dayNum}</span>
@@ -704,7 +704,7 @@ export default function DoctorProfilePage() {
                   return (
                     <div className="space-y-4">
                       {/* Drip Schedule & Status Banner */}
-                      <div className="flex items-center justify-between bg-[#FFF9EE] border border-[#FFE7A8] rounded-xl px-4 py-2.5 text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">
+                      <div className="flex items-center justify-between bg-[#FFF9EE] dark:bg-amber-900/20 border border-[#FFE7A8] dark:border-amber-800/40 rounded-xl px-4 py-2.5 text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-[#D9A11E]" />
                           <span>Drip Schedule: <strong>{activeEmail.scheduledDate || 'Next Day @ 9:00 AM EST'}</strong></span>
@@ -766,7 +766,7 @@ export default function DoctorProfilePage() {
                         </div>
 
                         <div
-                          className="bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-inner text-[14px] leading-relaxed font-sans text-gray-800 dark:text-gray-200 space-y-3 min-h-[520px] max-h-[650px] overflow-y-auto custom-scrollbar [&_a]:pointer-events-none [&_a]:cursor-default"
+                          className="bg-white dark:bg-white border border-gray-200 dark:border-gray-300 rounded-2xl p-6 shadow-inner text-[14px] leading-relaxed font-sans text-gray-800 dark:text-gray-800 space-y-3 min-h-[520px] max-h-[650px] overflow-y-auto custom-scrollbar [&_a]:pointer-events-none [&_a]:cursor-default"
                           dangerouslySetInnerHTML={{ __html: activeEmail.body }}
                         />
                       </div>
@@ -780,7 +780,7 @@ export default function DoctorProfilePage() {
                         <button
                           onClick={() => handleSendTestEmail(activeEmail.body)}
                           disabled={isSending}
-                          className="flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-[13px] bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] dark:text-gray-100 transition-all shadow-sm disabled:opacity-50"
+                          className="flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-[13px] bg-[#FFC63F] hover:bg-[#F1B92E] text-[#1F1F1F] transition-all shadow-sm disabled:opacity-50"
                         >
                           {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                           <span>Send Day {activeDay} Email to {doctor.fullName.split(' ')[1] || 'Doctor'}</span>

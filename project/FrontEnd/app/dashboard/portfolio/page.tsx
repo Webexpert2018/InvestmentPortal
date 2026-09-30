@@ -671,18 +671,18 @@ export default function PortfolioPage() {
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
+                      className="px-4 py-2 text-sm font-bold text-[#4B5563] dark:text-gray-300 hover:bg-[#F9FAFB] dark:hover:bg-gray-800 rounded-full disabled:opacity-40 transition-all"
                     >
                       Previous
                     </button>
-                    <div className="flex items-center gap-2 shadow-sm rounded-full bg-[#F9FAFB] p-1">
+                    <div className="flex items-center gap-2 shadow-sm rounded-full bg-[#F9FAFB] dark:bg-gray-800 p-1">
                       {Array.from({ length: Math.ceil(sortedInvestments.length / ITEMS_PER_PAGE) }, (_, i) => i + 1).map((page) => (
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page)}
                           className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${currentPage === page
                             ? 'bg-[#1F3B6E] text-white shadow-md scale-105'
-                            : 'text-[#4B5563] hover:bg-white dark:bg-[#1C1C1C]'
+                            : 'text-[#4B5563] dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700'
                             }`}
                         >
                           {page}
@@ -692,7 +692,7 @@ export default function PortfolioPage() {
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(sortedInvestments.length / ITEMS_PER_PAGE)))}
                       disabled={currentPage === Math.ceil(sortedInvestments.length / ITEMS_PER_PAGE)}
-                      className="px-4 py-2 text-sm font-bold text-[#4B5563] hover:bg-[#F9FAFB] rounded-full disabled:opacity-40 transition-all"
+                      className="px-4 py-2 text-sm font-bold text-[#4B5563] dark:text-gray-300 hover:bg-[#F9FAFB] dark:hover:bg-gray-800 rounded-full disabled:opacity-40 transition-all"
                     >
                       Next
                     </button>
@@ -808,9 +808,9 @@ export default function PortfolioPage() {
                               {prefix}${parseFloat(transfer.investment_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
                             <td className="px-4 py-3">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${transfer.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                                transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-gray-100 text-gray-800 dark:text-gray-200'
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${transfer.status === 'COMPLETED' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
+                                transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' :
+                                  'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300'
                                 }`}>
                                 {transfer.status}
                               </span>
