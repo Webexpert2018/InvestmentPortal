@@ -159,7 +159,7 @@ export function DashboardHeader({
 
         <ThemeToggle />
 
-        <div className="h-[50px] w-px bg-[#EEEEEE] dark:bg-gray-700" />
+        <div className="hidden sm:block h-[50px] w-px bg-[#EEEEEE] dark:bg-gray-700" />
 
         <div ref={profileMenuRef} className="relative pr-1">
           <button
@@ -201,7 +201,7 @@ export function DashboardHeader({
 
             <svg
               className={cn(
-                "h-[22px] w-[22px] text-[#B6B6B6] dark:text-gray-400 transition-transform",
+                "hidden sm:block h-[22px] w-[22px] text-[#B6B6B6] dark:text-gray-400 transition-transform",
                 isProfileMenuOpen && "rotate-180",
               )}
               viewBox="0 0 24 24"
