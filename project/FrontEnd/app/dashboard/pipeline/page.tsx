@@ -1043,9 +1043,9 @@ export default function PipelinePage() {
                                                     </span>
                                                     <span className={cn(
                                                       "flex-none px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md tracking-tighter",
-                                                      investor.status === 'active' ? "bg-green-100 text-green-700" :
-                                                        investor.status === 'pending' ? "bg-yellow-100 text-yellow-700" :
-                                                          "bg-red-100 text-red-700"
+                                                      investor.status === 'active' ? "bg-green-100 dark:bg-emerald-900/30 text-green-700 dark:text-emerald-400" :
+                                                        investor.status === 'pending' ? "bg-yellow-100 dark:bg-amber-900/30 text-yellow-700 dark:text-amber-400" :
+                                                          "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
                                                     )}>
                                                       {investor.status || 'prospect'}
                                                     </span>
@@ -1055,7 +1055,7 @@ export default function PipelinePage() {
 
                                                     {user?.role !== 'investor_relations' && investor.assignedIrId === user?.id && (
 
-                                                      <span className="flex-none px-1.5 py-0.5 bg-green-100 text-[10px] font-bold text-green-700 rounded-md uppercase tracking-tight">
+                                                      <span className="flex-none px-1.5 py-0.5 bg-green-100 dark:bg-emerald-900/30 text-[10px] font-bold text-green-700 dark:text-emerald-400 rounded-md uppercase tracking-tight">
 
                                                         Self
 

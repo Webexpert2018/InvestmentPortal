@@ -1180,7 +1180,7 @@ export default function DashboardPage() {
                       const kyc = getKycDisplay(person.kycStatus);
 
                       return (
-                        <tr key={`${person.id}-${index}`} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                        <tr key={`${person.id}-${index}`} className="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors">
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{person.investorName || 'N/A'}</td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{person.accountType}</td>
                           <td className="px-4 py-4 whitespace-nowrap">
@@ -1231,7 +1231,7 @@ export default function DashboardPage() {
                   const initials = item.investorName ? item.investorName.split(' ').map((n: any) => n[0]).join('').toUpperCase().slice(0, 2) : '??';
                   return (
                     <div key={item.id} className="group transition-all">
-                      <div className="flex items-start justify-between py-4 group-hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 rounded-xl px-2 transition-colors">
+                      <div className="flex items-start justify-between py-4 group-hover:bg-gray-50 dark:hover:bg-gray-800/60 rounded-xl px-2 transition-colors">
                         <div className="flex items-start gap-4 min-w-0">
                           {/* Avatar Circle */}
                           <div className="h-10 w-10 rounded-full bg-[#F3F4F6] dark:bg-gray-800 flex items-center justify-center text-[#4B4B4B] dark:text-gray-300 text-[13px] font-bold shrink-0 border border-gray-100 dark:border-gray-800">
