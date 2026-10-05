@@ -217,8 +217,8 @@ export default function DashboardPage() {
 
   const [adminExpanded, setAdminExpanded] = useState({
     funding: true,
-    redemption: false,
-    reconciliation: false,
+    redemption: true,
+    reconciliation: true,
   });
   const [investorExpanded, setInvestorExpanded] = useState({
     pending: true,
