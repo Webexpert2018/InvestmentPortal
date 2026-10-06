@@ -54,6 +54,27 @@ export default function RingCentralDialer() {
   }, [callStatus]);
 
   useEffect(() => {
+    // Prevent echo for the remote caller by enforcing WebRTC audio constraints
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      const originalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+      navigator.mediaDevices.getUserMedia = async (constraints: MediaStreamConstraints) => {
+        if (constraints && constraints.audio) {
+          if (typeof constraints.audio === 'boolean') {
+            constraints.audio = {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            };
+          } else if (typeof constraints.audio === 'object') {
+            constraints.audio.echoCancellation = true;
+            constraints.audio.noiseSuppression = true;
+            constraints.audio.autoGainControl = true;
+          }
+        }
+        return originalGetUserMedia(constraints);
+      };
+    }
+
     initRingCentral();
     fetchCallLogs();
     

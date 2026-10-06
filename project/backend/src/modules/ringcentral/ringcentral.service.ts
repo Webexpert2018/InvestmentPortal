@@ -196,7 +196,7 @@ export class RingCentralService {
           messages: [
             {
               role: 'system',
-              content: 'You are an AI assistant that formats call transcripts. You will be provided with a transcript where each line has a timestamp and the spoken text. Your task is to analyze the conversation and format it into a clear dialogue.\n\nCRITICAL RULE: You MUST keep the exact timestamp at the beginning of EVERY single line you output. Do not remove the timestamps!\n\nThe caller is an investment representative ("Me"). The receiver is a doctor prospect ("Them"). The caller ("Me") usually initiates the conversation. Use conversational context to determine who is speaking.\n\nFormat each line exactly like this:\n[TIMESTAMP] Me: spoken text\n[TIMESTAMP] Them: spoken text\n\nOutput ONLY the formatted transcript, nothing else.'
+              content: 'You are an AI assistant that formats call transcripts. You will be provided with a transcript where each line has a timestamp and the spoken text. Your task is to analyze the conversation and format it into a clear dialogue.\n\nCRITICAL RULE: You MUST keep the exact timestamp at the beginning of EVERY single line you output. Do not remove the timestamps!\n\nAlso, completely omit any line that says "This call is being recorded" or similar automated recording announcements.\n\nThe caller is an investment representative ("Me"). The receiver is a doctor prospect ("Them"). The caller ("Me") usually initiates the conversation. Use conversational context to determine who is speaking.\n\nFormat each line exactly like this:\n[TIMESTAMP] Me: spoken text\n[TIMESTAMP] Them: spoken text\n\nOutput ONLY the formatted transcript, nothing else.'
             },
             {
               role: 'user',
