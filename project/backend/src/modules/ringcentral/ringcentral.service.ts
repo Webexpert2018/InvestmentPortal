@@ -159,10 +159,77 @@ export class RingCentralService {
         return { transcript: 'No recording available for this call to transcribe.' };
       }
 
-      let transcript = '';
-
       try {
         const audioBuffer = await this.downloadRecording(recordingId);
+        
+        // Emulate the process flow for backwards compatibility
+        const openAiApiKey = this.configService.get<string>('OPENAI_API_KEY');
+        const openai = new OpenAI({ apiKey: openAiApiKey as string });
+        const openaiFile = await toFile(audioBuffer, 'recording.mp3', { type: 'audio/mpeg' });
+        const result = await openai.audio.transcriptions.create({
+          file: openaiFile,
+          model: 'whisper-1',
+          response_format: 'verbose_json',
+        });
+        const segmentsText = (result.segments || []).map((seg: any) => `[${seg.start.toFixed(2)}s] Unknown: ${seg.text}`).join('\n');
+        
+        return await this.finalizeTranscript(segmentsText, sessionId, startTime, apolloId);
+      } catch (e: any) {
+        this.logger.error(`Error transcribing with OpenAI: ${e.message}`, e.stack);
+        const errorText = `Transcription failed.\nReason: ${e.message || 'Unknown error'}\n(Session: ${sessionId})`;
+        return { transcript: errorText };
+      }
+    } catch (error: any) {
+      this.logger.error(`Error with transcript: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to get transcript');
+    }
+  }
+
+  async transcribeDualUploadedAudio(localFile: any, remoteFile: any, sessionId: string, startTime: string, apolloId?: string) {
+    try {
+      this.logger.log(`Processing dual uploaded audio for session ${sessionId}`);
+      
+      const openAiApiKey = this.configService.get<string>('OPENAI_API_KEY');
+      if (!openAiApiKey) throw new Error('OPENAI_API_KEY is not configured');
+      const openai = new OpenAI({ apiKey: openAiApiKey });
+
+      // Transcribe both independently
+      const transcribe = async (file: any, prefix: string) => {
+        if (!file || !file.buffer) return [];
+        const openaiFile = await toFile(file.buffer, 'audio.webm', { type: file.mimetype || 'audio/webm' });
+        const result = await openai.audio.transcriptions.create({
+          file: openaiFile,
+          model: 'whisper-1',
+          response_format: 'verbose_json',
+        });
+        
+        return (result.segments || []).map((seg: any) => ({
+          start: seg.start,
+          text: `[${prefix}] ${seg.text}`
+        }));
+      };
+
+      const [localSegments, remoteSegments] = await Promise.all([
+        transcribe(localFile, 'Me'),
+        transcribe(remoteFile, 'Them')
+      ]);
+
+      // Merge and sort by timestamp
+      const combinedSegments = [...localSegments, ...remoteSegments].sort((a, b) => a.start - b.start);
+      const segmentsText = combinedSegments.map(seg => `[${seg.start.toFixed(2)}s] ${seg.text}`).join('\n');
+
+      return await this.finalizeTranscript(segmentsText, sessionId, startTime, apolloId);
+    } catch (error: any) {
+      this.logger.error(`Error with dual transcript: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to process dual transcripts');
+    }
+  }
+
+  // Renamed from processAndSaveTranscript and updated to take segmentsText directly
+  private async finalizeTranscript(segmentsText: string, sessionId: string, startTime?: string, apolloId?: string) {
+    let transcript = '';
+
+    try {
         
         const openAiApiKey = this.configService.get<string>('OPENAI_API_KEY');
         if (!openAiApiKey) {
@@ -171,25 +238,8 @@ export class RingCentralService {
 
         const openai = new OpenAI({ apiKey: openAiApiKey });
         
-        // Convert Buffer to File-like object for OpenAI SDK
-        const file = await toFile(audioBuffer, 'recording.mp3', { type: 'audio/mpeg' });
+        // Remove redundant whisper call and segmentsText redefinition since we already pass segmentsText directly
 
-        const result = await openai.audio.transcriptions.create({
-          file: file,
-          model: 'whisper-1',
-          response_format: 'verbose_json',
-        });
-        
-        const callStartDate = startTime ? new Date(startTime) : null;
-        const formatTime = (seconds: number) => {
-          if (!callStartDate || isNaN(callStartDate.getTime())) return `[${seconds.toFixed(1)}s]`;
-          const d = new Date(callStartDate.getTime() + seconds * 1000);
-          return `[${d.toLocaleTimeString('en-US', { timeZone: 'America/New_York' })} EST]`;
-        };
-
-        const segmentsText = (result as any).segments?.map(
-          (s: any) => `${formatTime(s.start)} ${s.text}`
-        ).join('\n') || result.text;
 
         const completion = await openai.chat.completions.create({
           model: 'gpt-4o-mini',
@@ -205,7 +255,7 @@ export class RingCentralService {
           ]
         });
 
-        transcript = completion.choices[0].message.content || result.text;
+        transcript = completion.choices[0].message.content || segmentsText;
 
       } catch (e: any) {
         this.logger.error(`Error transcribing with OpenAI: ${e.message}`, e.stack);
@@ -257,10 +307,6 @@ export class RingCentralService {
       }
 
       return { transcript };
-    } catch (error: any) {
-      this.logger.error(`Error with transcript: ${error.message}`, error.stack);
-      throw new InternalServerErrorException('Failed to get transcript');
-    }
   }
 
   async saveCallLog(data: { sessionId?: string; apolloId: string; phoneNumber: string; duration: number; startTime?: string }) {

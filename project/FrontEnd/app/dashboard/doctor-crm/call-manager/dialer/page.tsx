@@ -38,6 +38,14 @@ export default function RingCentralDialer() {
   const startTimeRef = useRef<string | null>(null);
   const audioRemoteRef = useRef<HTMLAudioElement | null>(null);
   const audioLocalRef = useRef<HTMLAudioElement | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioNodesRef = useRef<any[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const remoteMediaSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+
+  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
+  const [isTranscribing, setIsTranscribing] = useState(false);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -175,6 +183,14 @@ export default function RingCentralDialer() {
   const handleCallEndCleanup = () => {
     let apolloId = searchParams.get('apollo_id');
     
+    // Stop browser recording if active
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    
+    // Clear audio node references to allow GC
+    audioNodesRef.current = [];
+
     if (phoneNumber) {
       if (!apolloId) {
         apolloId = `non-prospect-${Math.random().toString(36).substring(2, 10)}`;
@@ -202,8 +218,17 @@ export default function RingCentralDialer() {
     activeSessionRef.current = null;
     sipSessionIdRef.current = null;
     startTimeRef.current = null;
-    if (audioRemoteRef.current) audioRemoteRef.current.srcObject = null;
-    if (audioLocalRef.current) audioLocalRef.current.srcObject = null;
+    
+    // Do NOT set audioRemoteRef.current.srcObject = null if we are using MediaElementSource, 
+    // it can mess up the Web Audio API graph. Just pause it.
+    if (audioRemoteRef.current) {
+      audioRemoteRef.current.pause();
+      audioRemoteRef.current.srcObject = null;
+    }
+    if (audioLocalRef.current) {
+      audioLocalRef.current.pause();
+      audioLocalRef.current.srcObject = null;
+    }
     
     // Fetch logs again after a short delay to allow RingCentral to process it
     setTimeout(fetchCallLogs, 5000);
@@ -237,9 +262,60 @@ export default function RingCentralDialer() {
       setCallStatus('connected');
       toast.success('Call connected!');
       
-      const bindMedia = (stream: any) => {
+      const bindMedia = async (stream: any) => {
         if (stream && audioRemoteRef.current) {
           audioRemoteRef.current.srcObject = stream;
+          audioRemoteRef.current.play().catch(e => console.error('Play error:', e));
+          
+          try {
+            const localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            let remoteStreamToRecord = stream;
+            
+            // Isolate the true remote WebRTC track from the RTCPeerConnection
+            try {
+              if (callSession.rtcPeerConnection) {
+                const receivers = callSession.rtcPeerConnection.getReceivers();
+                const remoteTrack = receivers.find((r: any) => r.track && r.track.kind === 'audio')?.track;
+                if (remoteTrack) {
+                  remoteStreamToRecord = new MediaStream([remoteTrack]);
+                }
+              }
+            } catch (err) {
+              console.warn('Failed to isolate remote track', err);
+            }
+
+            // Mix both streams into a single audio track using Web Audio API
+            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const dest = audioCtx.createMediaStreamDestination();
+            
+            const localSource = audioCtx.createMediaStreamSource(localStream);
+            const remoteSource = audioCtx.createMediaStreamSource(remoteStreamToRecord);
+            
+            localSource.connect(dest);
+            remoteSource.connect(dest);
+
+            const mixedRecorder = new MediaRecorder(dest.stream);
+            const chunks: Blob[] = [];
+            
+            mixedRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+            
+            mixedRecorder.onstop = () => {
+              const mixedBlob = new Blob(chunks, { type: 'audio/webm' });
+              localStream.getTracks().forEach(t => t.stop());
+              
+              console.log(`Mixed Recording completed. Size: ${mixedBlob.size}`);
+              setRecordedBlob(mixedBlob);
+              setRecordingUrl(URL.createObjectURL(mixedBlob) as any);
+            };
+            
+            mixedRecorder.start();
+            
+            mediaRecorderRef.current = mixedRecorder;
+            console.log('Mixed MediaRecorder started for both local and remote streams.');
+          } catch (err) {
+            console.error('Failed to start browser recording', err);
+          }
         }
       };
 
@@ -315,6 +391,43 @@ export default function RingCentralDialer() {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
+  };
+
+  const handleUploadTranscript = async () => {
+    if (!recordedBlob) return;
+    const formData = new FormData();
+    
+    // recordedBlob is now a dual-blob object { local: Blob, remote: Blob }
+    const blobs = recordedBlob as any;
+    formData.append('localAudio', blobs.local, 'local.webm');
+    formData.append('remoteAudio', blobs.remote, 'remote.webm');
+    
+    formData.append('sessionId', sipSessionIdRef.current || 'unknown-session');
+    formData.append('startTime', startTimeRef.current || new Date().toISOString());
+    
+    const apolloId = searchParams.get('apollo_id');
+    if (apolloId) formData.append('apolloId', apolloId);
+
+    setIsTranscribing(true);
+    try {
+      const res = await fetch(`${API_URL}/ringcentral/upload-transcript`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setTranscripts(prev => ({ ...prev, [sipSessionIdRef.current || 'unknown']: data.transcript }));
+        toast.success('Transcription successful!');
+        setTimeout(fetchCallLogs, 2000); // refresh logs to show updated transcript
+      } else {
+        toast.error(`Transcription failed: ${data.message || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Error uploading transcript');
+    } finally {
+      setIsTranscribing(false);
+    }
   };
 
   return (
@@ -435,27 +548,58 @@ export default function RingCentralDialer() {
           </div>
           </div>
 
-          {/* Instructions Card */}
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:bg-[#1C1C1C] dark:from-[#1C1C1C] dark:to-[#1C1C1C] rounded-[24px] shadow-sm border border-amber-200 dark:border-gray-800 p-8 flex flex-col justify-center w-full lg:w-2/5">
-            <h3 className="text-xl font-extrabold text-amber-900 dark:text-gray-100 mb-6 flex items-center gap-3">
-              <Info className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-              Transcription Rules
-            </h3>
-            <ul className="space-y-6 text-amber-900 dark:text-gray-300 text-[15px] leading-relaxed font-medium">
-              <li className="flex items-start gap-4 bg-white dark:bg-[#2A2A2A] p-4 rounded-xl border border-amber-100 dark:border-gray-700 shadow-sm">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-[#FFC63F] text-amber-800 dark:text-[#1F1F1F] flex items-center justify-center font-bold text-sm">1</span>
-                <span>In order to get the transcription, you <strong className="text-red-600 dark:text-red-400">MUST</strong> start recording the call during the conversation. Use the red record button once connected.</span>
-              </li>
-              <li className="flex items-start gap-4 bg-white dark:bg-[#2A2A2A] p-4 rounded-xl border border-amber-100 dark:border-gray-700 shadow-sm">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-[#FFC63F] text-amber-800 dark:text-[#1F1F1F] flex items-center justify-center font-bold text-sm">2</span>
-                <span>Once the call finishes, RingCentral will take a little time (usually 1-2 minutes) for the recording to get fetched and processed on their end. Please wait a moment and then refresh the page to see the new call log appear below.</span>
-              </li>
-              <li className="flex items-start gap-4 bg-white dark:bg-[#2A2A2A] p-4 rounded-xl border border-amber-100 dark:border-gray-700 shadow-sm">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-[#FFC63F] text-amber-800 dark:text-[#1F1F1F] flex items-center justify-center font-bold text-sm">3</span>
-                <span>After waiting a minute, you <strong className="text-red-600 dark:text-red-400">MUST</strong> click the "View Transcript" button on the call log below. This forces the system to pull the recording, generate the transcript, and permanently save it into our database.</span>
-              </li>
-            </ul>
-          </div>
+          {/* Current Call Recording UI */}
+          {recordingUrl && callStatus === 'idle' && (
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] shadow-sm border border-blue-200 dark:border-blue-900/50 p-6 flex flex-col justify-center w-full lg:w-2/5 animate-fade-in relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4">
+                <span className="flex items-center gap-2 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                  Ready to Transcribe
+                </span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                Call Completed
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                Your browser captured this call successfully. You can review the audio below and generate a transcript instantly.
+              </p>
+              
+              <audio src={recordingUrl as string} controls className="w-full mb-6 rounded-lg" />
+              
+              <button 
+                 onClick={handleUploadTranscript}
+                 disabled={isTranscribing}
+                 className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all disabled:opacity-50 shadow-lg shadow-blue-500/30 flex justify-center items-center gap-2"
+              >
+                {isTranscribing && <Loader2 className="w-5 h-5 animate-spin" />}
+                {isTranscribing ? 'Transcribing with AI...' : 'Transcribe This Recording'}
+              </button>
+            </div>
+          )}
+
+          {/* Instructions Card (only show if no recent recording to save space) */}
+          {(!recordingUrl || callStatus !== 'idle') && (
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:bg-[#1C1C1C] dark:from-[#1C1C1C] dark:to-[#1C1C1C] rounded-[24px] shadow-sm border border-amber-200 dark:border-gray-800 p-8 flex flex-col justify-center w-full lg:w-2/5">
+              <h3 className="text-xl font-extrabold text-amber-900 dark:text-gray-100 mb-6 flex items-center gap-3">
+                <Info className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                Transcription Rules
+              </h3>
+              <ul className="space-y-6 text-amber-900 dark:text-gray-300 text-[15px] leading-relaxed font-medium">
+                <li className="flex items-start gap-4 bg-white dark:bg-[#2A2A2A] p-4 rounded-xl border border-amber-100 dark:border-gray-700 shadow-sm">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-[#FFC63F] text-amber-800 dark:text-[#1F1F1F] flex items-center justify-center font-bold text-sm">1</span>
+                  <span>We now use <strong className="text-blue-600 dark:text-blue-400">Browser Recording</strong>. Your microphone and the remote audio are captured securely in-memory.</span>
+                </li>
+                <li className="flex items-start gap-4 bg-white dark:bg-[#2A2A2A] p-4 rounded-xl border border-amber-100 dark:border-gray-700 shadow-sm">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-[#FFC63F] text-amber-800 dark:text-[#1F1F1F] flex items-center justify-center font-bold text-sm">2</span>
+                  <span>When the call ends, an audio player will appear right here allowing you to review the recording instantly.</span>
+                </li>
+                <li className="flex items-start gap-4 bg-white dark:bg-[#2A2A2A] p-4 rounded-xl border border-amber-100 dark:border-gray-700 shadow-sm">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-[#FFC63F] text-amber-800 dark:text-[#1F1F1F] flex items-center justify-center font-bold text-sm">3</span>
+                  <span>Click the "Transcribe" button on the completed call to generate the AI transcript without waiting for RingCentral delays!</span>
+                </li>
+              </ul>
+            </div>
+          )}
 
         </div>
         </div>
