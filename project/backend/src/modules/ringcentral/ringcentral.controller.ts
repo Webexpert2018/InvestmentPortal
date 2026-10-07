@@ -1,5 +1,5 @@
 import { Controller, Post, Get, Param, Query, Res, HttpCode, HttpStatus, Body, UseInterceptors, UploadedFiles } from '@nestjs/common';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { RingCentralService } from './ringcentral.service';
 
@@ -46,18 +46,15 @@ export class RingCentralController {
   }
 
   @Post('upload-transcript')
-  @UseInterceptors(FileFieldsInterceptor([
-    { name: 'localAudio', maxCount: 1 },
-    { name: 'remoteAudio', maxCount: 1 }
-  ]))
+  @UseInterceptors(AnyFilesInterceptor())
   async uploadTranscript(
-    @UploadedFiles() files: { localAudio?: any[], remoteAudio?: any[] },
+    @UploadedFiles() files: Array<Express.Multer.File>,
     @Body('sessionId') sessionId: string,
     @Body('startTime') startTime: string,
     @Body('apolloId') apolloId?: string
   ) {
-    const localFile = files?.localAudio?.[0];
-    const remoteFile = files?.remoteAudio?.[0];
+    const localFile = files?.find(f => f.fieldname === 'localAudio') || files?.[0];
+    const remoteFile = files?.find(f => f.fieldname === 'remoteAudio');
     return this.ringCentralService.transcribeDualUploadedAudio(localFile, remoteFile, sessionId, startTime, apolloId);
   }
 

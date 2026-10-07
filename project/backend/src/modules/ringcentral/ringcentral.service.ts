@@ -195,28 +195,49 @@ export class RingCentralService {
 
       // Transcribe both independently
       const transcribe = async (file: any, prefix: string) => {
-        if (!file || !file.buffer) return [];
+        if (!file || !file.buffer || file.buffer.length === 0) return [];
         const openaiFile = await toFile(file.buffer, 'audio.webm', { type: file.mimetype || 'audio/webm' });
         const result = await openai.audio.transcriptions.create({
           file: openaiFile,
           model: 'whisper-1',
           response_format: 'verbose_json',
+          temperature: 0,
+          prompt: 'This is a recording of a phone call. It may contain long periods of silence. Please ignore silence.',
         });
         
-        return (result.segments || []).map((seg: any) => ({
-          start: seg.start,
-          text: `[${prefix}] ${seg.text}`
-        }));
+        return (result.segments || [])
+          .filter((seg: any) => {
+             // Filter out purely non-alphanumeric hallucinations (like emojis or symbols)
+             const textOnly = seg.text.replace(/[^a-zA-Z0-9]/g, '');
+             return textOnly.length > 0;
+          })
+          .map((seg: any) => ({
+            start: seg.start,
+            text: `[${prefix}] ${seg.text}`
+          }));
       };
 
       const [localSegments, remoteSegments] = await Promise.all([
-        transcribe(localFile, 'Me'),
+        transcribe(localFile, remoteFile ? 'Me' : 'Speaker'),
         transcribe(remoteFile, 'Them')
       ]);
 
       // Merge and sort by timestamp
       const combinedSegments = [...localSegments, ...remoteSegments].sort((a, b) => a.start - b.start);
-      const segmentsText = combinedSegments.map(seg => `[${seg.start.toFixed(2)}s] ${seg.text}`).join('\n');
+      
+      const startDate = startTime ? new Date(startTime) : new Date();
+      const formatTimestamp = (offsetSeconds: number) => {
+        const date = new Date(startDate.getTime() + offsetSeconds * 1000);
+        return date.toLocaleTimeString('en-US', { 
+          timeZone: 'America/New_York', 
+          hour: 'numeric', 
+          minute: '2-digit', 
+          second: '2-digit', 
+          timeZoneName: 'short' 
+        });
+      };
+
+      const segmentsText = combinedSegments.map(seg => `[${formatTimestamp(seg.start)}] ${seg.text}`).join('\n');
 
       return await this.finalizeTranscript(segmentsText, sessionId, startTime, apolloId);
     } catch (error: any) {
@@ -267,29 +288,29 @@ export class RingCentralService {
         if (startTime) {
           const updateRes = await db.query(
             `UPDATE ringcentral_call_logs 
-             SET transcription_text = $1, api_session_id = $2, apollo_id = COALESCE(apollo_id, $4)
+             SET transcription_text = $1, apollo_id = COALESCE(apollo_id, $3)
              WHERE id = (
                SELECT id FROM ringcentral_call_logs 
                WHERE transcription_text IS NULL
                AND start_time IS NOT NULL
-               AND ABS(EXTRACT(EPOCH FROM (start_time - $3::timestamptz))) < 120
-               ORDER BY ABS(EXTRACT(EPOCH FROM (start_time - $3::timestamptz))) ASC LIMIT 1
+               AND ABS(EXTRACT(EPOCH FROM (start_time - $2::timestamptz))) < 120
+               ORDER BY ABS(EXTRACT(EPOCH FROM (start_time - $2::timestamptz))) ASC LIMIT 1
              )
              RETURNING id`,
-            [transcript, sessionId, startTime, apolloId || null]
+            [transcript, startTime, apolloId || null]
           );
           merged = (updateRes.rowCount || 0) > 0;
         } else if (apolloId) {
           const updateRes = await db.query(
             `UPDATE ringcentral_call_logs 
-             SET transcription_text = $1, api_session_id = $2
+             SET transcription_text = $1
              WHERE id = (
                SELECT id FROM ringcentral_call_logs 
-               WHERE apollo_id = $3 AND transcription_text IS NULL
+               WHERE apollo_id = $2 AND transcription_text IS NULL
                ORDER BY created_at DESC LIMIT 1
              )
              RETURNING id`,
-            [transcript, sessionId, apolloId]
+            [transcript, apolloId]
           );
           merged = (updateRes.rowCount || 0) > 0;
         }
