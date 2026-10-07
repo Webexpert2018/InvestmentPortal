@@ -38,10 +38,12 @@ export default function RingCentralDialer() {
   const startTimeRef = useRef<string | null>(null);
   const audioRemoteRef = useRef<HTMLAudioElement | null>(null);
   const audioLocalRef = useRef<HTMLAudioElement | null>(null);
+  const audioPlaybackRef = useRef<HTMLAudioElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioNodesRef = useRef<any[]>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
   const remoteMediaSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
 
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
@@ -229,6 +231,10 @@ export default function RingCentralDialer() {
       audioLocalRef.current.pause();
       audioLocalRef.current.srcObject = null;
     }
+    if (audioPlaybackRef.current) {
+      audioPlaybackRef.current.pause();
+      audioPlaybackRef.current.srcObject = null;
+    }
 
     // Fetch logs again after a short delay to allow RingCentral to process it
     setTimeout(fetchCallLogs, 5000);
@@ -264,21 +270,9 @@ export default function RingCentralDialer() {
 
       const bindMedia = async (stream: any) => {
         if (stream && audioRemoteRef.current) {
-          audioRemoteRef.current.srcObject = stream;
-          audioRemoteRef.current.play().catch(e => console.error('Play error:', e));
-
-          try {
-            const localStream = await navigator.mediaDevices.getUserMedia({ 
-              audio: { 
-                echoCancellation: true, 
-                noiseSuppression: true, 
-                autoGainControl: true 
-              } 
-            });
-
             let remoteStreamToRecord = stream;
 
-            // Isolate the true remote WebRTC track from the RTCPeerConnection
+            // Isolate the true remote WebRTC track from the RTCPeerConnection to prevent the echo
             try {
               if (callSession.rtcPeerConnection) {
                 const receivers = callSession.rtcPeerConnection.getReceivers();
@@ -291,21 +285,39 @@ export default function RingCentralDialer() {
               console.warn('Failed to isolate remote track', err);
             }
 
+            // Play the isolated stream out loud in the DOM. This eliminates the echo loopback from the raw stream!
+            // Chrome will also perfectly record this stream because it is actively playing in a real DOM element.
+            if (audioPlaybackRef.current) {
+              audioPlaybackRef.current.srcObject = remoteStreamToRecord;
+              audioPlaybackRef.current.play().catch(e => console.error('Play error:', e));
+            }
+
+            try {
+              const localStream = await navigator.mediaDevices.getUserMedia({ 
+                audio: { 
+                  echoCancellation: true, 
+                  noiseSuppression: true, 
+                  autoGainControl: true 
+                } 
+              });
+
+            localStreamRef.current = localStream;
+
             // Mix both streams into a single audio track using Web Audio API
             const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
             const dest = audioCtx.createMediaStreamDestination();
-            const destRemote = audioCtx.createMediaStreamDestination();
 
             const localSource = audioCtx.createMediaStreamSource(localStream);
             const remoteSource = audioCtx.createMediaStreamSource(remoteStreamToRecord);
 
             localSource.connect(dest);
             remoteSource.connect(dest);
-            remoteSource.connect(destRemote);
 
             const mixedRecorder = new MediaRecorder(dest.stream);
             const localRecorder = new MediaRecorder(localStream);
-            const remoteRecorder = new MediaRecorder(destRemote.stream);
+            
+            // Bypass Web Audio for the remote track to guarantee the backend gets the data
+            const remoteRecorder = new MediaRecorder(remoteStreamToRecord);
 
             const mixedChunks: Blob[] = [];
             const localChunks: Blob[] = [];
@@ -407,9 +419,17 @@ export default function RingCentralDialer() {
         if (isMuted) {
           await activeSessionRef.current.unmute();
           setIsMuted(false);
+          // Unmute our local recording stream
+          if (localStreamRef.current) {
+             localStreamRef.current.getAudioTracks().forEach(t => t.enabled = true);
+          }
         } else {
           await activeSessionRef.current.mute();
           setIsMuted(true);
+          // Mute our local recording stream so the transcript doesn't pick it up
+          if (localStreamRef.current) {
+             localStreamRef.current.getAudioTracks().forEach(t => t.enabled = false);
+          }
         }
       } catch (e) {
         console.error("Mute toggle failed", e);
@@ -447,8 +467,11 @@ export default function RingCentralDialer() {
     const formData = new FormData();
     // recordedBlob is now a tri-blob object { mixed: Blob, local: Blob, remote: Blob }
     const blobs = recordedBlob as any;
-    formData.append('localAudio', blobs.local, 'local.webm');
-    formData.append('remoteAudio', blobs.remote, 'remote.webm');
+    
+    // As requested: Upload the full mixed blob so the backend can transcribe the whole conversation at once!
+    // The backend GPT-4 model will naturally perform speaker diarization on the single file.
+    formData.append('localAudio', blobs.mixed, 'mixed.webm');
+    
     formData.append('sessionId', sipSessionIdRef.current || 'unknown-session');
     formData.append('startTime', startTimeRef.current || new Date().toISOString());
 
@@ -481,9 +504,10 @@ export default function RingCentralDialer() {
     <DashboardLayout>
       <div className="w-full py-8 space-y-8 px-4 lg:px-8">
 
-        {/* Hidden Audio Elements required for WebRTC Web Phone */}
-        <audio ref={audioRemoteRef} id="remoteAudio" autoPlay />
+        {/* Hidden Audio Elements required for perfectly capturing WebRTC streams */}
+        <audio ref={audioRemoteRef} id="remoteAudio" autoPlay muted={false} />
         <audio ref={audioLocalRef} id="localAudio" autoPlay muted />
+        <audio ref={audioPlaybackRef} id="playbackAudio" autoPlay />
 
         <div className="max-w-7xl mx-auto w-full">
           <Link
