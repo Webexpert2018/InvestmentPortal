@@ -1,0 +1,3822 @@
+[
+  {
+    "table_name": "audit_logs",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "action",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "resource_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "resource_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "metadata",
+    "data_type": "jsonb"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "ip_address",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "audit_logs",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "compliance_reports",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "compliance_reports",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "compliance_reports",
+    "column_name": "report_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "compliance_reports",
+    "column_name": "report_url",
+    "data_type": "text"
+  },
+  {
+    "table_name": "compliance_reports",
+    "column_name": "generated_by",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "compliance_reports",
+    "column_name": "generated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "conversation_participants",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "conversation_participants",
+    "column_name": "conversation_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "conversation_participants",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "conversation_participants",
+    "column_name": "is_admin",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "conversation_participants",
+    "column_name": "joined_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "conversation_participants",
+    "column_name": "unread_count",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "investor_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "admin_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "last_message",
+    "data_type": "text"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "last_message_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "unread_count_investor",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "unread_count_admin",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "is_group",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "group_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "created_by",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "conversations",
+    "column_name": "group_image_url",
+    "data_type": "text"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "project_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "project_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "project_status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "internal_entity_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "internal_entity",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "class_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "class_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "distribution_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "distribution_batch_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "batch_status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "batch_start_date",
+    "data_type": "date"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "batch_end_date",
+    "data_type": "date"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "batch_pay_date",
+    "data_type": "date"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "distribution_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "investment_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "investor_profile_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "investor_profile_legal_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "investment_amount",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "investment_placed_on_date",
+    "data_type": "date"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "calculated_amount",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "preferred_return",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "return_of_capital",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "excess_cash",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "promote",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "fees",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "waterfall_fees",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "sideletters",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "batch_description",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "send_method",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "investor_gl_account",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "distributions",
+    "column_name": "dashboard_description",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospect_notes",
+    "column_name": "id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "doctor_prospect_notes",
+    "column_name": "prospect_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospect_notes",
+    "column_name": "note",
+    "data_type": "text"
+  },
+  {
+    "table_name": "doctor_prospect_notes",
+    "column_name": "author_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospect_notes",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "apollo_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "full_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "first_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "last_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "specialty",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "organization",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "location",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "city",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "state",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "phone",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "email_status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "stage",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "ai_sequence",
+    "data_type": "jsonb"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "call_action",
+    "data_type": "text"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "country",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "timezone",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "work_phone",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "doctor_prospects",
+    "column_name": "personal_emails",
+    "data_type": "ARRAY"
+  },
+  {
+    "table_name": "document_signature_campaigns",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "document_signature_campaigns",
+    "column_name": "name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "document_signature_campaigns",
+    "column_name": "original_document_path",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "document_signature_campaigns",
+    "column_name": "placements",
+    "data_type": "jsonb"
+  },
+  {
+    "table_name": "document_signature_campaigns",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "document_signature_campaigns",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "document_signature_recipients",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "document_signature_recipients",
+    "column_name": "campaign_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "document_signature_recipients",
+    "column_name": "investor_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "document_signature_recipients",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "document_signature_recipients",
+    "column_name": "envelope_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "document_signature_recipients",
+    "column_name": "signed_document_path",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "document_signature_recipients",
+    "column_name": "signed_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "document_signature_recipients",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "document_signature_recipients",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "document_signature_recipients",
+    "column_name": "account_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "documents",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "documents",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "documents",
+    "column_name": "document_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "documents",
+    "column_name": "file_url",
+    "data_type": "text"
+  },
+  {
+    "table_name": "documents",
+    "column_name": "file_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "documents",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "documents",
+    "column_name": "rejection_reason",
+    "data_type": "text"
+  },
+  {
+    "table_name": "documents",
+    "column_name": "uploaded_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "documents",
+    "column_name": "verified_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "documents",
+    "column_name": "verified_by",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "docusign_envelopes",
+    "column_name": "id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "docusign_envelopes",
+    "column_name": "user_email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "docusign_envelopes",
+    "column_name": "envelope_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "docusign_envelopes",
+    "column_name": "created_at",
+    "data_type": "timestamp without time zone"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "fund_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "file_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "file_url",
+    "data_type": "text"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "document_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "tax_year",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "description",
+    "data_type": "text"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "note",
+    "data_type": "text"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "uploaded_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "file_size",
+    "data_type": "bigint"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "cloudinary_public_id",
+    "data_type": "text"
+  },
+  {
+    "table_name": "fund_documents",
+    "column_name": "cloudinary_resource_type",
+    "data_type": "text"
+  },
+  {
+    "table_name": "fund_flows",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "fund_flows",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "fund_flows",
+    "column_name": "fund_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "fund_flows",
+    "column_name": "account_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_flows",
+    "column_name": "amount",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "fund_flows",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_flows",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "fund_flows",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "fund_nav_history",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "fund_nav_history",
+    "column_name": "effective_date",
+    "data_type": "date"
+  },
+  {
+    "table_name": "fund_nav_history",
+    "column_name": "total_fund_value",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "fund_nav_history",
+    "column_name": "total_units",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "fund_nav_history",
+    "column_name": "nav_per_unit",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "fund_nav_history",
+    "column_name": "note",
+    "data_type": "text"
+  },
+  {
+    "table_name": "fund_nav_history",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_nav_history",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "fund_nav_history",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "fund_nav_history",
+    "column_name": "created_by",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "fund_transfer_templates",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "fund_transfer_templates",
+    "column_name": "transfer_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_transfer_templates",
+    "column_name": "document_url",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_transfer_templates",
+    "column_name": "placements",
+    "data_type": "jsonb"
+  },
+  {
+    "table_name": "fund_transfer_templates",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "fund_transfer_templates",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "transfer_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "from_investor_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "to_investor_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "from_fund_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "to_fund_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "investment_amount",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "units",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "document_url",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "docusign_envelope_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "from_account_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "from_account_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "to_account_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "to_account_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "internal_amount",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "fund_transfers",
+    "column_name": "is_reconciled",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "description",
+    "data_type": "text"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "image_url",
+    "data_type": "text"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "min_investment",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "unit_price",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "start_date",
+    "data_type": "date"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "note",
+    "data_type": "text"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "bank_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "account_number",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "routing_number",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "beneficiary_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "bank_address",
+    "data_type": "text"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "subscription_doc_path",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "anchor_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "anchor_date",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "anchor_signature",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "anchor_amount",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "docusign_template_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "signer_role_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "name_page",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "name_x",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "name_y",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "date_page",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "date_x",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "date_y",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "signature_page",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "signature_x",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "signature_y",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "amount_page",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "amount_x",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "amount_y",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "placements",
+    "data_type": "jsonb"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_doc_path",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_placements",
+    "data_type": "jsonb"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_name_page",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_name_x",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_name_y",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_date_page",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_date_x",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_date_y",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_signature_page",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_signature_x",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_signature_y",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_amount_page",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_amount_x",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "funds",
+    "column_name": "oa_amount_y",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "google_calendar_event_attendees",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "google_calendar_event_attendees",
+    "column_name": "google_event_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "google_calendar_event_attendees",
+    "column_name": "email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "google_calendar_event_attendees",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "google_calendar_event_attendees",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "google_calendar_event_attendees",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "organizer_email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "google_event_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "title",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "description",
+    "data_type": "text"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "scheduled_date",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "duration_minutes",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "meeting_link",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "html_link",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "attendee_email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "attendee_status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "google_calendar_events",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "google_tokens",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "google_tokens",
+    "column_name": "access_token",
+    "data_type": "text"
+  },
+  {
+    "table_name": "google_tokens",
+    "column_name": "refresh_token",
+    "data_type": "text"
+  },
+  {
+    "table_name": "google_tokens",
+    "column_name": "expiry_date",
+    "data_type": "bigint"
+  },
+  {
+    "table_name": "google_tokens",
+    "column_name": "token_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "google_tokens",
+    "column_name": "scope",
+    "data_type": "text"
+  },
+  {
+    "table_name": "google_tokens",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "google_tokens",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investment_invites",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investment_invites",
+    "column_name": "investor_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investment_invites",
+    "column_name": "fund_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investment_invites",
+    "column_name": "account_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investment_invites",
+    "column_name": "account_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investment_invites",
+    "column_name": "amount",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "investment_invites",
+    "column_name": "token",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investment_invites",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investment_invites",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investment_invites",
+    "column_name": "expires_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "fund_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "account_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "account_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "investment_amount",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "processing_fee",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "total_amount",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "unit_price",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "estimated_units",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "document_signed",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "signed_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "awaiting_funding",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "awaiting_funding_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "funds_received",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "funds_received_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "units_issued",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "units_issued_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "revised_amount",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "internal_amount",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "investments",
+    "column_name": "is_reconciled",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investor_documents",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investor_documents",
+    "column_name": "investor_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investor_documents",
+    "column_name": "file_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investor_documents",
+    "column_name": "file_url",
+    "data_type": "text"
+  },
+  {
+    "table_name": "investor_documents",
+    "column_name": "document_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investor_documents",
+    "column_name": "file_size",
+    "data_type": "bigint"
+  },
+  {
+    "table_name": "investor_documents",
+    "column_name": "description",
+    "data_type": "text"
+  },
+  {
+    "table_name": "investor_documents",
+    "column_name": "uploaded_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investor_documents",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investor_documents",
+    "column_name": "tax_year",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "investor_invitations",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investor_invitations",
+    "column_name": "investor_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investor_invitations",
+    "column_name": "sent_at",
+    "data_type": "timestamp without time zone"
+  },
+  {
+    "table_name": "investor_invitations",
+    "column_name": "sent_by_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investor_invitations",
+    "column_name": "created_at",
+    "data_type": "timestamp without time zone"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "full_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "phone",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "password_hash",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "role",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "kyc_status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "profile_image_url",
+    "data_type": "text"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "dob",
+    "data_type": "date"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "address_line1",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "address_line2",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "city",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "state",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "zip_code",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "country",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "tax_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "assigned_ir_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "pipeline_stage_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "expected_future_investment",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "pipeline_note",
+    "data_type": "text"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "assigned_accountant_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_invest_activity",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_funding_conf",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_doc_uploads",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_kyc_updates",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_announcements",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_sms_invest_conf",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_sms_security",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "pref_send_by_email",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "pref_tax_forms_alert",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "pref_auto_download",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "pref_paperless",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "pref_format",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "pref_frequency",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_alerts",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_nav_recalc",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_sms_announcements",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_sms_alerts",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_sms_doc_uploads",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_sms_nav_recalc",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_sms_funding_conf",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_sms_tax_forms",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_doc_uploaded",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_missing_doc",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_investor_msg",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "notif_reminder",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "last_login",
+    "data_type": "timestamp without time zone"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "admin_note",
+    "data_type": "text"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "last_invite_sent_at",
+    "data_type": "timestamp without time zone"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "last_invite_sent_by_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "created_by_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "created_by_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "external_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "investor_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "entity_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "entity_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "investors",
+    "column_name": "parent_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "ira_account_status_history",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "ira_account_status_history",
+    "column_name": "ira_account_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "ira_account_status_history",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "ira_account_status_history",
+    "column_name": "email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_account_status_history",
+    "column_name": "old_status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_account_status_history",
+    "column_name": "new_status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_account_status_history",
+    "column_name": "changed_by_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "ira_account_status_history",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "ira_account_types",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "ira_account_types",
+    "column_name": "name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_account_types",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "ira_account_types",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "account_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "account_number",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "custodian_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "beneficiary",
+    "data_type": "text"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "middle_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "suffix",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "marital_status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "mailing_address_same",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "mailing_address_1",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "mailing_address_2",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "mailing_city",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "mailing_state",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "mailing_zip_code",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "mailing_country",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "ira_accounts",
+    "column_name": "external_account_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "meeting_participants",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "meeting_participants",
+    "column_name": "meeting_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "meeting_participants",
+    "column_name": "participant_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "meeting_participants",
+    "column_name": "participant_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "meeting_participants",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "meeting_participants",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "meeting_participants",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "meetings",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "meetings",
+    "column_name": "organizer_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "meetings",
+    "column_name": "organizer_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "meetings",
+    "column_name": "title",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "meetings",
+    "column_name": "description",
+    "data_type": "text"
+  },
+  {
+    "table_name": "meetings",
+    "column_name": "meeting_link",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "meetings",
+    "column_name": "scheduled_date",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "meetings",
+    "column_name": "duration_minutes",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "meetings",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "meetings",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "meetings",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "meetings",
+    "column_name": "is_edited",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "sender_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "recipient_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "target_role",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "content",
+    "data_type": "text"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "is_read",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "conversation_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "file_url",
+    "data_type": "text"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "file_name",
+    "data_type": "text"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "file_size",
+    "data_type": "text"
+  },
+  {
+    "table_name": "messages",
+    "column_name": "reactions",
+    "data_type": "jsonb"
+  },
+  {
+    "table_name": "migrations",
+    "column_name": "id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "migrations",
+    "column_name": "name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "migrations",
+    "column_name": "executed_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "target_role",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "title",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "description",
+    "data_type": "text"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "link",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "is_read",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "message",
+    "data_type": "text"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "related_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "notifications",
+    "column_name": "related_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_funds",
+    "column_name": "project_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_funds",
+    "column_name": "project_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_funds",
+    "column_name": "project_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_funds",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_funds",
+    "column_name": "total_capital",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_funds",
+    "column_name": "distributions_to_date",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_funds",
+    "column_name": "total_investors",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_funds",
+    "column_name": "closing_date",
+    "data_type": "date"
+  },
+  {
+    "table_name": "old_funds",
+    "column_name": "exit_date",
+    "data_type": "date"
+  },
+  {
+    "table_name": "old_funds",
+    "column_name": "published",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_inv_profile_type",
+    "column_name": "profile_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_inv_profile_type",
+    "column_name": "profile_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "project_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "project_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "project_status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "internal_entity_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "internal_entity",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "class_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "class_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "investor_profile_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "investor_profile_legal_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "email_address",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "investment_ownership_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "investment_status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "investment_amount",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "placed_on",
+    "data_type": "date"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "received_on",
+    "data_type": "date"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "shares",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "ownership",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "_of_proceeds",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "investment_distribution_payment_method",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investments",
+    "column_name": "profile_default_distribution_method",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "investor_profile_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "investor_profile_legal_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "email_address",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "file_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "file_url",
+    "data_type": "text"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "s3_key",
+    "data_type": "text"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "document_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "tax_year",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "entity_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "file_size",
+    "data_type": "bigint"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "old_investor_documents",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "ims_profile_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "profile_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "prefix",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "first_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "mi",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "last_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "suffix",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "legal_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "nickname",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "executive_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "executive_title",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "primary_email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "active_investments",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "relationship_value",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "investment_value",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "invite_status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "role",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "domesticforeign",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "date_of_birth",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "entity_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "jurisdiction",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "formed_on",
+    "data_type": "date"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "primary_phone_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "primary_phone_number",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "mobile_phone_number",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "home_phone_number",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "work_phone_number",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "other_phone_number",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "primary_address",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "address_for_tax_purposes",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "home_address_1",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "home_address_2",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "home_city",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "home_state",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "home_zip",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "home_country",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "work_address_1",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "work_address_2",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "work_city",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "work_state",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "work_zip",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "work_country",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "other_other_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "other_address_1",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "other_address_2",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "other_city",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "other_state",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "other_zip",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "other_country",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "null_address_1",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "null_address_2",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "null_city",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "null_state",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "null_zip",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "null_country",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "referred_by",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "company",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "distribution_preference",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "bank_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "bank_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "aba",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "account_number",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "iban",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "swift_code",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "account_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "connection_1_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "connection_1_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "connection_1_sharing_communications",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "connection_2_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "connection_2_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "connection_2_sharing_communications",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "primary_signer_1_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "old_investors",
+    "column_name": "primary_signer_1_email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "pipeline_stages",
+    "column_name": "id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "pipeline_stages",
+    "column_name": "name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "pipeline_stages",
+    "column_name": "color",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "pipeline_stages",
+    "column_name": "order_index",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "pipeline_stages",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "pipeline_stages",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "pipeline_stages",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "portfolios",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "portfolios",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "portfolios",
+    "column_name": "bitcoin_balance",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "portfolios",
+    "column_name": "nav",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "portfolios",
+    "column_name": "performance",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "portfolios",
+    "column_name": "total_invested",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "portfolios",
+    "column_name": "total_withdrawn",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "portfolios",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "portfolios",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "prospect_events",
+    "column_name": "id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "prospect_events",
+    "column_name": "prospect_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "prospect_events",
+    "column_name": "event_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "prospect_events",
+    "column_name": "details",
+    "data_type": "jsonb"
+  },
+  {
+    "table_name": "prospect_events",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "redemptions",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "redemptions",
+    "column_name": "investor_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "redemptions",
+    "column_name": "investment_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "redemptions",
+    "column_name": "amount",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "redemptions",
+    "column_name": "units",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "redemptions",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "redemptions",
+    "column_name": "reason",
+    "data_type": "text"
+  },
+  {
+    "table_name": "redemptions",
+    "column_name": "bank_info",
+    "data_type": "jsonb"
+  },
+  {
+    "table_name": "redemptions",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "redemptions",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "redemptions",
+    "column_name": "internal_amount",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "redemptions",
+    "column_name": "is_reconciled",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "ringcentral_call_logs",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "ringcentral_call_logs",
+    "column_name": "sip_session_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ringcentral_call_logs",
+    "column_name": "api_session_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ringcentral_call_logs",
+    "column_name": "apollo_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ringcentral_call_logs",
+    "column_name": "phone_number",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "ringcentral_call_logs",
+    "column_name": "duration",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "ringcentral_call_logs",
+    "column_name": "transcription_text",
+    "data_type": "text"
+  },
+  {
+    "table_name": "ringcentral_call_logs",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "ringcentral_call_logs",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "ringcentral_call_logs",
+    "column_name": "start_time",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "full_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "phone",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "password_hash",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "role",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "assigned_investors_count",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "profile_image_url",
+    "data_type": "text"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "dob",
+    "data_type": "date"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "address_line1",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "address_line2",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "city",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "state",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "zip_code",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "country",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "tax_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "notif_doc_uploaded",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "notif_missing_doc",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "notif_investor_msg",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "notif_reminder",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "pref_tax_forms_alert",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "notif_sms_security",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "staff",
+    "column_name": "last_login",
+    "data_type": "timestamp without time zone"
+  },
+  {
+    "table_name": "tax_document_types",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "tax_document_types",
+    "column_name": "name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "tax_document_types",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "tax_document_types",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "uploaded_by_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "file_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "file_url",
+    "data_type": "text"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "file_size",
+    "data_type": "bigint"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "document_type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "tax_year",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "description",
+    "data_type": "text"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "note",
+    "data_type": "text"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "uploaded_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "tax_vault_documents",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "tax_years",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "tax_years",
+    "column_name": "year",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "tax_years",
+    "column_name": "is_active",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "tax_years",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "tax_years",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "transactions",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "transactions",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "transactions",
+    "column_name": "type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "transactions",
+    "column_name": "amount",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "transactions",
+    "column_name": "usd_value",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "transactions",
+    "column_name": "bitcoin_price",
+    "data_type": "numeric"
+  },
+  {
+    "table_name": "transactions",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "transactions",
+    "column_name": "tx_hash",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "transactions",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "transactions",
+    "column_name": "completed_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "user_bank_accounts",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "user_bank_accounts",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "user_bank_accounts",
+    "column_name": "role",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_bank_accounts",
+    "column_name": "bank_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_bank_accounts",
+    "column_name": "account_number",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_bank_accounts",
+    "column_name": "routing_number",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_bank_accounts",
+    "column_name": "beneficiary_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_bank_accounts",
+    "column_name": "bank_address",
+    "data_type": "text"
+  },
+  {
+    "table_name": "user_bank_accounts",
+    "column_name": "bank_description",
+    "data_type": "text"
+  },
+  {
+    "table_name": "user_bank_accounts",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_bank_accounts",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "user_bank_accounts",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "user_otps",
+    "column_name": "id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "user_otps",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "user_otps",
+    "column_name": "otp",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_otps",
+    "column_name": "type",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_otps",
+    "column_name": "expires_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "user_otps",
+    "column_name": "is_used",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "user_otps",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "user_otps",
+    "column_name": "email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "user_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "user_role",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "device_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "location",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "ip_address",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "last_active",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "user_sessions",
+    "column_name": "is_revoked",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "users",
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "users",
+    "column_name": "email",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "password_hash",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "first_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "last_name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "phone",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "role",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "users",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "users",
+    "column_name": "dob",
+    "data_type": "date"
+  },
+  {
+    "table_name": "users",
+    "column_name": "address_line1",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "address_line2",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "city",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "state",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "zip_code",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "country",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "tax_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "reset_otp",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "reset_otp_expires_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "users",
+    "column_name": "profile_image_url",
+    "data_type": "text"
+  },
+  {
+    "table_name": "users",
+    "column_name": "associated_fund_id",
+    "data_type": "uuid"
+  },
+  {
+    "table_name": "users",
+    "column_name": "kyc_status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "users",
+    "column_name": "notif_doc_uploaded",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "users",
+    "column_name": "notif_missing_doc",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "users",
+    "column_name": "notif_investor_msg",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "users",
+    "column_name": "notif_reminder",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "users",
+    "column_name": "pref_tax_forms_alert",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "users",
+    "column_name": "notif_sms_security",
+    "data_type": "boolean"
+  },
+  {
+    "table_name": "users",
+    "column_name": "last_login",
+    "data_type": "timestamp without time zone"
+  },
+  {
+    "table_name": "waterfall_rules",
+    "column_name": "id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "waterfall_rules",
+    "column_name": "waterfall_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "waterfall_rules",
+    "column_name": "name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "waterfall_rules",
+    "column_name": "section",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "waterfall_rules",
+    "column_name": "template",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "waterfall_rules",
+    "column_name": "splits",
+    "data_type": "jsonb"
+  },
+  {
+    "table_name": "waterfall_rules",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "waterfall_rules",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "waterfall_rules",
+    "column_name": "hurdles",
+    "data_type": "jsonb"
+  },
+  {
+    "table_name": "waterfalls",
+    "column_name": "id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "waterfalls",
+    "column_name": "project_id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "waterfalls",
+    "column_name": "name",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "waterfalls",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "waterfalls",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "webinar_attendance_sessions",
+    "column_name": "id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "webinar_attendance_sessions",
+    "column_name": "webinar_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "webinar_attendance_sessions",
+    "column_name": "prospect_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "webinar_attendance_sessions",
+    "column_name": "joined_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "webinar_attendance_sessions",
+    "column_name": "last_heartbeat_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "webinar_attendance_sessions",
+    "column_name": "left_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "webinar_attendance_sessions",
+    "column_name": "duration_seconds",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "webinar_attendees",
+    "column_name": "id",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "webinar_attendees",
+    "column_name": "webinar_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "webinar_attendees",
+    "column_name": "prospect_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "webinar_attendees",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "webinar_attendees",
+    "column_name": "first_joined_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "webinar_attendees",
+    "column_name": "total_duration_minutes",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "webinar_attendees",
+    "column_name": "join_count",
+    "data_type": "integer"
+  },
+  {
+    "table_name": "webinar_attendees",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "webinar_attendees",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "title",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "description",
+    "data_type": "text"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "webinar_date",
+    "data_type": "date"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "webinar_time",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "duration",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "meeting_link",
+    "data_type": "text"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "status",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "reminder_offsets",
+    "data_type": "ARRAY"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "google_event_id",
+    "data_type": "character varying"
+  },
+  {
+    "table_name": "webinars",
+    "column_name": "is_active",
+    "data_type": "boolean"
+  }
+]

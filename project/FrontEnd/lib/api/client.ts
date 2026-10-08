@@ -1642,6 +1642,13 @@ class ApiClient {
     });
   }
 
+  async queryAthena(query: string) {
+    return this.request<{ success: boolean; reply: string }>('/athena/query', {
+      method: 'POST',
+      body: JSON.stringify({ query }),
+    });
+  }
+
   async createWebinar(data: {
     title: string;
     description?: string;

@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AthenaWidget } from "@/components/AthenaWidget";
 
 const normalizeRole = (role?: string | null): string | null => {
   if (!role) return null;
@@ -273,6 +274,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
       )}
+      {user?.role === 'executive_admin' && <AthenaWidget />}
     </div>
   );
 }
