@@ -396,13 +396,16 @@ export default function PipelinePage() {
       return;
     }
 
-    if (newInvestorData.phone && newInvestorData.phone.length !== 10) {
-      toast({
-        title: 'Validation Error',
-        description: 'Phone number must be exactly 10 digits',
-        variant: 'destructive',
-      });
-      return;
+    if (newInvestorData.phone) {
+      const digitCount = newInvestorData.phone.replace(/\D/g, '').length;
+      if (digitCount > 0 && (digitCount < 10 || digitCount > 15)) {
+        toast({
+          title: 'Validation Error',
+          description: 'Phone number must be between 10 and 15 digits',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     setIsAddingInvestor(true);
@@ -591,13 +594,16 @@ export default function PipelinePage() {
       return;
     }
 
-    if (editingPhone && editingPhone.replace(/\D/g, '').length !== 10) {
-      toast({
-        title: 'Validation Error',
-        description: 'Phone number must be exactly 10 digits',
-        variant: 'destructive',
-      });
-      return;
+    if (editingPhone) {
+      const digitCount = editingPhone.replace(/\D/g, '').length;
+      if (digitCount < 10 || digitCount > 15) {
+        toast({
+          title: 'Validation Error',
+          description: 'Phone number must be between 10 and 15 digits',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     setIsUpdatingInvestment(true);
@@ -633,11 +639,11 @@ export default function PipelinePage() {
       });
       fetchData();
       setShowDetailModal(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to update investor:', err);
       toast({
         title: 'Error',
-        description: 'Failed to update details',
+        description: err.message || 'Failed to update details',
         variant: 'destructive',
       });
     } finally {
@@ -1595,10 +1601,10 @@ export default function PipelinePage() {
                     type="text"
                     value={newInvestorData.phone}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      const val = e.target.value.replace(/[^\d+()\s-]/g, '');
                       setNewInvestorData({ ...newInvestorData, phone: val });
                     }}
-                    placeholder="Enter 10-digit phone number"
+                    placeholder="Enter phone number"
                     className="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-full text-sm font-bold text-gray-700 dark:text-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-blue-500 transition-all"
                   />
                 </div>
