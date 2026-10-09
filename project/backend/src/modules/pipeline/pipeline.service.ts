@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { db } from '../../config/database';
 import { NotificationsService } from '../notifications/notifications.service';
 import * as crypto from 'crypto';
@@ -104,8 +104,24 @@ export class PipelineService {
     return result.rows[0];
   }
 
-  async updateInvestorDetails(investorId: string, details: { expectedFutureInvestment?: number, pipelineNote?: string }) {
-    const { expectedFutureInvestment, pipelineNote } = details;
+  async updateInvestorDetails(investorId: string, details: { expectedFutureInvestment?: number, pipelineNote?: string, email?: string, phone?: string }) {
+    const { expectedFutureInvestment, pipelineNote, email, phone } = details;
+
+    if (email !== undefined && email.trim() !== '') {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new BadRequestException('Invalid email format');
+      }
+
+      const [existingUser, existingInvestor, existingStaff] = await Promise.all([
+        db.query('SELECT id FROM users WHERE email = $1', [email]),
+        db.query('SELECT id FROM investors WHERE email = $1 AND id != $2', [email, investorId]),
+        db.query('SELECT id FROM staff WHERE email = $1', [email])
+      ]);
+
+      if (existingUser.rows.length > 0 || existingInvestor.rows.length > 0 || existingStaff.rows.length > 0) {
+        throw new ConflictException('Email is already in use by another account');
+      }
+    }
 
     // Build update query dynamically based on provided fields
     const updates: string[] = ['updated_at = CURRENT_TIMESTAMP'];
@@ -120,6 +136,16 @@ export class PipelineService {
     if (pipelineNote !== undefined) {
       updates.push(`pipeline_note = $${paramIndex++}`);
       values.push(pipelineNote);
+    }
+
+    if (email !== undefined) {
+      updates.push(`email = $${paramIndex++}`);
+      values.push(email);
+    }
+
+    if (phone !== undefined) {
+      updates.push(`phone = $${paramIndex++}`);
+      values.push(phone);
     }
 
     if (values.length === 0) {
