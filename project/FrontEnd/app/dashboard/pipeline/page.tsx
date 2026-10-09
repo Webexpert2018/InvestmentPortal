@@ -134,6 +134,8 @@ export default function PipelinePage() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedInvestor, setSelectedInvestor] = useState<any>(null);
   const [expectedInvestment, setExpectedInvestment] = useState('');
+  const [editingEmail, setEditingEmail] = useState('');
+  const [editingPhone, setEditingPhone] = useState('');
   const [isUpdatingInvestment, setIsUpdatingInvestment] = useState(false);
   const [irStaffList, setIrStaffList] = useState<any[]>([]);
   const [selectedIrStaff, setSelectedIrStaff] = useState('');
@@ -579,6 +581,25 @@ export default function PipelinePage() {
 
   const handleSaveChanges = async () => {
     if (!selectedInvestor) return;
+
+    if (editingEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editingEmail)) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please enter a valid email address',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (editingPhone && editingPhone.replace(/\D/g, '').length !== 10) {
+      toast({
+        title: 'Validation Error',
+        description: 'Phone number must be exactly 10 digits',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsUpdatingInvestment(true);
     try {
       const promises: Promise<any>[] = [];
@@ -588,6 +609,8 @@ export default function PipelinePage() {
         apiClient.updateInvestorPipelineDetails(selectedInvestor.id, {
           expectedFutureInvestment: parseFloat(expectedInvestment) || 0,
           pipelineNote: JSON.stringify(notesList),
+          email: editingEmail,
+          phone: editingPhone
         })
       );
 
@@ -988,7 +1011,9 @@ export default function PipelinePage() {
                                           {...provided.dragHandleProps}
                                           onClick={() => {
                                             setSelectedInvestor(investor);
-                                            setExpectedInvestment(investor.expectedFutureInvestment.toString());
+                                            setExpectedInvestment(investor.expectedFutureInvestment?.toString() || '0');
+                                            setEditingEmail(investor.email || '');
+                                            setEditingPhone(investor.phone || '');
                                             setSelectedIrStaff(investor.assignedIrId || '');
                                             setSelectedAccountant(investor.assignedAccountantId || '');
 
@@ -1287,9 +1312,15 @@ export default function PipelinePage() {
                       <div className="w-12 h-12 bg-blue-100/50 text-blue-600 rounded-2xl flex items-center justify-center flex-none">
                         <Mail className="h-6 w-6" />
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 w-full">
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email Address</p>
-                        <p className="text-sm font-bold text-gray-700 dark:text-gray-300 truncate">{selectedInvestor.email || 'N/A'}</p>
+                        <input
+                          type="email"
+                          value={editingEmail}
+                          onChange={(e) => setEditingEmail(e.target.value)}
+                          placeholder="Email Address"
+                          className="w-full bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 text-sm font-bold text-gray-700 dark:text-gray-300 truncate focus:outline-none transition-colors px-0 py-1"
+                        />
                       </div>
                     </div>
 
@@ -1297,9 +1328,15 @@ export default function PipelinePage() {
                       <div className="w-12 h-12 bg-green-100/50 text-green-600 rounded-2xl flex items-center justify-center flex-none">
                         <Phone className="h-6 w-6" />
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 w-full">
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</p>
-                        <p className="text-sm font-bold text-gray-700 dark:text-gray-300 truncate">{formatPhoneDisplay(selectedInvestor.phone) || 'N/A'}</p>
+                        <input
+                          type="text"
+                          value={editingPhone}
+                          onChange={(e) => setEditingPhone(e.target.value.replace(/[^\d+()\s-]/g, ''))}
+                          placeholder="Phone Number"
+                          className="w-full bg-transparent border-b border-transparent hover:border-gray-300 focus:border-green-500 text-sm font-bold text-gray-700 dark:text-gray-300 truncate focus:outline-none transition-colors px-0 py-1"
+                        />
                       </div>
                     </div>
                   </div>
