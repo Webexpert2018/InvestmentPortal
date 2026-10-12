@@ -57,15 +57,22 @@ export default function RedemptionRequestsPage() {
   });
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Pending':
-        return 'text-orange-600 bg-orange-50 font-medium border border-orange-100';
-      case 'Rejected':
-        return 'text-red-600 bg-red-50 font-medium border border-red-100';
-      case 'Approved':
-        return 'text-green-600 bg-green-50 font-medium border border-green-100';
+    const s = (status || '').toLowerCase();
+    switch (s) {
+      case 'pending':
+        return 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 font-medium border border-amber-200/70 dark:border-amber-900/50';
+      case 'rejected':
+      case 'cancelled':
+        return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 font-medium border border-red-200/70 dark:border-red-900/50';
+      case 'approved':
+      case 'active':
+        return 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 font-medium border border-emerald-200/70 dark:border-emerald-900/50';
+      case 'processed':
+      case 'settled':
+      case 'completed':
+        return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 font-medium border border-blue-200/70 dark:border-blue-900/50';
       default:
-        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 dark:bg-gray-800';
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/60 font-medium border border-gray-200 dark:border-gray-700/60';
     }
   };
 
@@ -113,7 +120,7 @@ export default function RedemptionRequestsPage() {
                 placeholder="Search by ID, investor, or fund..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-800 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] transition-all bg-white dark:bg-[#1C1C1C] text-gray-900 dark:text-gray-100"
               />
             </div>
 
@@ -122,7 +129,7 @@ export default function RedemptionRequestsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full appearance-none px-4 py-2.5 pr-10 border border-gray-200 dark:border-gray-800 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] bg-white dark:bg-[#1C1C1C] cursor-pointer transition-all"
+                className="w-full appearance-none px-4 py-2.5 pr-10 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3B6E]/20 focus:border-[#1F3B6E] bg-white dark:bg-[#1C1C1C] text-gray-900 dark:text-gray-100 cursor-pointer transition-all"
               >
                 <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>
@@ -168,7 +175,7 @@ export default function RedemptionRequestsPage() {
                   </tr>
                 ) : (
                   currentRequests.map((request) => (
-                    <tr key={request.id} className="hover:bg-gray-50 dark:bg-gray-900 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors group">
+                    <tr key={request.id} className="hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors">
                       <td className="px-6 py-4">
                         <Link
                           href={`/dashboard/redemption-requests/${request.id}`}
@@ -189,14 +196,14 @@ export default function RedemptionRequestsPage() {
                               request.investor_name?.split(' ').map((n: string) => n[0]).join('')
                             )}
                           </div>
-                          <span className="font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-100 group-hover/name:text-[#1F3B6E] dark:text-blue-400 group-hover/name:underline transition-colors whitespace-nowrap">{request.investor_name}</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100 group-hover/name:text-[#1F3B6E] dark:group-hover/name:text-blue-400 group-hover/name:underline transition-colors whitespace-nowrap">{request.investor_name}</span>
                         </Link>
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">{request.fund_name}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 dark:text-gray-100 whitespace-nowrap">{parseFloat(request.units).toFixed(4)}</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">{parseFloat(request.units).toFixed(4)}</span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-sm font-bold text-[#1F3B6E] dark:text-blue-400 whitespace-nowrap">{formatCurrency(request.amount)}</span>
@@ -221,9 +228,10 @@ export default function RedemptionRequestsPage() {
                                 left: rect.right - 192, // 192 is the width of the dropdown (w-48)
                               });
                             }}
-                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors inline-flex group-hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="p-1.5 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors inline-flex items-center justify-center"
+                            title="Actions"
                           >
-                            <MoreVertical className="h-5 w-5 text-gray-400 group-hover:text-gray-600 dark:text-gray-400" />
+                            <MoreVertical className="h-5 w-5" />
                           </button>
 
                           {(activeDropdown as any)?.id === request.id && (
@@ -244,7 +252,7 @@ export default function RedemptionRequestsPage() {
                                 </div>
 
                                 <Link href={`/dashboard/redemption-requests/${request.id}`}>
-                                  <button className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors flex items-center gap-2">
+                                  <button className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-2">
                                     <Search className="h-4 w-4" />
                                     View Details
                                   </button>

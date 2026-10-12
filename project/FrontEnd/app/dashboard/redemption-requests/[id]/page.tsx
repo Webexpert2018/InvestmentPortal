@@ -133,11 +133,11 @@ export default function RedemptionRequestDetailsPage() {
               <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Req Details</h2>
               <span
                 className={`text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm border
-                  ${redemption.status === 'Pending' ? 'bg-orange-50 text-orange-600 border-orange-100' : ''}
-                  ${redemption.status === 'Approved' ? 'bg-green-50 text-green-600 border-green-100' : ''}
-                  ${redemption.status === 'Rejected' ? 'bg-red-50 text-red-600 border-red-100' : ''}
-                  ${redemption.status === 'Settled' || redemption.status === 'Processed' ? 'bg-blue-50 text-blue-600 border-blue-100' : ''}
-                  ${redemption.status === 'Cancelled' ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-100 dark:border-gray-800' : ''}
+                  ${(redemption.status || '').toLowerCase() === 'pending' ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200/70 dark:border-amber-900/50' : ''}
+                  ${(redemption.status || '').toLowerCase() === 'approved' || (redemption.status || '').toLowerCase() === 'active' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/70 dark:border-emerald-900/50' : ''}
+                  ${(redemption.status || '').toLowerCase() === 'rejected' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border-red-200/70 dark:border-red-900/50' : ''}
+                  ${(redemption.status || '').toLowerCase() === 'settled' || (redemption.status || '').toLowerCase() === 'processed' || (redemption.status || '').toLowerCase() === 'completed' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-200/70 dark:border-blue-900/50' : ''}
+                  ${(redemption.status || '').toLowerCase() === 'cancelled' ? 'bg-gray-50 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700/60' : ''}
                 `}
               >
                 {redemption.status}
