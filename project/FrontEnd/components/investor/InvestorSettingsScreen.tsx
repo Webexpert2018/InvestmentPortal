@@ -321,7 +321,6 @@ export function InvestorSettingsScreen() {
   const [subAccountMode, setSubAccountMode] = useState<'list' | 'add' | 'view'>('list');
   const [subAccountType, setSubAccountType] = useState<'minor' | 'entity'>('minor');
   const [subForm, setSubForm] = useState({
-    email: '',
     password: '',
     firstName: '',
     lastName: '',
@@ -338,8 +337,22 @@ export function InvestorSettingsScreen() {
     entityName: '',
     entityType: 'LLC',
   });
+  const [subAutoEmail, setSubAutoEmail] = useState('');
   const [subFormErrors, setSubFormErrors] = useState<Record<string, string>>({});
   const [subFormSaving, setSubFormSaving] = useState(false);
+
+  // Auto-generate sub-account email from name fields
+  useEffect(() => {
+    const slugify = (str: string) =>
+      (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    let local = '';
+    if (subAccountType === 'minor') {
+      local = slugify(subForm.firstName) + slugify(subForm.lastName);
+    } else {
+      local = slugify(subForm.entityName);
+    }
+    setSubAutoEmail(local ? `${local}@ocinvestor.com` : '');
+  }, [subAccountType, subForm.firstName, subForm.lastName, subForm.entityName]);
 
   // IRA Modal states for minor subaccounts
   const [showAddIraModal, setShowAddIraModal] = useState(false);
@@ -1685,7 +1698,6 @@ export function InvestorSettingsScreen() {
           <form onSubmit={async (e) => {
             e.preventDefault();
             const errors: Record<string, string> = {};
-            if (!subForm.email.trim()) errors.email = 'Email is required';
             if (!subForm.password.trim()) errors.password = 'Password is required';
 
             const cleanNumber = subForm.phone.replace(/\D/g, '');
@@ -1750,7 +1762,6 @@ export function InvestorSettingsScreen() {
               await apiClient.createSubaccount(payload);
               toast({ title: 'Success', description: 'Sub-account created successfully', variant: 'success' });
               setSubForm({
-                email: '',
                 password: '',
                 firstName: '',
                 lastName: '',
@@ -1873,18 +1884,19 @@ export function InvestorSettingsScreen() {
               )}
 
               <div>
-                <FieldLabel>Email</FieldLabel>
-                <TextInput
+                <FieldLabel>
+                  Email
+                  <span className="ml-2 text-[10px] font-normal text-[#D1A94C] bg-[#FFF8E1] dark:bg-amber-900/30 px-1.5 py-0.5 rounded-full">
+                    auto-generated
+                  </span>
+                </FieldLabel>
+                <input
                   type="email"
-                  className={subFormErrors.email ? '!border-[#E05252]' : ''}
-                  placeholder="Sub-account email"
-                  value={subForm.email}
-                  onChange={(e) => {
-                    setSubForm(prev => ({ ...prev, email: e.target.value }));
-                    setSubFormErrors(prev => ({ ...prev, email: '' }));
-                  }}
+                  readOnly
+                  value={subAutoEmail}
+                  placeholder={subAccountType === 'minor' ? 'firstnamelastname@ocinvestor.com' : 'entityname@ocinvestor.com'}
+                  className="h-[36px] w-full rounded-[6px] border border-[#E5E5EA] px-3 text-[12px] bg-[#F9FAFB] dark:bg-gray-800/70 text-[#6B7280] dark:text-gray-400 cursor-default outline-none italic"
                 />
-                {subFormErrors.email && <p className="mt-1 text-[10px] text-[#E05252]">{subFormErrors.email}</p>}
               </div>
               <div>
                 <FieldLabel>Password</FieldLabel>

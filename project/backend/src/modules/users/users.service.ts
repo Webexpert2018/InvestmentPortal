@@ -1353,9 +1353,57 @@ export class UsersService implements OnModuleInit {
     return result.rows;
   }
 
+  /**
+   * Generates a unique email for a sub-account.
+   * Base format: firstnamelastname@ocinvestor.com (minor) or legalentityname@ocinvestor.com (entity).
+   * If the base email already exists, appends a random 4-digit number and retries.
+   */
+  private async generateUniqueSubaccountEmail(investorType: string, firstName: string, lastName: string, entityName: string): Promise<string> {
+    const DOMAIN = 'ocinvestor.com';
+
+    const slugify = (str: string) =>
+      (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    let baseLocal: string;
+    if (investorType === 'minor') {
+      baseLocal = slugify(firstName) + slugify(lastName);
+    } else {
+      baseLocal = slugify(entityName);
+    }
+
+    if (!baseLocal) {
+      baseLocal = `subaccount${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+
+    const emailExists = async (email: string): Promise<boolean> => {
+      const [u, i, s] = await Promise.all([
+        db.query('SELECT id FROM users WHERE email = $1', [email]),
+        db.query('SELECT id FROM investors WHERE email = $1', [email]),
+        db.query('SELECT id FROM staff WHERE email = $1', [email]),
+      ]);
+      return u.rows.length > 0 || i.rows.length > 0 || s.rows.length > 0;
+    };
+
+    let candidate = `${baseLocal}@${DOMAIN}`;
+    if (!(await emailExists(candidate))) {
+      return candidate;
+    }
+
+    // Suffix with random 4-digit number until unique
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const suffix = Math.floor(1000 + Math.random() * 9000);
+      candidate = `${baseLocal}${suffix}@${DOMAIN}`;
+      if (!(await emailExists(candidate))) {
+        return candidate;
+      }
+    }
+
+    // Fallback: use timestamp
+    return `${baseLocal}${Date.now()}@${DOMAIN}`;
+  }
+
   async createSubaccount(parentId: string, data: any) {
     const {
-      email,
       password,
       investorType, // 'minor' or 'entity'
       // Minor fields:
@@ -1375,18 +1423,8 @@ export class UsersService implements OnModuleInit {
       entityType,
     } = data;
 
-    const emailClean = email.toLowerCase().trim();
-
-    // Check if email already exists in users, investors, or staff table
-    const [existingUser, existingInvestor, existingStaff] = await Promise.all([
-      db.query('SELECT id FROM users WHERE email = $1', [emailClean]),
-      db.query('SELECT id FROM investors WHERE email = $1', [emailClean]),
-      db.query('SELECT id FROM staff WHERE email = $1', [emailClean])
-    ]);
-
-    if (existingUser.rows.length > 0 || existingInvestor.rows.length > 0 || existingStaff.rows.length > 0) {
-      throw new ConflictException('User with this email already exists');
-    }
+    // Auto-generate unique email from name fields
+    const emailClean = await this.generateUniqueSubaccountEmail(investorType, firstName || '', lastName || '', entityName || '');
 
     const passwordHash = await bcrypt.hash(password, 10);
     const subaccountId = crypto.randomUUID();

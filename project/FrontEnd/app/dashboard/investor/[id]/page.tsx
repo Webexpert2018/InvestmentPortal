@@ -152,6 +152,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [iraAccounts, setIraAccounts] = useState<any[]>([]);
   const [subAccounts, setSubAccounts] = useState<any[]>([]);
   const [subAccountData, setSubAccountData] = useState<Record<string, { funding: any[], redemptions: any[] }>>({});
+  const [parentData, setParentData] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -198,6 +199,16 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         const searchStr = profile?.email || `${profile?.firstName} ${profile?.lastName}`.trim() || params.id;
         const legacyDocs = await apiClient.getOldInvestorDocuments(searchStr).catch(() => []);
         setOldDocuments(legacyDocs || []);
+
+        // Fetch parent account details if this is a minor/entity sub-account
+        if (profile?.parentId) {
+          try {
+            const parentProfile = await apiClient.getUserById(profile.parentId);
+            setParentData(parentProfile);
+          } catch {
+            // Parent fetch is non-critical
+          }
+        }
       } catch (err) {
         console.error('Error fetching investor data:', err);
         toast.error('Failed to load investor profile');
@@ -1025,13 +1036,48 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3">
                           <div className="flex items-center justify-between pb-1.5 border-b border-gray-200 dark:border-gray-800/60">
                             <h4 className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider">Linked Accounts</h4>
-                            {(iraAccounts.length > 0 || subAccounts.length > 0) && (
+                            {(iraAccounts.length > 0 || subAccounts.length > 0 || parentData) && (
                               <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
-                                {iraAccounts.length + subAccounts.length}
+                                {iraAccounts.length + subAccounts.length + (parentData ? 1 : 0)}
                               </span>
                             )}
                           </div>
                           <div className="space-y-3">
+                            {/* Parent Account Card — shown when this is a minor/entity sub-account */}
+                            {(investorData.investorType === 'minor' || investorData.investorType === 'entity') && parentData && (
+                              <div className="p-3 rounded-xl border border-amber-200 dark:border-amber-700/50 bg-[#FFFBF0] dark:bg-amber-900/20 flex flex-col gap-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Parent Account</span>
+                                  <span className="text-[9px] font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded-full capitalize">
+                                    {parentData.investorType || 'personal'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-gray-900 dark:text-gray-100">
+                                    {parentData.firstName} {parentData.lastName}
+                                  </p>
+                                  <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">{parentData.email}</p>
+                                </div>
+                                <div className="pt-1.5 border-t border-amber-100 dark:border-amber-800/40 flex items-center justify-between">
+                                  <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${parentData.status === 'suspended' ? 'bg-red-100 text-red-600' : 'bg-green-100 dark:bg-green-900/40 text-green-600'}`}>
+                                    <div className={`w-1 h-1 rounded-full ${parentData.status === 'suspended' ? 'bg-red-500' : 'bg-green-500'}`} />
+                                    {parentData.status || 'active'}
+                                  </div>
+                                  <Link
+                                    href={`/dashboard/investor/${parentData.id}`}
+                                    className="text-[10px] font-bold text-amber-600 hover:text-amber-700 hover:underline transition-colors"
+                                  >
+                                    View Profile →
+                                  </Link>
+                                </div>
+                              </div>
+                            )}
+                            {(investorData.investorType === 'minor' || investorData.investorType === 'entity') && !parentData && (
+                              <div className="p-3 rounded-xl border border-amber-100 dark:border-amber-800/30 bg-[#FFFBF0] dark:bg-amber-900/10 flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Parent Account</span>
+                                <span className="text-[10px] text-gray-400 italic">Not linked</span>
+                              </div>
+                            )}
                             {(iraAccounts.length > 0 || subAccounts.length > 0) ? (
                               <>
                                 {iraAccounts.map((account: any) => {
