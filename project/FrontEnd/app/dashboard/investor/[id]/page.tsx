@@ -818,8 +818,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           onClick={handleSendInvite}
                           disabled={isSendingInvite || !isPending}
                           className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${isPending
-                            ? 'bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent'
-                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            ? 'bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent'
+                            : 'bg-[#F9FAFB] dark:bg-gray-800 text-[#9CA3AF] border-[#E5E7EB] dark:border-gray-700 cursor-not-allowed'
                             }`}
                         >
                           {isSendingInvite ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mail className="h-3.5 w-3.5" />}
@@ -830,8 +830,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           onClick={() => setShowCancelModal(true)}
                           disabled={isSuspending || !isPending}
                           className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${isPending
-                            ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
-                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 border-red-200 dark:border-red-800'
+                            : 'bg-[#F9FAFB] dark:bg-gray-800 text-[#9CA3AF] border-[#E5E7EB] dark:border-gray-700 cursor-not-allowed'
                             }`}
                         >
                           {isSuspending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
@@ -845,8 +845,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           onClick={handleForgotPassword}
                           disabled={isResetting || isPending}
                           className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${!isPending
-                            ? 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200'
-                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 border-amber-200 dark:border-amber-800'
+                            : 'bg-[#F9FAFB] dark:bg-gray-800 text-[#9CA3AF] border-[#E5E7EB] dark:border-gray-700 cursor-not-allowed'
                             }`}
                         >
                           {isResetting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Shield className="h-3.5 w-3.5" />}
@@ -861,10 +861,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 disabled={isSuspending || isPending}
                                 className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${!isPending
                                   ? (investorData.status === 'suspended'
-                                    ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/40'
-                                    : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                    ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/50'
+                                    : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50'
                                   )
-                                  : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                                  : 'bg-[#F9FAFB] dark:bg-gray-800 text-[#9CA3AF] border-[#E5E7EB] dark:border-gray-700 cursor-not-allowed'
                                   }`}
                               >
                                 {isSuspending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
@@ -892,7 +892,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             } catch (err) { console.error('Failed to fetch IR staff:', err); }
                             finally { setIrLoading(false); }
                           }}
-                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent"
+                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
                         >
                           {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
                         </button>,
@@ -908,7 +908,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             } catch (err) { console.error('Failed to fetch accountants:', err); }
                             finally { setAccountantLoading(false); }
                           }}
-                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent"
+                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
                         >
                           {investorData.assignedAccountantId ? 'Change Accountant' : 'Assign Accountant'}
                         </button>,
@@ -917,8 +917,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           onClick={() => setShowInviteModal(true)}
                           disabled={isPending || investorData.status === 'suspended'}
                           className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${!(isPending || investorData.status === 'suspended')
-                            ? 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200'
-                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 border-blue-200 dark:border-blue-800'
+                            : 'bg-[#F9FAFB] dark:bg-gray-800 text-[#9CA3AF] border-[#E5E7EB] dark:border-gray-700 cursor-not-allowed'
                             }`}
                         >
                           <Mail className="h-3.5 w-3.5" />
@@ -951,7 +951,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-xs sm:text-sm font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider">Account & Profile Details</span>
-                      <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-full">
                         Personal, Custodian & Invitations
                       </span>
                     </div>
@@ -1037,7 +1037,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           <div className="flex items-center justify-between pb-1.5 border-b border-gray-200 dark:border-gray-800/60">
                             <h4 className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider">Linked Accounts</h4>
                             {(iraAccounts.length > 0 || subAccounts.length > 0 || parentData) && (
-                              <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+                              <span className="text-[10px] font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-full">
                                 {iraAccounts.length + subAccounts.length + (parentData ? 1 : 0)}
                               </span>
                             )}
