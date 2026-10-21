@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import {
-  ChevronLeft, X, ChevronDown, ChevronUp, FileText, Download, Calendar, Mail, Phone,
-  Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle, Plus, Info, Pencil, Filter
+  ChevronLeft, X, ChevronDown, ChevronUp, FileText, Download, Calendar, CalendarDays, Mail, Phone,
+  Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle, Plus, Info, Pencil, Filter, MessageSquare
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { apiClient, BASE_URL, API_URL } from '@/lib/api/client';
@@ -154,6 +154,14 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [subAccountData, setSubAccountData] = useState<Record<string, { funding: any[], redemptions: any[] }>>({});
   const [parentData, setParentData] = useState<any>(null);
 
+  // --- Pipeline Notes State ---
+  const [notesList, setNotesList] = useState<any[]>([]);
+  const [isNotesOpen, setIsNotesOpen] = useState(false);
+  const [currentNewNote, setCurrentNewNote] = useState('');
+  const [noteScheduledDate, setNoteScheduledDate] = useState('');
+  const [showNoteDatePicker, setShowNoteDatePicker] = useState(false);
+  const [isSavingNote, setIsSavingNote] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -170,6 +178,22 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
           apiClient.getInvestorTransfers(params.id).catch(() => [])
         ]);
         setInvestorData(profile);
+        // Parse pipeline notes, preserving older plain-text notes.
+        if (profile?.pipelineNote) {
+          try {
+            const parsed = JSON.parse(profile.pipelineNote);
+            setNotesList(Array.isArray(parsed) ? parsed : parsed && typeof parsed === 'object' ? [parsed] : []);
+          } catch {
+            setNotesList([{
+              id: Date.now(),
+              author: 'System',
+              date: 'Legacy Note',
+              text: profile.pipelineNote
+            }]);
+          }
+        } else {
+          setNotesList([]);
+        }
         setKycDocuments(docs);
         setFundingHistory(investments);
         setRedemptionHistory(redemptions);
@@ -391,6 +415,49 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const handleProfileUpdateSuccess = (updatedInvestor: any) => {
     setInvestorData(updatedInvestor);
     // Refresh other data if needed
+  };
+
+  // --- Notes handlers ---
+  const handleAddNote = async () => {
+    if (!currentNewNote.trim()) return;
+    const newNote = {
+      id: Date.now(),
+      author: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : (user?.role || 'Staff'),
+      authorRole: user?.role || 'Staff',
+      date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }),
+      text: currentNewNote.trim(),
+      scheduledDate: noteScheduledDate || null
+    };
+    const updatedNotes = [newNote, ...notesList];
+    setNotesList(updatedNotes);
+    setCurrentNewNote('');
+    setNoteScheduledDate('');
+    setShowNoteDatePicker(false);
+    setIsSavingNote(true);
+    try {
+      await apiClient.updateInvestorPipelineDetails(params.id, { pipelineNote: JSON.stringify(updatedNotes) });
+      toast.success('Note saved successfully');
+      setInvestorData((prev: any) => ({ ...prev, pipelineNote: JSON.stringify(updatedNotes) }));
+    } catch {
+      toast.error('Failed to save note');
+      setNotesList(notesList); // rollback
+      setCurrentNewNote(newNote.text);
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: number) => {
+    const updated = notesList.filter((n: any) => n.id !== noteId);
+    setNotesList(updated);
+    try {
+      await apiClient.updateInvestorPipelineDetails(params.id, { pipelineNote: JSON.stringify(updated) });
+      toast.success('Note deleted');
+      setInvestorData((prev: any) => ({ ...prev, pipelineNote: JSON.stringify(updated) }));
+    } catch {
+      toast.error('Failed to delete note');
+      setNotesList(notesList); // rollback
+    }
   };
 
   const handleViewDocument = (doc: any) => {
@@ -938,6 +1005,121 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   </div>
                 </div>
 
+                {/* Internal Notes Section */}
+                {isAdmin && (
+                  <div className="pt-6 border-t-2 border-gray-100 dark:border-gray-800">
+                    <div className="flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsNotesOpen(open => !open)}
+                        aria-expanded={isNotesOpen}
+                        className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
+                          <span className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100">Internal Notes</span>
+                          {notesList.length > 0 && (
+                            <span className="text-[10px] font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full">
+                              {notesList.length} note{notesList.length !== 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </span>
+                        {isNotesOpen ? <ChevronUp className="h-4 w-4 shrink-0 text-gray-500" /> : <ChevronDown className="h-4 w-4 shrink-0 text-gray-500" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowNoteDatePicker(v => !v);
+                          setIsNotesOpen(true);
+                        }}
+                        className={`p-1.5 rounded-lg transition-colors ${showNoteDatePicker ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                        title="Schedule a date"
+                        aria-label="Schedule a note date"
+                      >
+                        <CalendarDays className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    {isNotesOpen && (
+                      <div className="pt-4 space-y-4">
+                    {/* New note input */}
+                    <div className="space-y-3">
+                      {showNoteDatePicker && (
+                        <div className="flex items-center gap-3 p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                          <CalendarDays className="h-4 w-4 text-blue-600 shrink-0" />
+                          <input
+                            type="date"
+                            value={noteScheduledDate}
+                            onChange={e => setNoteScheduledDate(e.target.value)}
+                            className="bg-transparent text-sm font-bold text-blue-600 outline-none cursor-pointer"
+                          />
+                          {noteScheduledDate && (
+                            <button onClick={() => setNoteScheduledDate('')} className="text-[10px] font-bold text-blue-400 hover:text-blue-600">Clear</button>
+                          )}
+                        </div>
+                      )}
+                      <div className="relative border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 overflow-hidden">
+                        <textarea
+                          value={currentNewNote}
+                          onChange={e => setCurrentNewNote(e.target.value)}
+                          placeholder="Add an internal note about this investor..."
+                          className="w-full p-4 bg-transparent text-sm font-medium text-gray-700 dark:text-gray-300 placeholder:text-gray-400 resize-none min-h-[90px] border-none focus:ring-0 outline-none"
+                        />
+                      </div>
+                      <button
+                        onClick={handleAddNote}
+                        disabled={!currentNewNote.trim() || isSavingNote}
+                        className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-1.5"
+                      >
+                        {isSavingNote ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MessageSquare className="h-3.5 w-3.5" />}
+                        {isSavingNote ? 'Saving...' : 'Save Note'}
+                      </button>
+                    </div>
+
+                    {/* Notes feed */}
+                    <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                      {notesList.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-10 border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-xl">
+                          <MessageSquare className="h-7 w-7 text-gray-300 mb-2" />
+                          <p className="text-sm text-gray-400 font-medium">No notes yet</p>
+                        </div>
+                      ) : (
+                        notesList.map((note: any) => (
+                          <div key={note.id} className="space-y-1.5">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0">
+                                  {note.author?.charAt(0)}
+                                </div>
+                                <span className="text-xs font-bold text-gray-900 dark:text-gray-100">{note.author}</span>
+                                <span className="text-[10px] font-medium text-gray-400">{note.date}</span>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteNote(note.id)}
+                                className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl rounded-tl-none border border-gray-100 dark:border-gray-700 space-y-1.5 ml-8">
+                              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{note.text}</p>
+                              {note.scheduledDate && (
+                                <div className="flex items-center gap-1.5 px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-lg w-fit">
+                                  <CalendarDays className="h-3 w-3" />
+                                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                                    Scheduled: {new Date(note.scheduledDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Embedded Funding History Section at Bottom of Basic Details Tab */}
                 <div className="pt-6 border-t-2 border-gray-100 dark:border-gray-800 space-y-4">

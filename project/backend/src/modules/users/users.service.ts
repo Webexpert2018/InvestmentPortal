@@ -704,6 +704,7 @@ export class UsersService implements OnModuleInit {
           acc.full_name as assigned_accountant_name, acc.email as assigned_accountant_email,
           i.investor_type as "investorType", i.entity_name as "entityName", i.entity_type as "entityType", i.parent_id as "parentId",
           i.nickname as "nickname",
+          i.pipeline_note as "pipelineNote",
           (SELECT json_agg(inv ORDER BY inv.sent_at DESC) FROM investor_invitations inv WHERE inv.investor_id = i.id) as "invitationLogs"
         FROM investors i
         LEFT JOIN investors parent ON i.parent_id = parent.id
@@ -767,6 +768,7 @@ export class UsersService implements OnModuleInit {
       entityType: user.entityType || '',
       parentId: user.parentId || null,
       nickname: user.nickname || '',
+      pipelineNote: user.pipelineNote || '',
     };
   }
 
