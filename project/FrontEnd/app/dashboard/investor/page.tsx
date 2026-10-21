@@ -31,6 +31,7 @@ interface Investor {
   investorType?: string;
   assigned_ir_name?: string;
   assigned_accountant_name?: string;
+  nickname?: string;
 }
 
 interface OldInvestor {
@@ -230,8 +231,10 @@ export default function InvestorPage() {
 
   const filteredInvestors = investors.filter(investor => {
     const fullNameStr = (investor.firstName + ' ' + (investor.lastName || '')).toLowerCase();
+    const nicknameStr = (investor.nickname || '').toLowerCase();
     const matchesSearch = fullNameStr.includes(searchQuery.toLowerCase()) ||
-      investor.email.toLowerCase().includes(searchQuery.toLowerCase());
+      investor.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (nicknameStr !== '' && nicknameStr.includes(searchQuery.toLowerCase()));
     const matchesKyc = !kycFilter || investor.kycStatus?.toLowerCase() === kycFilter.toLowerCase();
     const effectiveStatus = investor.status || 'active';
     const matchesStatus = !statusFilter || effectiveStatus === statusFilter;

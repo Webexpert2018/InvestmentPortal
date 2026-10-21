@@ -371,6 +371,7 @@ export class UsersController {
       undefined, // pref_frequency
       updateDto.entityName,
       updateDto.entityType,
+      updateDto.nickname,
     );
   }
 

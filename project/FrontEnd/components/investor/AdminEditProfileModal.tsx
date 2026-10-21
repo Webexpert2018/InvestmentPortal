@@ -32,7 +32,8 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
     state: '',
     zipCode: '',
     country: 'US',
-    taxId: ''
+    taxId: '',
+    nickname: ''
   });
 
   useEffect(() => {
@@ -73,7 +74,8 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
         state: stateCode,
         country: countryCode,
         zipCode: investor.zipCode || '',
-        taxId: investor.taxId || ''
+        taxId: investor.taxId || '',
+        nickname: investor.nickname || ''
       });
       setErrors({});
     }
@@ -119,7 +121,8 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
         state: stateObj?.name || form.state,
         zipCode: form.zipCode,
         country: countryObj?.name || form.country,
-        taxId: form.taxId.replace(/\D/g, '')
+        taxId: form.taxId.replace(/\D/g, ''),
+        nickname: form.nickname.trim() || null
       };
 
       if (isEntity) {
@@ -309,6 +312,23 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
                   />
                 </div>
                 {errors.taxId && <p className="mt-1 text-[10px] text-red-500">{errors.taxId}</p>}
+              </div>
+            </div>
+
+            {/* Nickname */}
+            <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-2 mb-4">
+                <User className="h-4 w-4 text-amber-600" />
+                <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Nickname</h3>
+              </div>
+              <div className="max-w-sm">
+                <InputField
+                  label="Nickname (optional)"
+                  value={form.nickname}
+                  onChange={v => setForm({ ...form, nickname: v })}
+                  placeholder="e.g. Johnny, The Doctor, Big Bob"
+                />
+                <p className="mt-1.5 text-[10px] text-gray-400">Admins can use this nickname to quickly find this investor via the search bar.</p>
               </div>
             </div>
 

@@ -787,6 +787,13 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           </button>
                         )}
                       </div>
+                      {/* Nickname badge */}
+                      {investorData.nickname && (
+                        <span className="inline-flex items-center gap-1 mt-0.5 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[11px] font-bold border border-amber-200 dark:border-amber-800 w-fit">
+                          <User className="h-3 w-3" />
+                          {investorData.nickname}
+                        </span>
+                      )}
                       {/* Meta Info below Investor Name (stacked vertically) */}
                       <div className="flex flex-col gap-1 mt-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
                         <p className="flex items-center gap-1.5 whitespace-nowrap">
