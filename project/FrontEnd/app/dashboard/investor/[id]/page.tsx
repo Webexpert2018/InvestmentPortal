@@ -943,12 +943,65 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 <div className="pt-6 border-t-2 border-gray-100 dark:border-gray-800 space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#1F3B6E] inline-block"></span>
                       Funding History
                     </h3>
                   </div>
                   {renderFundingHistorySection()}
                 </div>
+
+                {/* Real Estate Fund Holdings Section */}
+                {(() => {
+                  const oldFunds = fundHoldings?.filter((h: any) => h.account_type?.toLowerCase().includes('ims-')) || [];
+                  return (
+                    <div className="pt-6 border-t-2 border-gray-100 dark:border-gray-800 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
+                          Real Estate Fund Holdings
+                        </h3>
+                      </div>
+                      <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full table-fixed">
+                            <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
+                              <tr>
+                                <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                                <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                                <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Units</th>
+                                <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
+                                <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Total Value</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white dark:bg-[#1C1C1C] divide-y divide-gray-100">
+                              {oldFunds.length > 0 ? (
+                                oldFunds.map((holding: any, index: number) => (
+                                  <tr key={index} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">{holding.fund_name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-medium">
+                                      <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/30">
+                                        {holding.account_type}
+                                      </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F] dark:text-gray-100">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                  </tr>
+                                ))
+                              ) : (
+                                <tr>
+                                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    No real estate fund holdings found.
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Combined Collapsible Container for All Three Sections */}
                 <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl border border-gray-200 dark:border-gray-800/80 shadow-xs overflow-hidden flex flex-col transition-all mt-6">
@@ -1567,8 +1620,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${transfer.status === 'COMPLETED' ? 'bg-green-100 dark:bg-green-900/40 text-green-700' :
-                                      transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 text-yellow-700' :
-                                        'bg-gray-100 text-gray-700 dark:text-gray-300'
+                                    transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 text-yellow-700' :
+                                      'bg-gray-100 text-gray-700 dark:text-gray-300'
                                     }`}>
                                     {transfer.status}
                                   </span>
