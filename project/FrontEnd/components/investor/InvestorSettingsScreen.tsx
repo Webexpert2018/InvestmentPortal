@@ -5,6 +5,7 @@ import { CalendarDays, ChevronDown, ChevronLeft, Plus, Upload, Eye, EyeOff, Load
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
+import { COUNTRY_CODES } from '@/lib/countryCodes';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -70,7 +71,7 @@ const tabs: Array<{ id: Exclude<SettingsTab, 'add-account'>; label: string }> = 
   { id: 'sub-accounts', label: 'Sub Accounts' },
 ];
 
-const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
+
 
 const cleanPhoneInput = (value: string, countryCode: string) => {
   let digits = value.replace(/\D/g, '');
@@ -1011,7 +1012,7 @@ export function InvestorSettingsScreen() {
               </div>
               <div>
                 <FieldLabel>Phone Number</FieldLabel>
-                <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-2">
+                <div className="grid grid-cols-[135px_minmax(0,1fr)] gap-2">
                   <div className="relative">
                     <select
                       value={profile.countryCode}

@@ -5,6 +5,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { Search, Mail, MessageSquare, Loader2, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { COUNTRY_CODES } from '@/lib/countryCodes';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { SendEmailModal } from '@/components/crm/SendEmailModal';

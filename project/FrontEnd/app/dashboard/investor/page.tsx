@@ -12,6 +12,7 @@ import { Country, State, City } from 'country-state-city';
 import { Combobox } from '@/components/ui/combobox';
 import { AdminAddIraModal } from '@/components/ira/AdminAddIraModal';
 import { AdminAddSubaccountModal } from '@/components/investor/AdminAddSubaccountModal';
+import { COUNTRY_CODES } from '@/lib/countryCodes';
 
 interface Investor {
   id: string;
@@ -112,7 +113,7 @@ export default function InvestorPage() {
     first_name: '',
     last_name: '',
     email: '',
-    phone_code: '+1',
+    phone_code: '+1 (USA)',
     phone: '',
     dob: '',
     address_line1: '',
@@ -292,9 +293,29 @@ export default function InvestorPage() {
       return;
     }
 
-    if (inviteForm.phone && inviteForm.phone.length !== 10) {
-      setPhoneError('Phone number must be exactly 10 digits');
-      return;
+    if (inviteForm.phone) {
+      const cleanPhone = inviteForm.phone.replace(/\D/g, '');
+      if (inviteForm.phone_code === '+1') {
+        if (cleanPhone.length !== 10) {
+          setPhoneError('USA/Canada phone number must be exactly 10 digits');
+          return;
+        }
+      } else if (inviteForm.phone_code === '+44') {
+        if (cleanPhone.length < 10 || cleanPhone.length > 11) {
+          setPhoneError('UK phone number must be 10-11 digits');
+          return;
+        }
+      } else if (inviteForm.phone_code === '+91') {
+        if (cleanPhone.length !== 10) {
+          setPhoneError('India phone number must be exactly 10 digits');
+          return;
+        }
+      } else {
+        if (cleanPhone.length < 6 || cleanPhone.length > 15) {
+          setPhoneError('Phone number must be between 6 and 15 digits');
+          return;
+        }
+      }
     }
 
     try {
@@ -321,7 +342,7 @@ export default function InvestorPage() {
         first_name: '',
         last_name: '',
         email: '',
-        phone_code: '+1',
+        phone_code: '+1 (USA)',
         phone: '',
         dob: '',
         address_line1: '',
@@ -335,14 +356,13 @@ export default function InvestorPage() {
         assigned_accountant_id: ''
       });
       await fetchInvestors();
-      if (currentUser?.role === 'executive_admin') {
-        setStatusFilter('pending');
-        if (res?.id) {
-          const rowKey = `${res.id}:Personal`;
-          setSelectedRowKey(rowKey);
-          setSelectedInvestorId(res.id);
-          localStorage.setItem('selectedInvestorKey', rowKey);
-        }
+      if (res?.id) {
+        setActiveTab('pending');
+        setViewMode('active');
+        const rowKey = `${res.id}:Personal`;
+        setSelectedRowKey(rowKey);
+        setSelectedInvestorId(res.id);
+        localStorage.setItem('selectedInvestorKey', rowKey);
       }
     } catch (error: any) {
       if (error.message?.includes('already exists') || error.status === 409) {
@@ -1526,18 +1546,20 @@ export default function InvestorPage() {
                             <select
                               value={inviteForm.phone_code}
                               onChange={(e) => setInviteForm({ ...inviteForm, phone_code: e.target.value })}
-                              className="px-3 py-4 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none"
+                              className="px-3 py-4 bg-[#F9FAFB] dark:bg-gray-800 border border-[#F3F4F6] dark:border-gray-700 rounded-2xl text-sm font-bold text-[#111827] dark:text-white focus:outline-none w-[130px] shrink-0 cursor-pointer"
                             >
-                              <option value="+1" className="bg-white dark:bg-gray-800">+1</option>
-                              <option value="+44" className="bg-white dark:bg-gray-800">+44</option>
-                              <option value="+91" className="bg-white dark:bg-gray-800">+91</option>
+                              {COUNTRY_CODES.map((code) => (
+                                <option key={code} value={code} className="bg-white dark:bg-gray-800">
+                                  {code}
+                                </option>
+                              ))}
                             </select>
                             <input
                               type="tel"
                               placeholder="555 000 0000"
                               value={inviteForm.phone}
                               onChange={(e) => {
-                                const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                const value = e.target.value.replace(/\D/g, '').slice(0, 15);
                                 setInviteForm({ ...inviteForm, phone: value });
                                 if (phoneError) setPhoneError('');
                               }}

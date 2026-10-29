@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ChevronLeft, Loader2, Camera, Plus, ChevronDown } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
+import { COUNTRY_CODES, parsePhoneFromDb } from '@/lib/countryCodes';
 import { toast } from 'sonner';
 
 export default function EditStaffPage() {
@@ -25,7 +26,7 @@ export default function EditStaffPage() {
     full_name: '',
     email: '',
     phone: '',
-    phone_code: '+1',
+    phone_code: '+1 (USA)',
     status: 'active',
   });
 
@@ -45,8 +46,14 @@ export default function EditStaffPage() {
     const cleanPhone = formData.phone.replace(/\D/g, '');
     if (!cleanPhone) {
       newErrors.phone = 'Phone number is required';
-    } else if (cleanPhone.length !== 10) {
-      newErrors.phone = 'Phone number must be exactly 10 digits';
+    } else if (formData.phone_code.startsWith('+1')) {
+      if (cleanPhone.length !== 10) newErrors.phone = 'USA/Canada phone number must be 10 digits';
+    } else if (formData.phone_code.startsWith('+44')) {
+      if (cleanPhone.length < 10 || cleanPhone.length > 11) newErrors.phone = 'UK phone number must be 10-11 digits';
+    } else if (formData.phone_code.startsWith('+91')) {
+      if (cleanPhone.length !== 10) newErrors.phone = 'India phone number must be 10 digits';
+    } else {
+      if (cleanPhone.length < 6 || cleanPhone.length > 15) newErrors.phone = 'Phone number must be between 6 and 15 digits';
     }
 
     setErrors(newErrors);
@@ -64,15 +71,8 @@ export default function EditStaffPage() {
       setFetching(true);
       const staffData = await apiClient.getStaffById(id);
 
-      let phoneCode = '+1';
-      let phoneNumber = staffData.phone || '';
-      if (phoneNumber.startsWith('+')) {
-        const parts = phoneNumber.split(' ');
-        if (parts.length > 1) {
-          phoneCode = parts[0];
-          phoneNumber = parts.slice(1).join(' ');
-        }
-      }
+      const { phoneCountryCode, phoneNumber } = parsePhoneFromDb(staffData.phone);
+      let phoneCode = phoneCountryCode;
 
       setFormData({
         role: staffData.role,
@@ -229,11 +229,13 @@ export default function EditStaffPage() {
                   <select
                     value={formData.phone_code}
                     onChange={(e) => setFormData({ ...formData, phone_code: e.target.value })}
-                    className="h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] border-none text-[15px] outline-none appearance-none cursor-pointer w-[120px]"
+                    className="h-[52px] px-4 rounded-[8px] bg-[#f8f9fa] dark:bg-gray-800 border-none text-[15px] outline-none appearance-none cursor-pointer w-[150px] dark:text-gray-100"
                   >
-                    <option value="+1">+1 (USA)</option>
-                    <option value="+44">+44 (UK)</option>
-                    <option value="+91">+91 (IN)</option>
+                    {COUNTRY_CODES.map((code) => (
+                      <option key={code} value={code} className="bg-white dark:bg-gray-800">
+                        {code}
+                      </option>
+                    ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8E8E93] h-4 w-4 pointer-events-none" />
                 </div>
@@ -242,7 +244,7 @@ export default function EditStaffPage() {
                   placeholder="Enter phone number"
                   value={formData.phone}
                   onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 15);
                     setFormData({ ...formData, phone: val });
                     if (errors.phone) setErrors({ ...errors, phone: '' });
                   }}

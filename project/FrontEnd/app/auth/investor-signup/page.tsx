@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Country, State, City } from 'country-state-city';
+import { COUNTRY_CODES, parsePhoneFromDb } from '@/lib/countryCodes';
 import { Combobox } from '@/components/ui/combobox';
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
@@ -20,7 +21,7 @@ type ValidationErrors = Record<string, string>;
 
 const STEP_LABELS = ['Set Profile', 'Address', 'Email Verification', 'Tax Info.'];
 
-const countryCodes = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
+const countryCodes = COUNTRY_CODES;
 
 function InvestorSignupForm() {
   const router = useRouter();
@@ -72,25 +73,7 @@ function InvestorSignupForm() {
       console.log(`[InvestorSignup] Invite verified successfully:`, data);
 
       // Backend now sends firstName & lastName separately
-      // For phone: stored as raw number, try to split if formatted
-      const rawPhone = data.phone || '';
-      let parsedCode = '+1 (USA)';
-      let parsedNumber = '';
-
-      // Check if phone has a recognisable country-code prefix stored
-      if (rawPhone.startsWith('+44')) {
-        parsedCode = '+44 (UK)';
-        parsedNumber = rawPhone.replace(/^\+44\s*/, '').replace(/\D/g, '');
-      } else if (rawPhone.startsWith('+91')) {
-        parsedCode = '+91 (IN)';
-        parsedNumber = rawPhone.replace(/^\+91\s*/, '').replace(/\D/g, '');
-      } else if (rawPhone.startsWith('+1')) {
-        parsedCode = '+1 (USA)';
-        parsedNumber = rawPhone.replace(/^\+1\s*/, '').replace(/\D/g, '');
-      } else {
-        // Stored as plain digits (no prefix)
-        parsedNumber = rawPhone.replace(/\D/g, '');
-      }
+      const { phoneCountryCode: parsedCode, phoneNumber: parsedNumber } = parsePhoneFromDb(data.phone, data.country);
 
       setForm(prev => ({
         ...prev,
@@ -680,7 +663,7 @@ function InvestorSignupForm() {
               <select
                 value={form.phoneCountryCode}
                 onChange={(e) => setField('phoneCountryCode', e.target.value)}
-                className="h-11 md:w-[110px] w-[80px] rounded-md border border-[#E6E6E6] px-2 font-helvetica text-xs md:text-sm"
+                className="h-11 md:w-[135px] w-[95px] shrink-0 rounded-md border border-[#E6E6E6] px-2 font-helvetica text-xs md:text-sm bg-white dark:bg-[#1C1C1C] text-[#1F1F1F] dark:text-gray-100 outline-none cursor-pointer"
               >
                 {countryCodes.map((code) => (
                   <option key={code} value={code}>

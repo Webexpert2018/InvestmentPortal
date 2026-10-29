@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
+import { COUNTRY_CODES, parsePhoneFromDb } from '@/lib/countryCodes';
 import { Combobox } from '@/components/ui/combobox';
 import { X, Pencil, Loader2, User, MapPin, FileText, Calendar, Phone, Mail } from 'lucide-react';
 
@@ -24,7 +25,7 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
     lastName: '',
     email: '',
     phone: '',
-    phoneCode: '+1',
+    phoneCode: '+1 (USA)',
     dob: '',
     addressLine1: '',
     addressLine2: '',
@@ -38,16 +39,10 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
 
   useEffect(() => {
     if (isOpen && investor) {
-      // Parse phone if possible
-      let phone = investor.phone || '';
-      let phoneCode = '+1';
-      if (phone.startsWith('+')) {
-        const parts = phone.split(' ');
-        if (parts.length > 1) {
-          phoneCode = parts[0];
-          phone = parts.slice(1).join(' ');
-        }
-      }
+      // Parse phone cleanly using centralized parsePhoneFromDb
+      const { phoneCountryCode, phoneNumber } = parsePhoneFromDb(investor.phone, investor.country);
+      let phone = phoneNumber;
+      let phoneCode = phoneCountryCode;
 
       const countryObj = Country.getAllCountries().find(c => c.name === investor.country || c.isoCode === investor.country);
       const countryCode = countryObj?.isoCode || 'US';
@@ -92,7 +87,18 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
       if (!form.firstName.trim()) e.firstName = 'First name is required.';
       if (!form.lastName.trim()) e.lastName = 'Last name is required.';
     }
-    if (form.phone && !/^\d+$/.test(form.phone.replace(/\D/g, ''))) e.phone = 'Invalid phone number.';
+    if (form.phone) {
+      const clean = form.phone.replace(/\D/g, '');
+      if (form.phoneCode.startsWith('+1')) {
+        if (clean.length !== 10) e.phone = 'USA/Canada phone number must be 10 digits.';
+      } else if (form.phoneCode.startsWith('+44')) {
+        if (clean.length < 10 || clean.length > 11) e.phone = 'UK phone number must be 10-11 digits.';
+      } else if (form.phoneCode.startsWith('+91')) {
+        if (clean.length !== 10) e.phone = 'India phone number must be 10 digits.';
+      } else {
+        if (clean.length < 6 || clean.length > 15) e.phone = 'Phone number must be between 6 and 15 digits.';
+      }
+    }
     
     if (form.taxId) {
         const cleanTax = form.taxId.replace(/\D/g, '');
@@ -113,7 +119,7 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
       const isEntity = investor?.investorType === 'entity';
 
       const updatedData: any = {
-        phone: `${form.phoneCode} ${form.phone}`.trim(),
+        phone: form.phone ? `${form.phoneCode} ${form.phone.replace(/\D/g, '')}`.trim() : '',
         dob: isEntity ? null : form.dob,
         addressLine1: form.addressLine1,
         addressLine2: form.addressLine2,
@@ -255,19 +261,20 @@ export function AdminEditProfileModal({ isOpen, onClose, onSuccess, investor }: 
                   <select
                     value={form.phoneCode}
                     onChange={e => setForm({ ...form, phoneCode: e.target.value })}
-                    className="h-11 px-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none transition-all"
+                    className="h-11 px-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none transition-all w-[135px] shrink-0 cursor-pointer"
                   >
-                    <option value="+1">+1 (USA)</option>
-                    <option value="+44">+44 (UK)</option>
-                    <option value="+91">+91 (IND)</option>
-                    <option value="+971">+971 (UAE)</option>
+                    {COUNTRY_CODES.map((code) => (
+                      <option key={code} value={code}>
+                        {code}
+                      </option>
+                    ))}
                   </select>
                   <div className="relative flex-1">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
                       type="text"
                       value={form.phone}
-                      onChange={e => setForm({ ...form, phone: e.target.value })}
+                      onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 15) })}
                       placeholder="Phone number"
                       className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1C1C1C] text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none transition-all"
                     />

@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { AdminAddIraModal } from '@/components/ira/AdminAddIraModal';
 import { AdminEditProfileModal } from '@/components/investor/AdminEditProfileModal';
 import { SendInvestmentInviteModal } from '@/components/investor/SendInvestmentInviteModal';
+import { COUNTRY_CODES } from '@/lib/countryCodes';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
 const formatPhoneDisplay = (phoneStr: string | null | undefined): string => {

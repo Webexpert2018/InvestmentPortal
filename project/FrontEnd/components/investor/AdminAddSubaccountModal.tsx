@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
+import { COUNTRY_CODES } from '@/lib/countryCodes';
 import { Combobox } from '@/components/ui/combobox';
 import { X, Plus, Loader2, User, MapPin, FileText, ChevronDown, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,7 +16,7 @@ interface AdminAddSubaccountModalProps {
   targetInvestorId: string;
 }
 
-const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
+
 
 const cleanPhoneInput = (value: string, countryCode: string) => {
   let digits = value.replace(/\D/g, '');

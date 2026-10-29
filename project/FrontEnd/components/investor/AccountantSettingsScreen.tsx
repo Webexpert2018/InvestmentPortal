@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
+import { COUNTRY_CODES } from '@/lib/countryCodes';
 import { Combobox } from '@/components/ui/combobox';
 import { cn } from '@/lib/utils';
 import {
@@ -40,7 +41,7 @@ const TAB_LIST: { id: AcctTab; label: string }[] = [
   { id: 'notifications', label: 'Notifications' },
 ];
 
-const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
+
 
 const cleanPhoneInput = (value: string, countryCode: string) => {
   let digits = value.replace(/\D/g, '');
