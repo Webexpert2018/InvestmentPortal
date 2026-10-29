@@ -1057,7 +1057,11 @@ export class UsersService implements OnModuleInit {
 
     // 5. Send invitation email (if requested, usually only for bulk or immediate invites)
     if (data.sendEmail) {
-      await this.emailService.sendInvestorInvitationEmail(email, finalFullName, token);
+      await this.emailService.sendInvestorInvitationEmail(email, finalFullName, token, {
+        recipientUserId: investorId,
+        relatedEntityType: 'INVESTOR',
+        relatedEntityId: investorId,
+      });
 
       const senderName = requestingUserName || 'Admin';
       // Update invitation tracking
@@ -1121,7 +1125,11 @@ export class UsersService implements OnModuleInit {
     }
 
     // 3. Send the email
-    await this.emailService.sendInvestorInvitationEmail(investor.email, investor.full_name, token);
+    await this.emailService.sendInvestorInvitationEmail(investor.email, investor.full_name, token, {
+      recipientUserId: userId,
+      relatedEntityType: 'INVESTOR',
+      relatedEntityId: userId,
+    });
 
     const senderName = requestingUserName || 'Admin';
     // 4. Update invitation tracking
