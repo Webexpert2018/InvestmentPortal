@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import {
-  ChevronLeft, X, ChevronDown, ChevronUp, FileText, Download, Calendar, Mail, Phone,
-  Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle, Plus, Info, Pencil, Filter
+  ChevronLeft, X, ChevronDown, ChevronUp, FileText, Download, Calendar, CalendarDays, Mail, Phone,
+  Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle, Plus, Info, Pencil, Filter, MessageSquare
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { apiClient, BASE_URL, API_URL } from '@/lib/api/client';
@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { AdminAddIraModal } from '@/components/ira/AdminAddIraModal';
 import { AdminEditProfileModal } from '@/components/investor/AdminEditProfileModal';
 import { SendInvestmentInviteModal } from '@/components/investor/SendInvestmentInviteModal';
+import { COUNTRY_CODES } from '@/lib/countryCodes';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
 const formatPhoneDisplay = (phoneStr: string | null | undefined): string => {
@@ -152,6 +153,15 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const [iraAccounts, setIraAccounts] = useState<any[]>([]);
   const [subAccounts, setSubAccounts] = useState<any[]>([]);
   const [subAccountData, setSubAccountData] = useState<Record<string, { funding: any[], redemptions: any[] }>>({});
+  const [parentData, setParentData] = useState<any>(null);
+
+  // --- Pipeline Notes State ---
+  const [notesList, setNotesList] = useState<any[]>([]);
+  const [isNotesOpen, setIsNotesOpen] = useState(false);
+  const [currentNewNote, setCurrentNewNote] = useState('');
+  const [noteScheduledDate, setNoteScheduledDate] = useState('');
+  const [showNoteDatePicker, setShowNoteDatePicker] = useState(false);
+  const [isSavingNote, setIsSavingNote] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -169,6 +179,22 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
           apiClient.getInvestorTransfers(params.id).catch(() => [])
         ]);
         setInvestorData(profile);
+        // Parse pipeline notes, preserving older plain-text notes.
+        if (profile?.pipelineNote) {
+          try {
+            const parsed = JSON.parse(profile.pipelineNote);
+            setNotesList(Array.isArray(parsed) ? parsed : parsed && typeof parsed === 'object' ? [parsed] : []);
+          } catch {
+            setNotesList([{
+              id: Date.now(),
+              author: 'System',
+              date: 'Legacy Note',
+              text: profile.pipelineNote
+            }]);
+          }
+        } else {
+          setNotesList([]);
+        }
         setKycDocuments(docs);
         setFundingHistory(investments);
         setRedemptionHistory(redemptions);
@@ -198,6 +224,16 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         const searchStr = profile?.email || `${profile?.firstName} ${profile?.lastName}`.trim() || params.id;
         const legacyDocs = await apiClient.getOldInvestorDocuments(searchStr).catch(() => []);
         setOldDocuments(legacyDocs || []);
+
+        // Fetch parent account details if this is a minor/entity sub-account
+        if (profile?.parentId) {
+          try {
+            const parentProfile = await apiClient.getUserById(profile.parentId);
+            setParentData(parentProfile);
+          } catch {
+            // Parent fetch is non-critical
+          }
+        }
       } catch (err) {
         console.error('Error fetching investor data:', err);
         toast.error('Failed to load investor profile');
@@ -380,6 +416,49 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const handleProfileUpdateSuccess = (updatedInvestor: any) => {
     setInvestorData(updatedInvestor);
     // Refresh other data if needed
+  };
+
+  // --- Notes handlers ---
+  const handleAddNote = async () => {
+    if (!currentNewNote.trim()) return;
+    const newNote = {
+      id: Date.now(),
+      author: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : (user?.role || 'Staff'),
+      authorRole: user?.role || 'Staff',
+      date: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }),
+      text: currentNewNote.trim(),
+      scheduledDate: noteScheduledDate || null
+    };
+    const updatedNotes = [newNote, ...notesList];
+    setNotesList(updatedNotes);
+    setCurrentNewNote('');
+    setNoteScheduledDate('');
+    setShowNoteDatePicker(false);
+    setIsSavingNote(true);
+    try {
+      await apiClient.updateInvestorPipelineDetails(params.id, { pipelineNote: JSON.stringify(updatedNotes) });
+      toast.success('Note saved successfully');
+      setInvestorData((prev: any) => ({ ...prev, pipelineNote: JSON.stringify(updatedNotes) }));
+    } catch {
+      toast.error('Failed to save note');
+      setNotesList(notesList); // rollback
+      setCurrentNewNote(newNote.text);
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: number) => {
+    const updated = notesList.filter((n: any) => n.id !== noteId);
+    setNotesList(updated);
+    try {
+      await apiClient.updateInvestorPipelineDetails(params.id, { pipelineNote: JSON.stringify(updated) });
+      toast.success('Note deleted');
+      setInvestorData((prev: any) => ({ ...prev, pipelineNote: JSON.stringify(updated) }));
+    } catch {
+      toast.error('Failed to delete note');
+      setNotesList(notesList); // rollback
+    }
   };
 
   const handleViewDocument = (doc: any) => {
@@ -776,6 +855,13 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           </button>
                         )}
                       </div>
+                      {/* Nickname badge */}
+                      {investorData.nickname && (
+                        <span className="inline-flex items-center gap-1 mt-0.5 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[11px] font-bold border border-amber-200 dark:border-amber-800 w-fit">
+                          <User className="h-3 w-3" />
+                          {investorData.nickname}
+                        </span>
+                      )}
                       {/* Meta Info below Investor Name (stacked vertically) */}
                       <div className="flex flex-col gap-1 mt-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
                         <p className="flex items-center gap-1.5 whitespace-nowrap">
@@ -807,8 +893,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           onClick={handleSendInvite}
                           disabled={isSendingInvite || !isPending}
                           className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${isPending
-                            ? 'bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent'
-                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            ? 'bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent'
+                            : 'bg-[#F9FAFB] dark:bg-gray-800 text-[#9CA3AF] border-[#E5E7EB] dark:border-gray-700 cursor-not-allowed'
                             }`}
                         >
                           {isSendingInvite ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mail className="h-3.5 w-3.5" />}
@@ -819,8 +905,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           onClick={() => setShowCancelModal(true)}
                           disabled={isSuspending || !isPending}
                           className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${isPending
-                            ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
-                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 border-red-200 dark:border-red-800'
+                            : 'bg-[#F9FAFB] dark:bg-gray-800 text-[#9CA3AF] border-[#E5E7EB] dark:border-gray-700 cursor-not-allowed'
                             }`}
                         >
                           {isSuspending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
@@ -834,8 +920,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           onClick={handleForgotPassword}
                           disabled={isResetting || isPending}
                           className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${!isPending
-                            ? 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200'
-                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 border-amber-200 dark:border-amber-800'
+                            : 'bg-[#F9FAFB] dark:bg-gray-800 text-[#9CA3AF] border-[#E5E7EB] dark:border-gray-700 cursor-not-allowed'
                             }`}
                         >
                           {isResetting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Shield className="h-3.5 w-3.5" />}
@@ -850,10 +936,10 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 disabled={isSuspending || isPending}
                                 className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${!isPending
                                   ? (investorData.status === 'suspended'
-                                    ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/40'
-                                    : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                    ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/50'
+                                    : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50'
                                   )
-                                  : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                                  : 'bg-[#F9FAFB] dark:bg-gray-800 text-[#9CA3AF] border-[#E5E7EB] dark:border-gray-700 cursor-not-allowed'
                                   }`}
                               >
                                 {isSuspending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
@@ -881,7 +967,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             } catch (err) { console.error('Failed to fetch IR staff:', err); }
                             finally { setIrLoading(false); }
                           }}
-                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent"
+                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
                         >
                           {investorData.assignedIrId ? 'Change Investor Relation' : 'Assign Investor Relation'}
                         </button>,
@@ -897,7 +983,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             } catch (err) { console.error('Failed to fetch accountants:', err); }
                             finally { setAccountantLoading(false); }
                           }}
-                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] dark:text-gray-100 hover:bg-[#FBD24E] border-transparent"
+                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
                         >
                           {investorData.assignedAccountantId ? 'Change Accountant' : 'Assign Accountant'}
                         </button>,
@@ -906,8 +992,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           onClick={() => setShowInviteModal(true)}
                           disabled={isPending || investorData.status === 'suspended'}
                           className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${!(isPending || investorData.status === 'suspended')
-                            ? 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200'
-                            : 'bg-[#F9FAFB] text-[#9CA3AF] border-[#E5E7EB] cursor-not-allowed'
+                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 border-blue-200 dark:border-blue-800'
+                            : 'bg-[#F9FAFB] dark:bg-gray-800 text-[#9CA3AF] border-[#E5E7EB] dark:border-gray-700 cursor-not-allowed'
                             }`}
                         >
                           <Mail className="h-3.5 w-3.5" />
@@ -920,17 +1006,185 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   </div>
                 </div>
 
+                {/* Internal Notes Section */}
+                {isAdmin && (
+                  <div className="pt-6 border-t-2 border-gray-100 dark:border-gray-800">
+                    <div className="flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsNotesOpen(open => !open)}
+                        aria-expanded={isNotesOpen}
+                        className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
+                          <span className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100">Internal Notes</span>
+                          {notesList.length > 0 && (
+                            <span className="text-[10px] font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full">
+                              {notesList.length} note{notesList.length !== 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </span>
+                        {isNotesOpen ? <ChevronUp className="h-4 w-4 shrink-0 text-gray-500" /> : <ChevronDown className="h-4 w-4 shrink-0 text-gray-500" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowNoteDatePicker(v => !v);
+                          setIsNotesOpen(true);
+                        }}
+                        className={`p-1.5 rounded-lg transition-colors ${showNoteDatePicker ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                        title="Schedule a date"
+                        aria-label="Schedule a note date"
+                      >
+                        <CalendarDays className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    {isNotesOpen && (
+                      <div className="pt-4 space-y-4">
+                    {/* New note input */}
+                    <div className="space-y-3">
+                      {showNoteDatePicker && (
+                        <div className="flex items-center gap-3 p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                          <CalendarDays className="h-4 w-4 text-blue-600 shrink-0" />
+                          <input
+                            type="date"
+                            value={noteScheduledDate}
+                            onChange={e => setNoteScheduledDate(e.target.value)}
+                            className="bg-transparent text-sm font-bold text-blue-600 outline-none cursor-pointer"
+                          />
+                          {noteScheduledDate && (
+                            <button onClick={() => setNoteScheduledDate('')} className="text-[10px] font-bold text-blue-400 hover:text-blue-600">Clear</button>
+                          )}
+                        </div>
+                      )}
+                      <div className="relative border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 overflow-hidden">
+                        <textarea
+                          value={currentNewNote}
+                          onChange={e => setCurrentNewNote(e.target.value)}
+                          placeholder="Add an internal note about this investor..."
+                          className="w-full p-4 bg-transparent text-sm font-medium text-gray-700 dark:text-gray-300 placeholder:text-gray-400 resize-none min-h-[90px] border-none focus:ring-0 outline-none"
+                        />
+                      </div>
+                      <button
+                        onClick={handleAddNote}
+                        disabled={!currentNewNote.trim() || isSavingNote}
+                        className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-1.5"
+                      >
+                        {isSavingNote ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MessageSquare className="h-3.5 w-3.5" />}
+                        {isSavingNote ? 'Saving...' : 'Save Note'}
+                      </button>
+                    </div>
+
+                    {/* Notes feed */}
+                    <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                      {notesList.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-10 border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-xl">
+                          <MessageSquare className="h-7 w-7 text-gray-300 mb-2" />
+                          <p className="text-sm text-gray-400 font-medium">No notes yet</p>
+                        </div>
+                      ) : (
+                        notesList.map((note: any) => (
+                          <div key={note.id} className="space-y-1.5">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0">
+                                  {note.author?.charAt(0)}
+                                </div>
+                                <span className="text-xs font-bold text-gray-900 dark:text-gray-100">{note.author}</span>
+                                <span className="text-[10px] font-medium text-gray-400">{note.date}</span>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteNote(note.id)}
+                                className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl rounded-tl-none border border-gray-100 dark:border-gray-700 space-y-1.5 ml-8">
+                              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{note.text}</p>
+                              {note.scheduledDate && (
+                                <div className="flex items-center gap-1.5 px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-lg w-fit">
+                                  <CalendarDays className="h-3 w-3" />
+                                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                                    Scheduled: {new Date(note.scheduledDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Embedded Funding History Section at Bottom of Basic Details Tab */}
                 <div className="pt-6 border-t-2 border-gray-100 dark:border-gray-800 space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#1F3B6E] inline-block"></span>
                       Funding History
                     </h3>
                   </div>
                   {renderFundingHistorySection()}
                 </div>
+
+                {/* Real Estate Fund Holdings Section */}
+                {(() => {
+                  const oldFunds = fundHoldings?.filter((h: any) => h.account_type?.toLowerCase().includes('ims-')) || [];
+                  return (
+                    <div className="pt-6 border-t-2 border-gray-100 dark:border-gray-800 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm sm:text-base font-bold text-[#1F1F1F] dark:text-gray-100 flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D] inline-block"></span>
+                          Real Estate Fund Holdings
+                        </h3>
+                      </div>
+                      <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full table-fixed">
+                            <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
+                              <tr>
+                                <th className="w-[30%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                                <th className="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Account Type</th>
+                                <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Units</th>
+                                <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Current NAV</th>
+                                <th className="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Total Value</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white dark:bg-[#1C1C1C] divide-y divide-gray-100">
+                              {oldFunds.length > 0 ? (
+                                oldFunds.map((holding: any, index: number) => (
+                                  <tr key={index} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">{holding.fund_name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-medium">
+                                      <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/30">
+                                        {holding.account_type}
+                                      </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{parseFloat(holding.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${parseFloat(holding.current_nav || 0).toFixed(2)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1F1F1F] dark:text-gray-100">${parseFloat(holding.max_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                  </tr>
+                                ))
+                              ) : (
+                                <tr>
+                                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    No real estate fund holdings found.
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Combined Collapsible Container for All Three Sections */}
                 <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl border border-gray-200 dark:border-gray-800/80 shadow-xs overflow-hidden flex flex-col transition-all mt-6">
@@ -940,7 +1194,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-xs sm:text-sm font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider">Account & Profile Details</span>
-                      <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-full">
                         Personal, Custodian & Invitations
                       </span>
                     </div>
@@ -1025,13 +1279,48 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                         <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3">
                           <div className="flex items-center justify-between pb-1.5 border-b border-gray-200 dark:border-gray-800/60">
                             <h4 className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 uppercase tracking-wider">Linked Accounts</h4>
-                            {(iraAccounts.length > 0 || subAccounts.length > 0) && (
-                              <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
-                                {iraAccounts.length + subAccounts.length}
+                            {(iraAccounts.length > 0 || subAccounts.length > 0 || parentData) && (
+                              <span className="text-[10px] font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-full">
+                                {iraAccounts.length + subAccounts.length + (parentData ? 1 : 0)}
                               </span>
                             )}
                           </div>
                           <div className="space-y-3">
+                            {/* Parent Account Card — shown when this is a minor/entity sub-account */}
+                            {(investorData.investorType === 'minor' || investorData.investorType === 'entity') && parentData && (
+                              <div className="p-3 rounded-xl border border-amber-200 dark:border-amber-700/50 bg-[#FFFBF0] dark:bg-amber-900/20 flex flex-col gap-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Parent Account</span>
+                                  <span className="text-[9px] font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded-full capitalize">
+                                    {parentData.investorType || 'personal'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-gray-900 dark:text-gray-100">
+                                    {parentData.firstName} {parentData.lastName}
+                                  </p>
+                                  <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">{parentData.email}</p>
+                                </div>
+                                <div className="pt-1.5 border-t border-amber-100 dark:border-amber-800/40 flex items-center justify-between">
+                                  <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold capitalize tracking-tight ${parentData.status === 'suspended' ? 'bg-red-100 text-red-600' : 'bg-green-100 dark:bg-green-900/40 text-green-600'}`}>
+                                    <div className={`w-1 h-1 rounded-full ${parentData.status === 'suspended' ? 'bg-red-500' : 'bg-green-500'}`} />
+                                    {parentData.status || 'active'}
+                                  </div>
+                                  <Link
+                                    href={`/dashboard/investor/${parentData.id}`}
+                                    className="text-[10px] font-bold text-amber-600 hover:text-amber-700 hover:underline transition-colors"
+                                  >
+                                    View Profile →
+                                  </Link>
+                                </div>
+                              </div>
+                            )}
+                            {(investorData.investorType === 'minor' || investorData.investorType === 'entity') && !parentData && (
+                              <div className="p-3 rounded-xl border border-amber-100 dark:border-amber-800/30 bg-[#FFFBF0] dark:bg-amber-900/10 flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Parent Account</span>
+                                <span className="text-[10px] text-gray-400 italic">Not linked</span>
+                              </div>
+                            )}
                             {(iraAccounts.length > 0 || subAccounts.length > 0) ? (
                               <>
                                 {iraAccounts.map((account: any) => {
@@ -1514,8 +1803,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${transfer.status === 'COMPLETED' ? 'bg-green-100 dark:bg-green-900/40 text-green-700' :
-                                      transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 text-yellow-700' :
-                                        'bg-gray-100 text-gray-700 dark:text-gray-300'
+                                    transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 text-yellow-700' :
+                                      'bg-gray-100 text-gray-700 dark:text-gray-300'
                                     }`}>
                                     {transfer.status}
                                   </span>

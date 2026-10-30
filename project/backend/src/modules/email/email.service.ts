@@ -2,6 +2,18 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SMTPClient } from 'smtp-client';
 import axios from 'axios';
+import { db } from '../../config/database';
+
+export interface EmailLogOptions {
+  notificationType?: string;
+  recipientName?: string;
+  recipientUserId?: string;
+  templateName?: string;
+  triggeredByUserId?: string;
+  relatedEntityType?: string;
+  relatedEntityId?: string;
+  metadata?: Record<string, any>;
+}
 
 @Injectable()
 export class EmailService {
@@ -28,7 +40,7 @@ export class EmailService {
     return this.configService.get<string>('SUPPORT_EMAIL') || 'portal@ovaliacapital.com';
   }
 
-  async sendPasswordResetOtp(email: string, otp: string, showCode: boolean = true) {
+  async sendPasswordResetOtp(email: string, otp: string, showCode: boolean = true, options?: EmailLogOptions) {
     const title = 'Verify Your Identity';
     const subject = 'Password Reset Code - Ovalia Capital';
     const frontendUrl = this.getFrontendUrl();
@@ -51,10 +63,15 @@ export class EmailService {
         </a>
       </div>
     `;
-    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title), {
+      notificationType: 'PASSWORD_RESET',
+      templateName: 'password_reset_otp',
+      metadata: { showCode },
+      ...options,
+    });
   }
 
-  async sendVerificationOtp(email: string, otp: string) {
+  async sendVerificationOtp(email: string, otp: string, options?: EmailLogOptions) {
     const title = 'Verify Your Email';
     const subject = 'Verification Code - Ovalia Capital';
     const content = `
@@ -67,10 +84,14 @@ export class EmailService {
 
       <p style="margin: 20px 0 0; font-size: 14px; color: #64748B; font-style: italic;">This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
     `;
-    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title), {
+      notificationType: 'VERIFICATION_CODE',
+      templateName: 'email_verification_otp',
+      ...options,
+    });
   }
 
-  async sendWelcomeEmail(email: string, firstName: string, role: string, password?: string) {
+  async sendWelcomeEmail(email: string, firstName: string, role: string, password?: string, options?: EmailLogOptions) {
     const title = 'Welcome to Ovalia Capital';
     const subject = 'Your Journey Begins - Welcome to Ovalia Capital!';
     const frontendUrl = this.getFrontendUrl();
@@ -113,10 +134,16 @@ export class EmailService {
         Need help? Contact our support team at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
       </p>
     `;
-    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title), {
+      notificationType: 'WELCOME_EMAIL',
+      templateName: 'welcome_email',
+      recipientName: firstName,
+      metadata: { role },
+      ...options,
+    });
   }
 
-  async sendPasswordChangedEmail(email: string, firstName: string, password?: string) {
+  async sendPasswordChangedEmail(email: string, firstName: string, password?: string, options?: EmailLogOptions) {
     const title = 'Security Update';
     const subject = 'Password Successfully Updated - Ovalia Capital';
     const content = `
@@ -140,10 +167,15 @@ export class EmailService {
         </p>
       </div>
     `;
-    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title), {
+      notificationType: 'PASSWORD_CHANGED',
+      templateName: 'password_changed_confirmation',
+      recipientName: firstName,
+      ...options,
+    });
   }
 
-  async sendStaffWelcomeEmail(email: string, fullName: string, role: string, password: string) {
+  async sendStaffWelcomeEmail(email: string, fullName: string, role: string, password: string, options?: EmailLogOptions) {
     const title = 'Welcome to the Team';
     const subject = 'Welcome to Ovalia Capital - Your Staff Account Details';
 
@@ -200,10 +232,16 @@ export class EmailService {
         Need assistance? Please contact your system administrator or reach out to support at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
       </p>
     `;
-    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title), {
+      notificationType: 'STAFF_WELCOME',
+      templateName: 'staff_credentials',
+      recipientName: fullName,
+      metadata: { role },
+      ...options,
+    });
   }
 
-  async sendInvestorInvitationEmail(email: string, fullName: string, token: string) {
+  async sendInvestorInvitationEmail(email: string, fullName: string, token: string, options?: EmailLogOptions) {
     const title = 'Invitation to Ovalia Capital';
     const subject = 'You have been invited to join the Ovalia Capital';
     const frontendUrl = this.getFrontendUrl();
@@ -246,10 +284,16 @@ export class EmailService {
         Need help? Contact our support team at <a href="mailto:${supportEmail}" style="color: #2A4474; text-decoration: none;">${supportEmail}</a>
       </p>
     `;
-    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title), {
+      notificationType: 'INVITE_INVESTOR',
+      templateName: 'investor_invitation',
+      recipientName: fullName,
+      metadata: { inviteTokenLength: token?.length },
+      ...options,
+    });
   }
 
-  async sendCustomEmail(email: string, fullName: string, subject: string, body: string) {
+  async sendCustomEmail(email: string, fullName: string, subject: string, body: string, options?: EmailLogOptions) {
     const title = subject;
     const supportEmail = this.getSupportEmail();
     const isHtmlBody = body.includes('<') && body.includes('>');
@@ -273,20 +317,27 @@ export class EmailService {
     `;
     const html = this.getHtmlTemplate(content, title);
     
+    const logOptions: EmailLogOptions = {
+      notificationType: 'CUSTOM_EMAIL',
+      templateName: 'custom_email',
+      recipientName: fullName,
+      ...options,
+    };
+
     const brevoApiKey = this.configService.get<string>('BREVO_API_KEY') || process.env.BREVO_API_KEY;
     if (brevoApiKey) {
       try {
-        await this.sendBrevoEmail(email, subject, html);
+        await this.sendBrevoEmail(email, subject, html, logOptions);
         return;
       } catch (err: any) {
         this.logger.warn(`Brevo dispatch failed in sendCustomEmail, falling back to SMTP transport: ${err.message}`);
       }
     }
 
-    await this.sendEmail(email, subject, html);
+    await this.sendEmail(email, subject, html, logOptions);
   }
 
-  async sendInvestmentInvite(email: string, firstName: string, fundName: string, amount: string, token: string) {
+  async sendInvestmentInvite(email: string, firstName: string, fundName: string, amount: string, token: string, options?: EmailLogOptions) {
     const title = 'Investment Invitation';
     const subject = `Investment Invitation - ${fundName} - Ovalia Capital`;
     const frontendUrl = this.getFrontendUrl();
@@ -304,7 +355,13 @@ export class EmailService {
       <p style="margin: 20px 0 0; font-size: 14px; color: #6B7280; font-style: italic;">If the button above does not work, copy and paste the following link into your browser:</p>
       <p style="margin: 10px 0 0; font-size: 14px; color: #1F3B6E; word-break: break-all;"><a href="${frontendUrl}/dashboard/invest?inviteToken=${token}">${frontendUrl}/dashboard/invest?inviteToken=${token}</a></p>
     `;
-    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title), {
+      notificationType: 'INVESTMENT_INVITE',
+      templateName: 'fund_investment_invitation',
+      recipientName: firstName,
+      metadata: { fundName, amount },
+      ...options,
+    });
   }
 
   private getHtmlTemplate(content: string, title: string) {
@@ -350,15 +407,10 @@ export class EmailService {
     `;
   }
 
-  async sendBrevoEmail(to: string, subject: string, html: string) {
+  async sendBrevoEmail(to: string, subject: string, html: string, options?: EmailLogOptions) {
     const brevoApiKey = this.configService.get<string>('BREVO_API_KEY') || process.env.BREVO_API_KEY;
     const rawFrom = this.configService.get<string>('BREVO_SENDER_EMAIL') || process.env.BREVO_SENDER_EMAIL || 'portal@ovaliacapital.com';
     const fromName = this.configService.get<string>('BREVO_SENDER_NAME') || process.env.BREVO_SENDER_NAME || 'Ovalia Capital';
-
-    if (!brevoApiKey) {
-      this.logger.error('❌ Brevo API Key missing.');
-      throw new Error('Brevo API Key (BREVO_API_KEY) missing or invalid.');
-    }
 
     const extractEmail = (str: string) => {
       const match = str.match(/<(.+)>/);
@@ -366,10 +418,35 @@ export class EmailService {
     };
 
     const rawTo = extractEmail(to);
+    const snippet = this.extractTextSnippet(html);
+    const notifType = options?.notificationType || 'CUSTOM_EMAIL';
+
+    if (!brevoApiKey) {
+      this.logger.error('❌ Brevo API Key missing.');
+      await this.logEmailNotification({
+        notificationType: notifType,
+        recipientEmail: rawTo,
+        recipientName: options?.recipientName,
+        recipientUserId: options?.recipientUserId,
+        subject,
+        templateName: options?.templateName,
+        bodySnippet: snippet,
+        status: 'FAILED',
+        provider: 'brevo',
+        errorMessage: 'Brevo API Key (BREVO_API_KEY) missing or invalid.',
+        triggeredByUserId: options?.triggeredByUserId,
+        relatedEntityType: options?.relatedEntityType,
+        relatedEntityId: options?.relatedEntityId,
+        metadata: options?.metadata,
+        failedAt: new Date(),
+      });
+      throw new Error('Brevo API Key (BREVO_API_KEY) missing or invalid.');
+    }
+
     const textContent = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 
     try {
-      await axios.post(
+      const response = await axios.post(
         'https://api.brevo.com/v3/smtp/email',
         {
           sender: { name: fromName, email: rawFrom },
@@ -386,15 +463,51 @@ export class EmailService {
           },
         }
       );
+      const messageId = response.data?.messageId || null;
       this.logger.log(`✅ [Brevo API] Email sent successfully to ${rawTo}: ${subject}`);
+
+      await this.logEmailNotification({
+        notificationType: notifType,
+        recipientEmail: rawTo,
+        recipientName: options?.recipientName,
+        recipientUserId: options?.recipientUserId,
+        subject,
+        templateName: options?.templateName,
+        bodySnippet: snippet,
+        status: 'SENT',
+        provider: 'brevo',
+        providerMessageId: messageId,
+        triggeredByUserId: options?.triggeredByUserId,
+        relatedEntityType: options?.relatedEntityType,
+        relatedEntityId: options?.relatedEntityId,
+        metadata: options?.metadata,
+        sentAt: new Date(),
+      });
     } catch (error: any) {
       const errMsg = error?.response?.data ? JSON.stringify(error.response.data) : error.message;
       this.logger.error(`❌ [Brevo API Error] Failed sending email to ${rawTo}: ${errMsg}`, error.stack);
+      await this.logEmailNotification({
+        notificationType: notifType,
+        recipientEmail: rawTo,
+        recipientName: options?.recipientName,
+        recipientUserId: options?.recipientUserId,
+        subject,
+        templateName: options?.templateName,
+        bodySnippet: snippet,
+        status: 'FAILED',
+        provider: 'brevo',
+        errorMessage: errMsg,
+        triggeredByUserId: options?.triggeredByUserId,
+        relatedEntityType: options?.relatedEntityType,
+        relatedEntityId: options?.relatedEntityId,
+        metadata: options?.metadata,
+        failedAt: new Date(),
+      });
       throw new Error(`Brevo API Error: ${errMsg}`);
     }
   }
 
-  async sendEmail(to: string, subject: string, html: string) {
+  async sendEmail(to: string, subject: string, html: string, options?: EmailLogOptions) {
     const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('EMAIL_FROM') || '"Ovalia Capital" <portal@ovaliacapital.com>';
 
     const extractEmail = (str: string) => {
@@ -411,6 +524,8 @@ export class EmailService {
 
     const rawFrom = extractEmail(from);
     const rawTo = extractEmail(to);
+    const snippet = this.extractTextSnippet(html);
+    const notifType = options?.notificationType || 'GENERAL_EMAIL';
 
     // 2. Fallback / Standard SMTP method
     const host = this.configService.get<string>('SMTP_HOST') || this.configService.get<string>('EMAIL_HOST');
@@ -438,7 +553,8 @@ export class EmailService {
 
         const textContent = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
         const boundary = "----=_Part_" + Date.now();
-        const message = `From: ${from}\r\nTo: ${to}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary="${boundary}"\r\n\r\n` +
+        const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@ovaliacapital.com>`;
+        const message = `From: ${from}\r\nTo: ${to}\r\nSubject: ${subject}\r\nMessage-ID: ${messageId}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary="${boundary}"\r\n\r\n` +
           `--${boundary}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${textContent}\r\n\r\n` +
           `--${boundary}\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${html}\r\n\r\n` +
           `--${boundary}--`;
@@ -447,13 +563,66 @@ export class EmailService {
         await client.quit();
 
         this.logger.log(`✅ [SMTP] Email sent to ${to}: ${subject}`);
+
+        await this.logEmailNotification({
+          notificationType: notifType,
+          recipientEmail: rawTo,
+          recipientName: options?.recipientName,
+          recipientUserId: options?.recipientUserId,
+          subject,
+          templateName: options?.templateName,
+          bodySnippet: snippet,
+          status: 'SENT',
+          provider: 'smtp',
+          providerMessageId: messageId,
+          triggeredByUserId: options?.triggeredByUserId,
+          relatedEntityType: options?.relatedEntityType,
+          relatedEntityId: options?.relatedEntityId,
+          metadata: options?.metadata,
+          sentAt: new Date(),
+        });
       } catch (error: any) {
         this.logger.error(`❌ SMTP Error sending to ${to}: ${error.message}`, error.stack);
+        await this.logEmailNotification({
+          notificationType: notifType,
+          recipientEmail: rawTo,
+          recipientName: options?.recipientName,
+          recipientUserId: options?.recipientUserId,
+          subject,
+          templateName: options?.templateName,
+          bodySnippet: snippet,
+          status: 'FAILED',
+          provider: 'smtp',
+          errorMessage: error.message,
+          triggeredByUserId: options?.triggeredByUserId,
+          relatedEntityType: options?.relatedEntityType,
+          relatedEntityId: options?.relatedEntityId,
+          metadata: options?.metadata,
+          failedAt: new Date(),
+        });
         throw new Error(`Could not send email to ${to}`);
       }
     } else {
       this.logger.warn('⚠️ Email service configuration missing (No BREVO_API_KEY or SMTP credentials). Running in dummy mode.');
       this.this_is_dummy_log(to, subject);
+
+      await this.logEmailNotification({
+        notificationType: notifType,
+        recipientEmail: rawTo,
+        recipientName: options?.recipientName,
+        recipientUserId: options?.recipientUserId,
+        subject,
+        templateName: options?.templateName,
+        bodySnippet: snippet,
+        status: 'SENT',
+        provider: 'dummy',
+        providerMessageId: `dummy-${Date.now()}`,
+        triggeredByUserId: options?.triggeredByUserId,
+        relatedEntityType: options?.relatedEntityType,
+        relatedEntityId: options?.relatedEntityId,
+        metadata: options?.metadata,
+        sentAt: new Date(),
+      });
     }
   }
 
@@ -464,7 +633,7 @@ export class EmailService {
     this.logger.log('-----------------------');
   }
 
-  async sendFundTransferSignatureEmail(email: string, signerName: string, signLink: string) {
+  async sendFundTransferSignatureEmail(email: string, signerName: string, signLink: string, options?: EmailLogOptions) {
     const title = 'Document Signature Required';
     const subject = 'Action Required: Please sign the Fund Transfer Document';
     const content = `
@@ -489,10 +658,15 @@ export class EmailService {
         ${signLink}
       </p>
     `;
-    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title), {
+      notificationType: 'FUND_TRANSFER',
+      templateName: 'fund_transfer_signature_request',
+      recipientName: signerName,
+      ...options,
+    });
   }
 
-  async sendCampaignSignatureEmail(email: string, signerName: string, documentName: string, signLink: string) {
+  async sendCampaignSignatureEmail(email: string, signerName: string, documentName: string, signLink: string, options?: EmailLogOptions) {
     const title = 'Document Signature Required';
     const subject = `Action Required: Please sign ${documentName}`;
     const content = `
@@ -517,6 +691,247 @@ export class EmailService {
         ${signLink}
       </p>
     `;
-    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title));
+    await this.sendEmail(email, subject, this.getHtmlTemplate(content, title), {
+      notificationType: 'DOCUMENT_SIGNATURE',
+      templateName: 'document_signature_request',
+      recipientName: signerName,
+      metadata: { documentName },
+      ...options,
+    });
+  }
+
+  private async resolveRecipient(email: string): Promise<{ recipientUserId?: string; recipientName?: string; relatedEntityType?: string }> {
+    if (!email) return {};
+    const cleanEmail = email.trim().toLowerCase();
+
+    try {
+      // 1. Check users table
+      const userRes = await db.query(
+        'SELECT id, first_name, last_name FROM users WHERE LOWER(email) = $1 LIMIT 1',
+        [cleanEmail]
+      );
+      if (userRes.rows.length > 0) {
+        const u = userRes.rows[0];
+        const name = [u.first_name, u.last_name].filter(Boolean).join(' ').trim();
+        return {
+          recipientUserId: String(u.id),
+          recipientName: name || undefined,
+          relatedEntityType: 'USER',
+        };
+      }
+
+      // 2. Check investors table
+      const invRes = await db.query(
+        'SELECT id, full_name FROM investors WHERE LOWER(email) = $1 LIMIT 1',
+        [cleanEmail]
+      );
+      if (invRes.rows.length > 0) {
+        const inv = invRes.rows[0];
+        return {
+          recipientUserId: String(inv.id),
+          recipientName: inv.full_name || undefined,
+          relatedEntityType: 'INVESTOR',
+        };
+      }
+
+      // 3. Check doctor_prospects table (apollo_id)
+      const docRes = await db.query(
+        'SELECT apollo_id, full_name FROM doctor_prospects WHERE LOWER(email) = $1 LIMIT 1',
+        [cleanEmail]
+      );
+      if (docRes.rows.length > 0) {
+        const doc = docRes.rows[0];
+        return {
+          recipientUserId: String(doc.apollo_id),
+          recipientName: doc.full_name || undefined,
+          relatedEntityType: 'DOCTOR_PROSPECT',
+        };
+      }
+
+      // 4. Check staff table
+      const staffRes = await db.query(
+        'SELECT id, full_name FROM staff WHERE LOWER(email) = $1 LIMIT 1',
+        [cleanEmail]
+      );
+      if (staffRes.rows.length > 0) {
+        const s = staffRes.rows[0];
+        return {
+          recipientUserId: String(s.id),
+          recipientName: s.full_name || undefined,
+          relatedEntityType: 'STAFF',
+        };
+      }
+    } catch (err: any) {
+      this.logger.warn(`Could not resolve recipient for ${cleanEmail}: ${err.message}`);
+    }
+
+    return {};
+  }
+
+  private async logEmailNotification(logData: {
+    notificationType: string;
+    recipientEmail: string;
+    recipientName?: string | null;
+    recipientUserId?: string | null;
+    subject: string;
+    templateName?: string | null;
+    bodySnippet?: string | null;
+    status: 'SENT' | 'FAILED' | 'QUEUED';
+    provider?: string | null;
+    providerMessageId?: string | null;
+    errorMessage?: string | null;
+    triggeredByUserId?: string | null;
+    relatedEntityType?: string | null;
+    relatedEntityId?: string | null;
+    metadata?: any;
+    sentAt?: Date | null;
+    failedAt?: Date | null;
+  }) {
+    try {
+      let recipientUserId = logData.recipientUserId || null;
+      let recipientName = logData.recipientName || null;
+      let relatedEntityType = logData.relatedEntityType || null;
+      let relatedEntityId = logData.relatedEntityId || null;
+
+      if (!recipientUserId) {
+        const resolved = await this.resolveRecipient(logData.recipientEmail);
+        if (resolved.recipientUserId) {
+          recipientUserId = resolved.recipientUserId;
+          if (!relatedEntityType && resolved.relatedEntityType) {
+            relatedEntityType = resolved.relatedEntityType;
+            if (!relatedEntityId) {
+              relatedEntityId = resolved.recipientUserId;
+            }
+          }
+        }
+        if (!recipientName && resolved.recipientName) {
+          recipientName = resolved.recipientName;
+        }
+      }
+
+      await db.query(
+        `INSERT INTO email_notification_logs (
+          notification_type,
+          recipient_email,
+          recipient_name,
+          recipient_user_id,
+          subject,
+          template_name,
+          body_snippet,
+          status,
+          provider,
+          provider_message_id,
+          error_message,
+          triggered_by_user_id,
+          related_entity_type,
+          related_entity_id,
+          metadata,
+          sent_at,
+          failed_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+        [
+          logData.notificationType,
+          logData.recipientEmail,
+          recipientName,
+          recipientUserId,
+          logData.subject,
+          logData.templateName || null,
+          logData.bodySnippet || null,
+          logData.status,
+          logData.provider || null,
+          logData.providerMessageId || null,
+          logData.errorMessage || null,
+          logData.triggeredByUserId || null,
+          relatedEntityType,
+          relatedEntityId,
+          logData.metadata ? JSON.stringify(logData.metadata) : null,
+          logData.sentAt || null,
+          logData.failedAt || null,
+        ]
+      );
+    } catch (err: any) {
+      this.logger.error(`❌ Failed to record email_notification_logs: ${err.message}`);
+    }
+  }
+
+  private extractTextSnippet(html: string, maxLen = 300): string {
+    if (!html) return '';
+    const text = html
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return text.length > maxLen ? text.substring(0, maxLen) + '...' : text;
+  }
+
+  async getEmailNotificationLogs(params?: {
+    page?: number;
+    limit?: number;
+    recipientEmail?: string;
+    notificationType?: string;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+  }) {
+    const page = Math.max(1, Number(params?.page) || 1);
+    const limit = Math.max(1, Math.min(100, Number(params?.limit) || 20));
+    const offset = (page - 1) * limit;
+
+    const conditions: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (params?.recipientEmail) {
+      conditions.push(`recipient_email ILIKE $${idx++}`);
+      values.push(`%${params.recipientEmail}%`);
+    }
+
+    if (params?.notificationType) {
+      conditions.push(`notification_type = $${idx++}`);
+      values.push(params.notificationType);
+    }
+
+    if (params?.status) {
+      conditions.push(`status = $${idx++}`);
+      values.push(params.status);
+    }
+
+    if (params?.startDate) {
+      conditions.push(`created_at >= $${idx++}`);
+      values.push(params.startDate);
+    }
+
+    if (params?.endDate) {
+      conditions.push(`created_at <= $${idx++}`);
+      values.push(params.endDate);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const countQuery = `SELECT COUNT(*) AS total FROM email_notification_logs ${whereClause}`;
+    const dataQuery = `
+      SELECT * FROM email_notification_logs
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT $${idx++} OFFSET $${idx++}
+    `;
+
+    const [countRes, dataRes] = await Promise.all([
+      db.query(countQuery, values),
+      db.query(dataQuery, [...values, limit, offset]),
+    ]);
+
+    const total = parseInt(countRes.rows[0]?.total || '0', 10);
+
+    return {
+      data: dataRes.rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }

@@ -9,8 +9,9 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { COUNTRY_CODES, parsePhoneFromDb } from '@/lib/countryCodes';
 
-const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
+
 
 function SignupForm() {
   const { signup } = useAuth();
@@ -49,13 +50,14 @@ function SignupForm() {
     try {
       setVerifyingInvite(true);
       const data = await apiClient.verifyInvitation(inviteToken!);
+      const { phoneCountryCode: parsedCode, phoneNumber: parsedNumber } = parsePhoneFromDb(data.phone, data.country);
       setFormData(prev => ({
         ...prev,
         email: data.email,
         firstName: data.firstName || '',
         lastName: data.lastName || '',
-        phone: data.phone?.replace(/^\+\d+\s/, '') || '',
-        phoneCountryCode: data.phone?.split(' ')[0] ? `${data.phone.split(' ')[0]} (Custom)` : prev.phoneCountryCode
+        phone: parsedNumber,
+        phoneCountryCode: parsedCode
       }));
       setIsInvited(true);
       toast.success('Invitation verified! Some fields have been pre-filled.');

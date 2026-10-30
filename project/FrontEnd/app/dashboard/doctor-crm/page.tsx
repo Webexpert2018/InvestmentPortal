@@ -644,7 +644,7 @@ export default function DoctorCrmPage() {
               <button
                 onClick={() => handleTabChange('all')}
                 className={`px-4 py-2 rounded-full font-bold text-[13px] transition-all whitespace-nowrap ${activeTab === 'all'
-                  ? 'bg-[#FFC63F] text-[#1F1F1F] dark:text-gray-100 shadow-sm'
+                  ? 'bg-[#FFC63F] text-[#1F1F1F] shadow-sm'
                   : 'bg-white dark:bg-[#1C1C1C] hover:bg-gray-100 dark:hover:bg-gray-700 text-[#6C6C6C]'
                   }`}
               >

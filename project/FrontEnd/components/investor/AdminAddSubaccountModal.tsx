@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api/client';
 import { Country, State, City } from 'country-state-city';
+import { COUNTRY_CODES } from '@/lib/countryCodes';
 import { Combobox } from '@/components/ui/combobox';
 import { X, Plus, Loader2, User, MapPin, FileText, ChevronDown, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,7 +16,7 @@ interface AdminAddSubaccountModalProps {
   targetInvestorId: string;
 }
 
-const COUNTRY_CODES = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
+
 
 const cleanPhoneInput = (value: string, countryCode: string) => {
   let digits = value.replace(/\D/g, '');
@@ -63,10 +64,9 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
   const [loading, setLoading] = useState(false);
   const [fetchingUser, setFetchingUser] = useState(true);
   const [parentInvestor, setParentInvestor] = useState<any>(null);
-  
+
   const [subAccountType, setSubAccountType] = useState<'minor' | 'entity'>('minor');
   const [subForm, setSubForm] = useState({
-    email: '',
     password: '',
     firstName: '',
     lastName: '',
@@ -83,6 +83,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
     entityName: '',
     entityType: 'LLC',
   });
+  const [autoEmail, setAutoEmail] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
 
@@ -92,12 +93,26 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
     }
   }, [isOpen, targetInvestorId]);
 
+  // Auto-generate email whenever name fields change
+  useEffect(() => {
+    const slugify = (str: string) =>
+      (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    let local = '';
+    if (subAccountType === 'minor') {
+      local = slugify(subForm.firstName) + slugify(subForm.lastName);
+    } else {
+      local = slugify(subForm.entityName);
+    }
+    setAutoEmail(local ? `${local}@ocinvestor.com` : '');
+  }, [subAccountType, subForm.firstName, subForm.lastName, subForm.entityName]);
+
   const fetchParentDetails = async () => {
     setFetchingUser(true);
     try {
       const data = await apiClient.getUserById(targetInvestorId);
       setParentInvestor(data);
-      
+
       // Determine country code for state/city lookup
       const countryObj = Country.getAllCountries().find(c => c.name === data.country || c.isoCode === data.country);
       const countryCode = countryObj?.isoCode || 'US';
@@ -157,9 +172,8 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!subForm.email.trim()) e.email = 'Email is required';
     if (!subForm.password.trim()) e.password = 'Password is required';
-    
+
     if (subAccountType === 'minor') {
       if (!subForm.firstName.trim()) e.firstName = 'First name is required';
       if (!subForm.lastName.trim()) e.lastName = 'Last name is required';
@@ -199,17 +213,17 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
         firstName: subAccountType === 'entity' ? null : subForm.firstName,
         lastName: subAccountType === 'entity' ? null : subForm.lastName,
         dob: subAccountType === 'entity' ? null : subForm.dob,
-        parentId: targetInvestorId, // Admin specifies parent ID
+        parentId: targetInvestorId,
       };
 
       await apiClient.createSubaccount(payload);
-      
+
       toast({
         title: 'Success',
         description: 'Sub-account created successfully',
         className: 'bg-green-50 border-green-200 text-green-800'
       });
-      
+
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -252,7 +266,7 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
         ) : (
           <div className="p-8">
             <div className="flex flex-col gap-8">
-              
+
               {/* SECTION: Parent Investor Info (Read-Only) */}
               <div className="rounded-[16px] border border-[#F0F0F0] dark:border-gray-700 bg-[#FAFAFA] dark:bg-gray-800/50 p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-4">
@@ -401,21 +415,19 @@ export function AdminAddSubaccountModal({ isOpen, onClose, onSuccess, targetInve
                   )}
 
                   <div>
-                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Email Address</label>
+                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">
+                      Email Address
+                      <span className="ml-2 text-[10px] font-normal text-[#D1A94C] bg-[#FFF8E1] dark:bg-amber-900/30 px-1.5 py-0.5 rounded-full">
+                        auto-generated
+                      </span>
+                    </label>
                     <input
                       type="email"
-                      placeholder="Sub-account email"
-                      value={subForm.email}
-                      onChange={(e) => {
-                        setSubForm(prev => ({ ...prev, email: e.target.value }));
-                        setErrors(prev => ({ ...prev, email: '' }));
-                      }}
-                      className={cn(
-                        "w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all shadow-sm",
-                        errors.email && "border-[#E05252]"
-                      )}
+                      readOnly
+                      value={autoEmail}
+                      placeholder={subAccountType === 'minor' ? 'firstnamelastname@ocinvestor.com' : 'entityname@ocinvestor.com'}
+                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F9FAFB] dark:bg-gray-800/70 text-[#6B7280] dark:text-gray-400 cursor-default outline-none shadow-sm italic"
                     />
-                    {errors.email && <p className="mt-1 text-[11px] text-red-500">{errors.email}</p>}
                   </div>
 
                   <div>

@@ -306,6 +306,7 @@ export class UsersService implements OnModuleInit {
     pref_frequency?: string,
     entityName?: string,
     entityType?: string,
+    nickname?: string,
   ) {
     // Determine which tables handle this user and update all of them for consistency
     const tablesFound: { name: string; type: 'split' | 'full' }[] = [];
@@ -419,6 +420,7 @@ export class UsersService implements OnModuleInit {
         pref_frequency,
         entity_name: entityName,
         entity_type: entityType,
+        nickname,
       };
 
       // Filter fields based on table availability to prevent SQL errors
@@ -427,7 +429,7 @@ export class UsersService implements OnModuleInit {
       const investorNotifs = [...staffNotifs, 'notif_invest_activity', 'notif_funding_conf', 'notif_doc_uploads', 'notif_kyc_updates', 'notif_announcements', 'notif_sms_invest_conf', 'notif_sms_security', 'notif_alerts', 'notif_nav_recalc', 'notif_sms_announcements', 'notif_sms_alerts', 'notif_sms_doc_uploads', 'notif_sms_nav_recalc', 'notif_sms_funding_conf', 'notif_sms_tax_forms', 'pref_send_by_email', 'pref_tax_forms_alert', 'pref_auto_download', 'pref_paperless', 'pref_format', 'pref_frequency'];
 
       const allowedColumns = tableName === 'investors' 
-        ? [...commonFields, ...investorNotifs, 'entity_name', 'entity_type'] 
+        ? [...commonFields, ...investorNotifs, 'entity_name', 'entity_type', 'nickname'] 
         : [...commonFields, ...staffNotifs];
 
       for (const [colName, val] of Object.entries(fieldMap)) {
@@ -440,7 +442,7 @@ export class UsersService implements OnModuleInit {
       values.push(userId);
 
       const returning = tableName === 'investors'
-        ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, notif_alerts, notif_nav_recalc, notif_sms_announcements, notif_sms_alerts, notif_sms_doc_uploads, notif_sms_nav_recalc, notif_sms_funding_conf, notif_sms_tax_forms, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency, investor_type, entity_name, entity_type'
+        ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder, notif_invest_activity, notif_funding_conf, notif_doc_uploads, notif_kyc_updates, notif_announcements, notif_sms_invest_conf, notif_sms_security, notif_alerts, notif_nav_recalc, notif_sms_announcements, notif_sms_alerts, notif_sms_doc_uploads, notif_sms_nav_recalc, notif_sms_funding_conf, notif_sms_tax_forms, pref_send_by_email, pref_tax_forms_alert, pref_auto_download, pref_paperless, pref_format, pref_frequency, investor_type, entity_name, entity_type, nickname'
         : tableName === 'staff'
           ? 'id, email, full_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder'
           : 'id, email, first_name, last_name, role, phone, status, dob, address_line1, address_line2, city, state, zip_code, country, tax_id, profile_image_url, notif_doc_uploaded, notif_missing_doc, notif_investor_msg, notif_reminder';
@@ -505,6 +507,7 @@ export class UsersService implements OnModuleInit {
       investorType: user.investor_type || 'personal',
       entityName: user.entity_name || '',
       entityType: user.entity_type || '',
+      nickname: user.nickname || '',
     };
   }
 
@@ -587,6 +590,7 @@ export class UsersService implements OnModuleInit {
         ua.account_id as "accountId",
         ua.account_status as "accountStatus",
         i.investor_type as "investorType",
+        i.nickname as "nickname",
         (COALESCE(inv_s.total_invested, 0) - COALESCE(red_s.total_redeemed_value, 0)) as total_invested,
         (COALESCE(inv_s.total_units, 0) - COALESCE(red_s.total_redeemed_units, 0)) as total_units,
         i.assigned_ir_id, s.full_name as assigned_ir_name,
@@ -621,6 +625,7 @@ export class UsersService implements OnModuleInit {
       investorType: user.investorType || 'personal',
       firstName: user.firstName,
       lastName: user.lastName,
+      nickname: user.nickname || '',
       invested: `$${parseFloat(user.total_invested).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       units: parseFloat(user.total_units).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       avatar: (user.firstName && user.firstName.length > 0) ? user.firstName[0].toUpperCase() : '?',
@@ -698,6 +703,8 @@ export class UsersService implements OnModuleInit {
           ir.full_name as assigned_ir_name, ir.email as assigned_ir_email,
           acc.full_name as assigned_accountant_name, acc.email as assigned_accountant_email,
           i.investor_type as "investorType", i.entity_name as "entityName", i.entity_type as "entityType", i.parent_id as "parentId",
+          i.nickname as "nickname",
+          i.pipeline_note as "pipelineNote",
           (SELECT json_agg(inv ORDER BY inv.sent_at DESC) FROM investor_invitations inv WHERE inv.investor_id = i.id) as "invitationLogs"
         FROM investors i
         LEFT JOIN investors parent ON i.parent_id = parent.id
@@ -760,6 +767,8 @@ export class UsersService implements OnModuleInit {
       entityName: user.entityName || '',
       entityType: user.entityType || '',
       parentId: user.parentId || null,
+      nickname: user.nickname || '',
+      pipelineNote: user.pipelineNote || '',
     };
   }
 
@@ -1048,7 +1057,11 @@ export class UsersService implements OnModuleInit {
 
     // 5. Send invitation email (if requested, usually only for bulk or immediate invites)
     if (data.sendEmail) {
-      await this.emailService.sendInvestorInvitationEmail(email, finalFullName, token);
+      await this.emailService.sendInvestorInvitationEmail(email, finalFullName, token, {
+        recipientUserId: investorId,
+        relatedEntityType: 'INVESTOR',
+        relatedEntityId: investorId,
+      });
 
       const senderName = requestingUserName || 'Admin';
       // Update invitation tracking
@@ -1112,7 +1125,11 @@ export class UsersService implements OnModuleInit {
     }
 
     // 3. Send the email
-    await this.emailService.sendInvestorInvitationEmail(investor.email, investor.full_name, token);
+    await this.emailService.sendInvestorInvitationEmail(investor.email, investor.full_name, token, {
+      recipientUserId: userId,
+      relatedEntityType: 'INVESTOR',
+      relatedEntityId: userId,
+    });
 
     const senderName = requestingUserName || 'Admin';
     // 4. Update invitation tracking
@@ -1353,9 +1370,57 @@ export class UsersService implements OnModuleInit {
     return result.rows;
   }
 
+  /**
+   * Generates a unique email for a sub-account.
+   * Base format: firstnamelastname@ocinvestor.com (minor) or legalentityname@ocinvestor.com (entity).
+   * If the base email already exists, appends a random 4-digit number and retries.
+   */
+  private async generateUniqueSubaccountEmail(investorType: string, firstName: string, lastName: string, entityName: string): Promise<string> {
+    const DOMAIN = 'ocinvestor.com';
+
+    const slugify = (str: string) =>
+      (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    let baseLocal: string;
+    if (investorType === 'minor') {
+      baseLocal = slugify(firstName) + slugify(lastName);
+    } else {
+      baseLocal = slugify(entityName);
+    }
+
+    if (!baseLocal) {
+      baseLocal = `subaccount${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+
+    const emailExists = async (email: string): Promise<boolean> => {
+      const [u, i, s] = await Promise.all([
+        db.query('SELECT id FROM users WHERE email = $1', [email]),
+        db.query('SELECT id FROM investors WHERE email = $1', [email]),
+        db.query('SELECT id FROM staff WHERE email = $1', [email]),
+      ]);
+      return u.rows.length > 0 || i.rows.length > 0 || s.rows.length > 0;
+    };
+
+    let candidate = `${baseLocal}@${DOMAIN}`;
+    if (!(await emailExists(candidate))) {
+      return candidate;
+    }
+
+    // Suffix with random 4-digit number until unique
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const suffix = Math.floor(1000 + Math.random() * 9000);
+      candidate = `${baseLocal}${suffix}@${DOMAIN}`;
+      if (!(await emailExists(candidate))) {
+        return candidate;
+      }
+    }
+
+    // Fallback: use timestamp
+    return `${baseLocal}${Date.now()}@${DOMAIN}`;
+  }
+
   async createSubaccount(parentId: string, data: any) {
     const {
-      email,
       password,
       investorType, // 'minor' or 'entity'
       // Minor fields:
@@ -1375,18 +1440,8 @@ export class UsersService implements OnModuleInit {
       entityType,
     } = data;
 
-    const emailClean = email.toLowerCase().trim();
-
-    // Check if email already exists in users, investors, or staff table
-    const [existingUser, existingInvestor, existingStaff] = await Promise.all([
-      db.query('SELECT id FROM users WHERE email = $1', [emailClean]),
-      db.query('SELECT id FROM investors WHERE email = $1', [emailClean]),
-      db.query('SELECT id FROM staff WHERE email = $1', [emailClean])
-    ]);
-
-    if (existingUser.rows.length > 0 || existingInvestor.rows.length > 0 || existingStaff.rows.length > 0) {
-      throw new ConflictException('User with this email already exists');
-    }
+    // Auto-generate unique email from name fields
+    const emailClean = await this.generateUniqueSubaccountEmail(investorType, firstName || '', lastName || '', entityName || '');
 
     const passwordHash = await bcrypt.hash(password, 10);
     const subaccountId = crypto.randomUUID();

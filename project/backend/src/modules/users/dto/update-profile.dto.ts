@@ -131,4 +131,8 @@ export class UpdateProfileDto {
 
   @IsOptional()
   notif_sms_tax_forms?: boolean;
+
+  @IsString()
+  @IsOptional()
+  nickname?: string;
 }

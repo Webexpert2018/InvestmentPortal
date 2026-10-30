@@ -7,12 +7,14 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Country, State, City } from 'country-state-city';
+import { COUNTRY_CODES, parsePhoneFromDb } from '@/lib/countryCodes';
 import { Combobox } from '@/components/ui/combobox';
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { CheckCircle2, Loader2 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -20,7 +22,7 @@ type ValidationErrors = Record<string, string>;
 
 const STEP_LABELS = ['Set Profile', 'Address', 'Email Verification', 'Tax Info.'];
 
-const countryCodes = ['+1 (USA)', '+44 (UK)', '+91 (IN)'];
+const countryCodes = COUNTRY_CODES;
 
 function InvestorSignupForm() {
   const router = useRouter();
@@ -72,25 +74,7 @@ function InvestorSignupForm() {
       console.log(`[InvestorSignup] Invite verified successfully:`, data);
 
       // Backend now sends firstName & lastName separately
-      // For phone: stored as raw number, try to split if formatted
-      const rawPhone = data.phone || '';
-      let parsedCode = '+1 (USA)';
-      let parsedNumber = '';
-
-      // Check if phone has a recognisable country-code prefix stored
-      if (rawPhone.startsWith('+44')) {
-        parsedCode = '+44 (UK)';
-        parsedNumber = rawPhone.replace(/^\+44\s*/, '').replace(/\D/g, '');
-      } else if (rawPhone.startsWith('+91')) {
-        parsedCode = '+91 (IN)';
-        parsedNumber = rawPhone.replace(/^\+91\s*/, '').replace(/\D/g, '');
-      } else if (rawPhone.startsWith('+1')) {
-        parsedCode = '+1 (USA)';
-        parsedNumber = rawPhone.replace(/^\+1\s*/, '').replace(/\D/g, '');
-      } else {
-        // Stored as plain digits (no prefix)
-        parsedNumber = rawPhone.replace(/\D/g, '');
-      }
+      const { phoneCountryCode: parsedCode, phoneNumber: parsedNumber } = parsePhoneFromDb(data.phone, data.country);
 
       setForm(prev => ({
         ...prev,
@@ -446,8 +430,13 @@ function InvestorSignupForm() {
         className="object-cover object-center z-0"
       />
 
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
+
       {!showProfileFlow ? (
-        <div className="relative z-10 w-full max-w-md bg-white dark:bg-[#1C1C1C] rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
+        <div className="relative z-10 w-full max-w-md bg-white dark:bg-[#1C1C1C] border border-transparent dark:border-[#2A2A2A] rounded-sm shadow-2xl px-4 py-5 sm:px-8 sm:py-10">
           {/* Logo */}
           <a href="/" className="flex justify-center mb-3 sm:mb-4">
             <Image
@@ -463,12 +452,12 @@ function InvestorSignupForm() {
           <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F] dark:text-gray-100">
             Create Your Ovalia Capital
           </h2>
-          <p className="mt-1 text-center text-md sm:text-xl">
+          <p className="mt-1 text-center text-md sm:text-xl text-gray-500 dark:text-gray-400">
             Enter your details to begin your Ovalia Capital onboarding.
           </p>
 
           {isInvited && (
-            <div className="flex items-center gap-2 px-4 py-3 bg-[#F2FAF6] border border-[#D1FAE5] rounded-xl my-4">
+            <div className="flex items-center gap-2 px-4 py-3 bg-[#F2FAF6] dark:bg-[#10B981]/10 border border-[#D1FAE5] dark:border-[#10B981]/20 rounded-xl my-4">
               <CheckCircle2 className="h-5 w-5 text-[#10B981]" />
               <p className="text-xs font-bold text-[#10B981]">Secure Invitation Verified</p>
             </div>
@@ -480,7 +469,7 @@ function InvestorSignupForm() {
                 value={form.email}
                 onChange={(e) => setField('email', e.target.value)}
                 placeholder="Enter email"
-                className={`h-11 w-full rounded-md border px-3 font-helvetica text-sm outline-none transition-all ${errors.email ? 'border-red-500 ring-2 ring-red-100' : 'border-[#E5E5E5] focus:border-yellow-400'
+                className={`h-11 w-full rounded-md border px-3 font-helvetica text-sm outline-none transition-all bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 ${errors.email ? 'border-red-500 ring-2 ring-red-100 dark:ring-red-950' : 'border-[#E5E5E5] dark:border-gray-700 focus:border-yellow-400'
                   }`}
               />
             </FormField>
@@ -492,12 +481,12 @@ function InvestorSignupForm() {
                   value={form.password}
                   onChange={(e) => setField('password', e.target.value)}
                   placeholder="Enter password"
-                  className="h-11 w-full rounded-md border border-[#E5E5E5] px-3 pr-10 font-helvetica text-sm outline-none focus:border-yellow-400"
+                  className="h-11 w-full rounded-md border border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 px-3 pr-10 font-helvetica text-sm outline-none focus:border-yellow-400"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-3 text-[#9A9A9A]"
+                  className="absolute inset-y-0 right-3 text-[#9A9A9A] dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -511,12 +500,12 @@ function InvestorSignupForm() {
                   value={form.confirmPassword}
                   onChange={(e) => setField('confirmPassword', e.target.value)}
                   placeholder="Enter confirm password"
-                  className="h-11 w-full rounded-md border border-[#E5E5E5] px-3 pr-10 font-helvetica text-sm outline-none focus:border-yellow-400"
+                  className="h-11 w-full rounded-md border border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 px-3 pr-10 font-helvetica text-sm outline-none focus:border-yellow-400"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-3 text-[#9A9A9A]"
+                  className="absolute inset-y-0 right-3 text-[#9A9A9A] dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                 >
                   {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -524,29 +513,29 @@ function InvestorSignupForm() {
             </FormField>
           </div>
 
-          {globalError && <p className="mt-4 text-center font-helvetica text-sm text-red-600">{globalError}</p>}
+          {globalError && <p className="mt-4 text-center font-helvetica text-sm text-red-600 dark:text-red-400">{globalError}</p>}
 
           <div className="space-y-6">
             <button
               onClick={handleCreateAccount}
               disabled={loading}
-              className="h-11 mt-6 w-full rounded-full bg-yellow-400 font-bold text-[#1F1F1F] dark:text-gray-100 transition-all hover:bg-yellow-500 disabled:opacity-70 flex items-center justify-center gap-2"
+              className="h-11 mt-6 w-full rounded-full bg-yellow-400 font-bold text-[#1F1F1F] dark:text-gray-900 transition-all hover:bg-yellow-500 disabled:opacity-70 flex items-center justify-center gap-2"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               Create Account
             </button>
           </div>
-          <p className="mt-5 text-center text-xl text-[#9C9C9C]">
+          <p className="mt-5 text-center text-xl text-[#9C9C9C] dark:text-gray-400">
             Already have an account?{' '}
-            <Link href="/auth/login?flow=investor" className="font-medium text-yellow-600 hover:underline">
+            <Link href="/auth/login?flow=investor" className="font-medium text-yellow-600 dark:text-yellow-400 hover:underline">
               Log In
             </Link>
           </p>
         </div>
       ) : (
         <div className="relative z-10 mx-auto flex min-h-[752px] w-full max-w-[1230px] items-center justify-center p-3 md:p-6 md:p-10">
-          <div className="w-full rounded-md bg-[#FCFCFC] shadow-xl">
-            <div className="border-b border-[#EBEBEB] px-6 pt-6">
+          <div className="w-full rounded-md bg-[#FCFCFC] dark:bg-[#1C1C1C] border border-[#EBEBEB] dark:border-[#2A2A2A] shadow-xl">
+            <div className="border-b border-[#EBEBEB] dark:border-[#2A2A2A] px-6 pt-6">
               <div className="mb-4 flex justify-center">
                 <a href="/" className="inline-block">
                   <img src="/images/logo.png" alt="Ovalia Capital" className="h-auto w-[70px] md:w-[170px] object-contain logo-con" />
@@ -554,25 +543,25 @@ function InvestorSignupForm() {
               </div>
 
               <h3 className="text-[24px] text-[#1F1F1F] dark:text-gray-100 font-bold">Complete Your Profile</h3>
-              <p className="mb-4 font-helvetica text-lg">Just a few steps to get started</p>
+              <p className="mb-4 font-helvetica text-lg text-gray-500 dark:text-gray-400">Just a few steps to get started</p>
 
               <div className="mb-3 flex items-center gap-2 pb-4 overflow-x-auto">
                 {progress.map((item, index) => (
                   <div key={item.label} className="flex flex-1 items-center gap-2">
                     <div
-                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${item.done || item.active ? 'bg-[#F1CF4A] text-white' : 'bg-[#EFEFEF] text-[#9A9A9A]'
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${item.done || item.active ? 'bg-[#F1CF4A] text-[#1F1F1F]' : 'bg-[#EFEFEF] dark:bg-gray-800 text-[#9A9A9A] dark:text-gray-400'
                         }`}
                     >
                       {item.done ? '✓' : item.stepNumber}
                     </div>
-                    <span className="whitespace-nowrap font-helvetica text-xs text-[#6F6F6F]">{item.label}</span>
-                    {index < progress.length - 1 && <div className="h-px flex-1 bg-[#E3E3E3]" />}
+                    <span className={`whitespace-nowrap font-helvetica text-xs ${item.done || item.active ? 'text-[#1F1F1F] dark:text-gray-200 font-medium' : 'text-[#6F6F6F] dark:text-gray-400'}`}>{item.label}</span>
+                    {index < progress.length - 1 && <div className="h-px flex-1 bg-[#E3E3E3] dark:bg-gray-800" />}
                   </div>
                 ))}
               </div>
 
               {verifyingInvite && (
-                <div className="absolute inset-0 bg-white dark:bg-[#1C1C1C]/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+                <div className="absolute inset-0 bg-white/80 dark:bg-[#1C1C1C]/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
                   <Loader2 className="h-10 w-10 animate-spin text-yellow-500 mb-2" />
                   <p className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100">Verifying Invitation...</p>
                 </div>
@@ -586,15 +575,13 @@ function InvestorSignupForm() {
                 <button
                   type="button"
                   onClick={moveBack}
-                  className="h-10 min-w-[108px] rounded-full bg-[#F8F1D8] px-6 font-medium text-[#8B7F53]"
+                  className="h-10 min-w-[108px] rounded-full bg-[#F8F1D8] dark:bg-gray-800 dark:hover:bg-gray-700 px-6 font-medium text-[#8B7F53] dark:text-gray-200 transition-colors"
                 >
                   Back
                 </button>
-
               </div>
 
               <div className="flex items-center gap-3">
-
                 {currentStep === 3 && !otpSent ? (
                   <button
                     type="button"
@@ -613,7 +600,7 @@ function InvestorSignupForm() {
                       }
                     }}
                     disabled={loading}
-                    className="h-10 min-w-[108px] rounded-full bg-yellow-400 px-6 font-medium text-[#2A2A2A] disabled:opacity-70 flex items-center justify-center gap-2"
+                    className="h-10 min-w-[108px] rounded-full bg-yellow-400 hover:bg-yellow-500 px-6 font-medium text-[#2A2A2A] dark:text-gray-900 disabled:opacity-70 flex items-center justify-center gap-2 transition-colors"
                   >
                     {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                     Send Code
@@ -623,7 +610,7 @@ function InvestorSignupForm() {
                     type="button"
                     onClick={moveNext}
                     disabled={loading}
-                    className="h-10 min-w-[108px] rounded-full bg-yellow-400 px-6 font-medium text-[#2A2A2A] disabled:opacity-70"
+                    className="h-10 min-w-[108px] rounded-full bg-yellow-400 hover:bg-yellow-500 px-6 font-medium text-[#2A2A2A] dark:text-gray-900 disabled:opacity-70 transition-colors"
                   >
                     {currentStep === 4 ? (loading ? 'Submitting...' : 'Continue') : 'Continue'}
                   </button>
@@ -633,7 +620,7 @@ function InvestorSignupForm() {
 
             {globalError && (
               <div className="px-6 pb-6">
-                <p className="font-helvetica text-sm text-red-600">{globalError}</p>
+                <p className="font-helvetica text-sm text-red-600 dark:text-red-400">{globalError}</p>
               </div>
             )}
           </div>
@@ -652,7 +639,7 @@ function InvestorSignupForm() {
               value={form.firstName}
               onChange={(e) => setField('firstName', e.target.value)}
               placeholder="Enter first name"
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
+              className="h-11 w-full rounded-md border border-[#E6E6E6] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 px-3 font-helvetica text-sm outline-none focus:border-yellow-400"
             />
           </FormField>
 
@@ -661,7 +648,7 @@ function InvestorSignupForm() {
               value={form.lastName}
               onChange={(e) => setField('lastName', e.target.value)}
               placeholder="Enter last name"
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
+              className="h-11 w-full rounded-md border border-[#E6E6E6] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 px-3 font-helvetica text-sm outline-none focus:border-yellow-400"
             />
           </FormField>
 
@@ -671,7 +658,7 @@ function InvestorSignupForm() {
               onChange={(e) => setField('email', e.target.value)}
               placeholder="Enter email"
               disabled={isInvited}
-              className={`h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm ${isInvited ? 'bg-gray-100 text-gray-500 dark:text-gray-400 cursor-not-allowed' : ''}`}
+              className={`h-11 w-full rounded-md border border-[#E6E6E6] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 px-3 font-helvetica text-sm outline-none focus:border-yellow-400 ${isInvited ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed' : ''}`}
             />
           </FormField>
 
@@ -680,7 +667,7 @@ function InvestorSignupForm() {
               <select
                 value={form.phoneCountryCode}
                 onChange={(e) => setField('phoneCountryCode', e.target.value)}
-                className="h-11 md:w-[110px] w-[80px] rounded-md border border-[#E6E6E6] px-2 font-helvetica text-xs md:text-sm"
+                className="h-11 md:w-[135px] w-[95px] shrink-0 rounded-md border border-[#E6E6E6] dark:border-gray-700 px-2 font-helvetica text-xs md:text-sm bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 outline-none cursor-pointer focus:border-yellow-400"
               >
                 {countryCodes.map((code) => (
                   <option key={code} value={code}>
@@ -692,7 +679,7 @@ function InvestorSignupForm() {
                 value={form.phoneNumber}
                 onChange={(e) => setField('phoneNumber', e.target.value.replace(/\D/g, '').slice(0, 15))}
                 placeholder="Enter phone number"
-                className="h-11 flex-1 rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
+                className="h-11 flex-1 rounded-md border border-[#E6E6E6] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 px-3 font-helvetica text-sm outline-none focus:border-yellow-400"
               />
             </div>
           </FormField>
@@ -704,18 +691,8 @@ function InvestorSignupForm() {
                   type="date"
                   value={form.dob}
                   onChange={(e) => setField('dob', e.target.value)}
-                  className="
-                    h-11 w-full
-                    rounded-md
-                    border border-[#E6E6E6]
-                    px-3 pr-4
-                    font-helvetica text-sm
-                    text-[#1F1F1F] dark:text-gray-100
-                    focus:border-yellow-400
-                    outline-none
-                    "
+                  className="h-11 w-full rounded-md border border-[#E6E6E6] dark:border-gray-700 bg-white dark:bg-[#262626] px-3 pr-4 font-helvetica text-sm text-[#1F1F1F] dark:text-gray-100 focus:border-yellow-400 outline-none [color-scheme:light] dark:[color-scheme:dark]"
                 />
-
               </div>
             </FormField>
           </div>
@@ -740,7 +717,7 @@ function InvestorSignupForm() {
               value={form.addressLine1}
               onChange={(e) => setField('addressLine1', e.target.value)}
               placeholder="Enter street address line 1"
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
+              className="h-11 w-full rounded-md border border-[#E6E6E6] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 px-3 font-helvetica text-sm outline-none focus:border-yellow-400"
             />
           </FormField>
 
@@ -749,7 +726,7 @@ function InvestorSignupForm() {
               value={form.addressLine2}
               onChange={(e) => setField('addressLine2', e.target.value)}
               placeholder="Enter street address line 2"
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
+              className="h-11 w-full rounded-md border border-[#E6E6E6] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 px-3 font-helvetica text-sm outline-none focus:border-yellow-400"
             />
           </FormField>
 
@@ -759,6 +736,7 @@ function InvestorSignupForm() {
               value={form.country}
               onChange={(val) => setField('country', val)}
               placeholder="Select country"
+              className="h-11 border-[#E6E6E6] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100"
             />
           </FormField>
 
@@ -769,6 +747,7 @@ function InvestorSignupForm() {
               onChange={(val) => setField('state', val)}
               placeholder="Select state"
               disabled={!form.country}
+              className="h-11 border-[#E6E6E6] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100"
             />
           </FormField>
 
@@ -779,16 +758,16 @@ function InvestorSignupForm() {
               onChange={(val) => setField('city', val)}
               placeholder="Select city"
               disabled={!form.state}
+              className="h-11 border-[#E6E6E6] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100"
             />
           </FormField>
-
 
           <FormField label="ZIP Code" error={errors.zipCode}>
             <input
               value={form.zipCode}
               onChange={(e) => setField('zipCode', e.target.value)}
               placeholder="Enter zip code"
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
+              className="h-11 w-full rounded-md border border-[#E6E6E6] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 px-3 font-helvetica text-sm outline-none focus:border-yellow-400"
             />
           </FormField>
         </div>
@@ -798,14 +777,14 @@ function InvestorSignupForm() {
     if (currentStep === 3 && !otpSent) {
       return (
         <div className="max-w-[540px] space-y-3">
-          <h4 className="text-[20px] text-[#4B4B4B] dark:text-gray-300 font-medium">Email Verification</h4>
-          <p className="font-helvetica text-sm text-[#A0A0A0]">We&apos;ll send you a verification code to confirm your email address.</p>
+          <h4 className="text-[20px] text-[#4B4B4B] dark:text-gray-100 font-medium">Email Verification</h4>
+          <p className="font-helvetica text-sm text-[#A0A0A0] dark:text-gray-400">We&apos;ll send you a verification code to confirm your email address.</p>
 
           <FormField label="Verification Email" error={errors.email}>
             <input
               value={form.email}
               readOnly
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+              className="h-11 w-full rounded-md border border-[#E6E6E6] dark:border-gray-700 px-3 font-helvetica text-sm bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed outline-none"
             />
           </FormField>
         </div>
@@ -815,9 +794,9 @@ function InvestorSignupForm() {
     if (currentStep === 3 && otpSent) {
       return (
         <div className="mx-auto max-w-[540px] text-center">
-          <h4 className="text-lg lg:text-[30px] text-[#2A2A2A]">Email Verification</h4>
-          <p className="mx-auto max-w-[420px] font-helvetica text-sm text-[#A0A0A0]">
-            We&apos;ve sent a 6-digit code to <strong>{form.email}</strong>. Please enter it below to continue.
+          <h4 className="text-lg lg:text-[30px] text-[#2A2A2A] dark:text-gray-100 font-bold">Email Verification</h4>
+          <p className="mx-auto max-w-[420px] font-helvetica text-sm text-[#A0A0A0] dark:text-gray-400">
+            We&apos;ve sent a 6-digit code to <strong className="text-[#1F1F1F] dark:text-gray-100">{form.email}</strong>. Please enter it below to continue.
           </p>
 
           <div className="mt-5 flex justify-center gap-2">
@@ -832,17 +811,17 @@ function InvestorSignupForm() {
                     document.getElementById(`emailOtp-${index - 1}`)?.focus();
                   }
                 }}
-                className="h-10 w-10 rounded-md border border-[#E5E5E5] text-center font-helvetica text-lg focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 outline-none transition-all"
+                className="h-10 w-10 rounded-md border border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 text-center font-helvetica text-lg focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 outline-none transition-all"
               />
             ))}
           </div>
 
-          {errors.emailOtp && <p className="mt-2 font-helvetica text-sm text-red-600">{errors.emailOtp}</p>}
+          {errors.emailOtp && <p className="mt-2 font-helvetica text-sm text-red-600 dark:text-red-400">{errors.emailOtp}</p>}
 
           <div className="mt-6">
             {timer > 0 ? (
-              <p className="text-[20px] text-[#8A8A8A]">
-                Didn&apos;t receive code? <span className="text-[#3F3F3F] font-bold">{formatTimer(timer)}</span>
+              <p className="text-[20px] text-[#8A8A8A] dark:text-gray-400">
+                Didn&apos;t receive code? <span className="text-[#3F3F3F] dark:text-gray-200 font-bold">{formatTimer(timer)}</span>
               </p>
             ) : (
               <button
@@ -860,7 +839,7 @@ function InvestorSignupForm() {
                     setLoading(false);
                   }
                 }}
-                className="text-[16px] font-medium text-yellow-600 hover:text-yellow-700 underline"
+                className="text-[16px] font-medium text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 underline"
               >
                 Resend Code
               </button>
@@ -873,7 +852,7 @@ function InvestorSignupForm() {
     if (currentStep === 4) {
       return (
         <div className="max-w-[520px]">
-          <h4 className="text-lg lg:text-[30px] text-[#2A2A2A]">TAX Information</h4>
+          <h4 className="text-lg lg:text-[30px] text-[#2A2A2A] dark:text-gray-100 font-bold">TAX Information</h4>
 
           <FormField label="Social Security Number / Tax ID" error={errors.taxId}>
             <input
@@ -892,11 +871,11 @@ function InvestorSignupForm() {
                 setField('taxId', formatted);
               }}
               placeholder="Format: XXX-XX-XXXX"
-              className="h-11 w-full rounded-md border border-[#E6E6E6] px-3 font-helvetica text-sm"
+              className="h-11 w-full rounded-md border border-[#E6E6E6] dark:border-gray-700 bg-white dark:bg-[#262626] text-[#1F1F1F] dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 px-3 font-helvetica text-sm outline-none focus:border-yellow-400"
             />
           </FormField>
 
-          <p className="mt-2 font-helvetica text-sm text-[#B0B0B0]">Your information is encrypted and secure</p>
+          <p className="mt-2 font-helvetica text-sm text-[#B0B0B0] dark:text-gray-400">Your information is encrypted and secure</p>
         </div>
       );
     }
@@ -908,7 +887,7 @@ function InvestorSignupForm() {
 export default function InvestorSignupPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#F1F1F1] px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#F1F1F1] dark:bg-[#0a192f] px-4">
         <Loader2 className="h-8 w-8 animate-spin text-yellow-500" />
       </div>
     }>
@@ -920,9 +899,9 @@ export default function InvestorSignupPage() {
 function FormField({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
     <div>
-      {label ? <label className="mb-1 block font-helvetica text-sm text-[#616161]">{label}</label> : null}
+      {label ? <label className="mb-1 block font-helvetica text-sm text-[#616161] dark:text-gray-300">{label}</label> : null}
       {children}
-      {error ? <p className="mt-1 font-helvetica text-xs text-red-600">{error}</p> : null}
+      {error ? <p className="mt-1 font-helvetica text-xs text-red-600 dark:text-red-400">{error}</p> : null}
     </div>
   );
 }

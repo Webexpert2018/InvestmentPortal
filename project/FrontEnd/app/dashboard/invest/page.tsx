@@ -193,7 +193,7 @@ export default function InvestPage() {
       };
       submitInvestment();
 
-  // Clean up URL parameters
+      // Clean up URL parameters
       const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
       current.delete('signing');
       current.delete('event');
@@ -228,7 +228,7 @@ export default function InvestPage() {
               title: "Success",
               description: "Invite loaded successfully"
             });
-            
+
             // Clean up the URL
             const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
             current.delete('inviteToken');
@@ -872,36 +872,36 @@ export default function InvestPage() {
             <h3 className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100 mb-4 pl-2 uppercase tracking-wider">{category}</h3>
             <div className="grid gap-6 md:grid-cols-3 px-2">
               {accountsInCategory.map((account: any) => {
-          const selected = account.id === selectedAccountId;
-          const isSuspended = account.status?.toLowerCase() === 'suspended';
-          return (
-            <button
-              key={account.id}
-              type="button"
-              disabled={isSuspended}
-              onClick={() => setSelectedAccountId(account.id)}
-              className={`flex w-full flex-col items-start rounded-2xl px-6 py-5 text-left transition ${selected
-                ? 'bg-white dark:bg-[#1C1C1C] shadow-md ring-2 ring-[#274583] ring-offset-2'
-                : isSuspended
-                  ? 'bg-gray-50 dark:bg-gray-800 opacity-60 cursor-not-allowed border-red-100'
-                  : 'bg-white dark:bg-[#1C1C1C] shadow-sm hover:shadow-md border border-[#E5E5EA]'
-                }`}
-            >
-              <div className="flex w-full items-center justify-between mb-1">
-                <p className={`text-sm font-bold ${isSuspended ? 'text-gray-400' : 'text-[#1F1F1F] dark:text-gray-100'}`}>{account.label}</p>
-                <div
-                  className={`flex h-5 w-5 items-center justify-center rounded-full border ${selected ? 'border-[#274583] bg-[#274583]' : 'border-[#D4D4D4]'
-                    } ${isSuspended ? 'opacity-0' : ''}`}
-                >
-                  {selected && <div className="h-2 w-2 rounded-full bg-white dark:bg-[#1C1C1C]" />}
-                </div>
-              </div>
-              <p className={`text-xs font-bold uppercase tracking-wider ${isSuspended ? 'text-red-500' : 'text-[#8E8E93]'}`}>
-                {isSuspended ? 'Suspended' : account.value}
-              </p>
-            </button>
-          );
-        })}
+                const selected = account.id === selectedAccountId;
+                const isSuspended = account.status?.toLowerCase() === 'suspended';
+                return (
+                  <button
+                    key={account.id}
+                    type="button"
+                    disabled={isSuspended}
+                    onClick={() => setSelectedAccountId(account.id)}
+                    className={`flex w-full flex-col items-start rounded-2xl px-6 py-5 text-left transition ${selected
+                      ? 'bg-white dark:bg-[#1C1C1C] shadow-md ring-2 ring-[#274583] ring-offset-2'
+                      : isSuspended
+                        ? 'bg-gray-50 dark:bg-gray-800 opacity-60 cursor-not-allowed border-red-100'
+                        : 'bg-white dark:bg-[#1C1C1C] shadow-sm hover:shadow-md border border-[#E5E5EA]'
+                      }`}
+                  >
+                    <div className="flex w-full items-center justify-between mb-1">
+                      <p className={`text-sm font-bold ${isSuspended ? 'text-gray-400' : 'text-[#1F1F1F] dark:text-gray-100'}`}>{account.label}</p>
+                      <div
+                        className={`flex h-5 w-5 items-center justify-center rounded-full border ${selected ? 'border-[#274583] bg-[#274583]' : 'border-[#D4D4D4]'
+                          } ${isSuspended ? 'opacity-0' : ''}`}
+                      >
+                        {selected && <div className="h-2 w-2 rounded-full bg-white dark:bg-[#1C1C1C]" />}
+                      </div>
+                    </div>
+                    <p className={`text-xs font-bold uppercase tracking-wider ${isSuspended ? 'text-red-500' : 'text-[#8E8E93]'}`}>
+                      {isSuspended ? 'Suspended' : account.value}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           </div>
         );
@@ -1543,7 +1543,7 @@ export default function InvestPage() {
           </div>
           <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">Investments Not Available</h3>
           <p className="max-w-md text-[14px] text-[#8E8E93] font-helvetica leading-relaxed">
-            Investments cannot be made for Minor or Entity accounts.
+            Investments cannot be made by Minor or Entity accounts.
           </p>
         </div>
       </DashboardLayout>
