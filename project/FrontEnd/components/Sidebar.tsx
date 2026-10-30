@@ -27,6 +27,7 @@ import {
   Video,
   GitFork,
   PhoneCall,
+  Mail,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -202,6 +203,12 @@ const menuItems: MenuItem[] = [
     href: '/dashboard/doctor-crm/email-sequence',
     icon: GitFork,
     roles: ['admin', 'executive_admin', 'investor_relations'],
+  },
+  {
+    title: 'Email Updates',
+    href: '/dashboard/email-updates',
+    icon: Mail,
+    roles: ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'investor'],
   },
   {
     title: 'Staff',

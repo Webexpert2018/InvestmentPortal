@@ -119,6 +119,11 @@ const isRouteAuthorized = (pathname: string, userRole: string | null | undefined
     return role === 'admin' || role === 'executive_admin';
   }
 
+  // --- Email Updates (Admin, Executive Admin, Fund Admin, Investor Relations, Investor) ---
+  if (pathname === '/dashboard/email-updates' || pathname.startsWith('/dashboard/email-updates/')) {
+    return role === 'admin' || role === 'executive_admin' || role === 'fund_admin' || role === 'investor_relations' || role === 'investor';
+  }
+
   // --- Funds (Admin, Executive Admin, Fund Admin, Accountant, Investor) ---
   // Note: Investor needs to view fund details (subpages of /dashboard/funds),
   // but they shouldn't view the general funds list.
