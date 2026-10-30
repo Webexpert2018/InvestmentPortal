@@ -6,7 +6,10 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
+      context.getHandler(),
+      context.getClass(),
+    ]) || this.reflector.get<string[]>('roles', context.getHandler()) || this.reflector.get<string[]>('roles', context.getClass());
 
     // 1. If NO roles are required, let everyone through (if they pass JwtAuthGuard)
     if (!requiredRoles || !Array.isArray(requiredRoles) || requiredRoles.length === 0) {

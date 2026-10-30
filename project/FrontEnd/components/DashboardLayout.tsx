@@ -274,7 +274,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
       )}
-      {user?.role === 'executive_admin' && <AthenaWidget />}
+      {(normalizeRole(user?.role) === 'executive_admin' || normalizeRole(user?.role) === 'investor') && <AthenaWidget />}
     </div>
   );
 }

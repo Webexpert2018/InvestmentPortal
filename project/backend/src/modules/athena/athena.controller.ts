@@ -6,15 +6,17 @@ import { Roles } from '../../decorators/roles.decorator';
 
 @Controller('api/athena')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('executive_admin')
+@Roles('executive_admin', 'investor')
 export class AthenaController {
   private readonly logger = new Logger(AthenaController.name);
 
   constructor(private readonly athenaService: AthenaService) {}
 
   @Post('query')
+  @Roles('executive_admin', 'investor')
   async queryAthena(@Request() req: any, @Body('query') query: string) {
     const userId = req.user?.userId || req.user?.id;
-    return this.athenaService.queryAthena(userId, query);
+    const userRole = req.user?.role || 'investor';
+    return this.athenaService.queryAthena(userId, query, userRole);
   }
 }
