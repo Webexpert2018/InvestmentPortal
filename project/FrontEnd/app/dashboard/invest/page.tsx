@@ -619,82 +619,93 @@ export default function InvestPage() {
     });
   };
 
-  const renderFooter = (options: FooterOptions = {}) => {
-    const { primaryLabel = 'Continue', showBack = true } = options;
+  interface StepHeaderProps {
+    title: string;
+    subtitle: string;
+    primaryLabel?: string;
+    onPrimary?: () => void;
+    primaryDisabled?: boolean;
+    showBack?: boolean;
+    onBack?: () => void;
+    icon?: React.ReactNode;
+  }
 
+  const renderStepHeader = ({
+    title,
+    subtitle,
+    primaryLabel = 'Continue',
+    onPrimary = goNext,
+    primaryDisabled = false,
+    showBack = true,
+    onBack = goBack,
+    icon,
+  }: StepHeaderProps) => {
     return (
-      <div className="mt-16 flex items-center sm:justify-end justify-center border-t border-[#E5E5EA] pt-8">
-        {/* <button
-          type="button"
-          onClick={() => setStep('chooseFund')}
-          className="rounded-full bg-[#FFF3D6] px-10 py-3 text-sm font-semibold text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FFE7AF] transition-all"
-        >
-          Cancel
-        </button> */}
-        <div className="flex items-center gap-4">
+      <div className="mb-6 space-y-4">
+        {/* Main Heading Row: Title/Subtitle on Left, Investor Relation on Right */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            {icon && <div className="mb-3">{icon}</div>}
+            <h1 className="font-goudy text-[22px] sm:text-[28px] md:text-[30px] font-bold leading-tight text-[#1F1F1F] dark:text-gray-100">
+              {title}
+            </h1>
+            <p className="mt-1 text-sm text-[#8E8E93] leading-relaxed">
+              {subtitle}
+            </p>
+          </div>
+
+          {/* Right: Investor Relation Badge */}
+          <div className="hidden md:flex flex-shrink-0 items-center text-xs">
+            <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+              <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+              <div>
+                <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+                <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Row Below Main Headings: Left-aligned, Enlarged & Highlighted Action Buttons */}
+        <div className="flex items-center justify-start gap-3 sm:gap-4 py-2">
           {showBack && (
             <button
               type="button"
-              onClick={goBack}
-              className="rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 px-10 py-3 text-sm font-semibold text-[#4B4B4B] dark:text-amber-300 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-all"
+              onClick={onBack}
+              className="rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 text-[#8B6B23] dark:text-amber-300 border border-[#F5E2B3] dark:border-amber-800/40 px-8 sm:px-10 py-3 sm:py-3.5 text-base sm:text-lg font-bold shadow-sm hover:shadow-md hover:scale-[1.03] active:scale-[0.98] transition-all duration-200"
             >
               Back
             </button>
           )}
-          <button
-            type="button"
-            onClick={goNext}
-            className="rounded-full bg-[#FBCB4B] px-10 py-3 text-sm font-semibold text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm transition-all"
-            disabled={
-              saving ||
-              (step === 'fundingAccount' && !selectedAccountId) ||
-              (step === 'investmentAmount' && investmentAmount <= 0)
-            }
-          >
-            {saving ? 'Saving...' : primaryLabel}
-          </button>
+          {primaryLabel && (
+            <button
+              type="button"
+              onClick={onPrimary}
+              disabled={primaryDisabled}
+              className="rounded-full bg-gradient-to-r from-[#FFC63F] via-[#F1CF4A] to-[#E5B533] hover:from-[#F1B92E] hover:to-[#D9A322] text-[#1A1A1A] px-9 sm:px-12 py-3 sm:py-3.5 text-base sm:text-lg font-bold shadow-lg shadow-amber-400/25 dark:shadow-amber-500/15 hover:shadow-xl hover:shadow-amber-400/35 hover:scale-[1.03] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none"
+            >
+              {saving ? 'Saving...' : primaryLabel}
+            </button>
+          )}
         </div>
       </div>
     );
   };
 
+  const renderFooter = (_options: FooterOptions = {}) => null;
+
   const renderChooseFund = () => (
     <>
-
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F] dark:text-gray-100">
-            Choose a Fund
-          </h1>
-          <p className="mt-2 text-sm text-[#8E8E93]">
-            Select the fund you would like to invest in.
-            You will complete your investment steps on text next screens.
-          </p>
-        </div>
-
-        <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-            <div>
-              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {renderStepHeader({
+        title: 'Choose a Fund',
+        subtitle: 'Select the fund you would like to invest in. You will complete your investment steps on text next screens.',
+        primaryLabel: 'Invest Now',
+        onPrimary: goNext,
+        primaryDisabled: !selectedFundId,
+        showBack: false,
+      })}
 
       <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-6 py-6 shadow-sm">
-        <div className="mb-6 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={goNext}
-            className="rounded-full bg-[#FBCB4B] px-6 py-2 text-sm font-medium text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9B800] disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={!selectedFundId}
-          >
-            Invest Now
-          </button>
-        </div>
-
         <div className="grid gap-6 md:grid-cols-2">
           {funds.map((fund) => {
             const selected = fund.id === selectedFundId;
@@ -843,26 +854,15 @@ export default function InvestPage() {
 
   const renderFundingAccount = () => (
     <>
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
-            Select Funding Account
-          </h1>
-          <p className="mt-2 text-sm text-[#8E8E93]">
-            Choose the account you want to invest from.
-          </p>
-        </div>
-
-        <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-            <div>
-              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {renderStepHeader({
+        title: 'Select Funding Account',
+        subtitle: 'Choose the account you want to invest from.',
+        primaryLabel: 'Continue',
+        onPrimary: goNext,
+        primaryDisabled: saving || !selectedAccountId,
+        showBack: true,
+        onBack: goBack,
+      })}
 
       {['Personal Account', 'IRA Accounts', 'Sub Accounts'].map(category => {
         const accountsInCategory = dynamicAccounts.filter((acc: any) => acc.category === category);
@@ -906,31 +906,20 @@ export default function InvestPage() {
           </div>
         );
       })}
-
-      {renderFooter({ showBack: true })}
     </>
   );
 
   const renderInvestmentAmount = () => (
     <>
-      <div className="mb-8 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="font-goudy text-xl sm:text-[28px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
-            Investment Amount
-          </h1>
-          <p className="mt-1 text-sm text-[#8E8E93]">Specify how much you&apos;d like to invest.</p>
-        </div>
-
-        <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-            <div>
-              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {renderStepHeader({
+        title: 'Investment Amount',
+        subtitle: "Specify how much you'd like to invest.",
+        primaryLabel: 'Continue',
+        onPrimary: goNext,
+        primaryDisabled: saving || investmentAmount <= 0,
+        showBack: true,
+        onBack: goBack,
+      })}
 
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
@@ -1016,33 +1005,20 @@ export default function InvestPage() {
           </div>
         </div>
       </div>
-
-      {renderFooter()}
     </>
   );
 
   const renderSignDocuments = () => (
     <>
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
-            Sign Subscription Documents
-          </h1>
-          <p className="mt-1 text-sm text-[#8E8E93]">
-            Review and e-sign required documents.
-          </p>
-        </div>
-
-        <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="bg-[#FAFAFA] border border-[#E5E5EA] rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-            <div>
-              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {renderStepHeader({
+        title: 'Sign Subscription Documents',
+        subtitle: 'Review and e-sign required documents.',
+        primaryLabel: isSigning ? 'Connecting to DocuSign...' : 'Start Signing',
+        onPrimary: goNext,
+        primaryDisabled: isSigning,
+        showBack: true,
+        onBack: goBack,
+      })}
 
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         {/* Left Preview Section */}
@@ -1205,20 +1181,27 @@ export default function InvestPage() {
           </div>
         </div>
       </div>
-
-      {renderFooter()}
     </>
   );
 
   const renderFundingInstructions = () => (
     <>
-      <div className="mb-8 flex items-center justify-between gap-4 animate-in fade-in zoom-in duration-500">
-        <div>
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F8F0]">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2BB673]">
+      {renderStepHeader({
+        title: 'Congratulations!',
+        subtitle: 'Your investment has been submitted. Your investor relations will reach out to you with wire instructions.',
+        primaryLabel: 'Done',
+        onPrimary: () => {
+          localStorage.removeItem('draft_investment');
+          setStep('chooseFund');
+        },
+        primaryDisabled: false,
+        showBack: false,
+        icon: (
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E8F8F0] dark:bg-emerald-950/40">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2BB673]">
               <svg
-                width="20"
-                height="20"
+                width="18"
+                height="18"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="white"
@@ -1230,24 +1213,8 @@ export default function InvestPage() {
               </svg>
             </div>
           </div>
-          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
-            Congratulations!
-          </h1>
-          <p className="mt-2 text-base text-[#8E8E93]">
-            Your investment has been submitted. Your investor relations will reach out to you with wire instructions.
-          </p>
-        </div>
-
-        <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-            <div>
-              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        ),
+      })}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm border border-[#E5E5EA] dark:border-gray-800">
@@ -1370,42 +1337,19 @@ export default function InvestPage() {
           </div>
         </div>
       </div>
-
-      <div className="mt-16 flex items-center sm:justify-end justify-center border-t border-[#E5E5EA] pt-8">
-        <button
-          type="button"
-          onClick={() => {
-            localStorage.removeItem('draft_investment');
-            setStep('chooseFund');
-          }}
-          className="rounded-full bg-[#FBCB4B] px-12 py-3.5 text-sm font-bold text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9B800] shadow-sm transition-all"
-        >
-          Done
-        </button>
-      </div>
     </>
   );
 
   const renderInvestmentStatus = () => (
     <>
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
-            Investment Status
-          </h1>
-          <p className="mt-2 text-sm text-[#8E8E93]">Track your investment through each stage.</p>
-        </div>
-
-        <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-            <div>
-              <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-              <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {renderStepHeader({
+        title: 'Investment Status',
+        subtitle: 'Track your investment through each stage.',
+        primaryLabel: 'Done',
+        onPrimary: goNext,
+        primaryDisabled: saving,
+        showBack: false,
+      })}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm">
@@ -1527,8 +1471,6 @@ export default function InvestPage() {
           </div>
         </div>
       </div>
-
-      {renderFooter({ primaryLabel: 'Done' })}
     </>
   );
 
