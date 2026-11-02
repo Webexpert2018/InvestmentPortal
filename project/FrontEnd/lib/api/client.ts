@@ -1865,6 +1865,98 @@ class ApiClient {
       body: JSON.stringify({ prospectId, day, prompt, originalSubject, originalBody, originalTitle })
     });
   }
+
+  // =========================================================================
+  // EMAIL CAMPAIGNS (EMAIL UPDATES)
+  // =========================================================================
+
+  async getEmailCampaignFunds() {
+    return this.request<Array<{
+      id: string;
+      name: string;
+      recipientCount: number;
+      defaultSubject: string;
+      isLegacy?: boolean;
+    }>>('/email/campaign-funds');
+  }
+
+  async getEmailCampaignRecipients(fundId: string) {
+    return this.request<Array<{
+      email: string;
+      name?: string;
+      userId?: string;
+      totalUnits?: number;
+      accountType?: string;
+    }>>(`/email/campaign-recipients/${fundId}`);
+  }
+
+  async getEmailCampaigns(params?: { status?: string; search?: string }) {
+    const searchParams = new URLSearchParams();
+    if (params?.status && params.status !== 'All') searchParams.append('status', params.status);
+    if (params?.search) searchParams.append('search', params.search);
+    const qs = searchParams.toString() ? '?' + searchParams.toString() : '';
+    return this.request<any[]>('/email/campaigns' + qs);
+  }
+
+  async getEmailCampaignById(id: string) {
+    return this.request<any>('/email/campaigns/' + id);
+  }
+
+  async createEmailCampaign(data: {
+    subject: string;
+    preheader?: string;
+    fromName?: string;
+    fromEmail?: string;
+    fundId: string;
+    fundName: string;
+    recipientCount?: number;
+    body: string;
+    status?: 'Draft' | 'Scheduled' | 'Sent' | 'Failed';
+    scheduledAt?: string | null;
+  }) {
+    return this.request<any>('/email/campaigns', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateEmailCampaign(id: string, data: Partial<{
+    subject: string;
+    preheader: string;
+    fromName: string;
+    fromEmail: string;
+    fundId: string;
+    fundName: string;
+    recipientCount: number;
+    body: string;
+    status: 'Draft' | 'Scheduled' | 'Sent' | 'Failed';
+    scheduledAt: string | null;
+  }>) {
+    return this.request<any>('/email/campaigns/' + id, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteEmailCampaign(id: string) {
+    return this.request<any>('/email/campaigns/' + id, {
+      method: 'DELETE',
+    });
+  }
+
+  async sendEmailCampaign(id: string) {
+    return this.request<{
+      success: boolean;
+      status: string;
+      sentCount: number;
+      failedCount: number;
+      recipientCount: number;
+      failedReason?: string;
+    }>('/email/campaigns/' + id + '/send', {
+      method: 'POST',
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
+
