@@ -154,7 +154,7 @@ export function AdminAddIraModal({ isOpen, onClose, onSuccess, targetInvestorId 
         firstName: investor.firstName,
         lastName: investor.lastName,
         email: investor.email,
-        dob: investor.dob,
+
         phone: investor.phone,
         taxId: investor.taxId,
         physicalAddress1: investor.addressLine1,

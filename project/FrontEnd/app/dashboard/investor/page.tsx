@@ -520,7 +520,7 @@ export default function InvestorPage() {
                     e.stopPropagation();
                     setShowTransferModal(true);
                   }}
-                  disabled={!selectedInvestorId || selectedInvestor?.investorType === 'entity' || selectedInvestor?.investorType === 'minor'}
+                  disabled={!selectedInvestorId || selectedInvestor?.investorType === 'entity'}
                   className="px-8 py-3 bg-white dark:bg-[#1C1C1C] text-[#4B5563] dark:text-gray-100 border border-[#E5E7EB] dark:border-gray-800 text-sm font-bold rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <History className="h-4 w-4 text-[#D1A94C]" />
@@ -531,7 +531,7 @@ export default function InvestorPage() {
                     e.stopPropagation();
                     setShowAdminIraModal(true);
                   }}
-                  disabled={!selectedInvestorId || selectedInvestor?.investorType === 'entity' || selectedInvestor?.investorType === 'minor'}
+                  disabled={!selectedInvestorId || selectedInvestor?.investorType === 'entity'}
                   className="px-8 py-3 bg-[#FCD34D] text-[#1F2937] text-sm font-bold rounded-full hover:bg-[#FBD24E] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <Plus className="h-4 w-4" />

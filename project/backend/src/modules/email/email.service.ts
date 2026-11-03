@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { SMTPClient } from 'smtp-client';
 import axios from 'axios';
@@ -13,6 +14,7 @@ export interface EmailLogOptions {
   relatedEntityType?: string;
   relatedEntityId?: string;
   metadata?: Record<string, any>;
+  fromName?: string;
 }
 
 @Injectable()
@@ -522,6 +524,8 @@ export class EmailService {
       return matchNoQuotes ? matchNoQuotes[1].trim() : 'Ovalia Capital';
     };
 
+    const senderDisplayName = options?.fromName || extractName(from);
+    const fromHeader = `"${senderDisplayName}" <${extractEmail(from)}>`;
     const rawFrom = extractEmail(from);
     const rawTo = extractEmail(to);
     const snippet = this.extractTextSnippet(html);
@@ -554,7 +558,7 @@ export class EmailService {
         const textContent = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
         const boundary = "----=_Part_" + Date.now();
         const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@ovaliacapital.com>`;
-        const message = `From: ${from}\r\nTo: ${to}\r\nSubject: ${subject}\r\nMessage-ID: ${messageId}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary="${boundary}"\r\n\r\n` +
+        const message = `From: ${fromHeader}\r\nTo: ${to}\r\nSubject: ${subject}\r\nMessage-ID: ${messageId}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary="${boundary}"\r\n\r\n` +
           `--${boundary}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${textContent}\r\n\r\n` +
           `--${boundary}\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${html}\r\n\r\n` +
           `--${boundary}--`;
@@ -933,5 +937,733 @@ export class EmailService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  // =========================================================================
+  // EMAIL CAMPAIGNS (EMAIL UPDATES)
+  // =========================================================================
+
+  /**
+   * Returns list of available funds with active recipient counts calculated via Fund Holdings engine
+   */
+  async getCampaignFunds() {
+    // 1. Compute holding recipient counts per fund via combined_investments CTE
+    const holdingsMapRes = await db.query(`
+      WITH combined_investments AS (
+        SELECT 
+          i.fund_id::text as target_fund_id,
+          u.email as email,
+          i.estimated_units as units
+        FROM investments i
+        JOIN investors u ON i.user_id = u.id
+        WHERE i.is_reconciled = true
+
+        UNION ALL
+
+        SELECT 
+          COALESCE(f.id::text, oi.project_id::text) as target_fund_id,
+          COALESCE(o_inv.primary_email, oi.email_address) as email,
+          (CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / 
+           NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1), 0)) as units
+        FROM old_investments oi
+        LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
+        LEFT JOIN funds f ON oi.project_name = f.name
+        WHERE oi.investment_amount IS NOT NULL
+
+        UNION ALL
+
+        SELECT 
+          i.fund_id::text as target_fund_id,
+          u.email as email,
+          (-1 * r.units) as units
+        FROM redemptions r
+        JOIN investments i ON r.investment_id = i.id
+        JOIN investors u ON r.investor_id = u.id
+        WHERE r.status = 'Processed'
+
+        UNION ALL
+
+        SELECT 
+          ft.from_fund_id as target_fund_id,
+          u.email as email,
+          CASE
+            WHEN ft.from_account_type ILIKE 'ims-%' THEN 
+              (-1 * ft.investment_amount) / NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), ff.unit_price, 1), 0)
+            ELSE 
+              (-1 * ft.units)
+          END as units
+        FROM fund_transfers ft
+        JOIN investors u ON ft.from_investor_id = u.id
+        LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+        WHERE ft.status = 'COMPLETED'
+
+        UNION ALL
+
+        SELECT 
+          COALESCE(ft.to_fund_id, ft.from_fund_id) as target_fund_id,
+          u.email as email,
+          CASE
+            WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
+              ft.investment_amount / NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), tf.unit_price, ff.unit_price, 1), 0)
+            ELSE 
+              ft.units
+          END as units
+        FROM fund_transfers ft
+        JOIN investors u ON COALESCE(ft.to_investor_id, ft.from_investor_id) = u.id
+        LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
+        LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+        WHERE ft.status = 'COMPLETED'
+      ),
+      investor_fund_holdings AS (
+        SELECT 
+          c.target_fund_id,
+          LOWER(TRIM(c.email)) as email,
+          SUM(c.units) as net_units
+        FROM combined_investments c
+        WHERE c.units IS NOT NULL AND c.target_fund_id IS NOT NULL AND c.email IS NOT NULL AND TRIM(c.email) != ''
+        GROUP BY c.target_fund_id, LOWER(TRIM(c.email))
+        HAVING SUM(c.units) > 0
+      )
+      SELECT 
+        target_fund_id,
+        COUNT(DISTINCT email)::int as recipient_count
+      FROM investor_fund_holdings
+      GROUP BY target_fund_id
+    `);
+
+    const countMap = new Map<string, number>();
+    for (const row of holdingsMapRes.rows) {
+      countMap.set(String(row.target_fund_id), parseInt(row.recipient_count || '0', 10));
+    }
+
+    // Consolidated total distinct active investors with net holdings > 0 across any fund
+    const consolidatedRecipients = await this.getFundRecipients('all-funds');
+    const totalConsolidated = consolidatedRecipients.length;
+
+    // Legacy / Old funds
+    const oldFundsRes = await db.query(`
+      SELECT of.project_id::text as id, of.project_name as name
+      FROM old_funds of
+      ORDER BY of.project_name ASC
+    `);
+
+    // Regular funds
+    const fundsRes = await db.query(`
+      SELECT f.id::text as id, f.name
+      FROM funds f
+      ORDER BY f.name ASC
+    `);
+
+    const list: Array<{ id: string; name: string; recipientCount: number; defaultSubject: string; isLegacy?: boolean }> = [
+      {
+        id: 'all-funds',
+        name: 'All Active Funds (Consolidated)',
+        recipientCount: totalConsolidated,
+        defaultSubject: 'Ovalia Capital - General Investor Newsletter',
+      },
+    ];
+
+    for (const f of oldFundsRes.rows) {
+      const c = countMap.get(String(f.id)) || 0;
+      list.push({
+        id: `old-${f.id}`,
+        name: f.name,
+        recipientCount: c,
+        defaultSubject: `Ovalia Capital ${f.name} Updates`,
+        isLegacy: true,
+      });
+    }
+
+    for (const f of fundsRes.rows) {
+      const c = countMap.get(String(f.id)) || 0;
+      list.push({
+        id: f.id,
+        name: f.name,
+        recipientCount: c,
+        defaultSubject: `Ovalia Capital ${f.name} Updates`,
+      });
+    }
+
+    return list;
+  }
+
+  /**
+   * Retrieves active holding recipients (email, name, userId) using the exact Fund Holdings engine
+   * from fund transfers (SUM(units) > 0 after reconciling investments, old investments, redemptions, and transfers).
+   * Robustly extracts investor names from old_investors and old_investments when not yet in modern users table.
+   */
+  async getFundRecipients(fundId: string): Promise<Array<{ email: string; name?: string; fullName?: string; userId?: string; totalUnits?: number; accountType?: string }>> {
+    const isAll = !fundId || fundId === 'all-funds';
+    const cleanFundId = (fundId || '').replace(/^old-/, '');
+
+    let rows: any[] = [];
+    if (isAll) {
+      const res = await db.query(`
+        WITH combined_investments AS (
+          SELECT 
+            i.user_id::text as user_id,
+            u.email as email,
+            u.full_name as name,
+            COALESCE(i.account_type, 'personal') as account_type,
+            i.estimated_units as units
+          FROM investments i
+          JOIN investors u ON i.user_id = u.id
+          WHERE i.is_reconciled = true
+
+          UNION ALL
+
+          SELECT 
+            u.id::text as user_id,
+            COALESCE(o_inv.primary_email, oi.email_address) as email,
+            COALESCE(u.full_name, o_inv.legal_name, oi.investor_profile_legal_name, 'Legacy Investor') as name,
+            'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type,
+            (CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / 
+             NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1), 0)) as units
+          FROM old_investments oi
+          LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
+          LEFT JOIN investors u ON LOWER(TRIM(u.email)) = LOWER(TRIM(COALESCE(o_inv.primary_email, oi.email_address)))
+          LEFT JOIN funds f ON oi.project_name = f.name
+          WHERE oi.investment_amount IS NOT NULL
+
+          UNION ALL
+
+          SELECT 
+            r.investor_id::text as user_id,
+            u.email as email,
+            u.full_name as name,
+            COALESCE(i.account_type, 'personal') as account_type,
+            (-1 * r.units) as units
+          FROM redemptions r
+          JOIN investments i ON r.investment_id = i.id
+          JOIN investors u ON r.investor_id = u.id
+          WHERE r.status = 'Processed'
+
+          UNION ALL
+
+          SELECT 
+            ft.from_investor_id::text as user_id,
+            u.email as email,
+            u.full_name as name,
+            ft.from_account_type as account_type,
+            CASE
+              WHEN ft.from_account_type ILIKE 'ims-%' THEN 
+                (-1 * ft.investment_amount) / NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), ff.unit_price, 1), 0)
+              ELSE 
+                (-1 * ft.units)
+            END as units
+          FROM fund_transfers ft
+          JOIN investors u ON ft.from_investor_id = u.id
+          LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+          WHERE ft.status = 'COMPLETED'
+
+          UNION ALL
+
+          SELECT 
+            COALESCE(ft.to_investor_id, ft.from_investor_id)::text as user_id,
+            u.email as email,
+            u.full_name as name,
+            COALESCE(ft.to_account_type, ft.from_account_type) as account_type,
+            CASE
+              WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
+                ft.investment_amount / NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), tf.unit_price, ff.unit_price, 1), 0)
+              ELSE 
+                ft.units
+            END as units
+          FROM fund_transfers ft
+          JOIN investors u ON COALESCE(ft.to_investor_id, ft.from_investor_id) = u.id
+          LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
+          LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+          WHERE ft.status = 'COMPLETED'
+        )
+        SELECT 
+          MAX(c.user_id) as "userId",
+          MAX(c.account_type) as account_type,
+          COALESCE(MAX(NULLIF(TRIM(c.name), '')), 'Investor') as name,
+          LOWER(TRIM(c.email)) as email,
+          SUM(c.units) as total_units
+        FROM combined_investments c
+        WHERE c.units IS NOT NULL AND c.email IS NOT NULL AND TRIM(c.email) != ''
+        GROUP BY LOWER(TRIM(c.email))
+        HAVING SUM(c.units) > 0
+        ORDER BY name ASC
+      `);
+      rows = res.rows;
+    } else {
+      const res = await db.query(`
+        WITH combined_investments AS (
+          SELECT 
+            i.user_id::text as user_id,
+            u.email as email,
+            u.full_name as name,
+            COALESCE(i.account_type, 'personal') as account_type,
+            i.estimated_units as units
+          FROM investments i
+          JOIN investors u ON i.user_id = u.id
+          WHERE (i.fund_id::text = $1 OR i.fund_id::text = $2) AND i.is_reconciled = true
+
+          UNION ALL
+
+          SELECT 
+            u.id::text as user_id,
+            COALESCE(o_inv.primary_email, oi.email_address) as email,
+            COALESCE(u.full_name, o_inv.legal_name, oi.investor_profile_legal_name, 'Legacy Investor') as name,
+            'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type,
+            (CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / 
+             NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1), 0)) as units
+          FROM old_investments oi
+          LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
+          LEFT JOIN investors u ON LOWER(TRIM(u.email)) = LOWER(TRIM(COALESCE(o_inv.primary_email, oi.email_address)))
+          LEFT JOIN funds f ON oi.project_name = f.name
+          WHERE (f.id::text = $1 OR oi.project_id::text = $1 OR f.id::text = $2 OR oi.project_id::text = $2)
+
+          UNION ALL
+
+          SELECT 
+            r.investor_id::text as user_id,
+            u.email as email,
+            u.full_name as name,
+            COALESCE(i.account_type, 'personal') as account_type,
+            (-1 * r.units) as units
+          FROM redemptions r
+          JOIN investments i ON r.investment_id = i.id
+          JOIN investors u ON r.investor_id = u.id
+          WHERE (i.fund_id::text = $1 OR i.fund_id::text = $2) AND r.status = 'Processed'
+
+          UNION ALL
+
+          SELECT 
+            ft.from_investor_id::text as user_id,
+            u.email as email,
+            u.full_name as name,
+            ft.from_account_type as account_type,
+            CASE
+              WHEN ft.from_account_type ILIKE 'ims-%' THEN 
+                (-1 * ft.investment_amount) / NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), ff.unit_price, 1), 0)
+              ELSE 
+                (-1 * ft.units)
+            END as units
+          FROM fund_transfers ft
+          JOIN investors u ON ft.from_investor_id = u.id
+          LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+          WHERE (ft.from_fund_id = $1 OR ft.from_fund_id = $2) AND ft.status = 'COMPLETED'
+
+          UNION ALL
+
+          SELECT 
+            COALESCE(ft.to_investor_id, ft.from_investor_id)::text as user_id,
+            u.email as email,
+            u.full_name as name,
+            COALESCE(ft.to_account_type, ft.from_account_type) as account_type,
+            CASE
+              WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
+                ft.investment_amount / NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), tf.unit_price, ff.unit_price, 1), 0)
+              ELSE 
+                ft.units
+            END as units
+          FROM fund_transfers ft
+          JOIN investors u ON COALESCE(ft.to_investor_id, ft.from_investor_id) = u.id
+          LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
+          LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
+          WHERE (COALESCE(ft.to_fund_id, ft.from_fund_id) = $1 OR COALESCE(ft.to_fund_id, ft.from_fund_id) = $2) AND ft.status = 'COMPLETED'
+        )
+        SELECT 
+          MAX(c.user_id) as "userId",
+          MAX(c.account_type) as account_type,
+          COALESCE(MAX(NULLIF(TRIM(c.name), '')), 'Investor') as name,
+          LOWER(TRIM(c.email)) as email,
+          SUM(c.units) as total_units
+        FROM combined_investments c
+        WHERE c.units IS NOT NULL AND c.email IS NOT NULL AND TRIM(c.email) != ''
+        GROUP BY LOWER(TRIM(c.email))
+        HAVING SUM(c.units) > 0
+        ORDER BY name ASC
+      `, [fundId, cleanFundId]);
+      rows = res.rows;
+    }
+
+    // Deduplicate by lowercase trimmed email
+    const unique = new Map<string, { email: string; name?: string; fullName?: string; userId?: string; totalUnits?: number; accountType?: string }>();
+    for (const r of rows) {
+      if (r.email && !unique.has(r.email)) {
+        unique.set(r.email, {
+          email: r.email,
+          name: r.name || undefined,
+          fullName: r.name || undefined,
+          userId: r.userId ? String(r.userId) : undefined,
+          totalUnits: parseFloat(r.total_units || '0'),
+          accountType: r.account_type || 'Holding',
+        });
+      }
+    }
+
+    return Array.from(unique.values());
+  }
+
+  async getCampaigns(params?: { status?: string; search?: string }) {
+    const conditions: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (params?.status && params.status !== 'All') {
+      conditions.push(`status = $${idx++}`);
+      values.push(params.status);
+    }
+
+    if (params?.search && params.search.trim()) {
+      conditions.push(`(subject ILIKE $${idx} OR fund_name ILIKE $${idx} OR body ILIKE $${idx})`);
+      values.push(`%${params.search.trim()}%`);
+      idx++;
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const res = await db.query(`
+      SELECT 
+        id, subject, preheader, from_name as "fromName", from_email as "fromEmail",
+        fund_id as "fundId", fund_name as "fundName", recipient_count as "recipientCount",
+        body, status, scheduled_at as "scheduledAt", sent_at as "sentAt", failed_reason as "failedReason",
+        created_at as "createdAt", updated_at as "updatedAt"
+      FROM email_campaigns
+      ${whereClause}
+      ORDER BY updated_at DESC
+    `, values);
+
+    return res.rows;
+  }
+
+  async getCampaignById(id: string) {
+    const res = await db.query(`
+      SELECT 
+        id, subject, preheader, from_name as "fromName", from_email as "fromEmail",
+        fund_id as "fundId", fund_name as "fundName", recipient_count as "recipientCount",
+        body, status, scheduled_at as "scheduledAt", sent_at as "sentAt", failed_reason as "failedReason",
+        created_at as "createdAt", updated_at as "updatedAt"
+      FROM email_campaigns
+      WHERE id = $1
+    `, [id]);
+
+    if (res.rows.length === 0) {
+      throw new NotFoundException(`Email campaign ${id} not found`);
+    }
+
+    return res.rows[0];
+  }
+
+  async createCampaign(data: {
+    subject: string;
+    preheader?: string;
+    fromName?: string;
+    fromEmail?: string;
+    fundId: string;
+    fundName: string;
+    recipientCount?: number;
+    body: string;
+    status?: string;
+    scheduledAt?: string | null;
+  }, userId?: string) {
+    let count = data.recipientCount;
+    if (count === undefined || count === null) {
+      const recs = await this.getFundRecipients(data.fundId);
+      count = recs.length;
+    }
+
+    const res = await db.query(`
+      INSERT INTO email_campaigns (
+        subject,
+        preheader,
+        from_name,
+        from_email,
+        fund_id,
+        fund_name,
+        recipient_count,
+        body,
+        status,
+        scheduled_at,
+        created_by_user_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING 
+        id, subject, preheader, from_name as "fromName", from_email as "fromEmail",
+        fund_id as "fundId", fund_name as "fundName", recipient_count as "recipientCount",
+        body, status, scheduled_at as "scheduledAt", sent_at as "sentAt", failed_reason as "failedReason",
+        created_at as "createdAt", updated_at as "updatedAt"
+    `, [
+      data.subject,
+      data.preheader || null,
+      data.fromName || 'Ovalia Capital',
+      data.fromEmail || 'invest@ovaliacapital.com',
+      data.fundId,
+      data.fundName,
+      count || 0,
+      data.body,
+      data.status || 'Draft',
+      data.scheduledAt ? new Date(data.scheduledAt) : null,
+      userId || null,
+    ]);
+
+    return res.rows[0];
+  }
+
+  async updateCampaign(id: string, data: Partial<{
+    subject: string;
+    preheader: string;
+    fromName: string;
+    fromEmail: string;
+    fundId: string;
+    fundName: string;
+    recipientCount: number;
+    body: string;
+    status: string;
+    scheduledAt: string | null;
+  }>) {
+    const existing = await this.getCampaignById(id);
+    if (!existing) {
+      throw new NotFoundException(`Email campaign ${id} not found`);
+    }
+
+    if (existing.status === 'Sent') {
+      throw new BadRequestException('Sent email campaigns cannot be modified.');
+    }
+
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (data.subject !== undefined) { fields.push(`subject = $${idx++}`); values.push(data.subject); }
+    if (data.preheader !== undefined) { fields.push(`preheader = $${idx++}`); values.push(data.preheader); }
+    if (data.fromName !== undefined) { fields.push(`from_name = $${idx++}`); values.push(data.fromName); }
+    if (data.fromEmail !== undefined) { fields.push(`from_email = $${idx++}`); values.push(data.fromEmail); }
+    if (data.fundId !== undefined) { fields.push(`fund_id = $${idx++}`); values.push(data.fundId); }
+    if (data.fundName !== undefined) { fields.push(`fund_name = $${idx++}`); values.push(data.fundName); }
+    if (data.recipientCount !== undefined) { fields.push(`recipient_count = $${idx++}`); values.push(data.recipientCount); }
+    if (data.body !== undefined) { fields.push(`body = $${idx++}`); values.push(data.body); }
+    if (data.status !== undefined) { fields.push(`status = $${idx++}`); values.push(data.status); }
+    if (data.scheduledAt !== undefined) {
+      fields.push(`scheduled_at = $${idx++}`);
+      values.push(data.scheduledAt ? new Date(data.scheduledAt) : null);
+    }
+
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const res = await db.query(`
+      UPDATE email_campaigns
+      SET ${fields.join(', ')}
+      WHERE id = $${idx}
+      RETURNING 
+        id, subject, preheader, from_name as "fromName", from_email as "fromEmail",
+        fund_id as "fundId", fund_name as "fundName", recipient_count as "recipientCount",
+        body, status, scheduled_at as "scheduledAt", sent_at as "sentAt", failed_reason as "failedReason",
+        created_at as "createdAt", updated_at as "updatedAt"
+    `, values);
+
+    return res.rows[0];
+  }
+
+  async deleteCampaign(id: string) {
+    const res = await db.query(`DELETE FROM email_campaigns WHERE id = $1 RETURNING id`, [id]);
+    if (res.rows.length === 0) {
+      throw new NotFoundException(`Email campaign ${id} not found`);
+    }
+    return { success: true, id };
+  }
+
+  getCampaignLetterheadHtml(body: string, fundName: string, title: string, preheader?: string): string {
+    const formattedBody = body
+      .split(/\r?\n/)
+      .map((line) => {
+        const trimmed = line.trim();
+        if (!trimmed) return '<div style="height: 12px;"></div>';
+        if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+          return `<div style="margin: 4px 0 4px 16px; font-size: 15px; line-height: 1.6; color: #374151;">${trimmed}</div>`;
+        }
+        return `<p style="margin: 0 0 14px; font-size: 15px; line-height: 1.65; color: #374151;">${trimmed}</p>`;
+      })
+      .join('');
+
+    const preheaderSnippet = preheader ? `
+      <div style="display: none; max-height: 0px; overflow: hidden; font-size: 1px; line-height: 1px; color: #fff; opacity: 0;">
+        ${preheader}
+      </div>
+    ` : '';
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${title}</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+        ${preheaderSnippet}
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 620px; margin: 30px auto; background-color: #FFFFFF; border-radius: 14px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.06); border: 1px solid #E5E7EB;">
+          <tr>
+            <td style="background-color: #1E3A8A; height: 6px; font-size: 0; line-height: 0;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 40px 18px; text-align: center;" align="center">
+              <img src="${this.getPublicLogoUrl()}" width="84" border="0" alt="Ovalia Capital" style="width: 84px; max-width: 84px; height: auto; display: block; margin: 0 auto; outline: none;">
+              <h1 style="margin: 12px 0 2px; font-family: 'Garamond', Georgia, serif; font-size: 20px; font-weight: 700; color: #1E3A8A; letter-spacing: 1.5px; text-transform: uppercase;">
+                Ovalia Capital
+              </h1>
+              <p style="margin: 0; font-size: 10px; letter-spacing: 2.5px; color: #9CA3AF; text-transform: uppercase; font-weight: 600;">
+                Fiduciary Real Estate Investments
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px;">
+              <div style="border-top: 1px solid #F3F4F6; width: 100%;"></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 28px 40px 36px; font-size: 15px; line-height: 1.65; color: #374151;">
+              ${body.includes('<p') || body.includes('<div') ? body : formattedBody}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #F9FAFB; border-top: 1px solid #F3F4F6; text-align: center;">
+              <p style="margin: 0; font-size: 12px; color: #9CA3AF; font-weight: 500;">
+                &copy; ${new Date().getFullYear()} Ovalia Capital Management. All rights reserved.
+              </p>
+              <p style="margin: 6px 0 0; font-size: 11px; color: #BEC3CC;">
+                Sent to active investors in <strong style="color: #6B7280;">${fundName}</strong>.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+  }
+
+  async sendCampaign(id: string, triggeredByUserId?: string) {
+    const campRes = await db.query(`SELECT * FROM email_campaigns WHERE id = $1`, [id]);
+    if (campRes.rows.length === 0) {
+      throw new NotFoundException(`Campaign ${id} not found`);
+    }
+    const camp = campRes.rows[0];
+
+    if (camp.status === 'Sent') {
+      throw new BadRequestException('This email campaign has already been sent.');
+    }
+
+    const recipients = await this.getFundRecipients(camp.fund_id);
+    if (!recipients || recipients.length === 0) {
+      await db.query(`
+        UPDATE email_campaigns
+        SET status = 'Failed', failed_reason = 'No eligible recipients found for this fund', updated_at = NOW()
+        WHERE id = $1
+      `, [id]);
+      throw new BadRequestException('No eligible recipients found for selected fund');
+    }
+
+    let sentCount = 0;
+    let failedCount = 0;
+    let lastError: string | null = null;
+
+    for (const r of recipients) {
+      if (!r.email) continue;
+      try {
+        const rawName = (r.name && r.name.trim()) || (r.fullName && r.fullName.trim()) || '';
+        const recipientName =
+          rawName && rawName.toLowerCase() !== 'null' && rawName.toLowerCase() !== 'undefined'
+            ? rawName
+            : 'Investor';
+        const firstName = recipientName.split(/\s+/)[0] || recipientName;
+
+        // Dynamically bind #name / #Name to the investor's name
+        const personalizedBody = (camp.body || '')
+          .replace(/#first_?name\b/gi, firstName)
+          .replace(/#name\b/gi, recipientName);
+
+        const personalizedSubject = (camp.subject || '')
+          .replace(/#first_?name\b/gi, firstName)
+          .replace(/#name\b/gi, recipientName);
+
+        const personalizedPreheader = camp.preheader
+          ? camp.preheader.replace(/#first_?name\b/gi, firstName).replace(/#name\b/gi, recipientName)
+          : camp.preheader;
+
+        const htmlContent = this.getCampaignLetterheadHtml(
+          personalizedBody,
+          camp.fund_name,
+          personalizedSubject,
+          personalizedPreheader,
+        );
+
+        await this.sendEmail(r.email, personalizedSubject, htmlContent, {
+          notificationType: 'EMAIL_UPDATE_CAMPAIGN',
+          fromName: camp.from_name,
+          templateName: 'email_update_letterhead',
+          recipientName: recipientName,
+          recipientUserId: r.userId,
+          triggeredByUserId,
+          relatedEntityType: 'EMAIL_CAMPAIGN',
+          relatedEntityId: String(camp.id),
+          metadata: {
+            fundId: camp.fund_id,
+            fundName: camp.fund_name,
+            preheader: camp.preheader,
+          },
+        });
+        sentCount++;
+      } catch (err: any) {
+        failedCount++;
+        lastError = err.message || 'SMTP delivery error';
+        this.logger.error(`Failed to send campaign email to ${r.email}: ${lastError}`);
+      }
+    }
+
+    const finalStatus = sentCount > 0 ? 'Sent' : 'Failed';
+    const failedReason = sentCount > 0 ? (failedCount > 0 ? `${failedCount} recipient(s) failed` : null) : lastError;
+
+    await db.query(`
+      UPDATE email_campaigns
+      SET status = $1,
+          sent_at = NOW(),
+          recipient_count = $2,
+          failed_reason = $3,
+          updated_at = NOW()
+      WHERE id = $4
+    `, [finalStatus, sentCount, failedReason, id]);
+
+    return {
+      success: finalStatus === 'Sent',
+      status: finalStatus,
+      sentCount,
+      failedCount,
+      recipientCount: recipients.length,
+      failedReason,
+    };
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  async handleScheduledEmailCampaignsCron() {
+    try {
+      const pendingRes = await db.query(`
+        SELECT id, subject, fund_name FROM email_campaigns
+        WHERE status = 'Scheduled' 
+          AND scheduled_at IS NOT NULL 
+          AND scheduled_at <= NOW()
+        ORDER BY scheduled_at ASC
+        LIMIT 5
+      `);
+
+      if (pendingRes.rows.length === 0) return;
+
+      this.logger.log(`⏰ Found ${pendingRes.rows.length} scheduled email campaign(s) ready to send`);
+
+      for (const camp of pendingRes.rows) {
+        this.logger.log(`🚀 Dispatching scheduled campaign: "${camp.subject}" for fund "${camp.fund_name}" (ID: ${camp.id})`);
+        try {
+          await this.sendCampaign(camp.id);
+        } catch (err: any) {
+          this.logger.error(`❌ Scheduled campaign ${camp.id} failed: ${err.message}`);
+        }
+      }
+    } catch (err: any) {
+      this.logger.error(`Error in handleScheduledEmailCampaignsCron: ${err.message}`);
+    }
   }
 }

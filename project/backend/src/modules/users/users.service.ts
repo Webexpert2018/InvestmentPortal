@@ -428,8 +428,8 @@ export class UsersService implements OnModuleInit {
       const staffNotifs = ['notif_doc_uploaded', 'notif_missing_doc', 'notif_investor_msg', 'notif_reminder'];
       const investorNotifs = [...staffNotifs, 'notif_invest_activity', 'notif_funding_conf', 'notif_doc_uploads', 'notif_kyc_updates', 'notif_announcements', 'notif_sms_invest_conf', 'notif_sms_security', 'notif_alerts', 'notif_nav_recalc', 'notif_sms_announcements', 'notif_sms_alerts', 'notif_sms_doc_uploads', 'notif_sms_nav_recalc', 'notif_sms_funding_conf', 'notif_sms_tax_forms', 'pref_send_by_email', 'pref_tax_forms_alert', 'pref_auto_download', 'pref_paperless', 'pref_format', 'pref_frequency'];
 
-      const allowedColumns = tableName === 'investors' 
-        ? [...commonFields, ...investorNotifs, 'entity_name', 'entity_type', 'nickname'] 
+      const allowedColumns = tableName === 'investors'
+        ? [...commonFields, ...investorNotifs, 'entity_name', 'entity_type', 'nickname']
         : [...commonFields, ...staffNotifs];
 
       for (const [colName, val] of Object.entries(fieldMap)) {
@@ -1357,7 +1357,7 @@ export class UsersService implements OnModuleInit {
   }
 
   async getSubaccounts(parentId: string) {
-    const result = await db.query(
+    const directResult = await db.query(
       `SELECT i.id, i.email, i.full_name as "fullName", COALESCE(i.phone, parent.phone) as phone, i.dob, i.address_line1 as "addressLine1", i.address_line2 as "addressLine2",
               i.city, i.state, i.zip_code as "zipCode", i.country, i.tax_id as "taxId", i.kyc_status as "kycStatus",
               i.investor_type as "investorType", i.entity_name as "entityName", i.entity_type as "entityType", i.status
@@ -1367,7 +1367,55 @@ export class UsersService implements OnModuleInit {
        ORDER BY i.created_at DESC`,
       [parentId]
     );
-    return result.rows;
+
+    const directSubaccounts = directResult.rows;
+
+    // Fetch all IRA accounts belonging to sub-accounts of this parent
+    const iraResult = await db.query(
+      `SELECT ia.id, ia.user_id as "subaccountId", ia.account_number as "accountNumber", ia.account_type as "accountType",
+              ia.custodian_name as "custodianName", ia.email as "iraEmail", ia.status as "iraStatus",
+              ia.mailing_address_1 as "addressLine1", ia.mailing_address_2 as "addressLine2",
+              ia.mailing_city as "city", ia.mailing_state as "state", ia.mailing_zip_code as "zipCode",
+              ia.mailing_country as "country",
+              sub.full_name as "subFullName", sub.phone as "subPhone", sub.dob as "subDob",
+              sub.tax_id as "subTaxId", sub.email as "subEmail", sub.kyc_status as "kycStatus"
+       FROM ira_accounts ia
+       JOIN investors sub ON ia.user_id = sub.id
+       WHERE sub.parent_id = $1
+       ORDER BY ia.created_at DESC`,
+      [parentId]
+    );
+
+    const iraSubaccounts = iraResult.rows.map((row: any) => {
+      const typeStr = row.accountType ? row.accountType.trim() : '';
+      const formattedType = typeStr.toLowerCase().endsWith('ira') ? typeStr : `${typeStr} IRA`;
+      const displayName = `AET FBO ${row.subFullName || ''} ${formattedType}`.trim();
+
+      return {
+        id: row.id,
+        subaccountId: row.subaccountId,
+        email: row.iraEmail || row.subEmail,
+        fullName: displayName,
+        phone: row.subPhone,
+        dob: row.subDob,
+        addressLine1: row.addressLine1,
+        addressLine2: row.addressLine2,
+        city: row.city,
+        state: row.state,
+        zipCode: row.zipCode,
+        country: row.country,
+        taxId: row.subTaxId,
+        kycStatus: row.kycStatus,
+        investorType: 'sub ira account',
+        accountType: row.accountType,
+        accountNumber: row.accountNumber,
+        custodianName: row.custodianName,
+        status: row.iraStatus || 'active',
+        isIraSubaccount: true,
+      };
+    });
+
+    return [...directSubaccounts, ...iraSubaccounts];
   }
 
   /**

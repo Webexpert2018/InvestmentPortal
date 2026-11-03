@@ -72,6 +72,7 @@ export class DocusignController {
       investmentAmount: number;
       accountType: string;
       investorAccountId?: string;
+      customInvestorName?: string;
       iraMetadata?: {
         custodian?: string;
         type?: string;
@@ -80,7 +81,7 @@ export class DocusignController {
     }
   ) {
     try {
-      const { fundId, fundName, accessToken, accountId, investmentAmount, accountType, investorAccountId, iraMetadata, returnUrl } = body;
+      const { fundId, fundName, accessToken, accountId, investmentAmount, accountType, investorAccountId, customInvestorName, iraMetadata, returnUrl } = body;
 
       if (!fundId || !investmentAmount) {
         throw new BadRequestException('Missing required fund or amount details');
@@ -111,152 +112,164 @@ export class DocusignController {
         }
       }
 
-      if (subaccountProfile) {
-        const subclientName = `${subaccountProfile.firstName || ''} ${subaccountProfile.lastName || ''}`.trim() || subaccountProfile.full_name || '';
-        if (subaccountProfile.investorType === 'minor') {
-          investorName = `${parentClientName} FBO ${subclientName}`;
+        if (customInvestorName) {
+          investorName = customInvestorName;
           signerName = parentClientName;
-        } else if (subaccountProfile.investorType === 'entity') {
-          investorName = subaccountProfile.entityName || subclientName;
-          signerName = parentClientName;
+        } else if (subaccountProfile) {
+          const subclientName = `${subaccountProfile.firstName || ''} ${subaccountProfile.lastName || ''}`.trim() || subaccountProfile.full_name || '';
+          if (subaccountProfile.investorType === 'minor') {
+            if (iraMetadata) {
+              let custodian = (iraMetadata.custodian || 'AET').trim();
+              if (/American\s+Estate\s+&\s+Tr?ust/i.test(custodian)) {
+                custodian = 'AET';
+              }
+              const type = iraMetadata.type ? (iraMetadata.type.toLowerCase().endsWith('ira') ? iraMetadata.type : `${iraMetadata.type} IRA`) : 'IRA';
+              investorName = `${custodian} FBO ${subclientName} ${type}`;
+            } else {
+              investorName = `${parentClientName} FBO ${subclientName}`;
+            }
+            signerName = parentClientName;
+          } else if (subaccountProfile.investorType === 'entity') {
+            investorName = subaccountProfile.entityName || subclientName;
+            signerName = parentClientName;
+          }
+        } else {
+          if (profile.investorType === 'minor') {
+            if (profile.parentName) {
+              investorName = `${profile.parentName} FBO ${parentClientName}`;
+              signerName = profile.parentName;
+            }
+          } else if (profile.investorType === 'entity') {
+            investorName = profile.entityName || parentClientName;
+            if (profile.parentName) {
+              signerName = profile.parentName;
+            }
+          } else if (accountType !== 'personal' && iraMetadata) {
+            let custodian = (iraMetadata.custodian || 'AET').trim();
+            if (/American\s+Estate\s+&\s+Tr?ust/i.test(custodian)) {
+              custodian = 'AET';
+            }
+            const type = iraMetadata.type ? (iraMetadata.type.toLowerCase().endsWith('ira') ? iraMetadata.type : `${iraMetadata.type} IRA`) : 'IRA';
+            investorName = `${custodian} FBO ${parentClientName} ${type}`;
+          }
         }
-      } else {
-        if (profile.investorType === 'minor') {
-          if (profile.parentName) {
-            investorName = `${profile.parentName} FBO ${parentClientName}`;
-            signerName = profile.parentName;
-          }
-        } else if (profile.investorType === 'entity') {
-          investorName = profile.entityName || parentClientName;
-          if (profile.parentName) {
-            signerName = profile.parentName;
-          }
-        } else if (accountType !== 'personal' && iraMetadata) {
-          let custodian = (iraMetadata.custodian || 'AET').trim();
-          if (/American\s+Estate\s+&\s+Tr?ust/i.test(custodian)) {
-            custodian = 'AET';
-          }
-          const type = iraMetadata.type || 'IRA';
-          investorName = `${custodian} FBO ${parentClientName} ${type}`;
+
+        const finalReturnUrl = returnUrl || `${process.env.FRONTEND_URL}/dashboard/invest?signing=complete&fundId=${fundId}`;
+
+        const result = await this.docusignService.createEnvelopeForInvestment(
+          accessToken ?? null,
+          accountId ?? null,
+          signerEmail,
+          signerName,
+          investorName,
+          fundName,
+          investmentAmount,
+          finalReturnUrl,
+          fundId,
+          subaccountProfile ? subaccountProfile.id : user.userId,
+          investorAccountId
+        );
+
+        console.log(`[DocusignController] Successfully created signing URL: ${result.envelopeId}`);
+        return result;
+      } catch (error: any) {
+        console.error('[DocusignController] Error creating signing URL:', error.message);
+
+        // If it's already a NestJS exception, rethrow it
+        if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
+
+        const isAuthError = error.message?.includes('401') ||
+          error.response?.status === 401 ||
+          error.response?.body?.errorCode === 'USER_AUTHENTICATION_FAILED';
+
+        const errorResponse = {
+          message: 'Failed to initiate DocuSign signing process',
+          error: error.message,
+          details: error.response?.body || error.response?.data || error.message || 'No additional details available'
+        };
+
+        if (isAuthError) {
+          throw new UnauthorizedException(errorResponse);
         }
+
+        throw new BadRequestException(errorResponse);
       }
-
-      const finalReturnUrl = returnUrl || `${process.env.FRONTEND_URL}/dashboard/invest?signing=complete&fundId=${fundId}`;
-
-      const result = await this.docusignService.createEnvelopeForInvestment(
-        accessToken ?? null,
-        accountId ?? null,
-        signerEmail,
-        signerName,
-        investorName,
-        fundName,
-        investmentAmount,
-        finalReturnUrl,
-        fundId,
-        subaccountProfile ? subaccountProfile.id : user.userId,
-        investorAccountId
-      );
-
-      console.log(`[DocusignController] Successfully created signing URL: ${result.envelopeId}`);
-      return result;
-    } catch (error: any) {
-      console.error('[DocusignController] Error creating signing URL:', error.message);
-      
-      // If it's already a NestJS exception, rethrow it
-      if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
-      
-      const isAuthError = error.message?.includes('401') || 
-                          error.response?.status === 401 || 
-                          error.response?.body?.errorCode === 'USER_AUTHENTICATION_FAILED';
-      
-      const errorResponse = {
-        message: 'Failed to initiate DocuSign signing process',
-        error: error.message,
-        details: error.response?.body || error.response?.data || error.message || 'No additional details available'
-      };
-
-      if (isAuthError) {
-        throw new UnauthorizedException(errorResponse);
-      }
-      
-      throw new BadRequestException(errorResponse);
     }
-  }
 
   /**
    * Test endpoint to create an envelope and get a signing URL.
    */
   @Post('test-envelope')
-  async createTestEnvelope(
-    @Body() body: {
+    async createTestEnvelope(
+      @Body() body: {
       accessToken: string,
       accountId: string,
       signerEmail: string,
       signerName: string,
       filename?: string
     }
-  ) {
-    return this.docusignService.createSampleEnvelope(
-      body.accessToken,
-      body.accountId,
-      body.signerEmail,
-      body.signerName,
-      { filename: body.filename || 'SA-BWell-Fund.pdf' }
-    );
-  }
+    ) {
+      return this.docusignService.createSampleEnvelope(
+        body.accessToken,
+        body.accountId,
+        body.signerEmail,
+        body.signerName,
+        { filename: body.filename || 'SA-BWell-Fund.pdf' }
+      );
+    }
 
-  /**
-   * Fetches the signed document for a specific envelope.
-   */
-  @Get('envelope/:envelopeId/document')
-  @UseGuards(JwtAuthGuard)
-  async getEnvelopeDocument(
-    @Param('envelopeId') envelopeId: string,
-    @CurrentUser() user: any,
-    @Res() res: Response
-  ) {
-    try {
-      const tokenData = await this.docusignService.getAccessTokenJWT();
-      const finalAccessToken = tokenData.accessToken;
-      const finalAccountId = tokenData.accountId;
-
-      let pdfBuffer: Buffer;
+    /**
+     * Fetches the signed document for a specific envelope.
+     */
+    @Get('envelope/:envelopeId/document')
+    @UseGuards(JwtAuthGuard)
+    async getEnvelopeDocument(
+      @Param('envelopeId') envelopeId: string,
+      @CurrentUser() user: any,
+      @Res() res: Response
+    ) {
       try {
-        let pdfData = await this.docusignService.getEnvelopeDocument(finalAccessToken, finalAccountId, envelopeId);
+        const tokenData = await this.docusignService.getAccessTokenJWT();
+        const finalAccessToken = tokenData.accessToken;
+        const finalAccountId = tokenData.accountId;
 
-        if (typeof pdfData === 'string') {
-          pdfBuffer = Buffer.from(pdfData, 'base64');
-        } else if (Buffer.isBuffer(pdfData)) {
-          pdfBuffer = pdfData;
-        } else {
-          pdfBuffer = Buffer.from(pdfData as any);
+        let pdfBuffer: Buffer;
+        try {
+          let pdfData = await this.docusignService.getEnvelopeDocument(finalAccessToken, finalAccountId, envelopeId);
+
+          if (typeof pdfData === 'string') {
+            pdfBuffer = Buffer.from(pdfData, 'base64');
+          } else if (Buffer.isBuffer(pdfData)) {
+            pdfBuffer = pdfData;
+          } else {
+            pdfBuffer = Buffer.from(pdfData as any);
+          }
+        } catch (dsError) {
+          const fs = require('fs');
+          const path = require('path');
+          const fallbackPath = path.resolve(process.cwd(), 'public/subscription-documents/SA-BWell-Fund.pdf');
+
+          if (fs.existsSync(fallbackPath)) {
+            pdfBuffer = fs.readFileSync(fallbackPath);
+          } else {
+            throw dsError;
+          }
         }
-      } catch (dsError) {
-        const fs = require('fs');
-        const path = require('path');
-        const fallbackPath = path.resolve(process.cwd(), 'public/subscription-documents/SA-BWell-Fund.pdf');
-        
-        if (fs.existsSync(fallbackPath)) {
-          pdfBuffer = fs.readFileSync(fallbackPath);
-        } else {
-          throw dsError;
-        }
+
+
+        res.set({
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename=signed_documents_${envelopeId}.pdf`,
+          'Content-Length': pdfBuffer.length,
+        });
+
+        res.end(pdfBuffer);
+      } catch (error: any) {
+        throw new BadRequestException({
+          message: 'Failed to fetch DocuSign document',
+          error: error.message
+        });
       }
-
-
-      res.set({
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=signed_documents_${envelopeId}.pdf`,
-        'Content-Length': pdfBuffer.length,
-      });
-
-      res.end(pdfBuffer);
-    } catch (error: any) {
-      throw new BadRequestException({
-        message: 'Failed to fetch DocuSign document',
-        error: error.message
-      });
     }
   }
-}
 
