@@ -307,7 +307,6 @@ export default function IRAPage() {
         firstName: user?.firstName,
         lastName: user?.lastName,
         email: user?.email,
-        dob: user?.dob,
         phone: user?.phone,
         taxId: user?.taxId,
         physicalAddress1: user?.addressLine1,

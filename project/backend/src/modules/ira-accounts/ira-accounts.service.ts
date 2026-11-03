@@ -255,11 +255,10 @@ export class AccountsService {
         const rawSsn = dto.ssn || dto.taxId || investor?.tax_id || '000000000';
         const sanitizedSsn = rawSsn.replace(/[^0-9]/g, '');
 
-        const dob = dto.dob || (investor?.dob ? new Date(investor.dob).toISOString().split('T')[0] : '1990-01-01');
-
         const address1 = dto.physicalAddress1 || investor?.address_line1 || '123 Main St';
         const address2 = dto.physicalAddress2 || investor?.address_line2 || '';
 
+        // Omit date_of_birth from payload to avoid external API age/format validation rejections
         const userPayload: any = {
           ssn: sanitizedSsn,
           rep_id: '100217',
@@ -274,10 +273,6 @@ export class AccountsService {
           zip: this.sanitizeZipCode(dto.zipCode || investor?.zip_code),
           marital_status: this.mapMaritalStatus(dto.maritalStatus || 'Single')
         };
-
-        if (investor?.investor_type !== 'minor') {
-          userPayload.date_of_birth = dob;
-        }
 
         const userResponse = await this.makeSignedRequest('POST', 'api/v3/users', '/users', userPayload);
         externalId = userResponse?.data?.id?.toString() || null;
