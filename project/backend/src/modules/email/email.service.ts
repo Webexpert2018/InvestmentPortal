@@ -1558,8 +1558,6 @@ export class EmailService {
       throw new BadRequestException('No eligible recipients found for selected fund');
     }
 
-    const htmlContent = this.getCampaignLetterheadHtml(camp.body, camp.fund_name, camp.subject, camp.preheader);
-
     let sentCount = 0;
     let failedCount = 0;
     let lastError: string | null = null;
@@ -1567,11 +1565,38 @@ export class EmailService {
     for (const r of recipients) {
       if (!r.email) continue;
       try {
-        await this.sendEmail(r.email, camp.subject, htmlContent, {
+        const rawName = (r.name && r.name.trim()) || (r.fullName && r.fullName.trim()) || '';
+        const recipientName =
+          rawName && rawName.toLowerCase() !== 'null' && rawName.toLowerCase() !== 'undefined'
+            ? rawName
+            : 'Investor';
+        const firstName = recipientName.split(/\s+/)[0] || recipientName;
+
+        // Dynamically bind #name / #Name to the investor's name
+        const personalizedBody = (camp.body || '')
+          .replace(/#first_?name\b/gi, firstName)
+          .replace(/#name\b/gi, recipientName);
+
+        const personalizedSubject = (camp.subject || '')
+          .replace(/#first_?name\b/gi, firstName)
+          .replace(/#name\b/gi, recipientName);
+
+        const personalizedPreheader = camp.preheader
+          ? camp.preheader.replace(/#first_?name\b/gi, firstName).replace(/#name\b/gi, recipientName)
+          : camp.preheader;
+
+        const htmlContent = this.getCampaignLetterheadHtml(
+          personalizedBody,
+          camp.fund_name,
+          personalizedSubject,
+          personalizedPreheader,
+        );
+
+        await this.sendEmail(r.email, personalizedSubject, htmlContent, {
           notificationType: 'EMAIL_UPDATE_CAMPAIGN',
           fromName: camp.from_name,
           templateName: 'email_update_letterhead',
-          recipientName: r.name,
+          recipientName: recipientName,
           recipientUserId: r.userId,
           triggeredByUserId,
           relatedEntityType: 'EMAIL_CAMPAIGN',

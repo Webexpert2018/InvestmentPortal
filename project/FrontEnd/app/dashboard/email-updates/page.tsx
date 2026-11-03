@@ -318,7 +318,7 @@ export default function EmailUpdatesPage() {
     setFromEmail('portal@ovaliacapital.com');
     setSelectedFundId(fund.id);
 
-    const initialBody = `Dear ${fund.name} Investors,<br><br>We are sharing our quarterly asset performance update. Ovalia Capital has continued to closely review current market conditions and portfolio progress.<br><br><strong>Key Highlights:</strong><br>• Portfolio stabilization is on track.<br>• Distributions are scheduled to be processed to your accounts.<br><br>Thank you for your partnership.<br><br>Sincerely,<br>Ovalia Capital Asset Management`;
+    const initialBody = `Dear #Name,<br><br>We are sharing our quarterly asset performance update. Ovalia Capital has continued to closely review current market conditions and portfolio progress.<br><br><strong>Key Highlights:</strong><br>• Portfolio stabilization is on track.<br>• Distributions are scheduled to be processed to your accounts.<br><br>Thank you for your partnership.<br><br>Sincerely,<br>Ovalia Capital Asset Management`;
     setBodyText(initialBody);
     setStatus('Draft');
     setIsScheduled(false);
@@ -348,6 +348,19 @@ export default function EmailUpdatesPage() {
     setBodyText(html);
     if (status !== 'Draft') {
       setStatus('Draft');
+    }
+  };
+
+  // Insert dynamic personalization variable tag (e.g. #Name)
+  const insertPersonalizationTag = (tag: string = '#Name') => {
+    if (isSent) return;
+    if (editorRef.current) {
+      editorRef.current.focus();
+      document.execCommand('insertText', false, tag);
+      setBodyText(editorRef.current.innerHTML);
+      if (status !== 'Draft') {
+        setStatus('Draft');
+      }
     }
   };
 
@@ -858,9 +871,21 @@ export default function EmailUpdatesPage() {
 
                   {/* Subject Line */}
                   <div>
-                    <label className="text-sm font-semibold text-gray-900 dark:text-gray-100 block mb-1.5">
-                      Subject line <span className="text-red-500">*</span>
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-semibold text-gray-900 dark:text-gray-100 block">
+                        Subject line <span className="text-red-500">*</span>
+                      </label>
+                      {!isSent && (
+                        <button
+                          type="button"
+                          onClick={() => setSubject((prev) => (prev ? `${prev} #Name` : '#Name'))}
+                          className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1"
+                          title="Append #Name to subject line"
+                        >
+                          <span>+ #Name</span>
+                        </button>
+                      )}
+                    </div>
                     <input
                       type="text"
                       value={subject}
@@ -1256,6 +1281,16 @@ export default function EmailUpdatesPage() {
                         >
                           <ClipboardPaste className="w-4 h-4" />
                         </button>
+                        <div className="h-4 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => insertPersonalizationTag('#Name')}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700/80 hover:bg-amber-100 dark:hover:bg-amber-900/70 text-xs font-bold transition-all shadow-2xs"
+                          title="Insert #Name dynamic tag ? binds each recipient's name automatically"
+                        >
+                          <span>+ #Name</span>
+                        </button>
                       </div>
                     )}
 
@@ -1312,9 +1347,7 @@ export default function EmailUpdatesPage() {
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-200 mt-3 text-center">
-                    Live Responsive Canvas • Content can be selected, cut, copied, or pasted freely.
-                  </p>
+                  <p className="text-xs text-slate-200 mt-3 text-center flex items-center justify-center gap-1"><span>Live Canvas ? Type <strong className="text-amber-300 font-bold font-mono">#Name</strong> or <strong className="text-amber-300 font-bold font-mono">#name</strong> to dynamically bind each investor's name</span></p>
                 </div>
               </div>
             </div>
