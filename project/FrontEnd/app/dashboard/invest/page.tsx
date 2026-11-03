@@ -58,7 +58,6 @@ export default function InvestPage() {
   const [isSigning, setIsSigning] = useState(false);
   const [userIraAccounts, setUserIraAccounts] = useState<any[]>([]);
   const [subaccounts, setSubaccounts] = useState<any[]>([]);
-  const [subaccountIraMap, setSubaccountIraMap] = useState<Record<string, any[]>>({});
   const [subscriptionDocs, setSubscriptionDocs] = useState<any[]>([]);
   const [selectedSubDoc, setSelectedSubDoc] = useState<any | null>(null);
   const [selectedPage, setSelectedPage] = useState<number>(1);
@@ -306,33 +305,32 @@ export default function InvestPage() {
     });
 
     subaccounts.forEach((sub) => {
-      const isEntity = sub.investorType === 'entity';
-      list.push({
-        id: sub.id,
-        label: isEntity ? (sub.entityName || sub.fullName) : sub.fullName,
-        value: isEntity ? `${sub.entityType || 'Entity'} Account` : 'Minor Account',
-        status: sub.status || 'active',
-        category: 'Sub Accounts'
-      });
-
-      // Add subaccount's IRA accounts (only minors have IRA accounts)
-      const subIras = subaccountIraMap[sub.id] || [];
-      subIras.forEach((acc, idx) => {
-        const isSuspended = acc.status?.toLowerCase() === 'suspended';
+      if (sub.isIraSubaccount || sub.investorType === 'sub ira account') {
+        // IRA subaccount returned from API
+        const isSuspended = sub.status?.toLowerCase() === 'suspended';
         list.push({
-          id: acc.id || `subira-${sub.id}-${idx}`,
-          label: `${sub.fullName} - ${acc.account_type || 'IRA'}`,
-          value: isSuspended ? 'Suspended' : 'IRA (Minor)',
-          status: acc.status || 'active',
-          subaccountId: sub.id,
-          iraData: acc,
-          category: 'IRA Accounts'
+          id: sub.id,
+          label: sub.fullName,
+          value: isSuspended ? 'Suspended' : 'SUB IRA ACCOUNT',
+          status: sub.status || 'active',
+          subaccountId: sub.subaccountId,
+          iraData: sub,
+          category: 'Sub Accounts'
         });
-      });
+      } else {
+        const isEntity = sub.investorType === 'entity';
+        list.push({
+          id: sub.id,
+          label: isEntity ? (sub.entityName || sub.fullName) : sub.fullName,
+          value: isEntity ? `${sub.entityType || 'Entity'} Account` : 'Minor Account',
+          status: sub.status || 'active',
+          category: 'Sub Accounts'
+        });
+      }
     });
 
     return list;
-  }, [userIraAccounts, subaccounts, subaccountIraMap, user]);
+  }, [userIraAccounts, subaccounts, user]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -353,21 +351,6 @@ export default function InvestPage() {
 
         const subs = Array.isArray(subaccountsData) ? subaccountsData : [];
         setSubaccounts(subs);
-
-        // Fetch IRA accounts for minor subaccounts
-        const minorSubs = subs.filter((s: any) => s.investorType === 'minor');
-        if (minorSubs.length > 0) {
-          const iraResults = await Promise.all(
-            minorSubs.map((s: any) =>
-              apiClient.getIraAccountsForUser(s.id).catch(() => [])
-            )
-          );
-          const map: Record<string, any[]> = {};
-          minorSubs.forEach((s: any, i: number) => {
-            map[s.id] = Array.isArray(iraResults[i]) ? iraResults[i] : [];
-          });
-          setSubaccountIraMap(map);
-        }
 
         if (navData && typeof navData.currentNav === 'number') {
           setUnitPrice(navData.currentNav);
@@ -455,24 +438,18 @@ export default function InvestPage() {
     setIsSigning(true);
     try {
       const isIra = selectedAccountId !== 'personal' && userIraAccounts.some(a => a.id === selectedAccountId);
-      const isSub = selectedAccountId !== 'personal' && subaccounts.some(s => s.id === selectedAccountId);
-
-      // Check if it's a subaccount's IRA account
-      const allSubIraEntries = Object.entries(subaccountIraMap).flatMap(([subId, iras]) =>
-        iras.map(ira => ({ ...ira, subaccountId: subId }))
-      );
-      const isSubIra = selectedAccountId !== 'personal' && allSubIraEntries.some(a => a.id === selectedAccountId);
-      const selectedSubIra = allSubIraEntries.find(a => a.id === selectedAccountId);
+      const selectedSub = subaccounts.find(s => s.id === selectedAccountId);
+      const isSub = selectedAccountId !== 'personal' && !!selectedSub;
+      const isSubIra = isSub && (selectedSub?.isIraSubaccount || selectedSub?.investorType === 'sub ira account');
 
       const selectedIra = userIraAccounts.find(a => a.id === selectedAccountId);
-      const selectedSub = subaccounts.find(s => s.id === selectedAccountId);
 
       let finalAccountType = 'personal';
       let finalInvestorAccountId: string | undefined = undefined;
 
-      if (isSubIra && selectedSubIra) {
-        finalAccountType = selectedSubIra.account_type || 'ira';
-        finalInvestorAccountId = selectedSubIra.subaccountId; // Use subaccount's investor ID
+      if (isSubIra && selectedSub) {
+        finalAccountType = selectedSub.accountType || 'ira';
+        finalInvestorAccountId = selectedSub.subaccountId || selectedSub.id; // Use subaccount's investor ID
       } else if (isIra) {
         finalAccountType = selectedIra?.account_type || 'ira';
         finalInvestorAccountId = selectedAccountId ?? undefined;
@@ -501,9 +478,10 @@ export default function InvestPage() {
         investmentAmount: investmentAmount,
         accountType: finalAccountType,
         investorAccountId: finalInvestorAccountId,
+        customInvestorName: isSubIra ? selectedSub?.fullName : undefined,
         iraMetadata: (isIra || isSubIra) ? {
-          custodian: (selectedIra || selectedSubIra)?.custodian_name,
-          type: (selectedIra || selectedSubIra)?.account_type
+          custodian: (selectedIra?.custodian_name || selectedSub?.custodianName),
+          type: (selectedIra?.account_type || selectedSub?.accountType)
         } : undefined,
         returnUrl: `${window.location.origin}/dashboard/invest?signing=complete`
       });

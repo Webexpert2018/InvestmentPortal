@@ -2148,7 +2148,9 @@ export function InvestorSettingsScreen() {
                     >
                       <td className="py-3 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100 truncate max-w-[200px]" title={sub.fullName || sub.entityName || '-'}>{sub.fullName || sub.entityName || '-'}</td>
                       <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>
-                      <td className="py-3 pr-3 capitalize">{sub.investorType}</td>
+                      <td className="py-3 pr-3 capitalize">
+                        {sub.investorType === 'sub ira account' ? 'Sub IRA Account' : sub.investorType}
+                      </td>
                       <td className="py-3 pr-3">{formatTaxIdDisplay(sub.taxId, sub.investorType)}</td>
                       <td className="py-3 text-right">
                         <button
@@ -2200,7 +2202,9 @@ export function InvestorSettingsScreen() {
                       >
                         <td className="py-3 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100 truncate max-w-[200px]" title={sub.fullName || '-'}>{sub.fullName || '-'}</td>
                         <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>
-                        <td className="py-3 pr-3 capitalize">{sub.investorType}</td>
+                        <td className="py-3 pr-3 capitalize">
+                          {sub.investorType === 'sub ira account' ? 'Sub IRA Account' : sub.investorType}
+                        </td>
                         <td className="py-3 pr-3">{formatTaxIdDisplay(sub.taxId, sub.investorType)}</td>
                         <td className="py-3 text-right">
                           <button
@@ -2250,7 +2254,9 @@ export function InvestorSettingsScreen() {
                       >
                         <td className="py-3 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100 truncate max-w-[200px]" title={sub.fullName || '-'}>{sub.fullName || '-'}</td>
                         <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>
-                        <td className="py-3 pr-3 capitalize">{sub.investorType}</td>
+                        <td className="py-3 pr-3 capitalize">
+                          {sub.investorType === 'sub ira account' ? 'Sub IRA Account' : sub.investorType}
+                        </td>
                         <td className="py-3 pr-3">{formatTaxIdDisplay(sub.taxId, sub.investorType)}</td>
                         <td className="py-3 text-right">
                           <button
@@ -2875,7 +2881,7 @@ export function InvestorSettingsScreen() {
               <div>
                 <h3 className="text-[16px] font-bold text-[#1F1F1F] dark:text-gray-100">Sub Account Details</h3>
                 <p className="text-[11px] text-[#8E8E93] mt-0.5 capitalize">
-                  {selectedSubaccount.investorType} Account
+                  {selectedSubaccount.investorType === 'sub ira account' ? 'Sub IRA' : selectedSubaccount.investorType} Account
                 </p>
               </div>
               <button
@@ -2894,388 +2900,414 @@ export function InvestorSettingsScreen() {
                     Basic Information
                   </h4>
                   <div className="grid grid-cols-2 gap-4">
-                    {selectedSubaccount.investorType === 'minor' ? (
-                      <>
-                        <div className="border-b border-[#F2F3F5] pb-2">
-                          <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Full Name</p>
-                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.fullName || '-'}</p>
-                        </div>
-                        <div className="border-b border-[#F2F3F5] pb-2">
-                          <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Date of Birth</p>
-                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{formatDate(selectedSubaccount.dob)}</p>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="border-b border-[#F2F3F5] pb-2">
-                          <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Legal Entity Name</p>
-                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.entityName || '-'}</p>
-                        </div>
-                        <div className="border-b border-[#F2F3F5] pb-2">
-                          <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Entity Type</p>
-                          <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.entityType || '-'}</p>
-                        </div>
-                      </>
-                    )}
-                    <div className="border-b border-[#F2F3F5] pb-2">
-                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Email Address</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.email || '-'}</p>
-                    </div>
-                    <div className="border-b border-[#F2F3F5] pb-2">
-                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Phone Number</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.phone || '-'}</p>
-                    </div>
-                    <div className="border-b border-[#F2F3F5] pb-2 col-span-2">
-                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">
-                        Tax ID ({selectedSubaccount.investorType === 'minor' ? 'SSN' : 'EIN'})
-                      </p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">
-                        {formatTaxIdDisplay(selectedSubaccount.taxId, selectedSubaccount.investorType)}
-                      </p>
-                    </div>
+                      {
+                        selectedSubaccount.investorType === 'sub ira account' ? (
+                          <>
+                            <div className="border-b border-[#F2F3F5] pb-2">
+                              <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Account Title</p>
+                              <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.fullName || '-'}</p>
+                            </div>
+                            <div className="border-b border-[#F2F3F5] pb-2">
+                              <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">IRA Account Number</p>
+                              <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.accountNumber || 'Pending'}</p>
+                            </div>
+                            <div className="border-b border-[#F2F3F5] pb-2">
+                              <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Account Type</p>
+                              <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.accountType || '-'}</p>
+                            </div>
+                            <div className="border-b border-[#F2F3F5] pb-2">
+                              <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Custodian</p>
+                              <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.custodianName || 'American Estate & Trust (AET)'}</p>
+                            </div>
+                          </>
+                        ) : selectedSubaccount.investorType === 'minor' ? (
+                          <>
+                            <div className="border-b border-[#F2F3F5] pb-2">
+                              <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Full Name</p>
+                              <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.fullName || '-'}</p>
+                            </div>
+                            <div className="border-b border-[#F2F3F5] pb-2">
+                              <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Date of Birth</p>
+                              <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{formatDate(selectedSubaccount.dob)}</p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="border-b border-[#F2F3F5] pb-2">
+                              <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Legal Entity Name</p>
+                              <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.entityName || '-'}</p>
+                            </div>
+                            <div className="border-b border-[#F2F3F5] pb-2">
+                              <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Entity Type</p>
+                              <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.entityType || '-'}</p>
+                            </div>
+                          </>
+                        )
+                      }
+                      < div className="border-b border-[#F2F3F5] pb-2">
+                    <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Email Address</p>
+                    <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.email || '-'}</p>
+                  </div>
+                  <div className="border-b border-[#F2F3F5] pb-2">
+                    <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Phone Number</p>
+                    <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.phone || '-'}</p>
+                  </div>
+                  <div className="border-b border-[#F2F3F5] pb-2 col-span-2">
+                    <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">
+                      Tax ID ({selectedSubaccount.investorType === 'minor' ? 'SSN' : 'EIN'})
+                    </p>
+                    <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">
+                      {formatTaxIdDisplay(selectedSubaccount.taxId, selectedSubaccount.investorType)}
+                    </p>
                   </div>
                 </div>
+              </div>
 
-                <div>
-                  <h4 className="text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-3 pb-1 border-b border-[#ECEDEF]">
-                    Address Details
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="border-b border-[#F2F3F5] pb-2">
-                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Street Address 1</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.addressLine1 || '-'}</p>
-                    </div>
-                    <div className="border-b border-[#F2F3F5] pb-2">
-                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Street Address 2</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.addressLine2 || '-'}</p>
-                    </div>
-                    <div className="border-b border-[#F2F3F5] pb-2">
-                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">City</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.city || '-'}</p>
-                    </div>
-                    <div className="border-b border-[#F2F3F5] pb-2">
-                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">State / Province</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.state || '-'}</p>
-                    </div>
-                    <div className="border-b border-[#F2F3F5] pb-2">
-                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">ZIP / Postal Code</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.zipCode || '-'}</p>
-                    </div>
-                    <div className="border-b border-[#F2F3F5] pb-2">
-                      <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Country</p>
-                      <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.country || '-'}</p>
-                    </div>
+              <div>
+                <h4 className="text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-3 pb-1 border-b border-[#ECEDEF]">
+                  Address Details
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="border-b border-[#F2F3F5] pb-2">
+                    <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Street Address 1</p>
+                    <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.addressLine1 || '-'}</p>
+                  </div>
+                  <div className="border-b border-[#F2F3F5] pb-2">
+                    <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Street Address 2</p>
+                    <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.addressLine2 || '-'}</p>
+                  </div>
+                  <div className="border-b border-[#F2F3F5] pb-2">
+                    <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">City</p>
+                    <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.city || '-'}</p>
+                  </div>
+                  <div className="border-b border-[#F2F3F5] pb-2">
+                    <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">State / Province</p>
+                    <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.state || '-'}</p>
+                  </div>
+                  <div className="border-b border-[#F2F3F5] pb-2">
+                    <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">ZIP / Postal Code</p>
+                    <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.zipCode || '-'}</p>
+                  </div>
+                  <div className="border-b border-[#F2F3F5] pb-2">
+                    <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Country</p>
+                    <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.country || '-'}</p>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Footer */}
-            <div className="flex items-center justify-end gap-3 border-t border-[#ECEDEF] px-6 py-4">
-              {selectedSubaccount.investorType === 'minor' && (
-                <button
-                  onClick={() => handleOpenAddIraModal(selectedSubaccount)}
-                  className="h-[36px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 text-[12px] font-semibold text-[#1F1F1F] dark:text-gray-100 shadow-sm hover:opacity-90 transition-opacity"
-                >
-                  Create IRA
-                </button>
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-3 border-t border-[#ECEDEF] px-6 py-4">
+            {selectedSubaccount.investorType === 'minor' && (
+              <button
+                onClick={() => handleOpenAddIraModal(selectedSubaccount)}
+                className="h-[36px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 text-[12px] font-semibold text-[#1F1F1F] dark:text-gray-100 shadow-sm hover:opacity-90 transition-opacity"
+              >
+                Create IRA
+              </button>
+            )}
+            <button
+              onClick={() => setSelectedSubaccount(null)}
+              className="h-[36px] rounded-full bg-[#FFF3D6] px-6 text-[12px] font-semibold text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FCEBAE] transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+        </div>
+  )
+}
+
+{/* ─── ADD IRA MODAL ─── */ }
+{
+  showAddIraModal && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white dark:bg-[#1C1C1C] shadow-2xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white dark:bg-[#1C1C1C] px-8 py-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-900/30">
+              <Plus className="h-5 w-5 text-[#D1A94C]" />
+            </div>
+            <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy">Open New IRA Account for Minor</h2>
+          </div>
+          <button
+            onClick={() => setShowAddIraModal(false)}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAFAFA] dark:bg-gray-800/50 text-[#9CA3AF] hover:bg-[#F3F4F6] dark:bg-gray-800 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="p-8">
+          <div className="flex flex-col gap-8">
+            {/* Account Details */}
+            <div>
+              <h3 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-4 font-goudy border-b pb-1">Account Details</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Account Type</label>
+                  <Combobox
+                    options={accountTypes.map(t => ({ label: t.name, value: t.name }))}
+                    value={iraForm.accountType}
+                    onChange={val => setIraForm({ ...iraForm, accountType: val })}
+                    placeholder="Select Account Type"
+                  />
+                  {iraErrors.accountType && <p className="mt-1 text-[11px] text-red-500">{iraErrors.accountType}</p>}
+                </div>
+              </div>
+            </div>
+
+            {/* Personal Profile */}
+            <div>
+              <h3 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-4 font-goudy border-b pb-1">Personal Profile</h3>
+              <div className="grid gap-4 md:grid-cols-2 mb-4">
+                <div>
+                  <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">First Name (from subaccount)</label>
+                  <input
+                    type="text"
+                    value={selectedSubaccount?.fullName?.trim().split(/\s+/)[0] || ''}
+                    disabled
+                    className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F3F4F6] dark:bg-gray-800 text-[#9CA3AF]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Last Name (from subaccount)</label>
+                  <input
+                    type="text"
+                    value={selectedSubaccount?.fullName?.trim().split(/\s+/).slice(1).join(' ') || ''}
+                    disabled
+                    className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F3F4F6] dark:bg-gray-800 text-[#9CA3AF]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 mb-4">
+                <div>
+                  <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Middle Name</label>
+                  <input
+                    type="text"
+                    placeholder="Enter middle name"
+                    value={iraForm.middleName}
+                    onChange={e => setIraForm({ ...iraForm, middleName: e.target.value })}
+                    className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Suffix</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Jr, Sr"
+                    value={iraForm.suffix}
+                    onChange={e => setIraForm({ ...iraForm, suffix: e.target.value })}
+                    className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Marital Status</label>
+                  <select
+                    value={iraForm.maritalStatus}
+                    disabled={selectedSubaccount?.investorType === 'minor'}
+                    onChange={e => setIraForm({ ...iraForm, maritalStatus: e.target.value })}
+                    className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all disabled:bg-gray-100 disabled:text-gray-500 dark:text-gray-400"
+                  >
+                    <option value="single">Single</option>
+                    <option value="married">Married</option>
+                    <option value="divorced">Divorced</option>
+                    <option value="widowed">Widowed</option>
+                  </select>
+                  {iraErrors.maritalStatus && <p className="mt-1 text-[11px] text-red-500">{iraErrors.maritalStatus}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Social Security Number</label>
+                  <input
+                    type="text"
+                    placeholder="000-00-0000"
+                    maxLength={11}
+                    value={iraForm.ssn}
+                    onChange={e => {
+                      let val = e.target.value.replace(/\D/g, '');
+                      if (val.length > 9) val = val.slice(0, 9);
+                      let formatted = val;
+                      if (val.length > 3 && val.length <= 5) {
+                        formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                      } else if (val.length > 5) {
+                        formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+                      }
+                      setIraForm({ ...iraForm, ssn: formatted });
+                    }}
+                    className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
+                  />
+                  {iraErrors.ssn && <p className="mt-1 text-[11px] text-red-500">{iraErrors.ssn}</p>}
+                </div>
+              </div>
+            </div>
+
+            {/* Mailing Address */}
+            <div>
+              <div className="flex items-center justify-between mb-4 border-b pb-1">
+                <h3 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Mailing Address</h3>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="mailingAddressSame"
+                    checked={iraForm.mailingAddressSame}
+                    onChange={e => setIraForm({ ...iraForm, mailingAddressSame: e.target.checked })}
+                    className="rounded border-[#E5E7EB] text-[#D1A94C] focus:ring-[#D1A94C]"
+                  />
+                  <label htmlFor="mailingAddressSame" className="text-[12px] font-medium text-[#4B4B4B] dark:text-gray-300 font-helvetica">
+                    Same as physical address
+                  </label>
+                </div>
+              </div>
+
+              {!iraForm.mailingAddressSame && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="col-span-2">
+                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Street Address 1</label>
+                    <input
+                      type="text"
+                      placeholder="Street Address Line 1"
+                      value={iraForm.mailingAddress1}
+                      onChange={e => setIraForm({ ...iraForm, mailingAddress1: e.target.value })}
+                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
+                    />
+                    {iraErrors.mailingAddress1 && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingAddress1}</p>}
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Street Address 2</label>
+                    <input
+                      type="text"
+                      placeholder="Apartment, suite, unit, etc. (optional)"
+                      value={iraForm.mailingAddress2}
+                      onChange={e => setIraForm({ ...iraForm, mailingAddress2: e.target.value })}
+                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Country</label>
+                    <Combobox
+                      options={countries.map(c => ({ label: c.name, value: c.isoCode }))}
+                      value={iraForm.mailingCountry}
+                      onChange={val => setIraForm({ ...iraForm, mailingCountry: val, mailingState: '', mailingCity: '' })}
+                      placeholder="Select Country"
+                    />
+                    {iraErrors.mailingCountry && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingCountry}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">State / Province</label>
+                    <Combobox
+                      options={iraStates.map(s => ({ label: s.name, value: s.isoCode }))}
+                      value={iraForm.mailingState}
+                      onChange={val => setIraForm({ ...iraForm, mailingState: val, mailingCity: '' })}
+                      placeholder="Select State"
+                      disabled={!iraForm.mailingCountry}
+                    />
+                    {iraErrors.mailingState && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingState}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">City</label>
+                    <input
+                      type="text"
+                      placeholder="City"
+                      value={iraForm.mailingCity}
+                      onChange={e => setIraForm({ ...iraForm, mailingCity: e.target.value })}
+                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
+                    />
+                    {iraErrors.mailingCity && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingCity}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">ZIP / Postal Code</label>
+                    <input
+                      type="text"
+                      placeholder="ZIP Code"
+                      value={iraForm.mailingZipCode}
+                      onChange={e => setIraForm({ ...iraForm, mailingZipCode: e.target.value })}
+                      className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
+                    />
+                    {iraErrors.mailingZipCode && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingZipCode}</p>}
+                  </div>
+                </div>
               )}
-              <button
-                onClick={() => setSelectedSubaccount(null)}
-                className="h-[36px] rounded-full bg-[#FFF3D6] px-6 text-[12px] font-semibold text-[#4B4B4B] dark:text-gray-300 hover:bg-[#FCEBAE] transition-colors"
-              >
-                Close
-              </button>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* ─── ADD IRA MODAL ─── */}
-      {showAddIraModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[10px] bg-white dark:bg-[#1C1C1C] shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white dark:bg-[#1C1C1C] px-8 py-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-900/30">
-                  <Plus className="h-5 w-5 text-[#D1A94C]" />
-                </div>
-                <h2 className="text-[18px] md:text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy">Open New IRA Account for Minor</h2>
-              </div>
-              <button
-                onClick={() => setShowAddIraModal(false)}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAFAFA] dark:bg-gray-800/50 text-[#9CA3AF] hover:bg-[#F3F4F6] dark:bg-gray-800 transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="p-8">
-              <div className="flex flex-col gap-8">
-                {/* Account Details */}
-                <div>
-                  <h3 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-4 font-goudy border-b pb-1">Account Details</h3>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Account Type</label>
-                      <Combobox
-                        options={accountTypes.map(t => ({ label: t.name, value: t.name }))}
-                        value={iraForm.accountType}
-                        onChange={val => setIraForm({ ...iraForm, accountType: val })}
-                        placeholder="Select Account Type"
-                      />
-                      {iraErrors.accountType && <p className="mt-1 text-[11px] text-red-500">{iraErrors.accountType}</p>}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Personal Profile */}
-                <div>
-                  <h3 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 mb-4 font-goudy border-b pb-1">Personal Profile</h3>
-                  <div className="grid gap-4 md:grid-cols-2 mb-4">
-                    <div>
-                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">First Name (from subaccount)</label>
-                      <input
-                        type="text"
-                        value={selectedSubaccount?.fullName?.trim().split(/\s+/)[0] || ''}
-                        disabled
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F3F4F6] dark:bg-gray-800 text-[#9CA3AF]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Last Name (from subaccount)</label>
-                      <input
-                        type="text"
-                        value={selectedSubaccount?.fullName?.trim().split(/\s+/).slice(1).join(' ') || ''}
-                        disabled
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica bg-[#F3F4F6] dark:bg-gray-800 text-[#9CA3AF]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2 mb-4">
-                    <div>
-                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Middle Name</label>
-                      <input
-                        type="text"
-                        placeholder="Enter middle name"
-                        value={iraForm.middleName}
-                        onChange={e => setIraForm({ ...iraForm, middleName: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Suffix</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Jr, Sr"
-                        value={iraForm.suffix}
-                        onChange={e => setIraForm({ ...iraForm, suffix: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Marital Status</label>
-                      <select
-                        value={iraForm.maritalStatus}
-                        disabled={selectedSubaccount?.investorType === 'minor'}
-                        onChange={e => setIraForm({ ...iraForm, maritalStatus: e.target.value })}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all disabled:bg-gray-100 disabled:text-gray-500 dark:text-gray-400"
-                      >
-                        <option value="single">Single</option>
-                        <option value="married">Married</option>
-                        <option value="divorced">Divorced</option>
-                        <option value="widowed">Widowed</option>
-                      </select>
-                      {iraErrors.maritalStatus && <p className="mt-1 text-[11px] text-red-500">{iraErrors.maritalStatus}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Social Security Number</label>
-                      <input
-                        type="text"
-                        placeholder="000-00-0000"
-                        maxLength={11}
-                        value={iraForm.ssn}
-                        onChange={e => {
-                          let val = e.target.value.replace(/\D/g, '');
-                          if (val.length > 9) val = val.slice(0, 9);
-                          let formatted = val;
-                          if (val.length > 3 && val.length <= 5) {
-                            formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
-                          } else if (val.length > 5) {
-                            formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
-                          }
-                          setIraForm({ ...iraForm, ssn: formatted });
-                        }}
-                        className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C] transition-all"
-                      />
-                      {iraErrors.ssn && <p className="mt-1 text-[11px] text-red-500">{iraErrors.ssn}</p>}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mailing Address */}
-                <div>
-                  <div className="flex items-center justify-between mb-4 border-b pb-1">
-                    <h3 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Mailing Address</h3>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="mailingAddressSame"
-                        checked={iraForm.mailingAddressSame}
-                        onChange={e => setIraForm({ ...iraForm, mailingAddressSame: e.target.checked })}
-                        className="rounded border-[#E5E7EB] text-[#D1A94C] focus:ring-[#D1A94C]"
-                      />
-                      <label htmlFor="mailingAddressSame" className="text-[12px] font-medium text-[#4B4B4B] dark:text-gray-300 font-helvetica">
-                        Same as physical address
-                      </label>
-                    </div>
-                  </div>
-
-                  {!iraForm.mailingAddressSame && (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="col-span-2">
-                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Street Address 1</label>
-                        <input
-                          type="text"
-                          placeholder="Street Address Line 1"
-                          value={iraForm.mailingAddress1}
-                          onChange={e => setIraForm({ ...iraForm, mailingAddress1: e.target.value })}
-                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
-                        />
-                        {iraErrors.mailingAddress1 && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingAddress1}</p>}
-                      </div>
-
-                      <div className="col-span-2">
-                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Street Address 2</label>
-                        <input
-                          type="text"
-                          placeholder="Apartment, suite, unit, etc. (optional)"
-                          value={iraForm.mailingAddress2}
-                          onChange={e => setIraForm({ ...iraForm, mailingAddress2: e.target.value })}
-                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Country</label>
-                        <Combobox
-                          options={countries.map(c => ({ label: c.name, value: c.isoCode }))}
-                          value={iraForm.mailingCountry}
-                          onChange={val => setIraForm({ ...iraForm, mailingCountry: val, mailingState: '', mailingCity: '' })}
-                          placeholder="Select Country"
-                        />
-                        {iraErrors.mailingCountry && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingCountry}</p>}
-                      </div>
-
-                      <div>
-                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">State / Province</label>
-                        <Combobox
-                          options={iraStates.map(s => ({ label: s.name, value: s.isoCode }))}
-                          value={iraForm.mailingState}
-                          onChange={val => setIraForm({ ...iraForm, mailingState: val, mailingCity: '' })}
-                          placeholder="Select State"
-                          disabled={!iraForm.mailingCountry}
-                        />
-                        {iraErrors.mailingState && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingState}</p>}
-                      </div>
-
-                      <div>
-                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">City</label>
-                        <input
-                          type="text"
-                          placeholder="City"
-                          value={iraForm.mailingCity}
-                          onChange={e => setIraForm({ ...iraForm, mailingCity: e.target.value })}
-                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
-                        />
-                        {iraErrors.mailingCity && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingCity}</p>}
-                      </div>
-
-                      <div>
-                        <label className="block text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">ZIP / Postal Code</label>
-                        <input
-                          type="text"
-                          placeholder="ZIP Code"
-                          value={iraForm.mailingZipCode}
-                          onChange={e => setIraForm({ ...iraForm, mailingZipCode: e.target.value })}
-                          className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-4 text-[13px] font-helvetica outline-none focus:border-[#D1A94C] bg-white dark:bg-[#1C1C1C]"
-                        />
-                        {iraErrors.mailingZipCode && <p className="mt-1 text-[11px] text-red-500">{iraErrors.mailingZipCode}</p>}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="flex justify-end gap-3 mt-8 border-t pt-5">
-                <button
-                  onClick={() => setShowAddIraModal(false)}
-                  className="px-6 h-[40px] rounded-full border border-gray-300 text-[13px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveIRA}
-                  disabled={iraLoading}
-                  className="px-6 h-[40px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 shadow-md hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2"
-                >
-                  {iraLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Create IRA
-                </button>
-              </div>
-            </div>
+          {/* Modal Footer */}
+          <div className="flex justify-end gap-3 mt-8 border-t pt-5">
+            <button
+              onClick={() => setShowAddIraModal(false)}
+              className="px-6 h-[40px] rounded-full border border-gray-300 text-[13px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveIRA}
+              disabled={iraLoading}
+              className="px-6 h-[40px] rounded-full bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] text-[13px] font-semibold text-[#1F1F1F] dark:text-gray-100 shadow-md hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2"
+            >
+              {iraLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+              Create IRA
+            </button>
           </div>
         </div>
-      )}
-
-      {selectedImsSubaccount && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-[#1C1C1C] rounded-[10px] w-full max-w-md shadow-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#ECEDEF] flex justify-between items-center">
-              <h3 className="font-goudy text-[20px] text-[#1F1F1F] dark:text-gray-100">IMS Sub Account Details</h3>
-              <button
-                onClick={() => setSelectedImsSubaccount(null)}
-                className="text-[#A2A5AA] hover:text-[#1F1F1F] dark:text-gray-100"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-6 text-[13px] text-[#4B4B4B] dark:text-gray-300 space-y-4">
-              <div>
-                <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Name</span>
-                <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{selectedImsSubaccount.fullName || '-'}</span>
-              </div>
-              <div>
-                <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Email</span>
-                <span>{selectedImsSubaccount.email || '-'}</span>
-              </div>
-              <div>
-                <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Type</span>
-                <span className="capitalize">{selectedImsSubaccount.investorType || '-'}</span>
-              </div>
-              <div>
-                <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Tax ID</span>
-                <span>{formatTaxIdDisplay(selectedImsSubaccount.taxId, selectedImsSubaccount.investorType)}</span>
-              </div>
-            </div>
-            <div className="px-6 py-4 border-t border-[#ECEDEF] flex justify-end">
-              <button
-                onClick={() => setSelectedImsSubaccount(null)}
-                className="px-4 py-2 bg-[#274583] text-white rounded-[6px] hover:bg-[#1E3566] text-[13px] font-medium transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      </div>
     </div>
+  )
+}
+
+{
+  selectedImsSubaccount && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white dark:bg-[#1C1C1C] rounded-[10px] w-full max-w-md shadow-lg overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#ECEDEF] flex justify-between items-center">
+          <h3 className="font-goudy text-[20px] text-[#1F1F1F] dark:text-gray-100">IMS Sub Account Details</h3>
+          <button
+            onClick={() => setSelectedImsSubaccount(null)}
+            className="text-[#A2A5AA] hover:text-[#1F1F1F] dark:text-gray-100"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6 text-[13px] text-[#4B4B4B] dark:text-gray-300 space-y-4">
+          <div>
+            <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Name</span>
+            <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{selectedImsSubaccount.fullName || '-'}</span>
+          </div>
+          <div>
+            <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Email</span>
+            <span>{selectedImsSubaccount.email || '-'}</span>
+          </div>
+          <div>
+            <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Type</span>
+            <span className="capitalize">{selectedImsSubaccount.investorType || '-'}</span>
+          </div>
+          <div>
+            <span className="block text-[#A2A5AA] text-[11px] font-medium uppercase tracking-wider mb-1">Tax ID</span>
+            <span>{formatTaxIdDisplay(selectedImsSubaccount.taxId, selectedImsSubaccount.investorType)}</span>
+          </div>
+        </div>
+        <div className="px-6 py-4 border-t border-[#ECEDEF] flex justify-end">
+          <button
+            onClick={() => setSelectedImsSubaccount(null)}
+            className="px-4 py-2 bg-[#274583] text-white rounded-[6px] hover:bg-[#1E3566] text-[13px] font-medium transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+    </div >
   );
 }

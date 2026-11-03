@@ -1096,6 +1096,7 @@ class ApiClient {
     investmentAmount: number;
     accountType: string;
     investorAccountId?: string;
+    customInvestorName?: string;
     iraMetadata?: {
       custodian?: string;
       type?: string;
