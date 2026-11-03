@@ -426,7 +426,7 @@ export default function IRAPage() {
           <div className="flex gap-3 sm:justify-end justify-auto">
             <button
               onClick={() => setShowTransferModal(true)}
-              disabled={user?.investorType === 'entity' || user?.investorType === 'minor'}
+              disabled={user?.investorType === 'entity'}
               className="inline-flex items-center gap-2 border border-[#E5E7EB] bg-white dark:bg-[#1C1C1C] px-5 py-2 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <History className="h-4 w-4 text-[#D1A94C]" />
@@ -434,7 +434,7 @@ export default function IRAPage() {
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              disabled={user?.investorType === 'entity' || user?.investorType === 'minor'}
+              disabled={user?.investorType === 'entity'}
               className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFC63F] to-[#F1DD58] px-5 py-2 rounded-full text-sm font-medium shadow-md hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="h-4 w-4" />
@@ -444,419 +444,419 @@ export default function IRAPage() {
         </div>
 
         {/* Main Content Area */}
-        {user?.investorType === 'entity' || user?.investorType === 'minor' ? (
-          <div className="mt-6 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm p-12 text-center flex flex-col items-center justify-center gap-4">
-            <div className="h-16 w-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center">
-              <Info className="h-8 w-8" />
+          { user?.investorType === 'entity' ? (
+            <div className="mt-6 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm p-12 text-center flex flex-col items-center justify-center gap-4">
+              <div className="h-16 w-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center">
+                <Info className="h-8 w-8" />
+              </div>
+              <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">IRA Accounts Not Available</h3>
+              <p className="max-w-md text-[14px] text-[#8E8E93] font-helvetica leading-relaxed">
+                IRA accounts cannot be created for Entity accounts.
+              </p>
             </div>
-            <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">IRA Accounts Not Available</h3>
-            <p className="max-w-md text-[14px] text-[#8E8E93] font-helvetica leading-relaxed">
-              IRA accounts cannot be created for Minor or Entity accounts.
-            </p>
-          </div>
-        ) : view === 'list' ? (
-          <>
-            <div className="mt-6 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
-                <thead>
-                  <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 w-[25%]">Account Type</th>
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 w-[25%]">Beneficiary</th>
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 text-right w-[25%]">Account Balance</th>
-                    <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 text-center w-[25%]">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F0F0F0]">
-                  {fetchingIra ? (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-20 text-center">
-                        <div className="flex flex-col items-center gap-3">
-                          <Loader2 className="h-8 w-8 animate-spin text-[#D1A94C]" />
-                          <p className="text-[#8E8E93] font-helvetica">Loading your accounts...</p>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : iraAccounts.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-20 text-center">
-                        <div className="flex flex-col items-center gap-3">
-                          <Wallet className="h-12 w-12 text-[#E5E7EB]" />
-                          <p className="text-[#8E8E93] font-helvetica">No IRA accounts found.</p>
-                          <button
-                            onClick={() => setShowAddModal(true)}
-                            className="mt-2 text-[#D1A94C] font-semibold hover:underline"
+          ) : view === 'list' ? (
+            <>
+              <div className="mt-6 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
+                    <thead>
+                      <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
+                        <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 w-[25%]">Account Type</th>
+                        <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 w-[25%]">Beneficiary</th>
+                        <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 text-right w-[25%]">Account Balance</th>
+                        <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 text-center w-[25%]">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F0F0F0]">
+                      {fetchingIra ? (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-20 text-center">
+                            <div className="flex flex-col items-center gap-3">
+                              <Loader2 className="h-8 w-8 animate-spin text-[#D1A94C]" />
+                              <p className="text-[#8E8E93] font-helvetica">Loading your accounts...</p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : iraAccounts.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-20 text-center">
+                            <div className="flex flex-col items-center gap-3">
+                              <Wallet className="h-12 w-12 text-[#E5E7EB]" />
+                              <p className="text-[#8E8E93] font-helvetica">No IRA accounts found.</p>
+                              <button
+                                onClick={() => setShowAddModal(true)}
+                                className="mt-2 text-[#D1A94C] font-semibold hover:underline"
+                              >
+                                Open your first account
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        iraAccounts.map((acc, idx) => (
+                          <tr
+                            key={acc.id}
+                            onClick={() => {
+                              setSelectedAccountIdx(idx);
+                              setView('detail');
+                            }}
+                            className="hover:bg-[#FAFAFA] dark:hover:bg-gray-800/60 cursor-pointer transition-colors group"
                           >
-                            Open your first account
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    iraAccounts.map((acc, idx) => (
-                      <tr
-                        key={acc.id}
-                        onClick={() => {
-                          setSelectedAccountIdx(idx);
-                          setView('detail');
-                        }}
-                        className="hover:bg-[#FAFAFA] dark:hover:bg-gray-800/60 cursor-pointer transition-colors group"
-                      >
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-950/40 group-hover:bg-[#FFC63F] group-hover:text-white transition-colors">
-                              <FileText className="h-5 w-5 text-[#D1A94C] group-hover:text-white" />
-                            </div>
-                            <div>
-                              <p className="font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy text-[16px]">{acc.account_type}</p>
-                              <p className="text-[12px] text-[#8E8E93] font-helvetica">{acc.account_number || 'N/A'}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <p className="text-[#4B4B4B] dark:text-gray-300 font-helvetica">{acc.beneficiary || '-'}</p>
-                        </td>
-                        <td className="px-6 py-5 text-right">
-                          <p className="font-bold text-[#1F1F1F] dark:text-gray-100 font-helvetica text-[15px]">
-                            ${calculateBalance(acc.id).toLocaleString()}
-                          </p>
-                          <p className={`text-[11px] font-medium font-helvetica ${acc.status?.toLowerCase() === 'suspended' ? 'text-red-500' : 'text-[#2BB673]'}`}>
-                            {acc.status?.toLowerCase() === 'suspended' ? 'Suspended Account' : 'Active Account'}
-                          </p>
-                        </td>
-                        <td className="px-6 py-5 text-center">
-                          <button className="h-8 px-4 rounded-full border border-[#E5E7EB] dark:border-gray-700 text-[12px] font-bold text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F5F5F5] dark:hover:bg-gray-700 transition-colors">
-                            View Details
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                            <td className="px-6 py-5">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-950/40 group-hover:bg-[#FFC63F] group-hover:text-white transition-colors">
+                                  <FileText className="h-5 w-5 text-[#D1A94C] group-hover:text-white" />
+                                </div>
+                                <div>
+                                  <p className="font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy text-[16px]">{acc.account_type}</p>
+                                  <p className="text-[12px] text-[#8E8E93] font-helvetica">{acc.account_number || 'N/A'}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <p className="text-[#4B4B4B] dark:text-gray-300 font-helvetica">{acc.beneficiary || '-'}</p>
+                            </td>
+                            <td className="px-6 py-5 text-right">
+                              <p className="font-bold text-[#1F1F1F] dark:text-gray-100 font-helvetica text-[15px]">
+                                ${calculateBalance(acc.id).toLocaleString()}
+                              </p>
+                              <p className={`text-[11px] font-medium font-helvetica ${acc.status?.toLowerCase() === 'suspended' ? 'text-red-500' : 'text-[#2BB673]'}`}>
+                                {acc.status?.toLowerCase() === 'suspended' ? 'Suspended Account' : 'Active Account'}
+                              </p>
+                            </td>
+                            <td className="px-6 py-5 text-center">
+                              <button className="h-8 px-4 rounded-full border border-[#E5E7EB] dark:border-gray-700 text-[12px] font-bold text-[#4B4B4B] dark:text-gray-300 hover:bg-[#F5F5F5] dark:hover:bg-gray-700 transition-colors">
+                                View Details
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-          {/* Legacy Self-Directed IRA Accounts Section */}
-          <div className="mt-8 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm overflow-hidden py-6">
-            <div className="flex items-center gap-2 mb-6 px-6">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-900/30">
-                <Sparkles className="h-4 w-4 text-[#D1A94C] dark:text-amber-400" />
-              </div>
-              <div>
-                <h2 className="font-goudy text-[18px] md:text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">Legacy Self-Directed IRA Accounts</h2>
-                <p className="text-[12px] text-[#8E8E93] font-helvetica">Historical accounts matched from your legacy profile records</p>
-              </div>
-            </div>
+              {/* Legacy Self-Directed IRA Accounts Section */}
+              <div className="mt-8 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm overflow-hidden py-6">
+                <div className="flex items-center gap-2 mb-6 px-6">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-900/30">
+                    <Sparkles className="h-4 w-4 text-[#D1A94C] dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <h2 className="font-goudy text-[18px] md:text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">Legacy Self-Directed IRA Accounts</h2>
+                    <p className="text-[12px] text-[#8E8E93] font-helvetica">Historical accounts matched from your legacy profile records</p>
+                  </div>
+                </div>
 
-            {fetchingOldIra ? (
-              <div className="py-10 text-center flex flex-col items-center gap-3 px-6">
-                <Loader2 className="h-8 w-8 animate-spin text-[#D1A94C]" />
-                <p className="text-[#8E8E93] text-[13px] font-helvetica">Retrieving legacy records...</p>
+                {fetchingOldIra ? (
+                  <div className="py-10 text-center flex flex-col items-center gap-3 px-6">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#D1A94C]" />
+                    <p className="text-[#8E8E93] text-[13px] font-helvetica">Retrieving legacy records...</p>
+                  </div>
+                ) : oldIraAccounts.length === 0 ? (
+                  <div className="py-10 text-center flex flex-col items-center gap-2 border border-dashed border-[#E5E7EB] rounded-lg bg-gray-50/50 dark:bg-gray-800/50 mx-6">
+                    <p className="text-[#8E8E93] text-[13px] font-helvetica">No matching legacy Self-Directed IRA accounts found.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
+                      <thead>
+                        <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
+                          <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 w-[50%]">Legal Name</th>
+                          <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 w-[25%]">Profile Type</th>
+                          <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 text-right w-[25%]">Investment Value</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#F0F0F0] dark:divide-gray-800">
+                        {oldIraAccounts.map((acc, index) => (
+                          <tr
+                            key={index}
+                            className="hover:bg-[#FAFAFA] dark:hover:bg-gray-800/60 transition-colors"
+                          >
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-900/30">
+                                  <FileText className="h-4 w-4 text-[#D1A94C] dark:text-amber-400" />
+                                </div>
+                                <p className="font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy text-[15px] truncate" title={acc.legal_name}>
+                                  {acc.legal_name}
+                                </p>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="text-[12px] font-semibold text-[#D1A94C] dark:text-amber-400 bg-[#FFF8E1] dark:bg-amber-900/30 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                {acc.profile_type || 'Self Directed IRA'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <p className="font-bold text-[#2BB673] font-helvetica text-[15px]">
+                                ${parseFloat(acc.investment_value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </p>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
-            ) : oldIraAccounts.length === 0 ? (
-              <div className="py-10 text-center flex flex-col items-center gap-2 border border-dashed border-[#E5E7EB] rounded-lg bg-gray-50/50 dark:bg-gray-800/50 mx-6">
-                <p className="text-[#8E8E93] text-[13px] font-helvetica">No matching legacy Self-Directed IRA accounts found.</p>
+            </>
+          ) : (
+            <div className="mt-4 rounded-sm border border-[#F0F0F0] dark:border-[#2A2A2A] bg-white dark:bg-[#1C1C1C] shadow-sm overflow-hidden">
+              {/* Suspended Banner */}
+              {selectedIra?.status === 'suspended' && (
+                <div className="bg-red-50 border-b border-red-100 px-6 py-3 flex items-center gap-3">
+                  <X className="h-5 w-5 text-red-500" />
+                  <p className="text-sm font-bold text-red-700 font-helvetica">
+                    This account is currently suspended. New investments and some actions are restricted.
+                  </p>
+                </div>
+              )}
+              {/* SECTION 1: IRA Account Overview */}
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
+                      <FileText className="h-3.5 w-3.5 text-[#D1A94C]" />
+                    </div>
+                    <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">IRA Account Overview</h3>
+                  </div>
+                  <button
+                    onClick={() => setView('list')}
+                    className="text-[12px] font-bold text-[#D1A94C] hover:underline flex items-center gap-1"
+                  >
+                    <ChevronLeft className="h-3 w-3" /> Back to List
+                  </button>
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  <Field label="Account Type" value={d.accountType} />
+                  <Field label="Account Number" value={d.accountNumber} />
+                  <Field label="Account Status" value={d.accountStatus} />
+                  <Field label="Account Holder Name" value={d.fullAccountHolderName} />
+                  <Field label="Custodian" value={d.custodian} />
+                  <Field label="Beneficiary" value={d.beneficiary} />
+                  <Field label="Contribution (YTD)" value={d.contributionYTD} />
+                  <Field label="Annual Contribution Limit" value={d.contributionLimit} />
+                  <Field label="Account Balance" value={d.accountBalance} />
+                  <Field label="Marital Status" value={d.maritalStatus} />
+                </div>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[650px] border-separate border-spacing-0 text-[14px] table-fixed">
-                  <thead>
-                    <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300">
-                      <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 w-[50%]">Legal Name</th>
-                      <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 w-[25%]">Profile Type</th>
-                      <th className="px-6 py-4 border-b border-[#F0F0F0] dark:border-gray-700 text-right w-[25%]">Investment Value</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#F0F0F0] dark:divide-gray-800">
-                    {oldIraAccounts.map((acc, index) => (
-                      <tr
-                        key={index}
-                        className="hover:bg-[#FAFAFA] dark:hover:bg-gray-800/60 transition-colors"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF8E1] dark:bg-amber-900/30">
-                              <FileText className="h-4 w-4 text-[#D1A94C] dark:text-amber-400" />
-                            </div>
-                            <p className="font-bold text-[#1F1F1F] dark:text-gray-100 font-goudy text-[15px] truncate" title={acc.legal_name}>
-                              {acc.legal_name}
-                            </p>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-[12px] font-semibold text-[#D1A94C] dark:text-amber-400 bg-[#FFF8E1] dark:bg-amber-900/30 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                            {acc.profile_type || 'Self Directed IRA'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <p className="font-bold text-[#2BB673] font-helvetica text-[15px]">
-                            ${parseFloat(acc.investment_value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </>
-      ) : (
-          <div className="mt-4 rounded-sm border border-[#F0F0F0] dark:border-[#2A2A2A] bg-white dark:bg-[#1C1C1C] shadow-sm overflow-hidden">
-            {/* Suspended Banner */}
-            {selectedIra?.status === 'suspended' && (
-              <div className="bg-red-50 border-b border-red-100 px-6 py-3 flex items-center gap-3">
-                <X className="h-5 w-5 text-red-500" />
-                <p className="text-sm font-bold text-red-700 font-helvetica">
-                  This account is currently suspended. New investments and some actions are restricted.
-                </p>
-              </div>
-            )}
-            {/* SECTION 1: IRA Account Overview */}
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2">
+
+              <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
+
+              {/* SECTION 2: Profile Information */}
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-5">
                   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
-                    <FileText className="h-3.5 w-3.5 text-[#D1A94C]" />
+                    <User className="h-3.5 w-3.5 text-[#D1A94C]" />
                   </div>
-                  <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">IRA Account Overview</h3>
+                  <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Profile Information</h3>
+                  <StatusBadge verified={d.profileCompleted} label={d.profileCompleted ? "Completed" : "Pending"} />
                 </div>
-                <button
-                  onClick={() => setView('list')}
-                  className="text-[12px] font-bold text-[#D1A94C] hover:underline flex items-center gap-1"
-                >
-                  <ChevronLeft className="h-3 w-3" /> Back to List
-                </button>
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <Field label="Account Type" value={d.accountType} />
-                <Field label="Account Number" value={d.accountNumber} />
-                <Field label="Account Status" value={d.accountStatus} />
-                <Field label="Account Holder Name" value={d.fullAccountHolderName} />
-                <Field label="Custodian" value={d.custodian} />
-                <Field label="Beneficiary" value={d.beneficiary} />
-                <Field label="Contribution (YTD)" value={d.contributionYTD} />
-                <Field label="Annual Contribution Limit" value={d.contributionLimit} />
-                <Field label="Account Balance" value={d.accountBalance} />
-                <Field label="Marital Status" value={d.maritalStatus} />
-              </div>
-            </div>
-
-            <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
-
-            {/* SECTION 2: Profile Information */}
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
-                  <User className="h-3.5 w-3.5 text-[#D1A94C]" />
-                </div>
-                <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Profile Information</h3>
-                <StatusBadge verified={d.profileCompleted} label={d.profileCompleted ? "Completed" : "Pending"} />
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <Field label="First Name" value={d.firstName} />
-                <Field label="Middle Name" value={d.middleName} />
-                <Field label="Last Name" value={d.lastName} />
-                <Field label="Suffix" value={d.suffix} />
-                <Field label="Email" value={d.email} />
-                <div>
-                  <p className="text-[12px] font-medium text-[#6B7280] mb-[6px] font-helvetica">Phone Number</p>
-                  <div className="flex gap-2">
-                    <div className="h-[42px] w-[120px] shrink-0 flex items-center rounded-[8px] border border-[#E5E7EB] dark:border-gray-700 bg-[#FAFAFA] dark:bg-gray-800 px-3">
-                      <span className="text-[13px] text-[#374151] dark:text-gray-200 font-helvetica">{d.phoneCountryCode}</span>
-                    </div>
-                    <div className="h-[42px] w-[240px] flex items-center rounded-[8px] border border-[#E5E7EB] dark:border-gray-700 bg-[#FAFAFA] dark:bg-gray-800 px-4">
-                      <span className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{d.phoneNumber}</span>
-                    </div>
-                  </div>
-                </div>
-                <Field label="Date of Birth" value={d.dob} />
-              </div>
-            </div>
-
-            <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
-
-            {/* SECTION 3: Address */}
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
-                  <MapPin className="h-3.5 w-3.5 text-[#D1A94C]" />
-                </div>
-                <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Address</h3>
-                <StatusBadge verified={d.addressCompleted} label={d.addressCompleted ? "Completed" : "Pending"} />
-              </div>
-
-              <div className="flex flex-col gap-8">
-                <div className="space-y-5">
-                  <h4 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy underline decoration-[#FFC63F] underline-offset-4">Physical Address</h4>
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <Field label="Street Address Line 1" value={d.addressLine1} />
-                    <Field label="Street Address Line 2" value={d.addressLine2} />
-                    <Field label="Country" value={d.country} />
-                    <Field label="State" value={d.state} />
-                    <Field label="City" value={d.city} />
-                    <Field label="ZIP Code" value={d.zipCode} />
-                  </div>
-                </div>
-
-                <div className="border-t border-dashed border-[#ECEDEF]" />
-
-                <div className="space-y-5">
-                  <h4 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy underline decoration-[#FFC63F] underline-offset-4">Mailing Address</h4>
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-3">
-                      <p className="text-[12px] font-medium text-[#6B7280] font-helvetica">Mailing same as Physical:</p>
-                      <div className="flex gap-2">
-                        <span className={`px-3 py-0.5 rounded-full text-[12px] font-medium ${d.mailingAddressSame === 'Yes' ? 'bg-[#ECFDF5] dark:bg-emerald-950/40 text-[#16A66A] dark:text-emerald-400' : 'bg-[#F3F4F6] dark:bg-gray-800 text-[#6B7280] dark:text-gray-400'}`}>
-                          Yes
-                        </span>
-                        <span className={`px-3 py-0.5 rounded-full text-[12px] font-medium ${d.mailingAddressSame === 'No' ? 'bg-[#FEF2F2] dark:bg-red-950/40 text-[#EF4444] dark:text-red-400' : 'bg-[#F3F4F6] dark:bg-gray-800 text-[#6B7280] dark:text-gray-400'}`}>
-                          No
-                        </span>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="First Name" value={d.firstName} />
+                  <Field label="Middle Name" value={d.middleName} />
+                  <Field label="Last Name" value={d.lastName} />
+                  <Field label="Suffix" value={d.suffix} />
+                  <Field label="Email" value={d.email} />
+                  <div>
+                    <p className="text-[12px] font-medium text-[#6B7280] mb-[6px] font-helvetica">Phone Number</p>
+                    <div className="flex gap-2">
+                      <div className="h-[42px] w-[120px] shrink-0 flex items-center rounded-[8px] border border-[#E5E7EB] dark:border-gray-700 bg-[#FAFAFA] dark:bg-gray-800 px-3">
+                        <span className="text-[13px] text-[#374151] dark:text-gray-200 font-helvetica">{d.phoneCountryCode}</span>
+                      </div>
+                      <div className="h-[42px] w-[240px] flex items-center rounded-[8px] border border-[#E5E7EB] dark:border-gray-700 bg-[#FAFAFA] dark:bg-gray-800 px-4">
+                        <span className="text-[13px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{d.phoneNumber}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <Field label="Street Address Line 1" value={d.mailingAddress1} />
-                    <Field label="Street Address Line 2" value={d.mailingAddress2} />
-                    <Field label="Country" value={d.mailingCountry} />
-                    <Field label="State" value={d.mailingState} />
-                    <Field label="City" value={d.mailingCity} />
-                    <Field label="ZIP Code" value={d.mailingZipCode} />
+                  <Field label="Date of Birth" value={d.dob} />
+                </div>
+              </div>
+
+              <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
+
+              {/* SECTION 3: Address */}
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
+                    <MapPin className="h-3.5 w-3.5 text-[#D1A94C]" />
                   </div>
+                  <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Address</h3>
+                  <StatusBadge verified={d.addressCompleted} label={d.addressCompleted ? "Completed" : "Pending"} />
                 </div>
-              </div>
-            </div>
 
-            <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
-
-            {/* SECTION 4: Phone Verification */}
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
-                  <Phone className="h-3.5 w-3.5 text-[#D1A94C]" />
-                </div>
-                <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Phone Verification</h3>
-                <StatusBadge verified={d.phoneVerified} label={d.phoneVerified ? 'Verified' : 'Pending'} />
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div>
-                  <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Phone Number</p>
-                  <p className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{d.phoneCountryCode} {d.phoneNumber}</p>
-                </div>
-                <Field label="Verified On" value={d.phoneVerifiedAt} />
-              </div>
-            </div>
-
-            <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
-
-            {/* SECTION 5: TAX Information */}
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
-                  <FileText className="h-3.5 w-3.5 text-[#D1A94C]" />
-                </div>
-                <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">TAX Information</h3>
-                <StatusBadge verified={d.taxCompleted} label={d.taxCompleted ? "Completed" : "Pending"} />
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Social Security Number / Tax ID</p>
-                    {!isEditingTaxId && (
-                      <button
-                        onClick={() => setIsEditingTaxId(true)}
-                        className="text-[10px] font-bold text-[#D1A94C] hover:underline font-helvetica"
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </div>
-                  {isEditingTaxId ? (
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={editedTaxId}
-                        maxLength={11}
-                        onChange={(e) => {
-                          let val = e.target.value.replace(/\D/g, '');
-                          if (val.length > 9) val = val.slice(0, 9);
-
-                          let formatted = val;
-                          if (val.length > 3 && val.length <= 5) {
-                            formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
-                          } else if (val.length > 5) {
-                            formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
-                          }
-                          setEditedTaxId(formatted);
-                        }}
-                        className="flex-1 h-9 px-3 text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#D1A94C]"
-                      />
-                      <button
-                        onClick={handleSaveTaxId}
-                        disabled={isSavingTaxId}
-                        className="px-3 h-9 text-[12px] font-bold bg-[#FFC63F] text-[#1F1F1F] dark:text-gray-100 rounded-lg hover:opacity-90 disabled:opacity-50 font-helvetica"
-                      >
-                        {isSavingTaxId ? '...' : 'Save'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsEditingTaxId(false);
-                          setEditedTaxId(user?.taxId || '');
-                        }}
-                        className="px-3 h-9 text-[12px] font-bold bg-gray-100 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 font-helvetica"
-                      >
-                        Cancel
-                      </button>
+                <div className="flex flex-col gap-8">
+                  <div className="space-y-5">
+                    <h4 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy underline decoration-[#FFC63F] underline-offset-4">Physical Address</h4>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <Field label="Street Address Line 1" value={d.addressLine1} />
+                      <Field label="Street Address Line 2" value={d.addressLine2} />
+                      <Field label="Country" value={d.country} />
+                      <Field label="State" value={d.state} />
+                      <Field label="City" value={d.city} />
+                      <Field label="ZIP Code" value={d.zipCode} />
                     </div>
-                  ) : (
-                    <p className="text-[14px] tracking-[3px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">
-                      {d.taxId ? (d.taxId.length === 9 && !d.taxId.includes('-') ? `${d.taxId.slice(0, 3)}-${d.taxId.slice(3, 5)}-${d.taxId.slice(5)}` : d.taxId) : 'Not provided'}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Encryption Status</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Lock className="h-3.5 w-3.5 text-[#16A66A]" />
-                    <span className="text-[13px] text-[#16A66A] font-medium font-helvetica">Your information is encrypted and secure</span>
+                  </div>
+
+                  <div className="border-t border-dashed border-[#ECEDEF]" />
+
+                  <div className="space-y-5">
+                    <h4 className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy underline decoration-[#FFC63F] underline-offset-4">Mailing Address</h4>
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-3">
+                        <p className="text-[12px] font-medium text-[#6B7280] font-helvetica">Mailing same as Physical:</p>
+                        <div className="flex gap-2">
+                          <span className={`px-3 py-0.5 rounded-full text-[12px] font-medium ${d.mailingAddressSame === 'Yes' ? 'bg-[#ECFDF5] dark:bg-emerald-950/40 text-[#16A66A] dark:text-emerald-400' : 'bg-[#F3F4F6] dark:bg-gray-800 text-[#6B7280] dark:text-gray-400'}`}>
+                            Yes
+                          </span>
+                          <span className={`px-3 py-0.5 rounded-full text-[12px] font-medium ${d.mailingAddressSame === 'No' ? 'bg-[#FEF2F2] dark:bg-red-950/40 text-[#EF4444] dark:text-red-400' : 'bg-[#F3F4F6] dark:bg-gray-800 text-[#6B7280] dark:text-gray-400'}`}>
+                            No
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <Field label="Street Address Line 1" value={d.mailingAddress1} />
+                      <Field label="Street Address Line 2" value={d.mailingAddress2} />
+                      <Field label="Country" value={d.mailingCountry} />
+                      <Field label="State" value={d.mailingState} />
+                      <Field label="City" value={d.mailingCity} />
+                      <Field label="ZIP Code" value={d.mailingZipCode} />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
+              <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
 
-            {/* SECTION 6: Two-Factor Authentication */}
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
-                  <Shield className="h-3.5 w-3.5 text-[#D1A94C]" />
+              {/* SECTION 4: Phone Verification */}
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
+                    <Phone className="h-3.5 w-3.5 text-[#D1A94C]" />
+                  </div>
+                  <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Phone Verification</h3>
+                  <StatusBadge verified={d.phoneVerified} label={d.phoneVerified ? 'Verified' : 'Pending'} />
                 </div>
-                <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Two-Factor Authentication</h3>
-                <StatusBadge verified={d.twoFactorEnabled} label={d.twoFactorEnabled ? 'Enabled' : 'Disabled'} />
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Phone Number</p>
+                    <p className="text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">{d.phoneCountryCode} {d.phoneNumber}</p>
+                  </div>
+                  <Field label="Verified On" value={d.phoneVerifiedAt} />
+                </div>
               </div>
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <Field label="Authentication Method" value={d.twoFactorMethod} />
-                <Field label="Setup Date" value={d.twoFactorSetupDate} />
-                <div>
-                  <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Status</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    {d.twoFactorEnabled ? (
-                      <>
-                        <Smartphone className="h-3.5 w-3.5 text-[#16A66A]" />
-                        <span className="text-[13px] text-[#16A66A] font-medium font-helvetica">Active</span>
-                      </>
+
+              <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
+
+              {/* SECTION 5: TAX Information */}
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
+                    <FileText className="h-3.5 w-3.5 text-[#D1A94C]" />
+                  </div>
+                  <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">TAX Information</h3>
+                  <StatusBadge verified={d.taxCompleted} label={d.taxCompleted ? "Completed" : "Pending"} />
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Social Security Number / Tax ID</p>
+                      {!isEditingTaxId && (
+                        <button
+                          onClick={() => setIsEditingTaxId(true)}
+                          className="text-[10px] font-bold text-[#D1A94C] hover:underline font-helvetica"
+                        >
+                          Edit
+                        </button>
+                      )}
+                    </div>
+                    {isEditingTaxId ? (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={editedTaxId}
+                          maxLength={11}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, '');
+                            if (val.length > 9) val = val.slice(0, 9);
+
+                            let formatted = val;
+                            if (val.length > 3 && val.length <= 5) {
+                              formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                            } else if (val.length > 5) {
+                              formatted = `${val.slice(0, 3)}-${val.slice(3, 5)}-${val.slice(5)}`;
+                            }
+                            setEditedTaxId(formatted);
+                          }}
+                          className="flex-1 h-9 px-3 text-[14px] text-[#1F1F1F] dark:text-gray-100 font-helvetica border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#D1A94C]"
+                        />
+                        <button
+                          onClick={handleSaveTaxId}
+                          disabled={isSavingTaxId}
+                          className="px-3 h-9 text-[12px] font-bold bg-[#FFC63F] text-[#1F1F1F] dark:text-gray-100 rounded-lg hover:opacity-90 disabled:opacity-50 font-helvetica"
+                        >
+                          {isSavingTaxId ? '...' : 'Save'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsEditingTaxId(false);
+                            setEditedTaxId(user?.taxId || '');
+                          }}
+                          className="px-3 h-9 text-[12px] font-bold bg-gray-100 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 font-helvetica"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     ) : (
-                      <span className="text-[13px] text-[#8E8E93] font-helvetica">Not configured</span>
+                      <p className="text-[14px] tracking-[3px] text-[#1F1F1F] dark:text-gray-100 font-helvetica">
+                        {d.taxId ? (d.taxId.length === 9 && !d.taxId.includes('-') ? `${d.taxId.slice(0, 3)}-${d.taxId.slice(3, 5)}-${d.taxId.slice(5)}` : d.taxId) : 'Not provided'}
+                      </p>
                     )}
                   </div>
+                  <div>
+                    <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Encryption Status</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Lock className="h-3.5 w-3.5 text-[#16A66A]" />
+                      <span className="text-[13px] text-[#16A66A] font-medium font-helvetica">Your information is encrypted and secure</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mx-6 sm:mx-8 border-t border-[#ECEDEF]" />
+
+              {/* SECTION 6: Two-Factor Authentication */}
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF8E1]">
+                    <Shield className="h-3.5 w-3.5 text-[#D1A94C]" />
+                  </div>
+                  <h3 className="text-[16px] font-semibold text-[#1F1F1F] dark:text-gray-100 font-goudy">Two-Factor Authentication</h3>
+                  <StatusBadge verified={d.twoFactorEnabled} label={d.twoFactorEnabled ? 'Enabled' : 'Disabled'} />
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  <Field label="Authentication Method" value={d.twoFactorMethod} />
+                  <Field label="Setup Date" value={d.twoFactorSetupDate} />
+                  <div>
+                    <p className="text-[12px] font-medium text-[#6B7280] mb-1 font-helvetica">Status</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {d.twoFactorEnabled ? (
+                        <>
+                          <Smartphone className="h-3.5 w-3.5 text-[#16A66A]" />
+                          <span className="text-[13px] text-[#16A66A] font-medium font-helvetica">Active</span>
+                        </>
+                      ) : (
+                        <span className="text-[13px] text-[#8E8E93] font-helvetica">Not configured</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       {/* ─── ADD IRA MODAL ─── */}
