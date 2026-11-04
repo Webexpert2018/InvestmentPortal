@@ -481,8 +481,8 @@ export default function InvestPage() {
         investorAccountId: finalInvestorAccountId,
         customInvestorName: isSubIra
           ? (selectedSub?.fullName?.startsWith('AET FBO ')
-              ? selectedSub.fullName
-              : `AET FBO ${(selectedSub?.fullName || '').replace(/^AET\s+FBO\s+/i, '')}`)
+            ? selectedSub.fullName
+            : `AET FBO ${(selectedSub?.fullName || '').replace(/^AET\s+FBO\s+/i, '')}`)
           : undefined,
         iraMetadata: (isIra || isSubIra) ? {
           custodian: (selectedIra?.custodian_name || selectedSub?.custodianName),
@@ -575,70 +575,82 @@ export default function InvestPage() {
       return;
     }
 
-    if (step === 'investmentStatus') {
-      localStorage.removeItem('draft_investment');
-      setShowSuccess(true);
-      setAmount('25000');
-      setSelectedAccountId('personal');
-      return;
-    }
-
-
-    setStep((current: Step) => {
-      switch (current) {
-        case 'chooseFund':
-          return 'fundingAccount';
-        case 'fundingAccount':
-          return 'investmentAmount';
-        case 'investmentAmount':
-          return 'signDocuments';
-        case 'signDocuments':
-          return 'fundingInstructions';
-        case 'fundingInstructions':
-          return 'investmentStatus';
-        default:
-          return current;
+      if (step === 'fundingInstructions' || step === 'investmentStatus') {
+        localStorage.removeItem('draft_investment');
+        setShowSuccess(true);
+        setAmount('25000');
+        setSelectedAccountId('personal');
+        return;
       }
-    });
-  };
 
-  interface StepHeaderProps {
-    title: string;
-    subtitle: string;
-    primaryLabel?: string;
-    onPrimary?: () => void;
-    primaryDisabled?: boolean;
-    showBack?: boolean;
-    onBack?: () => void;
-    icon?: React.ReactNode;
-  }
 
-  const renderStepHeader = ({
-    title,
-    subtitle,
-    primaryLabel = 'Continue',
-    onPrimary = goNext,
-    primaryDisabled = false,
-    showBack = true,
-    onBack = goBack,
-    icon,
-  }: StepHeaderProps) => {
-    return (
-      <div className="mb-6 space-y-4">
-        {/* Main Heading Row: Title/Subtitle on Left, Investor Relation on Right */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            {icon && <div className="mb-3">{icon}</div>}
-            <h1 className="font-goudy text-[22px] sm:text-[28px] md:text-[30px] font-bold leading-tight text-[#1F1F1F] dark:text-gray-100">
-              {title}
+      setStep((current: Step) => {
+        switch (current) {
+          case 'chooseFund':
+            return 'fundingAccount';
+          case 'fundingAccount':
+            return 'investmentAmount';
+          case 'investmentAmount':
+            return 'signDocuments';
+          case 'signDocuments':
+            return 'fundingInstructions';
+          case 'fundingInstructions':
+            return 'investmentStatus';
+          default:
+            return current;
+        }
+      });
+    };
+
+    const renderNavButtons = (options: FooterOptions = {}) => {
+      const { primaryLabel = 'Continue', showBack = true } = options;
+
+      const isDisabled =
+        saving ||
+        isSigning ||
+        (step === 'fundingAccount' && !selectedAccountId) ||
+        (step === 'investmentAmount' && investmentAmount <= 0);
+
+      return (
+        <div className="flex items-center gap-3">
+          {showBack && (
+            <button
+              type="button"
+              onClick={goBack}
+              className="rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-7 py-3 text-sm sm:text-base font-bold text-[#374151] dark:text-gray-200 border border-gray-200 dark:border-gray-700 shadow-sm transition-all active:scale-95"
+            >
+              Back
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={goNext}
+            disabled={isDisabled}
+            className="rounded-full bg-[#274583] hover:bg-[#1E3668] px-8 py-3 text-sm sm:text-base font-bold text-white shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#274583] disabled:hover:shadow-none transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            {saving ? 'Saving...' : primaryLabel}
+          </button>
+        </div>
+      );
+    };
+
+
+
+    const renderChooseFund = () => (
+      <>
+
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F] dark:text-gray-100">
+              Choose a Fund
             </h1>
-            <p className="mt-1 text-sm text-[#8E8E93] leading-relaxed">
-              {subtitle}
+            <p className="mt-2 text-sm text-[#8E8E93]">
+              Select the fund you would like to invest in.
+              You will complete your investment steps on text next screens.
             </p>
           </div>
 
-          {/* Right: Investor Relation Badge */}
-          <div className="hidden md:flex flex-shrink-0 items-center text-xs">
+          <div className="hidden md:flex items-center gap-4 text-xs">
             <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
               <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
               <div>
@@ -649,458 +661,470 @@ export default function InvestPage() {
           </div>
         </div>
 
-        {/* Row Below Main Headings: Left-aligned, Enlarged & Highlighted Action Buttons */}
-        <div className="flex items-center justify-start gap-3 sm:gap-4 py-2">
-          {showBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              className="rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 text-[#8B6B23] dark:text-amber-300 border border-[#F5E2B3] dark:border-amber-800/40 px-8 sm:px-10 py-3 sm:py-3.5 text-base sm:text-lg font-bold shadow-sm hover:shadow-md hover:scale-[1.03] active:scale-[0.98] transition-all duration-200"
-            >
-              Back
-            </button>
-          )}
-          {primaryLabel && (
-            <button
-              type="button"
-              onClick={onPrimary}
-              disabled={primaryDisabled}
-              className="rounded-full bg-gradient-to-r from-[#FFC63F] via-[#F1CF4A] to-[#E5B533] hover:from-[#F1B92E] hover:to-[#D9A322] text-[#1A1A1A] px-9 sm:px-12 py-3 sm:py-3.5 text-base sm:text-lg font-bold shadow-lg shadow-amber-400/25 dark:shadow-amber-500/15 hover:shadow-xl hover:shadow-amber-400/35 hover:scale-[1.03] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none"
-            >
-              {saving ? 'Saving...' : primaryLabel}
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  };
+        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-6 py-6 shadow-sm">
 
-  const renderFooter = (_options: FooterOptions = {}) => null;
-
-  const renderChooseFund = () => (
-    <>
-      {renderStepHeader({
-        title: 'Choose a Fund',
-        subtitle: 'Select the fund you would like to invest in. You will complete your investment steps on text next screens.',
-        primaryLabel: 'Invest Now',
-        onPrimary: goNext,
-        primaryDisabled: !selectedFundId,
-        showBack: false,
-      })}
-
-      <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-6 py-6 shadow-sm">
-        <div className="grid gap-6 md:grid-cols-2">
-          {funds.map((fund) => {
-            const selected = fund.id === selectedFundId;
-            return (
-              <div
-                key={fund.id}
-                onClick={() => setSelectedFundId(fund.id)}
-                className={`flex flex-col sm:flex-row md:flex-col xl:flex-row w-full items-start rounded-xl bg-[#F7F8FA] dark:bg-[#262626] px-5 py-5 sm:px-6 sm:py-6 text-left transition hover:bg-[#F1F2F5] dark:hover:bg-[#2D2D2D] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white dark:ring-offset-[#1C1C1C]' : 'border border-transparent dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
-                  }`}
-              >
-                <div className="mb-4 sm:mb-0 md:mb-5 xl:mb-0 sm:mr-6 md:mr-0 xl:mr-6 h-40 sm:h-28 md:h-48 xl:h-28 w-full sm:w-48 md:w-full xl:w-48 flex-shrink-0 bg-white dark:bg-[#1C1C1C] rounded-xl overflow-hidden border border-[#E5E5EA] dark:border-gray-700 flex items-center justify-center shadow-sm">
-                  <img
-                    src={getFullImageUrl(fund.image)}
-                    alt={fund.name}
-                    className="w-full h-full object-contain p-2"
-                  />
-                </div>
-                <div className="flex-grow min-w-0 w-full">
-                  <div className="flex items-start justify-between gap-4">
-                    <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F] dark:text-gray-100 truncate">
-                      {fund.name}
-                    </h3>
-
-                    {/* Toggle Switch */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider select-none">
-                        View
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setToggledFundId(toggledFundId === fund.id ? null : fund.id);
-                        }}
-                        className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${toggledFundId === fund.id ? 'bg-[#274583]' : 'bg-[#E5E5EA]'
-                          }`}
-                        title={toggledFundId === fund.id ? "Hide details" : "Show details"}
-                      >
-                        <span
-                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white dark:bg-[#1C1C1C] shadow ring-0 transition duration-200 ease-in-out ${toggledFundId === fund.id ? 'translate-x-4' : 'translate-x-0'
-                            }`}
-                        />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 mt-1.5 mb-2">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${fund.status === 'Closed' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-transparent dark:border-red-900/50' : 'bg-green-50 dark:bg-emerald-950/40 text-green-600 dark:text-emerald-400 border border-transparent dark:border-emerald-900/50'
-                      }`}>
-                      {fund.status || 'Active'}
-                    </span>
-                    <span className="text-[10px] text-[#8E8E93] font-medium lowercase">
-                      Created: {fund.startDate ? new Date(fund.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : 'N/A'}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[#4B4B4B] dark:text-gray-300 line-clamp-2 max-w-sm">
-                    {fund.description || 'Secure institutional-grade Bitcoin strategies.'}
-                  </p>
-                  {fund.note && (
-                    <p className="mt-1.5 text-[10px] text-gray-400 line-clamp-1 italic">
-                      {fund.note}
-                    </p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Dynamic Toggled Fund Details Section */}
-        {(() => {
-          const toggledFund = funds.find(f => f.id === toggledFundId);
-          if (!toggledFund) return null;
-          return (
-            <div className="mt-8 border-t border-[#E5E5EA] pt-8 animate-fadeIn">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="h-5 w-1 bg-[#274583] rounded-full"></div>
-                <h3 className="font-goudy text-lg sm:text-xl font-bold text-[#1F1F1F] dark:text-gray-100">
-                  Fund Information: {toggledFund.name}
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column: Image and Start Date */}
-                <div className="space-y-4">
-                  <div className="w-full h-60 rounded-xl shadow-sm border border-[#E5E5EA] dark:border-gray-700 bg-white dark:bg-[#1C1C1C] flex items-center justify-center overflow-hidden">
+          <div className="grid gap-6 md:grid-cols-2">
+            {funds.map((fund) => {
+              const selected = fund.id === selectedFundId;
+              return (
+                <div
+                  key={fund.id}
+                  onClick={() => setSelectedFundId(fund.id)}
+                  className={`flex flex-col sm:flex-row md:flex-col xl:flex-row w-full items-start rounded-xl bg-[#F7F8FA] dark:bg-[#262626] px-5 py-5 sm:px-6 sm:py-6 text-left transition hover:bg-[#F1F2F5] dark:hover:bg-[#2D2D2D] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white dark:ring-offset-[#1C1C1C]' : 'border border-transparent dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
+                    }`}
+                >
+                  <div className="mb-4 sm:mb-0 md:mb-5 xl:mb-0 sm:mr-6 md:mr-0 xl:mr-6 h-40 sm:h-28 md:h-48 xl:h-28 w-full sm:w-48 md:w-full xl:w-48 flex-shrink-0 bg-white dark:bg-[#1C1C1C] rounded-xl overflow-hidden border border-[#E5E5EA] dark:border-gray-700 flex items-center justify-center shadow-sm">
                     <img
-                      src={getFullImageUrl(toggledFund.image)}
-                      alt={toggledFund.name}
+                      src={getFullImageUrl(fund.image)}
+                      alt={fund.name}
                       className="w-full h-full object-contain p-2"
                     />
                   </div>
-                  <div className="bg-[#F7F8FA] dark:bg-[#262626] p-4 rounded-xl border border-[#E5E5EA] dark:border-gray-700">
-                    <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Start Date</p>
-                    <p className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">
-                      {toggledFund.startDate ? new Date(toggledFund.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : 'N/A'}
-                    </p>
-                  </div>
-                </div>
+                  <div className="flex-grow min-w-0 w-full">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F] dark:text-gray-100 truncate">
+                        {fund.name}
+                      </h3>
 
-                {/* Middle & Right Column: Description & Wire Instructions */}
-                <div className="lg:col-span-2 space-y-6">
-                  <div>
-                    <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider mb-2">Description</p>
-                    <p className="text-sm text-[#4B4B4B] dark:text-gray-300 leading-relaxed whitespace-pre-line bg-[#F7F8FA] dark:bg-[#262626] p-4 rounded-xl border border-[#E5E5EA] dark:border-gray-700">
-                      {toggledFund.description || 'Secure institutional-grade Bitcoin strategies.'}
-                    </p>
-                  </div>
+                      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedFundId(fund.id);
+                            setStep('fundingAccount');
+                          }}
+                          className="rounded-full bg-[#274583] hover:bg-[#1E3668] px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold text-white shadow-sm hover:shadow transition-all active:scale-95 flex items-center gap-1"
+                        >
+                          Invest
+                        </button>
 
-                  {/* Wire Instructions Details */}
-                  <div>
-                    <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider mb-3">Custodian Wire Instructions</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 bg-[#F7F8FA] dark:bg-[#262626] p-5 rounded-xl border border-[#E5E5EA] dark:border-gray-700">
-                      <div>
-                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Bank Name</p>
-                        <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">{toggledFund.bankName || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Account Number</p>
-                        <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1 tracking-wider">{toggledFund.accountNumber || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Routing Number (ABA)</p>
-                        <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">{toggledFund.routingNumber || 'N/A'}</p>
-                      </div>
-                      <div className="sm:col-span-2 md:col-span-3 border-t border-[#E5E5EA] pt-4 mt-2">
-                        <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">For Benefit Of</p>
-                        <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">{toggledFund.beneficiaryName || 'N/A'}</p>
-                      </div>
-                      {toggledFund.bankAddress && (
-                        <div className="sm:col-span-2 md:col-span-3 border-t border-[#E5E5EA] pt-4">
-                          <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Custodian Address</p>
-                          <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1 leading-relaxed whitespace-pre-line">{toggledFund.bankAddress}</p>
+                        {/* Toggle Switch */}
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <span className="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider select-none">
+                            View
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setToggledFundId(toggledFundId === fund.id ? null : fund.id);
+                            }}
+                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${toggledFundId === fund.id ? 'bg-[#274583]' : 'bg-[#E5E5EA]'
+                              }`}
+                            title={toggledFundId === fund.id ? "Hide details" : "Show details"}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white dark:bg-[#1C1C1C] shadow ring-0 transition duration-200 ease-in-out ${toggledFundId === fund.id ? 'translate-x-4' : 'translate-x-0'
+                                }`}
+                            />
+                          </button>
                         </div>
-                      )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 mt-1.5 mb-2">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${fund.status === 'Closed' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-transparent dark:border-red-900/50' : 'bg-green-50 dark:bg-emerald-950/40 text-green-600 dark:text-emerald-400 border border-transparent dark:border-emerald-900/50'
+                        }`}>
+                        {fund.status || 'Active'}
+                      </span>
+                      <span className="text-[10px] text-[#8E8E93] font-medium lowercase">
+                        Created: {fund.startDate ? new Date(fund.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : 'N/A'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#4B4B4B] dark:text-gray-300 line-clamp-2 max-w-sm">
+                      {fund.description || 'Secure institutional-grade Bitcoin strategies.'}
+                    </p>
+                    {fund.note && (
+                      <p className="mt-1.5 text-[10px] text-gray-400 line-clamp-1 italic">
+                        {fund.note}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Dynamic Toggled Fund Details Section */}
+          {(() => {
+            const toggledFund = funds.find(f => f.id === toggledFundId);
+            if (!toggledFund) return null;
+            return (
+              <div className="mt-8 border-t border-[#E5E5EA] pt-8 animate-fadeIn">
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="h-5 w-1 bg-[#274583] rounded-full"></div>
+                  <h3 className="font-goudy text-lg sm:text-xl font-bold text-[#1F1F1F] dark:text-gray-100">
+                    Fund Information: {toggledFund.name}
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Left Column: Image and Start Date */}
+                  <div className="space-y-4">
+                    <div className="w-full h-60 rounded-xl shadow-sm border border-[#E5E5EA] dark:border-gray-700 bg-white dark:bg-[#1C1C1C] flex items-center justify-center overflow-hidden">
+                      <img
+                        src={getFullImageUrl(toggledFund.image)}
+                        alt={toggledFund.name}
+                        className="w-full h-full object-contain p-2"
+                      />
+                    </div>
+                    <div className="bg-[#F7F8FA] dark:bg-[#262626] p-4 rounded-xl border border-[#E5E5EA] dark:border-gray-700">
+                      <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Start Date</p>
+                      <p className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">
+                        {toggledFund.startDate ? new Date(toggledFund.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Middle & Right Column: Description & Wire Instructions */}
+                  <div className="lg:col-span-2 space-y-6">
+                    <div>
+                      <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider mb-2">Description</p>
+                      <p className="text-sm text-[#4B4B4B] dark:text-gray-300 leading-relaxed whitespace-pre-line bg-[#F7F8FA] dark:bg-[#262626] p-4 rounded-xl border border-[#E5E5EA] dark:border-gray-700">
+                        {toggledFund.description || 'Secure institutional-grade Bitcoin strategies.'}
+                      </p>
+                    </div>
+
+                    {/* Wire Instructions Details */}
+                    <div>
+                      <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider mb-3">Custodian Wire Instructions</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 bg-[#F7F8FA] dark:bg-[#262626] p-5 rounded-xl border border-[#E5E5EA] dark:border-gray-700">
+                        <div>
+                          <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Bank Name</p>
+                          <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">{toggledFund.bankName || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Account Number</p>
+                          <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1 tracking-wider">{toggledFund.accountNumber || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Routing Number (ABA)</p>
+                          <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">{toggledFund.routingNumber || 'N/A'}</p>
+                        </div>
+                        <div className="sm:col-span-2 md:col-span-3 border-t border-[#E5E5EA] pt-4 mt-2">
+                          <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">For Benefit Of</p>
+                          <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1">{toggledFund.beneficiaryName || 'N/A'}</p>
+                        </div>
+                        {toggledFund.bankAddress && (
+                          <div className="sm:col-span-2 md:col-span-3 border-t border-[#E5E5EA] pt-4">
+                            <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Custodian Address</p>
+                            <p className="text-xs font-bold text-[#1F1F1F] dark:text-gray-100 mt-1 leading-relaxed whitespace-pre-line">{toggledFund.bankAddress}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })()}
-      </div>
-    </>
-  );
+            );
+          })()}
+        </div>
+      </>
+    );
 
-  const renderFundingAccount = () => (
-    <>
-      {renderStepHeader({
-        title: 'Select Funding Account',
-        subtitle: 'Choose the account you want to invest from.',
-        primaryLabel: 'Continue',
-        onPrimary: goNext,
-        primaryDisabled: saving || !selectedAccountId,
-        showBack: true,
-        onBack: goBack,
-      })}
-
-      {['Personal Account', 'IRA Accounts', 'Sub Accounts'].map(category => {
-        const accountsInCategory = dynamicAccounts.filter((acc: any) => acc.category === category);
-        if (accountsInCategory.length === 0) return null;
-        return (
-          <div key={category} className="mb-8">
-            <h3 className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100 mb-4 pl-2 uppercase tracking-wider">{category}</h3>
-            <div className="grid gap-6 md:grid-cols-3 px-2">
-              {accountsInCategory.map((account: any) => {
-                const selected = account.id === selectedAccountId;
-                const isSuspended = account.status?.toLowerCase() === 'suspended';
-                return (
-                  <button
-                    key={account.id}
-                    type="button"
-                    disabled={isSuspended}
-                    onClick={() => setSelectedAccountId(account.id)}
-                    className={`flex w-full flex-col items-start rounded-2xl px-6 py-5 text-left transition ${selected
-                      ? 'bg-white dark:bg-[#1C1C1C] shadow-md ring-2 ring-[#274583] ring-offset-2'
-                      : isSuspended
-                        ? 'bg-gray-50 dark:bg-gray-800 opacity-60 cursor-not-allowed border-red-100'
-                        : 'bg-white dark:bg-[#1C1C1C] shadow-sm hover:shadow-md border border-[#E5E5EA]'
-                      }`}
-                  >
-                    <div className="flex w-full items-center justify-between mb-1">
-                      <p className={`text-sm font-bold ${isSuspended ? 'text-gray-400' : 'text-[#1F1F1F] dark:text-gray-100'}`}>{account.label}</p>
-                      <div
-                        className={`flex h-5 w-5 items-center justify-center rounded-full border ${selected ? 'border-[#274583] bg-[#274583]' : 'border-[#D4D4D4]'
-                          } ${isSuspended ? 'opacity-0' : ''}`}
-                      >
-                        {selected && <div className="h-2 w-2 rounded-full bg-white dark:bg-[#1C1C1C]" />}
-                      </div>
-                    </div>
-                    <p className={`text-xs font-bold uppercase tracking-wider ${isSuspended ? 'text-red-500' : 'text-[#8E8E93]'}`}>
-                      {isSuspended ? 'Suspended' : account.value}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-    </>
-  );
-
-  const renderInvestmentAmount = () => (
-    <>
-      {renderStepHeader({
-        title: 'Investment Amount',
-        subtitle: "Specify how much you'd like to invest.",
-        primaryLabel: 'Continue',
-        onPrimary: goNext,
-        primaryDisabled: saving || investmentAmount <= 0,
-        showBack: true,
-        onBack: goBack,
-      })}
-
-      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-        <div className="space-y-6">
-          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
-            <label className="block text-xs font-bold uppercase tracking-wide text-[#4B4B4B] dark:text-gray-300 mb-4">
-              Amount
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="$0.00"
-                className="w-full rounded-xl border border-[#E5E5EA] bg-white dark:bg-[#1C1C1C] px-6 py-4 text-lg font-medium text-[#1F1F1F] dark:text-gray-100 outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] transition-all"
-              />
-              <p className="mt-3 text-xs text-[#8E8E93]">Minimum investment: $10,000</p>
-            </div>
-          </div>
-
-          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
-            <p className="text-xs font-bold uppercase tracking-wide text-[#4B4B4B] dark:text-gray-300 mb-6">
-              Estimated Units You Will Receive
+    const renderFundingAccount = () => (
+      <>
+        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
+              Select Funding Account
+            </h1>
+            <p className="mt-2 text-sm text-[#8E8E93]">
+              Choose the account you want to invest from.
             </p>
-            <div className="grid gap-12 md:grid-cols-2">
-              <div className="border-r border-gray-100 dark:border-gray-800 pr-8">
-                <p className="text-sm font-medium text-[#8E8E93] mb-1">Unit Price</p>
-                <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">${unitPrice.toFixed(2)}</p>
-              </div>
+          </div>
+
+          <div className="flex items-center gap-4 self-end md:self-auto">
+            <div className="hidden xl:flex items-center gap-3 bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm text-xs">
+              <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
               <div>
-                <p className="text-sm font-medium text-[#8E8E93] mb-1">Estimated Units</p>
-                <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">
-                  {estimatedUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} units
-                </p>
+                <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+                <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
               </div>
             </div>
+            {renderNavButtons({ showBack: true })}
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800 h-fit">
-          <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-6">Order Summary</h2>
-          <div className="space-y-4 text-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-              <span className="text-[#8E8E93]">Investment Amount</span>
-              <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
-                $
-                {investmentAmount.toLocaleString('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
+        {['Personal Account', 'IRA Accounts', 'Sub Accounts'].map(category => {
+          const accountsInCategory = dynamicAccounts.filter((acc: any) => acc.category === category);
+          if (accountsInCategory.length === 0) return null;
+          return (
+            <div key={category} className="mb-8">
+              <h3 className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100 mb-4 pl-2 uppercase tracking-wider">{category}</h3>
+              <div className="grid gap-6 md:grid-cols-3 px-2">
+                {accountsInCategory.map((account: any) => {
+                  const selected = account.id === selectedAccountId;
+                  const isSuspended = account.status?.toLowerCase() === 'suspended';
+                  return (
+                    <button
+                      key={account.id}
+                      type="button"
+                      disabled={isSuspended}
+                      onClick={() => setSelectedAccountId(account.id)}
+                      className={`flex w-full flex-col items-start rounded-2xl px-6 py-5 text-left transition ${selected
+                        ? 'bg-white dark:bg-[#1C1C1C] shadow-md ring-2 ring-[#274583] ring-offset-2'
+                        : isSuspended
+                          ? 'bg-gray-50 dark:bg-gray-800 opacity-60 cursor-not-allowed border-red-100'
+                          : 'bg-white dark:bg-[#1C1C1C] shadow-sm hover:shadow-md border border-[#E5E5EA]'
+                        }`}
+                    >
+                      <div className="flex w-full items-center justify-between mb-1">
+                        <p className={`text-sm font-bold ${isSuspended ? 'text-gray-400' : 'text-[#1F1F1F] dark:text-gray-100'}`}>{account.label}</p>
+                        <div
+                          className={`flex h-5 w-5 items-center justify-center rounded-full border ${selected ? 'border-[#274583] bg-[#274583]' : 'border-[#D4D4D4]'
+                            } ${isSuspended ? 'opacity-0' : ''}`}
+                        >
+                          {selected && <div className="h-2 w-2 rounded-full bg-white dark:bg-[#1C1C1C]" />}
+                        </div>
+                      </div>
+                      <p className={`text-xs font-bold uppercase tracking-wider ${isSuspended ? 'text-red-500' : 'text-[#8E8E93]'}`}>
+                        {isSuspended ? 'Suspended' : account.value}
+                      </p>
+                    </button>
+                  );
                 })}
-              </span>
+              </div>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-              <span className="text-[#8E8E93]">Estimated Units</span>
-              <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
-                {estimatedUnits.toLocaleString('en-US', {
-                  minimumFractionDigits: 4,
-                  maximumFractionDigits: 4,
-                })}
-              </span>
+          );
+        })}
+
+      </>
+    );
+
+    const renderInvestmentAmount = () => (
+      <>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="font-goudy text-xl sm:text-[28px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
+              Investment Amount
+            </h1>
+            <p className="mt-1 text-sm text-[#8E8E93]">Specify how much you&apos;d like to invest.</p>
+          </div>
+
+          <div className="flex items-center gap-4 self-end md:self-auto">
+            <div className="hidden xl:flex items-center gap-3 bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm text-xs">
+              <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+              <div>
+                <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+                <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
+              </div>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-              <span className="text-[#8E8E93]">Processing Fee (0%)</span>
-              <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
-                $
-                {processingFee.toLocaleString('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-                })}
-              </span>
+            {renderNavButtons({ showBack: true })}
+          </div>
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+          <div className="space-y-6">
+            <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
+              <label className="block text-xs font-bold uppercase tracking-wide text-[#4B4B4B] dark:text-gray-300 mb-4">
+                Amount
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="$0.00"
+                  className="w-full rounded-xl border border-[#E5E5EA] bg-white dark:bg-[#1C1C1C] px-6 py-4 text-lg font-medium text-[#1F1F1F] dark:text-gray-100 outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] transition-all"
+                />
+                <p className="mt-3 text-xs text-[#8E8E93]">Minimum investment: $10,000</p>
+              </div>
             </div>
-            <div className="pt-6 mt-6 border-t border-dashed border-[#E5E5EA]">
+
+            <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
+              <p className="text-xs font-bold uppercase tracking-wide text-[#4B4B4B] dark:text-gray-300 mb-6">
+                Estimated Units You Will Receive
+              </p>
+              <div className="grid gap-12 md:grid-cols-2">
+                <div className="border-r border-gray-100 dark:border-gray-800 pr-8">
+                  <p className="text-sm font-medium text-[#8E8E93] mb-1">Unit Price</p>
+                  <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">${unitPrice.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[#8E8E93] mb-1">Estimated Units</p>
+                  <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">
+                    {estimatedUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} units
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800 h-fit">
+            <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-6">Order Summary</h2>
+            <div className="space-y-4 text-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <span className="text-gray-400 font-medium">Total</span>
-                <span className="text-xl font-bold text-[#2BB673]">
+                <span className="text-[#8E8E93]">Investment Amount</span>
+                <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
                   $
-                  {total.toLocaleString('en-US', {
+                  {investmentAmount.toLocaleString('en-US', {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0,
                   })}
                 </span>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-
-  const renderSignDocuments = () => (
-    <>
-      {renderStepHeader({
-        title: 'Sign Subscription Documents',
-        subtitle: 'Review and e-sign required documents.',
-        primaryLabel: isSigning ? 'Connecting to DocuSign...' : 'Start Signing',
-        onPrimary: goNext,
-        primaryDisabled: isSigning,
-        showBack: true,
-        onBack: goBack,
-      })}
-
-      <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
-        {/* Left Preview Section */}
-        <div className="rounded-[8px] bg-white dark:bg-[#1C1C1C] p-0 sm:p-4 shadow-sm border border-[#E5E5EA] dark:border-gray-800 w-full max-w-full overflow-hidden">
-          <div className="flex flex-col min-h-[750px] lg:min-h-[900px] rounded-[6px] border border-[#E9EBEE] dark:border-gray-800 bg-[#F8F9FB] dark:bg-[#262626] overflow-hidden transition-all w-full max-w-full">
-            {/* Toolbar */}
-            <div className="flex h-[44px] items-center justify-between border-b border-[#E2E5EA] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] px-2 sm:px-4">
-              <div className="flex items-center gap-2 sm:gap-3 text-[12px] text-[#6B7280] dark:text-gray-300 min-w-0">
-                <button
-                  onClick={() => { setSelectedSubDoc(null); setSelectedPage(1); setStep('investmentAmount'); }}
-                  className="inline-flex items-center gap-0.5 sm:gap-1 text-[#5E6B7F] dark:text-gray-300 hover:text-[#1F1F1F] dark:hover:text-white transition-colors flex-shrink-0"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline">Back</span>
-                </button>
-                <div className="border-l border-gray-200 dark:border-gray-800 pl-2 sm:pl-3 min-w-0">
-                  <p className="font-medium text-[#374151] dark:text-gray-200 truncate max-w-[120px] sm:max-w-[200px]">
-                    {selectedSubDoc?.name || 'Select a document'}
-                  </p>
-                  <p className="text-[10px] text-[#9CA3AF] hidden sm:block">
-                    Document Vault &gt; Subscription Documents
-                  </p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <span className="text-[#8E8E93]">Estimated Units</span>
+                <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
+                  {estimatedUnits.toLocaleString('en-US', {
+                    minimumFractionDigits: 4,
+                    maximumFractionDigits: 4,
+                  })}
+                </span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <span className="text-[#8E8E93]">Processing Fee (0%)</span>
+                <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
+                  $
+                  {processingFee.toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}
+                </span>
+              </div>
+              <div className="pt-6 mt-6 border-t border-dashed border-[#E5E5EA]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <span className="text-gray-400 font-medium">Total</span>
+                  <span className="text-xl font-bold text-[#2BB673]">
+                    $
+                    {total.toLocaleString('en-US', {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    })}
+                  </span>
                 </div>
               </div>
-
-              <div className="flex items-center gap-2 sm:gap-3 text-[#6B7280] dark:text-gray-400 flex-shrink-0">
-                <button type="button" onClick={handleDownload} title="Download" className="hover:text-[#374151] dark:hover:text-white"><Download className="h-3.5 w-3.5" /></button>
-                <button type="button" onClick={handlePrint} title="Print" className="hover:text-[#374151] dark:hover:text-white hidden sm:block"><Printer className="h-3.5 w-3.5" /></button>
-                <button type="button" title="Search" className="hover:text-[#374151] dark:hover:text-white hidden sm:block"><Search className="h-3.5 w-3.5" /></button>
-                <span className="text-[11px] font-medium hidden xs:inline">{zoom}%</span>
-                <button type="button" onClick={() => setZoom((prev: number) => Math.max(50, prev - 10))} className="hover:text-[#374151] dark:hover:text-white"><Minus className="h-3.5 w-3.5" /></button>
-                <button type="button" onClick={() => setZoom((prev: number) => Math.min(200, prev + 10))} className="hover:text-[#374151] dark:hover:text-white"><Plus className="h-3.5 w-3.5" /></button>
-                <button type="button" className="hover:text-[#374151] dark:hover:text-white hidden xs:block"><Maximize2 className="h-3.5 w-3.5" /></button>
-              </div>
-            </div>
-
-            <div className="flex flex-col md:grid md:grid-cols-[92px_1fr] flex-1 min-h-0 w-full max-w-full overflow-hidden">
-              {/* Dynamic Thumbnail Sidebar */}
-              <aside className="w-full max-w-full border-b md:border-b-0 md:border-r border-[#E2E5EA] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] p-2 pb-3 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto h-auto md:max-h-[820px] custom-scrollbar shrink-0">
-                {selectedSubDoc && Array.from({ length: selectedSubDoc.pages || 1 }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => setSelectedPage(page)}
-                    className={`flex h-[68px] md:h-[80px] w-[75px] md:w-full flex-col items-center justify-center rounded-[4px] border text-[10px] transition-all shrink-0 ${page === selectedPage ? 'border-[#5EA0FF] bg-[#EEF4FF] dark:bg-blue-950/40 text-[#4B5563] dark:text-blue-300' : 'border-[#E4E7EC] dark:border-gray-800 bg-[#F4F6F9] dark:bg-gray-800/50 text-[#6B7280] dark:text-gray-400 hover:border-gray-300'
-                      }`}
-                  >
-                    <FileText className="h-4 w-4 mb-1" />
-                    <span>Page {page}</span>
-                  </button>
-                ))}
-              </aside>
-
-              {/* Main Content Area */}
-              <div className="relative bg-[#ECEDEF] dark:bg-[#151515] p-0 sm:p-10 flex flex-col items-center overflow-y-auto overflow-x-hidden max-h-[680px] lg:max-h-[820px] custom-scrollbar selection-none w-full min-w-0">
-                <div
-                  className="w-full bg-white dark:bg-[#1C1C1C] shadow-lg border border-[#D9DDE3] rounded-sm relative overflow-hidden transition-all shrink-0"
-                  style={{
-                    maxWidth: zoom <= 100 ? 'min(850px, 100%)' : '100%',
-                    width: '100%',
-                    aspectRatio: '1 / 1.414',
-                    minHeight: zoom <= 100 ? 'auto' : `${zoom * 11}px`
-                  }}
-                >
-                  {selectedSubDoc ? (
-                    <iframe
-                      src={selectedSubDoc?.isCustom
-                        ? (selectedSubDoc.name.startsWith('http') ? `${BASE_URL}/api/documents/subscription/preview/custom?url=${encodeURIComponent(selectedSubDoc.name)}&token=${token || ''}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH` : `${BASE_URL}/api/documents/subscription/preview/${selectedSubDoc.name}?token=${token || ''}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH`)
-                        : `/documents/subscription/${selectedSubDoc.name}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH`
-                      }
-                      key={`${selectedSubDoc.name}-${selectedPage}`}
-                      className="w-full h-full border-none absolute inset-0 bg-white dark:bg-[#1C1C1C]"
-                      title="Document Preview"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-[500px] text-[#8E8E93] p-8 text-center italic">
-                      <p>Select a document to begin preview</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Dynamic Status Bar */}
-            <div className="flex h-[30px] items-center justify-between border-t border-[#E2E5EA] bg-white dark:bg-[#1C1C1C] px-4 text-[10px] text-[#98A1B2]">
-              <p>{selectedSubDoc ? selectedSubDoc.lastModified : 'No selection'}</p>
-              <p>{selectedSubDoc ? selectedSubDoc.size : ''}</p>
             </div>
           </div>
         </div>
 
-        {/* Right Action Section */}
-        <div className="flex flex-col gap-6">
-          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-8 shadow-sm border border-[#E5E5EA] dark:border-gray-800">
-            <h2 className="font-goudy text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100">Your Document</h2>
-            <p className="mt-4 text-xs text-[#8E8E93] leading-relaxed">
-              Please review and sign the documents below, click &quot;Start Signing&quot; to begin.
+      </>
+    );
+
+    const renderSignDocuments = () => (
+      <>
+        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
+              Sign Subscription Documents
+            </h1>
+            <p className="mt-1 text-sm text-[#8E8E93]">
+              Review and e-sign required documents.
             </p>
-            {/*
+          </div>
+
+          <div className="flex items-center gap-4 self-end md:self-auto">
+            <div className="hidden xl:flex items-center gap-3 bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm text-xs">
+              <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+              <div>
+                <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+                <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
+              </div>
+            </div>
+            {renderNavButtons({ showBack: true })}
+          </div>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
+          {/* Left Preview Section */}
+          <div className="rounded-[8px] bg-white dark:bg-[#1C1C1C] p-0 sm:p-4 shadow-sm border border-[#E5E5EA] dark:border-gray-800 w-full max-w-full overflow-hidden">
+            <div className="flex flex-col min-h-[750px] lg:min-h-[900px] rounded-[6px] border border-[#E9EBEE] dark:border-gray-800 bg-[#F8F9FB] dark:bg-[#262626] overflow-hidden transition-all w-full max-w-full">
+              {/* Toolbar */}
+              <div className="flex h-[44px] items-center justify-between border-b border-[#E2E5EA] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] px-2 sm:px-4">
+                <div className="flex items-center gap-2 sm:gap-3 text-[12px] text-[#6B7280] dark:text-gray-300 min-w-0">
+                  <button
+                    onClick={() => { setSelectedSubDoc(null); setSelectedPage(1); setStep('investmentAmount'); }}
+                    className="inline-flex items-center gap-0.5 sm:gap-1 text-[#5E6B7F] dark:text-gray-300 hover:text-[#1F1F1F] dark:hover:text-white transition-colors flex-shrink-0"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">Back</span>
+                  </button>
+                  <div className="border-l border-gray-200 dark:border-gray-800 pl-2 sm:pl-3 min-w-0">
+                    <p className="font-medium text-[#374151] dark:text-gray-200 truncate max-w-[120px] sm:max-w-[200px]">
+                      {selectedSubDoc?.name || 'Select a document'}
+                    </p>
+                    <p className="text-[10px] text-[#9CA3AF] hidden sm:block">
+                      Document Vault &gt; Subscription Documents
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 sm:gap-3 text-[#6B7280] dark:text-gray-400 flex-shrink-0">
+                  <button type="button" onClick={handleDownload} title="Download" className="hover:text-[#374151] dark:hover:text-white"><Download className="h-3.5 w-3.5" /></button>
+                  <button type="button" onClick={handlePrint} title="Print" className="hover:text-[#374151] dark:hover:text-white hidden sm:block"><Printer className="h-3.5 w-3.5" /></button>
+                  <button type="button" title="Search" className="hover:text-[#374151] dark:hover:text-white hidden sm:block"><Search className="h-3.5 w-3.5" /></button>
+                  <span className="text-[11px] font-medium hidden xs:inline">{zoom}%</span>
+                  <button type="button" onClick={() => setZoom((prev: number) => Math.max(50, prev - 10))} className="hover:text-[#374151] dark:hover:text-white"><Minus className="h-3.5 w-3.5" /></button>
+                  <button type="button" onClick={() => setZoom((prev: number) => Math.min(200, prev + 10))} className="hover:text-[#374151] dark:hover:text-white"><Plus className="h-3.5 w-3.5" /></button>
+                  <button type="button" className="hover:text-[#374151] dark:hover:text-white hidden xs:block"><Maximize2 className="h-3.5 w-3.5" /></button>
+                </div>
+              </div>
+
+              <div className="flex flex-col md:grid md:grid-cols-[92px_1fr] flex-1 min-h-0 w-full max-w-full overflow-hidden">
+                {/* Dynamic Thumbnail Sidebar */}
+                <aside className="w-full max-w-full border-b md:border-b-0 md:border-r border-[#E2E5EA] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] p-2 pb-3 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto h-auto md:max-h-[820px] custom-scrollbar shrink-0">
+                  {selectedSubDoc && Array.from({ length: selectedSubDoc.pages || 1 }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() => setSelectedPage(page)}
+                      className={`flex h-[68px] md:h-[80px] w-[75px] md:w-full flex-col items-center justify-center rounded-[4px] border text-[10px] transition-all shrink-0 ${page === selectedPage ? 'border-[#5EA0FF] bg-[#EEF4FF] dark:bg-blue-950/40 text-[#4B5563] dark:text-blue-300' : 'border-[#E4E7EC] dark:border-gray-800 bg-[#F4F6F9] dark:bg-gray-800/50 text-[#6B7280] dark:text-gray-400 hover:border-gray-300'
+                        }`}
+                    >
+                      <FileText className="h-4 w-4 mb-1" />
+                      <span>Page {page}</span>
+                    </button>
+                  ))}
+                </aside>
+
+                {/* Main Content Area */}
+                <div className="relative bg-[#ECEDEF] dark:bg-[#151515] p-0 sm:p-10 flex flex-col items-center overflow-y-auto overflow-x-hidden max-h-[680px] lg:max-h-[820px] custom-scrollbar selection-none w-full min-w-0">
+                  <div
+                    className="w-full bg-white dark:bg-[#1C1C1C] shadow-lg border border-[#D9DDE3] rounded-sm relative overflow-hidden transition-all shrink-0"
+                    style={{
+                      maxWidth: zoom <= 100 ? 'min(850px, 100%)' : '100%',
+                      width: '100%',
+                      aspectRatio: '1 / 1.414',
+                      minHeight: zoom <= 100 ? 'auto' : `${zoom * 11}px`
+                    }}
+                  >
+                    {selectedSubDoc ? (
+                      <iframe
+                        src={selectedSubDoc?.isCustom
+                          ? (selectedSubDoc.name.startsWith('http') ? `${BASE_URL}/api/documents/subscription/preview/custom?url=${encodeURIComponent(selectedSubDoc.name)}&token=${token || ''}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH` : `${BASE_URL}/api/documents/subscription/preview/${selectedSubDoc.name}?token=${token || ''}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH`)
+                          : `/documents/subscription/${selectedSubDoc.name}#toolbar=0&navpanes=0&scrollbar=0&page=${selectedPage}&view=FitH`
+                        }
+                        key={`${selectedSubDoc.name}-${selectedPage}`}
+                        className="w-full h-full border-none absolute inset-0 bg-white dark:bg-[#1C1C1C]"
+                        title="Document Preview"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-[500px] text-[#8E8E93] p-8 text-center italic">
+                        <p>Select a document to begin preview</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Dynamic Status Bar */}
+              <div className="flex h-[30px] items-center justify-between border-t border-[#E2E5EA] bg-white dark:bg-[#1C1C1C] px-4 text-[10px] text-[#98A1B2]">
+                <p>{selectedSubDoc ? selectedSubDoc.lastModified : 'No selection'}</p>
+                <p>{selectedSubDoc ? selectedSubDoc.size : ''}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Action Section */}
+          <div className="flex flex-col gap-6">
+            <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-8 shadow-sm border border-[#E5E5EA] dark:border-gray-800">
+              <h2 className="font-goudy text-[22px] font-bold text-[#1F1F1F] dark:text-gray-100">Your Document</h2>
+              <p className="mt-4 text-xs text-[#8E8E93] leading-relaxed">
+                Please review and sign the documents below, click &quot;Start Signing&quot; to begin.
+              </p>
+              {/*
 
             <div className="mt-8 space-y-3">
               {subscriptionDocs.length > 0 ? (
@@ -1134,17 +1158,17 @@ export default function InvestPage() {
             </div>
             */}
 
-            <div className="mt-10 space-y-3">
-              <button
-                type="button"
-                onClick={goNext}
-                disabled={isSigning}
-                className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/50 py-3.5 text-sm font-bold text-[#C28C3B] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSigning ? 'Connecting to DocuSign...' : 'Start Signing'}
-              </button>
-              {/* //////// Bypass DocuSign hide //////////////// */}
-              {/* <button
+              <div className="mt-10 space-y-3">
+                <button
+                  type="button"
+                  onClick={goNext}
+                  disabled={isSigning}
+                  className="w-full rounded-full bg-[#274583] hover:bg-[#1E3668] py-3.5 text-sm font-bold text-white shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSigning ? 'Connecting to DocuSign...' : 'Start Signing'}
+                </button>
+                {/* //////// Bypass DocuSign hide //////////////// */}
+                {/* <button
                 type="button"
                 onClick={handleBypass}
                 disabled={isSigning}
@@ -1152,409 +1176,424 @@ export default function InvestPage() {
               >
                 {isSigning ? 'Processing...' : 'Bypass DocuSign (Testing)'}
               </button> */}
-              {/* ////////// Bypass DocuSign hide ////////////// */}
+                {/* ////////// Bypass DocuSign hide ////////////// */}
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  className="w-full rounded-full bg-white dark:bg-[#1C1C1C] py-3.5 text-sm font-bold text-[#1F1F1F] dark:text-gray-100 ring-1 ring-[#E5E5EA] dark:ring-gray-700 hover:bg-[#F9FAFB] dark:hover:bg-gray-800 shadow-sm transition-all"
+                >
+                  Download Document (PDF)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </>
+    );
+
+    const renderFundingInstructions = () => (
+      <>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in zoom-in duration-500">
+          <div>
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F8F0]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2BB673]">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+            </div>
+            <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
+              Congratulations!
+            </h1>
+            <p className="mt-2 text-base text-[#8E8E93]">
+              Your investment has been submitted. Your investor relations will reach out to you with wire instructions.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4 self-end md:self-auto">
+            {renderNavButtons({ primaryLabel: 'Done', showBack: false })}
+          </div>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm border border-[#E5E5EA] dark:border-gray-800">
+            <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-4">Investment Status</h2>
+            <div className="relative">
+              <div className="absolute left-2 top-4 bottom-4 w-px bg-[#E5E5EA] dark:bg-gray-700" />
+              <div className="space-y-4">
+                {[
+                  {
+                    title: 'Subscription Submitted',
+                    subtitle: currentInvestment?.created_at
+                      ? `Completed on ${new Date(currentInvestment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : 'Completed',
+                    state: 'done',
+                  },
+                  {
+                    title: 'Document Signed',
+                    subtitle: (currentInvestment?.document_signed || justFinishedSigning) && currentInvestment?.signed_at
+                      ? `Completed on ${new Date(currentInvestment.signed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : (currentInvestment?.document_signed || justFinishedSigning ? 'Completed' : 'Awaiting signature'),
+                    state: (currentInvestment?.document_signed || justFinishedSigning) ? 'done' : 'active',
+                  },
+                  {
+                    title: 'Awaiting Funding',
+                    subtitle: currentInvestment?.awaiting_funding_at
+                      ? `Completed on ${new Date(currentInvestment.awaiting_funding_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : (currentInvestment?.document_signed || justFinishedSigning ? 'Action required: please provide funding to proceed.' : 'Pending'),
+                    state: currentInvestment?.awaiting_funding ? 'done' : ((currentInvestment?.document_signed || justFinishedSigning) ? 'active' : 'pending'),
+                  },
+                  {
+                    title: 'Funds Received',
+                    subtitle: currentInvestment?.funds_received_at
+                      ? `Completed on ${new Date(currentInvestment.funds_received_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : 'Pending',
+                    state: currentInvestment?.funds_received ? 'done' : (currentInvestment?.awaiting_funding ? 'active' : 'pending'),
+                  },
+                  {
+                    title: 'Units Issued',
+                    subtitle: currentInvestment?.units_issued_at
+                      ? `Completed on ${new Date(currentInvestment.units_issued_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : 'Pending',
+                    state: currentInvestment?.units_issued ? 'done' : (currentInvestment?.funds_received ? 'active' : 'pending'),
+                  },
+                ].map((item) => {
+                  const isDone = item.state === 'done';
+                  const isActive = item.state === 'active';
+                  return (
+                    <div key={item.title} className="flex items-start gap-4">
+                      <div className={`relative z-10 mt-1 flex h-4 w-4 items-center justify-center rounded-full border ${isDone ? 'border-[#2BB673] bg-[#2BB673]' :
+                        isActive ? 'border-[#FBCB4B] bg-[#FFF3D6] dark:bg-amber-950/50' :
+                          'border-[#E5E5EA] dark:border-gray-700 bg-white dark:bg-[#1C1C1C]'
+                        }`}>
+                        {isDone && (
+                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        )}
+                        {isActive && <span className="h-2 w-2 rounded-full bg-[#FBCB4B]" />}
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isDone ? 'text-[#1F1F1F] dark:text-gray-100' : isActive ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#8E8E93]'}`}>
+                          {item.title}
+                        </p>
+                        <p className="mt-1 text-xs text-[#8E8E93]">{item.subtitle}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-[#E5E5EA] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm h-fit">
+            <div className="pb-3 border-b border-[#E5E5EA] dark:border-gray-800">
+              <h2 className="font-goudy text-base text-[#1F1F1F] dark:text-gray-100">Quick Actions</h2>
+            </div>
+            <div className="pt-4 space-y-3">
               <button
                 type="button"
-                onClick={handleDownload}
-                className="w-full rounded-full bg-white dark:bg-[#1C1C1C] py-3.5 text-sm font-bold text-[#1F1F1F] dark:text-gray-100 ring-1 ring-[#E5E5EA] dark:ring-gray-700 hover:bg-[#F9FAFB] dark:hover:bg-gray-800 shadow-sm transition-all"
+                onClick={() => {
+                  if (!lastEnvelopeId) {
+                    alert('No signed document found. Please complete signing first.');
+                    return;
+                  }
+                  const dsAccessToken = localStorage.getItem('ds_access_token') || '';
+                  const dsAccountId = localStorage.getItem('ds_account_id') || '';
+
+                  (async () => {
+                    try {
+                      const blob = await apiClient.getDocuSignDocument(
+                        lastEnvelopeId,
+                        dsAccessToken,
+                        dsAccountId
+                      );
+                      const url = window.URL.createObjectURL(blob);
+                      window.open(url, '_blank');
+                    } catch (error: any) {
+                      alert('Failed to fetch document: ' + error.message);
+                    }
+                  })();
+                }}
+                className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
               >
-                Download Document (PDF)
+                View Document
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard/messages')}
+                className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
+              >
+                Message
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard/document-vault')}
+                className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
+              >
+                Document Vault
               </button>
             </div>
           </div>
         </div>
-      </div>
-    </>
-  );
 
-  const renderFundingInstructions = () => (
-    <>
-      {renderStepHeader({
-        title: 'Congratulations!',
-        subtitle: 'Your investment has been submitted. Your investor relations will reach out to you with wire instructions.',
-        primaryLabel: 'Done',
-        onPrimary: () => {
-          localStorage.removeItem('draft_investment');
-          setStep('chooseFund');
-        },
-        primaryDisabled: false,
-        showBack: false,
-        icon: (
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E8F8F0] dark:bg-emerald-950/40">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2BB673]">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+      </>
+    );
+
+    const renderInvestmentStatus = () => (
+      <>
+        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
+              Investment Status
+            </h1>
+            <p className="mt-2 text-sm text-[#8E8E93]">Track your investment through each stage.</p>
+          </div>
+
+          <div className="flex items-center gap-4 self-end md:self-auto">
+            <div className="hidden xl:flex items-center gap-3 bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm text-xs">
+              <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+              <div>
+                <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+                <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
+              </div>
+            </div>
+            {renderNavButtons({ primaryLabel: 'Done', showBack: false })}
+          </div>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm">
+            <div className="relative">
+              <div className="absolute left-2 top-4 bottom-4 w-px bg-[#E5E5EA]" />
+              <div className="space-y-4">
+                {[
+                  {
+                    title: 'Subscription Submitted',
+                    subtitle: currentInvestment?.created_at
+                      ? `Completed on ${new Date(currentInvestment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : 'Completed',
+                    state: 'done',
+                  },
+                  {
+                    title: 'Document Signed',
+                    subtitle: (currentInvestment?.document_signed || justFinishedSigning) && currentInvestment?.signed_at
+                      ? `Completed on ${new Date(currentInvestment.signed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : (currentInvestment?.document_signed || justFinishedSigning ? 'Completed' : 'Awaiting signature'),
+                    state: (currentInvestment?.document_signed || justFinishedSigning) ? 'done' : 'active',
+                  },
+                  {
+                    title: 'Awaiting Funding',
+                    subtitle: currentInvestment?.awaiting_funding_at
+                      ? `Completed on ${new Date(currentInvestment.awaiting_funding_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : (currentInvestment?.document_signed || justFinishedSigning ? 'Action required: please provide funding to proceed.' : 'Pending'),
+                    state: currentInvestment?.awaiting_funding ? 'done' : ((currentInvestment?.document_signed || justFinishedSigning) ? 'active' : 'pending'),
+                  },
+                  {
+                    title: 'Funds Received',
+                    subtitle: currentInvestment?.funds_received_at
+                      ? `Completed on ${new Date(currentInvestment.funds_received_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : 'Pending',
+                    state: currentInvestment?.funds_received ? 'done' : (currentInvestment?.awaiting_funding ? 'active' : 'pending'),
+                  },
+                  {
+                    title: 'Units Issued',
+                    subtitle: currentInvestment?.units_issued_at
+                      ? `Completed on ${new Date(currentInvestment.units_issued_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : 'Pending',
+                    state: currentInvestment?.units_issued ? 'done' : (currentInvestment?.funds_received ? 'active' : 'pending'),
+                  },
+                ].map((item) => {
+                  const isDone = item.state === 'done';
+                  const isActive = item.state === 'active';
+                  return (
+                    <div key={item.title} className="flex items-start gap-4">
+                      <div className={`relative z-10 mt-1 flex h-4 w-4 items-center justify-center rounded-full border ${isDone ? 'border-[#2BB673] bg-[#2BB673]' :
+                        isActive ? 'border-[#FBCB4B] bg-[#FFF3D6]' :
+                          'border-[#E5E5EA] bg-white dark:bg-[#1C1C1C]'
+                        }`}>
+                        {isDone && (
+                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        )}
+                        {isActive && <span className="h-2 w-2 rounded-full bg-[#FBCB4B]" />}
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isDone ? 'text-[#1F1F1F] dark:text-gray-100' : isActive ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#8E8E93]'}`}>
+                          {item.title}
+                        </p>
+                        <p className="mt-1 text-xs text-[#8E8E93]">{item.subtitle}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-[#E5E5EA] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm">
+            <div className="pb-3 border-b border-[#E5E5EA] dark:border-gray-800">
+              <h2 className="font-goudy text-base text-[#1F1F1F] dark:text-gray-100">Quick Actions</h2>
+            </div>
+            <div className="pt-4 space-y-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!lastEnvelopeId) {
+                    alert('No signed document found. Please complete signing first.');
+                    return;
+                  }
+                  const dsAccessToken = localStorage.getItem('ds_access_token') || '';
+                  const dsAccountId = localStorage.getItem('ds_account_id') || '';
+
+                  (async () => {
+                    try {
+                      const blob = await apiClient.getDocuSignDocument(
+                        lastEnvelopeId,
+                        dsAccessToken,
+                        dsAccountId
+                      );
+                      const url = window.URL.createObjectURL(blob);
+                      window.open(url, '_blank');
+                    } catch (error: any) {
+                      alert('Failed to fetch document: ' + error.message);
+                    }
+                  })();
+                }}
+                className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
               >
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-          </div>
-        ),
-      })}
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm border border-[#E5E5EA] dark:border-gray-800">
-          <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-4">Investment Status</h2>
-          <div className="relative">
-            <div className="absolute left-2 top-4 bottom-4 w-px bg-[#E5E5EA] dark:bg-gray-700" />
-            <div className="space-y-4">
-              {[
-                {
-                  title: 'Subscription Submitted',
-                  subtitle: currentInvestment?.created_at
-                    ? `Completed on ${new Date(currentInvestment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : 'Completed',
-                  state: 'done',
-                },
-                {
-                  title: 'Document Signed',
-                  subtitle: (currentInvestment?.document_signed || justFinishedSigning) && currentInvestment?.signed_at
-                    ? `Completed on ${new Date(currentInvestment.signed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : (currentInvestment?.document_signed || justFinishedSigning ? 'Completed' : 'Awaiting signature'),
-                  state: (currentInvestment?.document_signed || justFinishedSigning) ? 'done' : 'active',
-                },
-                {
-                  title: 'Awaiting Funding',
-                  subtitle: currentInvestment?.awaiting_funding_at
-                    ? `Completed on ${new Date(currentInvestment.awaiting_funding_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : (currentInvestment?.document_signed || justFinishedSigning ? 'Action required: please provide funding to proceed.' : 'Pending'),
-                  state: currentInvestment?.awaiting_funding ? 'done' : ((currentInvestment?.document_signed || justFinishedSigning) ? 'active' : 'pending'),
-                },
-                {
-                  title: 'Funds Received',
-                  subtitle: currentInvestment?.funds_received_at
-                    ? `Completed on ${new Date(currentInvestment.funds_received_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : 'Pending',
-                  state: currentInvestment?.funds_received ? 'done' : (currentInvestment?.awaiting_funding ? 'active' : 'pending'),
-                },
-                {
-                  title: 'Units Issued',
-                  subtitle: currentInvestment?.units_issued_at
-                    ? `Completed on ${new Date(currentInvestment.units_issued_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : 'Pending',
-                  state: currentInvestment?.units_issued ? 'done' : (currentInvestment?.funds_received ? 'active' : 'pending'),
-                },
-              ].map((item) => {
-                const isDone = item.state === 'done';
-                const isActive = item.state === 'active';
-                return (
-                  <div key={item.title} className="flex items-start gap-4">
-                    <div className={`relative z-10 mt-1 flex h-4 w-4 items-center justify-center rounded-full border ${isDone ? 'border-[#2BB673] bg-[#2BB673]' :
-                      isActive ? 'border-[#FBCB4B] bg-[#FFF3D6] dark:bg-amber-950/50' :
-                        'border-[#E5E5EA] dark:border-gray-700 bg-white dark:bg-[#1C1C1C]'
-                      }`}>
-                      {isDone && (
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                      )}
-                      {isActive && <span className="h-2 w-2 rounded-full bg-[#FBCB4B]" />}
-                    </div>
-                    <div>
-                      <p className={`text-sm font-medium ${isDone ? 'text-[#1F1F1F] dark:text-gray-100' : isActive ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#8E8E93]'}`}>
-                        {item.title}
-                      </p>
-                      <p className="mt-1 text-xs text-[#8E8E93]">{item.subtitle}</p>
-                    </div>
-                  </div>
-                );
-              })}
+                View Document
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard/messages')}
+                className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
+              >
+                Message
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard/schedule-meeting')}
+                className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
+              >
+                Schedule Meeting
+              </button>
             </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#E5E5EA] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm h-fit">
-          <div className="pb-3 border-b border-[#E5E5EA] dark:border-gray-800">
-            <h2 className="font-goudy text-base text-[#1F1F1F] dark:text-gray-100">Quick Actions</h2>
-          </div>
-          <div className="pt-4 space-y-3">
-            <button
-              type="button"
-              onClick={() => {
-                if (!lastEnvelopeId) {
-                  alert('No signed document found. Please complete signing first.');
-                  return;
-                }
-                const dsAccessToken = localStorage.getItem('ds_access_token') || '';
-                const dsAccountId = localStorage.getItem('ds_account_id') || '';
+      </>
+    );
 
-                (async () => {
-                  try {
-                    const blob = await apiClient.getDocuSignDocument(
-                      lastEnvelopeId,
-                      dsAccessToken,
-                      dsAccountId
-                    );
-                    const url = window.URL.createObjectURL(blob);
-                    window.open(url, '_blank');
-                  } catch (error: any) {
-                    alert('Failed to fetch document: ' + error.message);
-                  }
-                })();
-              }}
-              className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
-            >
-              View Document
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push('/dashboard/messages')}
-              className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
-            >
-              Message
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push('/dashboard/document-vault')}
-              className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
-            >
-              Document Vault
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+    let content: JSX.Element;
 
-  const renderInvestmentStatus = () => (
-    <>
-      {renderStepHeader({
-        title: 'Investment Status',
-        subtitle: 'Track your investment through each stage.',
-        primaryLabel: 'Done',
-        onPrimary: goNext,
-        primaryDisabled: saving,
-        showBack: false,
-      })}
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm">
-          <div className="relative">
-            <div className="absolute left-2 top-4 bottom-4 w-px bg-[#E5E5EA]" />
-            <div className="space-y-4">
-              {[
-                {
-                  title: 'Subscription Submitted',
-                  subtitle: currentInvestment?.created_at
-                    ? `Completed on ${new Date(currentInvestment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : 'Completed',
-                  state: 'done',
-                },
-                {
-                  title: 'Document Signed',
-                  subtitle: (currentInvestment?.document_signed || justFinishedSigning) && currentInvestment?.signed_at
-                    ? `Completed on ${new Date(currentInvestment.signed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : (currentInvestment?.document_signed || justFinishedSigning ? 'Completed' : 'Awaiting signature'),
-                  state: (currentInvestment?.document_signed || justFinishedSigning) ? 'done' : 'active',
-                },
-                {
-                  title: 'Awaiting Funding',
-                  subtitle: currentInvestment?.awaiting_funding_at
-                    ? `Completed on ${new Date(currentInvestment.awaiting_funding_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : (currentInvestment?.document_signed || justFinishedSigning ? 'Action required: please provide funding to proceed.' : 'Pending'),
-                  state: currentInvestment?.awaiting_funding ? 'done' : ((currentInvestment?.document_signed || justFinishedSigning) ? 'active' : 'pending'),
-                },
-                {
-                  title: 'Funds Received',
-                  subtitle: currentInvestment?.funds_received_at
-                    ? `Completed on ${new Date(currentInvestment.funds_received_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : 'Pending',
-                  state: currentInvestment?.funds_received ? 'done' : (currentInvestment?.awaiting_funding ? 'active' : 'pending'),
-                },
-                {
-                  title: 'Units Issued',
-                  subtitle: currentInvestment?.units_issued_at
-                    ? `Completed on ${new Date(currentInvestment.units_issued_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    : 'Pending',
-                  state: currentInvestment?.units_issued ? 'done' : (currentInvestment?.funds_received ? 'active' : 'pending'),
-                },
-              ].map((item) => {
-                const isDone = item.state === 'done';
-                const isActive = item.state === 'active';
-                return (
-                  <div key={item.title} className="flex items-start gap-4">
-                    <div className={`relative z-10 mt-1 flex h-4 w-4 items-center justify-center rounded-full border ${isDone ? 'border-[#2BB673] bg-[#2BB673]' :
-                      isActive ? 'border-[#FBCB4B] bg-[#FFF3D6]' :
-                        'border-[#E5E5EA] bg-white dark:bg-[#1C1C1C]'
-                      }`}>
-                      {isDone && (
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                      )}
-                      {isActive && <span className="h-2 w-2 rounded-full bg-[#FBCB4B]" />}
-                    </div>
-                    <div>
-                      <p className={`text-sm font-medium ${isDone ? 'text-[#1F1F1F] dark:text-gray-100' : isActive ? 'text-[#1F1F1F] dark:text-gray-100' : 'text-[#8E8E93]'}`}>
-                        {item.title}
-                      </p>
-                      <p className="mt-1 text-xs text-[#8E8E93]">{item.subtitle}</p>
-                    </div>
-                  </div>
-                );
-              })}
+    if (user?.investorType === 'minor' || user?.investorType === 'entity') {
+      return (
+        <DashboardLayout>
+          <div className="mt-6 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm p-12 text-center flex flex-col items-center justify-center gap-4 max-w-4xl mx-auto">
+            <div className="h-16 w-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center">
+              <Info className="h-8 w-8" />
             </div>
+            <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">Investments Not Available</h3>
+            <p className="max-w-md text-[14px] text-[#8E8E93] font-helvetica leading-relaxed">
+              Investments cannot be made by Minor or Entity accounts.
+            </p>
+          </div>
+        </DashboardLayout>
+      );
+    }
+
+    switch (step) {
+      case 'chooseFund':
+        content = renderChooseFund();
+        break;
+      case 'fundingAccount':
+        content = renderFundingAccount();
+        break;
+      case 'investmentAmount':
+        content = renderInvestmentAmount();
+        break;
+      case 'signDocuments':
+        content = renderSignDocuments();
+        break;
+      case 'fundingInstructions':
+        content = renderFundingInstructions();
+        break;
+      case 'investmentStatus':
+        content = renderInvestmentStatus();
+        break;
+      default:
+        content = renderChooseFund();
+    }
+
+    if (isFinalizing) {
+      return (
+        <DashboardLayout>
+          <div className="flex flex-col items-center justify-center min-h-[400px] py-20 text-center animate-in fade-in zoom-in duration-500">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2BB673] mb-6"></div>
+            <h3 className="font-goudy text-xl font-bold text-[#1F1F1F] dark:text-gray-100">Finalizing Your Investment...</h3>
+            <p className="text-sm text-[#8E8E93] mt-2">Please wait while we secure your documents.</p>
+          </div>
+        </DashboardLayout>
+      );
+    }
+
+    if (showSuccess) {
+      return (
+        <DashboardLayout>
+          <SuccessView onDone={() => router.push('/dashboard')} />
+        </DashboardLayout>
+      );
+    }
+
+    return (
+      <DashboardLayout>
+        <div className="space-y-4 font-helvetica text-[#1F1F1F] dark:text-gray-100 w-full max-w-full overflow-x-hidden">{content}</div>
+      </DashboardLayout>
+    );
+  }
+
+  function SuccessView({ onDone }: { onDone: () => void }) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in duration-500">
+        <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-[#E8F8F0]">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#2BB673]">
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
           </div>
         </div>
-
-        <div className="rounded-2xl border border-[#E5E5EA] dark:border-gray-800 bg-white dark:bg-[#1C1C1C] px-8 py-6 shadow-sm">
-          <div className="pb-3 border-b border-[#E5E5EA] dark:border-gray-800">
-            <h2 className="font-goudy text-base text-[#1F1F1F] dark:text-gray-100">Quick Actions</h2>
-          </div>
-          <div className="pt-4 space-y-3">
-            <button
-              type="button"
-              onClick={() => {
-                if (!lastEnvelopeId) {
-                  alert('No signed document found. Please complete signing first.');
-                  return;
-                }
-                const dsAccessToken = localStorage.getItem('ds_access_token') || '';
-                const dsAccountId = localStorage.getItem('ds_account_id') || '';
-
-                (async () => {
-                  try {
-                    const blob = await apiClient.getDocuSignDocument(
-                      lastEnvelopeId,
-                      dsAccessToken,
-                      dsAccountId
-                    );
-                    const url = window.URL.createObjectURL(blob);
-                    window.open(url, '_blank');
-                  } catch (error: any) {
-                    alert('Failed to fetch document: ' + error.message);
-                  }
-                })();
-              }}
-              className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
-            >
-              View Document
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push('/dashboard/messages')}
-              className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
-            >
-              Message
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push('/dashboard/schedule-meeting')}
-              className="w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
-            >
-              Schedule Meeting
-            </button>
-          </div>
-        </div>
+        <h2 className="font-goudy text-4xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-4">Investment Submitted!</h2>
+        <p className="text-lg text-[#8E8E93] max-w-md mb-12">
+          Your subscription for the fund has been successfully submitted. Our team will review your
+          documents and you will receive an email once the units are issued.
+        </p>
+        <button
+          onClick={onDone}
+          className="rounded-full bg-[#274583] hover:bg-[#1E3668] px-12 py-4 text-base font-bold text-white shadow-md hover:shadow-lg transition-all active:scale-95"
+        >
+          Go to Dashboard
+        </button>
       </div>
-    </>
-  );
-
-  let content: JSX.Element;
-
-  if (user?.investorType === 'minor' || user?.investorType === 'entity') {
-    return (
-      <DashboardLayout>
-        <div className="mt-6 rounded-[10px] bg-white dark:bg-[#1C1C1C] ring-1 ring-black/5 shadow-sm p-12 text-center flex flex-col items-center justify-center gap-4 max-w-4xl mx-auto">
-          <div className="h-16 w-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center">
-            <Info className="h-8 w-8" />
-          </div>
-          <h3 className="font-goudy text-[20px] font-bold text-[#1F1F1F] dark:text-gray-100">Investments Not Available</h3>
-          <p className="max-w-md text-[14px] text-[#8E8E93] font-helvetica leading-relaxed">
-            Investments cannot be made by Minor or Entity accounts.
-          </p>
-        </div>
-      </DashboardLayout>
     );
   }
-
-  switch (step) {
-    case 'chooseFund':
-      content = renderChooseFund();
-      break;
-    case 'fundingAccount':
-      content = renderFundingAccount();
-      break;
-    case 'investmentAmount':
-      content = renderInvestmentAmount();
-      break;
-    case 'signDocuments':
-      content = renderSignDocuments();
-      break;
-    case 'fundingInstructions':
-      content = renderFundingInstructions();
-      break;
-    case 'investmentStatus':
-      content = renderInvestmentStatus();
-      break;
-    default:
-      content = renderChooseFund();
-  }
-
-  if (isFinalizing) {
-    return (
-      <DashboardLayout>
-        <div className="flex flex-col items-center justify-center min-h-[400px] py-20 text-center animate-in fade-in zoom-in duration-500">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2BB673] mb-6"></div>
-          <h3 className="font-goudy text-xl font-bold text-[#1F1F1F] dark:text-gray-100">Finalizing Your Investment...</h3>
-          <p className="text-sm text-[#8E8E93] mt-2">Please wait while we secure your documents.</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (showSuccess) {
-    return (
-      <DashboardLayout>
-        <SuccessView onDone={() => router.push('/dashboard')} />
-      </DashboardLayout>
-    );
-  }
-
-  return (
-    <DashboardLayout>
-      <div className="space-y-4 font-helvetica text-[#1F1F1F] dark:text-gray-100 w-full max-w-full overflow-x-hidden">{content}</div>
-    </DashboardLayout>
-  );
-}
-
-function SuccessView({ onDone }: { onDone: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in duration-500">
-      <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-[#E8F8F0]">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#2BB673]">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-        </div>
-      </div>
-      <h2 className="font-goudy text-4xl font-bold text-[#1F1F1F] dark:text-gray-100 mb-4">Investment Submitted!</h2>
-      <p className="text-lg text-[#8E8E93] max-w-md mb-12">
-        Your subscription for the fund has been successfully submitted. Our team will review your
-        documents and you will receive an email once the units are issued.
-      </p>
-      <button
-        onClick={onDone}
-        className="rounded-full bg-[#FBCB4B] px-12 py-4 text-base font-bold text-[#1F1F1F] dark:text-gray-100 hover:bg-[#F9B800] shadow-md transition-all active:scale-95"
-      >
-        Go to Dashboard
-      </button>
-    </div>
-  );
-}
