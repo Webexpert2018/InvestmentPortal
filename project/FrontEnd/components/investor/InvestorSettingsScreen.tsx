@@ -2146,7 +2146,7 @@ export function InvestorSettingsScreen() {
                       key={sub.id || i}
                       className="border-b border-[#F2F3F5] dark:border-gray-800 hover:bg-[#F9FAFB] dark:hover:bg-gray-800/60 transition-colors"
                     >
-                      <td className="py-3 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100 truncate max-w-[200px]" title={sub.fullName || sub.entityName || '-'}>{sub.fullName || sub.entityName || '-'}</td>
+                      <td className="py-3 pr-3 font-medium text-[#1F1F1F] dark:text-gray-100 truncate max-w-[200px]" title={(sub.fullName || sub.entityName || '-').replace(/^AET\s+FBO\s+/i, '')}>{(sub.fullName || sub.entityName || '-').replace(/^AET\s+FBO\s+/i, '')}</td>
                       <td className="py-3 pr-3 truncate max-w-[150px]" title={sub.email}>{sub.email}</td>
                       <td className="py-3 pr-3 capitalize">
                         {sub.investorType === 'sub ira account' ? 'Sub IRA Account' : sub.investorType}
@@ -2905,7 +2905,7 @@ export function InvestorSettingsScreen() {
                           <>
                             <div className="border-b border-[#F2F3F5] pb-2">
                               <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Account Title</p>
-                              <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.fullName || '-'}</p>
+                              <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{(selectedSubaccount.fullName || '-').replace(/^AET\s+FBO\s+/i, '')}</p>
                             </div>
                             <div className="border-b border-[#F2F3F5] pb-2">
                               <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">IRA Account Number</p>
@@ -2924,7 +2924,7 @@ export function InvestorSettingsScreen() {
                           <>
                             <div className="border-b border-[#F2F3F5] pb-2">
                               <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Full Name</p>
-                              <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{selectedSubaccount.fullName || '-'}</p>
+                              <p className="mt-1 text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100">{(selectedSubaccount.fullName || '-').replace(/^AET\s+FBO\s+/i, '')}</p>
                             </div>
                             <div className="border-b border-[#F2F3F5] pb-2">
                               <p className="text-[10px] font-bold text-[#A2A5AA] uppercase tracking-wider">Date of Birth</p>

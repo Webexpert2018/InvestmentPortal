@@ -586,6 +586,7 @@ export class UsersService implements OnModuleInit {
       SELECT 
         i.id, i.email, i.role, i.full_name as "firstName", '' as "lastName", COALESCE(i.phone, parent.phone) as phone, i.status, i.created_at as "createdAt", 
         i.kyc_status as "kycStatus", i.profile_image_url as "profileImageUrl",
+        i.parent_id as "parentId",
         ua.account_type as "accountType",
         ua.account_id as "accountId",
         ua.account_status as "accountStatus",
