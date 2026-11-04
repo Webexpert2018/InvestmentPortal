@@ -310,7 +310,7 @@ export default function InvestPage() {
         const isSuspended = sub.status?.toLowerCase() === 'suspended';
         list.push({
           id: sub.id,
-          label: sub.fullName,
+          label: (sub.fullName || '').replace(/^AET\s+FBO\s+/i, ''),
           value: isSuspended ? 'Suspended' : 'SUB IRA ACCOUNT',
           status: sub.status || 'active',
           subaccountId: sub.subaccountId,
@@ -319,9 +319,10 @@ export default function InvestPage() {
         });
       } else {
         const isEntity = sub.investorType === 'entity';
+        const rawLabel = isEntity ? (sub.entityName || sub.fullName) : sub.fullName;
         list.push({
           id: sub.id,
-          label: isEntity ? (sub.entityName || sub.fullName) : sub.fullName,
+          label: (rawLabel || '').replace(/^AET\s+FBO\s+/i, ''),
           value: isEntity ? `${sub.entityType || 'Entity'} Account` : 'Minor Account',
           status: sub.status || 'active',
           category: 'Sub Accounts'
@@ -478,7 +479,11 @@ export default function InvestPage() {
         investmentAmount: investmentAmount,
         accountType: finalAccountType,
         investorAccountId: finalInvestorAccountId,
-        customInvestorName: isSubIra ? selectedSub?.fullName : undefined,
+        customInvestorName: isSubIra
+          ? (selectedSub?.fullName?.startsWith('AET FBO ')
+              ? selectedSub.fullName
+              : `AET FBO ${(selectedSub?.fullName || '').replace(/^AET\s+FBO\s+/i, '')}`)
+          : undefined,
         iraMetadata: (isIra || isSubIra) ? {
           custodian: (selectedIra?.custodian_name || selectedSub?.custodianName),
           type: (selectedIra?.account_type || selectedSub?.accountType)
