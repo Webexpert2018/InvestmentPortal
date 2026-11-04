@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Search, ChevronDown, X, Loader2, Send, Plus, History, User, Landmark, Mail, UserX } from 'lucide-react';
+import { Search, ChevronDown, X, Loader2, Send, Plus, History, User, Users, Landmark, Mail, UserX } from 'lucide-react';
 import { apiClient, BASE_URL } from '@/lib/api/client';
 import { toast } from 'sonner';
 import Image from 'next/image';
@@ -53,7 +53,7 @@ export default function InvestorPage() {
   const [investors, setInvestors] = useState<Investor[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'active' | 'old'>('active');
-  const [activeTab, setActiveTab] = useState<'active' | 'ira' | 'pending' | 'suspended'>('active');
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'ira' | 'pending' | 'suspended'>('all');
   const [oldInvestors, setOldInvestors] = useState<OldInvestor[]>([]);
   const [loadingOld, setLoadingOld] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -258,6 +258,12 @@ export default function InvestorPage() {
     const nameB = (b.firstName + ' ' + (b.lastName || '')).toLowerCase();
     return nameA.localeCompare(nameB);
   });
+
+  const allActiveInvestors = filteredInvestors.filter(i =>
+    (i.accountStatus?.toLowerCase() === 'active' || !i.accountStatus) &&
+    i.status?.toLowerCase() !== 'suspended' &&
+    i.accountStatus?.toLowerCase() !== 'suspended'
+  );
 
   const activeInvestors = filteredInvestors.filter(i =>
     (i.accountType?.toLowerCase() === 'personal' || !i.accountType) &&
@@ -473,6 +479,7 @@ export default function InvestorPage() {
     );
   });
   const displayedOldInvestors = filteredOldInvestors;
+  const displayedAllActiveInvestors = allActiveInvestors;
   const displayedActiveInvestors = activeInvestors;
   const displayedActiveIraInvestors = activeIraInvestors;
   const displayedPendingInvestors = pendingInvestors;
@@ -649,6 +656,18 @@ export default function InvestorPage() {
             <div className="inline-flex items-center gap-1 p-1 bg-[#F9FAFB] dark:bg-gray-900 rounded-[16px] border border-[#E5E7EB] dark:border-gray-800">
               <button
                 type="button"
+                onClick={() => { setViewMode('active'); setActiveTab('all'); }}
+                className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${viewMode === 'active' && activeTab === 'all'
+                  ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
+                  : 'bg-transparent text-[#374151] dark:text-gray-300 hover:text-[#111827] dark:text-white dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-800 border-r border-gray-200 dark:border-gray-800'
+                  }`}
+              >
+                <Users className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'all' ? 'text-[#1F2937]' : 'text-[#4B5563] dark:text-gray-300'}`} />
+                All Investor Accounts ({allActiveInvestors.length})
+              </button>
+
+              <button
+                type="button"
                 onClick={() => { setViewMode('active'); setActiveTab('active'); }}
                 className={`py-2 px-4 text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all rounded-[12px] whitespace-nowrap ${viewMode === 'active' && activeTab === 'active'
                   ? 'bg-[#FCD34D] text-[#1F2937] shadow-sm'
@@ -656,7 +675,7 @@ export default function InvestorPage() {
                   }`}
               >
                 <User className={`h-4 w-4 stroke-[2.5] ${viewMode === 'active' && activeTab === 'active' ? 'text-[#1F2937]' : 'text-[#4B5563] dark:text-gray-300'}`} />
-                Active Investors ({activeInvestors.length})
+                Active Individual Investors ({activeInvestors.length})
               </button>
 
               <button
@@ -863,18 +882,162 @@ export default function InvestorPage() {
                       ))
                     ) : (
                       <>
-                        {/* TAB 1: ACTIVE INVESTORS */}
+                        {/* TAB 0: ALL INVESTOR ACCOUNTS */}
+                        {activeTab === 'all' && (
+                          <>
+                            <tr className="bg-[#F9FAFB] dark:bg-gray-800/30">
+                              <td colSpan={11} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+                                All Investor Accounts ({allActiveInvestors.length})
+                              </td>
+                            </tr>
+                            {allActiveInvestors.length === 0 ? (
+                              <tr>
+                                <td colSpan={11} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
+                                  No active investor accounts found matching your search.
+                                </td>
+                              </tr>
+                            ) : (
+                              displayedAllActiveInvestors.map((investor) => {
+                                const rowKey = `${investor.id}:${investor.accountId || 'Personal'}`;
+                                return (
+                                  <tr
+                                    key={rowKey}
+                                    className={`transition-all duration-200 group cursor-pointer ${selectedRowKey === rowKey
+                                      ? 'bg-[#FFFBEB] dark:bg-gray-800 shadow-[inset_6px_0_0_0_#D1A94C]'
+                                      : 'hover:bg-[#F8FAFC] dark:hover:bg-gray-800'
+                                      }`}
+                                    onClick={() => {
+                                      handleSelectRow(investor);
+                                      router.push(`/dashboard/investor/${investor.id}`);
+                                    }}
+                                  >
+                                    <td
+                                      className={`px-3 sm:px-4 lg:px-6 py-4 transition-all ${selectedRowKey === rowKey ? 'shadow-[inset_6px_0_0_0_#D1A94C]' : ''}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (selectedRowKey === rowKey) {
+                                          clearSelection();
+                                        } else {
+                                          handleSelectRow(investor);
+                                        }
+                                      }}
+                                    >
+                                      <div className="flex items-center justify-center">
+                                        <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRowKey === rowKey ? 'border-[#D1A94C] bg-white dark:bg-[#1C1C1C]' : 'border-gray-300 bg-white dark:bg-[#1C1C1C]'}`}>
+                                          {selectedRowKey === rowKey && <div className="h-2.5 w-2.5 rounded-full bg-[#D1A94C]" />}
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <div className="flex items-center gap-4">
+                                        <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#E5E7EB]">
+                                          {investor.profileImageUrl ? (
+                                            <Image
+                                              src={investor.profileImageUrl.startsWith('http')
+                                                ? investor.profileImageUrl
+                                                : `${BASE_URL}${investor.profileImageUrl.startsWith('/') ? '' : '/'}${investor.profileImageUrl}`}
+                                              alt={investor.firstName}
+                                              fill
+                                              className="object-cover"
+                                            />
+                                          ) : (
+                                            <Image
+                                              src={`https://api.dicebear.com/7.x/initials/svg?seed=${investor.firstName || 'Investor'}&backgroundColor=FCD34D`}
+                                              alt={investor.firstName}
+                                              fill
+                                              className="object-cover"
+                                            />
+                                          )}
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-bold text-[#111827] dark:text-white whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">{investor.email}</span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap capitalize">
+                                        {investor.accountType && investor.accountType.toLowerCase() !== 'personal'
+                                          ? investor.accountType
+                                          : (investor.investorType || 'Personal')}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      {investor.accountStatus === 'suspended' ? (
+                                        <span className="text-[11px] font-bold text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-transparent dark:border-red-800/50 px-3 py-1 rounded-full border border-red-100 italic">Suspended</span>
+                                      ) : (
+                                        <span className="text-[11px] font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-transparent dark:border-green-800/50 px-3 py-1 rounded-full border border-green-100">Active</span>
+                                      )}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4">
+                                      <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${getKycStatusStyle(investor.kycStatus)}`}>
+                                        {investor.kycStatus ? (investor.kycStatus.charAt(0).toUpperCase() + investor.kycStatus.slice(1)) : 'Pending'}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] dark:text-white whitespace-nowrap">
+                                      {investor.units || '0.00'}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left font-bold text-[#111827] dark:text-white whitespace-nowrap">
+                                      {investor.invested || '-'}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">
+                                      <div className="flex flex-col gap-0.5">
+                                        {investor.assigned_ir_name && (
+                                          <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium">
+                                            IR: {investor.assigned_ir_name}
+                                          </span>
+                                        )}
+                                        {investor.assigned_accountant_name && (
+                                          <span className="text-sm text-[#4B5563] dark:text-gray-300 font-medium">
+                                            Acc: {investor.assigned_accountant_name}
+                                          </span>
+                                        )}
+                                        {!investor.assigned_ir_name && !investor.assigned_accountant_name && (
+                                          <span className="text-sm text-[#9CA3AF] italic font-medium">Unassigned</span>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-sm text-[#4B5563] dark:text-gray-300 font-medium whitespace-nowrap">
+                                      {new Date(investor.createdAt).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                      })}
+                                    </td>
+                                    <td className="px-3 sm:px-4 lg:px-6 py-4 text-left">
+                                      <Link
+                                        href={`/dashboard/investor/${investor.id}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleSelectRow(investor);
+                                        }}
+                                      >
+                                        <button className="px-4 py-2 bg-[#F9FAFB] dark:bg-gray-800 border border-[#E5E7EB] dark:border-gray-700 text-[#4B5563] dark:text-gray-300 text-xs font-bold rounded-full hover:bg-[#F3F4F6] dark:bg-gray-800 dark:hover:bg-gray-700 hover:border-[#D1D5DB] dark:hover:border-gray-600 transition-all whitespace-nowrap shadow-sm">
+                                          View Profile
+                                        </button>
+                                      </Link>
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </>
+                        )}
+
+                        {/* TAB 1: ACTIVE INDIVIDUAL INVESTORS */}
                         {activeTab === 'active' && (
                           <>
                             <tr className="bg-[#F9FAFB] dark:bg-gray-800/30">
                               <td colSpan={11} className="px-8 py-3 text-xs font-bold text-[#6B7280] uppercase tracking-wider">
-                                Active Investors ({activeInvestors.length})
+                                Active Individual Investors ({activeInvestors.length})
                               </td>
                             </tr>
                             {activeInvestors.length === 0 ? (
                               <tr>
                                 <td colSpan={11} className="px-8 py-16 text-center text-[#9CA3AF] font-medium">
-                                  No active investors found matching your search.
+                                  No active individual investors found matching your search.
                                 </td>
                               </tr>
                             ) : (
