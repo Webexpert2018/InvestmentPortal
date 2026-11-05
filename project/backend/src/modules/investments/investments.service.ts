@@ -565,7 +565,15 @@ export class InvestmentsService {
         LEFT JOIN funds f ON i.fund_id = f.id
         LEFT JOIN users u ON i.user_id = u.id
         LEFT JOIN investors inv ON i.user_id = inv.id
-        ORDER BY i.created_at DESC
+        ORDER BY 
+          CASE 
+            WHEN LOWER(i.status) = 'awaiting funding' OR LOWER(i.status) LIKE '%awaiting%' THEN 1
+            WHEN LOWER(i.status) = 'subscription submitted' OR LOWER(i.status) LIKE '%submitted%' THEN 2
+            WHEN LOWER(i.status) = 'units issued' OR LOWER(i.status) LIKE '%issued%' THEN 3
+            WHEN LOWER(i.status) = 'rejected' OR LOWER(i.status) LIKE '%reject%' THEN 4
+            ELSE 5
+          END ASC,
+          i.created_at DESC
       `;
       const result = await db.query(query);
       return result.rows;

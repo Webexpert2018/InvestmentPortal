@@ -258,6 +258,14 @@ export default function InvestorPage() {
 
   const filteredInvestors = useMemo(() => {
     return investors.filter(investor => {
+      const isParentAccount = parentIdsToElevate.has(investor.id);
+      const isPersonal = investor.accountType?.toLowerCase() === 'personal' || !investor.accountType;
+
+      // When searching for a subaccount, parent's IRA account will NOT be populated; only parent's Personal account
+      if (isParentAccount && !isPersonal) {
+        return false;
+      }
+
       const fullNameStr = (investor.firstName + ' ' + (investor.lastName || '')).toLowerCase();
       const nicknameStr = (investor.nickname || '').toLowerCase();
       const matchesDirect = !trimmedSearch || (
@@ -265,7 +273,7 @@ export default function InvestorPage() {
         investor.email.toLowerCase().includes(trimmedSearch) ||
         (nicknameStr !== '' && nicknameStr.includes(trimmedSearch))
       );
-      const isElevatedParent = parentIdsToElevate.has(investor.id);
+      const isElevatedParent = isParentAccount && isPersonal;
       const matchesSearch = matchesDirect || isElevatedParent;
 
       const matchesKyc = !kycFilter || investor.kycStatus?.toLowerCase() === kycFilter.toLowerCase();
@@ -287,14 +295,10 @@ export default function InvestorPage() {
       return matchesSearch && matchesKyc && matchesStatus && matchesAccountType;
     }).sort((a, b) => {
       if (parentIdsToElevate.size > 0) {
-        const aIsParent = parentIdsToElevate.has(a.id);
-        const bIsParent = parentIdsToElevate.has(b.id);
+        const aIsParent = parentIdsToElevate.has(a.id) && (a.accountType?.toLowerCase() === 'personal' || !a.accountType);
+        const bIsParent = parentIdsToElevate.has(b.id) && (b.accountType?.toLowerCase() === 'personal' || !b.accountType);
         if (aIsParent && !bIsParent) return -1;
         if (!aIsParent && bIsParent) return 1;
-        if (aIsParent && bIsParent && a.id === b.id) {
-          if (a.accountType?.toLowerCase() === 'personal') return -1;
-          if (b.accountType?.toLowerCase() === 'personal') return 1;
-        }
       }
       const nameA = (a.firstName + ' ' + (a.lastName || '')).toLowerCase();
       const nameB = (b.firstName + ' ' + (b.lastName || '')).toLowerCase();
@@ -318,15 +322,16 @@ export default function InvestorPage() {
       i.accountStatus?.toLowerCase() !== 'suspended'
     );
     if (parentIdsToElevate.size > 0) {
-      const missingParents = filteredInvestors.filter(i =>
+      const parentPersonalAccounts = filteredInvestors.filter(i =>
         parentIdsToElevate.has(i.id) &&
+        (i.accountType?.toLowerCase() === 'personal' || !i.accountType) &&
         (i.accountStatus?.toLowerCase() === 'active' || !i.accountStatus) &&
         i.status?.toLowerCase() !== 'suspended' &&
         i.accountStatus?.toLowerCase() !== 'suspended' &&
         !list.some(item => item.id === i.id)
       );
-      if (missingParents.length > 0) {
-        return [...missingParents, ...list];
+      if (parentPersonalAccounts.length > 0) {
+        return [...parentPersonalAccounts, ...list];
       }
     }
     return list;
@@ -341,15 +346,17 @@ export default function InvestorPage() {
       i.accountStatus?.toLowerCase() !== 'suspended'
     );
     if (parentIdsToElevate.size > 0) {
-      const missingParents = filteredInvestors.filter(i =>
+      // In all three tabs, when searching for a subaccount, only the parent's personal account is populated in the first row
+      const parentPersonalAccounts = filteredInvestors.filter(i =>
         parentIdsToElevate.has(i.id) &&
+        (i.accountType?.toLowerCase() === 'personal' || !i.accountType) &&
         (i.accountStatus?.toLowerCase() === 'active' || !i.accountStatus) &&
         i.status?.toLowerCase() !== 'suspended' &&
         i.accountStatus?.toLowerCase() !== 'suspended' &&
         !list.some(item => item.id === i.id)
       );
-      if (missingParents.length > 0) {
-        return [...missingParents, ...list];
+      if (parentPersonalAccounts.length > 0) {
+        return [...parentPersonalAccounts, ...list];
       }
     }
     return list;
@@ -1027,7 +1034,7 @@ export default function InvestorPage() {
                                         <div>
                                           <div className="flex items-center gap-2">
                                             <p className="text-sm font-bold text-[#111827] dark:text-white whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
-                                            {parentIdsToElevate.has(investor.id) && (
+                                            {parentIdsToElevate.has(investor.id) && (investor.accountType?.toLowerCase() === 'personal' || !investor.accountType) && (
                                               <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 rounded-full border border-amber-300 dark:border-amber-700">
                                                 Parent
                                               </span>
@@ -1178,7 +1185,7 @@ export default function InvestorPage() {
                                         <div>
                                           <div className="flex items-center gap-2">
                                             <p className="text-sm font-bold text-[#111827] dark:text-white whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
-                                            {parentIdsToElevate.has(investor.id) && (
+                                            {parentIdsToElevate.has(investor.id) && (investor.accountType?.toLowerCase() === 'personal' || !investor.accountType) && (
                                               <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 rounded-full border border-amber-300 dark:border-amber-700">
                                                 Parent
                                               </span>
@@ -1327,7 +1334,7 @@ export default function InvestorPage() {
                                         <div>
                                           <div className="flex items-center gap-2">
                                             <p className="text-sm font-bold text-[#111827] dark:text-white whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
-                                            {parentIdsToElevate.has(investor.id) && (
+                                            {parentIdsToElevate.has(investor.id) && (investor.accountType?.toLowerCase() === 'personal' || !investor.accountType) && (
                                               <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 rounded-full border border-amber-300 dark:border-amber-700">
                                                 Parent
                                               </span>
@@ -1463,7 +1470,7 @@ export default function InvestorPage() {
                                         <div>
                                           <div className="flex items-center gap-2">
                                             <p className="text-sm font-bold text-[#111827] dark:text-white whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
-                                            {parentIdsToElevate.has(investor.id) && (
+                                            {parentIdsToElevate.has(investor.id) && (investor.accountType?.toLowerCase() === 'personal' || !investor.accountType) && (
                                               <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 rounded-full border border-amber-300 dark:border-amber-700">
                                                 Parent
                                               </span>
@@ -1596,7 +1603,7 @@ export default function InvestorPage() {
                                         <div>
                                           <div className="flex items-center gap-2">
                                             <p className="text-sm font-bold text-[#111827] dark:text-white whitespace-nowrap">{investor.firstName} {investor.lastName || ''}</p>
-                                            {parentIdsToElevate.has(investor.id) && (
+                                            {parentIdsToElevate.has(investor.id) && (investor.accountType?.toLowerCase() === 'personal' || !investor.accountType) && (
                                               <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 rounded-full border border-amber-300 dark:border-amber-700">
                                                 Parent
                                               </span>
