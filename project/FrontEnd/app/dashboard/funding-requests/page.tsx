@@ -70,34 +70,56 @@ export default function FundingRequestsPage() {
     });
   };
 
-  // Filter and Search logic
-  const filteredRequests = (investments || []).filter((req) => {
-    const investorName = (req.investor_name || 'unknown investor').toLowerCase();
-    const requestId = `FUN-${req.id}`.toLowerCase();
+  const getStatusPriority = (rawStatus?: string): number => {
+    const s = (rawStatus || '').toLowerCase().trim();
+    if (s === 'awaiting funding' || s.includes('awaiting')) return 1;
+    if (s === 'subscription submitted' || s.includes('submitted')) return 2;
+    if (s === 'units issued' || s.includes('issued')) return 3;
+    if (s === 'rejected' || s.includes('reject')) return 4;
+    return 5;
+  };
 
-    const matchesSearch =
-      investorName.includes(searchQuery.toLowerCase()) ||
-      requestId.includes(searchQuery.toLowerCase());
+  // Filter, Sort and Search logic
+  const filteredRequests = (investments || [])
+    .filter((req) => {
+      const investorName = (req.investor_name || 'unknown investor').toLowerCase();
+      const requestId = `FUN-${req.id}`.toLowerCase();
 
-    // Status filter logic (forced Pending in UI, but keep DB status for filtering)
-    const rawStatus = (req.status || 'Pending');
-    const status = rawStatus.toLowerCase();
+      const matchesSearch =
+        investorName.includes(searchQuery.toLowerCase()) ||
+        requestId.includes(searchQuery.toLowerCase());
 
-    let matchesStatus = fundStatusFilter === 'all';
-    if (!matchesStatus) {
-      if (fundStatusFilter === 'pending') {
-        matchesStatus = status.includes('pending') || status.includes('submitted');
-      } else if (fundStatusFilter === 'approved') {
-        matchesStatus = status.includes('approved') || status.includes('received') || status.includes('issued');
-      } else {
-        matchesStatus = status.includes(fundStatusFilter.toLowerCase());
+      // Status filter logic (forced Pending in UI, but keep DB status for filtering)
+      const rawStatus = (req.status || 'Pending');
+      const status = rawStatus.toLowerCase();
+
+      let matchesStatus = fundStatusFilter === 'all';
+      if (!matchesStatus) {
+        if (fundStatusFilter === 'pending') {
+          matchesStatus = status.includes('pending') || status.includes('submitted');
+        } else if (fundStatusFilter === 'approved') {
+          matchesStatus = status.includes('approved') || status.includes('received') || status.includes('issued');
+        } else {
+          matchesStatus = status.includes(fundStatusFilter.toLowerCase());
+        }
       }
-    }
 
-    const matchesPayment = paymentTypeFilter === 'all' || 'wire'.includes(paymentTypeFilter.toLowerCase());
+      const matchesPayment = paymentTypeFilter === 'all' || 'wire'.includes(paymentTypeFilter.toLowerCase());
 
-    return matchesSearch && matchesStatus && matchesPayment;
-  });
+      return matchesSearch && matchesStatus && matchesPayment;
+    })
+    .sort((a, b) => {
+      const priorityA = getStatusPriority(a.status);
+      const priorityB = getStatusPriority(b.status);
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA;
+    });
 
   const itemsPerPage = 7;
   const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
