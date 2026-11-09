@@ -34,6 +34,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/api/client';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export type CampaignStatus = 'Draft' | 'Scheduled' | 'Sent' | 'Failed';
 
@@ -82,6 +85,19 @@ const stripHtmlForSnippet = (html?: string) => {
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 };
 export default function EmailUpdatesPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  const userRole = (user?.role || '').trim().toLowerCase();
+  const isAdmin = userRole === 'admin' || userRole === 'executive_admin';
+
+  useEffect(() => {
+    if (!authLoading && user && !isAdmin) {
+      toast.error('Access denied. This page is only accessible to administrators.');
+      router.push('/dashboard');
+    }
+  }, [user, isAdmin, authLoading, router]);
+
   // Navigation Tabs: 'campaigns' (list) or 'compose' (editor with live preview)
   const [activeTab, setActiveTab] = useState<'campaigns' | 'compose'>('compose');
 
@@ -126,7 +142,7 @@ export default function EmailUpdatesPage() {
 
   // Fetch active holdings recipients whenever selected fund changes
   useEffect(() => {
-    if (!selectedFundId) {
+    if (!isAdmin || !selectedFundId) {
       setHoldingInvestors([]);
       return;
     }
@@ -149,7 +165,7 @@ export default function EmailUpdatesPage() {
     return () => {
       isCancelled = true;
     };
-  }, [selectedFundId]);
+  }, [selectedFundId, isAdmin]);
 
   // Unique holding recipients deduplicated by email
   const uniqueHoldingInvestors = useMemo(() => {
@@ -230,12 +246,16 @@ export default function EmailUpdatesPage() {
   };
 
   useEffect(() => {
-    loadFunds();
-  }, []);
+    if (isAdmin) {
+      loadFunds();
+    }
+  }, [isAdmin]);
 
   useEffect(() => {
-    loadCampaigns();
-  }, [statusFilter, searchQuery]);
+    if (isAdmin) {
+      loadCampaigns();
+    }
+  }, [statusFilter, searchQuery, isAdmin]);
 
   // Synchronize bodyText into editor DOM when not actively being typed by the user
   useEffect(() => {
@@ -658,6 +678,16 @@ export default function EmailUpdatesPage() {
     }
     return true;
   });
+
+  if (authLoading || (!isAdmin && user)) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-10 w-10 text-[#1F3B6E] animate-spin" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

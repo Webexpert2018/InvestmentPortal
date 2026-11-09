@@ -208,7 +208,7 @@ const menuItems: MenuItem[] = [
     title: 'Email Updates',
     href: '/dashboard/email-updates',
     icon: Mail,
-    roles: ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'investor'],
+    roles: ['admin', 'executive_admin'],
   },
   {
     title: 'Staff',
