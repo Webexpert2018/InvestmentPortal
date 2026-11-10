@@ -304,11 +304,15 @@ export default function InvestPage() {
       });
     });
 
+    const minorSubaccounts: any[] = [];
+    const entitySubaccounts: any[] = [];
+    const subIraAccounts: any[] = [];
+
     subaccounts.forEach((sub) => {
       if (sub.isIraSubaccount || sub.investorType === 'sub ira account') {
         // IRA subaccount returned from API
         const isSuspended = sub.status?.toLowerCase() === 'suspended';
-        list.push({
+        subIraAccounts.push({
           id: sub.id,
           label: (sub.fullName || '').replace(/^AET\s+FBO\s+/i, ''),
           value: isSuspended ? 'Suspended' : 'SUB IRA ACCOUNT',
@@ -317,18 +321,34 @@ export default function InvestPage() {
           iraData: sub,
           category: 'Sub Accounts'
         });
-      } else {
-        const isEntity = sub.investorType === 'entity';
-        const rawLabel = isEntity ? (sub.entityName || sub.fullName) : sub.fullName;
-        list.push({
+      } else if (sub.investorType === 'entity') {
+        const rawLabel = sub.entityName || sub.fullName;
+        entitySubaccounts.push({
           id: sub.id,
           label: (rawLabel || '').replace(/^AET\s+FBO\s+/i, ''),
-          value: isEntity ? `${sub.entityType || 'Entity'} Account` : 'Minor Account',
+          value: `${sub.entityType || 'Entity'} Account`,
+          status: sub.status || 'active',
+          category: 'Sub Accounts'
+        });
+      } else {
+        minorSubaccounts.push({
+          id: sub.id,
+          label: (sub.fullName || '').replace(/^AET\s+FBO\s+/i, ''),
+          value: 'Minor Account',
           status: sub.status || 'active',
           category: 'Sub Accounts'
         });
       }
     });
+
+    const compareByLabel = (a: any, b: any) =>
+      (a.label || '').localeCompare(b.label || '', undefined, { sensitivity: 'base', numeric: true });
+
+    minorSubaccounts.sort(compareByLabel);
+    entitySubaccounts.sort(compareByLabel);
+    subIraAccounts.sort(compareByLabel);
+
+    list.push(...minorSubaccounts, ...entitySubaccounts, ...subIraAccounts);
 
     return list;
   }, [userIraAccounts, subaccounts, user]);
