@@ -200,6 +200,7 @@ export default function PortfolioPage() {
       const gainLossValue = currentValue - costBasis;
       return {
         ...inv,
+        account_type: inv.display_account_type || inv.account_type,
         units,
         currentNav,
         currentValue,

@@ -1416,7 +1416,26 @@ export class UsersService implements OnModuleInit {
       };
     });
 
-    return [...directSubaccounts, ...iraSubaccounts];
+    const combined = [...directSubaccounts, ...iraSubaccounts];
+
+    const getGroup = (item: any) => {
+      if (item.isIraSubaccount || item.investorType === 'sub ira account') return 3;
+      if (item.investorType === 'entity') return 2;
+      return 1; // minor
+    };
+    const getName = (item: any) => {
+      const raw = item.investorType === 'entity' ? (item.entityName || item.fullName || '') : (item.fullName || item.entityName || '');
+      return (raw || '').replace(/^AET\s+FBO\s+/i, '').trim();
+    };
+
+    combined.sort((a, b) => {
+      const gA = getGroup(a);
+      const gB = getGroup(b);
+      if (gA !== gB) return gA - gB;
+      return getName(a).localeCompare(getName(b), undefined, { sensitivity: 'base', numeric: true });
+    });
+
+    return combined;
   }
 
   /**

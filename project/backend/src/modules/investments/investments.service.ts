@@ -279,9 +279,29 @@ export class InvestmentsService {
       const query = `
         SELECT i.*, f.name as fund_name, f.image_url as fund_image,
                COALESCE((SELECT SUM(amount) FROM redemptions WHERE investment_id = i.id AND status = 'Processed'), 0)::float as processed_redemption_amount,
-               COALESCE((SELECT SUM(units) FROM redemptions WHERE investment_id = i.id AND status = 'Processed'), 0)::float as processed_redemption_units
+               COALESCE((SELECT SUM(units) FROM redemptions WHERE investment_id = i.id AND status = 'Processed'), 0)::float as processed_redemption_units,
+               inv.full_name as investor_full_name,
+               inv.entity_name as investor_entity_name,
+               inv.investor_type as investor_investor_type,
+               inv.parent_id as investor_parent_id,
+               CASE 
+                 WHEN inv.parent_id IS NOT NULL THEN
+                   CASE 
+                     WHEN i.account_type ILIKE '%ira%' OR i.account_type IN ('Traditional', 'Roth', 'SEP', 'Simple', 'DB Plan', 'DBP', 'Roth SEP', 'Roth SIMPLE') THEN
+                       COALESCE(inv.full_name, '') || ' ' || (CASE WHEN i.account_type ILIKE '%ira' THEN i.account_type ELSE i.account_type || ' IRA' END)
+                     WHEN inv.investor_type = 'entity' THEN
+                       COALESCE(inv.entity_name, inv.full_name, '') || ' (Entity)'
+                     WHEN inv.investor_type = 'minor' THEN
+                       COALESCE(inv.full_name, '') || ' (Minor)'
+                     ELSE
+                       COALESCE(inv.full_name, '') || ' (' || i.account_type || ')'
+                   END
+                 ELSE
+                   i.account_type
+               END as display_account_type
         FROM investments i
         JOIN funds f ON i.fund_id = f.id
+        LEFT JOIN investors inv ON i.user_id = inv.id
         WHERE i.user_id = $1 OR i.user_id IN (SELECT id FROM investors WHERE parent_id = $1)
         ORDER BY i.created_at DESC
       `;

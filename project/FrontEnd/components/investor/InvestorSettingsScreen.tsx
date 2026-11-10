@@ -550,11 +550,30 @@ export function InvestorSettingsScreen() {
     return countryObj ? State.getStatesOfCountry(countryObj.isoCode) : [];
   }, [iraForm.mailingCountry, countries]);
 
+  const sortSubaccountsList = (items: any[]) => {
+    if (!Array.isArray(items)) return [];
+    const getGroup = (item: any) => {
+      if (item.isIraSubaccount || item.investorType === 'sub ira account') return 3;
+      if (item.investorType === 'entity') return 2;
+      return 1; // minor
+    };
+    const getName = (item: any) => {
+      const raw = item.investorType === 'entity' ? (item.entityName || item.fullName || '') : (item.fullName || item.entityName || '');
+      return (raw || '').replace(/^AET\s+FBO\s+/i, '').trim();
+    };
+    return [...items].sort((a, b) => {
+      const gA = getGroup(a);
+      const gB = getGroup(b);
+      if (gA !== gB) return gA - gB;
+      return getName(a).localeCompare(getName(b), undefined, { sensitivity: 'base', numeric: true });
+    });
+  };
+
   const loadSubaccounts = async () => {
     try {
       setSubaccountsLoading(true);
       const data = await apiClient.getSubaccounts();
-      setSubaccounts(data);
+      setSubaccounts(sortSubaccountsList(data));
     } catch (err) {
       console.error('Error loading subaccounts:', err);
     } finally {

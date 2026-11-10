@@ -898,7 +898,7 @@ class ApiClient {
     fundId: string;
     accountId?: string;
     accountType: string;
-    investmentAmount: number;
+    investmentAmount: number | string;
     unitPrice: number;
     status?: string;
     documentSigned?: boolean;
@@ -1093,7 +1093,7 @@ class ApiClient {
     fundName: string;
     accessToken?: string;
     accountId?: string;
-    investmentAmount: number;
+    investmentAmount: number | string;
     accountType: string;
     investorAccountId?: string;
     customInvestorName?: string;

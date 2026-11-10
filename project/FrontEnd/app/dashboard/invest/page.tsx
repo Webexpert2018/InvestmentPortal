@@ -304,11 +304,15 @@ export default function InvestPage() {
       });
     });
 
+    const minorSubaccounts: any[] = [];
+    const entitySubaccounts: any[] = [];
+    const subIraAccounts: any[] = [];
+
     subaccounts.forEach((sub) => {
       if (sub.isIraSubaccount || sub.investorType === 'sub ira account') {
         // IRA subaccount returned from API
         const isSuspended = sub.status?.toLowerCase() === 'suspended';
-        list.push({
+        subIraAccounts.push({
           id: sub.id,
           label: (sub.fullName || '').replace(/^AET\s+FBO\s+/i, ''),
           value: isSuspended ? 'Suspended' : 'SUB IRA ACCOUNT',
@@ -317,18 +321,34 @@ export default function InvestPage() {
           iraData: sub,
           category: 'Sub Accounts'
         });
-      } else {
-        const isEntity = sub.investorType === 'entity';
-        const rawLabel = isEntity ? (sub.entityName || sub.fullName) : sub.fullName;
-        list.push({
+      } else if (sub.investorType === 'entity') {
+        const rawLabel = sub.entityName || sub.fullName;
+        entitySubaccounts.push({
           id: sub.id,
           label: (rawLabel || '').replace(/^AET\s+FBO\s+/i, ''),
-          value: isEntity ? `${sub.entityType || 'Entity'} Account` : 'Minor Account',
+          value: `${sub.entityType || 'Entity'} Account`,
+          status: sub.status || 'active',
+          category: 'Sub Accounts'
+        });
+      } else {
+        minorSubaccounts.push({
+          id: sub.id,
+          label: (sub.fullName || '').replace(/^AET\s+FBO\s+/i, ''),
+          value: 'Minor Account',
           status: sub.status || 'active',
           category: 'Sub Accounts'
         });
       }
     });
+
+    const compareByLabel = (a: any, b: any) =>
+      (a.label || '').localeCompare(b.label || '', undefined, { sensitivity: 'base', numeric: true });
+
+    minorSubaccounts.sort(compareByLabel);
+    entitySubaccounts.sort(compareByLabel);
+    subIraAccounts.sort(compareByLabel);
+
+    list.push(...minorSubaccounts, ...entitySubaccounts, ...subIraAccounts);
 
     return list;
   }, [userIraAccounts, subaccounts, user]);
@@ -473,10 +493,11 @@ export default function InvestPage() {
       localStorage.removeItem('last_investment_id');
 
       // Proceed to DocuSign
+      const cleanAmountStr = amount.replace(/[^0-9.]/g, '').trim();
       const response = await apiClient.createDocuSignEnvelope({
         fundId: selectedFundId,
         fundName: selectedFund.name,
-        investmentAmount: investmentAmount,
+        investmentAmount: cleanAmountStr || investmentAmount,
         accountType: finalAccountType,
         investorAccountId: finalInvestorAccountId,
         customInvestorName: isSubIra
@@ -915,22 +936,22 @@ export default function InvestPage() {
           </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-          <div className="space-y-6">
-            <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
-              <label className="block text-xs font-bold uppercase tracking-wide text-[#4B4B4B] dark:text-gray-300 mb-4">
-                Amount
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="$0.00"
-                  className="w-full rounded-xl border border-[#E5E5EA] bg-white dark:bg-[#1C1C1C] px-6 py-4 text-lg font-medium text-[#1F1F1F] dark:text-gray-100 outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] transition-all"
-                />
-                <p className="mt-3 text-xs text-[#8E8E93]">Minimum investment: $10,000</p>
-              </div>
+        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800 h-fit">
+          <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-6">Order Summary</h2>
+          <div className="space-y-4 text-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <span className="text-[#8E8E93]">Investment Amount</span>
+              <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
+                $
+                {(() => {
+                  const clean = amount.replace(/[^0-9.]/g, '');
+                  if (clean.includes('.')) {
+                    const [intPart, decPart] = clean.split('.');
+                    return `${Number(intPart || 0).toLocaleString('en-US')}.${decPart}`;
+                  }
+                  return investmentAmount.toLocaleString('en-US');
+                })()}
+              </span>
             </div>
 
             <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
@@ -959,10 +980,14 @@ export default function InvestPage() {
                 <span className="text-[#8E8E93]">Investment Amount</span>
                 <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
                   $
-                  {investmentAmount.toLocaleString('en-US', {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  })}
+                  {(() => {
+                    const clean = amount.replace(/[^0-9.]/g, '');
+                    if (clean.includes('.')) {
+                      const [intPart, decPart] = clean.split('.');
+                      return `${Number(intPart || 0).toLocaleString('en-US')}.${decPart}`;
+                    }
+                    return total.toLocaleString('en-US');
+                  })()}
                 </span>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
