@@ -193,6 +193,30 @@ export class DocusignService {
   }
 
   /**
+   * Formats an investment amount with commas and preserves exact decimals without stripping trailing zeros.
+   */
+  private formatAmountDisplay(investmentAmount: number | string): string {
+    if (investmentAmount === null || investmentAmount === undefined || investmentAmount === '') {
+      return '$0.00';
+    }
+    const str = String(investmentAmount).replace(/[^0-9.]/g, '').trim();
+    if (!str) return '$0.00';
+
+    const parts = str.split('.');
+    const integerPart = parts[0] ? Number(parts[0]).toLocaleString('en-US') : '0';
+
+    if (parts.length > 1) {
+      let decimalPart = parts[1];
+      if (decimalPart.length === 1) {
+        decimalPart = decimalPart + '0';
+      }
+      return `$${integerPart}.${decimalPart}`;
+    }
+
+    return `$${integerPart}`;
+  }
+
+  /**
    * Creates an envelope for a specific investment and returns the embedded signing URL.
    */
   async createEnvelopeForInvestment(
@@ -202,7 +226,7 @@ export class DocusignService {
     signerName: string,
     investorName: string,
     fundName: string,
-    investmentAmount: number,
+    investmentAmount: number | string,
     returnUrl: string,
     fundId?: string,
     userId?: string,
@@ -428,7 +452,7 @@ export class DocusignService {
               const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
               amountTab.xPosition = adjustedX.toString();
               amountTab.yPosition = adjustedY.toString();
-              amountTab.value = `$${investmentAmount.toLocaleString('en-US')}`;
+              amountTab.value = this.formatAmountDisplay(investmentAmount);
               amountTab.font = 'TimesNewRoman';
               amountTab.fontSize = 'Size11';
               amountTab.tabLabel = `OAInvestmentAmount_${idx + 1}`;
@@ -522,7 +546,7 @@ export class DocusignService {
             const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
             amountTab.xPosition = adjustedX.toString();
             amountTab.yPosition = adjustedY.toString();
-            amountTab.value = `$${investmentAmount.toLocaleString('en-US')}`;
+            amountTab.value = this.formatAmountDisplay(investmentAmount);
             amountTab.font = 'TimesNewRoman';
             amountTab.fontSize = 'Size11';
             amountTab.tabLabel = `InvestmentAmount_${idx + 1}`;
@@ -587,7 +611,7 @@ export class DocusignService {
           amountTab.anchorXOffset = '10';
           amountTab.anchorYOffset = '-4';
         }
-        amountTab.value = `$${investmentAmount.toLocaleString('en-US')}`;
+        amountTab.value = this.formatAmountDisplay(investmentAmount);
         amountTab.font = 'TimesNewRoman';
         amountTab.fontSize = 'Size11';
         amountTab.tabLabel = 'Dynamic Investment Amount';
@@ -657,7 +681,7 @@ export class DocusignService {
       saAmount.anchorUnits = 'pixels';
       saAmount.anchorXOffset = '120';
       saAmount.anchorYOffset = '22'; // 1 line down
-      saAmount.value = `$${investmentAmount.toLocaleString('en-US')}`;
+      saAmount.value = this.formatAmountDisplay(investmentAmount);
       saAmount.font = 'TimesNewRoman';
       saAmount.fontSize = 'Size11';
       saAmount.tabLabel = 'Investment Amount';

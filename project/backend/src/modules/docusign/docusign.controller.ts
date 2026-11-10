@@ -69,7 +69,7 @@ export class DocusignController {
       fundName: string;
       accessToken?: string;
       accountId?: string;
-      investmentAmount: number;
+      investmentAmount: number | string;
       accountType: string;
       investorAccountId?: string;
       customInvestorName?: string;
@@ -83,7 +83,7 @@ export class DocusignController {
     try {
       const { fundId, fundName, accessToken, accountId, investmentAmount, accountType, investorAccountId, customInvestorName, iraMetadata, returnUrl } = body;
 
-      if (!fundId || !investmentAmount) {
+      if (!fundId || investmentAmount === undefined || investmentAmount === null || investmentAmount === '') {
         throw new BadRequestException('Missing required fund or amount details');
       }
 

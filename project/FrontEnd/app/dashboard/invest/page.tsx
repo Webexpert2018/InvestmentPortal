@@ -493,10 +493,11 @@ export default function InvestPage() {
       localStorage.removeItem('last_investment_id');
 
       // Proceed to DocuSign
+      const cleanAmountStr = amount.replace(/[^0-9.]/g, '').trim();
       const response = await apiClient.createDocuSignEnvelope({
         fundId: selectedFundId,
         fundName: selectedFund.name,
-        investmentAmount: investmentAmount,
+        investmentAmount: cleanAmountStr || investmentAmount,
         accountType: finalAccountType,
         investorAccountId: finalInvestorAccountId,
         customInvestorName: isSubIra
@@ -979,10 +980,14 @@ export default function InvestPage() {
               <span className="text-[#8E8E93]">Investment Amount</span>
               <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
                 $
-                {investmentAmount.toLocaleString('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-                })}
+                {(() => {
+                  const clean = amount.replace(/[^0-9.]/g, '');
+                  if (clean.includes('.')) {
+                    const [intPart, decPart] = clean.split('.');
+                    return `${Number(intPart || 0).toLocaleString('en-US')}.${decPart}`;
+                  }
+                  return investmentAmount.toLocaleString('en-US');
+                })()}
               </span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
@@ -1009,10 +1014,14 @@ export default function InvestPage() {
                 <span className="text-gray-400 font-medium">Total</span>
                 <span className="text-xl font-bold text-[#2BB673]">
                   $
-                  {total.toLocaleString('en-US', {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  })}
+                  {(() => {
+                    const clean = amount.replace(/[^0-9.]/g, '');
+                    if (clean.includes('.')) {
+                      const [intPart, decPart] = clean.split('.');
+                      return `${Number(intPart || 0).toLocaleString('en-US')}.${decPart}`;
+                    }
+                    return total.toLocaleString('en-US');
+                  })()}
                 </span>
               </div>
             </div>
