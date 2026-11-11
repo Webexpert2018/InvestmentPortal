@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import {
   ChevronLeft, X, ChevronDown, ChevronUp, FileText, Download, Calendar, CalendarDays, Mail, Phone,
-  Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle, Plus, Info, Pencil, Filter, MessageSquare
+  Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle, Plus, Info, Pencil, Filter, MessageSquare,
+  RefreshCw, Clock, Send, RotateCw
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { apiClient, BASE_URL, API_URL } from '@/lib/api/client';
@@ -90,6 +91,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     if (tabParam === 'kyc') return 'kyc';
     if (tabParam === 'redemption') return 'redemption';
     if (tabParam === 'legacy_docs' || tabParam === 'legacy') return 'legacy_docs';
+    if (tabParam === 'investment_invites' || tabParam === 'invites') return 'investment_invites';
     return 'basic';
   });
 
@@ -99,6 +101,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       else if (tabParam === 'kyc') setActiveTab('kyc');
       else if (tabParam === 'redemption') setActiveTab('redemption');
       else if (tabParam === 'legacy_docs' || tabParam === 'legacy') setActiveTab('legacy_docs');
+      else if (tabParam === 'investment_invites' || tabParam === 'invites') setActiveTab('investment_invites');
       else if (tabParam === 'basic') setActiveTab('basic');
     }
   }, [tabParam]);
@@ -150,6 +153,13 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [investmentInvites, setInvestmentInvites] = useState<any[]>([]);
+  const [loadingInvites, setLoadingInvites] = useState(false);
+  const [invitesPage, setInvitesPage] = useState(1);
+  const [invitesTotalPages, setInvitesTotalPages] = useState(1);
+  const [invitesTotal, setInvitesTotal] = useState(0);
+  const [selectedInviteDetails, setSelectedInviteDetails] = useState<any | null>(null);
+  const [resendingInviteId, setResendingInviteId] = useState<string | null>(null);
   const [iraAccounts, setIraAccounts] = useState<any[]>([]);
   const [subAccounts, setSubAccounts] = useState<any[]>([]);
   const [subAccountData, setSubAccountData] = useState<Record<string, { funding: any[], redemptions: any[] }>>({});
@@ -244,6 +254,60 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     fetchData();
   }, [params.id]);
 
+  const fetchInvestmentInvites = useCallback(async (page = 1) => {
+    if (!investorData?.email && !params.id) return;
+    setLoadingInvites(true);
+    try {
+      const res = await apiClient.getEmailNotificationLogs({
+        notificationType: 'INVESTMENT_INVITE',
+        recipientEmail: investorData?.email,
+        recipientUserId: params.id,
+        page,
+        limit: 10,
+      });
+      setInvestmentInvites(res.data || []);
+      setInvitesTotal(res.pagination?.total ?? (res.data || []).length);
+      setInvitesTotalPages(res.pagination?.totalPages || 1);
+      setInvitesPage(page);
+    } catch (err) {
+      console.error('Failed to fetch investment invites:', err);
+    } finally {
+      setLoadingInvites(false);
+    }
+  }, [investorData?.email, params.id]);
+
+  useEffect(() => {
+    if (activeTab === 'investment_invites' && (investorData?.email || params.id)) {
+      fetchInvestmentInvites(1);
+    }
+  }, [activeTab, investorData?.email, params.id, fetchInvestmentInvites]);
+
+  const handleResendInvestmentInvite = async (invite: any) => {
+    if (resendingInviteId) return;
+    setResendingInviteId(invite.id);
+    try {
+      const meta = typeof invite.metadata === 'string'
+        ? (() => { try { return JSON.parse(invite.metadata); } catch { return {}; } })()
+        : (invite.metadata || {});
+
+      await apiClient.resendInvestmentInvite({
+        logId: invite.id,
+        investorId: params.id,
+        fundId: meta.fundId,
+        accountId: meta.accountId,
+        accountType: meta.accountType,
+        amount: meta.amount,
+      });
+      toast.success('Investment invitation resent successfully with a new token.');
+      await fetchInvestmentInvites(invitesPage);
+    } catch (err: any) {
+      console.error('Failed to resend investment invite:', err);
+      toast.error(err.message || 'Failed to resend investment invite');
+    } finally {
+      setResendingInviteId(null);
+    }
+  };
+
   const [isDetailsOpen, setIsDetailsOpen] = useState(true);
 
   const tabs = [
@@ -254,6 +318,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     { id: 'transfers', label: 'Transfers' },
     { id: 'fund_holdings', label: 'Fund Holdings' },
     { id: 'legacy_docs', label: 'Legacy Documents' },
+    { id: 'investment_invites', label: 'Investment Invites' },
   ];
 
   const getStatusColor = (status: string) => {
@@ -986,18 +1051,6 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                           className="h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 bg-[#FCD34D] text-[#1F1F1F] hover:bg-[#FBD24E] border-transparent"
                         >
                           {investorData.assignedAccountantId ? 'Change Accountant' : 'Assign Accountant'}
-                        </button>,
-                        <button
-                          key="send-invite"
-                          onClick={() => setShowInviteModal(true)}
-                          disabled={isPending || investorData.status === 'suspended'}
-                          className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs shrink-0 ${!(isPending || investorData.status === 'suspended')
-                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 border-blue-200 dark:border-blue-800'
-                            : 'bg-[#F9FAFB] dark:bg-gray-800 text-[#9CA3AF] border-[#E5E7EB] dark:border-gray-700 cursor-not-allowed'
-                            }`}
-                        >
-                          <Mail className="h-3.5 w-3.5" />
-                          Send Investment Invite
                         </button>
                       ];
 
@@ -2072,6 +2125,232 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 </div>
               );
             })()}
+
+            {activeTab === 'investment_invites' && (() => {
+              return (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#1F3B6E] inline-block"></span>
+                        Investment Invites
+                      </h4>
+                      {invitesTotal > 0 && (
+                        <span className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-bold px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-800">
+                          {invitesTotal} {invitesTotal === 1 ? 'Invite' : 'Invites'} Sent
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fetchInvestmentInvites(invitesPage)}
+                        disabled={loadingInvites}
+                        className="h-9 px-3 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700"
+                        title="Refresh Invites"
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${loadingInvites ? 'animate-spin' : ''}`} />
+                        <span className="hidden sm:inline">Refresh</span>
+                      </button>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => setShowInviteModal(true)}
+                          disabled={investorData?.status === 'suspended'}
+                          className={`h-9 px-4 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5 whitespace-nowrap shadow-xs ${investorData?.status !== 'suspended'
+                            ? 'bg-[#1F3B6E] text-white hover:bg-[#162A4F] border-transparent'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                            }`}
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                          Send Investment Invite
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  {loadingInvites && investmentInvites.length === 0 ? (
+                    <div className="p-12 flex flex-col items-center justify-center gap-3">
+                      <Loader2 className="w-8 h-8 animate-spin text-[#1F3B6E]" />
+                      <p className="text-xs text-gray-500 font-medium">Loading investment invites...</p>
+                    </div>
+                  ) : investmentInvites.length === 0 ? (
+                    <div className="p-12 text-center bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800">
+                      <div className="mx-auto w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-3">
+                        <Mail className="w-6 h-6" />
+                      </div>
+                      <h5 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1">No Investment Invites Found</h5>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-4">
+                        No investment invitations have been sent to this investor yet.
+                      </p>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => setShowInviteModal(true)}
+                          disabled={investorData?.status === 'suspended'}
+                          className="h-9 px-4 text-xs font-bold rounded-full transition-colors bg-[#1F3B6E] text-white hover:bg-[#162A4F] inline-flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                          Send Investment Invite
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-[#1C1C1C] shadow-xs">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-800">
+                            <tr>
+                              <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Date & Time</th>
+                              <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                              <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Invited Amount</th>
+                              <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Recipient</th>
+                              <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
+                              <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-sm">
+                            {investmentInvites.map((invite) => {
+                              const meta = typeof invite.metadata === 'string'
+                                ? (() => { try { return JSON.parse(invite.metadata); } catch { return {}; } })()
+                                : (invite.metadata || {});
+
+                              const fundName = meta.fundName ||
+                                invite.subject?.replace(/^Investment Invitation\s*-\s*/i, '').replace(/\s*-\s*Ovalia Capital$/i, '') ||
+                                'Fund Investment';
+
+                              const rawAmount = meta.amount;
+                              const formattedAmount = rawAmount ? `$${Number(rawAmount).toLocaleString()}` : '—';
+
+                              const statusUpper = (invite.status || 'SENT').toUpperCase();
+                              const isDelivered = statusUpper === 'DELIVERED' || statusUpper === 'SENT';
+                              const isFailed = statusUpper === 'FAILED' || statusUpper === 'BOUNCED';
+
+                              const sentDate = invite.created_at || invite.sent_at;
+                              const dateFormatted = sentDate
+                                ? new Date(sentDate).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })
+                                : '—';
+
+                              return (
+                                <tr key={invite.id} className="hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition-colors">
+                                  <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">
+                                    <div className="flex items-center gap-1.5">
+                                      <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                                      <span>{dateFormatted}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">
+                                    {fundName}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap font-semibold text-emerald-600 dark:text-emerald-400">
+                                    {formattedAmount}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">
+                                    <div>
+                                      <div className="font-medium text-gray-900 dark:text-gray-100">
+                                        {invite.recipient_name || investorData?.fullName || 'Investor'}
+                                      </div>
+                                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                                        {invite.recipient_email}
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <span
+                                      className={`px-3 py-1 inline-flex text-xs font-semibold rounded-full border ${
+                                        isDelivered
+                                          ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                                          : isFailed
+                                          ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800'
+                                          : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
+                                      }`}
+                                    >
+                                      {statusUpper}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleResendInvestmentInvite(invite)}
+                                        disabled={Boolean(resendingInviteId) || investorData?.status === 'suspended'}
+                                        className="px-3 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors inline-flex items-center gap-1.5 border border-blue-200 dark:border-blue-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
+                                        title="Resend invite email with a new token"
+                                      >
+                                        {resendingInviteId === invite.id ? (
+                                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        ) : (
+                                          <RotateCw className="w-3.5 h-3.5" />
+                                        )}
+                                        Resend
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedInviteDetails(invite)}
+                                        className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg transition-colors inline-flex items-center gap-1.5"
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                        View Details
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Pagination */}
+                      {invitesTotalPages > 1 && (
+                        <div className="px-6 py-4 bg-white dark:bg-[#1C1C1C] border-t border-gray-100 dark:border-gray-800 flex items-center justify-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => fetchInvestmentInvites(Math.max(1, invitesPage - 1))}
+                              disabled={invitesPage === 1 || loadingInvites}
+                              className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] dark:text-gray-100 transition-colors font-medium"
+                            >
+                              Previous
+                            </button>
+                            <div className="flex gap-2">
+                              {Array.from({ length: invitesTotalPages }, (_, i) => i + 1).map((page) => (
+                                <button
+                                  key={page}
+                                  onClick={() => fetchInvestmentInvites(page)}
+                                  className={`h-10 w-10 rounded-lg text-[13px] font-medium transition-colors font-helvetica ${
+                                    invitesPage === page
+                                      ? 'bg-[#1F3B6E] text-white'
+                                      : 'text-[#6B7280] hover:bg-gray-100 dark:hover:bg-gray-700'
+                                  }`}
+                                >
+                                  {page}
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              onClick={() => fetchInvestmentInvites(Math.min(invitesTotalPages, invitesPage + 1))}
+                              disabled={invitesPage === invitesTotalPages || loadingInvites}
+                              className="inline-flex items-center gap-1 px-4 py-2 text-[13px] text-[#6B7280] disabled:opacity-40 font-helvetica hover:text-[#1F1F1F] dark:text-gray-100 transition-colors font-medium"
+                            >
+                              Next
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -2399,7 +2678,148 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
         investorId={params.id}
+        onSuccess={() => {
+          fetchInvestmentInvites(1);
+        }}
       />
+
+      {/* Investment Invite Details Modal */}
+      {selectedInviteDetails && (() => {
+        const meta = typeof selectedInviteDetails.metadata === 'string'
+          ? (() => { try { return JSON.parse(selectedInviteDetails.metadata); } catch { return {}; } })()
+          : (selectedInviteDetails.metadata || {});
+
+        const fundName = meta.fundName ||
+          selectedInviteDetails.subject?.replace(/^Investment Invitation\s*-\s*/i, '').replace(/\s*-\s*Ovalia Capital$/i, '') ||
+          'Fund Investment';
+
+        const rawAmount = meta.amount;
+        const formattedAmount = rawAmount ? `$${Number(rawAmount).toLocaleString()}` : '—';
+        const statusUpper = (selectedInviteDetails.status || 'SENT').toUpperCase();
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs font-helvetica">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[24px] shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 dark:border-gray-800 flex flex-col max-h-[90vh]">
+              <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/40">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">Investment Invite Log</h3>
+                    <p className="text-xs text-gray-400">Email Notification Record</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedInviteDetails(null)}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto space-y-4 text-sm custom-scrollbar">
+                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800">
+                  <div>
+                    <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Status</div>
+                    <div className="mt-1">
+                      <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full border ${
+                        statusUpper === 'SENT' || statusUpper === 'DELIVERED'
+                          ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400'
+                          : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400'
+                      }`}>
+                        {statusUpper}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Date Sent</div>
+                    <div className="mt-1 font-medium text-gray-800 dark:text-gray-200 text-xs">
+                      {selectedInviteDetails.created_at
+                        ? new Date(selectedInviteDetails.created_at).toLocaleString()
+                        : '—'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Fund Name</div>
+                    <div className="mt-1 font-bold text-gray-900 dark:text-gray-100 text-sm">{fundName}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Invited Amount</div>
+                    <div className="mt-1 font-bold text-emerald-600 dark:text-emerald-400 text-sm">{formattedAmount}</div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">Recipient</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {selectedInviteDetails.recipient_name || investorData?.fullName} &lt;{selectedInviteDetails.recipient_email}&gt;
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">Email Subject</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {selectedInviteDetails.subject}
+                    </div>
+                  </div>
+
+                  {meta.accountType && (
+                    <div>
+                      <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">Account Type</div>
+                      <div className="text-sm font-medium text-gray-800 dark:text-gray-200 capitalize">
+                        {meta.accountType}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedInviteDetails.body_snippet && (
+                    <div>
+                      <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Message Preview</div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl text-xs text-gray-700 dark:text-gray-300 leading-relaxed border border-gray-100 dark:border-gray-800 whitespace-pre-wrap">
+                        {selectedInviteDetails.body_snippet}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedInviteDetails.error_message && (
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl text-xs border border-red-200 dark:border-red-800">
+                      <strong>Error:</strong> {selectedInviteDetails.error_message}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await handleResendInvestmentInvite(selectedInviteDetails);
+                    setSelectedInviteDetails(null);
+                  }}
+                  disabled={Boolean(resendingInviteId) || investorData?.status === 'suspended'}
+                  className="px-4 py-2 text-xs font-bold rounded-full bg-[#1F3B6E] text-white hover:bg-[#162A4F] transition-colors inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
+                >
+                  {resendingInviteId === selectedInviteDetails.id ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <RotateCw className="w-3.5 h-3.5" />
+                  )}
+                  Resend Invite with New Token
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedInviteDetails(null)}
+                  className="px-5 py-2 text-xs font-bold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </DashboardLayout>
   );
 }

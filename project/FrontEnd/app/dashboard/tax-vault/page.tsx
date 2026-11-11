@@ -31,6 +31,7 @@ type TaxVaultRow = {
   investorName: string;
   investorAvatar?: string;
   isLegacy?: boolean;
+  isSubaccount?: boolean;
 };
 
 const statusClass: Record<TaxDocStatus, string> = {
@@ -87,6 +88,7 @@ export default function TaxVaultPage() {
         investorName: doc.investorName || 'N/A',
         investorAvatar: doc.investorAvatar || '',
         isLegacy: !!doc.is_legacy,
+        isSubaccount: !!doc.isSubaccount,
       }));
 
       setDocuments(mappedRows);
@@ -342,8 +344,8 @@ export default function TaxVaultPage() {
                     <table className="w-full border-separate border-spacing-0 text-[13px] md:text-[14px] text-[#4B4B4B] dark:text-gray-300">
                       <thead>
                         <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap">
-                          {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">Investor</th>}
                           <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">File Name</th>
+                          <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">{user?.role === 'investor' ? 'Account' : 'Investor'}</th>
                           <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">Document Type</th>
                           <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">Tax Year</th>
                           <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">Uploaded Date</th>
@@ -358,21 +360,17 @@ export default function TaxVaultPage() {
                             onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
                             className="border-b border-[#F1F1F1] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-colors"
                           >
-                            {user?.role !== 'investor' && (
-                              <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
-                                <div className="flex items-center gap-3">
-                                  {row.investorAvatar ? (
-                                    <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
-                                  ) : (
-                                    <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] dark:bg-gray-700 flex items-center justify-center text-[#6B7280] dark:text-gray-300 text-[11px] font-semibold font-helvetica border border-[#E5E7EB] dark:border-gray-600">
-                                      {row.investorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                                    </div>
-                                  )}
-                                  <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{row.investorName}</span>
-                                </div>
-                              </td>
-                            )}
                             <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#1F1F1F] dark:text-gray-100 font-medium font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
+                            <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#4B4B4B] dark:text-gray-300">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{row.investorName || 'Primary Account'}</span>
+                                {row.isSubaccount && (
+                                  <span className="text-[9px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-1.5 py-0.2 rounded uppercase tracking-wider">
+                                    Subaccount
+                                  </span>
+                                )}
+                              </div>
+                            </td>
                             <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#4B4B4B] dark:text-gray-300 font-helvetica whitespace-nowrap">{row.documentType}</td>
                             <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#4B4B4B] dark:text-gray-300 font-helvetica whitespace-nowrap">{row.taxYear}</td>
                             <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#4B4B4B] dark:text-gray-300 font-helvetica whitespace-nowrap">{row.uploadedDate}</td>
@@ -497,8 +495,8 @@ export default function TaxVaultPage() {
                 <table className="w-full border-separate border-spacing-0 text-[13px] md:text-[14px] text-[#4B4B4B] dark:text-gray-300">
                   <thead>
                     <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] dark:text-gray-300 whitespace-nowrap">
-                      {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">Investor</th>}
                       <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">File Name</th>
+                      <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">{user?.role === 'investor' ? 'Account' : 'Investor'}</th>
                       <th className="px-4 py-3 text-right border-b border-[#ECEDEF] dark:border-gray-700">Action</th>
                     </tr>
                   </thead>
@@ -509,21 +507,17 @@ export default function TaxVaultPage() {
                         onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
                         className="border-b border-[#F1F1F1] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-colors"
                       >
-                        {user?.role !== 'investor' && (
-                          <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
-                            <div className="flex items-center gap-3">
-                              {row.investorAvatar ? (
-                                <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
-                              ) : (
-                                <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[11px] font-semibold font-helvetica border border-[#E5E7EB]">
-                                  {row.investorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                                </div>
-                              )}
-                              <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{row.investorName}</span>
-                            </div>
-                          </td>
-                        )}
                         <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#1F1F1F] dark:text-gray-100 font-medium font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
+                        <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#4B4B4B] dark:text-gray-300">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{row.investorName || 'Primary Account'}</span>
+                            {row.isSubaccount && (
+                              <span className="text-[9px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-1.5 py-0.2 rounded uppercase tracking-wider">
+                                Subaccount
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="relative px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-right">
                           <button
                             type="button"
@@ -591,8 +585,8 @@ export default function TaxVaultPage() {
                 <table className="w-full border-separate border-spacing-0 text-[13px] md:text-[14px] text-[#4B4B4B] dark:text-gray-300">
                   <thead>
                     <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[12px] md:text-[13px] font-helvetica font-medium tracking-wider text-[#6B7280] dark:text-gray-300 whitespace-nowrap">
-                      {user?.role !== 'investor' && <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">Investor</th>}
                       <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">File Name</th>
+                      <th className="px-4 py-3 border-b border-[#ECEDEF] dark:border-gray-700">{user?.role === 'investor' ? 'Account' : 'Investor'}</th>
                       <th className="px-4 py-3 text-right border-b border-[#ECEDEF] dark:border-gray-700">Action</th>
                     </tr>
                   </thead>
@@ -603,21 +597,17 @@ export default function TaxVaultPage() {
                         onClick={() => router.push(`/dashboard/tax-vault/details/${row.id}`)}
                         className="border-b border-[#F1F1F1] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-colors"
                       >
-                        {user?.role !== 'investor' && (
-                          <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800">
-                            <div className="flex items-center gap-3">
-                              {row.investorAvatar ? (
-                                <img src={row.investorAvatar} alt={row.investorName} className="w-[34px] h-[34px] rounded-full object-cover" />
-                              ) : (
-                                <div className="w-[34px] h-[34px] rounded-full bg-[#F3F4F6] flex items-center justify-center text-[#6B7280] text-[11px] font-semibold font-helvetica border border-[#E5E7EB]">
-                                  {row.investorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                                </div>
-                              )}
-                              <span className="text-[13px] font-medium text-[#1F1F1F] dark:text-gray-100 font-helvetica truncate">{row.investorName}</span>
-                            </div>
-                          </td>
-                        )}
                         <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#1F1F1F] dark:text-gray-100 font-medium font-helvetica truncate max-w-[200px]" title={row.fileName}>{row.fileName}</td>
+                        <td className="px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-[13px] text-[#4B4B4B] dark:text-gray-300">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{row.investorName || 'Primary Account'}</span>
+                            {row.isSubaccount && (
+                              <span className="text-[9px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-1.5 py-0.2 rounded uppercase tracking-wider">
+                                Subaccount
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="relative px-4 py-4 border-b border-[#F5F5F5] dark:border-gray-800 text-right">
                           <button
                             type="button"

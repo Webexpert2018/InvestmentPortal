@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException, HttpException } from '@nestjs/common';
 import { db } from '../../config/database';
 import { NotificationsService } from '../notifications/notifications.service';
 import { DocusignService } from '../docusign/docusign.service';
@@ -751,7 +751,22 @@ export class InvestmentsService {
           investor.full_name,
           fund.name,
           amount,
-          token
+          token,
+          {
+            recipientUserId: investorId,
+            relatedEntityType: 'INVESTOR',
+            relatedEntityId: investorId,
+            triggeredByUserId: adminId,
+            metadata: {
+              fundId,
+              fundName: fund.name,
+              amount,
+              accountId,
+              accountType,
+              token,
+              expiresAt,
+            },
+          }
         );
       }
 
@@ -759,6 +774,139 @@ export class InvestmentsService {
     } catch (error) {
       console.error('Error creating investment invite:', error);
       throw new InternalServerErrorException('Failed to create investment invite');
+    }
+  }
+
+  async resendInvite(
+    adminId: string,
+    payload: {
+      logId?: string;
+      inviteId?: string;
+      investorId?: string;
+      fundId?: string;
+      accountId?: string;
+      accountType?: string;
+      amount?: string;
+    }
+  ) {
+    try {
+      let investorId = payload.investorId;
+      let fundId = payload.fundId;
+      let accountId = payload.accountId;
+      let accountType = payload.accountType;
+      let amount = payload.amount;
+      let oldToken: string | null = null;
+
+      // 1. If logId provided, inspect the email log
+      if (payload.logId) {
+        const logRes = await db.query(
+          'SELECT * FROM email_notification_logs WHERE id = $1',
+          [payload.logId]
+        );
+        if (logRes.rows.length > 0) {
+          const log = logRes.rows[0];
+          const meta = typeof log.metadata === 'string'
+            ? (() => { try { return JSON.parse(log.metadata); } catch { return {}; } })()
+            : (log.metadata || {});
+
+          if (!investorId) {
+            investorId = log.recipient_user_id || log.related_entity_id;
+          }
+          if (!fundId) {
+            fundId = meta.fundId;
+          }
+          if (!amount) {
+            amount = meta.amount;
+          }
+          if (!accountId) {
+            accountId = meta.accountId;
+          }
+          if (!accountType) {
+            accountType = meta.accountType;
+          }
+          if (meta.token) {
+            oldToken = meta.token;
+          }
+
+          // If still no investorId, try resolving by recipient_email
+          if (!investorId && log.recipient_email) {
+            const invByEmail = await db.query(
+              'SELECT id FROM investors WHERE email = $1',
+              [log.recipient_email]
+            );
+            if (invByEmail.rows.length > 0) {
+              investorId = invByEmail.rows[0].id;
+            }
+          }
+
+          // If still no fundId, try resolving by fundName
+          if (!fundId && meta.fundName) {
+            const fundByName = await db.query(
+              'SELECT id FROM funds WHERE name ILIKE $1 LIMIT 1',
+              [meta.fundName]
+            );
+            if (fundByName.rows.length > 0) {
+              fundId = fundByName.rows[0].id;
+            }
+          }
+        }
+      }
+
+      // 2. If old token exists or inviteId provided, check investment_invites
+      if (oldToken || payload.inviteId) {
+        const inviteRes = await db.query(
+          payload.inviteId
+            ? 'SELECT * FROM investment_invites WHERE id = $1'
+            : 'SELECT * FROM investment_invites WHERE token = $1',
+          [payload.inviteId || oldToken]
+        );
+        if (inviteRes.rows.length > 0) {
+          const existing = inviteRes.rows[0];
+          investorId = investorId || existing.investor_id;
+          fundId = fundId || existing.fund_id;
+          accountId = accountId || existing.account_id;
+          accountType = accountType || existing.account_type;
+          amount = amount || existing.amount;
+
+          // Invalidate previous token so it cannot be reused
+          await db.query(
+            "UPDATE investment_invites SET status = 'replaced' WHERE id = $1",
+            [existing.id]
+          );
+        }
+      }
+
+      // Fallbacks
+      accountId = accountId || 'personal';
+      accountType = accountType || 'personal';
+
+      if (!investorId) {
+        throw new BadRequestException('Investor ID could not be identified for resending invite');
+      }
+      if (!fundId) {
+        throw new BadRequestException('Fund could not be identified for resending invite');
+      }
+      if (!amount) {
+        throw new BadRequestException('Investment amount is required for resending invite');
+      }
+
+      // Create fresh invite with newly generated token and send email
+      const result = await this.createInvite(adminId, {
+        investorId,
+        fundId,
+        accountId,
+        accountType,
+        amount: String(amount),
+      });
+
+      return {
+        ...result,
+        message: 'Investment invite resent successfully with a new token',
+      };
+    } catch (error: any) {
+      console.error('Error resending investment invite:', error);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException(error.message || 'Failed to resend investment invite');
     }
   }
 

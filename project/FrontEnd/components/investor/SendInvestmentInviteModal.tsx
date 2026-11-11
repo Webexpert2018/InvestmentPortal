@@ -7,9 +7,10 @@ interface SendInvestmentInviteModalProps {
   isOpen: boolean;
   onClose: () => void;
   investorId: string;
+  onSuccess?: () => void;
 }
 
-export function SendInvestmentInviteModal({ isOpen, onClose, investorId }: SendInvestmentInviteModalProps) {
+export function SendInvestmentInviteModal({ isOpen, onClose, investorId, onSuccess }: SendInvestmentInviteModalProps) {
   const [funds, setFunds] = useState<any[]>([]);
   const [iraAccounts, setIraAccounts] = useState<any[]>([]);
   const [subaccounts, setSubaccounts] = useState<any[]>([]);
@@ -75,6 +76,9 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId }: SendI
         amount
       });
       toast.success('Investment invite sent successfully');
+      if (onSuccess) {
+        onSuccess();
+      }
       onClose();
       // Reset form
       setSelectedFundId('');

@@ -361,8 +361,8 @@ export class EmailService {
       notificationType: 'INVESTMENT_INVITE',
       templateName: 'fund_investment_invitation',
       recipientName: firstName,
-      metadata: { fundName, amount },
       ...options,
+      metadata: { fundName, amount, ...(options?.metadata || {}) },
     });
   }
 
@@ -873,6 +873,7 @@ export class EmailService {
     page?: number;
     limit?: number;
     recipientEmail?: string;
+    recipientUserId?: string;
     notificationType?: string;
     status?: string;
     startDate?: string;
@@ -886,7 +887,13 @@ export class EmailService {
     const values: any[] = [];
     let idx = 1;
 
-    if (params?.recipientEmail) {
+    if (params?.recipientUserId && params?.recipientEmail) {
+      conditions.push(`(recipient_user_id::text = $${idx++} OR related_entity_id::text = $${idx++} OR recipient_email ILIKE $${idx++})`);
+      values.push(String(params.recipientUserId), String(params.recipientUserId), `%${params.recipientEmail}%`);
+    } else if (params?.recipientUserId) {
+      conditions.push(`(recipient_user_id::text = $${idx++} OR related_entity_id::text = $${idx++})`);
+      values.push(String(params.recipientUserId), String(params.recipientUserId));
+    } else if (params?.recipientEmail) {
       conditions.push(`recipient_email ILIKE $${idx++}`);
       values.push(`%${params.recipientEmail}%`);
     }

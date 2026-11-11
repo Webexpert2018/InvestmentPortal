@@ -52,6 +52,13 @@ export class InvestmentsController {
     return this.investmentsService.createInvite(user.userId, body);
   }
 
+  @Post('invite/resend')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations')
+  async resendInvestmentInvite(@CurrentUser() user: any, @Body() body: any) {
+    if (!user.userId) throw new UnauthorizedException('User ID not found');
+    return this.investmentsService.resendInvite(user.userId, body);
+  }
+
   @Get('invite/:token')
   async getInvestmentInvite(@Param('token') token: string, @CurrentUser() user: any) {
     if (!user.userId) throw new UnauthorizedException('User ID not found');

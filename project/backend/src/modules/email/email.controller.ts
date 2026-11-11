@@ -21,11 +21,12 @@ export class EmailController {
   constructor(private readonly emailService: EmailService) { }
 
   @Get('logs')
-  @Roles('admin', 'executive_admin')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
   async getLogs(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('recipientEmail') recipientEmail?: string,
+    @Query('recipientUserId') recipientUserId?: string,
     @Query('notificationType') notificationType?: string,
     @Query('status') status?: string,
     @Query('startDate') startDate?: string,
@@ -35,6 +36,7 @@ export class EmailController {
       page,
       limit,
       recipientEmail,
+      recipientUserId,
       notificationType,
       status,
       startDate,
