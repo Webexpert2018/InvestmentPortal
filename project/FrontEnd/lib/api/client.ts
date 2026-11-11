@@ -1957,6 +1957,52 @@ class ApiClient {
       method: 'POST',
     });
   }
+
+  async getEmailNotificationLogs(params?: {
+    page?: number;
+    limit?: number;
+    recipientEmail?: string;
+    recipientUserId?: string;
+    notificationType?: string;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.append('page', String(params.page));
+    if (params?.limit) searchParams.append('limit', String(params.limit));
+    if (params?.recipientEmail) searchParams.append('recipientEmail', params.recipientEmail);
+    if (params?.recipientUserId) searchParams.append('recipientUserId', params.recipientUserId);
+    if (params?.notificationType) searchParams.append('notificationType', params.notificationType);
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.startDate) searchParams.append('startDate', params.startDate);
+    if (params?.endDate) searchParams.append('endDate', params.endDate);
+    const qs = searchParams.toString() ? '?' + searchParams.toString() : '';
+    return this.request<{
+      data: any[];
+      pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      };
+    }>('/email/logs' + qs);
+  }
+
+  async resendInvestmentInvite(data: {
+    logId?: string;
+    inviteId?: string;
+    investorId?: string;
+    fundId?: string;
+    accountId?: string;
+    accountType?: string;
+    amount?: string;
+  }) {
+    return this.request<{ token: string; message: string }>('/investments/invite/resend', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
