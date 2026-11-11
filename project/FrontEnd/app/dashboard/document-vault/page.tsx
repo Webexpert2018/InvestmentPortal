@@ -16,6 +16,8 @@ type VaultRow = {
   uploadedDate: string;
   fileUrl: string;
   isLegacy?: boolean;
+  investorName?: string;
+  isSubaccount?: boolean;
 };
 
 export default function DocumentVaultPage() {
@@ -65,6 +67,8 @@ export default function DocumentVaultPage() {
           }),
           fileUrl: `${apiClient.getApiUrl()}/documents/${doc.id}/download`,
           isLegacy: !!doc.is_legacy,
+          investorName: doc.investorName,
+          isSubaccount: !!doc.isSubaccount,
         }));
         setDocuments(mapped);
       } catch (err) {
@@ -90,7 +94,8 @@ export default function DocumentVaultPage() {
       const searchMatch =
         query.trim().length === 0 ||
         row.documentName.toLowerCase().includes(query.toLowerCase()) ||
-        row.category.toLowerCase().includes(query.toLowerCase());
+        row.category.toLowerCase().includes(query.toLowerCase()) ||
+        (row.investorName && row.investorName.toLowerCase().includes(query.toLowerCase()));
 
       return typeMatch && searchMatch;
     });
@@ -214,6 +219,7 @@ export default function DocumentVaultPage() {
                     <thead>
                       <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300 border-b dark:border-gray-700">
                         <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
+                        <th className="px-3 py-3">{user?.role === 'investor' ? 'Account' : 'Investor'}</th>
                         <th className="px-3 py-3">Category</th>
                         <th className="px-3 py-3">Uploaded Date</th>
                         <th className="rounded-r-[6px] px-3 py-3 text-center">Action</th>
@@ -227,6 +233,16 @@ export default function DocumentVaultPage() {
                           className="border-b border-[#F1F1F1] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-colors"
                         >
                           <td className="px-3 py-4 font-medium text-[#1F1F1F] dark:text-gray-100">{row.documentName}</td>
+                          <td className="px-3 py-4 text-[#4B4B4B] dark:text-gray-300">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{row.investorName || 'Primary Account'}</span>
+                              {row.isSubaccount && (
+                                <span className="text-[9px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-1.5 py-0.2 rounded uppercase tracking-wider">
+                                  Subaccount
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td className="px-3 py-4 text-[#4B4B4B] dark:text-gray-300">{row.category}</td>
                           <td className="px-3 py-4 text-[#4B4B4B] dark:text-gray-300">{row.uploadedDate}</td>
                           <td className="relative px-3 py-4 text-center">
@@ -339,6 +355,7 @@ export default function DocumentVaultPage() {
                 <thead>
                   <tr className="bg-[#FAFAFA] dark:bg-gray-800 text-left text-[13px] font-medium text-[#4B4B4B] dark:text-gray-300 border-b dark:border-gray-700">
                     <th className="rounded-l-[6px] px-3 py-3">Document Name</th>
+                    <th className="px-3 py-3">{user?.role === 'investor' ? 'Account' : 'Investor'}</th>
                     <th className="rounded-r-[6px] px-3 py-3 text-center w-[80px]">Action</th>
                   </tr>
                 </thead>
@@ -350,6 +367,16 @@ export default function DocumentVaultPage() {
                       className="border-b border-[#F1F1F1] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 cursor-pointer transition-colors"
                     >
                       <td className="px-3 py-4 font-medium text-[#1F1F1F] dark:text-gray-100">{row.documentName}</td>
+                      <td className="px-3 py-4 text-[#4B4B4B] dark:text-gray-300">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-medium text-[#1F1F1F] dark:text-gray-100">{row.investorName || 'Primary Account'}</span>
+                          {row.isSubaccount && (
+                            <span className="text-[9px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-1.5 py-0.2 rounded uppercase tracking-wider">
+                              Subaccount
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="relative px-3 py-4 text-center">
                         <button
                           type="button"

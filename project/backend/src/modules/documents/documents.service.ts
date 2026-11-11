@@ -22,17 +22,24 @@ export class DocumentsService {
 
   async getAllDocuments(userId?: string, role?: string) {
     let query = `
-      SELECT d.*, i.full_name as "investorName", i.profile_image_url as "investorAvatar"
+      SELECT d.*, 
+             COALESCE(i.entity_name, i.full_name) as "investorName", 
+             i.full_name as "individualName",
+             i.entity_name as "entityName",
+             i.investor_type as "investorType",
+             i.parent_id as "parentId",
+             i.profile_image_url as "investorAvatar",
+             (CASE WHEN i.parent_id IS NOT NULL THEN true ELSE false END) as "isSubaccount"
       FROM investor_documents d
       JOIN investors i ON d.investor_id = i.id
     `;
     const params: any[] = [];
 
     if (role === 'accountant' && userId) {
-      query += ` WHERE i.assigned_accountant_id = $1 `;
+      query += ` WHERE (i.assigned_accountant_id = $1 OR i.parent_id IN (SELECT id FROM investors WHERE assigned_accountant_id = $1)) `;
       params.push(userId);
     } else if (role === 'investor' && userId) {
-      query += ` WHERE d.investor_id = $1 `;
+      query += ` WHERE (d.investor_id = $1 OR d.investor_id IN (SELECT id FROM investors WHERE parent_id = $1)) `;
       params.push(userId);
     }
 
@@ -49,7 +56,7 @@ export class DocumentsService {
         FROM old_investor_documents d
         WHERE EXISTS (
           SELECT 1 FROM investors i 
-          WHERE i.assigned_accountant_id = $1 
+          WHERE (i.assigned_accountant_id = $1 OR i.parent_id IN (SELECT id FROM investors WHERE assigned_accountant_id = $1))
             AND i.email IS NOT NULL 
             AND TRIM(i.email) != ''
             AND (
@@ -71,7 +78,7 @@ export class DocumentsService {
         FROM old_investor_documents d
         WHERE EXISTS (
           SELECT 1 FROM investors i 
-          WHERE i.id = $1 
+          WHERE (i.id = $1 OR i.parent_id = $1)
             AND i.email IS NOT NULL 
             AND TRIM(i.email) != ''
             AND (
@@ -157,11 +164,11 @@ export class DocumentsService {
     return result.rows[0];
   }
 
-  async getInvestorDocuments(investorId: string, requestingUserId?: string, requestingUserRole?: string) {
-    // If accountant is requesting, verify they are assigned to this investor
+  async getInvestorDocuments(investorId: string, requestingUserId?: string, requestingUserRole?: string, includeSubaccounts: boolean = false) {
+    // If accountant is requesting, verify they are assigned to this investor or subaccount
     if (requestingUserRole === 'accountant' && requestingUserId) {
       const assignmentCheck = await db.query(
-        'SELECT id FROM investors WHERE id = $1 AND assigned_accountant_id = $2',
+        'SELECT id FROM investors WHERE (id = $1 OR parent_id = $1) AND assigned_accountant_id = $2',
         [investorId, requestingUserId]
       );
       if (assignmentCheck.rows.length === 0) {
@@ -169,16 +176,33 @@ export class DocumentsService {
       }
     }
 
-    // If investor is requesting, verify it's their own ID
+    // If investor is requesting, verify it's their own ID or a subaccount belonging to them
     if (requestingUserRole === 'investor' && requestingUserId && investorId !== requestingUserId) {
-      return [];
+      const isSub = await db.query(
+        'SELECT id FROM investors WHERE id = $1 AND parent_id = $2',
+        [investorId, requestingUserId]
+      );
+      if (isSub.rows.length === 0) {
+        return [];
+      }
     }
 
+    const whereClause = includeSubaccounts
+      ? `(d.investor_id = $1 OR d.investor_id IN (SELECT id FROM investors WHERE parent_id = $1))`
+      : `d.investor_id = $1`;
+
     const result = await db.query(
-      `SELECT d.*, i.full_name as "investorName", i.profile_image_url as "investorAvatar"
+      `SELECT d.*, 
+              COALESCE(i.entity_name, i.full_name) as "investorName", 
+              i.full_name as "individualName",
+              i.entity_name as "entityName",
+              i.investor_type as "investorType",
+              i.parent_id as "parentId",
+              i.profile_image_url as "investorAvatar",
+              (CASE WHEN i.parent_id IS NOT NULL THEN true ELSE false END) as "isSubaccount"
        FROM investor_documents d
        JOIN investors i ON d.investor_id = i.id
-       WHERE d.investor_id = $1 
+       WHERE ${whereClause}
        ORDER BY d.uploaded_at DESC`,
       [investorId]
     );
@@ -234,39 +258,54 @@ export class DocumentsService {
   }
 
   async getMyDocuments(investorId: string) {
-    // Both fund documents (if applicable) and personal investor documents
-    const investorDocs = await this.getInvestorDocuments(investorId);
+    // Both fund documents (if applicable) and personal investor documents including subaccounts
+    const investorDocs = await this.getInvestorDocuments(investorId, undefined, undefined, true);
 
-    // Look up email & full_name from investors or users table
-    let email = '';
-    let fullName = '';
+    // Look up emails & full_names of the investor and all their subaccounts
+    const accountsRes = await db.query(
+      `SELECT id, email, full_name, entity_name 
+       FROM investors 
+       WHERE id = $1 OR parent_id = $1`,
+      [investorId]
+    );
 
-    const invRes = await db.query('SELECT email, full_name FROM investors WHERE id = $1', [investorId]);
-    if (invRes.rows.length > 0) {
-      email = invRes.rows[0].email || '';
-      fullName = invRes.rows[0].full_name || '';
-    } else {
-      const userRes = await db.query("SELECT email, TRIM(CONCAT(first_name, ' ', last_name)) as full_name FROM users WHERE id = $1", [investorId]);
+    let accountRows = accountsRes.rows;
+    if (accountRows.length === 0) {
+      const userRes = await db.query(
+        "SELECT id, email, TRIM(CONCAT(first_name, ' ', last_name)) as full_name FROM users WHERE id = $1",
+        [investorId]
+      );
       if (userRes.rows.length > 0) {
-        email = userRes.rows[0].email || '';
-        fullName = userRes.rows[0].full_name || '';
+        accountRows = [{ id: userRes.rows[0].id, email: userRes.rows[0].email, full_name: userRes.rows[0].full_name, entity_name: null }];
       }
     }
 
-    let legacyDocs: any[] = [];
-    const searchStr = email || fullName || investorId;
-    if (searchStr) {
-      const oldDocs = await this.getOldInvestorDocuments(searchStr);
-      legacyDocs = oldDocs.map((d: any) => ({
-        id: d.id,
-        file_name: d.file_name,
-        file_url: d.file_url,
-        document_type: d.document_type || 'Legacy Document',
-        tax_year: d.tax_year,
-        uploaded_at: d.created_at,
-        is_legacy: true,
-        s3_key: d.s3_key,
-      }));
+    // Collect all legacy docs for all terms (parent + subaccounts)
+    const seenLegacyDocIds = new Set<string>();
+    const legacyDocs: any[] = [];
+
+    for (const acc of accountRows) {
+      const searchTerms = [acc.email, acc.full_name, acc.entity_name, acc.id].filter(t => t && String(t).trim());
+      for (const term of searchTerms) {
+        const oldDocs = await this.getOldInvestorDocuments(String(term));
+        for (const d of oldDocs) {
+          if (!seenLegacyDocIds.has(d.id)) {
+            seenLegacyDocIds.add(d.id);
+            legacyDocs.push({
+              id: d.id,
+              file_name: d.file_name,
+              file_url: d.file_url,
+              document_type: d.document_type || 'Legacy Document',
+              tax_year: d.tax_year,
+              uploaded_at: d.created_at,
+              investorName: d.investor_name || d.investor_profile_legal_name || acc.entity_name || acc.full_name || 'Legacy Investor',
+              is_legacy: true,
+              s3_key: d.s3_key,
+              isSubaccount: acc.id !== investorId,
+            });
+          }
+        }
+      }
     }
 
     return [...investorDocs, ...legacyDocs];
