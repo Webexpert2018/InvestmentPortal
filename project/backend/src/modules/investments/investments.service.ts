@@ -724,13 +724,13 @@ export class InvestmentsService {
     }
   }
 
-  async createInvite(adminId: string, data: { investorId: string; fundId: string; accountId: string; accountType: string; amount: string; }) {
+  async createInvite(adminId: string, data: { investorId: string; fundId: string; accountId: string; accountType: string; accountName?: string; amount: string; }) {
     try {
       const token = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 3); // Expires in 3 days
 
-      const { investorId, fundId, accountId, accountType, amount } = data;
+      const { investorId, fundId, accountId, accountType, accountName, amount } = data;
 
       await db.query(
         `INSERT INTO investment_invites 
@@ -763,6 +763,7 @@ export class InvestmentsService {
               amount,
               accountId,
               accountType,
+              accountName: accountName || undefined,
               token,
               expiresAt,
             },
@@ -786,6 +787,7 @@ export class InvestmentsService {
       fundId?: string;
       accountId?: string;
       accountType?: string;
+      accountName?: string;
       amount?: string;
     }
   ) {
@@ -794,6 +796,7 @@ export class InvestmentsService {
       let fundId = payload.fundId;
       let accountId = payload.accountId;
       let accountType = payload.accountType;
+      let accountName = payload.accountName;
       let amount = payload.amount;
       let oldToken: string | null = null;
 
@@ -823,6 +826,9 @@ export class InvestmentsService {
           }
           if (!accountType) {
             accountType = meta.accountType;
+          }
+          if (!accountName && meta.accountName) {
+            accountName = meta.accountName;
           }
           if (meta.token) {
             oldToken = meta.token;
@@ -896,6 +902,7 @@ export class InvestmentsService {
         fundId,
         accountId,
         accountType,
+        accountName,
         amount: String(amount),
       });
 

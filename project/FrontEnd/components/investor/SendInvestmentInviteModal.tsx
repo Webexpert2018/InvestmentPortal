@@ -10,10 +10,26 @@ interface SendInvestmentInviteModalProps {
   onSuccess?: () => void;
 }
 
+function formatIraType(type?: string): string {
+  if (!type) return 'IRA';
+  const t = type.toLowerCase().trim();
+  if (t === 'traditional' || t === 'traditional ira') return 'Traditional IRA';
+  if (t === 'roth' || t === 'roth ira') return 'Roth IRA';
+  if (t === 'sep' || t === 'sep ira') return 'SEP IRA';
+  if (t === 'simple' || t === 'simple ira') return 'Simple IRA';
+  if (t === 'roth sep') return 'Roth SEP IRA';
+  if (t === 'roth simple') return 'Roth Simple IRA';
+  if (t.endsWith('ira')) {
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+  return `${t.charAt(0).toUpperCase() + t.slice(1)} IRA`;
+}
+
 export function SendInvestmentInviteModal({ isOpen, onClose, investorId, onSuccess }: SendInvestmentInviteModalProps) {
   const [funds, setFunds] = useState<any[]>([]);
   const [iraAccounts, setIraAccounts] = useState<any[]>([]);
   const [subaccounts, setSubaccounts] = useState<any[]>([]);
+  const [subIraAccounts, setSubIraAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
@@ -32,12 +48,25 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId, onSucce
     try {
       const [fundsRes, accountsRes, subaccountsRes] = await Promise.all([
         apiClient.get('/funds'),
-        apiClient.get(`/ira-accounts/user/${investorId}`),
-        apiClient.get(`/users/${investorId}/subaccounts`)
+        apiClient.get(`/ira-accounts/user/${investorId}`).catch(() => ({ data: [] })),
+        apiClient.get(`/users/${investorId}/subaccounts`).catch(() => ({ data: [] }))
       ]);
-      setFunds(fundsRes.data || []);
-      setIraAccounts(accountsRes.data?.data || accountsRes.data || []);
-      setSubaccounts(subaccountsRes.data || []);
+      const fetchedFunds = fundsRes.data || [];
+      const fetchedIras = accountsRes.data?.data || accountsRes.data || [];
+      const allSubs = subaccountsRes.data || [];
+
+      // Filter out IRA accounts from direct subaccounts (they are already included as IRA subaccounts)
+      const directSubs = allSubs.filter(
+        (s: any) => !s.isIraSubaccount && s.investorType !== 'sub ira account'
+      );
+      const subIras = allSubs.filter(
+        (s: any) => s.isIraSubaccount || s.investorType === 'sub ira account'
+      );
+
+      setFunds(fetchedFunds);
+      setIraAccounts(fetchedIras);
+      setSubaccounts(directSubs);
+      setSubIraAccounts(subIras);
     } catch (error) {
       console.error('Failed to fetch modal data', error);
       toast.error('Failed to load form data');
@@ -56,14 +85,30 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId, onSucce
     setSubmitting(true);
     try {
       let resolvedAccountType = 'personal';
+      let resolvedAccountName = 'Personal Account';
+
       if (selectedAccountId !== 'personal') {
-        const isIra = iraAccounts.find(ira => ira.id === selectedAccountId);
-        if (isIra) {
-          resolvedAccountType = 'ira';
+        const isPrimaryIra = iraAccounts.find(ira => ira.id === selectedAccountId);
+        if (isPrimaryIra) {
+          const iraLabel = formatIraType(isPrimaryIra.account_type);
+          resolvedAccountType = isPrimaryIra.account_type || 'ira';
+          resolvedAccountName = iraLabel;
         } else {
-          const isSub = subaccounts.find(sub => sub.id === selectedAccountId);
-          if (isSub) {
-            resolvedAccountType = isSub.investorType || 'personal';
+          const isSubIra = subIraAccounts.find(ira => ira.id === selectedAccountId);
+          if (isSubIra) {
+            const rawName = isSubIra.subFullName || isSubIra.fullName || '';
+            const subName = rawName.replace(/^AET\s+FBO\s+/i, '').replace(/\s+(Traditional|Roth|SEP|Simple|DB Plan|DBP)?\s*IRA.*$/i, '').trim() || 'Sub-account';
+            const iraLabel = formatIraType(isSubIra.accountType || isSubIra.account_type);
+            resolvedAccountType = isSubIra.accountType || isSubIra.account_type || 'ira';
+            resolvedAccountName = `${subName} - ${iraLabel}`;
+          } else {
+            const isSub = subaccounts.find(sub => sub.id === selectedAccountId);
+            if (isSub) {
+              const subName = (isSub.investorType === 'entity' ? (isSub.entityName || isSub.fullName) : isSub.fullName) || 'Sub-account';
+              const type = isSub.investorType === 'entity' ? 'Entity' : (isSub.investorType === 'minor' ? 'Minor' : 'Personal');
+              resolvedAccountType = isSub.investorType || 'personal';
+              resolvedAccountName = `${subName} (${type})`;
+            }
           }
         }
       }
@@ -73,6 +118,7 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId, onSucce
         fundId: selectedFundId,
         accountId: selectedAccountId,
         accountType: resolvedAccountType,
+        accountName: resolvedAccountName,
         amount
       });
       toast.success('Investment invite sent successfully');
@@ -136,18 +182,47 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId, onSucce
                   onChange={(e) => setSelectedAccountId(e.target.value)}
                   className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white dark:bg-[#1C1C1C] transition-all text-sm font-medium"
                 >
-                  <option value="personal">Personal Account</option>
-                  {iraAccounts.map((ira) => (
-                    <option key={ira.id} value={ira.id}>{ira.account_type || 'IRA Account'} ({ira.status || 'Active'})</option>
-                  ))}
-                  {subaccounts.map((sub) => {
-                    const isEntity = sub.investorType === 'entity';
-                    const name = isEntity ? (sub.entityName || sub.fullName) : sub.fullName;
-                    const type = isEntity ? 'Entity' : 'Minor';
-                    return (
-                      <option key={sub.id} value={sub.id}>{name} - {type} Account</option>
-                    );
-                  })}
+                  <optgroup label="Personal Account">
+                    <option value="personal">Personal Account</option>
+                  </optgroup>
+
+                  {iraAccounts.length > 0 && (
+                    <optgroup label="Primary IRA Accounts">
+                      {iraAccounts.map((ira) => (
+                        <option key={ira.id} value={ira.id}>
+                          {formatIraType(ira.account_type)} ({ira.status || 'Active'})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+
+                  {subaccounts.length > 0 && (
+                    <optgroup label="Sub-Accounts (Direct)">
+                      {subaccounts.map((sub) => {
+                        const isEntity = sub.investorType === 'entity';
+                        const name = isEntity ? (sub.entityName || sub.fullName) : sub.fullName;
+                        const type = isEntity ? 'Entity' : (sub.investorType === 'minor' ? 'Minor' : 'Personal');
+                        return (
+                          <option key={sub.id} value={sub.id}>{name} - {type} Account</option>
+                        );
+                      })}
+                    </optgroup>
+                  )}
+
+                  {subIraAccounts.length > 0 && (
+                    <optgroup label="Sub-Account IRA Accounts">
+                      {subIraAccounts.map((subIra) => {
+                        const rawName = subIra.subFullName || subIra.fullName || '';
+                        const subName = rawName.replace(/^AET\s+FBO\s+/i, '').replace(/\s+(Traditional|Roth|SEP|Simple|DB Plan|DBP)?\s*IRA.*$/i, '').trim() || 'Sub-account';
+                        const iraTypeLabel = formatIraType(subIra.accountType || subIra.account_type);
+                        return (
+                          <option key={subIra.id} value={subIra.id}>
+                            {subName} - {iraTypeLabel} ({subIra.status || 'Active'})
+                          </option>
+                        );
+                      })}
+                    </optgroup>
+                  )}
                 </select>
               </div>
 

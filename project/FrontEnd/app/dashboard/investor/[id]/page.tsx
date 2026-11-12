@@ -282,6 +282,93 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     }
   }, [activeTab, investorData?.email, params.id, fetchInvestmentInvites]);
 
+  const formatIraType = (type?: string): string => {
+    if (!type) return 'IRA';
+    const t = type.toLowerCase().trim();
+    if (t === 'traditional' || t === 'traditional ira') return 'Traditional IRA';
+    if (t === 'roth' || t === 'roth ira') return 'Roth IRA';
+    if (t === 'sep' || t === 'sep ira') return 'SEP IRA';
+    if (t === 'simple' || t === 'simple ira') return 'Simple IRA';
+    if (t === 'roth sep') return 'Roth SEP IRA';
+    if (t === 'roth simple') return 'Roth Simple IRA';
+    if (t.endsWith('ira')) {
+      return t.charAt(0).toUpperCase() + t.slice(1);
+    }
+    return `${t.charAt(0).toUpperCase() + t.slice(1)} IRA`;
+  };
+
+  const getInviteAccountDisplay = (invite: any) => {
+    if (!invite) return { name: 'Personal Account', badgeClass: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800' };
+
+    const meta = typeof invite.metadata === 'string'
+      ? (() => { try { return JSON.parse(invite.metadata); } catch { return {}; } })()
+      : (invite.metadata || {});
+
+    // If explicit accountName was saved on the invite
+    if (meta.accountName) {
+      const cleanedName = meta.accountName.replace(/\s*\([^)]*\d+[^)]*\)/g, '').replace(/\s*\(#\w+\)/g, '').trim();
+      const isSubIra = cleanedName.includes(' - ') && cleanedName.toLowerCase().includes('ira');
+      const isIra = cleanedName.toLowerCase().includes('ira');
+      const isPersonal = cleanedName.toLowerCase().includes('personal');
+      return {
+        name: cleanedName,
+        badgeClass: isSubIra
+          ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800'
+          : isIra
+          ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800'
+          : isPersonal
+          ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800'
+          : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800',
+      };
+    }
+
+    const accId = meta.accountId;
+    const accType = (meta.accountType || '').toLowerCase();
+
+    // Check if personal
+    if (accId === 'personal' || accType === 'personal') {
+      return {
+        name: 'Personal Account',
+        badgeClass: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800',
+      };
+    }
+
+    // Check if matching primary investor IRA
+    const primaryIra = iraAccounts.find((ira: any) => ira.id === accId);
+    if (primaryIra) {
+      const iraLabel = formatIraType(primaryIra.account_type);
+      return {
+        name: iraLabel,
+        badgeClass: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800',
+      };
+    }
+
+    // Check if matching a subaccount directly
+    const matchedSub = subAccounts.find((sub: any) => sub.id === accId);
+    if (matchedSub) {
+      const subName = (matchedSub.investorType === 'entity' ? (matchedSub.entityName || matchedSub.fullName) : matchedSub.fullName) || 'Sub-account';
+      const subType = matchedSub.investorType === 'entity' ? 'Entity' : (matchedSub.investorType === 'minor' ? 'Minor' : 'Personal');
+      return {
+        name: `${subName} (${subType})`,
+        badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800',
+      };
+    }
+
+    // Fallback if accountType is an IRA type or generic 'ira'
+    if (accType === 'ira' || accType.includes('ira') || ['traditional', 'roth', 'sep', 'simple'].includes(accType)) {
+      const label = formatIraType(accType);
+      return {
+        name: label,
+        badgeClass: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800',
+      };
+    }
+
+    return {
+      name: meta.accountType ? meta.accountType.charAt(0).toUpperCase() + meta.accountType.slice(1) : 'Personal Account',
+      badgeClass: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700',
+    };
+  };
+
   const handleResendInvestmentInvite = async (invite: any) => {
     if (resendingInviteId) return;
     setResendingInviteId(invite.id);
@@ -296,6 +383,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         fundId: meta.fundId,
         accountId: meta.accountId,
         accountType: meta.accountType,
+        accountName: meta.accountName,
         amount: meta.amount,
       });
       toast.success('Investment invitation resent successfully with a new token.');
@@ -2206,6 +2294,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                             <tr>
                               <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Date & Time</th>
                               <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund Name</th>
+                              <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Account</th>
                               <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Invited Amount</th>
                               <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Recipient</th>
                               <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
@@ -2221,6 +2310,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                               const fundName = meta.fundName ||
                                 invite.subject?.replace(/^Investment Invitation\s*-\s*/i, '').replace(/\s*-\s*Ovalia Capital$/i, '') ||
                                 'Fund Investment';
+
+                              const accountInfo = getInviteAccountDisplay(invite);
 
                               const rawAmount = meta.amount;
                               const formattedAmount = rawAmount ? `$${Number(rawAmount).toLocaleString()}` : '—';
@@ -2250,6 +2341,11 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">
                                     {fundName}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <span className={`px-2.5 py-1 inline-flex text-xs font-semibold rounded-full border ${accountInfo.badgeClass}`}>
+                                      {accountInfo.name}
+                                    </span>
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap font-semibold text-emerald-600 dark:text-emerald-400">
                                     {formattedAmount}
@@ -2765,14 +2861,19 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     </div>
                   </div>
 
-                  {meta.accountType && (
-                    <div>
-                      <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">Account Type</div>
-                      <div className="text-sm font-medium text-gray-800 dark:text-gray-200 capitalize">
-                        {meta.accountType}
+                  {(() => {
+                    const modalAccountInfo = getInviteAccountDisplay(selectedInviteDetails);
+                    return (
+                      <div>
+                        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">Target Account</div>
+                        <div className="mt-1">
+                          <span className={`px-2.5 py-1 inline-flex text-xs font-semibold rounded-full border ${modalAccountInfo.badgeClass}`}>
+                            {modalAccountInfo.name}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {selectedInviteDetails.body_snippet && (
                     <div>

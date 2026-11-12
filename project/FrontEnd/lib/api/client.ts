@@ -1996,6 +1996,7 @@ class ApiClient {
     fundId?: string;
     accountId?: string;
     accountType?: string;
+    accountName?: string;
     amount?: string;
   }) {
     return this.request<{ token: string; message: string }>('/investments/invite/resend', {
