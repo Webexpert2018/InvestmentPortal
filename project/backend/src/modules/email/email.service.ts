@@ -888,11 +888,41 @@ export class EmailService {
     let idx = 1;
 
     if (params?.recipientUserId && params?.recipientEmail) {
-      conditions.push(`(recipient_user_id::text = $${idx++} OR related_entity_id::text = $${idx++} OR recipient_email ILIKE $${idx++})`);
-      values.push(String(params.recipientUserId), String(params.recipientUserId), `%${params.recipientEmail}%`);
+      conditions.push(`(
+        recipient_user_id::text = $${idx++} 
+        OR related_entity_id::text = $${idx++} 
+        OR (metadata IS NOT NULL AND (
+             metadata->>'accountId' = $${idx++} 
+             OR metadata->>'subaccountId' = $${idx++} 
+             OR metadata->>'accountId' IN (SELECT id::text FROM ira_accounts WHERE user_id::text = $${idx++})
+           ))
+        OR recipient_email ILIKE $${idx++}
+      )`);
+      values.push(
+        String(params.recipientUserId),
+        String(params.recipientUserId),
+        String(params.recipientUserId),
+        String(params.recipientUserId),
+        String(params.recipientUserId),
+        `%${params.recipientEmail}%`
+      );
     } else if (params?.recipientUserId) {
-      conditions.push(`(recipient_user_id::text = $${idx++} OR related_entity_id::text = $${idx++})`);
-      values.push(String(params.recipientUserId), String(params.recipientUserId));
+      conditions.push(`(
+        recipient_user_id::text = $${idx++} 
+        OR related_entity_id::text = $${idx++} 
+        OR (metadata IS NOT NULL AND (
+             metadata->>'accountId' = $${idx++} 
+             OR metadata->>'subaccountId' = $${idx++} 
+             OR metadata->>'accountId' IN (SELECT id::text FROM ira_accounts WHERE user_id::text = $${idx++})
+           ))
+      )`);
+      values.push(
+        String(params.recipientUserId),
+        String(params.recipientUserId),
+        String(params.recipientUserId),
+        String(params.recipientUserId),
+        String(params.recipientUserId)
+      );
     } else if (params?.recipientEmail) {
       conditions.push(`recipient_email ILIKE $${idx++}`);
       values.push(`%${params.recipientEmail}%`);

@@ -724,13 +724,58 @@ export class InvestmentsService {
     }
   }
 
-  async createInvite(adminId: string, data: { investorId: string; fundId: string; accountId: string; accountType: string; amount: string; }) {
+  async createInvite(adminId: string, data: { investorId: string; fundId: string; accountId: string; accountType: string; accountName?: string; amount: string; }) {
     try {
       const token = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 3); // Expires in 3 days
 
-      const { investorId, fundId, accountId, accountType, amount } = data;
+      let { investorId, fundId, accountId, accountType, accountName, amount } = data;
+
+      // 1. Check if the target investorId is itself a minor or entity subaccount
+      const targetInvRes = await db.query(
+        'SELECT id, full_name, email, parent_id, investor_type, entity_name FROM investors WHERE id::text = $1',
+        [investorId]
+      );
+      const targetInv = targetInvRes.rows[0];
+
+      let subaccountId: string | undefined = undefined;
+
+      if (targetInv && targetInv.parent_id) {
+        // This is a subaccount (minor or entity)
+        subaccountId = targetInv.id;
+        const subName = targetInv.investor_type === 'entity' ? (targetInv.entity_name || targetInv.full_name) : targetInv.full_name;
+        const subType = targetInv.investor_type === 'entity' ? 'Entity' : (targetInv.investor_type === 'minor' ? 'Minor' : 'Personal');
+
+        if (!accountId || accountId === 'personal' || accountId === targetInv.id) {
+          accountId = targetInv.id;
+          accountType = targetInv.investor_type || 'minor';
+          if (!accountName) {
+            accountName = `${subName} (${subType})`;
+          }
+        } else if (!accountName) {
+          accountName = `${subName} - ${accountType}`;
+        }
+
+        // Redirect the invite recipient & token owner to the parent account
+        investorId = targetInv.parent_id;
+      } else {
+        // 2. Check if accountId belongs to a subaccount (direct subaccount or subaccount IRA)
+        if (accountId && accountId !== 'personal') {
+          const subInv = await db.query('SELECT id, parent_id, full_name, entity_name, investor_type FROM investors WHERE id::text = $1', [accountId]);
+          if (subInv.rows.length > 0 && subInv.rows[0].parent_id) {
+            subaccountId = subInv.rows[0].id;
+          } else {
+            const subIra = await db.query(
+              'SELECT ia.user_id, i.parent_id FROM ira_accounts ia JOIN investors i ON ia.user_id = i.id WHERE ia.id::text = $1',
+              [accountId]
+            );
+            if (subIra.rows.length > 0 && subIra.rows[0].parent_id) {
+              subaccountId = subIra.rows[0].user_id;
+            }
+          }
+        }
+      }
 
       await db.query(
         `INSERT INTO investment_invites 
@@ -763,6 +808,8 @@ export class InvestmentsService {
               amount,
               accountId,
               accountType,
+              accountName: accountName || undefined,
+              subaccountId: subaccountId || undefined,
               token,
               expiresAt,
             },
@@ -786,6 +833,7 @@ export class InvestmentsService {
       fundId?: string;
       accountId?: string;
       accountType?: string;
+      accountName?: string;
       amount?: string;
     }
   ) {
@@ -794,6 +842,7 @@ export class InvestmentsService {
       let fundId = payload.fundId;
       let accountId = payload.accountId;
       let accountType = payload.accountType;
+      let accountName = payload.accountName;
       let amount = payload.amount;
       let oldToken: string | null = null;
 
@@ -809,8 +858,10 @@ export class InvestmentsService {
             ? (() => { try { return JSON.parse(log.metadata); } catch { return {}; } })()
             : (log.metadata || {});
 
-          if (!investorId) {
-            investorId = log.recipient_user_id || log.related_entity_id;
+          if (log.recipient_user_id) {
+            investorId = log.recipient_user_id;
+          } else if (!investorId) {
+            investorId = log.related_entity_id;
           }
           if (!fundId) {
             fundId = meta.fundId;
@@ -823,6 +874,9 @@ export class InvestmentsService {
           }
           if (!accountType) {
             accountType = meta.accountType;
+          }
+          if (!accountName && meta.accountName) {
+            accountName = meta.accountName;
           }
           if (meta.token) {
             oldToken = meta.token;
@@ -896,6 +950,7 @@ export class InvestmentsService {
         fundId,
         accountId,
         accountType,
+        accountName,
         amount: String(amount),
       });
 
