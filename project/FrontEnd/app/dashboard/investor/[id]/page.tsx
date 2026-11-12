@@ -2774,6 +2774,8 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
         isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
         investorId={params.id}
+        investorData={investorData}
+        parentData={parentData}
         onSuccess={() => {
           fetchInvestmentInvites(1);
         }}
