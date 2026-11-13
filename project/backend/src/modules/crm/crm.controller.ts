@@ -30,7 +30,8 @@ export class CrmController {
       user.role,
       body.investorIds,
       body.subject,
-      body.message
+      body.message,
+      user.userId || user.id,
     );
   }
 }
