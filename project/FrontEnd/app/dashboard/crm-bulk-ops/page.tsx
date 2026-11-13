@@ -77,6 +77,12 @@ interface Investor {
   status: string;
   accountStatus?: 'active' | 'suspended';
   fundIds: string[];
+  isSubaccount?: boolean;
+  investorType?: string;
+  parentId?: string | null;
+  parentName?: string | null;
+  parentEmail?: string | null;
+  generatedEmail?: string | null;
 }
 
 interface Fund {
@@ -211,9 +217,11 @@ export default function CRMBulkOpsPage() {
   };
 
   const filteredInvestors = investors.filter(investor => {
+    const q = searchQuery.toLowerCase();
     const matchesSearch =
-      investor.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      investor.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      investor.fullName?.toLowerCase().includes(q) ||
+      investor.email?.toLowerCase().includes(q) ||
+      investor.parentName?.toLowerCase().includes(q) ||
       investor.phone?.includes(searchQuery);
 
     const matchesFund = selectedFundId === 'all' || investor.fundIds?.includes(selectedFundId);
@@ -361,13 +369,32 @@ export default function CRMBulkOpsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2A4474] to-[#1F3B6E] flex items-center justify-center text-[11px] font-bold text-white uppercase shadow-sm">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2A4474] to-[#1F3B6E] flex items-center justify-center text-[11px] font-bold text-white uppercase shadow-sm flex-shrink-0">
                             {investor.fullName?.charAt(0) || '?'}
                           </div>
-                          <span className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100">{investor.fullName}</span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[14px] font-semibold text-[#1F1F1F] dark:text-gray-100">{investor.fullName}</span>
+                            {investor.isSubaccount && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 shadow-xs">
+                                Subaccount
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] dark:text-gray-300 whitespace-nowrap">{investor.email}</td>
+                      <td className="px-6 py-4 text-[14px] text-[#4B4B4B] dark:text-gray-300 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <span>{investor.email}</span>
+                          {investor.isSubaccount && (
+                            <span
+                              className="text-[11px] font-normal text-[#8E8E93] dark:text-gray-400"
+                              title={investor.parentName ? `Parent account: ${investor.parentName}` : 'Parent email'}
+                            >
+                              (Parent)
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-[14px] text-[#4B4B4B] dark:text-gray-300 font-medium whitespace-nowrap">
                         {formatPhoneDisplay(investor.phone) || 'N/A'}
                       </td>
