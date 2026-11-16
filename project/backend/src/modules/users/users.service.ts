@@ -704,11 +704,14 @@ export class UsersService implements OnModuleInit {
           ir.full_name as assigned_ir_name, ir.email as assigned_ir_email,
           acc.full_name as assigned_accountant_name, acc.email as assigned_accountant_email,
           i.investor_type as "investorType", i.entity_name as "entityName", i.entity_type as "entityType", i.parent_id as "parentId",
+          COALESCE(parent.email, parent_user.email) as "parentEmail",
+          COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as "parentName",
           i.nickname as "nickname",
           i.pipeline_note as "pipelineNote",
           (SELECT json_agg(inv ORDER BY inv.sent_at DESC) FROM investor_invitations inv WHERE inv.investor_id = i.id) as "invitationLogs"
         FROM investors i
         LEFT JOIN investors parent ON i.parent_id = parent.id
+        LEFT JOIN users parent_user ON parent.id = parent_user.id
         LEFT JOIN (
           SELECT id, full_name, email FROM staff
           UNION
@@ -768,6 +771,9 @@ export class UsersService implements OnModuleInit {
       entityName: user.entityName || '',
       entityType: user.entityType || '',
       parentId: user.parentId || null,
+      parentEmail: user.parentEmail || null,
+      parentName: user.parentName || null,
+      isSubaccount: Boolean(user.parentId || ['minor', 'entity'].includes(user.investorType?.toLowerCase())),
       nickname: user.nickname || '',
       pipelineNote: user.pipelineNote || '',
     };
@@ -889,9 +895,55 @@ export class UsersService implements OnModuleInit {
     await db.query(`UPDATE ${tableName} SET password_hash = $1, updated_at = NOW() WHERE id = $2`, [newPasswordHash, userId]);
 
     // Send password changed notification
-    const displayName = nameField === 'full_name' ? (user.full_name?.split(' ')[0] || 'User') : (user.first_name || 'User');
-    this.emailService.sendPasswordChangedEmail(user.email || '', displayName, newPassword)
-      .catch(err => console.error(`Failed to send password changed email to ${user.email}:`, err));
+    let displayName = nameField === 'full_name' ? (user.full_name?.split(' ')[0] || 'User') : (user.first_name || 'User');
+    let targetEmail = user.email || '';
+    let isSubaccount = false;
+    let subaccountName: string | undefined;
+    let parentEmail: string | undefined;
+    let recipientUserId = userId;
+
+    if (tableName === 'investors') {
+      const subCheck = await db.query(`
+        SELECT 
+          i.id,
+          i.full_name,
+          i.investor_type,
+          i.parent_id,
+          COALESCE(parent.email, parent_user.email) as parent_email,
+          COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+          parent.id as parent_investor_id
+        FROM investors i
+        LEFT JOIN investors parent ON i.parent_id = parent.id
+        LEFT JOIN users parent_user ON parent.id = parent_user.id
+        WHERE i.id = $1
+      `, [userId]);
+
+      if (subCheck.rows.length > 0) {
+        const inv = subCheck.rows[0];
+        if ((inv.parent_id || ['minor', 'entity'].includes(inv.investor_type)) && inv.parent_email) {
+          targetEmail = inv.parent_email;
+          parentEmail = inv.parent_email;
+          isSubaccount = true;
+          subaccountName = inv.full_name;
+          displayName = inv.parent_name || 'Parent';
+          recipientUserId = inv.parent_investor_id || userId;
+        }
+      }
+    }
+
+    this.emailService.sendPasswordChangedEmail(targetEmail, displayName, newPassword, {
+      recipientUserId,
+      recipientName: displayName,
+      relatedEntityType: 'INVESTOR',
+      relatedEntityId: userId,
+      subaccountName,
+      metadata: {
+        isSubaccount,
+        subaccountId: isSubaccount ? userId : undefined,
+        subaccountEmail: isSubaccount ? user.email : undefined,
+        parentEmail,
+      },
+    }).catch(err => console.error(`Failed to send password changed email to ${targetEmail}:`, err));
 
     return { message: 'Password updated successfully' };
   }
@@ -944,8 +996,55 @@ export class UsersService implements OnModuleInit {
     }
 
     // Send password changed notification with the new password
-    const displayName = nameField === 'full_name' ? (user.full_name?.split(' ')[0] || 'User') : (user.first_name || 'User');
-    await this.emailService.sendPasswordChangedEmail(user.email || '', displayName, newPassword);
+    let displayName = nameField === 'full_name' ? (user.full_name?.split(' ')[0] || 'User') : (user.first_name || 'User');
+    let targetEmail = user.email || '';
+    let isSubaccount = false;
+    let subaccountName: string | undefined;
+    let parentEmail: string | undefined;
+    let recipientUserId = userId;
+
+    if (tableName === 'investors') {
+      const subCheck = await db.query(`
+        SELECT 
+          i.id,
+          i.full_name,
+          i.investor_type,
+          i.parent_id,
+          COALESCE(parent.email, parent_user.email) as parent_email,
+          COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+          parent.id as parent_investor_id
+        FROM investors i
+        LEFT JOIN investors parent ON i.parent_id = parent.id
+        LEFT JOIN users parent_user ON parent.id = parent_user.id
+        WHERE i.id = $1
+      `, [userId]);
+
+      if (subCheck.rows.length > 0) {
+        const inv = subCheck.rows[0];
+        if ((inv.parent_id || ['minor', 'entity'].includes(inv.investor_type)) && inv.parent_email) {
+          targetEmail = inv.parent_email;
+          parentEmail = inv.parent_email;
+          isSubaccount = true;
+          subaccountName = inv.full_name;
+          displayName = inv.parent_name || 'Parent';
+          recipientUserId = inv.parent_investor_id || userId;
+        }
+      }
+    }
+
+    await this.emailService.sendPasswordChangedEmail(targetEmail, displayName, newPassword, {
+      recipientUserId,
+      recipientName: displayName,
+      relatedEntityType: 'INVESTOR',
+      relatedEntityId: userId,
+      subaccountName,
+      metadata: {
+        isSubaccount,
+        subaccountId: isSubaccount ? userId : undefined,
+        subaccountEmail: isSubaccount ? user.email : undefined,
+        parentEmail,
+      },
+    });
 
     return { message: 'Password updated successfully' };
   }

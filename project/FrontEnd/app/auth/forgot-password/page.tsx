@@ -16,6 +16,7 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [flow, setFlow] = useState('investor');
+  const [subaccountNotice, setSubaccountNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -41,7 +42,12 @@ export default function ForgotPassword() {
     setError(null);
     setLoading(true);
     try {
-      await apiClient.forgotPassword(email, flow);
+      const res = await apiClient.forgotPassword(email, flow);
+      if (res?.isSubaccount && res?.targetEmail) {
+        setSubaccountNotice(`This is a subaccount. We sent the verification code to the parent account (${res.targetEmail}).`);
+      } else {
+        setSubaccountNotice(null);
+      }
       setStep('otp');
     } catch (err: any) {
       setError(err.message || 'Failed to send reset code');
@@ -129,7 +135,7 @@ export default function ForgotPassword() {
           <>
             <h2 className="text-center text-xl sm:text-3xl font-semibold text-[#1F1F1F] dark:text-gray-100">Check your email</h2>
             <p className="mt-1 text-center text-md sm:text-xl">
-              We sent a code to {email}
+              {subaccountNotice || `We sent a code to ${email}`}
             </p>
           </>
         )}

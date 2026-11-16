@@ -42,13 +42,29 @@ export class EmailService {
     return this.configService.get<string>('SUPPORT_EMAIL') || 'portal@ovaliacapital.com';
   }
 
-  async sendPasswordResetOtp(email: string, otp: string, showCode: boolean = true, options?: EmailLogOptions) {
+  async sendPasswordResetOtp(
+    email: string,
+    otp: string,
+    showCode: boolean = true,
+    options?: EmailLogOptions & { resetAccountEmail?: string; subaccountName?: string }
+  ) {
+    const subaccountName = options?.subaccountName;
+    const accountEmail = options?.resetAccountEmail || email;
     const title = 'Verify Your Identity';
-    const subject = 'Password Reset Code - Ovalia Capital';
+    const subject = subaccountName
+      ? `Password Reset Code for ${subaccountName} - Ovalia Capital`
+      : 'Password Reset Code - Ovalia Capital';
     const frontendUrl = this.getFrontendUrl();
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Password Reset</h1>
-      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">You have requested to reset your password. Please click the button below to set a new password for your account.</p>
+      ${subaccountName ? `
+      <div style="background-color: #EFF6FF; border-left: 4px solid #3B82F6; padding: 12px 16px; margin: 0 0 20px; border-radius: 4px;">
+        <p style="margin: 0; font-size: 14px; color: #1E40AF; font-weight: 500;">
+          This password reset request is for subaccount: <strong>${subaccountName}</strong> (${accountEmail}).
+        </p>
+      </div>
+      ` : ''}
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">You have requested to reset your password. Please click the button below to set a new password for ${subaccountName ? `subaccount <strong>${subaccountName}</strong>` : 'your account'}.</p>
       
       ${showCode ? `
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">Alternatively, you can use the verification code below on the reset screen:</p>
@@ -60,7 +76,7 @@ export class EmailService {
       <p style="margin: 20px 0 0; font-size: 14px; color: #6B7280; font-style: italic;">This link will expire in 15 minutes. If you did not request this, please ignore this email.</p>
       
       <div style="text-align: center; margin: 40px 0;">
-        <a href="${frontendUrl}/auth/forgot-password?email=${email}&otp=${otp}&flow=investor" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
+        <a href="${frontendUrl}/auth/forgot-password?email=${accountEmail}&otp=${otp}&flow=investor" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
           Reset Password
         </a>
       </div>
@@ -68,7 +84,7 @@ export class EmailService {
     await this.sendEmail(email, subject, this.getHtmlTemplate(content, title), {
       notificationType: 'PASSWORD_RESET',
       templateName: 'password_reset_otp',
-      metadata: { showCode },
+      metadata: { showCode, subaccountName, resetAccountEmail: accountEmail },
       ...options,
     });
   }
@@ -145,15 +161,31 @@ export class EmailService {
     });
   }
 
-  async sendPasswordChangedEmail(email: string, firstName: string, password?: string, options?: EmailLogOptions) {
+  async sendPasswordChangedEmail(
+    email: string,
+    firstName: string,
+    password?: string,
+    options?: EmailLogOptions & { subaccountName?: string }
+  ) {
+    const subaccountName = options?.subaccountName;
     const title = 'Security Update';
-    const subject = 'Password Successfully Updated - Ovalia Capital';
+    const subject = subaccountName
+      ? `Password Successfully Updated for ${subaccountName} - Ovalia Capital`
+      : 'Password Successfully Updated - Ovalia Capital';
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Password Updated</h1>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">Hello ${firstName},</p>
+      ${subaccountName ? `
+      <div style="background-color: #EFF6FF; border-left: 4px solid #3B82F6; padding: 12px 16px; margin: 0 0 20px; border-radius: 4px;">
+        <p style="margin: 0; font-size: 14px; color: #1E40AF; font-weight: 500;">
+          This is a security confirmation that the password for subaccount: <strong>${subaccountName}</strong> has been successfully updated.
+        </p>
+      </div>
+      ` : `
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
         Your password has been successfully updated. This is a security confirmation to ensure you made this change.
       </p>
+      `}
 
       ${password ? `
       <!-- New Password Details -->
@@ -173,6 +205,7 @@ export class EmailService {
       notificationType: 'PASSWORD_CHANGED',
       templateName: 'password_changed_confirmation',
       recipientName: firstName,
+      metadata: { subaccountName },
       ...options,
     });
   }
