@@ -391,7 +391,15 @@ export class InvestmentsService {
             f.name as fund_name,
             COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1) as current_nav,
             i.estimated_units as units,
-            COALESCE(i.account_type, 'personal') as account_type
+            CASE 
+              WHEN i.account_type IS NULL OR LOWER(TRIM(i.account_type)) IN ('personal', 'minor', 'entity') THEN 'Personal'
+              WHEN LOWER(TRIM(i.account_type)) = 'traditional ira' THEN 'Traditional IRA'
+              WHEN LOWER(TRIM(i.account_type)) = 'roth ira' THEN 'Roth IRA'
+              WHEN LOWER(TRIM(i.account_type)) = 'roth sep' THEN 'Roth SEP'
+              WHEN LOWER(TRIM(i.account_type)) = 'sep' THEN 'SEP'
+              WHEN LOWER(TRIM(i.account_type)) = 'db plan' THEN 'DB Plan'
+              ELSE TRIM(i.account_type)
+            END as account_type
           FROM investments i
           JOIN funds f ON i.fund_id = f.id
           WHERE i.user_id = $1 AND i.is_reconciled = true
@@ -415,7 +423,15 @@ export class InvestmentsService {
             f.name as fund_name,
             COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1) as current_nav,
             (-1 * r.units) as units,
-            COALESCE(i.account_type, 'personal') as account_type
+            CASE 
+              WHEN i.account_type IS NULL OR LOWER(TRIM(i.account_type)) IN ('personal', 'minor', 'entity') THEN 'Personal'
+              WHEN LOWER(TRIM(i.account_type)) = 'traditional ira' THEN 'Traditional IRA'
+              WHEN LOWER(TRIM(i.account_type)) = 'roth ira' THEN 'Roth IRA'
+              WHEN LOWER(TRIM(i.account_type)) = 'roth sep' THEN 'Roth SEP'
+              WHEN LOWER(TRIM(i.account_type)) = 'sep' THEN 'SEP'
+              WHEN LOWER(TRIM(i.account_type)) = 'db plan' THEN 'DB Plan'
+              ELSE TRIM(i.account_type)
+            END as account_type
           FROM redemptions r
           JOIN investments i ON r.investment_id = i.id
           JOIN funds f ON i.fund_id = f.id
@@ -433,7 +449,15 @@ export class InvestmentsService {
               ELSE 
                 (-1 * ft.units)
             END as units,
-            ft.from_account_type as account_type
+            CASE 
+              WHEN ft.from_account_type IS NULL OR LOWER(TRIM(ft.from_account_type)) IN ('personal', 'minor', 'entity') THEN 'Personal'
+              WHEN LOWER(TRIM(ft.from_account_type)) = 'traditional ira' THEN 'Traditional IRA'
+              WHEN LOWER(TRIM(ft.from_account_type)) = 'roth ira' THEN 'Roth IRA'
+              WHEN LOWER(TRIM(ft.from_account_type)) = 'roth sep' THEN 'Roth SEP'
+              WHEN LOWER(TRIM(ft.from_account_type)) = 'sep' THEN 'SEP'
+              WHEN LOWER(TRIM(ft.from_account_type)) = 'db plan' THEN 'DB Plan'
+              ELSE TRIM(ft.from_account_type)
+            END as account_type
           FROM fund_transfers ft
           LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
           LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
@@ -451,7 +475,15 @@ export class InvestmentsService {
               ELSE 
                 ft.units
             END as units,
-            COALESCE(ft.to_account_type, ft.from_account_type) as account_type
+            CASE 
+              WHEN COALESCE(ft.to_account_type, ft.from_account_type) IS NULL OR LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) IN ('personal', 'minor', 'entity') THEN 'Personal'
+              WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'traditional ira' THEN 'Traditional IRA'
+              WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'roth ira' THEN 'Roth IRA'
+              WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'roth sep' THEN 'Roth SEP'
+              WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'sep' THEN 'SEP'
+              WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'db plan' THEN 'DB Plan'
+              ELSE TRIM(COALESCE(ft.to_account_type, ft.from_account_type))
+            END as account_type
           FROM fund_transfers ft
           LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
           LEFT JOIN old_funds tf_off ON ft.to_fund_id = tf_off.project_id::text

@@ -107,7 +107,19 @@ function TransferDetailContent() {
               <div className="flex flex-col sm:flex-row sm:items-center">
                 <div className="flex-shrink-0">
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-3">Sender</p>
-                  <p className="text-lg text-gray-900 dark:text-gray-100 font-bold">{transfer.from_investor_name}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-lg text-gray-900 dark:text-gray-100 font-bold">{transfer.from_investor_name}</p>
+                    {transfer.from_is_subaccount && (
+                      <span className="px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+                        Subaccount
+                      </span>
+                    )}
+                  </div>
+                  {transfer.from_is_subaccount && (transfer.from_parent_name || transfer.from_parent_email) && (
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5 font-medium">
+                      Parent / Signer: {transfer.from_parent_name || 'Parent'} ({transfer.from_parent_email})
+                    </p>
+                  )}
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{transfer.from_fund_name}</p>
                   {transfer.from_account_type && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 capitalize">{transfer.from_account_type.replace('_', ' ')}{transfer.from_account_type.toLowerCase().includes('account') ? '' : ' Account'}</p>}
                 </div>

@@ -587,6 +587,9 @@ export class UsersService implements OnModuleInit {
         i.id, i.email, i.role, i.full_name as "firstName", '' as "lastName", COALESCE(i.phone, parent.phone) as phone, i.status, i.created_at as "createdAt", 
         i.kyc_status as "kycStatus", i.profile_image_url as "profileImageUrl",
         i.parent_id as "parentId",
+        COALESCE(parent.email, parent_user.email) as "parentEmail",
+        COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as "parentName",
+        (CASE WHEN (i.parent_id IS NOT NULL OR i.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as "isSubaccount",
         ua.account_type as "accountType",
         ua.account_id as "accountId",
         ua.account_status as "accountStatus",
@@ -599,6 +602,7 @@ export class UsersService implements OnModuleInit {
       FROM user_accounts ua
       JOIN investors i ON ua.user_id = i.id AND i.status != 'prospect'
       LEFT JOIN investors parent ON i.parent_id = parent.id
+      LEFT JOIN users parent_user ON parent.id = parent_user.id
       LEFT JOIN investment_sums inv_s ON ua.user_id = inv_s.user_id AND ua.account_type = inv_s.account_type
       LEFT JOIN redemption_sums red_s ON ua.user_id = red_s.user_id AND ua.account_type = red_s.account_type
       LEFT JOIN (

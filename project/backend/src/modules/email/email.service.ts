@@ -670,14 +670,29 @@ export class EmailService {
     this.logger.log('-----------------------');
   }
 
-  async sendFundTransferSignatureEmail(email: string, signerName: string, signLink: string, options?: EmailLogOptions) {
+  async sendFundTransferSignatureEmail(
+    email: string,
+    signerName: string,
+    signLink: string,
+    options?: EmailLogOptions & { subaccountName?: string }
+  ) {
+    const subaccountName = options?.subaccountName;
     const title = 'Document Signature Required';
-    const subject = 'Action Required: Please sign the Fund Transfer Document';
+    const subject = subaccountName
+      ? `Action Required: Please sign the Fund Transfer Document for ${subaccountName}`
+      : 'Action Required: Please sign the Fund Transfer Document';
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Signature Required</h1>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
         Hello <strong>${signerName}</strong>,
       </p>
+      ${subaccountName ? `
+      <div style="background-color: #EFF6FF; border-left: 4px solid #3B82F6; padding: 12px 16px; margin: 0 0 20px; border-radius: 4px;">
+        <p style="margin: 0; font-size: 14px; color: #1E40AF; font-weight: 500;">
+          This fund transfer agreement is for subaccount: <strong>${subaccountName}</strong>. As the primary parent account holder/custodian, please review and sign the document.
+        </p>
+      </div>
+      ` : ''}
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
         You have a new fund transfer document that requires your signature. Please review and sign the document to proceed with the transfer.
       </p>
@@ -699,6 +714,7 @@ export class EmailService {
       notificationType: 'FUND_TRANSFER',
       templateName: 'fund_transfer_signature_request',
       recipientName: signerName,
+      metadata: { subaccountName },
       ...options,
     });
   }
