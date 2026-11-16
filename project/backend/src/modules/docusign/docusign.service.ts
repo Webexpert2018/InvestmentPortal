@@ -1009,7 +1009,8 @@ export class DocusignService {
     documentName: string,
     documentPath: string,
     placements: any[],
-    returnUrl: string
+    returnUrl: string,
+    documentInvestorName?: string
   ) {
     this.dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
     const ds = docusign as any;
@@ -1107,7 +1108,7 @@ export class DocusignService {
           const adjustedY = Math.max(0, Math.round((placement.yPercent / 100) * height) - 10);
           nameTab.xPosition = adjustedX.toString();
           nameTab.yPosition = adjustedY.toString();
-          nameTab.value = signerName;
+          nameTab.value = documentInvestorName || signerName;
           nameTab.font = 'TimesNewRoman';
           nameTab.fontSize = 'Size11';
           nameTab.tabLabel = `Name_${idx + 1}`;
