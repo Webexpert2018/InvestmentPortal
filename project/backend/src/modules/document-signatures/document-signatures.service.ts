@@ -44,7 +44,16 @@ export class DocumentSignaturesService {
 
         const uniqueIds = Array.from(new Set(parsedInvestors.map(p => p.id)));
         const placeholders = uniqueIds.map((_, i) => `$${i + 1}`).join(',');
-        const usersRes = await db.query(`SELECT id, email, full_name FROM investors WHERE id IN (${placeholders})`, uniqueIds);
+        const usersRes = await db.query(`
+          SELECT 
+            i.id, i.email, i.full_name, i.parent_id, i.investor_type,
+            COALESCE(parent.email, parent_user.email) as parent_email,
+            COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name
+          FROM investors i
+          LEFT JOIN investors parent ON i.parent_id = parent.id
+          LEFT JOIN users parent_user ON parent.id = parent_user.id
+          WHERE i.id IN (${placeholders})
+        `, uniqueIds);
         const investorsDb = new Map(usersRes.rows.map(u => [u.id.toString(), u]));
 
         // 3. For each investor, send email and add to recipients
@@ -52,7 +61,9 @@ export class DocumentSignaturesService {
           const investor = investorsDb.get(pi.id.toString());
           if (!investor) continue;
           
-          const signerName = (investor.full_name || 'Investor').trim() || 'Investor';
+          const isSub = Boolean(investor.parent_id || ['minor', 'entity'].includes(investor.investor_type?.toLowerCase()));
+          const targetEmail = (isSub && investor.parent_email) ? investor.parent_email : investor.email;
+          const emailRecipientName = (investor.full_name || 'Investor').trim() || 'Investor';
 
           // Add recipient as pending
           await db.query(
@@ -63,7 +74,7 @@ export class DocumentSignaturesService {
           const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
           const signLink = `${backendUrl}/api/document-signatures/${campaignId}/sign-url/${pi.id}`;
 
-          await this.emailService.sendCampaignSignatureEmail(investor.email, signerName, name, signLink);
+          await this.emailService.sendCampaignSignatureEmail(targetEmail, emailRecipientName, name, signLink);
         }
       }
 
@@ -88,13 +99,19 @@ export class DocumentSignaturesService {
                 'signed_document_path', r.signed_document_path,
                 'account_type', r.account_type,
                 'investor_name', u.full_name,
-                'investor_email', u.email
+                'investor_email', COALESCE(parent.email, parent_user.email, u.email),
+                'original_email', u.email,
+                'parent_name', COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name),
+                'parent_email', COALESCE(parent.email, parent_user.email),
+                'is_subaccount', (CASE WHEN (u.parent_id IS NOT NULL OR u.investor_type IN ('minor', 'entity')) THEN true ELSE false END)
               )
             ) FILTER (WHERE r.id IS NOT NULL), '[]'
           ) as recipients
         FROM document_signature_campaigns c
         LEFT JOIN document_signature_recipients r ON c.id = r.campaign_id
         LEFT JOIN investors u ON r.investor_id = u.id
+        LEFT JOIN investors parent ON u.parent_id = parent.id
+        LEFT JOIN users parent_user ON parent.id = parent_user.id
         GROUP BY c.id
         ORDER BY c.created_at DESC
       `);
@@ -114,11 +131,23 @@ export class DocumentSignaturesService {
       if (!campaignRes.rows.length) throw new HttpException('Campaign not found', HttpStatus.NOT_FOUND);
       const campaign = campaignRes.rows[0];
 
-      const userRes = await db.query('SELECT * FROM investors WHERE id = $1', [investorId]);
+      const userRes = await db.query(`
+        SELECT 
+          i.*,
+          COALESCE(parent.email, parent_user.email) as parent_email,
+          COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name
+        FROM investors i
+        LEFT JOIN investors parent ON i.parent_id = parent.id
+        LEFT JOIN users parent_user ON parent.id = parent_user.id
+        WHERE i.id = $1
+      `, [investorId]);
       if (!userRes.rows.length) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       const user = userRes.rows[0];
 
-      const signerName = (user.full_name || 'Investor').trim() || 'Investor';
+      const isSubaccount = Boolean(user.parent_id || ['minor', 'entity'].includes(user.investor_type?.toLowerCase()));
+      const signerEmail = (isSubaccount && user.parent_email) ? user.parent_email : user.email;
+      const signerName = (isSubaccount && user.parent_name) ? user.parent_name : ((user.full_name || 'Investor').trim() || 'Investor');
+      const documentInvestorName = (user.full_name || 'Investor').trim() || 'Investor';
 
       const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
       const returnUrl = `${backendUrl}/api/document-signatures/${campaignId}/complete/${investorId}`;
@@ -129,12 +158,13 @@ export class DocumentSignaturesService {
       const result = await (this.docusignService as any).createEnvelopeForCampaign(
         docusignAuth.accessToken,
         docusignAuth.accountId,
-        user.email,
+        signerEmail,
         signerName,
         campaign.name,
         campaign.original_document_path,
         campaign.placements,
-        returnUrl
+        returnUrl,
+        documentInvestorName
       );
 
       // Save envelope ID
@@ -211,6 +241,23 @@ export class DocumentSignaturesService {
             `Signed document from campaign: ${campaignName}`
           ]
         );
+
+        // If subaccount, also save in parent's document vault
+        const invRes = await db.query('SELECT parent_id, full_name FROM investors WHERE id = $1', [investorId]);
+        const inv = invRes.rows[0];
+        if (inv?.parent_id) {
+          await db.query(
+            `INSERT INTO investor_documents (investor_id, file_name, file_url, document_type, description)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [
+              inv.parent_id,
+              fileName,
+              signedDocumentUrl,
+              'Signature Document',
+              `Signed document for ${inv.full_name || 'Subaccount'}: ${campaignName}`
+            ]
+          );
+        }
       }
       
       return { success: true };
@@ -234,15 +281,27 @@ export class DocumentSignaturesService {
         throw new HttpException('Pending recipient not found for this campaign', HttpStatus.NOT_FOUND);
       }
 
-      const userRes = await db.query('SELECT * FROM investors WHERE id = $1', [investorId]);
+      const userRes = await db.query(`
+        SELECT 
+          i.*,
+          COALESCE(parent.email, parent_user.email) as parent_email,
+          COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name
+        FROM investors i
+        LEFT JOIN investors parent ON i.parent_id = parent.id
+        LEFT JOIN users parent_user ON parent.id = parent_user.id
+        WHERE i.id = $1
+      `, [investorId]);
       if (!userRes.rows.length) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       const user = userRes.rows[0];
 
-      const signerName = (user.full_name || 'Investor').trim() || 'Investor';
+      const isSubaccount = Boolean(user.parent_id || ['minor', 'entity'].includes(user.investor_type?.toLowerCase()));
+      const signerEmail = (isSubaccount && user.parent_email) ? user.parent_email : user.email;
+      const emailRecipientName = (user.full_name || 'Investor').trim() || 'Investor';
+
       const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
       const signLink = `${backendUrl}/api/document-signatures/${campaignId}/sign-url/${investorId}`;
 
-      await this.emailService.sendCampaignSignatureEmail(user.email, signerName, campaign.name, signLink);
+      await this.emailService.sendCampaignSignatureEmail(signerEmail, emailRecipientName, campaign.name, signLink);
 
       return { success: true };
     } catch (error: any) {
@@ -288,11 +347,22 @@ export class DocumentSignaturesService {
           continue; // Skip if already added
         }
 
-        const userRes = await db.query('SELECT email, full_name FROM investors WHERE id = $1', [actualInvestorId]);
+        const userRes = await db.query(`
+          SELECT 
+            i.id, i.email, i.full_name, i.parent_id, i.investor_type,
+            COALESCE(parent.email, parent_user.email) as parent_email,
+            COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name
+          FROM investors i
+          LEFT JOIN investors parent ON i.parent_id = parent.id
+          LEFT JOIN users parent_user ON parent.id = parent_user.id
+          WHERE i.id = $1
+        `, [actualInvestorId]);
         if (!userRes.rows.length) continue;
         const investor = userRes.rows[0];
 
-        const signerName = (investor.full_name || 'Investor').trim() || 'Investor';
+        const isSub = Boolean(investor.parent_id || ['minor', 'entity'].includes(investor.investor_type?.toLowerCase()));
+        const targetEmail = (isSub && investor.parent_email) ? investor.parent_email : investor.email;
+        const emailRecipientName = (investor.full_name || 'Investor').trim() || 'Investor';
 
         await db.query(
           'INSERT INTO document_signature_recipients (campaign_id, investor_id, status, account_type) VALUES ($1, $2, $3, $4)',
@@ -302,7 +372,7 @@ export class DocumentSignaturesService {
         const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
         const signLink = `${backendUrl}/api/document-signatures/${campaignId}/sign-url/${actualInvestorId}`;
 
-        await this.emailService.sendCampaignSignatureEmail(investor.email, signerName, campaign.name, signLink);
+        await this.emailService.sendCampaignSignatureEmail(targetEmail, emailRecipientName, campaign.name, signLink);
         addedCount++;
       }
 

@@ -126,7 +126,14 @@ function FundTransfersContent() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="font-medium text-gray-900 dark:text-gray-100">{transfer.from_investor_name}</span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{transfer.from_investor_name}</span>
+                            {transfer.from_is_subaccount && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+                                Subaccount
+                              </span>
+                            )}
+                          </div>
                           <span className="text-xs text-gray-500 dark:text-gray-400">{transfer.from_fund_name}</span>
                         </div>
                       </td>

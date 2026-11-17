@@ -17,10 +17,17 @@ export class FundTransfersService {
       SELECT ft.*, 
              fi.full_name as from_investor_name,
              ti.full_name as to_investor_name,
+             fi.parent_id as from_parent_id,
+             fi.investor_type as from_investor_type,
+             (CASE WHEN (fi.parent_id IS NOT NULL OR fi.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as from_is_subaccount,
+             COALESCE(f_parent.full_name, f_parent_user.first_name || ' ' || f_parent_user.last_name) as from_parent_name,
+             COALESCE(f_parent.email, f_parent_user.email) as from_parent_email,
              COALESCE(ff.name, off.project_name) as from_fund_name,
              COALESCE(tf.name, tf_off.project_name) as to_fund_name
       FROM fund_transfers ft
       LEFT JOIN investors fi ON ft.from_investor_id = fi.id
+      LEFT JOIN investors f_parent ON fi.parent_id = f_parent.id
+      LEFT JOIN users f_parent_user ON f_parent.id = f_parent_user.id
       LEFT JOIN investors ti ON ft.to_investor_id = ti.id
       LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
       LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
@@ -36,10 +43,17 @@ export class FundTransfersService {
       SELECT ft.*, 
              fi.full_name as from_investor_name,
              ti.full_name as to_investor_name,
+             fi.parent_id as from_parent_id,
+             fi.investor_type as from_investor_type,
+             (CASE WHEN (fi.parent_id IS NOT NULL OR fi.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as from_is_subaccount,
+             COALESCE(f_parent.full_name, f_parent_user.first_name || ' ' || f_parent_user.last_name) as from_parent_name,
+             COALESCE(f_parent.email, f_parent_user.email) as from_parent_email,
              COALESCE(ff.name, off.project_name) as from_fund_name,
              COALESCE(tf.name, tf_off.project_name) as to_fund_name
       FROM fund_transfers ft
       LEFT JOIN investors fi ON ft.from_investor_id = fi.id
+      LEFT JOIN investors f_parent ON fi.parent_id = f_parent.id
+      LEFT JOIN users f_parent_user ON f_parent.id = f_parent_user.id
       LEFT JOIN investors ti ON ft.to_investor_id = ti.id
       LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
       LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
@@ -56,10 +70,17 @@ export class FundTransfersService {
       SELECT ft.*, 
              fi.full_name as from_investor_name,
              ti.full_name as to_investor_name,
+             fi.parent_id as from_parent_id,
+             fi.investor_type as from_investor_type,
+             (CASE WHEN (fi.parent_id IS NOT NULL OR fi.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as from_is_subaccount,
+             COALESCE(f_parent.full_name, f_parent_user.first_name || ' ' || f_parent_user.last_name) as from_parent_name,
+             COALESCE(f_parent.email, f_parent_user.email) as from_parent_email,
              COALESCE(ff.name, off.project_name) as from_fund_name,
              COALESCE(tf.name, tf_off.project_name) as to_fund_name
       FROM fund_transfers ft
       LEFT JOIN investors fi ON ft.from_investor_id = fi.id
+      LEFT JOIN investors f_parent ON fi.parent_id = f_parent.id
+      LEFT JOIN users f_parent_user ON f_parent.id = f_parent_user.id
       LEFT JOIN investors ti ON ft.to_investor_id = ti.id
       LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
       LEFT JOIN old_funds off ON ft.from_fund_id = off.project_id::text
@@ -121,7 +142,15 @@ export class FundTransfersService {
           f.name as fund_name,
           COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1) as current_nav,
           i.estimated_units as units,
-          COALESCE(i.account_type, 'personal') as account_type,
+          CASE 
+            WHEN i.account_type IS NULL OR LOWER(TRIM(i.account_type)) IN ('personal', 'minor', 'entity') THEN 'Personal'
+            WHEN LOWER(TRIM(i.account_type)) = 'traditional ira' THEN 'Traditional IRA'
+            WHEN LOWER(TRIM(i.account_type)) = 'roth ira' THEN 'Roth IRA'
+            WHEN LOWER(TRIM(i.account_type)) = 'roth sep' THEN 'Roth SEP'
+            WHEN LOWER(TRIM(i.account_type)) = 'sep' THEN 'SEP'
+            WHEN LOWER(TRIM(i.account_type)) = 'db plan' THEN 'DB Plan'
+            ELSE TRIM(i.account_type)
+          END as account_type,
           i.account_id::text as account_id
         FROM investments i
         JOIN funds f ON i.fund_id = f.id
@@ -149,7 +178,15 @@ export class FundTransfersService {
           f.name as fund_name,
           COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1) as current_nav,
           (-1 * r.units) as units,
-          COALESCE(i.account_type, 'personal') as account_type,
+          CASE 
+            WHEN i.account_type IS NULL OR LOWER(TRIM(i.account_type)) IN ('personal', 'minor', 'entity') THEN 'Personal'
+            WHEN LOWER(TRIM(i.account_type)) = 'traditional ira' THEN 'Traditional IRA'
+            WHEN LOWER(TRIM(i.account_type)) = 'roth ira' THEN 'Roth IRA'
+            WHEN LOWER(TRIM(i.account_type)) = 'roth sep' THEN 'Roth SEP'
+            WHEN LOWER(TRIM(i.account_type)) = 'sep' THEN 'SEP'
+            WHEN LOWER(TRIM(i.account_type)) = 'db plan' THEN 'DB Plan'
+            ELSE TRIM(i.account_type)
+          END as account_type,
           i.account_id::text as account_id
         FROM redemptions r
         JOIN investments i ON r.investment_id = i.id
@@ -168,7 +205,15 @@ export class FundTransfersService {
             ELSE 
               (-1 * ft.units)
           END as units,
-          ft.from_account_type as account_type,
+          CASE 
+            WHEN ft.from_account_type IS NULL OR LOWER(TRIM(ft.from_account_type)) IN ('personal', 'minor', 'entity') THEN 'Personal'
+            WHEN LOWER(TRIM(ft.from_account_type)) = 'traditional ira' THEN 'Traditional IRA'
+            WHEN LOWER(TRIM(ft.from_account_type)) = 'roth ira' THEN 'Roth IRA'
+            WHEN LOWER(TRIM(ft.from_account_type)) = 'roth sep' THEN 'Roth SEP'
+            WHEN LOWER(TRIM(ft.from_account_type)) = 'sep' THEN 'SEP'
+            WHEN LOWER(TRIM(ft.from_account_type)) = 'db plan' THEN 'DB Plan'
+            ELSE TRIM(ft.from_account_type)
+          END as account_type,
           ft.from_account_id::text as account_id
         FROM fund_transfers ft
         LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
@@ -187,7 +232,15 @@ export class FundTransfersService {
             ELSE 
               ft.units
           END as units,
-          COALESCE(ft.to_account_type, ft.from_account_type) as account_type,
+          CASE 
+            WHEN COALESCE(ft.to_account_type, ft.from_account_type) IS NULL OR LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) IN ('personal', 'minor', 'entity') THEN 'Personal'
+            WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'traditional ira' THEN 'Traditional IRA'
+            WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'roth ira' THEN 'Roth IRA'
+            WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'roth sep' THEN 'Roth SEP'
+            WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'sep' THEN 'SEP'
+            WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'db plan' THEN 'DB Plan'
+            ELSE TRIM(COALESCE(ft.to_account_type, ft.from_account_type))
+          END as account_type,
           COALESCE(ft.to_account_id, ft.from_account_id)::text as account_id
         FROM fund_transfers ft
         LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
@@ -357,16 +410,40 @@ export class FundTransfersService {
 
     const transfer = res.rows[0];
 
-    // Fetch related entity names for document fields
-    const fromInv = await db.query('SELECT full_name FROM investors WHERE id = $1', [data.fromInvestorId]);
+    // Fetch related entity names for document fields and signer resolution
+    const fromInvRes = await db.query(`
+      SELECT 
+        i.id,
+        i.full_name,
+        i.email,
+        i.parent_id,
+        i.investor_type,
+        COALESCE(parent.email, parent_user.email) as parent_email,
+        COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+        parent.id as parent_investor_id
+      FROM investors i
+      LEFT JOIN investors parent ON i.parent_id = parent.id
+      LEFT JOIN users parent_user ON parent.id = parent_user.id
+      WHERE i.id = $1
+    `, [data.fromInvestorId]);
+
+    const fromInv = fromInvRes.rows[0];
+    const isSubaccount = Boolean(
+      fromInv && (fromInv.parent_id || ['minor', 'entity'].includes(fromInv.investor_type)) && fromInv.parent_email
+    );
+
     const toInv = data.toInvestorId ? await db.query('SELECT full_name FROM investors WHERE id = $1', [data.toInvestorId]) : null;
     const fromFund = await db.query('SELECT name FROM funds WHERE id::text = $1', [data.fromFundId]);
     const toFund = data.toFundId ? await db.query('SELECT name FROM funds WHERE id::text = $1', [data.toFundId]) : null;
 
+    // If sender is a subaccount, route DocuSign and signature email to the parent
+    const effectiveSignerEmail = isSubaccount ? fromInv.parent_email : (data.signerEmail || fromInv?.email);
+    const effectiveSignerName = isSubaccount ? fromInv.parent_name : (data.signerName || fromInv?.full_name);
+
     const fieldValues: any = {
-      sender_name: fromInv.rows[0]?.full_name || '',
+      sender_name: fromInv?.full_name || '',
       receiver_name: toInv?.rows[0]?.full_name || '',
-      investor_name: fromInv.rows[0]?.full_name || '', // Same as sender_name usually
+      investor_name: fromInv?.full_name || '', // Same as sender_name usually
       sender_fund: fromFund.rows[0]?.name || '',
       receiver_fund: toFund?.rows[0]?.name || '',
       amount: data.investmentAmount ? `$${Number(data.investmentAmount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '',
@@ -379,8 +456,8 @@ export class FundTransfersService {
     }
 
     const { envelopeId, signingUrl } = await this.docusignService.createEnvelopeForTransfer(
-      data.signerEmail,
-      data.signerName,
+      effectiveSignerEmail,
+      effectiveSignerName,
       documentBase64,
       documentName,
       data.placements,
@@ -396,7 +473,27 @@ export class FundTransfersService {
       // Send custom email via SMTP with a dynamic signing link
       const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
       const signLink = `${backendUrl}/api/fund-transfers/${transfer.id}/sign`;
-      await this.emailService.sendFundTransferSignatureEmail(data.signerEmail, data.signerName, signLink);
+      await this.emailService.sendFundTransferSignatureEmail(
+        effectiveSignerEmail,
+        effectiveSignerName,
+        signLink,
+        {
+          recipientUserId: isSubaccount ? (fromInv.parent_investor_id || fromInv.id) : fromInv?.id,
+          recipientName: effectiveSignerName,
+          relatedEntityType: 'FUND_TRANSFER',
+          relatedEntityId: transfer.id,
+          subaccountName: isSubaccount ? fromInv.full_name : undefined,
+          metadata: {
+            isSubaccount,
+            subaccountId: isSubaccount ? fromInv.id : undefined,
+            subaccountName: isSubaccount ? fromInv.full_name : undefined,
+            subaccountEmail: isSubaccount ? fromInv.email : undefined,
+            parentEmail: isSubaccount ? fromInv.parent_email : undefined,
+            parentName: isSubaccount ? fromInv.parent_name : undefined,
+            transferId: transfer.id,
+          }
+        }
+      );
     }
 
     return transfer;
@@ -404,9 +501,23 @@ export class FundTransfersService {
 
   async generateSignUrl(transferId: string): Promise<string> {
     const res = await db.query(
-      `SELECT t.*, i.full_name as signer_name, i.email as signer_email
+      `SELECT t.*, 
+              COALESCE(
+                CASE WHEN (i.parent_id IS NOT NULL OR i.investor_type IN ('minor', 'entity')) 
+                     THEN COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) 
+                     ELSE NULL END,
+                i.full_name
+              ) as signer_name,
+              COALESCE(
+                CASE WHEN (i.parent_id IS NOT NULL OR i.investor_type IN ('minor', 'entity')) 
+                     THEN COALESCE(parent.email, parent_user.email) 
+                     ELSE NULL END,
+                i.email
+              ) as signer_email
        FROM fund_transfers t
        JOIN investors i ON t.from_investor_id = i.id
+       LEFT JOIN investors parent ON i.parent_id = parent.id
+       LEFT JOIN users parent_user ON parent.id = parent_user.id
        WHERE t.id = $1`,
       [transferId]
     );
@@ -517,7 +628,15 @@ export class FundTransfersService {
       WITH combined_investments AS (
         SELECT 
           i.user_id as id,
-          COALESCE(i.account_type, 'personal') as account_type,
+          CASE 
+            WHEN i.account_type IS NULL OR LOWER(TRIM(i.account_type)) IN ('personal', 'minor', 'entity') THEN 'Personal'
+            WHEN LOWER(TRIM(i.account_type)) = 'traditional ira' THEN 'Traditional IRA'
+            WHEN LOWER(TRIM(i.account_type)) = 'roth ira' THEN 'Roth IRA'
+            WHEN LOWER(TRIM(i.account_type)) = 'roth sep' THEN 'Roth SEP'
+            WHEN LOWER(TRIM(i.account_type)) = 'sep' THEN 'SEP'
+            WHEN LOWER(TRIM(i.account_type)) = 'db plan' THEN 'DB Plan'
+            ELSE TRIM(i.account_type)
+          END as account_type,
           i.estimated_units as units
         FROM investments i
         WHERE i.fund_id::text = $1 AND i.is_reconciled = true
@@ -539,7 +658,15 @@ export class FundTransfersService {
 
         SELECT 
           r.investor_id as id,
-          COALESCE(i.account_type, 'personal') as account_type,
+          CASE 
+            WHEN i.account_type IS NULL OR LOWER(TRIM(i.account_type)) IN ('personal', 'minor', 'entity') THEN 'Personal'
+            WHEN LOWER(TRIM(i.account_type)) = 'traditional ira' THEN 'Traditional IRA'
+            WHEN LOWER(TRIM(i.account_type)) = 'roth ira' THEN 'Roth IRA'
+            WHEN LOWER(TRIM(i.account_type)) = 'roth sep' THEN 'Roth SEP'
+            WHEN LOWER(TRIM(i.account_type)) = 'sep' THEN 'SEP'
+            WHEN LOWER(TRIM(i.account_type)) = 'db plan' THEN 'DB Plan'
+            ELSE TRIM(i.account_type)
+          END as account_type,
           (-1 * r.units) as units
         FROM redemptions r
         JOIN investments i ON r.investment_id = i.id
@@ -549,7 +676,15 @@ export class FundTransfersService {
 
         SELECT 
           ft.from_investor_id as id,
-          ft.from_account_type as account_type,
+          CASE 
+            WHEN ft.from_account_type IS NULL OR LOWER(TRIM(ft.from_account_type)) IN ('personal', 'minor', 'entity') THEN 'Personal'
+            WHEN LOWER(TRIM(ft.from_account_type)) = 'traditional ira' THEN 'Traditional IRA'
+            WHEN LOWER(TRIM(ft.from_account_type)) = 'roth ira' THEN 'Roth IRA'
+            WHEN LOWER(TRIM(ft.from_account_type)) = 'roth sep' THEN 'Roth SEP'
+            WHEN LOWER(TRIM(ft.from_account_type)) = 'sep' THEN 'SEP'
+            WHEN LOWER(TRIM(ft.from_account_type)) = 'db plan' THEN 'DB Plan'
+            ELSE TRIM(ft.from_account_type)
+          END as account_type,
           CASE
             WHEN ft.from_account_type ILIKE 'ims-%' THEN 
               (-1 * ft.investment_amount) / NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), ff.unit_price, 1), 0)
@@ -564,7 +699,15 @@ export class FundTransfersService {
 
         SELECT 
           COALESCE(ft.to_investor_id, ft.from_investor_id) as id,
-          COALESCE(ft.to_account_type, ft.from_account_type) as account_type,
+          CASE 
+            WHEN COALESCE(ft.to_account_type, ft.from_account_type) IS NULL OR LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) IN ('personal', 'minor', 'entity') THEN 'Personal'
+            WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'traditional ira' THEN 'Traditional IRA'
+            WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'roth ira' THEN 'Roth IRA'
+            WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'roth sep' THEN 'Roth SEP'
+            WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'sep' THEN 'SEP'
+            WHEN LOWER(TRIM(COALESCE(ft.to_account_type, ft.from_account_type))) = 'db plan' THEN 'DB Plan'
+            ELSE TRIM(COALESCE(ft.to_account_type, ft.from_account_type))
+          END as account_type,
           CASE
             WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
               ft.investment_amount / NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), tf.unit_price, ff.unit_price, 1), 0)
@@ -581,11 +724,18 @@ export class FundTransfersService {
         c.account_type,
         u.full_name,
         u.email,
+        u.parent_id as "parentId",
+        u.investor_type as "investorType",
+        COALESCE(parent.email, parent_user.email) as "parentEmail",
+        COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as "parentName",
+        (CASE WHEN (u.parent_id IS NOT NULL OR u.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as "isSubaccount",
         SUM(c.units) as total_units
       FROM combined_investments c
       JOIN investors u ON c.id = u.id
+      LEFT JOIN investors parent ON u.parent_id = parent.id
+      LEFT JOIN users parent_user ON parent.id = parent_user.id
       WHERE c.units IS NOT NULL
-      GROUP BY c.id, c.account_type, u.full_name, u.email
+      GROUP BY c.id, c.account_type, u.full_name, u.email, u.parent_id, u.investor_type, parent.email, parent_user.email, parent.full_name, parent_user.first_name, parent_user.last_name
       HAVING SUM(c.units) > 0
     `, [fundId]);
 

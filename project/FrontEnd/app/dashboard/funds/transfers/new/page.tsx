@@ -213,11 +213,21 @@ export default function NewFundTransferPage() {
       return;
     }
 
-    const fromInvestor = users.find(u => u.id === fromInvestorId);
+    const fromInvestor = fundInvestors.find(u => u.id === fromInvestorId) || users.find(u => u.id === fromInvestorId);
     if (!fromInvestor) {
       toast.error('Invalid sender selected.');
       return;
     }
+
+    const isSub = Boolean(
+      fromInvestor.isSubaccount || 
+      fromInvestor.parentId || 
+      ['minor', 'entity'].includes(fromInvestor.investorType?.toLowerCase())
+    ) && Boolean(fromInvestor.parentEmail);
+
+    const defaultSignerName = (fromInvestor.full_name || (fromInvestor.firstName + ' ' + (fromInvestor.lastName || '')) || fromInvestor.first_name + ' ' + (fromInvestor.last_name || '')).trim();
+    const effectiveSignerName = isSub && fromInvestor.parentName ? fromInvestor.parentName : defaultSignerName;
+    const effectiveSignerEmail = isSub && fromInvestor.parentEmail ? fromInvestor.parentEmail : fromInvestor.email;
 
     const formData = new FormData();
     formData.append('transferType', transferType);
@@ -244,9 +254,8 @@ export default function NewFundTransferPage() {
 
     formData.append('placements', JSON.stringify(placements));
 
-    const signerFullName = (fromInvestor.full_name || (fromInvestor.firstName + ' ' + (fromInvestor.lastName || '')) || fromInvestor.first_name + ' ' + (fromInvestor.last_name || '')).trim();
-    formData.append('signerName', signerFullName);
-    formData.append('signerEmail', fromInvestor.email);
+    formData.append('signerName', effectiveSignerName);
+    formData.append('signerEmail', effectiveSignerEmail);
     formData.append('bypassDocusign', bypassDocusign ? 'true' : 'false');
 
     setIsSubmitting(true);
@@ -275,14 +284,31 @@ export default function NewFundTransferPage() {
     }
   };
 
+  const selectedSender = fundInvestors.find(u => u.id === fromInvestorId) || users.find(u => u.id === fromInvestorId);
+  const isSenderSubaccount = Boolean(
+    selectedSender && (
+      selectedSender.isSubaccount || 
+      selectedSender.parentId || 
+      ['minor', 'entity'].includes(selectedSender.investorType?.toLowerCase())
+    ) && (selectedSender.parentEmail || selectedSender.parentName)
+  );
+
   const userOptions = Array.from(new Map(users.map(u => {
     const name = (u.full_name || (u.firstName ? u.firstName + ' ' + (u.lastName || '') : '') || (u.first_name ? u.first_name + ' ' + (u.last_name || '') : '')).trim() || 'Unknown Investor';
-    return [u.id, { label: `${name} (${u.email || 'No email'})`, value: u.id }];
+    const isSub = Boolean(u.isSubaccount || u.parentId || ['minor', 'entity'].includes(u.investorType?.toLowerCase()));
+    const label = isSub && (u.parentName || u.parentEmail)
+      ? `${name} (${u.email || 'No email'}) [Subaccount → Parent: ${u.parentName || u.parentEmail}]`
+      : `${name} (${u.email || 'No email'})`;
+    return [u.id, { label, value: u.id }];
   })).values()).sort((a, b) => a.label.localeCompare(b.label));
 
   const fundInvestorOptions = Array.from(new Map(fundInvestors.map(u => {
     const name = (u.full_name || (u.first_name ? u.first_name + ' ' + (u.last_name || '') : '')).trim() || 'Unknown Investor';
-    return [u.id, { label: `${name} (${u.email || 'No email'})`, value: u.id }];
+    const isSub = Boolean(u.isSubaccount || u.parentId || ['minor', 'entity'].includes(u.investorType?.toLowerCase()));
+    const label = isSub && (u.parentName || u.parentEmail)
+      ? `${name} (${u.email || 'No email'}) [Subaccount → Parent: ${u.parentName || u.parentEmail}]`
+      : `${name} (${u.email || 'No email'})`;
+    return [u.id, { label, value: u.id }];
   })).values()).sort((a, b) => a.label.localeCompare(b.label));
 
   const senderFundOptions = senderFunds.map(f => ({ label: `${f.fund_name} (Avail: $${parseFloat(f.max_value).toLocaleString()})`, value: f.fund_id }));
@@ -370,6 +396,14 @@ export default function NewFundTransferPage() {
                   placeholder="Search sender..."
                   disabled={!fromFundId}
                 />
+                {isSenderSubaccount && selectedSender && (
+                  <div className="mt-2 p-2.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-md flex items-start gap-2">
+                    <span className="text-xs px-1.5 py-0.5 font-semibold bg-blue-600 text-white rounded shrink-0">Subaccount</span>
+                    <p className="text-xs text-blue-900 dark:text-blue-200 leading-relaxed">
+                      Transfer authorization and DocuSign signature request will be sent to primary parent account: <strong>{selectedSender.parentName || 'Parent'}</strong> ({selectedSender.parentEmail || 'parent email'}).
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>

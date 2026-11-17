@@ -42,13 +42,29 @@ export class EmailService {
     return this.configService.get<string>('SUPPORT_EMAIL') || 'portal@ovaliacapital.com';
   }
 
-  async sendPasswordResetOtp(email: string, otp: string, showCode: boolean = true, options?: EmailLogOptions) {
+  async sendPasswordResetOtp(
+    email: string,
+    otp: string,
+    showCode: boolean = true,
+    options?: EmailLogOptions & { resetAccountEmail?: string; subaccountName?: string }
+  ) {
+    const subaccountName = options?.subaccountName;
+    const accountEmail = options?.resetAccountEmail || email;
     const title = 'Verify Your Identity';
-    const subject = 'Password Reset Code - Ovalia Capital';
+    const subject = subaccountName
+      ? `Password Reset Code for ${subaccountName} - Ovalia Capital`
+      : 'Password Reset Code - Ovalia Capital';
     const frontendUrl = this.getFrontendUrl();
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Password Reset</h1>
-      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">You have requested to reset your password. Please click the button below to set a new password for your account.</p>
+      ${subaccountName ? `
+      <div style="background-color: #EFF6FF; border-left: 4px solid #3B82F6; padding: 12px 16px; margin: 0 0 20px; border-radius: 4px;">
+        <p style="margin: 0; font-size: 14px; color: #1E40AF; font-weight: 500;">
+          This password reset request is for subaccount: <strong>${subaccountName}</strong> (${accountEmail}).
+        </p>
+      </div>
+      ` : ''}
+      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">You have requested to reset your password. Please click the button below to set a new password for ${subaccountName ? `subaccount <strong>${subaccountName}</strong>` : 'your account'}.</p>
       
       ${showCode ? `
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">Alternatively, you can use the verification code below on the reset screen:</p>
@@ -60,7 +76,7 @@ export class EmailService {
       <p style="margin: 20px 0 0; font-size: 14px; color: #6B7280; font-style: italic;">This link will expire in 15 minutes. If you did not request this, please ignore this email.</p>
       
       <div style="text-align: center; margin: 40px 0;">
-        <a href="${frontendUrl}/auth/forgot-password?email=${email}&otp=${otp}&flow=investor" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
+        <a href="${frontendUrl}/auth/forgot-password?email=${accountEmail}&otp=${otp}&flow=investor" style="background: linear-gradient(135deg, #FBCB4B 0%, #E2B93B 100%); color: #1F1F1F; padding: 16px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(251, 203, 75, 0.3); display: inline-block; transition: all 0.3s ease;">
           Reset Password
         </a>
       </div>
@@ -68,7 +84,7 @@ export class EmailService {
     await this.sendEmail(email, subject, this.getHtmlTemplate(content, title), {
       notificationType: 'PASSWORD_RESET',
       templateName: 'password_reset_otp',
-      metadata: { showCode },
+      metadata: { showCode, subaccountName, resetAccountEmail: accountEmail },
       ...options,
     });
   }
@@ -145,15 +161,31 @@ export class EmailService {
     });
   }
 
-  async sendPasswordChangedEmail(email: string, firstName: string, password?: string, options?: EmailLogOptions) {
+  async sendPasswordChangedEmail(
+    email: string,
+    firstName: string,
+    password?: string,
+    options?: EmailLogOptions & { subaccountName?: string }
+  ) {
+    const subaccountName = options?.subaccountName;
     const title = 'Security Update';
-    const subject = 'Password Successfully Updated - Ovalia Capital';
+    const subject = subaccountName
+      ? `Password Successfully Updated for ${subaccountName} - Ovalia Capital`
+      : 'Password Successfully Updated - Ovalia Capital';
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Password Updated</h1>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">Hello ${firstName},</p>
+      ${subaccountName ? `
+      <div style="background-color: #EFF6FF; border-left: 4px solid #3B82F6; padding: 12px 16px; margin: 0 0 20px; border-radius: 4px;">
+        <p style="margin: 0; font-size: 14px; color: #1E40AF; font-weight: 500;">
+          This is a security confirmation that the password for subaccount: <strong>${subaccountName}</strong> has been successfully updated.
+        </p>
+      </div>
+      ` : `
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
         Your password has been successfully updated. This is a security confirmation to ensure you made this change.
       </p>
+      `}
 
       ${password ? `
       <!-- New Password Details -->
@@ -173,6 +205,7 @@ export class EmailService {
       notificationType: 'PASSWORD_CHANGED',
       templateName: 'password_changed_confirmation',
       recipientName: firstName,
+      metadata: { subaccountName },
       ...options,
     });
   }
@@ -637,14 +670,29 @@ export class EmailService {
     this.logger.log('-----------------------');
   }
 
-  async sendFundTransferSignatureEmail(email: string, signerName: string, signLink: string, options?: EmailLogOptions) {
+  async sendFundTransferSignatureEmail(
+    email: string,
+    signerName: string,
+    signLink: string,
+    options?: EmailLogOptions & { subaccountName?: string }
+  ) {
+    const subaccountName = options?.subaccountName;
     const title = 'Document Signature Required';
-    const subject = 'Action Required: Please sign the Fund Transfer Document';
+    const subject = subaccountName
+      ? `Action Required: Please sign the Fund Transfer Document for ${subaccountName}`
+      : 'Action Required: Please sign the Fund Transfer Document';
     const content = `
       <h1 style="margin: 0 0 20px; font-family: 'Garamond', serif; color: #1F1F1F; font-size: 28px;">Signature Required</h1>
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
         Hello <strong>${signerName}</strong>,
       </p>
+      ${subaccountName ? `
+      <div style="background-color: #EFF6FF; border-left: 4px solid #3B82F6; padding: 12px 16px; margin: 0 0 20px; border-radius: 4px;">
+        <p style="margin: 0; font-size: 14px; color: #1E40AF; font-weight: 500;">
+          This fund transfer agreement is for subaccount: <strong>${subaccountName}</strong>. As the primary parent account holder/custodian, please review and sign the document.
+        </p>
+      </div>
+      ` : ''}
       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #4B5563;">
         You have a new fund transfer document that requires your signature. Please review and sign the document to proceed with the transfer.
       </p>
@@ -666,6 +714,7 @@ export class EmailService {
       notificationType: 'FUND_TRANSFER',
       templateName: 'fund_transfer_signature_request',
       recipientName: signerName,
+      metadata: { subaccountName },
       ...options,
     });
   }
@@ -989,6 +1038,7 @@ export class EmailService {
       WITH combined_investments AS (
         SELECT 
           i.fund_id::text as target_fund_id,
+          i.user_id::text as user_id,
           u.email as email,
           i.estimated_units as units
         FROM investments i
@@ -999,6 +1049,7 @@ export class EmailService {
 
         SELECT 
           COALESCE(f.id::text, oi.project_id::text) as target_fund_id,
+          NULL::text as user_id,
           COALESCE(o_inv.primary_email, oi.email_address) as email,
           (CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / 
            NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1), 0)) as units
@@ -1011,6 +1062,7 @@ export class EmailService {
 
         SELECT 
           i.fund_id::text as target_fund_id,
+          r.investor_id::text as user_id,
           u.email as email,
           (-1 * r.units) as units
         FROM redemptions r
@@ -1022,6 +1074,7 @@ export class EmailService {
 
         SELECT 
           ft.from_fund_id as target_fund_id,
+          ft.from_investor_id::text as user_id,
           u.email as email,
           CASE
             WHEN ft.from_account_type ILIKE 'ims-%' THEN 
@@ -1038,6 +1091,7 @@ export class EmailService {
 
         SELECT 
           COALESCE(ft.to_fund_id, ft.from_fund_id) as target_fund_id,
+          COALESCE(ft.to_investor_id, ft.from_investor_id)::text as user_id,
           u.email as email,
           CASE
             WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
@@ -1054,16 +1108,16 @@ export class EmailService {
       investor_fund_holdings AS (
         SELECT 
           c.target_fund_id,
-          LOWER(TRIM(c.email)) as email,
+          COALESCE(c.user_id, LOWER(TRIM(c.email))) as investor_key,
           SUM(c.units) as net_units
         FROM combined_investments c
-        WHERE c.units IS NOT NULL AND c.target_fund_id IS NOT NULL AND c.email IS NOT NULL AND TRIM(c.email) != ''
-        GROUP BY c.target_fund_id, LOWER(TRIM(c.email))
+        WHERE c.units IS NOT NULL AND c.target_fund_id IS NOT NULL AND (c.email IS NOT NULL OR c.user_id IS NOT NULL)
+        GROUP BY c.target_fund_id, COALESCE(c.user_id, LOWER(TRIM(c.email)))
         HAVING SUM(c.units) > 0
       )
       SELECT 
         target_fund_id,
-        COUNT(DISTINCT email)::int as recipient_count
+        COUNT(DISTINCT investor_key)::int as recipient_count
       FROM investor_fund_holdings
       GROUP BY target_fund_id
     `);
@@ -1129,7 +1183,18 @@ export class EmailService {
    * from fund transfers (SUM(units) > 0 after reconciling investments, old investments, redemptions, and transfers).
    * Robustly extracts investor names from old_investors and old_investments when not yet in modern users table.
    */
-  async getFundRecipients(fundId: string): Promise<Array<{ email: string; name?: string; fullName?: string; userId?: string; totalUnits?: number; accountType?: string }>> {
+  async getFundRecipients(fundId: string): Promise<Array<{
+    email: string;
+    name?: string;
+    fullName?: string;
+    userId?: string;
+    totalUnits?: number;
+    accountType?: string;
+    isSubaccount?: boolean;
+    originalEmail?: string;
+    parentEmail?: string;
+    parentName?: string;
+  }>> {
     const isAll = !fundId || fundId === 'all-funds';
     const cleanFundId = (fundId || '').replace(/^old-/, '');
 
@@ -1141,10 +1206,17 @@ export class EmailService {
             i.user_id::text as user_id,
             u.email as email,
             u.full_name as name,
+            u.parent_id,
+            u.investor_type,
+            COALESCE(parent.email, parent_user.email) as parent_email,
+            COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+            (CASE WHEN (u.parent_id IS NOT NULL OR u.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as is_subaccount,
             COALESCE(i.account_type, 'personal') as account_type,
             i.estimated_units as units
           FROM investments i
           JOIN investors u ON i.user_id = u.id
+          LEFT JOIN investors parent ON u.parent_id = parent.id
+          LEFT JOIN users parent_user ON parent.id = parent_user.id
           WHERE i.is_reconciled = true
 
           UNION ALL
@@ -1153,12 +1225,19 @@ export class EmailService {
             u.id::text as user_id,
             COALESCE(o_inv.primary_email, oi.email_address) as email,
             COALESCE(u.full_name, o_inv.legal_name, oi.investor_profile_legal_name, 'Legacy Investor') as name,
+            u.parent_id,
+            u.investor_type,
+            COALESCE(parent.email, parent_user.email) as parent_email,
+            COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+            (CASE WHEN (u.parent_id IS NOT NULL OR u.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as is_subaccount,
             'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type,
             (CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / 
              NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1), 0)) as units
           FROM old_investments oi
           LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
           LEFT JOIN investors u ON LOWER(TRIM(u.email)) = LOWER(TRIM(COALESCE(o_inv.primary_email, oi.email_address)))
+          LEFT JOIN investors parent ON u.parent_id = parent.id
+          LEFT JOIN users parent_user ON parent.id = parent_user.id
           LEFT JOIN funds f ON oi.project_name = f.name
           WHERE oi.investment_amount IS NOT NULL
 
@@ -1168,11 +1247,18 @@ export class EmailService {
             r.investor_id::text as user_id,
             u.email as email,
             u.full_name as name,
+            u.parent_id,
+            u.investor_type,
+            COALESCE(parent.email, parent_user.email) as parent_email,
+            COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+            (CASE WHEN (u.parent_id IS NOT NULL OR u.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as is_subaccount,
             COALESCE(i.account_type, 'personal') as account_type,
             (-1 * r.units) as units
           FROM redemptions r
           JOIN investments i ON r.investment_id = i.id
           JOIN investors u ON r.investor_id = u.id
+          LEFT JOIN investors parent ON u.parent_id = parent.id
+          LEFT JOIN users parent_user ON parent.id = parent_user.id
           WHERE r.status = 'Processed'
 
           UNION ALL
@@ -1181,6 +1267,11 @@ export class EmailService {
             ft.from_investor_id::text as user_id,
             u.email as email,
             u.full_name as name,
+            u.parent_id,
+            u.investor_type,
+            COALESCE(parent.email, parent_user.email) as parent_email,
+            COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+            (CASE WHEN (u.parent_id IS NOT NULL OR u.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as is_subaccount,
             ft.from_account_type as account_type,
             CASE
               WHEN ft.from_account_type ILIKE 'ims-%' THEN 
@@ -1190,6 +1281,8 @@ export class EmailService {
             END as units
           FROM fund_transfers ft
           JOIN investors u ON ft.from_investor_id = u.id
+          LEFT JOIN investors parent ON u.parent_id = parent.id
+          LEFT JOIN users parent_user ON parent.id = parent_user.id
           LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
           WHERE ft.status = 'COMPLETED'
 
@@ -1199,6 +1292,11 @@ export class EmailService {
             COALESCE(ft.to_investor_id, ft.from_investor_id)::text as user_id,
             u.email as email,
             u.full_name as name,
+            u.parent_id,
+            u.investor_type,
+            COALESCE(parent.email, parent_user.email) as parent_email,
+            COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+            (CASE WHEN (u.parent_id IS NOT NULL OR u.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as is_subaccount,
             COALESCE(ft.to_account_type, ft.from_account_type) as account_type,
             CASE
               WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
@@ -1208,19 +1306,29 @@ export class EmailService {
             END as units
           FROM fund_transfers ft
           JOIN investors u ON COALESCE(ft.to_investor_id, ft.from_investor_id) = u.id
+          LEFT JOIN investors parent ON u.parent_id = parent.id
+          LEFT JOIN users parent_user ON parent.id = parent_user.id
           LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
           LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
           WHERE ft.status = 'COMPLETED'
         )
         SELECT 
-          MAX(c.user_id) as "userId",
+          c.user_id as "userId",
           MAX(c.account_type) as account_type,
           COALESCE(MAX(NULLIF(TRIM(c.name), '')), 'Investor') as name,
-          LOWER(TRIM(c.email)) as email,
+          MAX(c.email) as original_email,
+          MAX(c.parent_email) as parent_email,
+          MAX(c.parent_name) as parent_name,
+          BOOL_OR(c.is_subaccount) as is_subaccount,
+          CASE 
+            WHEN BOOL_OR(c.is_subaccount) AND MAX(c.parent_email) IS NOT NULL AND TRIM(MAX(c.parent_email)) != '' 
+              THEN LOWER(TRIM(MAX(c.parent_email)))
+            ELSE LOWER(TRIM(MAX(c.email)))
+          END as email,
           SUM(c.units) as total_units
         FROM combined_investments c
-        WHERE c.units IS NOT NULL AND c.email IS NOT NULL AND TRIM(c.email) != ''
-        GROUP BY LOWER(TRIM(c.email))
+        WHERE c.units IS NOT NULL AND (c.email IS NOT NULL OR c.user_id IS NOT NULL)
+        GROUP BY c.user_id, LOWER(TRIM(COALESCE(c.email, '')))
         HAVING SUM(c.units) > 0
         ORDER BY name ASC
       `);
@@ -1232,10 +1340,17 @@ export class EmailService {
             i.user_id::text as user_id,
             u.email as email,
             u.full_name as name,
+            u.parent_id,
+            u.investor_type,
+            COALESCE(parent.email, parent_user.email) as parent_email,
+            COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+            (CASE WHEN (u.parent_id IS NOT NULL OR u.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as is_subaccount,
             COALESCE(i.account_type, 'personal') as account_type,
             i.estimated_units as units
           FROM investments i
           JOIN investors u ON i.user_id = u.id
+          LEFT JOIN investors parent ON u.parent_id = parent.id
+          LEFT JOIN users parent_user ON parent.id = parent_user.id
           WHERE (i.fund_id::text = $1 OR i.fund_id::text = $2) AND i.is_reconciled = true
 
           UNION ALL
@@ -1244,12 +1359,19 @@ export class EmailService {
             u.id::text as user_id,
             COALESCE(o_inv.primary_email, oi.email_address) as email,
             COALESCE(u.full_name, o_inv.legal_name, oi.investor_profile_legal_name, 'Legacy Investor') as name,
+            u.parent_id,
+            u.investor_type,
+            COALESCE(parent.email, parent_user.email) as parent_email,
+            COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+            (CASE WHEN (u.parent_id IS NOT NULL OR u.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as is_subaccount,
             'ims-' || COALESCE(o_inv.profile_type, 'Individual') || ' account' as account_type,
             (CAST(NULLIF(regexp_replace(oi.investment_amount::text, '[^0-9.]', '', 'g'), '') AS numeric) / 
              NULLIF(COALESCE((SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1), f.unit_price, 1), 0)) as units
           FROM old_investments oi
           LEFT JOIN old_investors o_inv ON oi.investor_profile_id = o_inv.ims_profile_id
           LEFT JOIN investors u ON LOWER(TRIM(u.email)) = LOWER(TRIM(COALESCE(o_inv.primary_email, oi.email_address)))
+          LEFT JOIN investors parent ON u.parent_id = parent.id
+          LEFT JOIN users parent_user ON parent.id = parent_user.id
           LEFT JOIN funds f ON oi.project_name = f.name
           WHERE (f.id::text = $1 OR oi.project_id::text = $1 OR f.id::text = $2 OR oi.project_id::text = $2)
 
@@ -1259,11 +1381,18 @@ export class EmailService {
             r.investor_id::text as user_id,
             u.email as email,
             u.full_name as name,
+            u.parent_id,
+            u.investor_type,
+            COALESCE(parent.email, parent_user.email) as parent_email,
+            COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+            (CASE WHEN (u.parent_id IS NOT NULL OR u.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as is_subaccount,
             COALESCE(i.account_type, 'personal') as account_type,
             (-1 * r.units) as units
           FROM redemptions r
           JOIN investments i ON r.investment_id = i.id
           JOIN investors u ON r.investor_id = u.id
+          LEFT JOIN investors parent ON u.parent_id = parent.id
+          LEFT JOIN users parent_user ON parent.id = parent_user.id
           WHERE (i.fund_id::text = $1 OR i.fund_id::text = $2) AND r.status = 'Processed'
 
           UNION ALL
@@ -1272,6 +1401,11 @@ export class EmailService {
             ft.from_investor_id::text as user_id,
             u.email as email,
             u.full_name as name,
+            u.parent_id,
+            u.investor_type,
+            COALESCE(parent.email, parent_user.email) as parent_email,
+            COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+            (CASE WHEN (u.parent_id IS NOT NULL OR u.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as is_subaccount,
             ft.from_account_type as account_type,
             CASE
               WHEN ft.from_account_type ILIKE 'ims-%' THEN 
@@ -1281,6 +1415,8 @@ export class EmailService {
             END as units
           FROM fund_transfers ft
           JOIN investors u ON ft.from_investor_id = u.id
+          LEFT JOIN investors parent ON u.parent_id = parent.id
+          LEFT JOIN users parent_user ON parent.id = parent_user.id
           LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
           WHERE (ft.from_fund_id = $1 OR ft.from_fund_id = $2) AND ft.status = 'COMPLETED'
 
@@ -1290,6 +1426,11 @@ export class EmailService {
             COALESCE(ft.to_investor_id, ft.from_investor_id)::text as user_id,
             u.email as email,
             u.full_name as name,
+            u.parent_id,
+            u.investor_type,
+            COALESCE(parent.email, parent_user.email) as parent_email,
+            COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+            (CASE WHEN (u.parent_id IS NOT NULL OR u.investor_type IN ('minor', 'entity')) THEN true ELSE false END) as is_subaccount,
             COALESCE(ft.to_account_type, ft.from_account_type) as account_type,
             CASE
               WHEN COALESCE(ft.to_account_type, ft.from_account_type) ILIKE 'ims-%' THEN 
@@ -1299,31 +1440,46 @@ export class EmailService {
             END as units
           FROM fund_transfers ft
           JOIN investors u ON COALESCE(ft.to_investor_id, ft.from_investor_id) = u.id
+          LEFT JOIN investors parent ON u.parent_id = parent.id
+          LEFT JOIN users parent_user ON parent.id = parent_user.id
           LEFT JOIN funds tf ON ft.to_fund_id = tf.id::text
           LEFT JOIN funds ff ON ft.from_fund_id = ff.id::text
           WHERE (COALESCE(ft.to_fund_id, ft.from_fund_id) = $1 OR COALESCE(ft.to_fund_id, ft.from_fund_id) = $2) AND ft.status = 'COMPLETED'
         )
         SELECT 
-          MAX(c.user_id) as "userId",
+          c.user_id as "userId",
           MAX(c.account_type) as account_type,
           COALESCE(MAX(NULLIF(TRIM(c.name), '')), 'Investor') as name,
-          LOWER(TRIM(c.email)) as email,
+          MAX(c.email) as original_email,
+          MAX(c.parent_email) as parent_email,
+          MAX(c.parent_name) as parent_name,
+          BOOL_OR(c.is_subaccount) as is_subaccount,
+          CASE 
+            WHEN BOOL_OR(c.is_subaccount) AND MAX(c.parent_email) IS NOT NULL AND TRIM(MAX(c.parent_email)) != '' 
+              THEN LOWER(TRIM(MAX(c.parent_email)))
+            ELSE LOWER(TRIM(MAX(c.email)))
+          END as email,
           SUM(c.units) as total_units
         FROM combined_investments c
-        WHERE c.units IS NOT NULL AND c.email IS NOT NULL AND TRIM(c.email) != ''
-        GROUP BY LOWER(TRIM(c.email))
+        WHERE c.units IS NOT NULL AND (c.email IS NOT NULL OR c.user_id IS NOT NULL)
+        GROUP BY c.user_id, LOWER(TRIM(COALESCE(c.email, '')))
         HAVING SUM(c.units) > 0
         ORDER BY name ASC
       `, [fundId, cleanFundId]);
       rows = res.rows;
     }
 
-    // Deduplicate by lowercase trimmed email
-    const unique = new Map<string, { email: string; name?: string; fullName?: string; userId?: string; totalUnits?: number; accountType?: string }>();
+    // Deduplicate by userId (or lowercase trimmed email if no userId)
+    const unique = new Map<string, { email: string; originalEmail?: string; parentEmail?: string; parentName?: string; isSubaccount?: boolean; name?: string; fullName?: string; userId?: string; totalUnits?: number; accountType?: string }>();
     for (const r of rows) {
-      if (r.email && !unique.has(r.email)) {
-        unique.set(r.email, {
+      const key = r.userId ? String(r.userId) : (r.email || '');
+      if (key && !unique.has(key)) {
+        unique.set(key, {
           email: r.email,
+          originalEmail: r.original_email,
+          parentEmail: r.parent_email,
+          parentName: r.parent_name,
+          isSubaccount: Boolean(r.is_subaccount),
           name: r.name || undefined,
           fullName: r.name || undefined,
           userId: r.userId ? String(r.userId) : undefined,
@@ -1642,6 +1798,10 @@ export class EmailService {
             fundId: camp.fund_id,
             fundName: camp.fund_name,
             preheader: camp.preheader,
+            isSubaccount: r.isSubaccount,
+            subaccountName: r.isSubaccount ? recipientName : undefined,
+            parentEmail: r.parentEmail,
+            parentName: r.parentName,
           },
         });
         sentCount++;

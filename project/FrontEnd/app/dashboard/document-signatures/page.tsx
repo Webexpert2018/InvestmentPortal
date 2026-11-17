@@ -160,8 +160,10 @@ export default function DocumentSignaturesPage() {
   const filteredUsers = users.filter(u => {
     const fullName = (u.full_name || `${u.firstName || u.first_name || ''} ${u.lastName || u.last_name || ''}`).toLowerCase();
     const email = (u.email || '').toLowerCase();
+    const parentEmail = (u.parentEmail || '').toLowerCase();
+    const parentName = (u.parentName || '').toLowerCase();
     const query = searchQuery.toLowerCase();
-    return fullName.includes(query) || email.includes(query);
+    return fullName.includes(query) || email.includes(query) || parentEmail.includes(query) || parentName.includes(query);
   });
 
   return (
@@ -261,7 +263,14 @@ export default function DocumentSignaturesPage() {
                             campaign.recipients.map((recipient: any) => (
                               <tr key={recipient.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors">
                                 <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 truncate">
-                                  {recipient.investor_name || 'Unknown'}
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span>{recipient.investor_name || 'Unknown'}</span>
+                                    {recipient.is_subaccount && (
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 shadow-xs">
+                                        Subaccount
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
                                 <td className="px-4 py-3">
                                   <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">
@@ -269,7 +278,14 @@ export default function DocumentSignaturesPage() {
                                   </span>
                                 </td>
                                 <td className="px-4 py-3 text-gray-500 dark:text-gray-400 truncate">
-                                  {recipient.investor_email}
+                                  <div className="flex items-center gap-1.5">
+                                    <span>{recipient.investor_email}</span>
+                                    {recipient.is_subaccount && (
+                                      <span className="text-[11px] font-normal text-[#8E8E93] dark:text-gray-400" title={recipient.parent_name ? `Parent account: ${recipient.parent_name}` : 'Parent email'}>
+                                        (Parent)
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
                                 <td className="px-4 py-3">
                                   {recipient.status === 'SIGNED' ? (
@@ -379,6 +395,9 @@ export default function DocumentSignaturesPage() {
                     filteredUsers.map((user) => {
                       const isSelected = selectedInvestorIds.includes(user.compositeId);
                       const name = (user.full_name || `${user.firstName || user.first_name || ''} ${user.lastName || user.last_name || ''}`).trim() || 'Unknown Investor';
+                      const isSubaccount = Boolean(user.isSubaccount || user.parentId || ['minor', 'entity'].includes(user.investorType?.toLowerCase()));
+                      const displayEmail = (isSubaccount && user.parentEmail) ? user.parentEmail : user.email;
+
                       return (
                         <label
                           key={user.compositeId}
@@ -387,12 +406,24 @@ export default function DocumentSignaturesPage() {
                           <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-[#2A6CB5] border-[#2A6CB5]' : 'border-gray-300 bg-white dark:bg-[#1C1C1C]'}`}>
                             {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
                           </div>
-                          <div className="flex-1 min-w-0 flex items-center gap-2">
+                          <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
                             <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{name}</span>
+                            {isSubaccount && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 shadow-xs">
+                                Subaccount
+                              </span>
+                            )}
                             <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                               {user.accountType}
                             </span>
-                            <span className="text-sm text-gray-500 dark:text-gray-400 truncate ml-auto">{user.email}</span>
+                            <div className="text-sm text-gray-500 dark:text-gray-400 truncate ml-auto flex items-center gap-1.5">
+                              <span>{displayEmail}</span>
+                              {isSubaccount && user.parentEmail && (
+                                <span className="text-[11px] font-normal text-[#8E8E93] dark:text-gray-400" title={`Parent account: ${user.parentName || 'Parent'}`}>
+                                  (Parent)
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <input
                             type="checkbox"

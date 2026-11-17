@@ -167,14 +167,14 @@ export default function EmailUpdatesPage() {
     };
   }, [selectedFundId, isAdmin]);
 
-  // Unique holding recipients deduplicated by email
+  // Unique holding recipients deduplicated by userId or email
   const uniqueHoldingInvestors = useMemo(() => {
     const map = new Map<string, any>();
     for (const inv of holdingInvestors) {
-      const email = inv.email?.trim().toLowerCase();
-      if (!email) continue;
-      if (!map.has(email)) {
-        map.set(email, inv);
+      const key = inv.userId ? String(inv.userId) : (inv.email?.trim().toLowerCase() || '');
+      if (!key) continue;
+      if (!map.has(key)) {
+        map.set(key, inv);
       }
     }
     return Array.from(map.values());
@@ -186,7 +186,10 @@ export default function EmailUpdatesPage() {
     return uniqueHoldingInvestors.filter((inv) => {
       const name = (inv.name || inv.full_name || inv.fullName || '').toLowerCase();
       const email = (inv.email || '').toLowerCase();
-      return name.includes(q) || email.includes(q);
+      const parentEmail = (inv.parentEmail || '').toLowerCase();
+      const parentName = (inv.parentName || '').toLowerCase();
+      const accountType = (inv.accountType || inv.account_type || '').toLowerCase();
+      return name.includes(q) || email.includes(q) || parentEmail.includes(q) || parentName.includes(q) || accountType.includes(q);
     });
   }, [uniqueHoldingInvestors, holdingsSearch]);
 
@@ -1113,14 +1116,24 @@ export default function EmailUpdatesPage() {
                                     {(displayName || inv.email || 'U').charAt(0).toUpperCase()}
                                   </div>
                                   <div>
-                                    <div className="font-bold text-gray-900 dark:text-gray-100 text-[13px] flex items-center gap-2">
+                                    <div className="font-bold text-gray-900 dark:text-gray-100 text-[13px] flex items-center gap-2 flex-wrap">
                                       <span>{displayName}</span>
+                                      {inv.isSubaccount && (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 shadow-xs">
+                                          Subaccount
+                                        </span>
+                                      )}
                                       <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 capitalize">
                                         {displayAccount}
                                       </span>
                                     </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-0.5 select-all">
-                                      {inv.email}
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-0.5 select-all flex items-center gap-1.5">
+                                      <span>{inv.email}</span>
+                                      {inv.isSubaccount && (
+                                        <span className="text-[11px] font-normal text-[#8E8E93] dark:text-gray-400 font-sans" title={inv.parentName ? `Parent account: ${inv.parentName}` : 'Parent email'}>
+                                          (Parent)
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 </div>

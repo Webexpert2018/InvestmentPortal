@@ -438,9 +438,65 @@ export class AuthService {
       );
     }
 
-    await this.emailService.sendPasswordResetOtp(email, otp, !isAdminTriggered);
+    let targetEmail = email;
+    let isSubaccount = false;
+    let subaccountName: string | undefined;
+    let parentEmail: string | undefined;
+    let recipientName = user.first_name || 'User';
+    let recipientUserId = userId;
 
-    return { message: 'Reset code sent successfully' };
+    if (tableName === 'investors') {
+      const subCheck = await db.query(`
+        SELECT 
+          i.id,
+          i.full_name,
+          i.investor_type,
+          i.parent_id,
+          COALESCE(parent.email, parent_user.email) as parent_email,
+          COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+          parent.id as parent_investor_id
+        FROM investors i
+        LEFT JOIN investors parent ON i.parent_id = parent.id
+        LEFT JOIN users parent_user ON parent.id = parent_user.id
+        WHERE i.id = $1
+      `, [userId]);
+
+      if (subCheck.rows.length > 0) {
+        const inv = subCheck.rows[0];
+        if ((inv.parent_id || ['minor', 'entity'].includes(inv.investor_type)) && inv.parent_email) {
+          targetEmail = inv.parent_email;
+          parentEmail = inv.parent_email;
+          isSubaccount = true;
+          subaccountName = inv.full_name;
+          recipientName = inv.parent_name || 'Parent';
+          recipientUserId = inv.parent_investor_id || userId;
+        }
+      }
+    }
+
+    await this.emailService.sendPasswordResetOtp(targetEmail, otp, !isAdminTriggered, {
+      recipientUserId,
+      recipientName,
+      relatedEntityType: 'INVESTOR',
+      relatedEntityId: userId,
+      resetAccountEmail: email,
+      subaccountName,
+      metadata: {
+        isSubaccount,
+        subaccountId: isSubaccount ? userId : undefined,
+        subaccountEmail: isSubaccount ? email : undefined,
+        parentEmail,
+        isAdminTriggered,
+      },
+    });
+
+    return {
+      message: isSubaccount
+        ? `Reset code sent to parent account (${parentEmail})`
+        : 'Reset code sent successfully',
+      isSubaccount,
+      targetEmail,
+    };
   }
 
   async verifyOtp(email: string, otp: string) {
@@ -565,8 +621,55 @@ export class AuthService {
     );
 
     // Send password changed notification
-    this.emailService.sendPasswordChangedEmail(email, user.first_name || 'User', password)
-      .catch(err => console.error(`Failed to send password changed email to ${email}:`, err));
+    let targetEmail = email;
+    let isSubaccount = false;
+    let subaccountName: string | undefined;
+    let parentEmail: string | undefined;
+    let recipientName = user.first_name || 'User';
+    let recipientUserId = userId;
+
+    if (tableName === 'investors') {
+      const subCheck = await db.query(`
+        SELECT 
+          i.id,
+          i.full_name,
+          i.investor_type,
+          i.parent_id,
+          COALESCE(parent.email, parent_user.email) as parent_email,
+          COALESCE(parent.full_name, parent_user.first_name || ' ' || parent_user.last_name) as parent_name,
+          parent.id as parent_investor_id
+        FROM investors i
+        LEFT JOIN investors parent ON i.parent_id = parent.id
+        LEFT JOIN users parent_user ON parent.id = parent_user.id
+        WHERE i.id = $1
+      `, [userId]);
+
+      if (subCheck.rows.length > 0) {
+        const inv = subCheck.rows[0];
+        if ((inv.parent_id || ['minor', 'entity'].includes(inv.investor_type)) && inv.parent_email) {
+          targetEmail = inv.parent_email;
+          parentEmail = inv.parent_email;
+          isSubaccount = true;
+          subaccountName = inv.full_name;
+          recipientName = inv.parent_name || 'Parent';
+          recipientUserId = inv.parent_investor_id || userId;
+        }
+      }
+    }
+
+    this.emailService.sendPasswordChangedEmail(targetEmail, recipientName, password, {
+      recipientUserId,
+      recipientName,
+      relatedEntityType: 'INVESTOR',
+      relatedEntityId: userId,
+      subaccountName,
+      metadata: {
+        isSubaccount,
+        subaccountId: isSubaccount ? userId : undefined,
+        subaccountEmail: isSubaccount ? email : undefined,
+        parentEmail,
+      },
+    }).catch(err => console.error(`Failed to send password changed email to ${targetEmail}:`, err));
 
     return { message: 'Password reset successfully' };
   }

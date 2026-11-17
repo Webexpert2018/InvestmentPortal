@@ -484,8 +484,17 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
   const handleForgotPassword = async () => {
     try {
       setIsResetting(true);
-      await apiClient.forgotPassword(investorData.email, 'investor', true);
-      toast.success('Password reset link sent to investor');
+      const res = await apiClient.forgotPassword(investorData.email, 'investor', true);
+      const isSub = Boolean(
+        investorData.parentId || 
+        ['minor', 'entity'].includes(investorData.investorType?.toLowerCase())
+      );
+      if (isSub) {
+        const dest = investorData.parentEmail || investorData.parentName || 'parent account';
+        toast.success(`Password reset link sent to parent account (${dest})`);
+      } else {
+        toast.success(res?.message || 'Password reset link sent to investor');
+      }
     } catch (err: any) {
       toast.error(err.message || 'Failed to send reset code');
     } finally {
