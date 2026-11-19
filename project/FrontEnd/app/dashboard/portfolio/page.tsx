@@ -23,12 +23,18 @@ export default function PortfolioPage() {
   const [activeTab, setActiveTab] = useState<'investments' | 'fundInfo' | 'fundHoldings'>(
     tabParam === 'fundInfo' ? 'fundInfo' : tabParam === 'fundHoldings' ? 'fundHoldings' : 'investments'
   );
+  const [portfolioTableTab, setPortfolioTableTab] = useState<'active' | 'transfers' | 'realEstate'>(
+    tabParam === 'oldInvestments' ? 'realEstate' : 'active'
+  );
 
   useEffect(() => {
     if (tabParam === 'fundInfo') {
       setActiveTab('fundInfo');
     } else if (tabParam === 'investments' || tabParam === 'oldInvestments') {
       setActiveTab('investments');
+      if (tabParam === 'oldInvestments') {
+        setPortfolioTableTab('realEstate');
+      }
     }
   }, [tabParam]);
 
@@ -508,12 +514,122 @@ export default function PortfolioPage() {
 
         {activeTab === 'investments' && (
           <div className="space-y-6">
-            {/* Table */}
-            <div className="rounded-2xl border border-[#F2F2F2] dark:border-[#2A2A2A] bg-white dark:bg-[#1C1C1C] px-6 pb-6 pt-6">
-              <div className="mb-4">
-                <h2 className="text-lg font-bold text-[#1F3B6E] dark:text-gray-100 font-goudy">Active Investments</h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Your current positions and active investments on the platform.</p>
+            {/* Table Card with Switching Tabs */}
+            <div className="rounded-2xl border border-[#F2F2F2] dark:border-[#2A2A2A] bg-white dark:bg-[#1C1C1C] px-6 pb-6 pt-6 shadow-xs">
+              {/* Tab Navigation Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 border-b border-gray-100 dark:border-gray-800 pb-4 mb-6">
+                {/* Tab 1: Active Investments */}
+                <button
+                  type="button"
+                  onClick={() => setPortfolioTableTab('active')}
+                  className="text-left group cursor-pointer relative pb-1 transition-all"
+                >
+                  <div className="flex items-center gap-2">
+                    <h2 className={`text-lg font-bold font-goudy transition-colors ${
+                      portfolioTableTab === 'active'
+                        ? 'text-[#1F3B6E] dark:text-amber-400'
+                        : 'text-[#8E8E93] hover:text-[#1F3B6E] dark:hover:text-gray-200'
+                    }`}>
+                      Active Investments
+                    </h2>
+                    {investments && investments.length > 0 && (
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                        portfolioTableTab === 'active'
+                          ? 'bg-[#1F3B6E]/10 dark:bg-amber-400/20 text-[#1F3B6E] dark:text-amber-400'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                      }`}>
+                        {investments.length}
+                      </span>
+                    )}
+                  </div>
+                  <p className={`text-xs transition-colors ${
+                    portfolioTableTab === 'active' ? 'text-gray-500 dark:text-gray-400 font-medium' : 'text-gray-400'
+                  }`}>
+                    Your current positions and active investments on the platform.
+                  </p>
+                  {portfolioTableTab === 'active' && (
+                    <span className="absolute -bottom-4 left-0 right-0 h-[2.5px] bg-[#FFC63F] rounded-full" />
+                  )}
+                </button>
+
+                {/* Vertical Divider */}
+                <div className="hidden sm:block h-10 w-[1px] bg-gray-200 dark:bg-gray-700" />
+
+                {/* Tab 2: Fund Transfer History */}
+                <button
+                  type="button"
+                  onClick={() => setPortfolioTableTab('transfers')}
+                  className="text-left group cursor-pointer relative pb-1 transition-all"
+                >
+                  <div className="flex items-center gap-2">
+                    <h2 className={`text-lg font-bold font-goudy transition-colors ${
+                      portfolioTableTab === 'transfers'
+                        ? 'text-[#1F3B6E] dark:text-amber-400'
+                        : 'text-[#8E8E93] hover:text-[#1F3B6E] dark:hover:text-gray-200'
+                    }`}>
+                      Fund Transfer History
+                    </h2>
+                    {transferHistory && transferHistory.length > 0 && (
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                        portfolioTableTab === 'transfers'
+                          ? 'bg-[#1F3B6E]/10 dark:bg-amber-400/20 text-[#1F3B6E] dark:text-amber-400'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                      }`}>
+                        {transferHistory.length}
+                      </span>
+                    )}
+                  </div>
+                  <p className={`text-xs transition-colors ${
+                    portfolioTableTab === 'transfers' ? 'text-gray-500 dark:text-gray-400 font-medium' : 'text-gray-400'
+                  }`}>
+                    Your fund-to-fund and account transfer records.
+                  </p>
+                  {portfolioTableTab === 'transfers' && (
+                    <span className="absolute -bottom-4 left-0 right-0 h-[2.5px] bg-[#FFC63F] rounded-full" />
+                  )}
+                </button>
+
+                {/* Optional Tab 3: Real Estate Investments (if present) */}
+                {oldInvestments && oldInvestments.length > 0 && (
+                  <>
+                    <div className="hidden sm:block h-10 w-[1px] bg-gray-200 dark:bg-gray-700" />
+                    <button
+                      type="button"
+                      onClick={() => setPortfolioTableTab('realEstate')}
+                      className="text-left group cursor-pointer relative pb-1 transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <h2 className={`text-lg font-bold font-goudy transition-colors ${
+                          portfolioTableTab === 'realEstate'
+                            ? 'text-[#1F3B6E] dark:text-amber-400'
+                            : 'text-[#8E8E93] hover:text-[#1F3B6E] dark:hover:text-gray-200'
+                        }`}>
+                          Real Estate Investments
+                        </h2>
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                          portfolioTableTab === 'realEstate'
+                            ? 'bg-[#1F3B6E]/10 dark:bg-amber-400/20 text-[#1F3B6E] dark:text-amber-400'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                        }`}>
+                          {oldInvestments.length}
+                        </span>
+                      </div>
+                      <p className={`text-xs transition-colors ${
+                        portfolioTableTab === 'realEstate' ? 'text-gray-500 dark:text-gray-400 font-medium' : 'text-gray-400'
+                      }`}>
+                        Historical investments transferred from the previous platform.
+                      </p>
+                      {portfolioTableTab === 'realEstate' && (
+                        <span className="absolute -bottom-4 left-0 right-0 h-[2.5px] bg-[#FFC63F] rounded-full" />
+                      )}
+                    </button>
+                  </>
+                )}
               </div>
+
+              {/* Tab 1 Content: Active Investments */}
+              {portfolioTableTab === 'active' && (
+                <div className="animate-fadeIn">
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
                   <thead className="border-b border-gray-100 dark:border-gray-800 text-xs font-semibold text-[#8E8E93]">
@@ -699,17 +815,98 @@ export default function PortfolioPage() {
                     </button>
                   </div>
                 )}
-              </div>
-            </div>
-
-            {/* Previous Platform Investments Section */}
-            {oldInvestments && oldInvestments.length > 0 && (
-              <div className="rounded-2xl border border-[#F2F2F2] dark:border-[#2A2A2A] bg-white dark:bg-[#1C1C1C] px-6 pb-6 pt-6 mt-6 animate-fadeIn">
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold text-[#1F3B6E] font-goudy">Real Estate Investments</h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Historical investments transferred from the previous platform.</p>
                 </div>
-                <div className="overflow-x-auto">
+                </div>
+              )}
+
+              {/* Tab 2 Content: Fund Transfer History */}
+              {portfolioTableTab === 'transfers' && (
+                <div className="overflow-x-auto animate-fadeIn">
+                  {transferHistory && transferHistory.length > 0 ? (
+                    <table className="min-w-full text-left text-sm">
+                      <thead className="border-b border-gray-100 dark:border-gray-800 text-xs font-semibold text-[#8E8E93]">
+                        <tr>
+                          <th className="px-4 py-3 whitespace-nowrap">Date</th>
+                          <th className="px-4 py-3 whitespace-nowrap">Type</th>
+                          <th className="px-4 py-3 whitespace-nowrap">From</th>
+                          <th className="px-4 py-3 whitespace-nowrap">To</th>
+                          <th className="px-4 py-3 whitespace-nowrap">Amount</th>
+                          <th className="px-4 py-3 whitespace-nowrap">Status</th>
+                          <th className="px-4 py-3 text-center whitespace-nowrap">Document</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
+                        {transferHistory.map((transfer: any, index: number) => {
+                          let amountColor = 'text-gray-900 dark:text-gray-100';
+                          let prefix = '';
+                          if (!transfer.to_investor_id || transfer.from_investor_id === transfer.to_investor_id) {
+                            amountColor = 'text-yellow-600';
+                          } else if (transfer.from_investor_id === user?.id) {
+                            amountColor = 'text-[#E04343]';
+                            prefix = '-';
+                          } else if (transfer.to_investor_id === user?.id) {
+                            amountColor = 'text-[#2BB673]';
+                            prefix = '+';
+                          }
+
+                          return (
+                            <tr key={index} className="hover:bg-slate-50/80 dark:hover:bg-gray-800/60 transition-colors duration-150">
+                              <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">
+                                {new Date(transfer.created_at).toLocaleDateString()}
+                              </td>
+                              <td className="px-4 py-3 font-medium text-[#1F1F1F] dark:text-gray-100">
+                                {transfer.transfer_type?.replace(/_/g, ' ').toUpperCase()}
+                              </td>
+                              <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">
+                                {transfer.from_investor_name || 'Unknown Investor'}
+                                {transfer.from_account_type && <span className="text-gray-400 text-xs ml-1">({transfer.from_account_type})</span>}
+                                <div className="text-xs text-gray-400">{transfer.from_fund_name}</div>
+                              </td>
+                              <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">
+                                {transfer.to_investor_name || transfer.from_investor_name || 'Unknown Investor'}
+                                {(transfer.to_account_type || transfer.from_account_type) && <span className="text-gray-400 text-xs ml-1">({transfer.to_account_type || transfer.from_account_type})</span>}
+                                <div className="text-xs text-gray-400">{transfer.to_fund_name || transfer.from_fund_name}</div>
+                              </td>
+                              <td className={`px-4 py-3 font-bold ${amountColor}`}>
+                                {prefix}${parseFloat(transfer.investment_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${transfer.status === 'COMPLETED' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
+                                  transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' :
+                                    'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300'
+                                  }`}>
+                                  {transfer.status}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <button
+                                  onClick={() => {
+                                    const token = localStorage.getItem('token');
+                                    const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+                                    window.open(`${API_URL}/fund-transfers/${transfer.id}/pdf${tokenParam}`, '_blank');
+                                  }}
+                                  className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                  title="View Document"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="py-16 text-center text-gray-400 text-sm">
+                      No fund transfer records found.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 3 Content: Real Estate Investments */}
+              {portfolioTableTab === 'realEstate' && oldInvestments && oldInvestments.length > 0 && (
+                <div className="overflow-x-auto animate-fadeIn">
                   <table className="min-w-full text-left text-sm">
                     <thead className="border-b border-gray-100 dark:border-gray-800 text-xs font-semibold text-[#8E8E93]">
                       <tr>
@@ -747,96 +944,8 @@ export default function PortfolioPage() {
                     </tbody>
                   </table>
                 </div>
-              </div>
-            )}
-
-            {/* Fund Transfer History Section */}
-            {transferHistory && transferHistory.length > 0 && (
-              <div className="rounded-2xl border border-[#F2F2F2] dark:border-[#2A2A2A] bg-white dark:bg-[#1C1C1C] px-6 pb-6 pt-6 mt-6 animate-fadeIn">
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold text-[#1F3B6E] font-goudy flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#1F3B6E] inline-block"></span>
-                    Fund Transfer History
-                  </h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Your fund-to-fund and account transfer records.</p>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-left text-sm">
-                    <thead className="border-b border-gray-100 dark:border-gray-800 text-xs font-semibold text-[#8E8E93]">
-                      <tr>
-                        <th className="px-4 py-3 whitespace-nowrap">Date</th>
-                        <th className="px-4 py-3 whitespace-nowrap">Type</th>
-                        <th className="px-4 py-3 whitespace-nowrap">From</th>
-                        <th className="px-4 py-3 whitespace-nowrap">To</th>
-                        <th className="px-4 py-3 whitespace-nowrap">Amount</th>
-                        <th className="px-4 py-3 whitespace-nowrap">Status</th>
-                        <th className="px-4 py-3 text-center whitespace-nowrap">Document</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
-                      {transferHistory.map((transfer: any, index: number) => {
-                        let amountColor = 'text-gray-900 dark:text-gray-100';
-                        let prefix = '';
-                        if (!transfer.to_investor_id || transfer.from_investor_id === transfer.to_investor_id) {
-                          amountColor = 'text-yellow-600';
-                        } else if (transfer.from_investor_id === user?.id) {
-                          amountColor = 'text-[#E04343]';
-                          prefix = '-';
-                        } else if (transfer.to_investor_id === user?.id) {
-                          amountColor = 'text-[#2BB673]';
-                          prefix = '+';
-                        }
-
-                        return (
-                          <tr key={index} className="hover:bg-slate-50/80 dark:hover:bg-gray-800/60 transition-colors duration-150">
-                            <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">
-                              {new Date(transfer.created_at).toLocaleDateString()}
-                            </td>
-                            <td className="px-4 py-3 font-medium text-[#1F1F1F] dark:text-gray-100">
-                              {transfer.transfer_type?.replace(/_/g, ' ').toUpperCase()}
-                            </td>
-                            <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">
-                              {transfer.from_investor_name || 'Unknown Investor'}
-                              {transfer.from_account_type && <span className="text-gray-400 text-xs ml-1">({transfer.from_account_type})</span>}
-                              <div className="text-xs text-gray-400">{transfer.from_fund_name}</div>
-                            </td>
-                            <td className="px-4 py-3 text-[#4B4B4B] dark:text-gray-300">
-                              {transfer.to_investor_name || transfer.from_investor_name || 'Unknown Investor'}
-                              {(transfer.to_account_type || transfer.from_account_type) && <span className="text-gray-400 text-xs ml-1">({transfer.to_account_type || transfer.from_account_type})</span>}
-                              <div className="text-xs text-gray-400">{transfer.to_fund_name || transfer.from_fund_name}</div>
-                            </td>
-                            <td className={`px-4 py-3 font-bold ${amountColor}`}>
-                              {prefix}${parseFloat(transfer.investment_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </td>
-                            <td className="px-4 py-3">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${transfer.status === 'COMPLETED' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
-                                transfer.status === 'PENDING_SIGNATURE' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' :
-                                  'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300'
-                                }`}>
-                                {transfer.status}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              <button
-                                onClick={() => {
-                                  const token = localStorage.getItem('token');
-                                  const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-                                  window.open(`${API_URL}/fund-transfers/${transfer.id}/pdf${tokenParam}`, '_blank');
-                                }}
-                                className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-[#1F3B6E] hover:bg-blue-50 rounded-lg transition-colors"
-                                title="View Document"
-                              >
-                                <FileText className="w-4 h-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 

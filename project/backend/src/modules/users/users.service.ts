@@ -582,6 +582,26 @@ export class UsersService implements OnModuleInit {
         JOIN investments inv ON r.investment_id = inv.id
         WHERE r.is_reconciled = true
         GROUP BY r.investor_id, CASE WHEN LOWER(inv.account_type) = 'personal' OR inv.account_type IS NULL THEN 'Personal' ELSE inv.account_type END
+      ),
+      transfer_in_sums AS (
+        SELECT 
+          COALESCE(to_investor_id, from_investor_id) as user_id,
+          CASE WHEN LOWER(to_account_type) = 'personal' OR to_account_type IS NULL THEN 'Personal' ELSE to_account_type END as account_type,
+          SUM(investment_amount) as total_in_invested,
+          SUM(units) as total_in_units
+        FROM fund_transfers
+        WHERE status = 'COMPLETED'
+        GROUP BY COALESCE(to_investor_id, from_investor_id), CASE WHEN LOWER(to_account_type) = 'personal' OR to_account_type IS NULL THEN 'Personal' ELSE to_account_type END
+      ),
+      transfer_out_sums AS (
+        SELECT 
+          from_investor_id as user_id,
+          CASE WHEN LOWER(from_account_type) = 'personal' OR from_account_type IS NULL THEN 'Personal' ELSE from_account_type END as account_type,
+          SUM(investment_amount) as total_out_invested,
+          SUM(units) as total_out_units
+        FROM fund_transfers
+        WHERE status = 'COMPLETED'
+        GROUP BY from_investor_id, CASE WHEN LOWER(from_account_type) = 'personal' OR from_account_type IS NULL THEN 'Personal' ELSE from_account_type END
       )
       SELECT 
         i.id, i.email, i.role, i.full_name as "firstName", '' as "lastName", COALESCE(i.phone, parent.phone) as phone, i.status, i.created_at as "createdAt", 
@@ -595,8 +615,8 @@ export class UsersService implements OnModuleInit {
         ua.account_status as "accountStatus",
         i.investor_type as "investorType",
         i.nickname as "nickname",
-        (COALESCE(inv_s.total_invested, 0) - COALESCE(red_s.total_redeemed_value, 0)) as total_invested,
-        (COALESCE(inv_s.total_units, 0) - COALESCE(red_s.total_redeemed_units, 0)) as total_units,
+        (COALESCE(inv_s.total_invested, 0) + COALESCE(tin_s.total_in_invested, 0) - COALESCE(tout_s.total_out_invested, 0) - COALESCE(red_s.total_redeemed_value, 0)) as total_invested,
+        (COALESCE(inv_s.total_units, 0) + COALESCE(tin_s.total_in_units, 0) - COALESCE(tout_s.total_out_units, 0) - COALESCE(red_s.total_redeemed_units, 0)) as total_units,
         i.assigned_ir_id, s.full_name as assigned_ir_name,
         i.assigned_accountant_id, acc.full_name as assigned_accountant_name
       FROM user_accounts ua
@@ -605,6 +625,8 @@ export class UsersService implements OnModuleInit {
       LEFT JOIN users parent_user ON parent.id = parent_user.id
       LEFT JOIN investment_sums inv_s ON ua.user_id = inv_s.user_id AND ua.account_type = inv_s.account_type
       LEFT JOIN redemption_sums red_s ON ua.user_id = red_s.user_id AND ua.account_type = red_s.account_type
+      LEFT JOIN transfer_in_sums tin_s ON ua.user_id = tin_s.user_id AND ua.account_type = tin_s.account_type
+      LEFT JOIN transfer_out_sums tout_s ON ua.user_id = tout_s.user_id AND ua.account_type = tout_s.account_type
       LEFT JOIN (
         SELECT id, full_name FROM staff
         UNION

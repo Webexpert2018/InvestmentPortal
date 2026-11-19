@@ -240,7 +240,7 @@ export class StatsService {
         SELECT 
           SUM(units * COALESCE(current_nav, 1)) as total_value,
           SUM(units) as total_units,
-          COALESCE((SELECT SUM(investment_amount) FROM investments WHERE user_id = $1 AND is_reconciled = true), 0) as total_invested
+          GREATEST(COALESCE(SUM(invested), 0), 0) as total_invested
         FROM combined_investments
         WHERE units IS NOT NULL
           AND fund_id IN (SELECT id::text FROM funds WHERE LOWER(status) NOT IN ('draft', 'closed'))
@@ -248,16 +248,17 @@ export class StatsService {
 
       const { total_value, total_units, total_invested } = result.rows[0];
 
-      const totalValue = parseFloat(total_value);
-      const totalInvested = parseFloat(total_invested);
+      const totalValue = parseFloat(total_value) || 0;
+      const totalInvested = parseFloat(total_invested) || 0;
+      const totalUnits = parseFloat(total_units) || 0;
       const ytdReturn = totalInvested > 0
         ? ((totalValue - totalInvested) / totalInvested) * 100
         : 0;
 
       return {
         totalValue,
-        totalUnits: parseFloat(total_units),
-        totalInvested: parseFloat(total_invested),
+        totalUnits,
+        totalInvested,
         legacyTotalInvested,
         legacyTotalShares,
         legacyTotalDistributed,
@@ -300,6 +301,24 @@ export class StatsService {
         [userId, months.toString()]
       );
 
+      // 3b. Get all completed fund transfers (in and out) for this user in the interval
+      const transfersOut = await db.query(
+        `SELECT created_at, investment_amount as amount, units
+         FROM fund_transfers
+         WHERE from_investor_id = $1 AND status = 'COMPLETED' AND created_at >= NOW() - ($2 || ' months')::INTERVAL
+         ORDER BY created_at ASC`,
+        [userId, months.toString()]
+      );
+
+      const transfersIn = await db.query(
+        `SELECT created_at, investment_amount as amount, units
+         FROM fund_transfers
+         WHERE (to_investor_id = $1 OR (to_investor_id IS NULL AND from_investor_id = $1))
+           AND status = 'COMPLETED' AND created_at >= NOW() - ($2 || ' months')::INTERVAL
+         ORDER BY created_at ASC`,
+        [userId, months.toString()]
+      );
+
       // 4. Get the latest NAV before the interval start
       const initialNavResult = await db.query(
         `SELECT nav_per_unit FROM fund_nav_history 
@@ -313,6 +332,8 @@ export class StatsService {
       const allEvents = [
         ...navHistory.rows.map(r => ({ type: 'nav', date: new Date(r.effective_date), value: parseFloat(r.nav_per_unit) })),
         ...investments.rows.map(r => ({ type: 'investment', date: new Date(r.created_at), amount: parseFloat(r.investment_amount), units: parseFloat(r.estimated_units) })),
+        ...transfersIn.rows.map(r => ({ type: 'transfer_in', date: new Date(r.created_at), amount: parseFloat(r.amount), units: parseFloat(r.units) })),
+        ...transfersOut.rows.map(r => ({ type: 'transfer_out', date: new Date(r.created_at), amount: parseFloat(r.amount), units: parseFloat(r.units) })),
         ...redemptions.rows.map(r => ({ type: 'redemption', date: new Date(r.created_at), amount: parseFloat(r.amount), units: parseFloat(r.units) }))
       ].sort((a, b) => a.date.getTime() - b.date.getTime());
 
@@ -331,13 +352,26 @@ export class StatsService {
           SELECT SUM(amount) as total_redeemed_value, SUM(units) as total_redeemed_units
           FROM redemptions
           WHERE investor_id = $1 AND is_reconciled = true AND created_at < NOW() - ($2 || ' months')::INTERVAL
+        ),
+        prev_transfers_out AS (
+          SELECT SUM(investment_amount) as total_out_value, SUM(units) as total_out_units
+          FROM fund_transfers
+          WHERE from_investor_id = $1 AND status = 'COMPLETED' AND created_at < NOW() - ($2 || ' months')::INTERVAL
+        ),
+        prev_transfers_in AS (
+          SELECT SUM(investment_amount) as total_in_value, SUM(units) as total_in_units
+          FROM fund_transfers
+          WHERE (to_investor_id = $1 OR (to_investor_id IS NULL AND from_investor_id = $1))
+            AND status = 'COMPLETED' AND created_at < NOW() - ($2 || ' months')::INTERVAL
         )
         SELECT 
-          (COALESCE(inv.total_invested, 0) - COALESCE(red.total_redeemed_value, 0)) as start_invested,
-          (COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) as start_units
+          (COALESCE(inv.total_invested, 0) + COALESCE(tin.total_in_value, 0) - COALESCE(tout.total_out_value, 0) - COALESCE(red.total_redeemed_value, 0)) as start_invested,
+          (COALESCE(inv.total_units, 0) + COALESCE(tin.total_in_units, 0) - COALESCE(tout.total_out_units, 0) - COALESCE(red.total_redeemed_units, 0)) as start_units
         FROM (SELECT 1) dummy
         LEFT JOIN prev_investments inv ON true
         LEFT JOIN prev_redemptions red ON true
+        LEFT JOIN prev_transfers_out tout ON true
+        LEFT JOIN prev_transfers_in tin ON true
       `, [userId, months.toString()]);
 
       currentInvested = parseFloat(initialStats.rows[0]?.start_invested || '0');
@@ -355,10 +389,10 @@ export class StatsService {
       for (const event of allEvents as any[]) {
         if (event.type === 'nav') {
           currentNav = event.value;
-        } else if (event.type === 'investment') {
+        } else if (event.type === 'investment' || event.type === 'transfer_in') {
           currentUnits += event.units;
           currentInvested += event.amount;
-        } else if (event.type === 'redemption') {
+        } else if (event.type === 'redemption' || event.type === 'transfer_out') {
           currentUnits -= event.units;
           currentInvested -= event.amount;
         }
