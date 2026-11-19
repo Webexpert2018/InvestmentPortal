@@ -1368,9 +1368,6 @@ export default function EmailUpdatesPage() {
                       <span className="font-goudy tracking-wider text-sm font-bold text-[#1E3A8A] uppercase">
                         Ovalia Capital
                       </span>
-                      <span className="text-[9px] tracking-widest text-gray-400 uppercase mt-0.5">
-                        Fiduciary Real Estate Investments
-                      </span>
                     </div>
 
                     {/* Fully Editable Email Content Area */}
@@ -1385,8 +1382,7 @@ export default function EmailUpdatesPage() {
 
                     {/* Email Footer */}
                     <div className="mt-8 pt-5 border-t border-gray-100 text-[11px] text-gray-400 text-center space-y-1">
-                      <p>© {new Date().getFullYear()} Ovalia Capital Management. All rights reserved.</p>
-                      <p>Sent to active investors in {currentFund.name}.</p>
+                      <p>© {new Date().getFullYear()} Ovalia Capital LLC. All rights reserved.</p>
                     </div>
                   </div>
 
