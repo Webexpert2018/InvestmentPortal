@@ -1225,7 +1225,7 @@ export default function EmailUpdatesPage() {
               <div className="lg:col-span-6 space-y-4">
                 <div className="bg-[#64748B] dark:bg-[#252A34] rounded-2xl p-6 shadow-xl relative min-h-[660px] flex flex-col items-center">
                   {/* Preview Mode Pill Bar */}
-                  <div className="w-full max-w-[560px] flex items-center justify-between mb-2.5 px-1">
+                  <div className="w-full max-w-2xl flex items-center justify-between mb-2.5 px-1">
                     {selectedCampaignId ? (
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium backdrop-blur-xs ${isSent ? 'bg-emerald-950/70 text-emerald-200 border border-emerald-400/30' : 'bg-black/40 text-blue-200 border border-blue-400/30'}`}>
                         {isSent ? <Lock className="w-3 h-3 text-emerald-300" /> : <FileEdit className="w-3 h-3 text-blue-300" />}
@@ -1241,7 +1241,7 @@ export default function EmailUpdatesPage() {
                   </div>
 
                   {/* Floating Editor Toolbar for Copy, Cut, Paste & Formatting */}
-                  <div className="w-full max-w-[560px] bg-white dark:bg-[#1E1E1E] rounded-xl p-2 mb-4 shadow-lg border border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-2">
+                  <div className="w-full max-w-2xl bg-white dark:bg-[#1E1E1E] rounded-xl p-2 mb-4 shadow-lg border border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-2">
                     {isSent ? (
                       <div className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-200 px-2 py-1">
                         <Lock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
@@ -1354,7 +1354,7 @@ export default function EmailUpdatesPage() {
                   </div>
 
                   {/* Ovalia Capital White Letterhead Canvas */}
-                  <div className="w-full max-w-[560px] bg-white rounded-xl shadow-2xl p-8 text-gray-800 font-sans min-h-[580px] relative flex flex-col">
+                  <div className="w-full max-w-2xl bg-white rounded-xl shadow-2xl p-8 text-gray-800 font-sans min-h-[580px] relative flex flex-col">
                     {/* Ovalia Capital Logo Header */}
                     <div className="flex flex-col items-center justify-center border-b border-gray-100 pb-5 mb-5">
                       <div className="w-14 h-14 relative mb-2">
