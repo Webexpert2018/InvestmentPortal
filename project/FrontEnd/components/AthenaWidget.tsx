@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Loader2, Maximize2, Minimize2, Send, X } from 'lucide-react';
+import { Loader2, Send } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
@@ -145,63 +145,36 @@ export function AthenaWidget() {
             <AthenaIcon className="w-5 h-5 text-[#1F1F1F]" />
           </div>
           <div className="text-left pr-1">
-            <div className="text-[13px] font-bold text-white flex items-center gap-1.5 leading-tight">
+            <div className="text-[14px] font-bold text-white flex items-center gap-1.5 leading-tight">
               Athena
               <span className="w-2 h-2 rounded-full bg-[#FFC63F] animate-pulse" />
             </div>
-            <div className="text-[11px] text-gray-400">
+            <div className="text-[12px] text-gray-400">
               {isInvestor ? 'Investment Assistant' : 'Ask AI Agent'}
             </div>
-          </div>
-          <div className="w-7 h-7 rounded-full bg-[#1C1C1C]/10 group-hover:bg-[#1C1C1C]/20 flex items-center justify-center text-gray-300 transition-colors ml-1">
-            <Maximize2 className="w-3.5 h-3.5" />
           </div>
         </button>
       ) : (
         /* Expanded Floating Chat Drawer Window */
         <div className="fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-50 w-[calc(100vw-2rem)] sm:w-[420px] h-[590px] max-h-[85vh] bg-[#1F1F1F] rounded-[24px] text-white shadow-2xl border border-gray-800 flex flex-col justify-between overflow-hidden transition-all duration-300">
-          {/* Header with Collapse Controls */}
-          <div className="p-4 bg-[#181818] border-b border-gray-800 flex items-center justify-between gap-2 shrink-0">
+          {/* Header - Click anywhere to minimize */}
+          <div
+            onClick={() => setIsAgentOpen(false)}
+            className="p-4 bg-[#181818] hover:bg-[#202020] border-b border-gray-800 flex items-center justify-between gap-2 shrink-0 cursor-pointer select-none transition-colors group"
+            title="Click to minimize"
+          >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] font-bold shadow-md shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] font-bold shadow-md shrink-0 group-hover:scale-105 transition-transform">
                 <AthenaIcon className="w-5 h-5 text-[#1F1F1F]" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-goudy text-[16px] font-bold text-white flex items-center gap-2 flex-wrap leading-snug">
+                <h3 className="font-goudy text-[17px] font-bold text-white flex items-center gap-2 flex-wrap leading-snug">
                   Athena
-                  <span className="text-[9px] font-bold uppercase tracking-wider bg-[#FFC63F]/20 text-[#FFC63F] px-2 py-0.5 rounded-full border border-[#FFC63F]/40">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider bg-[#FFC63F]/20 text-[#FFC63F] px-2 py-0.5 rounded-full border border-[#FFC63F]/40">
                     {isInvestor ? 'Investment Assistant' : 'AI Assistant'}
                   </span>
                 </h3>
               </div>
-            </div>
-
-            <div className="flex items-center gap-1 shrink-0">
-              <button
-                onClick={() => setAgentMessages([{
-                  sender: 'agent',
-                  text: defaultGreeting,
-                  timestamp: 'Just now'
-                }])}
-                className="text-[11px] text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-[#1C1C1C]/10 cursor-pointer"
-                title="Clear Chat"
-              >
-                Clear
-              </button>
-              <button
-                onClick={() => setIsAgentOpen(false)}
-                className="w-7 h-7 rounded-full bg-[#1C1C1C]/10 hover:bg-[#1C1C1C]/20 flex items-center justify-center text-gray-300 hover:text-white transition-all cursor-pointer"
-                title="Minimize Assistant"
-              >
-                <Minimize2 className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => setIsAgentOpen(false)}
-                className="w-7 h-7 rounded-full bg-[#1C1C1C]/10 hover:bg-[#1C1C1C]/20 flex items-center justify-center text-gray-300 hover:text-white transition-all cursor-pointer"
-                title="Close Assistant"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
             </div>
           </div>
 
@@ -213,7 +186,7 @@ export function AthenaWidget() {
                 className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[90%] px-4 py-3 rounded-[16px] text-[13px] leading-relaxed ${msg.sender === 'user'
+                  className={`max-w-[90%] px-4 py-3 rounded-[16px] text-[14.5px] leading-relaxed ${msg.sender === 'user'
                     ? 'bg-[#FFC63F] text-[#1F1F1F] font-semibold rounded-br-none shadow-sm'
                     : 'bg-[#1C1C1C]/10 text-gray-200 rounded-bl-none border border-white/10 [&>p]:mb-2 last:[&>p]:mb-0 [&_strong]:font-bold [&_em]:italic [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_a]:text-blue-400 [&_a]:underline'
                     }`}
@@ -226,11 +199,11 @@ export function AthenaWidget() {
                     </ReactMarkdown>
                   )}
                 </div>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 px-1">{msg.timestamp}</span>
+                <span className="text-[11px] text-gray-400 mt-1 px-1">{msg.timestamp}</span>
               </div>
             ))}
             {isAgentThinking && (
-              <div className="flex items-center gap-2 text-gray-400 text-[13px] py-2">
+              <div className="flex items-center gap-2 text-gray-400 text-[14px] py-2">
                 <Loader2 className="w-4 h-4 animate-spin text-[#FFC63F]" />
                 <span>{isInvestor ? 'Athena looking up your investment details...' : 'AI Agent querying database & transcripts...'}</span>
               </div>
@@ -241,12 +214,12 @@ export function AthenaWidget() {
           {/* Quick Prompts & Footer Input */}
           <div className="p-4 pt-2 border-t border-gray-800/80 bg-[#181818] shrink-0">
             <div className="flex flex-wrap gap-1.5 mb-3">
-              <span className="text-[10px] font-bold text-gray-400 py-0.5">Quick prompts:</span>
+              <span className="text-[11px] font-semibold text-gray-400 py-0.5">Quick prompts:</span>
               {quickPrompts.map((chip, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleAgentSend(chip)}
-                  className="text-[10px] font-medium bg-[#1C1C1C]/5 hover:bg-[#1C1C1C]/15 text-gray-300 px-2.5 py-1 rounded-full border border-white/10 transition-colors cursor-pointer"
+                  className="text-[11.5px] font-medium bg-[#1C1C1C]/5 hover:bg-[#1C1C1C]/15 text-gray-300 px-3 py-1 rounded-full border border-white/10 transition-colors cursor-pointer"
                 >
                   {chip}
                 </button>
@@ -280,7 +253,7 @@ export function AthenaWidget() {
                 }}
                 rows={1}
                 placeholder={isInvestor ? "Ask Athena about your investments, steps to invest..." : "Ask AI Agent anything..."}
-                className="flex-1 bg-black/50 border border-gray-700 rounded-[20px] px-4 py-2.5 text-[13px] text-white placeholder-gray-500 focus:outline-none focus:border-[#FFC63F] transition-all resize-none min-h-[40px] max-h-[120px] overflow-y-auto dark-scrollbar leading-relaxed"
+                className="flex-1 bg-black/50 border border-gray-700 rounded-[20px] px-4 py-2.5 text-[14px] text-white placeholder-gray-500 focus:outline-none focus:border-[#FFC63F] transition-all resize-none min-h-[40px] max-h-[120px] overflow-y-auto dark-scrollbar leading-relaxed"
               />
               <button
                 type="submit"

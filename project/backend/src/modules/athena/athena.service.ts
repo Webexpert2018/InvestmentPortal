@@ -67,27 +67,29 @@ CRITICAL CONSTRAINT: You MUST ALWAYS filter WHERE investor_id = 'USER_ID'.
   // Knowledge base for investor investment flows and procedures
   private readonly investmentKnowledge = `
 Ovalia Capital Platform Knowledge & Investment Flow:
-1. Steps & Flow to Invest:
-   - Step 1: Browse Available Funds (Invest / Portfolio tab) - Explore active investment opportunities, investment thesis, target returns (IRR), holding periods, and minimum investment amounts (e.g. $10,000 or $25,000).
-   - Step 2: Choose Funding Account - Invest directly via a Personal account or a Self-Directed IRA account (Traditional, Roth, SEP IRA).
-   - Step 3: Specify Investment Amount - Input desired amount meeting or exceeding the fund minimum. The portal computes units and fees based on current NAV.
-   - Step 4: Electronic Signing (DocuSign) - Review and sign subscription documents electronically directly in the portal.
-   - Step 5: Wire Transfer / Funding - Complete payment via bank wire using the provided wiring instructions (including unique reference memo) or direct custodian transfer.
-   - Step 6: Confirmation & Unit Issuance - Upon wire receipt and reconciliation by fund operations, status updates to "Reconciled" and "Units Issued", with units appearing in your Portfolio.
+1. Steps to Invest (Direct, simple step-by-step flow):
+   - Step 1: Go to the "Invest" tab on the sidebar and select the fund you want to invest in.
+   - Step 2: Select your account — choose your Personal account, an IRA account, or a Sub-account (Minor or Entity).
+   - Step 3: Enter the amount you want to invest.
+   - Step 4: Review and electronically sign the subscription document (DocuSign) directly in the portal.
+   - Step 5: Submit your request. A team member from Ovalia Capital will reach out to you with wiring instructions and walk you through the final funding steps.
 
-2. Redemption Steps & Policy:
-   - Available under the "Redeem" tab in the dashboard.
-   - Eligibility: Requires investments to have status "Units Issued" and meet the fund's minimum holding / lockup period (typically 3 years).
-   - Flow: Select eligible investment -> enter units or dollar amount -> provide reason -> select payout bank account -> submit request.
+2. Steps to Redeem (Simple & direct):
+   - Step 1: Go to the "Redeem" tab on the sidebar.
+   - Step 2: Select your eligible investment (units must be issued and lockup period satisfied).
+   - Step 3: Enter the units or dollar amount you want to redeem.
+   - Step 4: Select your payout bank account and submit. Our team will review and process your request.
 
-3. IRA Account Features:
-   - Managed under the "IRA" tab. Supports self-directed IRA custodians (such as Alto IRA, Entrust, Millennium Trust).
-   - Allows tax-advantaged retirement investing into private funds.
+3. Account Types Supported:
+   - Personal Account
+   - Self-Directed IRA (Traditional, Roth, SEP IRA)
+   - Sub-accounts (Minors or Legal Entities such as LLC, Trust, Corporation)
 
-4. Tax & Document Vaults:
-   - "Tax Vault" contains annual Schedule K-1s and 1099 tax packages.
-   - "Document Vault" contains all executed subscription agreements, certificates, and fund notices.
-   - "KYC Verification" allows completing accredited investor verification and identity checks.
+4. Key Sections:
+   - "Invest" tab: Explore funds and start an investment.
+   - "Portfolio" tab: View your active units, current value, and performance.
+   - "Document Vault": View executed subscription agreements and notices.
+   - "Tax Vault": Download your annual Schedule K-1s and 1099 tax packages.
   `.trim();
 
   async queryAthena(userId: string, userQuery: string, userRole: string = 'executive_admin') {
@@ -154,8 +156,36 @@ Ovalia Capital Platform Knowledge & Investment Flow:
         };
       }
 
+      // Fast direct response for common "how to invest" inquiries
+      const normalizedQuery = lowerQuery.replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+      const howToInvestPatterns = [
+        'how to invest',
+        'how do i invest',
+        'how can i invest',
+        'how do we invest',
+        'how to start investing',
+        'steps to invest',
+        'what are the steps to invest',
+        'tell me how to invest',
+        'how does investing work',
+        'how to make an investment',
+        'investing process'
+      ];
+      if (howToInvestPatterns.some(p => normalizedQuery.includes(p))) {
+        return {
+          success: true,
+          reply: `Investing on the platform is straightforward:
+
+1. **Go to the Invest tab:** Select the fund you want to invest in.
+2. **Select your account:** Choose between your **Personal**, **IRA**, or a **Sub-Account** (Minor or Entity).
+3. **Enter the investment amount:** Input the dollar amount you wish to invest.
+4. **Sign the document:** Review and electronically sign the subscription agreement (DocuSign) directly in the portal.
+5. **Next steps:** Submit your investment. A team member from Ovalia Capital will reach out to you with wiring/funding instructions and guide you through the final steps.`
+        };
+      }
+
       // 3. Ask LLM to generate SQL or answer directly
-      const investorSystemPrompt1 = `You are Athena, a friendly, helpful, and professional AI Investment Assistant for Ovalia Capital.
+      const investorSystemPrompt1 = `You are Athena, a direct, concise, and helpful AI Investment Assistant for Ovalia Capital.
 You are assisting the investor: ${investorName} (Internal User ID: '${userId}', Email: '${investorEmail}').
 The current date is ${new Date().toISOString().split('T')[0]}.
 
@@ -165,12 +195,22 @@ ${this.investmentKnowledge}
 Allowed Database Schema:
 ${this.investorSchema}
 
+STYLE & TONE (CRITICAL):
+- BE DIRECT, SIMPLE, AND CONCISE: Avoid long financial essays, repetitive disclaimers, or flowery jargon.
+- When explaining any procedure (how to invest, how to redeem, etc.), ALWAYS explain in simple, direct numbered steps (Step 1, Step 2, Step 3...).
+- If the investor asks how to invest, provide the direct 5-step guide:
+  1. Go to the **Invest** tab and select the fund.
+  2. Select your account (**Personal**, **IRA**, or a **Sub-Account** like Minor/Entity).
+  3. Enter the amount you wish to invest.
+  4. Review and sign the subscription document (DocuSign) directly in the portal.
+  5. Submit your request. A team member from Ovalia Capital will reach out with funding instructions and walk you through the next steps.
+
 CRITICAL RULES:
 1. You assist ONLY with this investor's personal account data and general fund/platform information.
 2. You DO NOT have access to any other investor's records or administrative data. If asked about other investors or administrative data, reply with:
 "NO_QUERY_NEEDED: As your personal AI Investment Assistant, I only have access to your personal account and general platform guides."
 3. If the user asks a greeting, general inquiry, or asks about steps to invest, how to redeem, how IRA works, or platform procedures, respond with:
-"NO_QUERY_NEEDED: <your detailed, clear, and friendly answer>".
+"NO_QUERY_NEEDED: <your direct, concise, step-by-step answer>".
 4. If a database query is required to answer the question (e.g., checking their portfolio balance, past investments, redemption requests, available funds, or linked accounts):
 Respond WITH ONLY THE RAW POSTGRESQL SELECT QUERY. Do NOT include markdown formatting or explanations.
 - The query MUST begin with SELECT and MUST ONLY query allowed tables (investors, funds, investments, old_investments, redemptions, ira_accounts, investor_documents, investor_bank_accounts).
@@ -296,14 +336,16 @@ Respond WITH ONLY THE RAW POSTGRESQL SELECT QUERY. Do NOT include markdown forma
 
       // 6. Format Response for Investor
       const investorSystemPrompt2 = `You are Athena, the personal AI Investment Assistant for ${investorName} at Ovalia Capital.
-You are professional, warm, encouraging, concise, and articulate.
+You are direct, concise, professional, and helpful.
 You assist the investor by answering their question based on the database results and Ovalia Capital platform rules.
 Below is the investor's question and the raw JSON results from the database.
-Formulate a concise, elegant, and helpful response.
+Formulate a direct, concise, and easy-to-read response:
+- Be clear, direct, and straightforward. Avoid unnecessary fluff or long walls of text.
+- Use clean bullet points or numbered steps whenever explaining processes or multiple items.
 - Format all dollar amounts as currency (e.g. $25,000.00).
 - Format dates cleanly (e.g. Oct 14, 2026).
-- If results are empty, explain politely (e.g., "You currently do not have any active investments in this fund" or "No pending redemptions found").
-- Never mention raw SQL queries, column names, or technical database jargon. Speak naturally as an executive investment concierge.
+- If results are empty, explain politely and simply (e.g., "You currently do not have any active investments in this fund" or "No pending redemptions found").
+- Never mention raw SQL queries, column names, or technical database jargon. Speak naturally and clearly.
 
 Query Results:
 ${JSON.stringify(queryResults, null, 2)}`;
