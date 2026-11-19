@@ -647,7 +647,7 @@ export default function InvestPage() {
             type="button"
             onClick={goNext}
             disabled={isDisabled}
-            className="rounded-full bg-[#274583] hover:bg-[#1E3668] px-8 py-3 text-sm sm:text-base font-bold text-white shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#274583] disabled:hover:shadow-none transition-all active:scale-95 flex items-center justify-center gap-2"
+            className="rounded-full bg-[#FBCB4B] hover:bg-[#F9B800] px-8 sm:px-10 py-3 text-sm sm:text-base font-bold text-[#1F1F1F] shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#FBCB4B] disabled:hover:shadow-none transition-all active:scale-95 flex items-center justify-center gap-2"
           >
             {saving ? 'Saving...' : primaryLabel}
           </button>
@@ -659,7 +659,6 @@ export default function InvestPage() {
 
     const renderChooseFund = () => (
       <>
-
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
             <h1 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F] dark:text-gray-100">
@@ -683,88 +682,102 @@ export default function InvestPage() {
         </div>
 
         <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-6 py-6 shadow-sm">
-
-          <div className="grid gap-6 md:grid-cols-2">
-            {funds.map((fund) => {
-              const selected = fund.id === selectedFundId;
-              return (
-                <div
-                  key={fund.id}
-                  onClick={() => setSelectedFundId(fund.id)}
-                  className={`flex flex-col sm:flex-row md:flex-col xl:flex-row w-full items-start rounded-xl bg-[#F7F8FA] dark:bg-[#262626] px-5 py-5 sm:px-6 sm:py-6 text-left transition hover:bg-[#F1F2F5] dark:hover:bg-[#2D2D2D] cursor-pointer ${selected ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white dark:ring-offset-[#1C1C1C]' : 'border border-transparent dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
+          <div className="flex flex-col lg:flex-row items-start gap-8">
+            {/* Funds List: Single Column with increased card length/width */}
+            <div className="w-full lg:max-w-4xl flex flex-col gap-6">
+              {funds.map((fund) => {
+                const selected = fund.id === selectedFundId;
+                return (
+                  <div
+                    key={fund.id}
+                    onClick={() => setSelectedFundId(fund.id)}
+                    className={`w-full flex flex-col sm:flex-row items-start rounded-xl bg-[#F7F8FA] dark:bg-[#262626] px-6 py-5 sm:px-7 sm:py-6 text-left transition hover:bg-[#F1F2F5] dark:hover:bg-[#2D2D2D] cursor-pointer ${
+                      selected
+                        ? 'ring-2 ring-[#274583] ring-offset-2 ring-offset-white dark:ring-offset-[#1C1C1C]'
+                        : 'border border-transparent dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
                     }`}
-                >
-                  <div className="mb-4 sm:mb-0 md:mb-5 xl:mb-0 sm:mr-6 md:mr-0 xl:mr-6 h-40 sm:h-28 md:h-48 xl:h-28 w-full sm:w-48 md:w-full xl:w-48 flex-shrink-0 bg-white dark:bg-[#1C1C1C] rounded-xl overflow-hidden border border-[#E5E5EA] dark:border-gray-700 flex items-center justify-center shadow-sm">
-                    <img
-                      src={getFullImageUrl(fund.image)}
-                      alt={fund.name}
-                      className="w-full h-full object-contain p-2"
-                    />
-                  </div>
-                  <div className="flex-grow min-w-0 w-full">
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F] dark:text-gray-100 truncate">
-                        {fund.name}
-                      </h3>
-
-                      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedFundId(fund.id);
-                            setStep('fundingAccount');
-                          }}
-                          className="rounded-full bg-[#274583] hover:bg-[#1E3668] px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold text-white shadow-sm hover:shadow transition-all active:scale-95 flex items-center gap-1"
-                        >
-                          Invest
-                        </button>
+                  >
+                    <div className="mb-4 sm:mb-0 sm:mr-6 h-40 sm:h-28 w-full sm:w-48 flex-shrink-0 bg-white dark:bg-[#1C1C1C] rounded-xl overflow-hidden border border-[#E5E5EA] dark:border-gray-700 flex items-center justify-center shadow-sm">
+                      <img
+                        src={getFullImageUrl(fund.image)}
+                        alt={fund.name}
+                        className="w-full h-full object-contain p-2"
+                      />
+                    </div>
+                    <div className="flex-grow min-w-0 w-full">
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="font-goudy text-sm sm:text-xl font-bold leading-tight text-[#1F1F1F] dark:text-gray-100 truncate">
+                          {fund.name}
+                        </h3>
 
                         {/* Toggle Switch */}
-                        <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                           <span className="text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider select-none">
-                            View
+                            VIEW
                           </span>
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
+                              setSelectedFundId(fund.id);
                               setToggledFundId(toggledFundId === fund.id ? null : fund.id);
                             }}
-                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${toggledFundId === fund.id ? 'bg-[#274583]' : 'bg-[#E5E5EA]'
-                              }`}
+                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                              toggledFundId === fund.id ? 'bg-[#274583]' : 'bg-[#E5E5EA]'
+                            }`}
                             title={toggledFundId === fund.id ? "Hide details" : "Show details"}
                           >
                             <span
-                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white dark:bg-[#1C1C1C] shadow ring-0 transition duration-200 ease-in-out ${toggledFundId === fund.id ? 'translate-x-4' : 'translate-x-0'
-                                }`}
+                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white dark:bg-[#1C1C1C] shadow ring-0 transition duration-200 ease-in-out ${
+                                toggledFundId === fund.id ? 'translate-x-4' : 'translate-x-0'
+                              }`}
                             />
                           </button>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center gap-3 mt-1.5 mb-2">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${fund.status === 'Closed' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-transparent dark:border-red-900/50' : 'bg-green-50 dark:bg-emerald-950/40 text-green-600 dark:text-emerald-400 border border-transparent dark:border-emerald-900/50'
-                        }`}>
-                        {fund.status || 'Active'}
-                      </span>
-                      <span className="text-[10px] text-[#8E8E93] font-medium lowercase">
-                        Created: {fund.startDate ? new Date(fund.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : 'N/A'}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[#4B4B4B] dark:text-gray-300 line-clamp-2 max-w-sm">
-                      {fund.description || 'Secure institutional-grade Bitcoin strategies.'}
-                    </p>
-                    {fund.note && (
-                      <p className="mt-1.5 text-[10px] text-gray-400 line-clamp-1 italic">
-                        {fund.note}
+                      <div className="flex items-center gap-3 mt-1.5 mb-2">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                            fund.status === 'Closed'
+                              ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-transparent dark:border-red-900/50'
+                              : 'bg-green-50 dark:bg-emerald-950/40 text-green-600 dark:text-emerald-400 border border-transparent dark:border-emerald-900/50'
+                          }`}
+                        >
+                          {fund.status || 'Active'}
+                        </span>
+                        <span className="text-[10px] text-[#8E8E93] font-medium lowercase">
+                          Created: {fund.startDate ? new Date(fund.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : 'N/A'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#4B4B4B] dark:text-gray-300 line-clamp-2 max-w-2xl">
+                        {fund.description || 'Secure institutional-grade Bitcoin strategies.'}
                       </p>
-                    )}
+                      {fund.note && (
+                        <p className="mt-1.5 text-[10px] text-gray-400 line-clamp-1 italic">
+                          {fund.note}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+
+            {/* Right Side: Bigger Invest Now button on the side of the first card */}
+            <div className="flex-1 w-full flex justify-center items-center pt-4 lg:pt-11 lg:sticky lg:top-12">
+              <button
+                type="button"
+                disabled={!selectedFund || selectedFund.status === 'Closed'}
+                onClick={() => {
+                  if (!selectedFund || selectedFund.status === 'Closed') return;
+                  setStep('fundingAccount');
+                }}
+                className="rounded-full bg-[#FBCB4B] hover:bg-[#F9B800] px-12 sm:px-16 py-4 text-base sm:text-lg font-bold text-[#1F1F1F] shadow-md hover:shadow-lg transition-all active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Invest Now
+              </button>
+            </div>
           </div>
 
           {/* Dynamic Toggled Fund Details Section */}
@@ -844,189 +857,259 @@ export default function InvestPage() {
       </>
     );
 
-    const renderFundingAccount = () => (
-      <>
-        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="font-goudy text-[20px] md:text-[30px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
-              Select Funding Account
-            </h1>
-            <p className="mt-2 text-sm text-[#8E8E93]">
-              Choose the account you want to invest from.
-            </p>
-          </div>
+    const renderFundingAccount = () => {
+      const isDisabled =
+        saving ||
+        isSigning ||
+        !selectedAccountId;
 
-          <div className="flex items-center gap-4 self-end md:self-auto">
-            <div className="hidden xl:flex items-center gap-3 bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm text-xs">
-              <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-              <div>
-                <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-                <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
+      return (
+        <>
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div>
+              <h1 className="font-goudy text-sm sm:text-xl font-bold leading-[32px] text-[#1F1F1F] dark:text-gray-100">
+                Select Funding Account
+              </h1>
+              <p className="mt-2 text-sm text-[#8E8E93]">
+                Choose the account you want to invest from.
+              </p>
+            </div>
+
+            <div className="hidden md:flex items-center gap-4 text-xs">
+              <div className="bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+                <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
+                <div>
+                  <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+                  <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
+                </div>
               </div>
             </div>
-            {renderNavButtons({ showBack: true })}
           </div>
-        </div>
 
-        {['Personal Account', 'IRA Accounts', 'Sub Accounts'].map(category => {
-          const accountsInCategory = dynamicAccounts.filter((acc: any) => acc.category === category);
-          if (accountsInCategory.length === 0) return null;
-          return (
-            <div key={category} className="mb-8">
-              <h3 className="text-sm font-bold text-[#1F1F1F] dark:text-gray-100 mb-4 pl-2 uppercase tracking-wider">{category}</h3>
-              <div className="grid gap-6 md:grid-cols-3 px-2">
-                {accountsInCategory.map((account: any) => {
-                  const selected = account.id === selectedAccountId;
-                  const isSuspended = account.status?.toLowerCase() === 'suspended';
+          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-6 py-6 shadow-sm">
+            <div className="flex flex-col lg:flex-row items-start gap-8">
+              {/* Left Column: Account cards, one below the other in single column, increased length/size */}
+              <div className="w-full lg:max-w-4xl flex flex-col gap-6">
+                {['Personal Account', 'IRA Accounts', 'Sub Accounts'].map((category) => {
+                  const accountsInCategory = dynamicAccounts.filter((acc: any) => acc.category === category);
+                  if (accountsInCategory.length === 0) return null;
                   return (
-                    <button
-                      key={account.id}
-                      type="button"
-                      disabled={isSuspended}
-                      onClick={() => setSelectedAccountId(account.id)}
-                      className={`flex w-full flex-col items-start rounded-2xl px-6 py-5 text-left transition ${selected
-                        ? 'bg-white dark:bg-[#1C1C1C] shadow-md ring-2 ring-[#274583] ring-offset-2'
-                        : isSuspended
-                          ? 'bg-gray-50 dark:bg-gray-800 opacity-60 cursor-not-allowed border-red-100'
-                          : 'bg-white dark:bg-[#1C1C1C] shadow-sm hover:shadow-md border border-[#E5E5EA]'
-                        }`}
-                    >
-                      <div className="flex w-full items-center justify-between mb-1">
-                        <p className={`text-sm font-bold ${isSuspended ? 'text-gray-400' : 'text-[#1F1F1F] dark:text-gray-100'}`}>{account.label}</p>
-                        <div
-                          className={`flex h-5 w-5 items-center justify-center rounded-full border ${selected ? 'border-[#274583] bg-[#274583]' : 'border-[#D4D4D4]'
-                            } ${isSuspended ? 'opacity-0' : ''}`}
-                        >
-                          {selected && <div className="h-2 w-2 rounded-full bg-white dark:bg-[#1C1C1C]" />}
-                        </div>
+                    <div key={category} className="space-y-3">
+                      <h3 className="text-xs font-bold text-[#8E8E93] uppercase tracking-wider pl-1">
+                        {category}
+                      </h3>
+                      <div className="flex flex-col gap-3">
+                        {accountsInCategory.map((account: any) => {
+                          const selected = account.id === selectedAccountId;
+                          const isSuspended = account.status?.toLowerCase() === 'suspended';
+                          return (
+                            <button
+                              key={account.id}
+                              type="button"
+                              disabled={isSuspended}
+                              onClick={() => setSelectedAccountId(account.id)}
+                              className={`flex w-full items-center justify-between rounded-xl px-6 py-5 text-left transition ${
+                                selected
+                                  ? 'bg-[#F1F2F5] dark:bg-[#2D2D2D] ring-2 ring-[#274583] ring-offset-2 ring-offset-white dark:ring-offset-[#1C1C1C]'
+                                  : isSuspended
+                                    ? 'bg-gray-50 dark:bg-gray-800/60 opacity-60 cursor-not-allowed border border-red-100 dark:border-red-950/40'
+                                    : 'bg-[#F7F8FA] dark:bg-[#262626] border border-transparent dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700 hover:bg-[#F1F2F5] dark:hover:bg-[#2D2D2D]'
+                              }`}
+                            >
+                              <div>
+                                <p className={`text-base font-bold ${isSuspended ? 'text-gray-400' : 'text-[#1F1F1F] dark:text-gray-100'}`}>
+                                  {account.label}
+                                </p>
+                                <p className={`text-xs font-bold uppercase tracking-wider mt-1 ${isSuspended ? 'text-red-500' : 'text-[#8E8E93]'}`}>
+                                  {isSuspended ? 'Suspended' : account.value}
+                                </p>
+                              </div>
+
+                              <div
+                                className={`flex h-6 w-6 items-center justify-center rounded-full border transition-all ${
+                                  selected ? 'border-[#274583] bg-[#274583]' : 'border-[#D4D4D4] dark:border-gray-600 bg-white dark:bg-[#1C1C1C]'
+                                } ${isSuspended ? 'opacity-0' : ''}`}
+                              >
+                                {selected && <div className="h-2.5 w-2.5 rounded-full bg-white" />}
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
-                      <p className={`text-xs font-bold uppercase tracking-wider ${isSuspended ? 'text-red-500' : 'text-[#8E8E93]'}`}>
-                        {isSuspended ? 'Suspended' : account.value}
-                      </p>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
-            </div>
-          );
-        })}
 
-      </>
-    );
-
-    const renderInvestmentAmount = () => (
-      <>
-        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="font-goudy text-xl sm:text-[28px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
-              Investment Amount
-            </h1>
-            <p className="mt-1 text-sm text-[#8E8E93]">Specify how much you&apos;d like to invest.</p>
-          </div>
-
-          <div className="flex items-center gap-4 self-end md:self-auto">
-            <div className="hidden xl:flex items-center gap-3 bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm text-xs">
-              <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
-              <div>
-                <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
-                <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
+              {/* Right Side: Back and Yellow Continue button in the middle */}
+              <div className="flex-1 w-full flex justify-center items-center pt-4 lg:pt-11 lg:sticky lg:top-12">
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    className="rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-8 sm:px-10 py-3.5 sm:py-4 text-base sm:text-lg font-bold text-[#374151] dark:text-gray-200 border border-gray-200 dark:border-gray-700 shadow-sm transition-all active:scale-95 whitespace-nowrap"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goNext}
+                    disabled={isDisabled}
+                    className="rounded-full bg-[#FBCB4B] hover:bg-[#F9B800] px-10 sm:px-14 py-3.5 sm:py-4 text-base sm:text-lg font-bold text-[#1F1F1F] shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40 transition-all active:scale-95 whitespace-nowrap"
+                  >
+                    {saving ? 'Saving...' : 'Continue'}
+                  </button>
+                </div>
               </div>
             </div>
-            {renderNavButtons({ showBack: true })}
           </div>
-        </div>
+        </>
+      );
+    };
 
-        <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800 h-fit">
-          <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-6">Order Summary</h2>
-          <div className="space-y-4 text-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-              <span className="text-[#8E8E93]">Investment Amount</span>
-              <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
-                $
-                {(() => {
-                  const clean = amount.replace(/[^0-9.]/g, '');
-                  if (clean.includes('.')) {
-                    const [intPart, decPart] = clean.split('.');
-                    return `${Number(intPart || 0).toLocaleString('en-US')}.${decPart}`;
-                  }
-                  return investmentAmount.toLocaleString('en-US');
-                })()}
-              </span>
+    const renderInvestmentAmount = () => {
+      const isDisabled =
+        saving ||
+        isSigning ||
+        investmentAmount <= 0;
+
+      return (
+        <>
+          <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="font-goudy text-xl sm:text-[28px] font-bold leading-[38px] text-[#1F1F1F] dark:text-gray-100">
+                Investment Amount
+              </h1>
+              <p className="mt-1 text-sm text-[#8E8E93]">Specify how much you&apos;d like to invest.</p>
             </div>
 
-            <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
-              <p className="text-xs font-bold uppercase tracking-wide text-[#4B4B4B] dark:text-gray-300 mb-6">
-                Estimated Units You Will Receive
-              </p>
-              <div className="grid gap-12 md:grid-cols-2">
-                <div className="border-r border-gray-100 dark:border-gray-800 pr-8">
-                  <p className="text-sm font-medium text-[#8E8E93] mb-1">Unit Price</p>
-                  <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">${unitPrice.toFixed(2)}</p>
-                </div>
+            <div className="flex items-center gap-4 self-end md:self-auto">
+              <div className="hidden xl:flex items-center gap-3 bg-[#FAFAFA] dark:bg-gray-800 border border-[#E5E5EA] dark:border-gray-700 rounded-full px-5 py-2.5 shadow-sm text-xs">
+                <div className={`h-2.5 w-2.5 rounded-full ${user?.assignedIrName ? 'bg-[#2BB673]' : 'bg-[#8E8E93]'}`}></div>
                 <div>
-                  <p className="text-sm font-medium text-[#8E8E93] mb-1">Estimated Units</p>
-                  <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">
-                    {estimatedUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} units
-                  </p>
+                  <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-wider">Investor Relation</p>
+                  <p className="text-[13px] font-bold text-[#1F1F1F] dark:text-gray-100">{user?.assignedIrName || 'Unassigned'}</p>
                 </div>
+              </div>
+
+              {/* Up in header: Bigger Back and Yellow Continue buttons */}
+              <div className="flex items-center gap-3 sm:gap-4">
+                <button
+                  type="button"
+                  onClick={goBack}
+                  className="rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-8 sm:px-10 py-3 sm:py-3.5 text-sm sm:text-base font-bold text-[#374151] dark:text-gray-200 border border-gray-200 dark:border-gray-700 shadow-sm transition-all active:scale-95 whitespace-nowrap"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={goNext}
+                  disabled={isDisabled}
+                  className="rounded-full bg-[#FBCB4B] hover:bg-[#F9B800] px-10 sm:px-14 py-3 sm:py-3.5 text-sm sm:text-base font-bold text-[#1F1F1F] shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40 transition-all active:scale-95 whitespace-nowrap"
+                >
+                  {saving ? 'Saving...' : 'Continue'}
+                </button>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800 h-fit">
-            <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-6">Order Summary</h2>
-            <div className="space-y-4 text-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <span className="text-[#8E8E93]">Investment Amount</span>
-                <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
-                  $
-                  {(() => {
-                    const clean = amount.replace(/[^0-9.]/g, '');
-                    if (clean.includes('.')) {
-                      const [intPart, decPart] = clean.split('.');
-                      return `${Number(intPart || 0).toLocaleString('en-US')}.${decPart}`;
-                    }
-                    return total.toLocaleString('en-US');
-                  })()}
-                </span>
+          <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+            {/* Left Column: Amount input & Estimated Units */}
+            <div className="space-y-6">
+              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
+                <label className="block text-xs font-bold uppercase tracking-wide text-[#4B4B4B] dark:text-gray-300 mb-4">
+                  AMOUNT
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="$0.00"
+                    className="w-full rounded-xl border border-[#E5E5EA] dark:border-gray-700 bg-white dark:bg-[#262626] px-6 py-4 text-lg font-medium text-[#1F1F1F] dark:text-gray-100 outline-none focus:border-[#274583] focus:ring-1 focus:ring-[#274583] transition-all"
+                  />
+                  <p className="mt-3 text-xs text-[#8E8E93]">Minimum Investment: $10,000</p>
+                </div>
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <span className="text-[#8E8E93]">Estimated Units</span>
-                <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
-                  {estimatedUnits.toLocaleString('en-US', {
-                    minimumFractionDigits: 4,
-                    maximumFractionDigits: 4,
-                  })}
-                </span>
+
+              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800">
+                <p className="text-xs font-bold uppercase tracking-wide text-[#4B4B4B] dark:text-gray-300 mb-6">
+                  ESTIMATED UNITS YOU WILL RECEIVE
+                </p>
+                <div className="grid gap-12 md:grid-cols-2">
+                  <div className="border-r border-gray-100 dark:border-gray-800 pr-8">
+                    <p className="text-sm font-medium text-[#8E8E93] mb-1">Unit Price</p>
+                    <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">${unitPrice.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[#8E8E93] mb-1">Estimated Units</p>
+                    <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">
+                      {estimatedUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} units
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <span className="text-[#8E8E93]">Processing Fee (0%)</span>
-                <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
-                  $
-                  {processingFee.toLocaleString('en-US', {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  })}
-                </span>
-              </div>
-              <div className="pt-6 mt-6 border-t border-dashed border-[#E5E5EA]">
+            </div>
+
+            {/* Right Column: Order Summary */}
+            <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] px-8 py-8 shadow-sm border border-gray-100 dark:border-gray-800 h-fit">
+              <h2 className="font-goudy text-lg font-bold text-[#1F1F1F] dark:text-gray-100 mb-6">Order Summary</h2>
+              <div className="space-y-4 text-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                  <span className="text-gray-400 font-medium">Total</span>
-                  <span className="text-xl font-bold text-[#2BB673]">
+                  <span className="text-[#8E8E93]">Investment Amount</span>
+                  <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
                     $
-                    {total.toLocaleString('en-US', {
+                    {(() => {
+                      const clean = amount.replace(/[^0-9.]/g, '');
+                      if (clean.includes('.')) {
+                        const [intPart, decPart] = clean.split('.');
+                        return `${Number(intPart || 0).toLocaleString('en-US')}.${decPart}`;
+                      }
+                      return investmentAmount.toLocaleString('en-US');
+                    })()}
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <span className="text-[#8E8E93]">Estimated Units</span>
+                  <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
+                    {estimatedUnits.toLocaleString('en-US', {
+                      minimumFractionDigits: 4,
+                      maximumFractionDigits: 4,
+                    })}
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <span className="text-[#8E8E93]">Processing Fee (0%)</span>
+                  <span className="font-bold text-[#1F1F1F] dark:text-gray-100">
+                    $
+                    {processingFee.toLocaleString('en-US', {
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
                     })}
                   </span>
                 </div>
+                <div className="pt-6 mt-6 border-t border-dashed border-[#E5E5EA] dark:border-gray-700">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <span className="text-gray-400 font-medium">Total</span>
+                    <span className="text-xl font-bold text-[#2BB673]">
+                      $
+                      {(() => {
+                        const clean = amount.replace(/[^0-9.]/g, '');
+                        if (clean.includes('.')) {
+                          const [intPart, decPart] = clean.split('.');
+                          return `${Number(intPart || 0).toLocaleString('en-US')}.${decPart}`;
+                        }
+                        return total.toLocaleString('en-US');
+                      })()}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-
-      </>
-    );
+        </>
+      );
+    };
 
     const renderSignDocuments = () => (
       <>
@@ -1188,7 +1271,7 @@ export default function InvestPage() {
                   type="button"
                   onClick={goNext}
                   disabled={isSigning}
-                  className="w-full rounded-full bg-[#274583] hover:bg-[#1E3668] py-3.5 text-sm font-bold text-white shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full rounded-full bg-[#FBCB4B] hover:bg-[#F9B800] py-3.5 text-sm sm:text-base font-bold text-[#1F1F1F] shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSigning ? 'Connecting to DocuSign...' : 'Start Signing'}
                 </button>
@@ -1615,7 +1698,7 @@ export default function InvestPage() {
         </p>
         <button
           onClick={onDone}
-          className="rounded-full bg-[#274583] hover:bg-[#1E3668] px-12 py-4 text-base font-bold text-white shadow-md hover:shadow-lg transition-all active:scale-95"
+          className="rounded-full bg-[#FBCB4B] hover:bg-[#F9B800] px-12 py-4 text-base font-bold text-[#1F1F1F] shadow-md hover:shadow-lg transition-all active:scale-95"
         >
           Go to Dashboard
         </button>
