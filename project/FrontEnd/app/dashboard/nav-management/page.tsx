@@ -1,18 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, Check, AlertTriangle, MoreVertical, Loader2, Edit2, Trash2 } from 'lucide-react';
+import { ChevronDown, Check, AlertTriangle, Loader2, Edit2, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   Select,
   SelectContent,
@@ -43,12 +37,15 @@ export default function NAVManagementPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<any>(null);
+  const [adminStats, setAdminStats] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [performance, setPerformance] = useState<any[]>([]);
   const [btcPerformance, setBtcPerformance] = useState<any[]>([]);
-  const [btcTableData, setBtcTableData] = useState<any[]>([]);
-  const [navRange, setNavRange] = useState('6');
+   const [btcTableData, setBtcTableData] = useState<any[]>([]);
+  const [navRange, setNavRange] = useState('12'); // '12' = Last year by default
   const [btcRange, setBtcRange] = useState('6');
+  const [tableSort, setTableSort] = useState<'status_asc' | 'status_desc' | 'date_desc' | 'date_asc'>('status_asc');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Published' | 'Draft' | 'Inactive'>('All');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -67,12 +64,16 @@ export default function NAVManagementPage() {
   const fetchBaseData = async () => {
     try {
       setLoading(true);
-      const [summaryRes, historyRes] = await Promise.all([
+      const [summaryRes, historyRes, adminStatsRes] = await Promise.all([
         apiClient.getNavSummary(),
         apiClient.getNavHistory(),
+        apiClient.getAdminStats().catch(() => null),
       ]);
       setSummary(summaryRes);
       setHistory(historyRes);
+      if (adminStatsRes) {
+        setAdminStats(adminStatsRes);
+      }
     } catch (error) {
       console.error('Error fetching base NAV data:', error);
     } finally {
@@ -129,17 +130,23 @@ export default function NAVManagementPage() {
     }).format(value);
   };
 
-  // Calculate dynamic change stats for the chart
-  const getNavChangeStats = () => {
+  // Calculate dynamic change stats for Fund Value Growth chart
+  const getFundGrowthStats = () => {
+    if (!performance || performance.length === 0) return {
+      value: summary?.totalInvestments || adminStats?.totalInvestmentValue || 0,
+      change: 0,
+      range: navRange === '12' ? '1 Year' : `Last ${navRange} Months`
+    };
+
     if (performance.length < 2) return {
-      value: summary?.currentNav || 0,
+      value: performance[0]?.value || summary?.totalInvestments || adminStats?.totalInvestmentValue || 0,
       change: 0,
       range: navRange === '12' ? '1 Year' : `Last ${navRange} Months`
     };
 
     const latest = performance[performance.length - 1].value;
     const previous = performance[0].value;
-    const change = ((latest - previous) / previous) * 100;
+    const change = previous > 0 ? ((latest - previous) / previous) * 100 : 0;
 
     return {
       value: latest,
@@ -148,7 +155,7 @@ export default function NAVManagementPage() {
     };
   };
 
-  const navStats = getNavChangeStats();
+  const fundStats = getFundGrowthStats();
 
   // Calculate dynamic BTC stats
   const getBtcStats = () => {
@@ -170,33 +177,86 @@ export default function NAVManagementPage() {
   const btcStats = getBtcStats();
 
   // Stats data
+  const totalUnitsVal = adminStats?.totalUnits ?? summary?.totalUnits ?? 0;
+  const totalInvestmentsVal = adminStats?.totalInvestmentValue ?? summary?.totalInvestments ?? 0;
+
   const stats = [
     { label: 'Current NAV', value: summary ? `$${summary.currentNav.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00' },
+    { label: 'Total Units', value: Number(totalUnitsVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) },
+    { label: 'Total Investments', value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(totalInvestmentsVal)) },
     { label: 'Total Fund Value', value: summary ? formatCurrency(summary.totalFundValue) : '$0.00' },
     { label: '30-Day BTC Trend', value: btcStats.change ? `${btcStats.change >= 0 ? '+' : ''}${btcStats.change.toFixed(1)}%` : '+0.0%', isPositive: btcStats.change >= 0 },
     { label: 'Investor Count', value: summary ? summary.investorCount.toLocaleString() : '0' },
   ];
 
-  // Daily BTC Reference data - Now dynamic via btcTableData
-  const navHistoryData = history.map(item => {
-    const date = new Date(item.effective_date);
-    const month = date.getMonth();
-    const quarter = Math.floor(month / 3) + 1;
+  // NAV History data with Date, Total Units, and Status Sorting (Published first, then Draft)
+  const navHistoryData = useMemo(() => {
+    const mapped = (history || []).map((item) => {
+      const date = new Date(item.effective_date);
+      const month = date.getUTCMonth();
+      const quarter = Math.floor(month / 3) + 1;
 
-    // Map status labels
-    const statusLabelMapped = item.status === 'active' ? 'Published' :
-      item.status === 'draft' ? 'Draft' : 'Inactive';
+      // Map status labels
+      const rawStatusLower = String(item.status || '').toLowerCase();
+      const statusLabelMapped = (rawStatusLower === 'active' || rawStatusLower === 'published') ? 'Published' :
+        rawStatusLower === 'draft' ? 'Draft' : 'Inactive';
 
-    return {
-      id: item.id,
-      quarter: `Q${quarter}`,
-      year: date.getFullYear().toString(),
-      pricePerUnit: `$${parseFloat(item.nav_per_unit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      totalValue: formatCurrency(parseFloat(item.total_fund_value)),
-      status: statusLabelMapped,
-      rawStatus: item.status
-    };
-  });
+      // Status priority: Published (1) -> Draft (2) -> Inactive (3)
+      const statusPriority = statusLabelMapped === 'Published' ? 1 : statusLabelMapped === 'Draft' ? 2 : 3;
+
+      const formattedDate = date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC'
+      });
+
+      const totalUnitsNum = parseFloat(item.total_units || 0);
+      const formattedUnits = isNaN(totalUnitsNum)
+        ? '0.00'
+        : totalUnitsNum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+
+      return {
+        id: item.id,
+        quarter: `Q${quarter}`,
+        formattedDate,
+        rawDate: date.getTime(),
+        year: date.getUTCFullYear().toString(),
+        totalValue: formatCurrency(parseFloat(item.total_fund_value || 0)),
+        totalUnits: formattedUnits,
+        pricePerUnit: `$${parseFloat(item.nav_per_unit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        status: statusLabelMapped,
+        statusPriority,
+        rawStatus: item.status
+      };
+    });
+
+    const filtered = statusFilter === 'All'
+      ? mapped
+      : mapped.filter((item) => item.status === statusFilter);
+
+    return filtered.sort((a, b) => {
+      if (tableSort === 'status_asc') {
+        if (a.statusPriority !== b.statusPriority) {
+          return a.statusPriority - b.statusPriority; // Published (1) -> Draft (2) -> Inactive (3)
+        }
+        return b.rawDate - a.rawDate; // Newest first within same status
+      }
+      if (tableSort === 'status_desc') {
+        if (a.statusPriority !== b.statusPriority) {
+          return b.statusPriority - a.statusPriority; // Inactive (3) -> Draft (2) -> Published (1)
+        }
+        return b.rawDate - a.rawDate; // Newest first within same status
+      }
+      if (tableSort === 'date_desc') {
+        return b.rawDate - a.rawDate; // Date: Newest first
+      }
+      if (tableSort === 'date_asc') {
+        return a.rawDate - b.rawDate; // Date: Oldest first
+      }
+      return 0;
+    });
+  }, [history, tableSort, statusFilter]);
 
 
   const getStatusBadge = (status: string) => {
@@ -255,16 +315,16 @@ export default function NAVManagementPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6 mb-8">
           {loading ? (
-            <div className="col-span-4 flex justify-center py-12">
+            <div className="col-span-full flex justify-center py-12">
               <Loader2 className="h-8 w-8 text-[#1F3B6E] animate-spin" />
             </div>
           ) : (
             stats.map((stat, index) => (
-              <div key={index} className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
-                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">{stat.label}</p>
-                <p className={`text-2xl sm:text-3xl font-bold ${stat.isPositive ? 'text-green-600' : 'text-gray-900 dark:text-gray-100'}`}>
+              <div key={index} className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 sm:p-6 transition-all hover:shadow-md">
+                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2 truncate">{stat.label}</p>
+                <p className={`text-xl sm:text-2xl lg:text-[26px] font-bold truncate ${stat.isPositive ? 'text-green-600' : 'text-gray-900 dark:text-gray-100'}`} title={stat.value}>
                   {stat.value}
                 </p>
               </div>
@@ -277,10 +337,10 @@ export default function NAVManagementPage() {
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 p-5 border-b">Performance Overview</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Official NAV Trend */}
+            {/* Fund Value Growth */}
             <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Official NAV Trend</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Fund Value Growth</h3>
                 <Select value={navRange} onValueChange={setNavRange}>
                   <SelectTrigger className="w-[140px] h-8 text-xs border-gray-200 dark:border-gray-800 rounded-full">
                     <SelectValue placeholder="Time Range" />
@@ -296,10 +356,10 @@ export default function NAVManagementPage() {
 
               <div className="mb-4">
                 <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(navStats.value)}
+                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(fundStats.value)}
                 </p>
-                <p className={`text-sm ${navStats.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {navStats.range} {navStats.change >= 0 ? '+' : ''}{navStats.change.toFixed(1)}%
+                <p className={`text-sm ${fundStats.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {fundStats.range} {fundStats.change >= 0 ? '+' : ''}{fundStats.change.toFixed(1)}%
                 </p>
               </div>
 
@@ -307,7 +367,7 @@ export default function NAVManagementPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={performance}>
                     <defs>
-                      <linearGradient id="navGradient" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient id="fundValueGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#FCD34D" stopOpacity={0.3} />
                         <stop offset="95%" stopColor="#FCD34D" stopOpacity={0} />
                       </linearGradient>
@@ -335,10 +395,10 @@ export default function NAVManagementPage() {
                           return (
                             <div className="bg-white dark:bg-[#1C1C1C] p-3 border border-gray-100 dark:border-gray-800 shadow-xl rounded-xl">
                               <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">
-                                {new Date(payload[0].payload.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                {new Date(payload[0].payload.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                               </p>
                               <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                                NAV: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(payload[0].value))}
+                                Fund Value: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(payload[0].value))}
                               </p>
                             </div>
                           );
@@ -352,7 +412,7 @@ export default function NAVManagementPage() {
                       stroke="#FCD34D"
                       strokeWidth={3}
                       fillOpacity={1}
-                      fill="url(#navGradient)"
+                      fill="url(#fundValueGradient)"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -443,59 +503,46 @@ export default function NAVManagementPage() {
           </div>
         </div>
 
-        {/* Daily BTC Reference */}
-        <div className="mb-8">
-          <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-6">
-            <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Daily BTC Reference</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Reflects varying market price and official fund NAV</p>
-
-            <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full">
-                <thead className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Date</th>
-                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Price (USD)</th>
-                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Source</th>
-                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {btcTableData.length > 0 ? btcTableData.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors">
-                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{item.date}</td>
-                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{item.price}</td>
-                      <td className="px-6 py-4 text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">{item.source}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {item.status === 'success' ? (
-                          <div className="flex items-center gap-2 text-green-600">
-                            <Check className="h-5 w-5" />
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                            <span className="text-sm text-yellow-600">Fallback</span>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  )) : (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400 italic">
-                        {loading ? 'Fetching live market data...' : 'No BTC data available'}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
         {/* NAV History */}
         <div>
           <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">NAV History</h3>
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
+                <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">NAV History</h3>
+                
+                {/* Status Filter Pills */}
+                <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/60 p-1 rounded-xl">
+                  {(['All', 'Published', 'Draft', 'Inactive'] as const).map((st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => setStatusFilter(st)}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                        statusFilter === st
+                          ? 'bg-white dark:bg-[#1C1C1C] text-gray-900 dark:text-gray-100 shadow-xs'
+                          : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Sort:</span>
+                <Select value={tableSort} onValueChange={(val: any) => setTableSort(val)}>
+                  <SelectTrigger className="w-[195px] h-8 text-xs border-gray-200 dark:border-gray-800 rounded-lg">
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="status_asc">Status: Published First</SelectItem>
+                    <SelectItem value="status_desc">Status: Inactive First</SelectItem>
+                    <SelectItem value="date_desc">Date: Newest First</SelectItem>
+                    <SelectItem value="date_asc">Date: Oldest First</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="overflow-x-auto custom-scrollbar">
@@ -503,52 +550,90 @@ export default function NAVManagementPage() {
                 <thead className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
                   <tr>
                     <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Quarter</th>
+                    <th 
+                      onClick={() => setTableSort(prev => prev === 'date_desc' ? 'date_asc' : 'date_desc')}
+                      className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 select-none group"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span>Date</span>
+                        {tableSort === 'date_desc' ? (
+                          <ArrowDown className="w-3.5 h-3.5 text-[#1F3B6E] dark:text-[#FFC63F]" />
+                        ) : tableSort === 'date_asc' ? (
+                          <ArrowUp className="w-3.5 h-3.5 text-[#1F3B6E] dark:text-[#FFC63F]" />
+                        ) : (
+                          <ArrowUpDown className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200" />
+                        )}
+                      </div>
+                    </th>
                     <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Year</th>
+                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund Value</th>
+                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Total Units</th>
                     <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">$/sh per unit</th>
-                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Total Value</th>
-                    <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
+                    <th 
+                      onClick={() => setTableSort(prev => prev === 'status_asc' ? 'status_desc' : 'status_asc')}
+                      className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 select-none group"
+                    >
+                      <div 
+                        className="flex items-center gap-1.5"
+                        title={tableSort === 'status_asc' ? 'Published First' : tableSort === 'status_desc' ? 'Inactive First' : 'Click to sort by status'}
+                      >
+                        <span>Status</span>
+                        {tableSort === 'status_asc' ? (
+                          <ArrowDown className="w-3.5 h-3.5 text-[#1F3B6E] dark:text-[#FFC63F]" />
+                        ) : tableSort === 'status_desc' ? (
+                          <ArrowUp className="w-3.5 h-3.5 text-[#1F3B6E] dark:text-[#FFC63F]" />
+                        ) : (
+                          <ArrowUpDown className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200" />
+                        )}
+                      </div>
+                    </th>
                     <th className="px-6 py-4 text-center text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {navHistoryData.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors">
-                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{item.quarter}</td>
-                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{item.year}</td>
-                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{item.pricePerUnit}</td>
-                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{item.totalValue}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${getStatusBadge(item.status)}`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center whitespace-nowrap">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors outline-none">
-                              <MoreVertical className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-32 bg-white dark:bg-[#1C1C1C]">
-                            <DropdownMenuItem
-                              className="cursor-pointer"
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                  {navHistoryData.length > 0 ? (
+                    navHistoryData.map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-800/50 transition-colors">
+                        <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{item.quarter}</td>
+                        <td className="px-6 py-4 text-gray-700 dark:text-gray-300 font-medium whitespace-nowrap">{item.formattedDate}</td>
+                        <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{item.year}</td>
+                        <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{item.totalValue}</td>
+                        <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{item.totalUnits}</td>
+                        <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{item.pricePerUnit}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${getStatusBadge(item.status)}`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              title="Edit"
                               onClick={() => handleEdit(item.id)}
+                              className="p-1.5 text-gray-500 hover:text-[#1F3B6E] hover:bg-blue-50 dark:text-gray-400 dark:hover:text-[#FFC63F] dark:hover:bg-blue-950/40 rounded-lg transition-colors"
                             >
-                              <Edit2 className="mr-2 h-4 w-4" />
-                              <span>Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50"
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              title="Delete"
                               onClick={() => handleDeleteClick(item.id)}
+                              className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-red-950/40 rounded-lg transition-colors"
                             >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              <span>Delete</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-8 text-center text-gray-400 italic">
+                        {loading ? 'Loading NAV history...' : 'No NAV history entries found'}
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>

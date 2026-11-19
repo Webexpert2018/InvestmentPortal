@@ -22,10 +22,45 @@ export class NavManagementService {
     const investorResult = await db.query("SELECT COUNT(*) as count FROM investors WHERE status = 'active'");
     const investorCount = parseInt(investorResult.rows[0].count);
 
+    // 3. Fetch financial totals (totalUnits and totalInvestmentValue matching dashboard)
+    const financialTotals = await db.query(`
+      WITH current_nav AS (
+        SELECT nav_per_unit 
+        FROM fund_nav_history 
+        WHERE status = 'active' 
+        ORDER BY effective_date DESC 
+        LIMIT 1
+      ),
+      reconciled_investments AS (
+        SELECT 
+          SUM(estimated_units) as total_units
+        FROM investments 
+        WHERE is_reconciled = true
+      ),
+      reconciled_redemptions AS (
+        SELECT 
+          SUM(units) as total_redeemed_units
+        FROM redemptions
+        WHERE is_reconciled = true
+      )
+      SELECT 
+        (COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) as total_units,
+        ((COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) * COALESCE(nav.nav_per_unit, 0)) as total_value
+      FROM (SELECT 1) dummy
+      LEFT JOIN reconciled_investments inv ON true
+      LEFT JOIN reconciled_redemptions red ON true
+      LEFT JOIN current_nav nav ON true
+    `);
+
+    const totalUnits = parseFloat(financialTotals.rows[0]?.total_units || '0');
+    const totalInvestments = parseFloat(financialTotals.rows[0]?.total_value || '0');
+
     return {
       currentNav: activeNav ? parseFloat(activeNav.nav_per_unit) : 0,
       totalFundValue: activeNav ? parseFloat(activeNav.total_fund_value) : 0,
       investorCount: investorCount,
+      totalUnits: totalUnits,
+      totalInvestments: totalInvestments,
       btcTrend: '+6.2%', // Placeholder as requested
       lastUpdated: activeNav ? activeNav.effective_date : null,
     };
@@ -200,14 +235,52 @@ export class NavManagementService {
 
   async getPerformance(months: number = 12) {
     const result = await db.query(
-      `SELECT effective_date as date, nav_per_unit as value 
-       FROM fund_nav_history 
-       WHERE effective_date >= NOW() - INTERVAL '${months} months'
-       ORDER BY effective_date ASC`
+      `WITH cumulative_investments AS (
+        SELECT 
+          created_at::date as date,
+          SUM(investment_amount) OVER (ORDER BY created_at ASC) as cumulative_amount
+        FROM investments
+      ),
+      prior_baseline AS (
+        SELECT 
+          (NOW() - INTERVAL '${months} months')::date as date,
+          COALESCE(MAX(cumulative_amount), 0) as value
+        FROM cumulative_investments
+        WHERE date < (NOW() - INTERVAL '${months} months')::date
+      ),
+      period_points AS (
+        SELECT 
+          date,
+          MAX(cumulative_amount) as value
+        FROM cumulative_investments
+        WHERE date >= (NOW() - INTERVAL '${months} months')::date
+        GROUP BY date
+      )
+      SELECT date, value FROM (
+        SELECT date, value FROM prior_baseline WHERE value > 0
+        UNION ALL
+        SELECT date, value FROM period_points
+      ) combined
+      ORDER BY date ASC`
     );
+
+    if (result.rows.length === 0) {
+      const fallback = await db.query(
+        `SELECT effective_date as date, total_fund_value as value
+         FROM fund_nav_history 
+         WHERE (status = 'active' OR status = 'published')
+           AND effective_date >= NOW() - INTERVAL '${months} months'
+         ORDER BY effective_date ASC`
+      );
+      return fallback.rows.map(row => ({
+        date: row.date,
+        value: parseFloat(row.value) || 0
+      }));
+    }
+
     return result.rows.map(row => ({
       date: row.date,
-      value: parseFloat(row.value)
+      value: parseFloat(row.value) || 0
     }));
   }
 }
