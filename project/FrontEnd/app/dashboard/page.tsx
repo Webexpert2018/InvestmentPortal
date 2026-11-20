@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bitcoin, Wallet, TrendingUp, Layers, CircleDollarSign, Users } from 'lucide-react';
+import { Bitcoin, Wallet, TrendingUp, Layers, CircleDollarSign, Users, DollarSign } from 'lucide-react';
 import { formatUSD, formatBTC } from '@/lib/utils/bitcoin';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import Link from 'next/link';
@@ -237,6 +237,7 @@ export default function DashboardPage() {
     pendingRedemptions: 0,
     totalUnits: 0,
     totalInvestmentValue: 0,
+    currentNav: 0,
     recentInvestors: [] as any[],
   });
   const [investorStats, setInvestorStats] = useState({
@@ -439,13 +440,17 @@ export default function DashboardPage() {
           setDynamicConversations(convs || []);
           setPerformanceData(performance);
         } else if (dashboardRole === 'admin' || dashboardRole === 'accountant') {
-          const [stats, investments, redemptions, convs] = await Promise.all([
+          const [stats, investments, redemptions, convs, navSummary] = await Promise.all([
             apiClient.getAdminStats(),
             apiClient.getAllInvestments(),
             apiClient.getAllRedemptions(),
             apiClient.getConversations(),
+            apiClient.getNavSummary().catch(() => ({ currentNav: 100 })),
           ]);
-          setAdminStats(stats);
+          setAdminStats({
+            ...stats,
+            currentNav: stats?.currentNav || navSummary?.currentNav || 100,
+          });
           setAllInvestments(investments);
           setAllRedemptions(redemptions);
           setDynamicConversations(convs || []);
@@ -535,6 +540,7 @@ export default function DashboardPage() {
       { name: 'Total Units', value: adminStats.totalUnits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }), icon: Layers, color: 'text-blue-600' },
       { name: 'Total Investments', value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(adminStats.totalInvestmentValue), icon: CircleDollarSign, color: 'text-emerald-600' },
       { name: 'Pending Redemptions', value: adminStats.pendingRedemptions.toString(), icon: TrendingUp, color: 'text-red-500' },
+      { name: 'Current NAV', value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(adminStats.currentNav || 100), icon: DollarSign, color: 'text-purple-600' },
     ],
     investor: [
       { name: 'My Active Funds', value: activeFundsCount.toString(), icon: Bitcoin, color: 'text-orange-500' },

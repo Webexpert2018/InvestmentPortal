@@ -12,6 +12,7 @@ import { Country, State, City } from 'country-state-city';
 import { Combobox } from '@/components/ui/combobox';
 import { AdminAddIraModal } from '@/components/ira/AdminAddIraModal';
 import { AdminAddSubaccountModal } from '@/components/investor/AdminAddSubaccountModal';
+import { SendInvestmentInviteModal } from '@/components/investor/SendInvestmentInviteModal';
 import { COUNTRY_CODES } from '@/lib/countryCodes';
 
 interface Investor {
@@ -76,6 +77,7 @@ export default function InvestorPage() {
   const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
   const [showAdminIraModal, setShowAdminIraModal] = useState(false);
   const [showAddSubaccountModal, setShowAddSubaccountModal] = useState(false);
+  const [showSendInvestmentInviteModal, setShowSendInvestmentInviteModal] = useState(false);
   const [selectedOldIds, setSelectedOldIds] = useState<string[]>([]);
   const [invitingOld, setInvitingOld] = useState(false);
 
@@ -604,6 +606,18 @@ export default function InvestorPage() {
               </button>
             ) : (
               <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSendInvestmentInviteModal(true);
+                  }}
+                  disabled={!selectedInvestorId || selectedInvestor?.status === 'suspended'}
+                  className="px-6 py-3 bg-white dark:bg-[#1C1C1C] text-[#4B5563] dark:text-gray-100 border border-[#E5E7EB] dark:border-gray-800 text-sm font-bold rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                  title={!selectedInvestorId ? "Select an investor from the table to send an investment invite" : "Send Investment Invite"}
+                >
+                  <Mail className="h-4 w-4 text-[#D1A94C]" />
+                  Send Investment Invite
+                </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1702,6 +1716,23 @@ export default function InvestorPage() {
           isOpen={showAddSubaccountModal}
           targetInvestorId={selectedInvestorId}
           onClose={() => setShowAddSubaccountModal(false)}
+          onSuccess={() => {
+            fetchInvestors();
+          }}
+        />
+      )}
+
+      {/* Send Investment Invite Modal */}
+      {showSendInvestmentInviteModal && selectedInvestorId && (
+        <SendInvestmentInviteModal
+          isOpen={showSendInvestmentInviteModal}
+          onClose={() => setShowSendInvestmentInviteModal(false)}
+          investorId={selectedInvestorId}
+          investorData={selectedInvestor ? {
+            ...selectedInvestor,
+            fullName: `${selectedInvestor.firstName || ''} ${selectedInvestor.lastName || ''}`.trim()
+          } : undefined}
+          parentData={selectedInvestor?.parentId ? investors.find(i => i.id === selectedInvestor.parentId) : undefined}
           onSuccess={() => {
             fetchInvestors();
           }}

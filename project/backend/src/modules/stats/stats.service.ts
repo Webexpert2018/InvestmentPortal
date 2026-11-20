@@ -32,7 +32,8 @@ export class StatsService {
           )
           SELECT 
             (COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) as total_units,
-            ((COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) * COALESCE(nav.nav_per_unit, 0)) as total_value
+            ((COALESCE(inv.total_units, 0) - COALESCE(red.total_redeemed_units, 0)) * COALESCE(nav.nav_per_unit, 0)) as total_value,
+            COALESCE(nav.nav_per_unit, 0) as current_nav
           FROM (SELECT 1) dummy
           LEFT JOIN reconciled_investments inv ON true
           LEFT JOIN reconciled_redemptions red ON true
@@ -62,6 +63,7 @@ export class StatsService {
         pendingRedemptions: parseInt(pendingRedemptionsCount.rows[0]?.count || '0'),
         totalUnits: parseFloat(financialTotals.rows[0]?.total_units || '0'),
         totalInvestmentValue: parseFloat(financialTotals.rows[0]?.total_value || '0'),
+        currentNav: parseFloat(financialTotals.rows[0]?.current_nav || '0'),
         recentInvestors: recentInvestorsResult.rows.map(row => ({
           id: row.id,
           investorName: row.investor_name,
