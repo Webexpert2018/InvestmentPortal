@@ -35,7 +35,7 @@ export class InvestmentsService {
         }
       }
 
-      // 1. Fetch latest active NAV to ensure price accuracy
+      // 1. Fetch latest active NAV as default baseline
       const navResult = await db.query(
         `SELECT nav_per_unit FROM fund_nav_history 
          WHERE status = 'active' 
@@ -43,17 +43,18 @@ export class InvestmentsService {
          LIMIT 1`
       );
 
-      if (navResult.rows.length === 0) {
-        throw new BadRequestException('The fund is currently not accepting new investments (No active NAV found).');
-      }
+      const activeUnitPrice = navResult.rows.length > 0 ? parseFloat(navResult.rows[0].nav_per_unit) : 100.0;
 
-      const activeUnitPrice = parseFloat(navResult.rows[0].nav_per_unit);
+      // Respect custom fixed unit price if provided (e.g. from an invite), otherwise use active NAV
+      const customPrice = data.unitPrice ? parseFloat(String(data.unitPrice)) : null;
+      const unitPrice = (customPrice && !isNaN(customPrice) && customPrice > 0)
+        ? customPrice
+        : activeUnitPrice;
 
-      // 2. Calculate processing fee (0.5% fixed) and units
+      // 2. Calculate processing fee (0.5% fixed) and units based on fixed/active unit price
       const processingFee = Number((investmentAmount * 0.005).toFixed(2));
       const totalAmount = Number((investmentAmount + processingFee).toFixed(2));
-      const estimatedUnits = Number((investmentAmount / activeUnitPrice).toFixed(8));
-      const unitPrice = activeUnitPrice;
+      const estimatedUnits = Number((investmentAmount / unitPrice).toFixed(8));
 
       const query = `
         INSERT INTO investments (
@@ -82,6 +83,15 @@ export class InvestmentsService {
 
       const result = await db.query(query, values);
       const investment = result.rows[0];
+
+      // Mark invite token as completed if this investment was initiated from an invite
+      if (data.inviteToken) {
+        try {
+          await db.query("UPDATE investment_invites SET status = 'completed' WHERE token = $1", [data.inviteToken]);
+        } catch (inviteErr) {
+          console.warn('⚠️ Failed to mark invite as completed:', inviteErr);
+        }
+      }
 
       // Add audit log
       try {
@@ -756,13 +766,25 @@ export class InvestmentsService {
     }
   }
 
-  async createInvite(adminId: string, data: { investorId: string; fundId: string; accountId: string; accountType: string; accountName?: string; amount: string; }) {
+  async createInvite(adminId: string, data: { investorId: string; fundId: string; accountId: string; accountType: string; accountName?: string; amount: string; unitPrice?: string | number; }) {
     try {
       const token = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 3); // Expires in 3 days
 
-      let { investorId, fundId, accountId, accountType, accountName, amount } = data;
+      let { investorId, fundId, accountId, accountType, accountName, amount, unitPrice } = data;
+
+      // Resolve unit price: use provided fixed custom NAV, or fallback to current active NAV
+      let resolvedUnitPrice = unitPrice ? parseFloat(String(unitPrice)) : null;
+      if (!resolvedUnitPrice || isNaN(resolvedUnitPrice) || resolvedUnitPrice <= 0) {
+        const navResult = await db.query(
+          `SELECT nav_per_unit FROM fund_nav_history 
+           WHERE status = 'active' 
+           ORDER BY effective_date DESC 
+           LIMIT 1`
+        );
+        resolvedUnitPrice = navResult.rows.length > 0 ? parseFloat(navResult.rows[0].nav_per_unit) : 100.0;
+      }
 
       // 1. Check if the target investorId is itself a minor or entity subaccount
       const targetInvRes = await db.query(
@@ -811,9 +833,9 @@ export class InvestmentsService {
 
       await db.query(
         `INSERT INTO investment_invites 
-         (investor_id, fund_id, account_id, account_type, amount, token, expires_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [investorId, fundId, accountId, accountType, amount, token, expiresAt]
+         (investor_id, fund_id, account_id, account_type, amount, unit_price, token, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [investorId, fundId, accountId, accountType, amount, resolvedUnitPrice, token, expiresAt]
       );
 
       // Fetch investor and fund info for the email
@@ -838,6 +860,7 @@ export class InvestmentsService {
               fundId,
               fundName: fund.name,
               amount,
+              unitPrice: resolvedUnitPrice,
               accountId,
               accountType,
               accountName: accountName || undefined,
@@ -849,7 +872,7 @@ export class InvestmentsService {
         );
       }
 
-      return { token, message: 'Invite created and sent successfully' };
+      return { token, unitPrice: resolvedUnitPrice, message: 'Invite created and sent successfully' };
     } catch (error) {
       console.error('Error creating investment invite:', error);
       throw new InternalServerErrorException('Failed to create investment invite');
@@ -867,6 +890,7 @@ export class InvestmentsService {
       accountType?: string;
       accountName?: string;
       amount?: string;
+      unitPrice?: string | number;
     }
   ) {
     try {
@@ -876,6 +900,7 @@ export class InvestmentsService {
       let accountType = payload.accountType;
       let accountName = payload.accountName;
       let amount = payload.amount;
+      let unitPrice = payload.unitPrice;
       let oldToken: string | null = null;
 
       // 1. If logId provided, inspect the email log
@@ -900,6 +925,9 @@ export class InvestmentsService {
           }
           if (!amount) {
             amount = meta.amount;
+          }
+          if (!unitPrice && meta.unitPrice) {
+            unitPrice = meta.unitPrice;
           }
           if (!accountId) {
             accountId = meta.accountId;
@@ -953,6 +981,7 @@ export class InvestmentsService {
           accountId = accountId || existing.account_id;
           accountType = accountType || existing.account_type;
           amount = amount || existing.amount;
+          unitPrice = unitPrice || existing.unit_price;
 
           // Invalidate previous token so it cannot be reused
           await db.query(
@@ -984,6 +1013,7 @@ export class InvestmentsService {
         accountType,
         accountName,
         amount: String(amount),
+        unitPrice,
       });
 
       return {

@@ -43,6 +43,8 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId, investo
   const [selectedFundId, setSelectedFundId] = useState('');
   const [selectedAccountId, setSelectedAccountId] = useState(isSubAccountProfile ? investorId : 'personal');
   const [amount, setAmount] = useState('');
+  const [activeNav, setActiveNav] = useState<number>(100);
+  const [navPrice, setNavPrice] = useState<string>('100');
 
   useEffect(() => {
     if (isOpen) {
@@ -54,12 +56,13 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId, investo
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [fundsRes, accountsRes, subaccountsRes] = await Promise.all([
+      const [fundsRes, accountsRes, subaccountsRes, navRes] = await Promise.all([
         apiClient.get('/funds'),
         apiClient.get(`/ira-accounts/user/${investorId}`).catch(() => ({ data: [] })),
         isSubAccountProfile
           ? Promise.resolve({ data: [] })
-          : apiClient.get(`/users/${investorId}/subaccounts`).catch(() => ({ data: [] }))
+          : apiClient.get(`/users/${investorId}/subaccounts`).catch(() => ({ data: [] })),
+        apiClient.getNavSummary().catch(() => ({ currentNav: 100 }))
       ]);
       const fetchedFunds = fundsRes.data || [];
       const fetchedIras = accountsRes.data?.data || accountsRes.data || [];
@@ -73,10 +76,16 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId, investo
         (s: any) => s.isIraSubaccount || s.investorType === 'sub ira account'
       );
 
+      const currentNavVal = (navRes && typeof navRes.currentNav === 'number' && navRes.currentNav > 0)
+        ? navRes.currentNav
+        : 100;
+
       setFunds(fetchedFunds);
       setIraAccounts(fetchedIras);
       setSubaccounts(directSubs);
       setSubIraAccounts(subIras);
+      setActiveNav(currentNavVal);
+      setNavPrice(String(currentNavVal));
     } catch (error) {
       console.error('Failed to fetch modal data', error);
       toast.error('Failed to load form data');
@@ -85,10 +94,14 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId, investo
     }
   };
 
+  const numericAmount = parseFloat(amount.replace(/[^0-9.]/g, '')) || 0;
+  const numericNav = parseFloat(navPrice.replace(/[^0-9.]/g, '')) || 0;
+  const calculatedUnits = (numericAmount > 0 && numericNav > 0) ? (numericAmount / numericNav) : 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedFundId || !amount) {
-      toast.error('Please fill in all required fields');
+    if (!selectedFundId || !amount || !navPrice || numericNav <= 0) {
+      toast.error('Please fill in all required fields with valid values');
       return;
     }
 
@@ -149,7 +162,8 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId, investo
         accountId: targetAccountId,
         accountType: resolvedAccountType,
         accountName: resolvedAccountName,
-        amount
+        amount,
+        unitPrice: numericNav,
       });
       toast.success('Investment invite sent successfully');
       if (onSuccess) {
@@ -160,6 +174,7 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId, investo
       setSelectedFundId('');
       setSelectedAccountId(isSubAccountProfile ? investorId : 'personal');
       setAmount('');
+      setNavPrice(String(activeNav));
     } catch (error) {
       console.error('Failed to send invite', error);
       toast.error('Failed to send investment invite');
@@ -303,6 +318,59 @@ export function SendInvestmentInviteModal({ isOpen, onClose, investorId, investo
                   placeholder="e.g. 50000"
                   className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white dark:bg-[#1C1C1C] transition-all text-sm font-medium"
                 />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Price / Unit (NAV) ($) <span className="text-red-500">*</span>
+                  </label>
+                  {numericNav > 0 && numericNav !== activeNav && (
+                    <button
+                      type="button"
+                      onClick={() => setNavPrice(String(activeNav))}
+                      className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 hover:underline"
+                    >
+                      Reset to Active NAV (${activeNav.toFixed(2)})
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="number"
+                  value={navPrice}
+                  onChange={(e) => setNavPrice(e.target.value)}
+                  required
+                  min="0.00000001"
+                  step="any"
+                  placeholder="e.g. 100.00"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white dark:bg-[#1C1C1C] transition-all text-sm font-medium"
+                />
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Default: current active NAV (${activeNav.toFixed(2)}). You can customize and fix this price for this invite.
+                </p>
+              </div>
+
+              {/* Units Calculation Card */}
+              <div className="p-3.5 bg-amber-50/60 dark:bg-amber-900/10 border border-amber-200/70 dark:border-amber-800/40 rounded-xl flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    Estimated Units
+                  </p>
+                  <p className="text-base font-bold text-[#1F1F1F] dark:text-gray-100 mt-0.5">
+                    {calculatedUnits > 0
+                      ? calculatedUnits.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })
+                      : '0.00'}{' '}
+                    <span className="text-xs font-semibold text-gray-500">units</span>
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    NAV Applied
+                  </p>
+                  <p className="text-sm font-bold text-[#1F3B6E] dark:text-blue-400 mt-0.5">
+                    ${numericNav > 0 ? numericNav.toFixed(2) : '0.00'}
+                  </p>
+                </div>
               </div>
             </form>
           </div>

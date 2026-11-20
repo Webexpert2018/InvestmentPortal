@@ -61,6 +61,26 @@ export default function FundingRequestsPage() {
     }).format(num || 0);
   };
 
+  const formatNav = (val: number | string | null | undefined) => {
+    if (val === null || val === undefined || val === '') return '$0.00';
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4,
+    }).format(num || 0);
+  };
+
+  const formatUnits = (val: number | string | null | undefined) => {
+    if (val === null || val === undefined || val === '') return '0.00';
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return (num || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4,
+    });
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -220,7 +240,8 @@ export default function FundingRequestsPage() {
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Investor Name</th>
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Account Type</th>
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Amount</th>
-                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Payment</th>
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">NAV / Unit</th>
+                  <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Units</th>
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Submitted Date</th>
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Status</th>
                   <th className="px-6 py-4 text-left text-[13px] font-bold text-[#4B4B4B] dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Funding History</th>
@@ -279,7 +300,12 @@ export default function FundingRequestsPage() {
                         <td className="px-6 py-5 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">
                           {formatCurrency(request.investment_amount)}
                         </td>
-                        <td className="px-6 py-5 text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">Wire</td>
+                        <td className="px-6 py-5 text-gray-700 dark:text-gray-300 font-medium whitespace-nowrap">
+                          {formatNav(request.unit_price)}
+                        </td>
+                        <td className="px-6 py-5 text-gray-700 dark:text-gray-300 font-medium whitespace-nowrap">
+                          {formatUnits(request.estimated_units)}
+                        </td>
                         <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">{formatDate(request.created_at)}</td>
                         <td className="px-6 py-5 whitespace-nowrap">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${getStatusColor(request.status || 'Pending')}`}>
@@ -305,7 +331,7 @@ export default function FundingRequestsPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={9} className="px-6 py-20 text-center">
+                    <td colSpan={10} className="px-6 py-20 text-center">
                       <div className="flex flex-col items-center justify-center text-gray-400">
                         <Search className="h-10 w-10 mb-2 opacity-20" />
                         <p className="text-sm">No funding requests found.</p>

@@ -53,6 +53,8 @@ export default function InvestPage() {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>('personal');
   const [amount, setAmount] = useState<string>('25000');
   const [unitPrice, setUnitPrice] = useState<number>(0);
+  const [isInviteNavLocked, setIsInviteNavLocked] = useState<boolean>(false);
+  const [loadedInviteToken, setLoadedInviteToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
@@ -144,6 +146,9 @@ export default function InvestPage() {
           if (draft.accountType) {
             draftAccountType = draft.accountType;
           }
+          if (draft.inviteToken) {
+            setLoadedInviteToken(draft.inviteToken);
+          }
         } catch (e) {
           console.error('Failed to parse draft investment:', e);
         }
@@ -165,7 +170,8 @@ export default function InvestPage() {
             unitPrice: draftUnitPrice,
             status: 'Subscription Submitted',
             documentSigned: true,
-            envelopeId: savedEnvelopeId || undefined
+            envelopeId: savedEnvelopeId || undefined,
+            inviteToken: loadedInviteToken || undefined
           });
 
 
@@ -222,6 +228,12 @@ export default function InvestPage() {
             setToggledFundId(res.data.fund_id);
             setSelectedAccountId(res.data.account_id || 'personal');
             setAmount(String(res.data.amount));
+            setLoadedInviteToken(inviteToken);
+            if (res.data.unit_price && parseFloat(res.data.unit_price) > 0) {
+              const fixedNav = parseFloat(res.data.unit_price);
+              setUnitPrice(fixedNav);
+              setIsInviteNavLocked(true);
+            }
             setStep('investmentAmount');
             toast({
               title: "Success",
@@ -374,7 +386,7 @@ export default function InvestPage() {
         setSubaccounts(subs);
 
         if (navData && typeof navData.currentNav === 'number') {
-          setUnitPrice(navData.currentNav);
+          setUnitPrice((current) => (isInviteNavLocked || current > 0 ? current : navData.currentNav));
         }
 
         if (activeFunds.length > 0 && !selectedFundId) {
@@ -488,6 +500,7 @@ export default function InvestPage() {
         accountType: finalAccountType,
         amount: amount,
         unitPrice: unitPrice,
+        inviteToken: loadedInviteToken || undefined,
       };
       localStorage.setItem('draft_investment', JSON.stringify(draftInvestment));
       localStorage.removeItem('last_investment_id');
@@ -1039,12 +1052,19 @@ export default function InvestPage() {
                 <div className="grid gap-12 md:grid-cols-2">
                   <div className="border-r border-gray-100 dark:border-gray-800 pr-8">
                     <p className="text-sm font-medium text-[#8E8E93] mb-1">Unit Price</p>
-                    <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">${unitPrice.toFixed(2)}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">${unitPrice.toFixed(2)}</p>
+                      {isInviteNavLocked && (
+                        <span className="text-[10px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/40 dark:text-amber-300 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          Invite Fixed NAV
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-[#8E8E93] mb-1">Estimated Units</p>
                     <p className="text-xl font-bold text-[#1F1F1F] dark:text-gray-100">
-                      {estimatedUnits.toLocaleString(undefined, { maximumFractionDigits: 0 })} units
+                      {estimatedUnits.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })} units
                     </p>
                   </div>
                 </div>

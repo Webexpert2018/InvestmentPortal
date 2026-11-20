@@ -2855,6 +2855,24 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                     <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Invited Amount</div>
                     <div className="mt-1 font-bold text-emerald-600 dark:text-emerald-400 text-sm">{formattedAmount}</div>
                   </div>
+                  {meta.unitPrice && (
+                    <>
+                      <div>
+                        <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Fixed NAV / Price</div>
+                        <div className="mt-1 font-bold text-[#1F3B6E] dark:text-blue-400 text-sm">
+                          ${parseFloat(String(meta.unitPrice)).toFixed(2)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Estimated Units</div>
+                        <div className="mt-1 font-bold text-gray-900 dark:text-gray-100 text-sm">
+                          {rawAmount && parseFloat(String(meta.unitPrice)) > 0
+                            ? (Number(rawAmount) / parseFloat(String(meta.unitPrice))).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })
+                            : '—'} units
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="space-y-3">
