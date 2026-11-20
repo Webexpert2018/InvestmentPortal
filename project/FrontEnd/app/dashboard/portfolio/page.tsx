@@ -98,7 +98,7 @@ export default function PortfolioPage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [user?.id]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
@@ -128,7 +128,7 @@ export default function PortfolioPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [investmentsData, navSummary, fundsData, redemptionsData, oldInvestmentsData, transfersData] = await Promise.all([
+      const [investmentsData, navSummary, fundsData, redemptionsData, oldInvestmentsData, transfersData, profile] = await Promise.all([
         apiClient.getMyInvestments(),
         apiClient.getNavSummary(),
         apiClient.getFunds(),
@@ -137,7 +137,8 @@ export default function PortfolioPage() {
           console.warn('⚠️ Failed to fetch old investments:', err);
           return [];
         }),
-        apiClient.getMyTransfers().catch(() => [])
+        apiClient.getMyTransfers().catch(() => []),
+        apiClient.getCurrentUser().catch(() => null)
       ]);
 
       setInvestments(investmentsData);
@@ -150,13 +151,21 @@ export default function PortfolioPage() {
         : [];
       setFunds(activeFunds);
 
-      const profile = await apiClient.getCurrentUser();
-      const currentUserId = profile.id;
+      const currentUserId = profile?.id || user?.id;
 
-      const holdings = await apiClient.getInvestorHoldings(currentUserId).catch(() => []);
+      let holdings: any[] = [];
+      let dynamicStats: any = null;
+
+      if (currentUserId) {
+        [holdings, dynamicStats] = await Promise.all([
+          apiClient.getInvestorHoldings(currentUserId).catch(() => []),
+          apiClient.getInvestorStats(currentUserId).catch(() => null)
+        ]);
+      }
+
       setFundHoldings(holdings || []);
 
-      const totalInvested = investmentsData
+      const calculatedInvested = (investmentsData || [])
         .filter((inv: any) => inv.is_reconciled)
         .reduce((sum: number, inv: any) => sum + parseFloat(inv.investment_amount), 0);
 
@@ -164,11 +173,23 @@ export default function PortfolioPage() {
       const netUnits = activeHoldings.reduce((sum: number, h: any) => sum + parseFloat(h.total_units || 0), 0);
       const currentValue = activeHoldings.reduce((sum: number, h: any) => sum + parseFloat(h.max_value || 0), 0);
 
+      const totalInvested = dynamicStats && dynamicStats.totalInvested !== undefined
+        ? parseFloat(dynamicStats.totalInvested || 0)
+        : calculatedInvested;
+
+      const totalUnits = dynamicStats && dynamicStats.totalUnits !== undefined
+        ? parseFloat(dynamicStats.totalUnits || 0)
+        : netUnits;
+
+      const finalCurrentValue = dynamicStats && dynamicStats.totalValue !== undefined
+        ? parseFloat(dynamicStats.totalValue || 0)
+        : currentValue;
+
       setStats({
         totalInvested: totalInvested,
-        totalUnits: netUnits,
-        currentNav: navSummary.currentNav,
-        currentValue: currentValue,
+        totalUnits: totalUnits,
+        currentNav: navSummary?.currentNav || 0,
+        currentValue: finalCurrentValue,
       });
     } catch (error) {
       console.error('Error fetching portfolio data:', error);
