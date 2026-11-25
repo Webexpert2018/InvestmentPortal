@@ -184,6 +184,11 @@ Ovalia Capital Platform Knowledge & Investment Flow:
         };
       }
 
+      // Check for actionable investment intent (e.g. "make an investment", "invest $25,000", "i want to invest in...")
+      if (this.isActionableInvestmentIntent(userQuery)) {
+        return await this.handleInvestmentChecklist(userId, investorName, investorEmail, userQuery, openaiKey);
+      }
+
       // 3. Ask LLM to generate SQL or answer directly
       const investorSystemPrompt1 = `You are Athena, a direct, concise, and helpful AI Investment Assistant for Ovalia Capital.
 You are assisting the investor: ${investorName} (Internal User ID: '${userId}', Email: '${investorEmail}').
@@ -522,6 +527,257 @@ ${JSON.stringify(queryResults, null, 2)}`;
     } catch (error: any) {
       this.logger.error(`Error in AthenaService (admin): ${error.message}`);
       return { success: false, reply: `Sorry, an error occurred: ${error.message}` };
+    }
+  }
+
+  /**
+   * Detects if the investor query has an actionable investment intent (wants to make/start an investment).
+   */
+  private isActionableInvestmentIntent(userQuery: string): boolean {
+    const lower = userQuery.toLowerCase().trim();
+
+    // Pure informational "how to" inquiries should continue to regular guidance
+    const informationalPatterns = [
+      'how to invest',
+      'how do i invest',
+      'how can i invest',
+      'how do we invest',
+      'how to start investing',
+      'steps to invest',
+      'what are the steps to invest',
+      'tell me how to invest',
+      'how does investing work',
+      'investing process'
+    ];
+    if (informationalPatterns.some(p => lower.includes(p))) {
+      return false;
+    }
+
+    // Direct action patterns
+    const actionKeywords = [
+      'make an investment',
+      'make investment',
+      'start an investment',
+      'start investment',
+      'i want to invest',
+      'want to invest',
+      'ready to invest',
+      'like to invest',
+      'help me invest',
+      'invest in',
+      'invest into',
+      'invest now',
+      'put money in',
+      'commit'
+    ];
+
+    if (actionKeywords.some(kw => lower.includes(kw))) {
+      return true;
+    }
+
+    // Pattern like "invest $25,000" or "invest 10000"
+    if (/\binvest\s+\$?\d+/i.test(lower)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Prepares the investment review checklist for the investor with available funds, accounts,
+   * pre-filled selections, and $0 processing fee.
+   */
+  private async handleInvestmentChecklist(
+    userId: string,
+    investorName: string,
+    investorEmail: string,
+    userQuery: string,
+    openaiKey: string
+  ) {
+    try {
+      // 1. Fetch latest active published NAV
+      let activeNav = 100.0;
+      try {
+        const navRes = await db.query(
+          `SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1`
+        );
+        if (navRes.rows.length > 0 && parseFloat(navRes.rows[0].nav_per_unit) > 0) {
+          activeNav = parseFloat(navRes.rows[0].nav_per_unit);
+        }
+      } catch (e: any) {
+        this.logger.warn(`Could not fetch active NAV for Athena: ${e.message}`);
+      }
+
+      // 2. Fetch available active funds
+      const fundsRes = await db.query(
+        `SELECT id, name, description, min_investment, unit_price, status 
+         FROM funds 
+         WHERE status IS NULL OR (LOWER(status) != 'draft' AND LOWER(status) != 'closed')
+         ORDER BY name ASC`
+      );
+      const funds = fundsRes.rows.map((f: any) => ({
+        id: f.id,
+        name: f.name,
+        description: f.description || '',
+        unitPrice: activeNav > 0 ? activeNav : (parseFloat(f.unit_price) > 0 ? parseFloat(f.unit_price) : 100.0),
+        minInvestment: parseFloat(f.min_investment) || 0,
+      }));
+
+      // 3. Fetch investor accounts (Personal, IRAs, Sub-accounts)
+      const accounts: any[] = [
+        { id: 'personal', name: 'Personal Account', type: 'personal', category: 'Personal Account' }
+      ];
+
+      try {
+        const iraRes = await db.query(
+          `SELECT id, account_type, custodian_name, account_number, status 
+           FROM ira_accounts 
+           WHERE user_id = $1::uuid 
+           ORDER BY account_type ASC`,
+          [userId]
+        );
+        for (const ira of iraRes.rows) {
+          const rawType = (ira.account_type || 'IRA').trim();
+          const typeClean = rawType.replace(/\s+Account$/i, '');
+          accounts.push({
+            id: ira.id,
+            name: `${typeClean} Account`,
+            type: typeClean,
+            custodian: ira.custodian_name,
+            isIra: true,
+            category: 'IRA Accounts'
+          });
+        }
+      } catch (e: any) {
+        this.logger.warn(`Could not fetch IRA accounts for Athena: ${e.message}`);
+      }
+
+      try {
+        const subRes = await db.query(
+          `SELECT id, full_name, investor_type, entity_name, entity_type, status 
+           FROM investors 
+           WHERE parent_id = $1::uuid 
+           ORDER BY created_at DESC`,
+          [userId]
+        );
+        for (const sub of subRes.rows) {
+          const rawLabel = (sub.entity_name || sub.full_name || 'Sub-Account').replace(/^AET\s+FBO\s+/i, '');
+          const isEntity = sub.investor_type === 'entity';
+          const isMinor = sub.investor_type === 'minor';
+          accounts.push({
+            id: sub.id,
+            name: rawLabel,
+            type: sub.investor_type || (isEntity ? 'entity' : isMinor ? 'minor' : 'subaccount'),
+            isSub: true,
+            category: 'Sub Accounts'
+          });
+        }
+
+        // Subaccount IRAs
+        const subIraRes = await db.query(
+          `SELECT ia.id, ia.account_type, ia.custodian_name, sub.full_name as "subFullName"
+           FROM ira_accounts ia
+           JOIN investors sub ON ia.user_id = sub.id
+           WHERE sub.parent_id = $1::uuid
+           ORDER BY ia.created_at DESC`,
+          [userId]
+        );
+        for (const subIra of subIraRes.rows) {
+          const typeStr = subIra.account_type ? subIra.account_type.trim() : '';
+          const formattedType = typeStr.toLowerCase().endsWith('ira') ? typeStr : `${typeStr} IRA`;
+          const cleanName = (subIra.subFullName || '').replace(/^AET\s+FBO\s+/i, '').trim();
+          const fullNameWithIra = `${cleanName} ${formattedType}`.trim();
+          accounts.push({
+            id: subIra.id,
+            name: fullNameWithIra,
+            type: subIra.account_type || 'sub_ira',
+            custodian: subIra.custodian_name,
+            isIra: true,
+            isSub: true,
+            isSubIra: true,
+            category: 'Sub Accounts'
+          });
+        }
+      } catch (e: any) {
+        this.logger.warn(`Could not fetch sub-accounts for Athena: ${e.message}`);
+      }
+
+      // 4. Extract parameters with OpenAI
+      let preselectedFundId = funds.length > 0 ? funds[0].id : '';
+      let preselectedAccountId = 'personal';
+      let preselectedAmount = '25000';
+
+      try {
+        const parsePrompt = `You are a financial intent parser.
+The investor asked: "${userQuery}".
+Available Funds:
+${funds.map((f: any) => `- ID: "${f.id}", Name: "${f.name}"`).join('\n')}
+Available Accounts:
+${accounts.map((a: any) => `- ID: "${a.id}", Name: "${a.name}"`).join('\n')}
+
+Extract:
+1. "fundId": the matching fund ID if the user mentioned a specific fund name or acronym, or null if none.
+2. "accountId": the matching account ID if user mentioned an IRA or sub-account, or null.
+3. "amount": numeric dollar amount if mentioned (e.g., "$50k" -> 50000, "$25,000" -> 25000), or null.
+
+Respond ONLY with valid JSON:
+{"fundId": string | null, "accountId": string | null, "amount": number | null}`;
+
+        const parseRes = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openaiKey}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [{ role: 'user', content: parsePrompt }],
+            response_format: { type: 'json_object' }
+          })
+        });
+
+        if (parseRes.ok) {
+          const parseData = await parseRes.json() as any;
+          const parsed = JSON.parse(parseData.choices[0]?.message?.content || '{}');
+          if (parsed.fundId && funds.some((f: any) => f.id === parsed.fundId)) {
+            preselectedFundId = parsed.fundId;
+          }
+          if (parsed.accountId && accounts.some((a: any) => a.id === parsed.accountId)) {
+            preselectedAccountId = parsed.accountId;
+          }
+          if (parsed.amount && !isNaN(parsed.amount) && parsed.amount > 0) {
+            preselectedAmount = String(parsed.amount);
+          }
+        }
+      } catch (err: any) {
+        this.logger.warn(`OpenAI parameter parse error: ${err.message}`);
+      }
+
+      const selectedFund = funds.find((f: any) => f.id === preselectedFundId) || funds[0];
+      const fundName = selectedFund ? selectedFund.name : 'the fund';
+
+      return {
+        success: true,
+        reply: `I have prepared your investment review checklist for **${fundName}**. Please review your selected account, fund, and customize the investment amount below. When you're ready, click **Continue to Sign Documents** to electronically sign your subscription agreement.`,
+        action: {
+          type: 'INVESTMENT_CHECKLIST',
+          data: {
+            funds,
+            accounts,
+            defaultFundId: preselectedFundId,
+            defaultAccountId: preselectedAccountId,
+            defaultAmount: preselectedAmount,
+            unitPrice: activeNav > 0 ? activeNav : (selectedFund?.unitPrice || 100.0),
+            processingFeePercent: 0
+          }
+        }
+      };
+    } catch (error: any) {
+      this.logger.error(`Error in handleInvestmentChecklist: ${error.message}`);
+      return {
+        success: false,
+        reply: `I encountered an error preparing your investment review checklist: ${error.message}`
+      };
     }
   }
 }

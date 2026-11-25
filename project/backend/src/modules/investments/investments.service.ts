@@ -45,14 +45,14 @@ export class InvestmentsService {
 
       const activeUnitPrice = navResult.rows.length > 0 ? parseFloat(navResult.rows[0].nav_per_unit) : 100.0;
 
-      // Respect custom fixed unit price if provided (e.g. from an invite), otherwise use active NAV
+      // Respect custom fixed unit price if locked via an invite token, otherwise strictly use active published NAV
       const customPrice = data.unitPrice ? parseFloat(String(data.unitPrice)) : null;
-      const unitPrice = (customPrice && !isNaN(customPrice) && customPrice > 0)
+      const unitPrice = (data.inviteToken && customPrice && !isNaN(customPrice) && customPrice > 0)
         ? customPrice
         : activeUnitPrice;
 
-      // 2. Calculate processing fee (0.5% fixed) and units based on fixed/active unit price
-      const processingFee = Number((investmentAmount * 0.005).toFixed(2));
+      // 2. Processing fee is 0 (no fee), and calculate units based on fixed/active unit price
+      const processingFee = data.processingFee !== undefined ? Number(data.processingFee) : 0;
       const totalAmount = Number((investmentAmount + processingFee).toFixed(2));
       const estimatedUnits = Number((investmentAmount / unitPrice).toFixed(8));
 

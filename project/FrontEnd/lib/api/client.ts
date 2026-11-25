@@ -67,6 +67,7 @@ class ApiClient {
     if (!response.ok) {
       if (response.status === 401 && typeof window !== 'undefined' && !endpoint.includes('/auth/')) {
         localStorage.removeItem('token');
+        try { window.dispatchEvent(new Event('auth:logout')); } catch (e) {}
         // Check current path to determine which login page to use
         const path = window.location.pathname;
         if (path.includes('/dashboard/admin')) {
@@ -896,13 +897,15 @@ class ApiClient {
   // Investments
   async createInvestment(data: {
     fundId: string;
-    accountId?: string;
+    accountId?: string | null;
     accountType: string;
     investmentAmount: number | string;
     unitPrice: number;
+    processingFee?: number;
     status?: string;
     documentSigned?: boolean;
     envelopeId?: string;
+    inviteToken?: string | null;
   }) {
 
     return this.request<any>('/investments', {
@@ -1644,7 +1647,7 @@ class ApiClient {
   }
 
   async queryAthena(query: string) {
-    return this.request<{ success: boolean; reply: string }>('/athena/query', {
+    return this.request<{ success: boolean; reply: string; action?: any }>('/athena/query', {
       method: 'POST',
       body: JSON.stringify({ query }),
     });

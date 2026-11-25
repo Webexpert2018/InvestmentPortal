@@ -76,6 +76,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       setSessionExpired(true);
       localStorage.removeItem('token');
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth:logout'));
+      }
     } finally {
       setLoading(false);
     }
@@ -121,6 +124,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('token');
     setUser(null);
     setSessionExpired(false);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth:logout'));
+    }
 
     const adminRoles = ['admin', 'executive_admin', 'fund_admin', 'investor_relations'];
     if (adminRoles.includes(role || '')) {

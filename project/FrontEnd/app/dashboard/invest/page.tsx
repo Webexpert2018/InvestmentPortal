@@ -123,17 +123,20 @@ export default function InvestPage() {
       let draftSelectedFundId = selectedFundId;
       let draftAccountId = selectedAccountId;
       let draftAccountType = 'personal';
+      let draftInviteToken = loadedInviteToken;
 
       if (draftJson) {
         try {
           const draft = JSON.parse(draftJson);
-          if (draft.fundId) {
-            setSelectedFundId(draft.fundId);
-            draftSelectedFundId = draft.fundId;
+          const resolvedFundId = draft.fundId || draft.selectedFundId;
+          if (resolvedFundId) {
+            setSelectedFundId(resolvedFundId);
+            draftSelectedFundId = resolvedFundId;
           }
-          if (draft.accountId) {
-            setSelectedAccountId(draft.accountId);
-            draftAccountId = draft.accountId;
+          const resolvedAccountId = draft.accountId !== undefined ? draft.accountId : draft.selectedAccountId;
+          if (resolvedAccountId !== undefined) {
+            setSelectedAccountId(resolvedAccountId);
+            draftAccountId = resolvedAccountId;
           }
           if (draft.amount) {
             setAmount(String(draft.amount));
@@ -143,11 +146,13 @@ export default function InvestPage() {
             setUnitPrice(draft.unitPrice);
             draftUnitPrice = draft.unitPrice;
           }
-          if (draft.accountType) {
-            draftAccountType = draft.accountType;
+          const resolvedAccountType = draft.accountType || draft.selectedAccountType;
+          if (resolvedAccountType) {
+            draftAccountType = resolvedAccountType;
           }
           if (draft.inviteToken) {
             setLoadedInviteToken(draft.inviteToken);
+            draftInviteToken = draft.inviteToken;
           }
         } catch (e) {
           console.error('Failed to parse draft investment:', e);
@@ -171,7 +176,7 @@ export default function InvestPage() {
             status: 'Subscription Submitted',
             documentSigned: true,
             envelopeId: savedEnvelopeId || undefined,
-            inviteToken: loadedInviteToken || undefined
+            inviteToken: draftInviteToken || loadedInviteToken || undefined
           });
 
 
