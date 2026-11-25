@@ -45,6 +45,11 @@ export class CreateInvestmentDto {
   @IsString()
   @IsOptional()
   envelopeId?: string;
+
+  @ApiProperty({ description: 'The investment invite token if initiated from an invite', required: false })
+  @IsString()
+  @IsOptional()
+  inviteToken?: string;
 }
 
 

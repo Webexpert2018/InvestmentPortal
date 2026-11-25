@@ -45,13 +45,49 @@ export class InvestmentsService {
 
       const activeUnitPrice = navResult.rows.length > 0 ? parseFloat(navResult.rows[0].nav_per_unit) : 100.0;
 
-      // Respect custom fixed unit price if locked via an invite token, otherwise strictly use active published NAV
-      const customPrice = data.unitPrice ? parseFloat(String(data.unitPrice)) : null;
-      const unitPrice = (data.inviteToken && customPrice && !isNaN(customPrice) && customPrice > 0)
-        ? customPrice
-        : activeUnitPrice;
+      // 2. Check if this investment is backed by an invite (explicit token or pending invite for user + fund)
+      let inviteUnitPrice: number | null = null;
+      let matchedInviteToken: string | null = null;
 
-      // 2. Processing fee is 0 (no fee), and calculate units based on fixed/active unit price
+      if (data.inviteToken) {
+        const inviteCheck = await db.query(
+          `SELECT token, unit_price FROM investment_invites 
+           WHERE token = $1 AND (status = 'pending' OR status = 'completed')`,
+          [data.inviteToken]
+        );
+        if (inviteCheck.rows.length > 0) {
+          matchedInviteToken = inviteCheck.rows[0].token;
+          if (inviteCheck.rows[0].unit_price && parseFloat(inviteCheck.rows[0].unit_price) > 0) {
+            inviteUnitPrice = parseFloat(inviteCheck.rows[0].unit_price);
+          }
+        }
+      }
+
+      if (!matchedInviteToken) {
+        // Fallback: check if user has an active pending invite for this specific fund
+        const fallbackCheck = await db.query(
+          `SELECT token, unit_price FROM investment_invites 
+           WHERE (investor_id = $1 OR investor_id = $2) 
+           AND fund_id = $3 
+           AND status = 'pending' 
+           ORDER BY created_at DESC LIMIT 1`,
+          [targetUserId, userId, fundId]
+        );
+        if (fallbackCheck.rows.length > 0) {
+          matchedInviteToken = fallbackCheck.rows[0].token;
+          if (fallbackCheck.rows[0].unit_price && parseFloat(fallbackCheck.rows[0].unit_price) > 0) {
+            inviteUnitPrice = parseFloat(fallbackCheck.rows[0].unit_price);
+          }
+        }
+      }
+
+      // Respect custom fixed unit price if locked via invite, otherwise strictly use active published NAV
+      const customPrice = data.unitPrice ? parseFloat(String(data.unitPrice)) : null;
+      const unitPrice = inviteUnitPrice
+        || ((matchedInviteToken || data.inviteToken) && customPrice && !isNaN(customPrice) && customPrice > 0 ? customPrice : null)
+        || activeUnitPrice;
+
+      // 3. Processing fee is 0 (no fee), and calculate units based on fixed/active unit price
       const processingFee = data.processingFee !== undefined ? Number(data.processingFee) : 0;
       const totalAmount = Number((investmentAmount + processingFee).toFixed(2));
       const estimatedUnits = Number((investmentAmount / unitPrice).toFixed(8));
@@ -85,9 +121,10 @@ export class InvestmentsService {
       const investment = result.rows[0];
 
       // Mark invite token as completed if this investment was initiated from an invite
-      if (data.inviteToken) {
+      const tokenToComplete = matchedInviteToken || data.inviteToken;
+      if (tokenToComplete) {
         try {
-          await db.query("UPDATE investment_invites SET status = 'completed' WHERE token = $1", [data.inviteToken]);
+          await db.query("UPDATE investment_invites SET status = 'completed' WHERE token = $1", [tokenToComplete]);
         } catch (inviteErr) {
           console.warn('⚠️ Failed to mark invite as completed:', inviteErr);
         }
@@ -155,7 +192,7 @@ export class InvestmentsService {
                 // Determine document type (operating_agreement or subscription_agreement)
                 let documentType = 'subscription_agreement';
                 let fileName = `SA-${cleanFundName}.pdf`;
-                
+
                 const lowerName = docInfo.name?.toLowerCase() || '';
                 if (lowerName.includes('operating agreement') || lowerName.includes('oa')) {
                   documentType = 'operating_agreement';
@@ -356,7 +393,7 @@ export class InvestmentsService {
 
       if (investments.length > 0) {
         const ownershipIds = investments.map(inv => inv.investmentOwnershipId);
-        
+
         const distQuery = `
           SELECT 
             distribution_id as "distributionId",
