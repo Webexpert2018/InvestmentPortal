@@ -222,19 +222,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         )}
 
 
-        <main className={`flex-1 overflow-y-auto overflow-x-auto px-4 py-6 sm:px-6 bg-[#F5F7FA] dark:bg-[#121212]
-            ${user
-            ? isCollapsed
-              ? "sidebar_closed"
-              : "sidebar_open"
-            : ""
-          }
+        <div className="flex-1 flex min-w-0 overflow-hidden relative">
+          <main className={`flex-1 overflow-y-auto overflow-x-auto px-4 py-6 sm:px-6 bg-[#F5F7FA] dark:bg-[#121212] transition-all duration-300
+              ${user
+              ? isCollapsed
+                ? "sidebar_closed"
+                : "sidebar_open"
+              : ""
+            }
 
-            lg:px-8
-          `}
-        >
-          {children}
-        </main>
+              lg:px-8
+            `}
+          >
+            {children}
+          </main>
+
+          {(normalizeRole(user?.role) === 'executive_admin' || normalizeRole(user?.role) === 'investor') && <AthenaWidget />}
+        </div>
       </div>
 
       {sessionExpired && (
@@ -279,7 +283,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
       )}
-      {(normalizeRole(user?.role) === 'executive_admin' || normalizeRole(user?.role) === 'investor') && <AthenaWidget />}
     </div>
   );
 }

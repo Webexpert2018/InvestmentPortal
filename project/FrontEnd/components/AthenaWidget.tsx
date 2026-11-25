@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Loader2, Send } from 'lucide-react';
+import { Loader2, Send, X } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
@@ -41,16 +41,16 @@ export function AthenaWidget() {
 
   const quickPrompts = isInvestor
     ? [
-        'My portfolio summary',
-        'How do I invest?',
-        'My recent investments',
-        'How does redemption work?'
-      ]
+      'My portfolio summary',
+      'How do I invest?',
+      'My recent investments',
+      'How does redemption work?'
+    ]
     : [
-        'Show interested doctors',
-        'Find missing investments',
-        'What is the pipeline?'
-      ];
+      'Show interested doctors',
+      'Find missing investments',
+      'What is the pipeline?'
+    ];
 
   const [isAgentOpen, setIsAgentOpen] = useState(cachedIsAgentOpen);
   const [agentInput, setAgentInput] = useState('');
@@ -133,38 +133,43 @@ export function AthenaWidget() {
 
   return (
     <>
-      {/* Collapsible & Expandable Floating OpenAI Athena Widget */}
-      {!isAgentOpen ? (
-        /* Collapsed Pill Button in Bottom Right */
-        <button
-          onClick={() => setIsAgentOpen(true)}
-          className="fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-50 bg-[#1F1F1F] hover:bg-[#2D2D2D] text-white p-3.5 px-5 rounded-full shadow-2xl border border-gray-700 flex items-center gap-3 transition-all transform hover:scale-105 group cursor-pointer"
-          title={isInvestor ? "Open Athena Investment Assistant" : "Open Athena AI Agent"}
-        >
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] font-bold shadow-md shrink-0">
-            <AthenaIcon className="w-5 h-5 text-[#1F1F1F]" />
-          </div>
-          <div className="text-left pr-1">
-            <div className="text-[14px] font-bold text-white flex items-center gap-1.5 leading-tight">
-              Athena
-              <span className="w-2 h-2 rounded-full bg-[#FFC63F] animate-pulse" />
-            </div>
-            <div className="text-[12px] text-gray-400">
-              {isInvestor ? 'Investment Assistant' : 'Ask AI Agent'}
-            </div>
-          </div>
-        </button>
-      ) : (
-        /* Expanded Floating Chat Drawer Window */
-        <div className="fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-50 w-[calc(100vw-2rem)] sm:w-[420px] h-[590px] max-h-[85vh] bg-[#1F1F1F] rounded-[24px] text-white shadow-2xl border border-gray-800 flex flex-col justify-between overflow-hidden transition-all duration-300">
-          {/* Header - Click anywhere to minimize */}
-          <div
-            onClick={() => setIsAgentOpen(false)}
-            className="p-4 bg-[#181818] hover:bg-[#202020] border-b border-gray-800 flex items-center justify-between gap-2 shrink-0 cursor-pointer select-none transition-colors group"
-            title="Click to minimize"
-          >
+      {/* Collapsed Pill Button in Bottom Right */}
+      <button
+        onClick={() => setIsAgentOpen(true)}
+        className={`fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-50 bg-[#1F1F1F] hover:bg-[#2D2D2D] text-white py-2.5 px-3.5 sm:px-4 rounded-full shadow-2xl border border-gray-700 flex items-center gap-2 transition-all duration-300 transform group cursor-pointer whitespace-nowrap ${
+          isAgentOpen
+            ? 'opacity-0 scale-90 pointer-events-none translate-y-4'
+            : 'opacity-100 scale-100 pointer-events-auto translate-y-0 hover:scale-105'
+        }`}
+        title={isInvestor ? "Open Athena Investment Assistant" : "Open Athena AI Agent"}
+      >
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] font-bold shadow-md shrink-0">
+          <AthenaIcon className="w-4 h-4 text-[#1F1F1F]" />
+        </div>
+        <div className="flex items-center gap-1.5 text-[13px] leading-none">
+          <span className="font-bold text-white flex items-center gap-1.5">
+            Athena:
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FFC63F] animate-pulse" />
+          </span>
+          <span className="text-gray-300 font-medium">
+            {isInvestor ? 'Investment Assistant' : 'Ask AI Agent'}
+          </span>
+        </div>
+      </button>
+
+      {/* Docked Athena Side Panel with Smooth Slide Transition */}
+      <aside
+        className={`fixed inset-y-0 right-0 z-40 sm:relative sm:inset-auto sm:z-20 h-full shrink-0 bg-[#181818] border-l border-gray-200 dark:border-gray-800 flex flex-col justify-between overflow-hidden shadow-2xl transition-all duration-300 ease-in-out ${
+          isAgentOpen
+            ? 'w-full sm:w-[350px] opacity-100 border-l pointer-events-auto'
+            : 'w-0 opacity-0 border-l-0 pointer-events-none'
+        }`}
+      >
+        <div className="w-screen sm:w-[350px] h-full flex flex-col justify-between shrink-0">
+          {/* Header */}
+          <div className="p-4 bg-[#141414] border-b border-gray-800 flex items-center justify-between gap-2 shrink-0 select-none">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] font-bold shadow-md shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FFC63F] to-[#F1B92E] flex items-center justify-center text-[#1F1F1F] font-bold shadow-md shrink-0">
                 <AthenaIcon className="w-5 h-5 text-[#1F1F1F]" />
               </div>
               <div className="min-w-0">
@@ -176,6 +181,16 @@ export function AthenaWidget() {
                 </h3>
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setIsAgentOpen(false)}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              title="Close Athena panel"
+              aria-label="Close Athena panel"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Scrollable Chat Body */}
@@ -212,7 +227,7 @@ export function AthenaWidget() {
           </div>
 
           {/* Quick Prompts & Footer Input */}
-          <div className="p-4 pt-2 border-t border-gray-800/80 bg-[#181818] shrink-0">
+          <div className="p-4 pt-2 border-t border-gray-800/80 bg-[#141414] shrink-0">
             <div className="flex flex-wrap gap-1.5 mb-3">
               <span className="text-[11px] font-semibold text-gray-400 py-0.5">Quick prompts:</span>
               {quickPrompts.map((chip, idx) => (
@@ -265,7 +280,7 @@ export function AthenaWidget() {
             </form>
           </div>
         </div>
-      )}
+      </aside>
     </>
   );
 }
