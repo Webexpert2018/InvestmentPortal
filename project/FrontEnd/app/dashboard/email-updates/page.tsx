@@ -738,10 +738,10 @@ export default function EmailUpdatesPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button
               onClick={handleNewCampaign}
-              className="rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-black font-semibold px-5 shadow-xs gap-2"
+              className="w-full sm:w-auto rounded-full bg-[#FFC63F] hover:bg-[#F1B92E] text-black font-semibold px-5 shadow-xs gap-2"
             >
               <Plus className="w-4 h-4" />
               <span>{activeTab === 'compose' && selectedCampaignId ? 'Create New Email' : 'Compose Update'}</span>
@@ -750,8 +750,8 @@ export default function EmailUpdatesPage() {
         </div>
 
         {/* NAVIGATION TABS (All Campaigns vs Compose Update) */}
-        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 overflow-x-auto custom-scrollbar">
+          <div className="flex items-center gap-2 min-w-max">
             <button
               onClick={() => setActiveTab('compose')}
               className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-all ${activeTab === 'compose'
@@ -1403,14 +1403,14 @@ export default function EmailUpdatesPage() {
         {activeTab === 'campaigns' && (
           <div className="space-y-4">
             {/* Filter Bar */}
-            <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl p-4 border border-[#E5E7EB] dark:border-gray-800 shadow-sm flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Status:</span>
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl p-4 border border-[#E5E7EB] dark:border-gray-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 shrink-0">Status:</span>
                 {(['All', 'Draft', 'Scheduled', 'Sent', 'Failed'] as const).map((st) => (
                   <button
                     key={st}
                     onClick={() => setStatusFilter(st)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${statusFilter === st
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 ${statusFilter === st
                       ? 'bg-gray-900 text-white dark:bg-[#FFC63F] dark:text-black shadow-xs'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                       }`}
@@ -1420,7 +1420,7 @@ export default function EmailUpdatesPage() {
                 ))}
               </div>
 
-              <div className="relative min-w-[260px]">
+              <div className="relative w-full md:w-72 shrink-0">
                 <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
@@ -1432,141 +1432,244 @@ export default function EmailUpdatesPage() {
               </div>
             </div>
 
-            {/* Table */}
-            <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl border border-[#E5E7EB] dark:border-gray-800 shadow-sm overflow-hidden">
-              <table className="w-full text-left text-sm border-collapse">
-                <thead>
-                  <tr className="border-b border-[#E5E7EB] dark:border-gray-800 bg-[#F9FAFB] dark:bg-[#161616] text-[13px] font-semibold text-gray-600 dark:text-gray-400">
-                    <th className="py-3 px-4">Subject</th>
-                    <th className="py-3 px-4">Target Fund</th>
-                    <th className="py-3 px-4 text-center">Recipients</th>
-                    <th className="py-3 px-4">Status & Date</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E5E7EB] dark:divide-gray-800">
-                  {isLoadingCampaigns ? (
-                    <tr>
-                      <td colSpan={5} className="py-12 text-center text-gray-400">
-                        <Loader2 className="w-8 h-8 mx-auto mb-2 text-gray-400 animate-spin" />
-                        <p className="font-semibold text-sm">Loading campaigns...</p>
-                      </td>
-                    </tr>
-                  ) : filteredCampaigns.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="py-12 text-center text-gray-400">
-                        <Mail className="w-8 h-8 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
-                        <p className="font-semibold text-sm">No email updates found</p>
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredCampaigns.map((camp) => (
-                      <tr
-                        key={camp.id}
+            {/* Mobile Card View (< md screens) */}
+            <div className="block md:hidden space-y-3">
+              {isLoadingCampaigns ? (
+                <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl p-8 text-center text-gray-400 border border-[#E5E7EB] dark:border-gray-800">
+                  <Loader2 className="w-8 h-8 mx-auto mb-2 text-gray-400 animate-spin" />
+                  <p className="font-semibold text-sm">Loading campaigns...</p>
+                </div>
+              ) : filteredCampaigns.length === 0 ? (
+                <div className="bg-white dark:bg-[#1C1C1C] rounded-2xl p-8 text-center text-gray-400 border border-[#E5E7EB] dark:border-gray-800">
+                  <Mail className="w-8 h-8 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+                  <p className="font-semibold text-sm">No email updates found</p>
+                </div>
+              ) : (
+                filteredCampaigns.map((camp) => (
+                  <div
+                    key={camp.id}
+                    onClick={() => {
+                      loadCampaignIntoForm(camp);
+                      setActiveTab('compose');
+                    }}
+                    className={`bg-white dark:bg-[#1C1C1C] rounded-2xl p-4 border border-[#E5E7EB] dark:border-gray-800 shadow-sm space-y-3 cursor-pointer transition-all hover:border-[#FFC63F] ${selectedCampaignId === camp.id ? 'ring-2 ring-[#FFC63F]' : ''}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="font-semibold text-gray-900 dark:text-gray-100 text-sm leading-snug">
+                        {camp.subject}
+                      </div>
+                      {selectedCampaignId === camp.id && (
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${camp.status === 'Sent' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-[#FFC63F] text-black'}`}>
+                          {camp.status === 'Sent' ? 'Sent' : 'Editing'}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-gray-400 line-clamp-2">
+                      {stripHtmlForSnippet(camp.body).substring(0, 100)}...
+                    </p>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100 dark:border-gray-800/80 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2.5 py-0.5 rounded-md">
+                          {camp.fundName}
+                        </span>
+                        <span className="inline-flex items-center gap-1 font-bold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-2.5 py-0.5 rounded-md">
+                          <Users className="w-3 h-3 text-[#FFC63F]" />
+                          {camp.recipientCount}
+                        </span>
+                      </div>
+
+                      <div>
+                        {camp.status === 'Sent' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-400 border border-green-200 dark:border-green-800">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Sent {formatDateTime(camp.sentAt)}
+                          </span>
+                        )}
+                        {camp.status === 'Scheduled' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                            <Clock className="w-3 h-3" />
+                            {formatDateTime(camp.scheduledAt)}
+                          </span>
+                        )}
+                        {camp.status === 'Draft' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                            <FileEdit className="w-3 h-3" />
+                            Draft
+                          </span>
+                        )}
+                        {camp.status === 'Failed' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-800">
+                            <XCircle className="w-3 h-3" />
+                            Failed
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => {
                           loadCampaignIntoForm(camp);
                           setActiveTab('compose');
                         }}
-                        className={`hover:bg-gray-50/80 dark:hover:bg-gray-800/40 cursor-pointer transition-colors ${selectedCampaignId === camp.id ? 'bg-amber-50/70 dark:bg-amber-950/30 ring-1 ring-inset ring-[#FFC63F]/60' : ''}`}
+                        className="rounded-lg text-xs py-1 px-3 border-gray-300 dark:border-gray-700 flex-1 sm:flex-initial"
                       >
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-2">
-                            <div className="font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400">
-                              {camp.subject}
-                            </div>
-                            {selectedCampaignId === camp.id && (
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${camp.status === 'Sent' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-[#FFC63F] text-black'}`}>
-                                {camp.status === 'Sent' ? 'Viewing Sent' : 'Currently Editing'}
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-400 truncate max-w-md mt-0.5 line-clamp-1">
-                            {stripHtmlForSnippet(camp.body).substring(0, 80)}...
-                          </div>
-                        </td>
+                        {camp.status === 'Sent' ? 'View' : 'Edit'}
+                      </Button>
+                      <button
+                        onClick={(e) => handleDelete(camp.id, e)}
+                        className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
 
-                        <td className="py-3.5 px-4 font-medium text-gray-700 dark:text-gray-300">
-                          {camp.fundName}
-                        </td>
-
-                        <td className="py-3.5 px-4 text-center">
-                          <span className="inline-flex items-center gap-1 text-xs font-bold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-full">
-                            <Users className="w-3 h-3 text-[#FFC63F]" />
-                            {camp.recipientCount}
-                          </span>
-                        </td>
-
-                        <td className="py-3.5 px-4">
-                          {camp.status === 'Sent' && (
-                            <div className="space-y-0.5">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-400 border border-green-200 dark:border-green-800">
-                                <CheckCircle2 className="w-3 h-3" />
-                                Sent
-                              </span>
-                              <div className="text-[11px] text-gray-400">{formatDateTime(camp.sentAt)}</div>
-                            </div>
-                          )}
-
-                          {camp.status === 'Scheduled' && (
-                            <div className="space-y-0.5">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
-                                <Clock className="w-3 h-3" />
-                                Scheduled
-                              </span>
-                              <div className="text-[11px] text-gray-400">{formatDateTime(camp.scheduledAt)}</div>
-                            </div>
-                          )}
-
-                          {camp.status === 'Draft' && (
-                            <div className="space-y-0.5">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                                <FileEdit className="w-3 h-3" />
-                                Draft
-                              </span>
-                              <div className="text-[11px] text-gray-400">
-                                {camp.updatedAt ? `Saved ${formatDateTime(camp.updatedAt)}` : 'Draft'}
-                              </div>
-                            </div>
-                          )}
-
-                          {camp.status === 'Failed' && (
-                            <div className="space-y-0.5">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-800">
-                                <XCircle className="w-3 h-3" />
-                                Failed
-                              </span>
-                              <div className="text-[11px] text-red-500">{camp.failedReason || 'Delivery error'}</div>
-                            </div>
-                          )}
-                        </td>
-
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="inline-flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                loadCampaignIntoForm(camp);
-                                setActiveTab('compose');
-                              }}
-                              className="rounded-lg text-xs py-1 px-3 border-gray-300 dark:border-gray-700"
-                            >
-                              {camp.status === 'Sent' ? 'View' : 'Edit'}
-                            </Button>
-                            <button
-                              onClick={(e) => handleDelete(camp.id, e)}
-                              className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+            {/* Desktop & Tablet Table (md+ screens) */}
+            <div className="hidden md:block bg-white dark:bg-[#1C1C1C] rounded-2xl border border-[#E5E7EB] dark:border-gray-800 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full min-w-[760px] text-left text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-[#E5E7EB] dark:border-gray-800 bg-[#F9FAFB] dark:bg-[#161616] text-[13px] font-semibold text-gray-600 dark:text-gray-400">
+                      <th className="py-3 px-4 min-w-[260px]">Subject</th>
+                      <th className="py-3 px-4 min-w-[130px] whitespace-nowrap">Target Fund</th>
+                      <th className="py-3 px-4 min-w-[90px] text-center whitespace-nowrap">Recipients</th>
+                      <th className="py-3 px-4 min-w-[140px] whitespace-nowrap">Status & Date</th>
+                      <th className="py-3 px-4 min-w-[110px] text-right whitespace-nowrap">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E5E7EB] dark:divide-gray-800">
+                    {isLoadingCampaigns ? (
+                      <tr>
+                        <td colSpan={5} className="py-12 text-center text-gray-400">
+                          <Loader2 className="w-8 h-8 mx-auto mb-2 text-gray-400 animate-spin" />
+                          <p className="font-semibold text-sm">Loading campaigns...</p>
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : filteredCampaigns.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-12 text-center text-gray-400">
+                          <Mail className="w-8 h-8 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+                          <p className="font-semibold text-sm">No email updates found</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredCampaigns.map((camp) => (
+                        <tr
+                          key={camp.id}
+                          onClick={() => {
+                            loadCampaignIntoForm(camp);
+                            setActiveTab('compose');
+                          }}
+                          className={`hover:bg-gray-50/80 dark:hover:bg-gray-800/40 cursor-pointer transition-colors ${selectedCampaignId === camp.id ? 'bg-amber-50/70 dark:bg-amber-950/30 ring-1 ring-inset ring-[#FFC63F]/60' : ''}`}
+                        >
+                          <td className="py-3.5 px-4 min-w-[260px]">
+                            <div className="flex items-center gap-2">
+                              <div className="font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400">
+                                {camp.subject}
+                              </div>
+                              {selectedCampaignId === camp.id && (
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${camp.status === 'Sent' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-[#FFC63F] text-black'}`}>
+                                  {camp.status === 'Sent' ? 'Viewing Sent' : 'Currently Editing'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-400 truncate max-w-md mt-0.5 line-clamp-1">
+                              {stripHtmlForSnippet(camp.body).substring(0, 80)}...
+                            </div>
+                          </td>
+
+                          <td className="py-3.5 px-4 font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                            {camp.fundName}
+                          </td>
+
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 text-xs font-bold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-full">
+                              <Users className="w-3 h-3 text-[#FFC63F]" />
+                              {camp.recipientCount}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            {camp.status === 'Sent' && (
+                              <div className="space-y-0.5">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-400 border border-green-200 dark:border-green-800">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  Sent
+                                </span>
+                                <div className="text-[11px] text-gray-400">{formatDateTime(camp.sentAt)}</div>
+                              </div>
+                            )}
+
+                            {camp.status === 'Scheduled' && (
+                              <div className="space-y-0.5">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                                  <Clock className="w-3 h-3" />
+                                  Scheduled
+                                </span>
+                                <div className="text-[11px] text-gray-400">{formatDateTime(camp.scheduledAt)}</div>
+                              </div>
+                            )}
+
+                            {camp.status === 'Draft' && (
+                              <div className="space-y-0.5">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                                  <FileEdit className="w-3 h-3" />
+                                  Draft
+                                </span>
+                                <div className="text-[11px] text-gray-400">
+                                  {camp.updatedAt ? `Saved ${formatDateTime(camp.updatedAt)}` : 'Draft'}
+                                </div>
+                              </div>
+                            )}
+
+                            {camp.status === 'Failed' && (
+                              <div className="space-y-0.5">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-800">
+                                  <XCircle className="w-3 h-3" />
+                                  Failed
+                                </span>
+                                <div className="text-[11px] text-red-500">{camp.failedReason || 'Delivery error'}</div>
+                              </div>
+                            )}
+                          </td>
+
+                          <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                            <div className="inline-flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  loadCampaignIntoForm(camp);
+                                  setActiveTab('compose');
+                                }}
+                                className="rounded-lg text-xs py-1 px-3 border-gray-300 dark:border-gray-700"
+                              >
+                                {camp.status === 'Sent' ? 'View' : 'Edit'}
+                              </Button>
+                              <button
+                                onClick={(e) => handleDelete(camp.id, e)}
+                                className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
