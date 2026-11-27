@@ -104,4 +104,17 @@ export const messageAttachmentStorage = new CloudinaryStorage({
   } as any,
 });
 
+// Storage for Investor Financials Images
+export const investorFinancialImageStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'investment-portal/investor-financials',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+    public_id: (req: any, file: any) => {
+      const id = req.params?.id || 'doc';
+      return `financial-${id}-${Date.now()}`;
+    },
+  } as any,
+});
+
 export { cloudinary };

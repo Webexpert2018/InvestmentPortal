@@ -28,6 +28,7 @@ import {
   GitFork,
   PhoneCall,
   Mail,
+  Landmark,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -157,10 +158,22 @@ const menuItems: MenuItem[] = [
     roles: ['admin', 'executive_admin', 'fund_admin', 'accountant'],
   },
   {
+    title: 'Investor Financials',
+    href: '/dashboard/investor-financials',
+    icon: Landmark,
+    roles: ['admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant'],
+  },
+  {
     title: 'Fund Transfers',
     href: '/dashboard/funds/transfers',
     icon: ArrowRightLeft,
     roles: ['admin', 'executive_admin', 'fund_admin', 'accountant'],
+  },
+  {
+    title: 'Email Updates',
+    href: '/dashboard/email-updates',
+    icon: Mail,
+    roles: ['admin', 'executive_admin'],
   },
   {
     title: 'Document Signatures',
@@ -203,12 +216,6 @@ const menuItems: MenuItem[] = [
     href: '/dashboard/doctor-crm/email-sequence',
     icon: GitFork,
     roles: ['admin', 'executive_admin', 'investor_relations'],
-  },
-  {
-    title: 'Email Updates',
-    href: '/dashboard/email-updates',
-    icon: Mail,
-    roles: ['admin', 'executive_admin'],
   },
   {
     title: 'Staff',

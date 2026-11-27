@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Calendar as CalendarIcon, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ export default function NAVEntryPage() {
   const [adminStats, setAdminStats] = useState<any>(null);
   const [btcPerformance, setBtcPerformance] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
+  const [allHistory, setAllHistory] = useState<any[]>([]);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [confirmationChecked, setConfirmationChecked] = useState(false);
   const [formData, setFormData] = useState({
@@ -28,6 +29,22 @@ export default function NAVEntryPage() {
     navPerUnit: '',
     note: '',
   });
+
+  // Active lookup date: either the form's effectiveDate or today's date by default
+  const activeLookupDate = useMemo(() => {
+    if (formData.effectiveDate) {
+      const parts = formData.effectiveDate.split('-');
+      if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const d = parseInt(parts[2], 10);
+        return new Date(y, m, d);
+      }
+      const parsed = new Date(formData.effectiveDate);
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+    return new Date();
+  }, [formData.effectiveDate]);
 
   useEffect(() => {
     fetchHistory();
@@ -106,20 +123,73 @@ export default function NAVEntryPage() {
   const fetchHistory = async () => {
     try {
       const res = await apiClient.getNavHistory();
-      setHistory(res.slice(0, 5)); // Keep recent 5
+      setAllHistory(res || []);
+      setHistory((res || []).slice(0, 10)); // Keep recent 10
     } catch (error) {
       console.error('Error fetching history:', error);
     }
   };
 
+  const effectiveNav = useMemo(() => {
+    if (!activeLookupDate || allHistory.length === 0) return null;
+    const lookupDateStr = format(activeLookupDate, 'yyyy-MM-dd');
+    const nonDrafts = allHistory.filter(
+      item => String(item.status || '').toLowerCase() !== 'draft'
+    );
+    const eligible = nonDrafts.filter(item => {
+      const itemDateStr = String(item.effective_date).slice(0, 10);
+      return itemDateStr <= lookupDateStr;
+    });
+    eligible.sort((a, b) => {
+      const dateDiff = new Date(b.effective_date).getTime() - new Date(a.effective_date).getTime();
+      if (dateDiff !== 0) return dateDiff;
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    });
+    return eligible[0] || null;
+  }, [activeLookupDate, allHistory]);
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Published':
+        return 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-100 dark:border-emerald-800/30';
+      case 'Draft':
+        return 'text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/40 border border-sky-100 dark:border-sky-800/30';
+      case 'Inactive':
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700';
+      default:
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800';
+    }
+  };
+
   const recentEntries = history.map(item => {
     const date = new Date(item.effective_date);
-    const month = date.getMonth();
+    const month = date.getUTCMonth();
     const quarter = Math.floor(month / 3) + 1;
+    const year = date.getUTCFullYear();
+    const formattedDate = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC'
+    });
+
+    const fundVal = parseFloat(item.total_fund_value || 0);
+    const unitsNum = parseFloat(item.total_units || 0);
+    const navNum = parseFloat(item.nav_per_unit || 0);
+
+    const rawStatusLower = String(item.status || '').toLowerCase();
+    const statusLabel = (rawStatusLower === 'active' || rawStatusLower === 'published') ? 'Published' :
+      rawStatusLower === 'draft' ? 'Draft' : 'Inactive';
+
     return {
-      quarter: `Q${quarter} ${date.getFullYear()}`,
+      id: item.id,
+      quarter: `Q${quarter} ${year}`,
       date: item.effective_date,
-      value: `$${parseFloat(item.nav_per_unit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      formattedDate,
+      fundValue: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(fundVal),
+      units: unitsNum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+      navPerUnit: `$${navNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      status: statusLabel,
     };
   });
 
@@ -238,10 +308,10 @@ export default function NAVEntryPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Side - Form */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 items-start">
+          {/* Left Side (col-span-2) - Quarterly NAV Entry Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-4 md:p-8">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-6 md:p-8 border border-gray-100 dark:border-gray-800">
               <div className="space-y-6">
                 {/* Effective Date and Total Fund Value */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -393,22 +463,120 @@ export default function NAVEntryPage() {
             </div>
           </div>
 
-          {/* Right Side - Recent NAV Entries */}
-          <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b p-6">Recent NAV Entries</h3>
-              <div className="space-y-3 p-6">
-                {recentEntries.map((entry, index) => (
-                  <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{entry.quarter}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{entry.date}</p>
+          {/* Right Side (col-span-1) - Historical NAV Lookup synced with Effective Date / Today */}
+          <div className="lg:col-span-1 flex flex-col">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 p-5 sm:p-6 h-full flex flex-col justify-between">
+              <div>
+                <div className="pb-3 border-b border-gray-100 dark:border-gray-800 mb-4">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Historical NAV Lookup</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {formData.effectiveDate ? 'Active NAV & values for selected date' : "Showing active NAV for today's date"}
+                  </p>
+                </div>
+
+                {effectiveNav ? (
+                  <div className="bg-[#FAF9F5] dark:bg-gray-800/40 rounded-xl p-4 border border-gray-200/60 dark:border-gray-800">
+                    <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200/50 dark:border-gray-700/50">
+                      <div>
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">
+                          {formData.effectiveDate ? 'Effective Date' : "Default (Today)"}
+                        </span>
+                        <p className="text-xs font-bold text-gray-900 dark:text-gray-100">{format(activeLookupDate, "PPP")}</p>
+                      </div>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusBadge(effectiveNav.status === 'active' || effectiveNav.status === 'published' ? 'Published' : 'Inactive')}`}>
+                        {effectiveNav.status === 'active' || effectiveNav.status === 'published' ? 'Published' : 'Inactive'}
+                      </span>
                     </div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{entry.value}</p>
+
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="bg-white dark:bg-[#1C1C1C] rounded-lg p-2.5 border border-gray-100 dark:border-gray-800">
+                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">NAV / Unit</p>
+                        <p className="text-sm font-bold text-[#1F3B6E] dark:text-[#FFC63F]">
+                          ${parseFloat(effectiveNav.nav_per_unit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div className="bg-white dark:bg-[#1C1C1C] rounded-lg p-2.5 border border-gray-100 dark:border-gray-800">
+                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Units</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                          {parseFloat(effectiveNav.total_units || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                        </p>
+                      </div>
+                      <div className="bg-white dark:bg-[#1C1C1C] rounded-lg p-2.5 border border-gray-100 dark:border-gray-800">
+                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Fund Value</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                          {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(effectiveNav.total_fund_value || 0))}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-2.5 border-t border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400">
+                      <span>Effective Since:</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">
+                        {format(new Date(effectiveNav.effective_date), "MMM d, yyyy")}
+                      </span>
+                    </div>
                   </div>
-                ))}
+                ) : (
+                  <div className="bg-gray-50 dark:bg-gray-800/40 rounded-xl p-4 text-center border border-gray-200/60 dark:border-gray-800">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      No published or inactive NAV record was effective on or before {format(activeLookupDate, "PPP")}.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4 p-3.5 rounded-lg bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/30 text-[11px] text-gray-600 dark:text-gray-400">
+                <p className="font-semibold text-amber-900 dark:text-amber-300 mb-0.5">Auto-Synced Lookup</p>
+                <p>
+                  Selecting an <strong>Effective Date</strong> in the form automatically updates these active NAV values. When none is selected, today's active rate is shown by default.
+                </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Recent NAV Entries Table */}
+        <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden mb-8">
+          <div className="p-6 border-b border-gray-100 dark:border-gray-800">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent NAV Entries</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-[#FAF9F5] dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
+                <tr>
+                  <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Quarter</th>
+                  <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Effective Date</th>
+                  <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund Value</th>
+                  <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Units</th>
+                  <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">NAV per Unit</th>
+                  <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                {recentEntries.length > 0 ? (
+                  recentEntries.map((entry) => (
+                    <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{entry.quarter}</td>
+                      <td className="px-6 py-4 text-gray-700 dark:text-gray-300 font-medium whitespace-nowrap">{entry.formattedDate}</td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{entry.fundValue}</td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{entry.units}</td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{entry.navPerUnit}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${getStatusBadge(entry.status)}`}>
+                          {entry.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-400 italic">
+                      No recent NAV entries found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 

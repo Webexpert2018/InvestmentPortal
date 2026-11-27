@@ -2014,6 +2014,71 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  // --- Investor Financials ---
+  async getInvestorFinancials(search?: string) {
+    const qs = search ? `?search=${encodeURIComponent(search)}` : '';
+    return this.request<any[]>(`/investor-financials${qs}`);
+  }
+
+  async getInvestorFinancial(id: string) {
+    return this.request<any>(`/investor-financials/${id}`);
+  }
+
+  async createInvestorFinancial(data: {
+    name?: string | null;
+    email?: string | null;
+    investor_id?: string | null;
+    income?: number;
+    expenses?: number;
+    liability?: number;
+    assets?: number;
+    notes?: string | null;
+  }) {
+    return this.request<any>('/investor-financials', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateInvestorFinancial(
+    id: string,
+    data: {
+      name?: string | null;
+      email?: string | null;
+      investor_id?: string | null;
+      income?: number;
+      expenses?: number;
+      liability?: number;
+      assets?: number;
+      notes?: string | null;
+    }
+  ) {
+    return this.request<any>(`/investor-financials/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteInvestorFinancial(id: string) {
+    return this.request<{ success: boolean; message: string }>(`/investor-financials/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async searchRegisteredInvestors(query?: string) {
+    const qs = query ? `?q=${encodeURIComponent(query)}` : '';
+    return this.request<Array<{ id: string; name: string; email: string }>>(`/investor-financials/search-investors${qs}`);
+  }
+
+  async uploadInvestorFinancialImage(id: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.request<any>(`/investor-financials/${id}/image`, {
+      method: 'POST',
+      body: formData,
+    });
+  }
 }
 
 export const apiClient = new ApiClient();

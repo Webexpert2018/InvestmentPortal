@@ -136,6 +136,11 @@ const isRouteAuthorized = (pathname: string, userRole: string | null | undefined
     return role === 'investor' || role === 'admin' || role === 'executive_admin' || role === 'fund_admin';
   }
 
+  // --- Investor Financials (Admin, Executive Admin, Fund Admin, Investor Relations, Accountant) ---
+  if (pathname === '/dashboard/investor-financials' || pathname.startsWith('/dashboard/investor-financials/')) {
+    return role === 'admin' || role === 'executive_admin' || role === 'fund_admin' || role === 'investor_relations' || role === 'accountant';
+  }
+
   // --- Funding Details (Investor, Admin, Executive Admin, Fund Admin, Accountant) ---
   if (pathname.startsWith('/dashboard/funding/')) {
     return role === 'investor' || role === 'admin' || role === 'executive_admin' || role === 'fund_admin' || role === 'accountant';

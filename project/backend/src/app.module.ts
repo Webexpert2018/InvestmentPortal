@@ -33,6 +33,7 @@ import { FundTransfersModule } from './modules/fund-transfers/fund-transfers.mod
 import { RingCentralModule } from './modules/ringcentral/ringcentral.module';
 import { DocumentSignaturesModule } from './modules/document-signatures/document-signatures.module';
 import { AthenaModule } from './modules/athena/athena.module';
+import { InvestorFinancialsModule } from './modules/investor-financials/investor-financials.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { AthenaModule } from './modules/athena/athena.module';
     RingCentralModule,
     DocumentSignaturesModule,
     AthenaModule,
+    InvestorFinancialsModule,
   ],
   controllers: [HealthController],
 })
