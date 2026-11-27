@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { X, GripVertical, UserPlus, Mail, Phone, Loader2, ChevronDown, Pencil, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, GripVertical, UserPlus, Mail, Phone, Loader2, ChevronDown, Pencil, CalendarDays, ChevronLeft, ChevronRight, Landmark, TrendingUp, TrendingDown, Building, CreditCard, ExternalLink, FileText, Image as ImageIcon } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { COUNTRY_CODES } from '@/lib/countryCodes';
 import { useAuth } from '@/lib/contexts/AuthContext';
@@ -151,6 +151,68 @@ export default function PipelinePage() {
   const [scheduledDate, setScheduledDate] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [calendarDate, setCalendarDate] = useState(new Date());
+
+  // Financial details modal state
+  const [showFinancialModal, setShowFinancialModal] = useState(false);
+  const [financialInvestor, setFinancialInvestor] = useState<any | null>(null);
+  const [financialRecord, setFinancialRecord] = useState<any | null>(null);
+  const [loadingFinancialRecord, setLoadingFinancialRecord] = useState(false);
+  const [financialPreviewImage, setFinancialPreviewImage] = useState<string | null>(null);
+
+  const handleOpenFinancialModal = async (investor: any) => {
+    setFinancialInvestor(investor);
+    setShowFinancialModal(true);
+    setLoadingFinancialRecord(true);
+    setFinancialRecord(null);
+
+    try {
+      let rec: any = null;
+      if (investor?.id) {
+        try {
+          const byId = await apiClient.getInvestorFinancialByInvestorId(investor.id.toString());
+          if (byId && byId.id) rec = byId;
+        } catch (e) {
+          // not found by id
+        }
+      }
+
+      if (!rec && investor?.email) {
+        try {
+          const searchRes = await apiClient.getInvestorFinancials(investor.email);
+          if (Array.isArray(searchRes) && searchRes.length > 0) {
+            rec = searchRes.find((item: any) =>
+              (investor.id && item.investor_id === investor.id) ||
+              (item.email && item.email.toLowerCase() === investor.email.toLowerCase())
+            ) || searchRes[0];
+          }
+        } catch (e) {
+          // search failed
+        }
+      }
+
+      if (!rec && (investor?.name || investor?.fullName)) {
+        try {
+          const nameToSearch = investor.name || investor.fullName;
+          const searchRes = await apiClient.getInvestorFinancials(nameToSearch);
+          if (Array.isArray(searchRes) && searchRes.length > 0) {
+            rec = searchRes.find((item: any) =>
+              (item.name && item.name.toLowerCase() === nameToSearch.toLowerCase()) ||
+              (investor.email && item.email?.toLowerCase() === investor.email?.toLowerCase())
+            ) || searchRes[0];
+          }
+        } catch (e) {
+          // search failed
+        }
+      }
+
+      setFinancialRecord(rec);
+    } catch (err) {
+      console.error('Failed to load investor financials:', err);
+      setFinancialRecord(null);
+    } finally {
+      setLoadingFinancialRecord(false);
+    }
+  };
 
   const topScrollRef = useRef<HTMLDivElement>(null);
   const boardScrollRef = useRef<HTMLDivElement>(null);
@@ -1082,6 +1144,19 @@ export default function PipelinePage() {
                                                       {investor.status || 'prospect'}
                                                     </span>
 
+                                                    {/* Financial Details Icon Button */}
+                                                    <button
+                                                      type="button"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleOpenFinancialModal(investor);
+                                                      }}
+                                                      className="flex-none p-1 text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded transition-colors"
+                                                      title="View Financial Details"
+                                                    >
+                                                      <Landmark className="w-3.5 h-3.5" />
+                                                    </button>
+
 
 
 
@@ -1648,6 +1723,266 @@ export default function PipelinePage() {
           </div>
         )}
 
+        {/* Investor Financial Details Modal */}
+        {showFinancialModal && financialInvestor && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-[#1C1C1C] rounded-[2rem] p-6 sm:p-8 w-full max-w-2xl shadow-2xl scale-in-95 animate-in overflow-y-auto max-h-[90vh] border border-gray-100 dark:border-gray-800">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-6 border-b border-gray-100 dark:border-gray-800 mb-6">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center shadow-sm flex-none">
+                    <Landmark className="w-6 h-6" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
+                        {financialInvestor.name || financialInvestor.fullName || 'Investor Financials'}
+                      </h2>
+                      <span className={cn(
+                        "px-2 py-0.5 text-[9px] font-black uppercase rounded-md tracking-tighter",
+                        financialInvestor.status === 'active' ? "bg-green-100 dark:bg-emerald-900/30 text-green-700 dark:text-emerald-400" :
+                          financialInvestor.status === 'pending' ? "bg-yellow-100 dark:bg-amber-900/30 text-yellow-700 dark:text-amber-400" :
+                            "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                      )}>
+                        {financialInvestor.status || 'prospect'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                      {financialInvestor.email || 'No email provided'} • Financial Breakdown & Discovery
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowFinancialModal(false)}
+                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex-none"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Body */}
+              {loadingFinancialRecord ? (
+                <div className="py-16 flex flex-col items-center justify-center gap-3">
+                  <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Loading financial details...</p>
+                </div>
+              ) : financialRecord ? (
+                <div className="space-y-6">
+                  {/* Estimated Net Worth Card */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-emerald-50 dark:from-amber-950/20 dark:to-emerald-950/20 border border-amber-200/60 dark:border-amber-800/40 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                        Estimated Net Worth (Assets - Liabilities)
+                      </span>
+                      <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                        ${((financialRecord.assets || 0) - (financialRecord.liability || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Expected Investment</span>
+                      <span className="text-base font-extrabold text-gray-800 dark:text-gray-200">
+                        {formatCompactAmount(financialInvestor.expectedFutureInvestment || 0)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 4 Colored Breakdown Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Income */}
+                    <div className="bg-[#F0FDF4] dark:bg-emerald-950/20 border-2 border-[#BBF7D0] dark:border-emerald-800/50 rounded-2xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-bold text-[#166534] dark:text-emerald-400 uppercase tracking-wide">
+                          Income
+                        </span>
+                        <div className="p-1.5 bg-[#DCFCE7] dark:bg-emerald-900/40 text-[#166534] dark:text-emerald-300 rounded-lg border border-[#BBF7D0] dark:border-emerald-700/50">
+                          <TrendingUp className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="text-[11px] text-[#15803D] dark:text-emerald-500 font-medium mb-1.5">
+                        Annual / Ongoing revenue
+                      </div>
+                      <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                        ${Number(financialRecord.income || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+
+                    {/* Expenses */}
+                    <div className="bg-[#FEF7ED] dark:bg-amber-950/20 border-2 border-[#F9DFC0] dark:border-amber-800/50 rounded-2xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-bold text-[#8C4F13] dark:text-amber-400 uppercase tracking-wide">
+                          Expenses
+                        </span>
+                        <div className="p-1.5 bg-[#FCECDA] dark:bg-amber-900/40 text-[#8C4F13] dark:text-amber-300 rounded-lg border border-[#F5D7B1] dark:border-amber-700/50">
+                          <TrendingDown className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="text-[11px] text-[#8F5B25] dark:text-amber-500 font-medium mb-1.5">
+                        Annual commitments & costs
+                      </div>
+                      <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                        ${Number(financialRecord.expenses || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+
+                    {/* Assets */}
+                    <div className="bg-[#F0F6FF] dark:bg-blue-950/20 border-2 border-[#BFDBFE] dark:border-blue-800/50 rounded-2xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-bold text-[#1D4ED8] dark:text-blue-400 uppercase tracking-wide">
+                          Assets
+                        </span>
+                        <div className="p-1.5 bg-[#DBEAFE] dark:bg-blue-900/40 text-[#1D4ED8] dark:text-blue-300 rounded-lg border border-[#BFDBFE] dark:border-blue-700/50">
+                          <Building className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="text-[11px] text-[#2563EB] dark:text-blue-500 font-medium mb-1.5">
+                        Real estate, liquid, equity
+                      </div>
+                      <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                        ${Number(financialRecord.assets || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+
+                    {/* Liabilities */}
+                    <div className="bg-[#FFF1F2] dark:bg-rose-950/20 border-2 border-[#FECDD3] dark:border-rose-800/50 rounded-2xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-bold text-[#BE123C] dark:text-rose-400 uppercase tracking-wide">
+                          Liabilities
+                        </span>
+                        <div className="p-1.5 bg-[#FFE4E6] dark:bg-rose-900/40 text-[#BE123C] dark:text-rose-300 rounded-lg border border-[#FECDD3] dark:border-rose-700/50">
+                          <CreditCard className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="text-[11px] text-[#E11D48] dark:text-rose-500 font-medium mb-1.5">
+                        Mortgages, loans & debts
+                      </div>
+                      <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                        ${Number(financialRecord.liability || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Notes / Observations */}
+                  {financialRecord.notes && (
+                    <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                      <div className="flex items-center gap-2 mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <FileText className="w-4 h-4 text-amber-600" />
+                        Meeting Notes & Observations
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                        {financialRecord.notes}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Document / Card Image Preview */}
+                  {financialRecord.imageUrl && (
+                    <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                      <div className="flex items-center gap-2 mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <ImageIcon className="w-4 h-4 text-blue-600" />
+                        Discovery Document / Card Image
+                      </div>
+                      <div 
+                        onClick={() => setFinancialPreviewImage(financialRecord.imageUrl)}
+                        className="cursor-pointer group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 max-w-xs aspect-video bg-black/5"
+                      >
+                        <img 
+                          src={financialRecord.imageUrl} 
+                          alt="Discovery Document" 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold">
+                          Click to view full image
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="py-12 flex flex-col items-center justify-center text-center px-4">
+                  <div className="w-16 h-16 rounded-3xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-4">
+                    <Landmark className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-1">
+                    No Financial Profile Found
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mb-6">
+                    No financial discovery record (income, expenses, assets, liabilities) has been added for this investor yet.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowFinancialModal(false);
+                      if (financialInvestor.id && financialInvestor.status !== 'prospect') {
+                        router.push(`/dashboard/investor/${financialInvestor.id}?tab=financials`);
+                      } else {
+                        router.push(`/dashboard/investor-financials`);
+                      }
+                    }}
+                    className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-2"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open Financials to Create Record
+                  </button>
+                </div>
+              )}
+
+              {/* Footer */}
+              <div className="flex items-center justify-between pt-6 mt-6 border-t border-gray-100 dark:border-gray-800">
+                {financialInvestor.id && financialInvestor.status !== 'prospect' ? (
+                  <button
+                    onClick={() => {
+                      setShowFinancialModal(false);
+                      router.push(`/dashboard/investor/${financialInvestor.id}?tab=financials`);
+                    }}
+                    className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open Full Profile in Investor Hub
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setShowFinancialModal(false);
+                      router.push(`/dashboard/investor-financials`);
+                    }}
+                    className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open Investor Financials Console
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setShowFinancialModal(false)}
+                  className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs rounded-xl transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Image Preview Lightbox Modal */}
+        {financialPreviewImage && (
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[60] p-4 animate-in fade-in"
+            onClick={() => setFinancialPreviewImage(null)}
+          >
+            <div className="relative max-w-4xl max-h-[90vh] bg-black rounded-2xl overflow-hidden shadow-2xl p-2" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setFinancialPreviewImage(null)}
+                className="absolute top-4 right-4 z-10 p-2 bg-black/60 hover:bg-black/90 text-white rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <img
+                src={financialPreviewImage}
+                alt="Document Preview"
+                className="max-h-[85vh] w-auto object-contain mx-auto rounded-lg"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

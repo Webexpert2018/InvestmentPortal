@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -8,7 +8,8 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import {
   ChevronLeft, X, ChevronDown, ChevronUp, FileText, Download, Calendar, CalendarDays, Mail, Phone,
   Shield, MapPin, User, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle, Plus, Info, Pencil, Filter, MessageSquare,
-  RefreshCw, Clock, Send, RotateCw
+  RefreshCw, Clock, Send, RotateCw, TrendingUp, TrendingDown, Building, CreditCard, UploadCloud,
+  Image as ImageIcon, AlertCircle, Check, Save, Landmark, Trash2
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { apiClient, BASE_URL, API_URL } from '@/lib/api/client';
@@ -92,6 +93,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     if (tabParam === 'redemption') return 'redemption';
     if (tabParam === 'legacy_docs' || tabParam === 'legacy') return 'legacy_docs';
     if (tabParam === 'investment_invites' || tabParam === 'invites') return 'investment_invites';
+    if (tabParam === 'financials') return 'financials';
     return 'basic';
   });
 
@@ -102,6 +104,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
       else if (tabParam === 'redemption') setActiveTab('redemption');
       else if (tabParam === 'legacy_docs' || tabParam === 'legacy') setActiveTab('legacy_docs');
       else if (tabParam === 'investment_invites' || tabParam === 'invites') setActiveTab('investment_invites');
+      else if (tabParam === 'financials') setActiveTab('financials');
       else if (tabParam === 'basic') setActiveTab('basic');
     }
   }, [tabParam]);
@@ -398,6 +401,208 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
 
   const [isDetailsOpen, setIsDetailsOpen] = useState(true);
 
+  // --- Financials Tab State ---
+  const [financialRecord, setFinancialRecord] = useState<any | null>(null);
+  const [loadingFinancials, setLoadingFinancials] = useState(false);
+  const [creatingFinancials, setCreatingFinancials] = useState(false);
+
+  const getInvestorFullName = useCallback((data: any) => {
+    if (!data) return '';
+    const fromFirstLast = [data.firstName, data.lastName].filter(Boolean).join(' ').trim();
+    if (fromFirstLast) return fromFirstLast;
+    if (data.fullName && typeof data.fullName === 'string' && data.fullName.trim()) return data.fullName.trim();
+    if (data.full_name && typeof data.full_name === 'string' && data.full_name.trim()) return data.full_name.trim();
+    if (data.name && typeof data.name === 'string' && data.name.trim()) return data.name.trim();
+    return '';
+  }, []);
+
+  const investorFullName = useMemo(() => getInvestorFullName(investorData), [investorData, getInvestorFullName]);
+
+  const [financialEdit, setFinancialEdit] = useState<{
+    name: string;
+    email: string;
+    income: string;
+    expenses: string;
+    liability: string;
+    assets: string;
+    notes: string;
+    saving: boolean;
+    savedSuccess: boolean;
+    error: string | null;
+  }>({
+    name: '',
+    email: '',
+    income: '0',
+    expenses: '0',
+    liability: '0',
+    assets: '0',
+    notes: '',
+    saving: false,
+    savedSuccess: false,
+    error: null,
+  });
+  const [uploadingFinancialImage, setUploadingFinancialImage] = useState(false);
+  const [financialImageError, setFinancialImageError] = useState<string | null>(null);
+  const [financialDragOver, setFinancialDragOver] = useState(false);
+  const [financialPreviewImageUrl, setFinancialPreviewImageUrl] = useState<string | null>(null);
+
+  const fetchFinancialRecord = useCallback(async () => {
+    if (!params.id) return;
+    setLoadingFinancials(true);
+    try {
+      const res = await apiClient.getInvestorFinancialByInvestorId(params.id);
+      const currentFullName = getInvestorFullName(investorData);
+      if (res && res.id) {
+        setFinancialRecord(res);
+        setFinancialEdit({
+          name: currentFullName || (res.name && res.name !== 'Investor' ? res.name : '') || 'Investor',
+          email: investorData?.email || res.email || '',
+          income: res.income !== undefined ? String(res.income) : '0',
+          expenses: res.expenses !== undefined ? String(res.expenses) : '0',
+          liability: res.liability !== undefined ? String(res.liability) : '0',
+          assets: res.assets !== undefined ? String(res.assets) : '0',
+          notes: res.notes || '',
+          saving: false,
+          savedSuccess: false,
+          error: null,
+        });
+      } else {
+        setFinancialRecord(null);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch investor financials:', err);
+      setFinancialRecord(null);
+    } finally {
+      setLoadingFinancials(false);
+    }
+  }, [params.id, investorData, getInvestorFullName]);
+
+  useEffect(() => {
+    if (activeTab === 'financials') {
+      fetchFinancialRecord();
+    }
+  }, [activeTab, fetchFinancialRecord]);
+
+  useEffect(() => {
+    const fullName = getInvestorFullName(investorData);
+    if (fullName) {
+      setFinancialEdit((prev) => ({
+        ...prev,
+        name: fullName,
+        email: investorData?.email || prev.email,
+      }));
+    }
+  }, [investorData, getInvestorFullName]);
+
+  const handleCreateFinancialRecord = async () => {
+    setCreatingFinancials(true);
+    try {
+      const prefilledName = getInvestorFullName(investorData) || 'Investor';
+      const prefilledEmail = (investorData?.email || '').trim() || null;
+      const created = await apiClient.createInvestorFinancial({
+        name: prefilledName,
+        email: prefilledEmail,
+        investor_id: params.id,
+        income: 0,
+        expenses: 0,
+        liability: 0,
+        assets: 0,
+        notes: '',
+      });
+      setFinancialRecord(created);
+      setFinancialEdit({
+        name: prefilledName,
+        email: created.email || prefilledEmail || '',
+        income: '0',
+        expenses: '0',
+        liability: '0',
+        assets: '0',
+        notes: '',
+        saving: false,
+        savedSuccess: true,
+        error: null,
+      });
+      toast.success('Financial profile created successfully');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create financial profile');
+    } finally {
+      setCreatingFinancials(false);
+    }
+  };
+
+  const handleFinancialFieldChange = (field: string, val: string) => {
+    setFinancialEdit((prev) => ({
+      ...prev,
+      [field]: val,
+      savedSuccess: false,
+    }));
+  };
+
+  const handleSaveFinancialRecord = async () => {
+    if (!financialRecord?.id) return;
+    const resolvedName = getInvestorFullName(investorData) || (financialEdit.name && financialEdit.name !== 'Investor' ? financialEdit.name : '') || 'Investor';
+    const resolvedEmail = investorData?.email || (financialEdit.email || '').trim() || null;
+
+    setFinancialEdit((prev) => ({ ...prev, saving: true, error: null, savedSuccess: false }));
+    try {
+      const payload = {
+        name: resolvedName,
+        email: resolvedEmail,
+        income: parseFloat(financialEdit.income) || 0,
+        expenses: parseFloat(financialEdit.expenses) || 0,
+        liability: parseFloat(financialEdit.liability) || 0,
+        assets: parseFloat(financialEdit.assets) || 0,
+        notes: financialEdit.notes || null,
+      };
+      const updated = await apiClient.updateInvestorFinancial(financialRecord.id, payload);
+      setFinancialRecord((prev: any) => ({ ...prev, ...updated }));
+      setFinancialEdit((prev) => ({ ...prev, name: resolvedName, email: resolvedEmail || '', saving: false, savedSuccess: true, error: null }));
+      setTimeout(() => {
+        setFinancialEdit((prev) => ({ ...prev, savedSuccess: false }));
+      }, 3000);
+    } catch (err: any) {
+      setFinancialEdit((prev) => ({ ...prev, saving: false, error: err.message || 'Failed to save changes' }));
+    }
+  };
+
+  const handleFinancialImageChange = async (file: File | null) => {
+    if (!file || !financialRecord?.id) return;
+    const MAX_IMAGE_SIZE_MB = 5;
+    const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+    const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/gif'];
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setFinancialImageError('Invalid file type. Please upload a JPG, PNG, WebP, or GIF image.');
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      const actualSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      setFinancialImageError(`Image size (${actualSizeMB} MB) exceeds the fixed maximum limit of ${MAX_IMAGE_SIZE_MB} MB.`);
+      return;
+    }
+
+    setFinancialImageError(null);
+    setUploadingFinancialImage(true);
+    try {
+      const res = await apiClient.uploadInvestorFinancialImage(financialRecord.id, file);
+      setFinancialRecord((prev: any) => ({ ...prev, imageUrl: res.imageUrl || res.image_url }));
+      toast.success('Document / Card image uploaded successfully');
+    } catch (err: any) {
+      setFinancialImageError(err.message || 'Failed to upload image to Cloudinary');
+      toast.error(err.message || 'Failed to upload image');
+    } finally {
+      setUploadingFinancialImage(false);
+    }
+  };
+
+  const formatFinancialCurrency = (val: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    }).format(val);
+  };
+
   const tabs = [
     { id: 'basic', label: 'Basic Details' },
     { id: 'kyc', label: 'KYC Status' },
@@ -407,6 +612,7 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
     { id: 'fund_holdings', label: 'Fund Holdings' },
     { id: 'legacy_docs', label: 'Legacy Documents' },
     { id: 'investment_invites', label: 'Investment Invites' },
+    { id: 'financials', label: 'Financials' },
   ];
 
   const getStatusColor = (status: string) => {
@@ -2456,6 +2662,501 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
                 </div>
               );
             })()}
+
+            {activeTab === 'financials' && (() => {
+              const netWorth = (parseFloat(financialEdit.assets) || 0) - (parseFloat(financialEdit.liability) || 0);
+              const displayName = investorFullName || (financialEdit.name && financialEdit.name !== 'Investor' ? financialEdit.name : '') || 'Investor';
+              const displayEmail = investorData?.email || financialEdit.email || 'No email specified';
+              const initials = displayName
+                .split(' ')
+                .map((part: string) => part[0])
+                .filter(Boolean)
+                .slice(0, 2)
+                .join('')
+                .toUpperCase() || 'IN';
+
+              if (loadingFinancials && !financialRecord) {
+                return (
+                  <div className="flex flex-col items-center justify-center p-12 text-slate-400">
+                    <Loader2 className="w-8 h-8 animate-spin text-amber-500 mb-3" />
+                    <p className="text-xs font-medium">Loading financial details...</p>
+                  </div>
+                );
+              }
+
+              if (!financialRecord) {
+                return (
+                  <div className="bg-white dark:bg-[#1A1A1A] border border-slate-200 dark:border-[#2C2C2C] rounded-2xl p-10 text-center shadow-sm">
+                    <div className="w-14 h-14 bg-amber-50 dark:bg-amber-950/30 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-200 dark:border-amber-800/40">
+                      <Landmark className="w-7 h-7 text-amber-600" />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-800 dark:text-gray-100 mb-1">
+                      No Financial Details Found
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-gray-400 max-w-md mx-auto mb-5">
+                      No financial discovery details have been recorded for this investor yet. Click below to initialize their financial profile with prefilled contact information.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleCreateFinancialRecord}
+                      disabled={creatingFinancials}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
+                    >
+                      {creatingFinancials ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Initializing...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4" />
+                          Add Financial Details
+                        </>
+                      )}
+                    </button>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="bg-white dark:bg-[#1A1A1A] border border-slate-200 dark:border-[#2C2C2C] rounded-2xl p-5 sm:p-7 shadow-sm space-y-6">
+                  {/* Top Bar with Avatar, Name, Email, and Net Worth */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-[#2C2C2C]">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-700 dark:text-gray-200 text-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
+                        {initials}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="text-base font-bold text-slate-800 dark:text-gray-100 font-serif">
+                            {displayName}
+                          </h4>
+                          {financialRecord.imageUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setFinancialPreviewImageUrl(financialRecord.imageUrl)}
+                              className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium hover:bg-emerald-100 transition-colors"
+                            >
+                              <ImageIcon className="w-3 h-3" />
+                              Image Attached
+                            </button>
+                          )}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 mt-0.5">
+                          <Mail className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{displayEmail}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-left sm:text-right">
+                      <div className="text-[11px] text-slate-400 uppercase font-semibold">Net Worth</div>
+                      <div className={`text-base font-bold font-serif ${netWorth >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600'}`}>
+                        {formatFinancialCurrency(netWorth)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Person Contact Details Inline - Non-editable */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-slate-200 dark:border-[#2C2C2C]">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-gray-300 mb-1">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={investorFullName || (financialEdit.name && financialEdit.name !== 'Investor' ? financialEdit.name : '') || 'Investor'}
+                        readOnly
+                        disabled
+                        placeholder="Investor Name"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-gray-300 cursor-not-allowed select-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-gray-300 mb-1">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={investorData?.email || financialEdit.email || ''}
+                        readOnly
+                        disabled
+                        placeholder="Investor Email"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-gray-300 cursor-not-allowed select-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4 Colored Neutral Financial Cards in 2x2 Grid */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-semibold text-slate-600 dark:text-gray-300 uppercase tracking-wider">
+                        Financial Breakdown (Editable)
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        Values update net worth in real-time
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* 1. Income Card (Soft Sage Tint) */}
+                      <div className="bg-[#F0F7F2] border-2 border-[#C2E2CC] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold text-[#1E5C32] uppercase tracking-wide">
+                            Income
+                          </span>
+                          <div className="p-1.5 bg-[#D5EEDC] text-[#1E5C32] rounded-lg border border-[#BDE3C8]">
+                            <TrendingUp className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div className="text-[11px] text-[#2E6B42] font-medium mb-2">
+                          Annual / Ongoing revenue
+                        </div>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#2E6B42] text-sm font-semibold">
+                            $
+                          </span>
+                          <input
+                            type="number"
+                            step="any"
+                            value={financialEdit.income}
+                            onChange={(e) => handleFinancialFieldChange('income', e.target.value)}
+                            onBlur={handleSaveFinancialRecord}
+                            className="w-full pl-7 pr-3 py-2 bg-white border border-[#BDE3C8] rounded-lg text-slate-900 font-bold text-base focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-500 shadow-sm"
+                          />
+                        </div>
+                      </div>
+
+                      {/* 2. Expenses Card (Soft Amber Tint) */}
+                      <div className="bg-[#FEF7ED] border-2 border-[#F9DFC0] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold text-[#8C4F13] uppercase tracking-wide">
+                            Expenses
+                          </span>
+                          <div className="p-1.5 bg-[#FCECDA] text-[#8C4F13] rounded-lg border border-[#F5D7B1]">
+                            <TrendingDown className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div className="text-[11px] text-[#8F5B25] font-medium mb-2">
+                          Annual commitments & costs
+                        </div>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8F5B25] text-sm font-semibold">
+                            $
+                          </span>
+                          <input
+                            type="number"
+                            step="any"
+                            value={financialEdit.expenses}
+                            onChange={(e) => handleFinancialFieldChange('expenses', e.target.value)}
+                            onBlur={handleSaveFinancialRecord}
+                            className="w-full pl-7 pr-3 py-2 bg-white border border-[#F5D7B1] rounded-lg text-slate-900 font-bold text-base focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-500 shadow-sm"
+                          />
+                        </div>
+                      </div>
+
+                      {/* 3. Assets Card (Soft Sky Blue Tint) */}
+                      <div className="bg-[#F0F6FF] border-2 border-[#BFDBFE] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold text-[#1D4ED8] uppercase tracking-wide">
+                            Assets
+                          </span>
+                          <div className="p-1.5 bg-[#DBEAFE] text-[#1D4ED8] rounded-lg border border-[#BFDBFE]">
+                            <Building className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div className="text-[11px] text-[#2563EB] font-medium mb-2">
+                          Real estate, liquid, equity
+                        </div>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#2563EB] text-sm font-semibold">
+                            $
+                          </span>
+                          <input
+                            type="number"
+                            step="any"
+                            value={financialEdit.assets}
+                            onChange={(e) => handleFinancialFieldChange('assets', e.target.value)}
+                            onBlur={handleSaveFinancialRecord}
+                            className="w-full pl-7 pr-3 py-2 bg-white border border-[#BFDBFE] rounded-lg text-slate-900 font-bold text-base focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-500 shadow-sm"
+                          />
+                        </div>
+                      </div>
+
+                      {/* 4. Liabilities Card (Soft Rose Tint) */}
+                      <div className="bg-[#FFF1F2] border-2 border-[#FECDD3] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold text-[#BE123C] uppercase tracking-wide">
+                            Liabilities
+                          </span>
+                          <div className="p-1.5 bg-[#FFE4E6] text-[#BE123C] rounded-lg border border-[#FECDD3]">
+                            <CreditCard className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div className="text-[11px] text-[#9F1239] font-medium mb-2">
+                          Mortgages, loans & debts
+                        </div>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#BE123C] text-sm font-semibold">
+                            $
+                          </span>
+                          <input
+                            type="number"
+                            step="any"
+                            value={financialEdit.liability}
+                            onChange={(e) => handleFinancialFieldChange('liability', e.target.value)}
+                            onBlur={handleSaveFinancialRecord}
+                            className="w-full pl-7 pr-3 py-2 bg-white border border-[#FECDD3] rounded-lg text-slate-900 font-bold text-base focus:outline-none focus:ring-2 focus:ring-rose-400/50 focus:border-rose-500 shadow-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Meeting Notes and Cloudinary Image Upload (2 Columns) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Column 1: Notes */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-gray-300 mb-1.5 uppercase tracking-wide">
+                        Meeting Notes & Observations
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={financialEdit.notes}
+                        onChange={(e) => handleFinancialFieldChange('notes', e.target.value)}
+                        onBlur={handleSaveFinancialRecord}
+                        placeholder="Add notes from discovery meetings, investment appetite, target horizon..."
+                        className="w-full px-3 py-2 text-sm bg-white dark:bg-[#141414] border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400"
+                      />
+                    </div>
+
+                    {/* Column 2: Image Upload (Cloudinary with fixed 5MB validation) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-gray-300 uppercase tracking-wide">
+                          Discovery Document / Card Image
+                        </label>
+                        <span className="text-[11px] text-slate-400">Fixed max: 5 MB</span>
+                      </div>
+
+                      {financialImageError && (
+                        <div className="mb-2 p-2 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs flex items-center gap-1.5">
+                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span>{financialImageError}</span>
+                        </div>
+                      )}
+
+                      {financialRecord.imageUrl ? (
+                        <div
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!financialDragOver) setFinancialDragOver(true);
+                          }}
+                          onDragEnter={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setFinancialDragOver(true);
+                          }}
+                          onDragLeave={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setFinancialDragOver(false);
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setFinancialDragOver(false);
+                            const file = e.dataTransfer.files?.[0] || null;
+                            if (file) handleFinancialImageChange(file);
+                          }}
+                          className={`p-3 bg-white dark:bg-[#141414] border-2 rounded-xl flex items-center justify-between gap-3 shadow-sm transition-all ${
+                            financialDragOver
+                              ? 'border-amber-500 bg-amber-50/50 ring-4 ring-amber-400/20 scale-[1.01]'
+                              : 'border-slate-200 dark:border-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div
+                              onClick={() => setFinancialPreviewImageUrl(financialRecord.imageUrl)}
+                              className="w-14 h-14 relative rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 cursor-pointer flex-shrink-0 group"
+                              title="Click to view full image"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={financialRecord.imageUrl}
+                                alt="Discovery Document"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
+                                <Eye className="w-4 h-4" />
+                              </div>
+                            </div>
+                            <div className="text-xs">
+                              <div className="font-semibold text-slate-800 dark:text-gray-100 flex items-center gap-1.5">
+                                <ImageIcon className="w-3.5 h-3.5 text-emerald-600" />
+                                Image Attached
+                              </div>
+                              <div className="text-slate-400 text-[11px] truncate max-w-[200px]">
+                                {financialDragOver ? (
+                                  <span className="text-amber-700 font-semibold animate-pulse">
+                                    Drop to replace image!
+                                  </span>
+                                ) : (
+                                  'Uploaded to Cloudinary (or drag new file to replace)'
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setFinancialPreviewImageUrl(financialRecord.imageUrl)}
+                                className="text-[11px] text-amber-600 hover:text-amber-700 font-medium underline mt-0.5 inline-block"
+                              >
+                                View Full Size
+                              </button>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-[#252525] cursor-pointer transition-colors shadow-sm">
+                              {uploadingFinancialImage ? (
+                                <>
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                                  Uploading...
+                                </>
+                              ) : (
+                                <>
+                                  <UploadCloud className="w-3.5 h-3.5 text-slate-500" />
+                                  Replace
+                                </>
+                              )}
+                              <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/webp,image/gif"
+                                className="hidden"
+                                disabled={uploadingFinancialImage}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0] || null;
+                                  handleFinancialImageChange(file);
+                                }}
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      ) : (
+                        <label
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!financialDragOver) setFinancialDragOver(true);
+                          }}
+                          onDragEnter={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setFinancialDragOver(true);
+                          }}
+                          onDragLeave={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setFinancialDragOver(false);
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setFinancialDragOver(false);
+                            const file = e.dataTransfer.files?.[0] || null;
+                            if (file) handleFinancialImageChange(file);
+                          }}
+                          className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all text-center ${
+                            financialDragOver
+                              ? 'border-amber-500 bg-amber-50/70 ring-4 ring-amber-400/20 scale-[1.01]'
+                              : 'border-slate-300 dark:border-slate-700 hover:border-amber-400 bg-white dark:bg-[#141414] hover:bg-amber-50/20'
+                          }`}
+                        >
+                          {uploadingFinancialImage ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin text-amber-500" />
+                              <span className="text-xs font-medium text-slate-600 dark:text-gray-300">Uploading to Cloudinary...</span>
+                            </>
+                          ) : financialDragOver ? (
+                            <>
+                              <div className="p-2 bg-amber-100 rounded-full text-amber-700 animate-bounce">
+                                <UploadCloud className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <span className="text-xs font-bold text-amber-800">
+                                  Drop Image to Upload
+                                </span>
+                                <span className="text-[11px] text-amber-600 block mt-0.5">
+                                  Validating fixed 5 MB size limit
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="p-1.5 bg-amber-50 dark:bg-amber-950/30 rounded-full text-amber-600">
+                                <UploadCloud className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <span className="text-xs font-semibold text-slate-800 dark:text-gray-200">
+                                  Drag & Drop Document / Card Image here
+                                </span>
+                                <span className="text-[11px] text-slate-400 block mt-0.5">
+                                  Or click to browse • Supports JPG, PNG, WebP (Max 5 MB)
+                                </span>
+                              </div>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,image/gif"
+                            className="hidden"
+                            disabled={uploadingFinancialImage}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0] || null;
+                              handleFinancialImageChange(file);
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Toolbar */}
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    {financialEdit.savedSuccess && (
+                      <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5" />
+                        Changes saved
+                      </span>
+                    )}
+                    {financialEdit.error && (
+                      <span className="text-xs text-rose-500 font-semibold flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        {financialEdit.error}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleSaveFinancialRecord}
+                      disabled={financialEdit.saving}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-600 text-white rounded-lg text-xs font-semibold disabled:opacity-50 transition-colors shadow-sm"
+                    >
+                      {financialEdit.saving ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-3.5 h-3.5" />
+                          Save Changes
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -2950,6 +3651,41 @@ export default function InvestorProfilePage({ params }: { params: { id: string }
           </div>
         );
       })()}
+
+      {/* Financial Document/Card Image Lightbox Modal */}
+      {financialPreviewImageUrl && (
+        <div
+          onClick={() => setFinancialPreviewImageUrl(null)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-4xl max-h-[90vh] bg-slate-900 rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+          >
+            <div className="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-white">
+              <span className="text-xs font-semibold flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-amber-400" />
+                Discovery Document Preview
+              </span>
+              <button
+                type="button"
+                onClick={() => setFinancialPreviewImageUrl(null)}
+                className="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-2 flex items-center justify-center overflow-auto max-h-[calc(90vh-60px)]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={financialPreviewImageUrl}
+                alt="Document Preview"
+                className="max-h-[80vh] w-auto object-contain rounded-lg shadow-md"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

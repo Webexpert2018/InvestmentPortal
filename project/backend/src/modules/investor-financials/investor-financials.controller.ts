@@ -25,6 +25,12 @@ export class InvestorFinancialsController {
     return this.service.searchRegisteredInvestors(query || '');
   }
 
+  @Get('by-investor/:investorId')
+  @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
+  findByInvestorId(@Param('investorId') investorId: string) {
+    return this.service.findByInvestorId(investorId);
+  }
+
   @Get(':id')
   @Roles('admin', 'executive_admin', 'fund_admin', 'investor_relations', 'accountant')
   findOne(@Param('id') id: string) {

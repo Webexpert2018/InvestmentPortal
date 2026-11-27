@@ -44,6 +44,36 @@ export class InvestorFinancialsService {
     return result.rows;
   }
 
+  async findByInvestorId(investorId: string) {
+    const result = await db.query(
+      `
+      SELECT 
+        f.id,
+        f.name,
+        f.email,
+        f.investor_id,
+        f.income::float as income,
+        f.expenses::float as expenses,
+        f.liability::float as liability,
+        f.assets::float as assets,
+        f.notes,
+        f.image_url as "imageUrl",
+        f.created_at as "createdAt",
+        f.updated_at as "updatedAt",
+        i.full_name as "investorName",
+        i.email as "investorEmail"
+      FROM investor_financials f
+      LEFT JOIN investors i ON f.investor_id = i.id
+      WHERE f.investor_id = $1
+      ORDER BY f.created_at DESC
+      LIMIT 1
+      `,
+      [investorId]
+    );
+
+    return result.rows[0] || null;
+  }
+
   async findOne(id: string) {
     const result = await db.query(
       `

@@ -2025,6 +2025,10 @@ class ApiClient {
     return this.request<any>(`/investor-financials/${id}`);
   }
 
+  async getInvestorFinancialByInvestorId(investorId: string) {
+    return this.request<any>(`/investor-financials/by-investor/${investorId}`);
+  }
+
   async createInvestorFinancial(data: {
     name?: string | null;
     email?: string | null;
