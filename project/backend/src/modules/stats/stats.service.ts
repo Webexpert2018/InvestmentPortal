@@ -276,12 +276,13 @@ export class StatsService {
 
   async getInvestorPerformance(userId: string, months: number = 12) {
     try {
-      // 1. Get all NAV history
+      // 1. Get non-draft NAV history
       const navHistory = await db.query(
         `SELECT effective_date, nav_per_unit 
          FROM fund_nav_history 
-         WHERE effective_date >= NOW() - ($1 || ' months')::INTERVAL
-         ORDER BY effective_date ASC`,
+         WHERE LOWER(status) IN ('active', 'inactive')
+           AND effective_date >= NOW() - ($1 || ' months')::INTERVAL
+         ORDER BY effective_date ASC, created_at ASC`,
         [months.toString()]
       );
 
@@ -321,11 +322,12 @@ export class StatsService {
         [userId, months.toString()]
       );
 
-      // 4. Get the latest NAV before the interval start
+      // 4. Get the latest NAV before the interval start (excluding draft)
       const initialNavResult = await db.query(
         `SELECT nav_per_unit FROM fund_nav_history 
-         WHERE effective_date < NOW() - ($1 || ' months')::INTERVAL
-         ORDER BY effective_date DESC LIMIT 1`,
+         WHERE LOWER(status) IN ('active', 'inactive')
+           AND effective_date < NOW() - ($1 || ' months')::INTERVAL
+         ORDER BY effective_date DESC, created_at DESC LIMIT 1`,
         [months.toString()]
       );
       let currentNav = initialNavResult.rows[0] ? parseFloat(initialNavResult.rows[0].nav_per_unit) : 0;
@@ -386,6 +388,7 @@ export class StatsService {
         date: startDate.toISOString(),
         totalInvested: currentInvested,
         currentValue: currentUnits * currentNav,
+        navValue: currentNav,
       });
 
       for (const event of allEvents as any[]) {
@@ -403,12 +406,13 @@ export class StatsService {
           date: event.date.toISOString(),
           totalInvested: currentInvested,
           currentValue: currentUnits * currentNav,
+          navValue: currentNav,
         });
       }
 
-      // Add a final point for "today" using the absolute latest NAV
+      // Add a final point for "today" using the absolute latest active NAV
       const latestNavResult = await db.query(
-        "SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC LIMIT 1"
+        "SELECT nav_per_unit FROM fund_nav_history WHERE status = 'active' ORDER BY effective_date DESC, created_at DESC LIMIT 1"
       );
       const latestNav = latestNavResult.rows[0] ? parseFloat(latestNavResult.rows[0].nav_per_unit) : currentNav;
 
@@ -417,6 +421,7 @@ export class StatsService {
         date: now,
         totalInvested: currentInvested,
         currentValue: currentUnits * latestNav,
+        navValue: latestNav,
       });
 
       return dataPoints;

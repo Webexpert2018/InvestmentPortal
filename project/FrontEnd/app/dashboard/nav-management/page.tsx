@@ -16,7 +16,9 @@ import {
 } from '@/components/ui/select';
 import {
   AreaChart,
+  ComposedChart,
   Area,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -41,7 +43,7 @@ export default function NAVManagementPage() {
   const [history, setHistory] = useState<any[]>([]);
   const [performance, setPerformance] = useState<any[]>([]);
   const [btcPerformance, setBtcPerformance] = useState<any[]>([]);
-   const [btcTableData, setBtcTableData] = useState<any[]>([]);
+  const [btcTableData, setBtcTableData] = useState<any[]>([]);
   const [navRange, setNavRange] = useState('12'); // '12' = Last year by default
   const [btcRange, setBtcRange] = useState('6');
   const [tableSort, setTableSort] = useState<'status_asc' | 'status_desc' | 'date_desc' | 'date_asc'>('status_asc');
@@ -337,10 +339,10 @@ export default function NAVManagementPage() {
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 p-5 border-b">Performance Overview</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Fund Value Growth */}
+            {/* Fund Contribution Growth */}
             <div className="bg-white dark:bg-[#1C1C1C] rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Fund Value Growth</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Fund Growth</h3>
                 <Select value={navRange} onValueChange={setNavRange}>
                   <SelectTrigger className="w-[140px] h-8 text-xs border-gray-200 dark:border-gray-800 rounded-full">
                     <SelectValue placeholder="Time Range" />
@@ -355,9 +357,21 @@ export default function NAVManagementPage() {
               </div>
 
               <div className="mb-4">
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(fundStats.value)}
-                </p>
+                <div className="flex items-baseline justify-between">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(fundStats.value)}
+                  </p>
+                  <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#FCD34D]"></span>
+                      Fund Contribution
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#60A5FA]"></span>
+                      NAV Value
+                    </span>
+                  </div>
+                </div>
                 <p className={`text-sm ${fundStats.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {fundStats.range} {fundStats.change >= 0 ? '+' : ''}{fundStats.change.toFixed(1)}%
                 </p>
@@ -365,7 +379,7 @@ export default function NAVManagementPage() {
 
               <div className="h-48 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={performance}>
+                  <ComposedChart data={performance}>
                     <defs>
                       <linearGradient id="fundValueGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#FCD34D" stopOpacity={0.3} />
@@ -389,17 +403,30 @@ export default function NAVManagementPage() {
                       stroke="#9CA3AF"
                       dy={10}
                     />
+                    <YAxis yAxisId="fundValue" hide domain={['auto', 'auto']} />
+                    <YAxis yAxisId="navValue" orientation="right" hide domain={['auto', 'auto']} />
                     <Tooltip
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
+                          const fundVal = payload.find((p: any) => p.dataKey === 'value')?.value;
+                          const navVal = payload.find((p: any) => p.dataKey === 'navValue')?.value;
                           return (
                             <div className="bg-white dark:bg-[#1C1C1C] p-3 border border-gray-100 dark:border-gray-800 shadow-xl rounded-xl">
-                              <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">
+                              <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold mb-1.5">
                                 {new Date(payload[0].payload.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                               </p>
-                              <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                                Fund Value: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(payload[0].value))}
-                              </p>
+                              {fundVal !== undefined && (
+                                <p className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-full bg-[#FCD34D] inline-block"></span>
+                                  Fund Contribution: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(fundVal))}
+                                </p>
+                              )}
+                              {navVal !== undefined && navVal !== null && (
+                                <p className="text-sm font-bold text-[#60A5FA] flex items-center gap-1.5 mt-1">
+                                  <span className="w-2 h-2 rounded-full bg-[#60A5FA] inline-block"></span>
+                                  NAV Value: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(navVal))}
+                                </p>
+                              )}
                             </div>
                           );
                         }
@@ -407,14 +434,26 @@ export default function NAVManagementPage() {
                       }}
                     />
                     <Area
+                      yAxisId="fundValue"
                       type="monotone"
                       dataKey="value"
+                      name="Fund Contribution"
                       stroke="#FCD34D"
-                      strokeWidth={3}
+                      strokeWidth={2.5}
                       fillOpacity={1}
                       fill="url(#fundValueGradient)"
                     />
-                  </AreaChart>
+                    <Line
+                      yAxisId="navValue"
+                      type="monotone"
+                      dataKey="navValue"
+                      name="NAV Value"
+                      stroke="#60A5FA"
+                      strokeWidth={2}
+                      dot={{ r: 2.5, fill: '#60A5FA' }}
+                      activeDot={{ r: 4.5, fill: '#60A5FA' }}
+                    />
+                  </ComposedChart>
                 </ResponsiveContainer>
               </div>
             </div>
@@ -509,7 +548,7 @@ export default function NAVManagementPage() {
             <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4 flex-wrap">
                 <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">NAV History</h3>
-                
+
                 {/* Status Filter Pills */}
                 <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/60 p-1 rounded-xl">
                   {(['All', 'Published', 'Draft', 'Inactive'] as const).map((st) => (
@@ -517,11 +556,10 @@ export default function NAVManagementPage() {
                       key={st}
                       type="button"
                       onClick={() => setStatusFilter(st)}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                        statusFilter === st
-                          ? 'bg-white dark:bg-[#1C1C1C] text-gray-900 dark:text-gray-100 shadow-xs'
-                          : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
-                      }`}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${statusFilter === st
+                        ? 'bg-white dark:bg-[#1C1C1C] text-gray-900 dark:text-gray-100 shadow-xs'
+                        : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
+                        }`}
                     >
                       {st}
                     </button>
@@ -550,7 +588,7 @@ export default function NAVManagementPage() {
                 <thead className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
                   <tr>
                     <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Quarter</th>
-                    <th 
+                    <th
                       onClick={() => setTableSort(prev => prev === 'date_desc' ? 'date_asc' : 'date_desc')}
                       className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 select-none group"
                     >
@@ -569,11 +607,11 @@ export default function NAVManagementPage() {
                     <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Fund Value</th>
                     <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Total Units</th>
                     <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">$/sh per unit</th>
-                    <th 
+                    <th
                       onClick={() => setTableSort(prev => prev === 'status_asc' ? 'status_desc' : 'status_asc')}
                       className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 select-none group"
                     >
-                      <div 
+                      <div
                         className="flex items-center gap-1.5"
                         title={tableSort === 'status_asc' ? 'Published First' : tableSort === 'status_desc' ? 'Inactive First' : 'Click to sort by status'}
                       >

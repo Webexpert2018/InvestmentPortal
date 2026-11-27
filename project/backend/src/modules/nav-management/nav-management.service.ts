@@ -234,53 +234,108 @@ export class NavManagementService {
   }
 
   async getPerformance(months: number = 12) {
+    const safeMonths = Math.max(1, Math.min(120, Number(months) || 12));
+
     const result = await db.query(
-      `WITH cumulative_investments AS (
+      `WITH valid_nav AS (
+        SELECT 
+          effective_date::date as date,
+          nav_per_unit::float as nav_value,
+          created_at
+        FROM fund_nav_history
+        WHERE LOWER(status) IN ('active', 'inactive')
+      ),
+      reconciled_events AS (
         SELECT 
           created_at::date as date,
-          SUM(investment_amount) OVER (ORDER BY created_at ASC) as cumulative_amount
+          estimated_units as units_change
         FROM investments
-      ),
-      prior_baseline AS (
+        WHERE is_reconciled = true
+        
+        UNION ALL
+        
         SELECT 
-          (NOW() - INTERVAL '${months} months')::date as date,
-          COALESCE(MAX(cumulative_amount), 0) as value
-        FROM cumulative_investments
-        WHERE date < (NOW() - INTERVAL '${months} months')::date
+          created_at::date as date,
+          -units as units_change
+        FROM redemptions
+        WHERE is_reconciled = true
       ),
-      period_points AS (
+      all_dates AS (
+        SELECT date FROM valid_nav
+        UNION
+        SELECT date FROM reconciled_events
+        UNION
+        SELECT CURRENT_DATE as date
+        UNION
+        SELECT (CURRENT_DATE - ($1 || ' months')::interval)::date as date
+      ),
+      daily_timeline AS (
         SELECT 
           date,
-          MAX(cumulative_amount) as value
-        FROM cumulative_investments
-        WHERE date >= (NOW() - INTERVAL '${months} months')::date
+          SUM(units_change) as daily_units
+        FROM reconciled_events
         GROUP BY date
+      ),
+      cumulative_timeline AS (
+        SELECT 
+          d.date,
+          COALESCE(
+            (SELECT SUM(daily_units) FROM daily_timeline WHERE date <= d.date),
+            0
+          ) as cumulative_units
+        FROM all_dates d
+      ),
+      timeline_with_nav AS (
+        SELECT 
+          c.date,
+          c.cumulative_units,
+          (
+            SELECT nav_value 
+            FROM valid_nav vn 
+            WHERE vn.date <= c.date 
+            ORDER BY vn.date DESC, vn.created_at DESC 
+            LIMIT 1
+          ) as nav_value,
+          (
+            SELECT nav_per_unit::float 
+            FROM fund_nav_history 
+            WHERE status = 'active' 
+            ORDER BY effective_date DESC 
+            LIMIT 1
+          ) as active_nav
+        FROM cumulative_timeline c
       )
-      SELECT date, value FROM (
-        SELECT date, value FROM prior_baseline WHERE value > 0
-        UNION ALL
-        SELECT date, value FROM period_points
-      ) combined
-      ORDER BY date ASC`
+      SELECT 
+        t.date::text as date,
+        ROUND((t.cumulative_units * COALESCE(t.active_nav, 0))::numeric, 2)::float as value,
+        COALESCE(t.nav_value, t.active_nav, 0)::float as nav_value
+      FROM timeline_with_nav t
+      WHERE t.date >= (CURRENT_DATE - ($1 || ' months')::interval)::date
+        AND t.date <= CURRENT_DATE
+      ORDER BY t.date ASC`,
+      [safeMonths.toString()]
     );
 
     if (result.rows.length === 0) {
       const fallback = await db.query(
-        `SELECT effective_date as date, total_fund_value as value
+        `SELECT effective_date::text as date, total_fund_value as value, nav_per_unit as nav_value
          FROM fund_nav_history 
-         WHERE (status = 'active' OR status = 'published')
-           AND effective_date >= NOW() - INTERVAL '${months} months'
-         ORDER BY effective_date ASC`
+         WHERE LOWER(status) IN ('active', 'inactive')
+           AND effective_date >= NOW() - ($1 || ' months')::interval
+         ORDER BY effective_date ASC`,
+        [safeMonths.toString()]
       );
       return fallback.rows.map(row => ({
         date: row.date,
-        value: parseFloat(row.value) || 0
+        value: parseFloat(row.value) || 0,
+        navValue: parseFloat(row.nav_value) || 0,
       }));
     }
 
     return result.rows.map(row => ({
       date: row.date,
-      value: parseFloat(row.value) || 0
+      value: parseFloat(row.value) || 0,
+      navValue: parseFloat(row.nav_value) || 0,
     }));
   }
 }

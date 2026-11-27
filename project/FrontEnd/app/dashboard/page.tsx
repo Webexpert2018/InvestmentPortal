@@ -15,7 +15,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 import { MoreVertical, ChevronDown, ChevronRight } from 'lucide-react';
 import { setInvestorKycStatus } from '@/lib/mock/kycStatus';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, ComposedChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import {
   Select,
   SelectContent,
@@ -725,7 +725,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Main content grid */}
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,2.5fr)_minmax(0,1.1fr)]">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_260px]">
             {/* Performance Overview */}
             <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-6 shadow-sm">
               <div className="flex items-center justify-between">
@@ -750,10 +750,24 @@ export default function DashboardPage() {
                 </Select>
               </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-                <div className="h-32 w-full rounded-2xl bg-[#FFF9EE] dark:bg-[#262626] p-2">
+              <div className="mt-6">
+                <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#F3C046]"></span>
+                    Current Value
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#94A3B8]"></span>
+                    Total Invested
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#60A5FA]"></span>
+                    NAV Growth
+                  </span>
+                </div>
+                <div className="h-60 sm:h-64 w-full rounded-2xl bg-[#FFF9EE] dark:bg-[#262626] p-3 sm:p-4">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={performanceData}>
+                    <ComposedChart data={performanceData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#F3C046" stopOpacity={0.3} />
@@ -763,7 +777,7 @@ export default function DashboardPage() {
                       <XAxis
                         dataKey="date"
                         xAxisId={0}
-                        fontSize={8}
+                        fontSize={9}
                         tickFormatter={(str) => {
                           const date = new Date(str);
                           if (parseInt(timeRange) <= 1) return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
@@ -774,14 +788,32 @@ export default function DashboardPage() {
                         minTickGap={30}
                         stroke="#A0A0A0"
                       />
+                      <YAxis yAxisId="val" hide domain={['auto', 'auto']} />
+                      <YAxis yAxisId="nav" orientation="right" hide domain={['auto', 'auto']} />
                       <Tooltip
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
+                            const p0 = payload[0].payload;
+                            const currentVal = p0.currentValue;
+                            const investedVal = p0.totalInvested;
+                            const navVal = p0.navValue;
                             return (
-                              <div className="bg-white dark:bg-[#1C1C1C] p-2 border border-gray-100 dark:border-gray-800 shadow-sm rounded-lg text-[10px]">
-                                <p className="font-medium">{new Date(payload[0].payload.date).toLocaleDateString()}</p>
-                                <p className="text-[#F3C046] font-semibold">Value: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payload[0].value as number)}</p>
-                                <p className="text-gray-400">Invested: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(payload[0].payload.totalInvested)}</p>
+                              <div className="bg-white dark:bg-[#1C1C1C] p-2.5 border border-gray-100 dark:border-gray-800 shadow-lg rounded-xl text-[11px] space-y-1">
+                                <p className="font-semibold text-gray-500 dark:text-gray-400">{new Date(p0.date).toLocaleDateString()}</p>
+                                <p className="text-[#E29F3A] font-bold flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-full bg-[#F3C046]"></span>
+                                  Value: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(currentVal)}
+                                </p>
+                                <p className="text-[#64748B] dark:text-[#94A3B8] font-semibold flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-full bg-[#94A3B8]"></span>
+                                  Invested: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investedVal)}
+                                </p>
+                                {navVal !== undefined && navVal !== null && (
+                                  <p className="text-[#60A5FA] font-semibold flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-[#60A5FA]"></span>
+                                    NAV: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(navVal)}
+                                  </p>
+                                )}
                               </div>
                             );
                           }
@@ -789,72 +821,65 @@ export default function DashboardPage() {
                         }}
                       />
                       <Area
+                        yAxisId="val"
                         type="monotone"
                         dataKey="currentValue"
+                        name="Current Value"
                         stroke="#F3C046"
                         fillOpacity={1}
                         fill="url(#colorValue)"
                         strokeWidth={2}
                       />
-                      <Area
+                      <Line
+                        yAxisId="val"
                         type="stepAfter"
                         dataKey="totalInvested"
-                        stroke="#A0A0A0"
-                        fill="none"
-                        strokeWidth={1}
-                        strokeDasharray="3 3"
+                        name="Total Invested"
+                        stroke="#94A3B8"
+                        strokeWidth={2}
+                        dot={false}
                       />
-                    </AreaChart>
+                      <Line
+                        yAxisId="nav"
+                        type="monotone"
+                        dataKey="navValue"
+                        name="NAV Growth"
+                        stroke="#60A5FA"
+                        strokeWidth={2}
+                        dot={{ r: 2.5, fill: '#60A5FA' }}
+                        activeDot={{ r: 4.5, fill: '#60A5FA' }}
+                      />
+                    </ComposedChart>
                   </ResponsiveContainer>
-                </div>
-                <div className="space-y-3 text-sm text-[#4B4B4B] dark:text-gray-300">
-                  <div>
-                    <p className="text-xs text-[#A0A0A0]">Total Return %</p>
-                    <p className={`mt-1 text-sm font-semibold ${investorStats.ytdReturn >= 0 ? 'text-[#2BB673]' : 'text-red-500'}`}>
-                      {investorStats.ytdReturn >= 0 ? '↑' : '↓'} {Math.abs(investorStats.ytdReturn).toFixed(2)}%
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <p className="text-[#A0A0A0]">Total Invested</p>
-                      <p className="mt-1 font-medium text-[#1F1F1F] dark:text-gray-100">
-                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.totalInvested)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[#A0A0A0]">Current NAV</p>
-                      <p className="mt-1 font-medium text-[#1F1F1F] dark:text-gray-100">
-                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(investorStats.currentNav)}
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="space-y-6">
-              <div className="rounded-2xl bg-white dark:bg-[#1C1C1C] p-6 shadow-sm">
-                <h2 className="font-goudy text-base">Quick Actions</h2>
-                <p className="mt-2 text-xs text-[#8E8E93]">
-                  Common actions to manage your investments and get support quickly.
-                </p>
-                <div className="mt-5 space-y-3">
+            <div className="h-full">
+              <div className="h-full rounded-2xl bg-white dark:bg-[#1C1C1C] p-6 shadow-sm flex flex-col">
+                <div>
+                  <h2 className="font-goudy text-base">Quick Actions</h2>
+                  <p className="mt-1.5 text-xs text-[#8E8E93]">
+                    Common actions to manage your investments and get support quickly.
+                  </p>
+                </div>
+                <div className="flex-1 flex flex-col justify-center gap-3.5 my-auto py-4">
                   <Link
                     href="/dashboard/invest"
-                    className="block w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-3 text-center text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
+                    className="block w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-center text-xs font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
                   >
                     Invest
                   </Link>
                   <Link
                     href="/dashboard/messages"
-                    className="block w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-3 text-center text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
+                    className="block w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-center text-xs font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
                   >
                     Messages
                   </Link>
                   <Link
                     href="/dashboard/schedule-meeting"
-                    className="block w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-3 text-center text-sm font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
+                    className="block w-full rounded-full bg-[#FFF3D6] dark:bg-amber-950/40 py-2.5 text-center text-xs font-semibold text-[#E29F3A] dark:text-amber-400 hover:bg-[#FFE7AF] dark:hover:bg-amber-900/60 transition-colors"
                   >
                     Schedule Meeting
                   </Link>
