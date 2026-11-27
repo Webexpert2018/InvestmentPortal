@@ -14,6 +14,10 @@ import { format } from 'date-fns';
 export default function NAVEntryPage() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [summary, setSummary] = useState<any>(null);
+  const [adminStats, setAdminStats] = useState<any>(null);
+  const [btcPerformance, setBtcPerformance] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [confirmationChecked, setConfirmationChecked] = useState(false);
@@ -27,7 +31,77 @@ export default function NAVEntryPage() {
 
   useEffect(() => {
     fetchHistory();
+    fetchStatsData();
+    fetchBtcPerformance();
   }, []);
+
+  const fetchStatsData = async () => {
+    try {
+      setLoadingStats(true);
+      const [summaryRes, adminStatsRes] = await Promise.all([
+        apiClient.getNavSummary().catch(() => null),
+        apiClient.getAdminStats().catch(() => null),
+      ]);
+      if (summaryRes) setSummary(summaryRes);
+      if (adminStatsRes) setAdminStats(adminStatsRes);
+    } catch (error) {
+      console.error('Error fetching NAV stats data:', error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  const fetchBtcPerformance = async () => {
+    try {
+      const days = 180;
+      const btcRes = await fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}&interval=daily`);
+      const btcData = await btcRes.json();
+
+      if (btcData.prices) {
+        const mappedBtc = btcData.prices.map((p: any) => ({
+          date: new Date(p[0]).toISOString(),
+          value: p[1],
+        }));
+        setBtcPerformance(mappedBtc);
+      }
+    } catch (btcErr) {
+      console.error('Error fetching live BTC data:', btcErr);
+    }
+  };
+
+  const formatCurrency = (value: number) => {
+    if (value >= 1000000) {
+      return `$${(value / 1000000).toFixed(2)}M`;
+    }
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const getBtcStats = () => {
+    if (btcPerformance.length < 2) return { value: 0, change: 0 };
+    const latest = btcPerformance[btcPerformance.length - 1].value;
+    const thirtyDaysAgo = btcPerformance[Math.max(0, btcPerformance.length - 31)].value;
+    const change = ((latest - thirtyDaysAgo) / thirtyDaysAgo) * 100;
+    return { value: latest, change };
+  };
+
+  const btcStats = getBtcStats();
+
+  const totalUnitsVal = adminStats?.totalUnits ?? summary?.totalUnits ?? 0;
+  const totalInvestmentsVal = adminStats?.totalInvestmentValue ?? summary?.totalInvestments ?? 0;
+
+  const stats = [
+    { label: 'Current NAV', value: summary ? `$${summary.currentNav.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00' },
+    { label: 'Total Units', value: Number(totalUnitsVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) },
+    { label: 'Total Investments', value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(totalInvestmentsVal)) },
+    { label: 'Total Fund Value', value: summary ? formatCurrency(summary.totalFundValue) : '$0.00' },
+    { label: '30-Day BTC Trend', value: btcStats.change ? `${btcStats.change >= 0 ? '+' : ''}${btcStats.change.toFixed(1)}%` : '+0.0%', isPositive: btcStats.change >= 0 },
+    { label: 'Investor Count', value: summary ? summary.investorCount.toLocaleString() : '0' },
+  ];
 
   const fetchHistory = async () => {
     try {
@@ -137,6 +211,24 @@ export default function NAVEntryPage() {
             <ChevronLeft className="h-5 w-5 mr-1" />
             <span className="font-medium">Quarterly NAV Entry</span>
           </button>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6 mb-8">
+          {loadingStats ? (
+            <div className="col-span-full flex justify-center py-12">
+              <Loader2 className="h-8 w-8 text-[#1F3B6E] animate-spin" />
+            </div>
+          ) : (
+            stats.map((stat, index) => (
+              <div key={index} className="bg-white dark:bg-[#1C1C1C] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 sm:p-6 transition-all hover:shadow-md">
+                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2 truncate">{stat.label}</p>
+                <p className={`text-xl sm:text-2xl lg:text-[26px] font-bold truncate ${stat.isPositive ? 'text-green-600' : 'text-gray-900 dark:text-gray-100'}`} title={stat.value}>
+                  {stat.value}
+                </p>
+              </div>
+            ))
+          )}
         </div>
 
         <div className="mb-8">
